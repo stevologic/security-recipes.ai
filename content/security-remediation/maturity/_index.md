@@ -80,7 +80,7 @@ eyes* on every run.
 **Posture:**
 
 - One workflow, one repo, scheduled (hourly for SDE, on-advisory
-  for SCA, per-deploy for pentest).
+  for SCA).
 - A **named pilot team** reviews every PR and triage note.
 - Weekly retros on the prompt, the guardrails, and any false
   positives.

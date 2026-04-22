@@ -37,7 +37,7 @@ just the mean — the p50, p90, and p99 tell three different stories.
   manual baseline for the same finding class.
 - **Per severity.** Critical / High / Medium / Low curves should
   diverge. If they don't, the triage gate isn't working.
-- **Per workflow.** SCA, SDE, SAST, pentest — one curve each.
+- **Per workflow.** SCA, SDE, SAST — one curve per remediation class.
 
 ### 2. Agent acceptance rate
 
@@ -86,8 +86,8 @@ line item.
 - **LLM cost per finding** — tokens × price, attributed to the
   workflow.
 - **Reviewer cost per finding** — reviewer minutes × loaded rate.
-- **Platform cost** — agentic pen-test seats, MCP gateway
-  infrastructure, observability.
+- **Platform cost** — MCP gateway infrastructure, sandbox runtime
+  seats, observability.
 - **Avoided cost** — engineer-hours saved vs. the manual baseline.
   Subtract the three costs above from this to get the net.
 

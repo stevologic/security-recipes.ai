@@ -34,8 +34,8 @@ a human reviewer loop:
    which arguments. A compromised model (via input) can weaponise
    any tool it has access to.
 3. **Tool → downstream system.** Every tool call is a call into a
-   real system — a registry, a repo, a ticket system, a prod
-   endpoint in the pen-test case. The tool's own auth boundary is
+   real system — a registry, a repo, a ticket system, a staging
+   endpoint during reproduction. The tool's own auth boundary is
    your last line of defense.
 
 Most agent vulnerabilities compromise boundary #1 to abuse #2 to
@@ -110,8 +110,8 @@ registry pushes, ticket mass-closure, shell commands.
 **Mitigations:**
 
 - **Tool allowlists per task class.** SCA runs do not need a shell
-  tool. SDE runs do not need outbound HTTP. Pentest runs do not
-  need write access to any repo. Scope per workflow.
+  tool. SDE runs do not need outbound HTTP. Read-only audit runs
+  do not need write access to any repo. Scope per workflow.
 - **Per-run credentials.** Short-lived, scoped tokens. A run that
   completes cleanly returns a token that is already expired.
 - **Path allowlists on file-write tools.** The `write_file` tool

@@ -305,8 +305,8 @@ additional pieces in roughly this order:
 3. **Enable deterministic automation** alongside the agent —
    Dependabot, Gitleaks, Earlybird, Trivy. See
    [Automation]({{< relref "/automation" >}}).
-4. **Pick a reference workflow** — SDE, vulnerable deps, or
-   pen testing — and pilot it. See
+4. **Pick a reference workflow** — SDE remediation or
+   vulnerable-dependency remediation — and pilot it. See
    [Security Remediation]({{< relref "/security-remediation" >}}).
 5. **Read the reviewer playbook** so the humans on the other
    side of the PR are consistent. See

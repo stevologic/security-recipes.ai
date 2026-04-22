@@ -724,33 +724,41 @@ html:not(.dark) .mermaid-modal__close {
 
 /* ---------- 12. Navbar dropdown triggers ---------------------------------- */
 /*
-   nav-enhance.js converts Fundamentals / Agents / Prompt Library /
-   Security Remediation into clickable link-triggers that also open their
-   dropdown on hover. The rules below (a) give those triggers the same
-   hover/active colour treatment a regular top-nav link has, and (b) create
-   a small invisible "hover-bridge" below the trigger so the cursor can
-   glide diagonally down into the dropdown panel without breaking hover.
+   nav-enhance.js replaces the <button> trigger for Fundamentals / Agents /
+   Prompt Library / Security Remediation with a real <a data-nav-dropdown>
+   that navigates to the section landing page on click, and opens the
+   section's dropdown on hover (desktop only). The rules below:
+     - Match the anchor's hover / open state to the accent colour the rest
+       of the nav uses, so the new links feel native to Hextra.
+     - Paint an invisible "hover-bridge" below an open trigger so the
+       cursor can move diagonally into the panel without breaking hover.
 */
-.nextra-nav-container nav button[role="link"][data-nav-href] {
+.nextra-nav-container nav a[data-nav-dropdown],
+header nav a[data-nav-dropdown] {
   cursor: pointer;
   position: relative;
+  text-decoration: none;
 }
 
-.dark .nextra-nav-container nav button[role="link"][data-nav-href]:hover,
-.dark .nextra-nav-container nav button[role="link"][data-nav-href][aria-expanded="true"] {
+.dark .nextra-nav-container nav a[data-nav-dropdown]:hover,
+.dark .nextra-nav-container nav a[data-nav-dropdown][data-nav-open="1"],
+.dark header nav a[data-nav-dropdown]:hover,
+.dark header nav a[data-nav-dropdown][data-nav-open="1"] {
   color: var(--arr-accent-2);
 }
 
-.nextra-nav-container nav button[role="link"][data-nav-href]:focus-visible {
+.nextra-nav-container nav a[data-nav-dropdown]:focus-visible,
+header nav a[data-nav-dropdown]:focus-visible {
   outline: 2px solid var(--arr-accent-2);
   outline-offset: 3px;
   border-radius: 6px;
 }
 
-/* Invisible hover-bridge between the trigger and the panel. Only painted
-   when the trigger's own dropdown is open, so it can't accidentally
-   capture hover for adjacent menu items. */
-.nextra-nav-container nav button[role="link"][data-nav-href][aria-expanded="true"]::after {
+/* Invisible hover-bridge between the open trigger and the panel. Only
+   painted when the trigger has data-nav-open, so adjacent closed menus
+   can't accidentally capture hover. */
+.nextra-nav-container nav a[data-nav-dropdown][data-nav-open="1"]::after,
+header nav a[data-nav-dropdown][data-nav-open="1"]::after {
   content: "";
   position: absolute;
   left: -4px;

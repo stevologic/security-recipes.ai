@@ -35,16 +35,41 @@
 {{ end }}
 
 {{/*
-  Expose Hugo's baseURL to JS so nav-enhance.js can build absolute links
-  whether the site is served at / (local dev) or /<repo>/ (GitHub Pages).
+  Nav route map — keyed by menu Name, values are site-relative URLs
+  resolved by Hugo from each menu entry's pageRef. Emitting this at
+  build time (rather than computing in JS from site.BaseURL) keeps the
+  URLs correct across every deploy target:
+    - Docker localhost (--baseURL=http://localhost/)   → "/agents/"
+    - GitHub Pages subpath                              → "/<repo>/agents/"
+    - Custom domain at root                             → "/agents/"
+  and — crucially — port-agnostic, so `docker run -p 3000:80` works even
+  though the built-in baseURL uses port 80.
+
+  Only entries with params.type: menu are emitted — those are the
+  dropdown triggers that nav-enhance.js needs to rewrite into anchors.
 */}}
-<script>window.HUGO_BASE_URL = {{ site.BaseURL | jsonify }};</script>
+<script>
+window.__NAV_ROUTES = (function () {
+  var r = {};
+  {{- range site.Menus.main -}}
+    {{- if eq (.Params.type | default "") "menu" -}}
+      {{- $name := .Name -}}
+      {{- $url := .URL -}}
+      {{- with site.GetPage .PageRef -}}
+        {{- $url = .RelPermalink -}}
+      {{- end }}
+  r[{{ $name | jsonify }}] = {{ $url | jsonify }};
+    {{- end -}}
+  {{- end }}
+  return r;
+})();
+</script>
 
 {{/*
-  Navbar enhancement — makes Fundamentals / Agents / Prompt Library /
-  Security Remediation clickable as links to their section landing pages,
-  and opens their dropdowns on hover. See assets/js/nav-enhance.js for
-  the full rationale.
+  Navbar enhancement — replaces each dropdown trigger <button> with a
+  real <a> (so the title itself navigates on click / middle-click /
+  cmd-click, and is announced as a link to screen readers), and opens
+  the dropdown on hover. See assets/js/nav-enhance.js for rationale.
 */}}
 {{ with resources.Get "js/nav-enhance.js" | minify | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>

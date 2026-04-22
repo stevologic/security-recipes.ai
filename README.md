@@ -51,8 +51,8 @@ and ships with:
   write-up on MCP gateways (when and why to put one in front of your
   connectors).
 - **Agentic Security Remediation** — reference workflows a security
-  team can operate on engineering's behalf: Sensitive Data Element,
-  Vulnerable Dependency, and Agentic Penetration Testing.
+  team can operate on engineering's behalf: Sensitive Data Element
+  and Vulnerable Dependency remediation.
 - **Automation, not agentic** — what deterministic tooling still does
   best, and where agents should *not* replace it.
 - **Contribute** — fork-and-PR guide for adding recipes, prompts, or
@@ -144,8 +144,7 @@ hugo-site/
 │   ├── security-remediation/
 │   │   ├── _index.md               # Security team workflow overview
 │   │   ├── sensitive-data/         # SDE remediation workflow
-│   │   ├── vulnerable-dependencies/# Dep remediation workflow
-│   │   └── penetration-testing/    # Agentic pen testing 
+│   │   └── vulnerable-dependencies/# Dep remediation workflow
 │   ├── automation/_index.md        # Automation, not agentic
 │   └── contribute/_index.md        # How to submit recipes/prompts
 ├── layouts/
@@ -176,7 +175,7 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 | **Agents** | Per-tool recipes for GitHub Copilot, Claude, Cursor, Codex, Devin — each with Install → Configure → Dispatch → Guardrails, plus General and Enterprise onboarding. |
 | **Prompt Library** | Tool-agnostic prompts under `general/` (OWASP Top 10 2026 audit, OWASP Top 10 2026 remediate) plus per-tool prompts for CVE triage, vulnerable deps, and SDE remediation. |
 | **MCP Servers** | Why MCP exists; connector catalog (risk, ownership, ticket, knowledge, code, observability); MCP gateway patterns; integration on-ramp. |
-| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable deps, agentic pen testing. Each page describes the orchestration spine, guardrails, and what the workflow won't catch. Plus program metrics, reviewer playbook, rollout maturity model, compliance mapping. |
+| **Security Remediation** | Reference workflows a security team can operate: SDE and vulnerable deps. Each page describes the orchestration spine, guardrails, and what the workflow won't catch. Plus program metrics, reviewer playbook, rollout maturity model, compliance mapping. |
 | **Automation** | The "just use a linter" checklist — deterministic automation that earns its keep before an agent ever runs. |
 | **Contribute** | How to add a recipe, a prompt, or a new workflow. |
 

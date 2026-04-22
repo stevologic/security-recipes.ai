@@ -45,7 +45,6 @@ Before a workflow lands here, it has to satisfy four tests:
 {{< cards >}}
   {{< card link="/security-remediation/sensitive-data/" title="Sensitive Data Element Remediation" subtitle="Detect and redact unexpected PII / secrets appearing in logs, schemas, and shared configs." >}}
   {{< card link="/security-remediation/vulnerable-dependencies/" title="Vulnerable Dependency Remediation" subtitle="Bump transitive and direct dependencies in response to CVEs and Dependabot advisories." >}}
-  {{< card link="/security-remediation/penetration-testing/" title="Agentic Penetration Testing" subtitle="An emerging InfoSec capability: autonomous recon, scoped fuzzing, and auth / IDOR / SSRF walk-throughs against pre-production targets — findings returned as triage tickets." >}}
 {{< /cards >}}
 
 ## Program operations

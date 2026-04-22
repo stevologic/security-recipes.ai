@@ -142,11 +142,10 @@ Separately from the recipes above, a **security team can operate
 its own agentic workflows** to drive down risk without asking
 every engineering team to stand up their own. The reference
 workflows on this site cover **sensitive data element (SDE)
-remediation**, **vulnerable dependency remediation**, and
-**agentic penetration testing**. The PRs that come out of these
-carry an auto-remediation label (the site uses
-`sec-auto-remediation` as the illustrative example — rename to
-your org's convention).
+remediation** and **vulnerable dependency remediation**. The PRs
+that come out of these carry an auto-remediation label (the site
+uses `sec-auto-remediation` as the illustrative example — rename
+to your org's convention).
 
 To understand what the workflows do, what's in scope, how
 orchestration decides when to hand work to an agent, and what

@@ -97,9 +97,9 @@ auditor and your framework's current version.
   the secure-coding standard. CODEOWNERS on prompts is the
   control.
 - **A.8.31 — Separation of development and production.** The
-  agent does not have production credentials by default. Pen-test
-  runs are scoped to pre-production (see
-  [Agentic Penetration Testing]({{< relref "/security-remediation/penetration-testing" >}})).
+  agent does not have production credentials by default;
+  production access, when required, is time-boxed, scoped, and
+  routed through the same break-glass process used for humans.
 - **A.8.9 — Configuration management.** The orchestrator's
   workflow configs (eligibility rules, allowlists, rate caps) are
   version-controlled and change-reviewed.
