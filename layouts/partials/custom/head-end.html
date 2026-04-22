@@ -1,0 +1,16 @@
+{{/*
+  Load the custom stylesheet on every page.
+  Hextra exposes a "custom/head-end.html" partial hook for exactly this.
+*/}}
+{{ with resources.Get "css/custom.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+{{ end }}
+
+{{/*
+  Mermaid fullscreen viewer — makes every rendered mermaid diagram
+  clickable to open in a lightbox. Script is defer'd so it runs after
+  Mermaid has had a chance to render the SVGs.
+*/}}
+{{ with resources.Get "js/mermaid-viewer.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}

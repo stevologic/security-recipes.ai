@@ -1,0 +1,79 @@
+{{/*
+  prompt-toc
+  ----------
+  Auto-renders a browsable list of prompt entries for the current
+  section of the Prompt Library. Pulls each entry's title, description,
+  and frontmatter (author / team / maturity / tags) so contributors
+  don't have to hand-maintain the index on each tool page.
+
+  Intended usage (in a section _index.md):
+
+      {{< prompt-toc >}}
+
+  Empty state shows a contribute CTA if no entries exist yet.
+*/}}
+
+{{- $pages := .Page.Pages -}}
+
+{{/*
+  Resolve the "Contribute a prompt" URL through site.GetPage so the resulting
+  href picks up the site's baseURL path automatically — same mechanism Hextra
+  uses for its navbar / sidebar entries.
+
+  Why not `"/contribute/#contributing-a-prompt" | relURL`? When the input
+  starts with "/" AND carries a URL fragment, Hugo's relURL can leave the
+  leading "/" alone, producing e.g. `/contribute/#…` instead of
+  `/agentic-remediation-recipes/contribute/#…` on a project-page deploy. Going
+  through GetPage → RelPermalink always produces the correctly-prefixed path
+  because it's computed from the page object, not string-parsed.
+
+  Fallback: if /contribute/ doesn't exist yet (fresh scaffold), degrade to a
+  plain relURL so the empty-state link still renders.
+*/}}
+{{- $contribute := "" -}}
+{{- with site.GetPage "/contribute" -}}
+  {{- $contribute = printf "%s#contributing-a-prompt" .RelPermalink -}}
+{{- else -}}
+  {{- $contribute = "/contribute/#contributing-a-prompt" | relURL -}}
+{{- end -}}
+
+{{- if $pages }}
+<div class="prompt-toc">
+  {{- range $pages }}
+  <a class="prompt-toc__card" href="{{ .RelPermalink }}">
+    <div class="prompt-toc__head">
+      <h3 class="prompt-toc__title">{{ .Title }}</h3>
+      {{- with .Params.maturity }}
+      <span class="prompt-toc__maturity prompt-toc__maturity--{{ . | lower }}">{{ . }}</span>
+      {{- end }}
+    </div>
+    {{- with .Description }}
+    <p class="prompt-toc__desc">{{ . }}</p>
+    {{- else }}
+    {{- with .Summary }}
+    <p class="prompt-toc__desc">{{ . | plainify | truncate 180 }}</p>
+    {{- end }}
+    {{- end }}
+    <div class="prompt-toc__meta">
+      {{- with .Params.author }}<span class="prompt-toc__meta-item"><span class="prompt-toc__meta-label">author</span> {{ . }}</span>{{ end }}
+      {{- with .Params.team }}<span class="prompt-toc__meta-item"><span class="prompt-toc__meta-label">team</span> {{ . }}</span>{{ end }}
+      {{- $model := or .Params.model .Params.model_used }}
+      {{- with $model }}<span class="prompt-toc__meta-item prompt-toc__meta-item--model"><span class="prompt-toc__meta-label">model used</span> <code>{{ . }}</code></span>{{ end }}
+      {{- with .Date }}{{ if not $.Page.Params.hideDate }}<span class="prompt-toc__meta-item"><span class="prompt-toc__meta-label">updated</span> {{ .Format "2006-01-02" }}</span>{{ end }}{{ end }}
+    </div>
+    {{- with .Params.tags }}
+    <div class="prompt-toc__tags">
+      {{- range . }}<span class="prompt-toc__tag">{{ . }}</span>{{ end }}
+    </div>
+    {{- end }}
+  </a>
+  {{- end }}
+</div>
+{{- else }}
+<div class="prompt-toc prompt-toc--empty">
+  <p>
+    <em>No entries here yet.</em>
+    <a href="{{ $contribute }}">Be the first to contribute one →</a>
+  </p>
+</div>
+{{- end }}

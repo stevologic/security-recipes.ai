@@ -1,0 +1,184 @@
+# ============================================================================
+# Hugo configuration — Agentic Remediation Recipes
+# Uses the Hextra theme (https://imfing.github.io/hextra/)
+# ============================================================================
+
+# NOTE: For GitHub Pages deploys this value is overridden by the workflow
+# via `hugo --baseURL ...` (computed from the owner/repo at build time),
+# so forks / renames work without editing this file. The value below is
+# only used for local `hugo server` and Docker builds.
+# For a custom domain, set it to e.g. "https://docs.example.com/".
+baseURL: "https://stevologic.github.io/agentic-remediation-recipes/"
+title: "Agentic Remediation Recipes by InfoSec"
+languageCode: en-us
+
+enableRobotsTXT: true
+enableGitInfo: true
+enableEmoji: true
+
+# Hextra is loaded as a Hugo Module (see go.mod).
+module:
+  imports:
+    - path: github.com/imfing/hextra
+
+# Markdown / syntax highlighting
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+    style: github-dark
+
+# Output formats needed by Hextra search
+outputs:
+  home: [HTML]
+  page: [HTML]
+  section: [HTML, RSS]
+
+# ----------------------------------------------------------------------------
+# Menus
+# ----------------------------------------------------------------------------
+# Top nav mirrors the landing page: Docs, Agents (with 5 child recipes),
+# Prompt Library, and a Contribute link that points at CONTRIBUTING.md in
+# the hosting repo. Contribute and the repo URL are both resolved at
+# runtime from `params.repoURL` so the site can be forked without edits.
+menu:
+  main:
+    - identifier: fundamentals
+      name: Fundamentals
+      pageRef: fundamentals
+      weight: 1
+
+    - identifier: docs
+      name: Docs
+      pageRef: docs
+      weight: 2
+
+    - identifier: agents
+      name: Agents
+      pageRef: agents
+      weight: 3
+      params:
+        type: menu
+    - identifier: copilot
+      parent: agents
+      name: GitHub Copilot
+      pageRef: github_copilot
+      weight: 21
+    - identifier: devin
+      parent: agents
+      name: Devin
+      pageRef: devin
+      weight: 22
+    - identifier: cursor
+      parent: agents
+      name: Cursor
+      pageRef: cursor
+      weight: 23
+    - identifier: codex
+      parent: agents
+      name: Codex
+      pageRef: codex
+      weight: 24
+    - identifier: claude
+      parent: agents
+      name: Claude
+      pageRef: claude
+      weight: 25
+
+    - identifier: prompt-library
+      name: Prompt Library
+      pageRef: prompt-library
+      weight: 4
+
+    - identifier: mcp-servers
+      name: MCP Servers
+      pageRef: mcp-servers
+      weight: 5
+
+    - identifier: security-remediation
+      name: Security Remediation
+      pageRef: security-remediation
+      weight: 6
+
+    - identifier: automation
+      name: Automation
+      pageRef: automation
+      weight: 7
+
+    - identifier: contribute
+      name: Contribute
+      pageRef: contribute
+      weight: 8
+
+  sidebar:
+    - identifier: more
+      name: More
+      params:
+        type: separator
+      weight: 100
+    - identifier: contribute-sidebar
+      name: Contribute
+      pageRef: /contribute
+      weight: 101
+    - identifier: repo-sidebar
+      name: "Repository ↗"
+      url: "https://github.com/stevologic/agentic-remediation-recipes"
+      weight: 102
+
+# ----------------------------------------------------------------------------
+# Theme params
+# ----------------------------------------------------------------------------
+params:
+  description: >
+    A curated, community-driven library of recipes that turn the AI assistants
+    engineers already use — GitHub Copilot, Devin, Cursor, Codex, and
+    Claude — into autonomous remediators.
+
+  # Repository URL — dynamic.
+  # Override in CI with HUGO_PARAMS_REPOURL=https://github.com/<owner>/<repo>
+  # so the site tracks whichever repo is hosting it.
+  repoURL: "https://github.com/stevologic/agentic-remediation-recipes"
+
+  navbar:
+    displayTitle: true
+    displayLogo: true
+    logo:
+      path: images/logo.svg
+      dark: images/logo.svg
+      # link: /
+      # width: 40
+      # height: 20
+
+  theme:
+    # Options: light, dark, system
+    default: dark
+    displayToggle: true
+
+  footer:
+    displayCopyright: true
+    displayPoweredBy: false
+    copyright: "© 2026 Agentic Remediation Recipes · Created by your friends in InfoSec ♥"
+
+  # Page displays & behaviour
+  page:
+    width: normal       # normal | wide | full
+
+  # Display TOC on the right
+  toc:
+    displayTags: true
+
+  # Edit on GitHub links — will follow repoURL at build time
+  # (CI injects HUGO_PARAMS_REPOURL so the edit base stays correct).
+  editURL:
+    enable: true
+    base: "https://github.com/stevologic/agentic-remediation-recipes/edit/main/hugo-site/content"
+
+  # Built-in search
+  search:
+    enable: true
+    type: flexsearch
+    flexsearch:
+      index: content
+      tokenize: forward

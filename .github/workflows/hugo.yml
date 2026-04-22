@@ -1,0 +1,217 @@
+# ============================================================================
+# Build the Hugo site and push the compiled output to the `gh-pages` branch.
+#
+# After the first successful run, go to:
+#   Settings → Pages → Build and deployment
+#   Source:  Deploy from a branch
+#   Branch:  gh-pages   /   (root)
+#
+# The `gh-pages` branch is created automatically on first deploy.
+#
+# This workflow auto-detects whether the Hugo project lives at the repo
+# root OR nested under `hugo-site/`, so you can host the site either way
+# without editing this file.
+# ============================================================================
+name: Build & deploy Hugo to gh-pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# GITHUB_TOKEN needs `contents: write` to push to the gh-pages branch.
+permissions:
+  contents: write
+
+# Don't let two deploys race each other.
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Hextra v0.12.2+ uses the `try` template function (added in Hugo
+      # 0.142.0) and requires Hugo ≥ 0.146.0 — stay safely above that.
+      HUGO_VERSION: 0.147.6
+      HUGO_ENVIRONMENT: production
+      TZ: UTC
+      # Silence the Node.js 20 deprecation warning for third-party actions
+      # that haven't shipped a Node.js 24 build yet. Safe to remove once
+      # every action below publishes a Node 24–compatible release.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0            # needed for .GitInfo / .Lastmod
+
+      # ----------------------------------------------------------------
+      # Auto-detect whether hugo.yaml lives at the repo root or inside a
+      # `hugo-site/` subfolder. Exports:
+      #   steps.hugo-dir.outputs.path    →  "." or "./hugo-site"
+      #   steps.hugo-dir.outputs.gomod   →  path to go.sum (or empty)
+      #   steps.hugo-dir.outputs.publish →  publish dir, "./public" or "./hugo-site/public"
+      # ----------------------------------------------------------------
+      - name: Detect Hugo project location
+        id: hugo-dir
+        run: |
+          if [ -f ./hugo-site/hugo.yaml ]; then
+            echo "path=./hugo-site"            >> "$GITHUB_OUTPUT"
+            echo "gomod=hugo-site/go.sum"      >> "$GITHUB_OUTPUT"
+            echo "publish=./hugo-site/public"  >> "$GITHUB_OUTPUT"
+            echo "editprefix=/hugo-site/content" >> "$GITHUB_OUTPUT"
+          elif [ -f ./hugo.yaml ]; then
+            echo "path=."                      >> "$GITHUB_OUTPUT"
+            echo "gomod=go.sum"                >> "$GITHUB_OUTPUT"
+            echo "publish=./public"            >> "$GITHUB_OUTPUT"
+            echo "editprefix=/content"         >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Could not find hugo.yaml at the repo root or under ./hugo-site/"
+            exit 1
+          fi
+
+      - name: Setup Go (for Hugo Modules)
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          # Hugo Modules don't benefit from Go's build cache — and on a fresh
+          # fork go.sum may not exist yet, which makes setup-go emit a warning.
+          # Turn the cache off to keep the log clean.
+          cache: false
+
+      - name: Install Hugo CLI (extended)
+        run: |
+          wget -O "${RUNNER_TEMP}/hugo.deb" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          sudo dpkg -i "${RUNNER_TEMP}/hugo.deb"
+
+      # ----------------------------------------------------------------
+      # Compute the correct baseURL for GitHub Pages from the repo
+      # context, so forks / renames just work without editing hugo.yaml.
+      #
+      #   User/org page  →  https://<owner>.github.io/
+      #   Project page   →  https://<owner>.github.io/<repo>/
+      #
+      # GitHub Pages hostnames are always lowercase, even when the owner
+      # name is mixed case — hence the `tr '[:upper:]' '[:lower:]'`.
+      # ----------------------------------------------------------------
+      - name: Compute GitHub Pages base URL
+        id: pages
+        run: |
+          OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          REPO="${GITHUB_REPOSITORY##*/}"
+          REPO_LC="$(echo "$REPO" | tr '[:upper:]' '[:lower:]')"
+          if [ "$REPO_LC" = "${OWNER_LC}.github.io" ]; then
+            BASE_URL="https://${OWNER_LC}.github.io/"
+          else
+            BASE_URL="https://${OWNER_LC}.github.io/${REPO}/"
+          fi
+          echo "base_url=${BASE_URL}" >> "$GITHUB_OUTPUT"
+          echo "Computed baseURL: ${BASE_URL}"
+
+      - name: Install Hugo modules (Hextra theme)
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: hugo mod get -u
+
+      - name: Build site
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        env:
+          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
+          # Dynamic repo URL — threaded into `params.repoURL` so the landing
+          # page's Repository / Contribute links track whichever repo is
+          # hosting this site. No manual hugo.yaml edit required when you fork.
+          HUGO_PARAMS_REPOURL: "https://github.com/${{ github.repository }}"
+        run: |
+          # Rewrite every `stevologic/agentic-remediation-recipes` reference in
+          # hugo.yaml (editURL base, Contribute menu URL, sidebar Contribute)
+          # so every link tracks whichever repo is hosting this site. Nested
+          # params and YAML `url:` fields can't be overridden via
+          # HUGO_PARAMS_* env vars, so we patch the YAML directly.
+          sed -i "s|stevologic/agentic-remediation-recipes|${{ github.repository }}|g" hugo.yaml
+          # Same substitution across any markdown content that hard-links
+          # back to the template repo (e.g. the Prompt Library pointing at
+          # CONTRIBUTING.md).
+          find content -type f -name "*.md" -exec sed -i \
+            "s|stevologic/agentic-remediation-recipes|${{ github.repository }}|g" {} +
+          # Refresh the editURL branch segment so "Edit on GitHub" points at
+          # the actual deploy branch, and swap /hugo-site/content → /content
+          # (or leave as-is) depending on where the project actually lives.
+          sed -i "s|/edit/main/hugo-site/content|/edit/${{ github.ref_name }}${{ steps.hugo-dir.outputs.editprefix }}|g" hugo.yaml
+
+          # Belt-and-braces: ALSO rewrite the top-level baseURL value inside
+          # hugo.yaml itself (not just pass --baseURL). The --baseURL CLI flag
+          # alone fixes `relURL` / `absURL` output, but some Hextra internals
+          # (certain menu renderers, pageRef resolution corner cases) read
+          # site.BaseURL directly from config rather than from the CLI
+          # override — so patching hugo.yaml too guarantees every code path
+          # sees the correct GitHub Pages subpath.
+          # The sed below matches `baseURL:` at column 0 followed by any
+          # quoted value, regardless of scheme/host/path, so it works on
+          # forks without edits. `|` is used as the sed delimiter so the
+          # URL's own forward slashes don't need escaping.
+          sed -i -E "s|^baseURL:[[:space:]]*\"[^\"]*\"|baseURL: \"${{ steps.pages.outputs.base_url }}\"|" hugo.yaml
+          echo "--- Rewritten baseURL line in hugo.yaml: ---"
+          grep "^baseURL:" hugo.yaml || true
+
+          # ------------------------------------------------------------------
+          # Rewrite absolute card links so Hextra's `{{< card link="/..." >}}`
+          # shortcode resolves to the GitHub Pages subpath instead of the
+          # host root.
+          #
+          # Hextra's card shortcode emits the `link=` value verbatim into the
+          # anchor's `href`, without passing it through `relURL`. On a user /
+          # org page deploy (baseURL = https://<owner>.github.io/) that's
+          # fine — but on a project page deploy (baseURL =
+          # https://<owner>.github.io/<repo>/) an `href="/prompt-library/..."`
+          # resolves to https://<owner>.github.io/prompt-library/... and 404s.
+          #
+          # Fixing this at the content layer (rather than overriding the card
+          # shortcode) keeps Hextra's original card HTML / CSS untouched.
+          # It's also self-contained per build: the source markdown on disk
+          # still uses clean absolute paths, so localhost / Docker builds
+          # (BASE_URL=/) skip the rewrite entirely and nothing changes.
+          # ------------------------------------------------------------------
+          BASE_URL="${{ steps.pages.outputs.base_url }}"
+          BASE_PATH=$(printf '%s' "$BASE_URL" | sed -E 's|^https?://[^/]+||; s|/$||')
+          if [ -n "$BASE_PATH" ]; then
+            echo "--- Prepending BASE_PATH=$BASE_PATH to card link=\"/...\" paths ---"
+            # First pass: prepend the base path to every link="/..." occurrence.
+            find content -type f -name "*.md" -exec sed -i -E \
+              "s|link=\"/|link=\"${BASE_PATH}/|g" {} +
+            # Second pass (idempotency): collapse accidental double-prefix
+            # if a contributor ever hardcoded the repo path in a link.
+            find content -type f -name "*.md" -exec sed -i -E \
+              "s|link=\"${BASE_PATH}${BASE_PATH}/|link=\"${BASE_PATH}/|g" {} +
+            echo "--- Sample rewritten card links (for verification): ---"
+            grep -r "link=\"${BASE_PATH}" content --include="*.md" | head -5 || true
+          else
+            echo "--- BASE_PATH is empty (user/org page deploy) — skipping card link rewrite ---"
+          fi
+
+          # Override baseURL at build time so fingerprinted asset URLs
+          # (CSS / JS / images) match the actual GitHub Pages host +
+          # path. If the hugo.yaml baseURL is stale (e.g. a fork), this
+          # is what prevents an unstyled deploy.
+          hugo --gc --minify --baseURL "${{ steps.pages.outputs.base_url }}"
+          # Belt-and-braces: tell GitHub Pages not to run the output through Jekyll.
+          touch public/.nojekyll
+
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ${{ steps.hugo-dir.outputs.publish }}
+          publish_branch: gh-pages
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: "deploy: ${{ github.event.head_commit.message || github.sha }}"
+          # Replace history each deploy so gh-pages stays tiny.
+          force_orphan: true

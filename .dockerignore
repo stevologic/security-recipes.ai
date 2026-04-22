@@ -1,0 +1,28 @@
+# Build output — produced inside the image
+public/
+resources/_gen/
+.hugo_build.lock
+
+# VCS / tooling
+.git/
+.github/
+.gitignore
+
+# Editor noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Secrets
+.env
+.env.local
+
+# Docs not needed in the image
+LICENSE
+README.md
+
+# The Dockerfile itself is in context but nginx config is embedded;
+# no need to copy it twice.

@@ -1,0 +1,723 @@
+/* ============================================================================
+   Agentic Remediation Recipes — custom overrides on top of Hextra
+   ----------------------------------------------------------------------------
+   Goal: docs pages feel like a continuation of the landing page — same dark
+   palette, same type ramp, same accent colours, same ambient background
+   orbs/grid. Hextra's structure stays intact; only the finish changes.
+   ============================================================================ */
+
+/* ---------- 0. Typography ------------------------------------------------- */
+/*
+   Self-contained, enterprise-friendly font stacks.
+   No external font CDN calls — we rely on the operating-system UI fonts
+   (Segoe UI Variable on Windows 11, San Francisco on Apple, Roboto on
+   Android / most Linux distros) which are already installed, render
+   instantly, and work offline / on air-gapped networks.
+*/
+:root {
+  --arr-font-sans: system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI Variable", "Segoe UI", Roboto, "Helvetica Neue",
+                   Arial, "Noto Sans", "Liberation Sans", sans-serif,
+                   "Apple Color Emoji", "Segoe UI Emoji";
+  --arr-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+                   "Liberation Mono", "JetBrains Mono", "Fira Code",
+                   "Cascadia Code", monospace;
+}
+
+/* ---------- 1. Palette (shared with landing page) ------------------------- */
+
+:root {
+  --arr-bg-0:    #05060a;
+  --arr-bg-1:    #0a0c14;
+  --arr-bg-2:    #11141f;
+  --arr-ink-0:   #f5f7fb;
+  --arr-ink-1:   #c8cdd9;
+  --arr-ink-2:   #8a92a6;
+  --arr-ink-3:   #555c70;
+  --arr-accent-1: #7c5cff;
+  --arr-accent-2: #00e5ff;
+  --arr-accent-3: #ff4ecb;
+  --arr-accent-glow: rgba(124, 92, 255, 0.45);
+  --arr-card-bg:     rgba(255, 255, 255, 0.025);
+  --arr-card-border: rgba(255, 255, 255, 0.07);
+  --arr-card-hover-border: rgba(255, 255, 255, 0.18);
+
+  /* Hextra primary hue tweak (violet) */
+  --primary-hue: 258;
+  --primary-saturation: 92%;
+  --primary-lightness: 68%;
+}
+
+/* Hextra dark mode overrides — force brand palette */
+html.dark,
+.dark {
+  --primary-hue: 258;
+  --primary-saturation: 92%;
+  --primary-lightness: 72%;
+
+  /* Hextra background layering */
+  --tw-bg-opacity: 1;
+  background-color: var(--arr-bg-0) !important;
+}
+
+html.dark body,
+.dark body {
+  background: var(--arr-bg-0) !important;
+  color: var(--arr-ink-0);
+  font-family: var(--arr-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light-mode body — same system stack so type feels consistent */
+body {
+  font-family: var(--arr-font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Monospace everywhere Hextra uses it */
+code, pre, kbd, samp {
+  font-family: var(--arr-font-mono) !important;
+}
+
+/* ---------- 2. Ambient background on docs pages --------------------------- */
+/*
+   Hextra docs pages get a muted version of the landing-page ambient layer:
+   two drifting orbs + a faint grid overlay, behind everything. Kept subtle
+   so long-form reading stays comfortable.
+*/
+
+html.dark body::before,
+.dark body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 60% at 20% -5%,  rgba(124, 92, 255, 0.18), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 110% 110%, rgba(0, 229, 255, 0.12), transparent 60%),
+    radial-gradient(ellipse 60% 40% at -10% 110%, rgba(255, 78, 203, 0.08), transparent 60%),
+    linear-gradient(180deg, var(--arr-bg-0) 0%, var(--arr-bg-1) 100%);
+}
+
+html.dark body::after,
+.dark body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right,  rgba(255,255,255,0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+}
+
+/* Drifting orbs as a dedicated layer appended via CSS content on main */
+.dark main::before {
+  content: "";
+  position: fixed;
+  top: -12%;
+  left: -8%;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--arr-accent-1), transparent 70%);
+  filter: blur(90px);
+  opacity: 0.45;
+  z-index: -1;
+  pointer-events: none;
+  animation: arr-drift 28s ease-in-out infinite alternate;
+}
+.dark main::after {
+  content: "";
+  position: fixed;
+  bottom: -15%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--arr-accent-2), transparent 70%);
+  filter: blur(100px);
+  opacity: 0.4;
+  z-index: -1;
+  pointer-events: none;
+  animation: arr-drift2 34s ease-in-out infinite alternate;
+}
+@keyframes arr-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(180px, 120px) scale(1.15); }
+}
+@keyframes arr-drift2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-160px, -100px) scale(1.1); }
+}
+
+/* ---------- 3. Navbar & sidebar (dark, translucent) ----------------------- */
+
+.dark .nextra-nav-container,
+.dark .nextra-nav-container-blur {
+  background: rgba(10, 12, 20, 0.72) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--arr-card-border);
+}
+
+.dark .hextra-sidebar,
+.dark .hextra-toc,
+.dark aside nav {
+  background: transparent !important;
+}
+
+.dark .hextra-sidebar a,
+.dark aside nav a {
+  color: var(--arr-ink-2);
+  transition: color .2s ease;
+}
+.dark .hextra-sidebar a:hover,
+.dark aside nav a:hover {
+  color: var(--arr-ink-0);
+}
+
+.dark .hextra-sidebar [aria-current="page"],
+.dark aside nav [aria-current="page"] {
+  color: var(--arr-accent-2) !important;
+  background: rgba(0, 229, 255, 0.06) !important;
+  border-radius: 8px;
+}
+
+/* ---------- 4. Typography in prose content -------------------------------- */
+
+.dark .hextra-content h1,
+.dark article h1,
+.dark main h1 {
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  background: linear-gradient(180deg, #ffffff 0%, #b9c0d4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dark .hextra-content h2,
+.dark article h2,
+.dark main h2 {
+  color: var(--arr-ink-0);
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--arr-card-border);
+  padding-bottom: 0.4em;
+  margin-top: 2em;
+}
+
+.dark .hextra-content h3,
+.dark article h3,
+.dark main h3 {
+  color: var(--arr-ink-0);
+  font-weight: 600;
+}
+
+.dark .hextra-content p,
+.dark article p {
+  color: var(--arr-ink-1);
+}
+
+.dark .hextra-content a,
+.dark article a {
+  color: var(--arr-accent-2);
+  text-decoration-color: rgba(0, 229, 255, 0.35);
+  text-underline-offset: 3px;
+  transition: color .2s, text-decoration-color .2s;
+}
+.dark .hextra-content a:hover,
+.dark article a:hover {
+  color: #5fefff;
+  text-decoration-color: var(--arr-accent-2);
+}
+
+/* Inline code pop */
+.dark :not(pre) > code {
+  background: rgba(124, 92, 255, 0.1) !important;
+  border: 1px solid rgba(124, 92, 255, 0.2) !important;
+  color: #d4c7ff !important;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.88em;
+  font-feature-settings: "ss01", "ss02";
+}
+
+/* Code blocks */
+.dark pre,
+.dark .hextra-code-block pre {
+  background: rgba(8, 10, 16, 0.9) !important;
+  border: 1px solid var(--arr-card-border);
+  border-radius: 12px;
+}
+
+/* Blockquotes */
+.dark blockquote {
+  border-left: 3px solid var(--arr-accent-1);
+  background: rgba(124, 92, 255, 0.04);
+  border-radius: 0 10px 10px 0;
+  padding: 10px 16px;
+  color: var(--arr-ink-1);
+}
+
+/* Tables */
+.dark table {
+  border: 1px solid var(--arr-card-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.dark table thead {
+  background: rgba(124, 92, 255, 0.08);
+}
+.dark table th {
+  color: var(--arr-ink-0);
+  font-weight: 600;
+}
+.dark table td {
+  color: var(--arr-ink-1);
+  border-top: 1px solid var(--arr-card-border);
+}
+
+/* ---------- 5. Callouts --------------------------------------------------- */
+
+.dark .hextra-callout {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid var(--arr-card-border) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+}
+.dark .hextra-callout[data-type="info"],
+.dark .hextra-callout.info {
+  border-left: 3px solid var(--arr-accent-2) !important;
+}
+.dark .hextra-callout[data-type="warning"],
+.dark .hextra-callout.warning {
+  border-left: 3px solid #ffb84e !important;
+}
+.dark .hextra-callout[data-type="error"],
+.dark .hextra-callout.error {
+  border-left: 3px solid var(--arr-accent-3) !important;
+}
+
+/* ---------- 6. Hextra feature cards --------------------------------------- */
+
+.hextra-feature-card,
+.dark .hextra-feature-card {
+  background: var(--arr-card-bg) !important;
+  border: 1px solid var(--arr-card-border) !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1),
+              border-color .3s,
+              box-shadow .3s;
+}
+.hextra-feature-card:hover,
+.dark .hextra-feature-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--arr-card-hover-border) !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- 7. Hextra hero (used on section index pages) ------------------ */
+
+.hextra-hero {
+  position: relative;
+  overflow: hidden;
+}
+.hextra-hero::before {
+  content: "";
+  position: absolute;
+  inset: -20% -20% auto auto;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(124, 92, 255, 0.18), transparent 60%);
+  filter: blur(40px);
+  pointer-events: none;
+  animation: arr-drift 28s ease-in-out infinite alternate;
+  z-index: -1;
+}
+.hextra-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto auto -20% -20%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.14), transparent 60%);
+  filter: blur(40px);
+  pointer-events: none;
+  animation: arr-drift2 34s ease-in-out infinite alternate;
+  z-index: -1;
+}
+
+/* ---------- 8. Buttons & pagination --------------------------------------- */
+
+.dark .hextra-pagination a,
+.dark .hextra-pager a {
+  background: var(--arr-card-bg);
+  border: 1px solid var(--arr-card-border);
+  border-radius: 12px;
+  color: var(--arr-ink-1);
+  transition: all .2s ease;
+}
+.dark .hextra-pagination a:hover,
+.dark .hextra-pager a:hover {
+  border-color: var(--arr-card-hover-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--arr-ink-0);
+}
+
+/* ---------- 9. Search --------------------------------------------------- */
+
+.dark input[type="search"],
+.dark .hextra-search input {
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid var(--arr-card-border) !important;
+  color: var(--arr-ink-0) !important;
+  border-radius: 10px;
+}
+.dark input[type="search"]:focus,
+.dark .hextra-search input:focus {
+  border-color: var(--arr-accent-2) !important;
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12) !important;
+  outline: none;
+}
+
+/* ---------- 10. Scrollbar polish ----------------------------------------- */
+
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: var(--arr-bg-1);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.16);
+}
+
+/* ---------- 11. Footer --------------------------------------------------- */
+
+.dark .hextra-footer,
+.dark footer {
+  background: transparent;
+  border-top: 1px solid var(--arr-card-border);
+  color: var(--arr-ink-3);
+  font-family: var(--arr-font-mono);
+  letter-spacing: 0.04em;
+}
+
+/* ---------- 12. Prompt library TOC --------------------------------------- */
+
+.prompt-toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  margin: 1.25rem 0 1.5rem;
+}
+.prompt-toc--empty {
+  display: block;
+  border: 1px dashed rgba(128, 128, 128, 0.35);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 14px;
+}
+.prompt-toc__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(128, 128, 128, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  text-decoration: none !important;
+  color: inherit;
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+.prompt-toc__card:hover {
+  border-color: rgba(124, 92, 255, 0.55);
+  transform: translateY(-1px);
+  background: rgba(124, 92, 255, 0.04);
+}
+.prompt-toc__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.prompt-toc__title {
+  font-size: 15.5px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+}
+.prompt-toc__maturity {
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: nowrap;
+}
+.prompt-toc__maturity--production {
+  background: rgba(74, 222, 128, 0.12);
+  color: #22c55e;
+  border: 1px solid rgba(74, 222, 128, 0.35);
+}
+.prompt-toc__maturity--beta,
+.prompt-toc__maturity--stable {
+  background: rgba(0, 229, 255, 0.12);
+  color: #0891b2;
+  border: 1px solid rgba(0, 229, 255, 0.35);
+}
+.prompt-toc__maturity--draft,
+.prompt-toc__maturity--development,
+.prompt-toc__maturity--experimental,
+.prompt-toc__maturity--wip {
+  background: rgba(255, 200, 0, 0.12);
+  color: #b45309;
+  border: 1px solid rgba(255, 200, 0, 0.35);
+}
+.dark .prompt-toc__maturity--beta,
+.dark .prompt-toc__maturity--stable { color: #67e8f9; }
+.dark .prompt-toc__maturity--draft,
+.dark .prompt-toc__maturity--development,
+.dark .prompt-toc__maturity--experimental,
+.dark .prompt-toc__maturity--wip { color: #fbbf24; }
+.prompt-toc__desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  opacity: 0.82;
+  margin: 0;
+}
+.prompt-toc__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+.prompt-toc__meta-item { white-space: nowrap; }
+.prompt-toc__meta-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-right: 4px;
+}
+.prompt-toc__meta-item code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(124, 92, 255, 0.1);
+  border: 1px solid rgba(124, 92, 255, 0.22);
+  color: inherit;
+}
+.dark .prompt-toc__meta-item code {
+  background: rgba(124, 92, 255, 0.18);
+  border-color: rgba(124, 92, 255, 0.32);
+}
+.prompt-toc__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.prompt-toc__tag {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.1);
+  border: 1px solid rgba(128, 128, 128, 0.18);
+}
+
+/* ---------- 13. Mermaid fullscreen viewer --------------------------------- */
+
+/* Any rendered mermaid block (the `.mermaid` div Hextra emits, or the
+   `<pre class="mermaid">` fallback) gets a pointer cursor + a corner hint
+   once Mermaid has produced an SVG. Adds a subtle outline on hover so
+   users know it's clickable. */
+.mermaid--interactive {
+  cursor: zoom-in;
+  position: relative;
+  transition: box-shadow 140ms ease, transform 140ms ease;
+  border-radius: 10px;
+}
+.mermaid--interactive:hover,
+.mermaid--interactive:focus-visible {
+  box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.45),
+              0 10px 40px -10px rgba(0, 229, 255, 0.22);
+  outline: none;
+}
+.mermaid--interactive:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.55);
+}
+.mermaid__zoom-hint {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #e9ecf5;
+  background: rgba(10, 12, 20, 0.72);
+  border: 1px solid rgba(124, 92, 255, 0.32);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 140ms ease, transform 140ms ease;
+  pointer-events: none;
+  z-index: 2;
+}
+.mermaid--interactive:hover .mermaid__zoom-hint,
+.mermaid--interactive:focus-visible .mermaid__zoom-hint {
+  opacity: 1;
+  transform: translateY(0);
+}
+.mermaid__zoom-hint svg {
+  width: 12px;
+  height: 12px;
+  color: var(--arr-accent-2, #00e5ff);
+}
+
+/* Body-scroll lock while the modal is open. */
+html.mermaid-modal-open,
+html.mermaid-modal-open body {
+  overflow: hidden !important;
+}
+
+/* Modal shell — hidden by default. */
+.mermaid-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.mermaid-modal.is-open {
+  display: flex;
+}
+.mermaid-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top, rgba(124, 92, 255, 0.18), rgba(5, 6, 10, 0.94) 55%),
+              rgba(5, 6, 10, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: mermaid-modal-fade 160ms ease-out;
+}
+.mermaid-modal__dialog {
+  position: relative;
+  width: calc(100vw - 48px);
+  height: calc(100vh - 48px);
+  max-width: 1600px;
+  background: rgba(10, 12, 20, 0.86);
+  border: 1px solid rgba(124, 92, 255, 0.28);
+  border-radius: 14px;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.6),
+              0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  animation: mermaid-modal-rise 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mermaid-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #e9ecf5;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+.mermaid-modal__close:hover {
+  background: rgba(124, 92, 255, 0.22);
+  border-color: rgba(124, 92, 255, 0.55);
+  transform: scale(1.05);
+}
+.mermaid-modal__close:focus-visible {
+  outline: none;
+  border-color: var(--arr-accent-2, #00e5ff);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.35);
+}
+.mermaid-modal__content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 8px;
+}
+.mermaid-modal__content svg {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+/* Light-mode contrast — rare on this site, but keep it readable. */
+html:not(.dark) .mermaid-modal__backdrop {
+  background: radial-gradient(ellipse at top, rgba(124, 92, 255, 0.10), rgba(245, 247, 251, 0.92) 55%),
+              rgba(245, 247, 251, 0.88);
+}
+html:not(.dark) .mermaid-modal__dialog {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(124, 92, 255, 0.22);
+}
+html:not(.dark) .mermaid-modal__close {
+  color: #1a1d26;
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+@keyframes mermaid-modal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes mermaid-modal-rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 640px) {
+  .mermaid-modal__dialog {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 16px);
+    padding: 16px 18px;
+    border-radius: 10px;
+  }
+  .mermaid__zoom-hint span:last-child {
+    display: none; /* just show the icon on tight screens */
+  }
+}
