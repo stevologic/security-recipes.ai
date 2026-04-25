@@ -89,14 +89,29 @@ The same pattern as any other prompt on this site:
 
 ## Catalogue
 
-{{< cards >}}
-  {{< card link="/prompt-library/cve/cve-2021-44228-log4shell/" title="CVE-2021-44228 — Log4Shell" subtitle="JNDI lookup RCE in Log4j 2.x. Upgrade + remove JndiLookup.class + disable lookups." >}}
-  {{< card link="/prompt-library/cve/cve-2024-3094-xz-utils/" title="CVE-2024-3094 — xz-utils backdoor" subtitle="Backdoor in liblzma reachable through sshd. Roll back to clean version; verify build provenance." >}}
-  {{< card link="/prompt-library/cve/cve-2014-0160-heartbleed/" title="CVE-2014-0160 — Heartbleed" subtitle="OpenSSL TLS heartbeat memory disclosure. Upgrade + rotate keys + revoke old certs." >}}
-  {{< card link="/prompt-library/cve/cve-2014-6271-shellshock/" title="CVE-2014-6271 — Shellshock" subtitle="Bash function-export parser RCE. Upgrade Bash + audit for exposed CGI/HTTP boundaries." >}}
-  {{< card link="/prompt-library/cve/cve-2017-18342-pyyaml/" title="CVE-2017-18342 — PyYAML default load" subtitle="`yaml.load` resolves arbitrary Python tags. Replace with `safe_load`; pin patched PyYAML." >}}
-  {{< card link="/prompt-library/cve/cve-2024-6387-regresshion/" title="CVE-2024-6387 — regreSSHion" subtitle="OpenSSH server signal-handler race RCE. Upgrade OpenSSH; mitigate via `LoginGraceTime 0`." >}}
-{{< /cards >}}
+The catalogue below is **auto-generated** from the recipe
+files in this section, grouped by ecosystem and sorted by
+disclosure date. Drop a new
+`cve-XXXX-YYYYY-<short-name>.md` file with the frontmatter
+fields below, and it will appear here on the next build —
+no edits to this hub or to `hugo.yaml` required.
+
+Required frontmatter for the listing to be useful:
+
+- `cve` — the canonical ID (e.g., `"CVE-2021-44228"`).
+- `severity` — `critical` / `high` / `medium` / `low`.
+- `ecosystem` — the rough family the recipe targets (e.g.,
+  `java/maven`, `python/pypi`, `linux/system`,
+  `openssh/system`). New ecosystems automatically become
+  new groups.
+- `kev` — `true` / `false`. CISA Known Exploited
+  Vulnerability flag; renders as a badge.
+- `disclosed` — date string the listing sorts by within
+  each ecosystem.
+- `aliases` — popular names (`["Log4Shell"]`); the first
+  alias renders as a quick visual identifier.
+
+{{< cve-toc >}}
 
 This catalogue grows. New entries land via the same review
 process as any other prompt.

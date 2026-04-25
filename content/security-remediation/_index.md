@@ -4,6 +4,9 @@ linkTitle: Agentic Security Remediation
 weight: 9
 sidebar:
   open: true
+cascade:
+  sidebar:
+    open: true
 description: >
   Reference workflows a security engineering team can operate on
   behalf of the wider organization — using agentic remediation

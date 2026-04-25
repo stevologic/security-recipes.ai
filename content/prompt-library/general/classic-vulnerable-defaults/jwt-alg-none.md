@@ -1,6 +1,7 @@
 ---
 title: "JWT — `alg: none` and algorithm confusion"
 linkTitle: "JWT alg none"
+description: "Force an explicit algorithm allowlist on every verify call; reject `none` at the import boundary."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

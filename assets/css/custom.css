@@ -544,6 +544,169 @@ html.dark body::after,
   border: 1px solid rgba(128, 128, 128, 0.18);
 }
 
+/* ---------- 12b. CVE recipe TOC ------------------------------------------ */
+
+/* Reuses the visual language of `.prompt-toc` but groups by ecosystem and
+   adds severity / KEV badges. Auto-rendered by the `cve-toc` shortcode;
+   adding a CVE recipe = drop a markdown file with frontmatter and the grid
+   updates without any hub-page or hugo.yaml edits. */
+
+.cve-toc {
+  margin: 1.25rem 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.cve-toc--empty {
+  display: block;
+  border: 1px dashed rgba(128, 128, 128, 0.35);
+  border-radius: 10px;
+  padding: 16px 18px;
+  font-size: 14px;
+}
+.cve-toc__group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cve-toc__group-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.22);
+  padding-bottom: 6px;
+}
+.cve-toc__group-eco {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--arr-ink-2, inherit);
+}
+.cve-toc__group-count {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  opacity: 0.6;
+}
+.cve-toc__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+.cve-toc__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(128, 128, 128, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  text-decoration: none !important;
+  color: inherit;
+  transition: border-color .2s ease, transform .2s ease, background .2s ease;
+}
+.cve-toc__card:hover {
+  border-color: rgba(124, 92, 255, 0.55);
+  transform: translateY(-1px);
+  background: rgba(124, 92, 255, 0.04);
+}
+.cve-toc__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.cve-toc__title {
+  font-size: 15.5px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+}
+.cve-toc__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.cve-toc__badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.cve-toc__badge--severity-critical {
+  background: rgba(239, 68, 68, 0.14);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.cve-toc__badge--severity-high {
+  background: rgba(249, 115, 22, 0.14);
+  color: #c2410c;
+  border: 1px solid rgba(249, 115, 22, 0.4);
+}
+.cve-toc__badge--severity-medium {
+  background: rgba(234, 179, 8, 0.14);
+  color: #a16207;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+}
+.cve-toc__badge--severity-low {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+.dark .cve-toc__badge--severity-critical { color: #fca5a5; }
+.dark .cve-toc__badge--severity-high     { color: #fdba74; }
+.dark .cve-toc__badge--severity-medium   { color: #fde047; }
+.dark .cve-toc__badge--severity-low      { color: #86efac; }
+.cve-toc__badge--kev {
+  background: rgba(124, 92, 255, 0.16);
+  color: #6d28d9;
+  border: 1px solid rgba(124, 92, 255, 0.45);
+}
+.dark .cve-toc__badge--kev { color: #c4b5fd; }
+.cve-toc__desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  opacity: 0.82;
+  margin: 0;
+}
+.cve-toc__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+.cve-toc__meta-item { white-space: nowrap; }
+.cve-toc__meta-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-right: 4px;
+}
+.cve-toc__meta-item code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(124, 92, 255, 0.1);
+  border: 1px solid rgba(124, 92, 255, 0.22);
+  color: inherit;
+}
+.dark .cve-toc__meta-item code {
+  background: rgba(124, 92, 255, 0.18);
+  border-color: rgba(124, 92, 255, 0.32);
+}
+
 /* ---------- 13. Mermaid fullscreen viewer --------------------------------- */
 
 /* Any rendered mermaid block (the `.mermaid` div Hextra emits, or the

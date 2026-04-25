@@ -1,6 +1,7 @@
 ---
 title: "PyYAML `yaml.load` without a safe Loader"
 linkTitle: "PyYAML yaml.load"
+description: "Default to `yaml.safe_load`; install an import-time shim that defaults the loader for legacy callers."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

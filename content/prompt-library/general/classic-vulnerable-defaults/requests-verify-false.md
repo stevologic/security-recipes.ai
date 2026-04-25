@@ -1,6 +1,7 @@
 ---
 title: "Disabled TLS verification — `verify=False` and friends"
 linkTitle: "Disabled TLS verification"
+description: "Install the right CA bundle; add a fail-closed shim that refuses `verify=False` outside an opt-in test environment."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

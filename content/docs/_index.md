@@ -59,6 +59,20 @@ and compare:
 If a page is missing guardrails, treat it as a draft and flag it in
 a PR.
 
+## How to integrate with your agent
+
+Once you've picked a recipe, the question is how to get it in
+front of your agent at the right time. The
+[**Integrate an AI Agent**]({{< relref "/docs/agent-integration" >}})
+guide catalogues five durable shapes — direct fetch, vendored
+snapshot, MCP knowledge server, skill / rules-file inlining,
+and CI-time injection — with per-agent walkthroughs for
+Copilot, Claude, Cursor, Codex, and Devin.
+
+{{< cards >}}
+  {{< card link="/docs/agent-integration/" title="Integrate an AI Agent →" subtitle="Five integration shapes, per-agent walkthroughs, and the cross-cutting concerns (pinning, audit, fetched-content hygiene) that keep an integration trustworthy." >}}
+{{< /cards >}}
+
 ## How the site is organised
 
 - **[Fundamentals]({{< relref "/fundamentals" >}})** — plain-English

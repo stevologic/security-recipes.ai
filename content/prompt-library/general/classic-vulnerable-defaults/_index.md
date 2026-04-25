@@ -46,16 +46,14 @@ Every recipe has:
 
 ## Catalogue
 
-{{< cards >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/python-pickle/" title="Python pickle / dill" subtitle="Replace pickle on untrusted input; mitigate via restricted unpickler." >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/" title="PyYAML `yaml.load`" subtitle="Default to `safe_load`; monkey-patch the import path." >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/java-deserialization/" title="Java ObjectInputStream" subtitle="Replace with JSON; mitigate via JEP 290 deserialization filters." >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/xxe-xml-defaults/" title="XML external entities" subtitle="defusedxml / XMLInputFactory hardening / libxml entity loader off." >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/jwt-alg-none/" title="JWT `alg: none` and confusion" subtitle="Force algorithm allowlists; reject `none` at the boundary." >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/eval-and-function-constructor/" title="`eval()` / `new Function()`" subtitle="Replace with parsers / restricted evaluators; CSP fallback." >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/requests-verify-false/" title="Disabled TLS verification" subtitle="Replace with proper CA bundles; fail-closed monkey patch." >}}
-  {{< card link="/prompt-library/general/classic-vulnerable-defaults/prototype-pollution-merge/" title="Prototype pollution merges" subtitle="Filter dangerous keys; switch to vetted merge utilities." >}}
-{{< /cards >}}
+The catalogue below is **auto-discovered** from the recipe
+files in this section. Drop a new markdown file with the
+standard prompt frontmatter (`title`, `description`,
+`maturity`, `model`, `tags`, `team`, `author`, `weight`) and
+it will appear here on the next build — no edits to this
+hub or to `hugo.yaml` required.
+
+{{< prompt-toc >}}
 
 This list grows. Submissions land via the same review path as
 any other prompt — see [Contribute]({{< relref "/contribute#contributing-a-prompt" >}}).

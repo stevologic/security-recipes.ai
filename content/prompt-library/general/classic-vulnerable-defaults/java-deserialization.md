@@ -1,6 +1,7 @@
 ---
 title: "Java ObjectInputStream and friends"
 linkTitle: "Java ObjectInputStream"
+description: "Replace with JSON serializers; mitigate via JEP 290 deserialization filters with a strict class allowlist."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

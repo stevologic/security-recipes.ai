@@ -1,6 +1,7 @@
 ---
 title: "Prototype pollution — `merge`, `assign`, and friends"
 linkTitle: "Prototype pollution merges"
+description: "Filter `__proto__` / `constructor` / `prototype` keys at parse boundaries; replace hand-rolled merges with vetted utilities."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

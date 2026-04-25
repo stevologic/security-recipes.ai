@@ -1,6 +1,7 @@
 ---
 title: "JavaScript `eval()` / `new Function()` on untrusted input"
 linkTitle: "eval and Function constructor"
+description: "Replace with parsers or restricted evaluators; add a CSP `script-src` ban on `unsafe-eval` for browser code."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

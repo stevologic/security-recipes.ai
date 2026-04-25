@@ -10,6 +10,7 @@ fork-and-PR workflow we use to land changes.
 - [What you can contribute](#what-you-can-contribute)
 - [Contributing a new agent recipe](#contributing-a-new-agent-recipe)
 - [Contributing a prompt](#contributing-a-prompt)
+- [Navigation: how the menus, sidebars, and hubs scale](#navigation-how-the-menus-sidebars-and-hubs-scale)
 - [Style and conventions](#style-and-conventions)
 - [Review expectations](#review-expectations)
 - [Running the site locally](#running-the-site-locally)
@@ -210,6 +211,143 @@ Concrete trigger.
   not ready.
 - "Clever" jailbreaks. This library is for trustworthy, reviewable
   automation.
+
+---
+
+## Navigation: how the menus, sidebars, and hubs scale
+
+The site is built to absorb a steady stream of new recipes —
+new CVEs, new classic-default patterns, new workflows — without
+anyone needing to edit `hugo.yaml` or hand-curate a hub page
+every time. Two rules keep that working:
+
+### Rule 1 — The top-nav dropdown lists hubs, never leaf pages
+
+The dropdown menus in `hugo.yaml` show **section hubs only**:
+
+- `Security Remediation → Overview / Reviewer Playbook /
+  Gatekeeping / Runtime Controls / Compliance` — and that's
+  it. Individual workflow pages (`sast-findings/`,
+  `base-images/`, `artifact-cache-purge/`, …) **do not**
+  appear here.
+- `Prompt Library → Claude / Cursor / Codex / Devin / Copilot
+  / General / Reputable Sources / CVE Recipes / Classic
+  Vulnerable Defaults` — per-tool and cross-cutting hubs.
+  Individual prompts and CVE recipes **do not** appear here.
+
+Why: a dropdown listing 50 CVE recipes (or 20 workflows) is
+worse than no dropdown at all. The hub pages and the
+auto-generated sidebar handle leaf navigation.
+
+**If your contribution is a new hub category** (a brand-new
+top-level grouping), edit `hugo.yaml`. **If your contribution
+is a new recipe inside an existing hub**, do not.
+
+### Rule 2 — Hubs auto-discover their pages
+
+Each hub page (`<section>/_index.md`) renders its catalogue
+through one of three shortcodes that walk the section tree:
+
+- `{{< prompt-toc >}}` — for prompt-library tool subsections
+  and `classic-vulnerable-defaults`. Reads each child page's
+  frontmatter and renders a card with title, description,
+  maturity badge, author / team / model, and tags.
+- `{{< cve-toc >}}` — for `prompt-library/cve/`. Groups by
+  `ecosystem` frontmatter, sorts by `disclosed` date, shows
+  severity and KEV badges.
+- The Hextra `{{< cards >}}` shortcode — used on hubs where
+  the editorial structure matters more than the page list
+  (e.g., the `security-remediation/_index.md` page that
+  separates "Active workflows" from "Program operations").
+
+To add a new recipe, drop a markdown file in the section
+folder with the right frontmatter:
+
+**Prompt-library prompts** (`prompt-library/<tool>/*.md` and
+`prompt-library/general/classic-vulnerable-defaults/*.md`):
+
+```yaml
+---
+title: "Short, specific title"
+linkTitle: "Short title"                 # shown in sidebar
+description: "One sentence — becomes the card subtitle."
+tool: "general"                           # or "claude" / "cursor" / etc.
+author: "Your Name"
+team: "Your Team"
+maturity: "development"                   # development | beta | stable | production
+model: "Opus 4.7"                         # the model you validated against
+tags: ["tag1", "tag2"]
+weight: 30                                # ordering within the section
+date: 2026-04-25
+---
+```
+
+**CVE recipes** (`prompt-library/cve/cve-XXXX-YYYYY-<slug>.md`):
+
+```yaml
+---
+title: "CVE-XXXX-YYYYY — <name>"
+linkTitle: "CVE-XXXX-YYYYY <name>"
+description: "One sentence — becomes the card subtitle."
+tool: "general"
+author: "Your Name"
+team: "Your Team"
+maturity: "stable"
+model: "Opus 4.7"
+tags: ["cve", ...]
+weight: 30
+date: 2026-04-25
+cve: "CVE-XXXX-YYYYY"                     # required for the listing
+aliases: ["Popular Name", "Other Alias"]
+kev: true                                 # CISA Known Exploited Vulnerability flag
+severity: "critical"                      # critical | high | medium | low
+ecosystem: "java/maven"                   # the catalogue groups on this
+disclosed: "YYYY-MM-DD"                   # the catalogue sorts on this
+---
+```
+
+When you push your branch, the next site build picks the new
+file up automatically. No menu edits, no hub-page edits.
+
+### Rule 3 — Long pages get an in-page TOC, not sub-pages
+
+Recipe pages will keep growing as scenarios accumulate
+(new ecosystems, new mitigations, new platform-specific
+notes). The right shape stays: one recipe = one page, with
+a clear `## H2` heading hierarchy and an in-page TOC
+rendered automatically by Hextra on the right rail. Don't
+split a recipe across multiple files unless the second file
+is a genuinely different recipe.
+
+If you find yourself wanting to split, ask:
+
+- Is each section now a self-contained recipe a reader
+  could pick up alone? Split.
+- Or is the page a long single recipe with a lot of
+  context? Keep it as one page; consistent `## H2` /
+  `### H3` heading shape lets the right-rail TOC carry
+  the navigation.
+
+### What this means in practice
+
+- **Adding a CVE recipe?** New file under
+  `prompt-library/cve/`. Frontmatter as above. Done.
+- **Adding a classic-default recipe?** New file under
+  `prompt-library/general/classic-vulnerable-defaults/`.
+  Frontmatter as above. Done.
+- **Adding a new workflow?** New folder under
+  `security-remediation/<slug>/_index.md`. Add a card to
+  the section's `_index.md` cards block (editorial
+  ordering matters there). Don't touch `hugo.yaml`.
+- **Adding a brand-new hub category?** *Only then* edit
+  `hugo.yaml` to add the dropdown entry, and add a
+  `cascade` block in the new hub's `_index.md` to
+  propagate sidebar settings to descendants.
+
+The navigation contract is enforced by review — PRs that
+add per-recipe entries to `hugo.yaml` or hand-list recipes
+on hub pages will be asked to switch to the auto-discovery
+shortcodes.
 
 ---
 

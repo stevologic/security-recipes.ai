@@ -1,6 +1,7 @@
 ---
 title: "Python pickle / dill on untrusted input"
 linkTitle: "Python pickle / dill"
+description: "Replace pickle on untrusted input; mitigate via a restricted unpickler with an explicit class allowlist."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

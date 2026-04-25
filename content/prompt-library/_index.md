@@ -7,6 +7,9 @@ description: >
   and skills for agentic remediation — organized by tool.
 sidebar:
   open: true
+cascade:
+  sidebar:
+    open: true
 ---
 
 {{< callout type="info" >}}

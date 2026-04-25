@@ -1,6 +1,7 @@
 ---
 title: "XML external entities (XXE) — parser defaults"
 linkTitle: "XML external entities (XXE)"
+description: "Per-language parser hardening: defusedxml for Python, factory feature flags for Java, libxml entity-loading off in PHP."
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"

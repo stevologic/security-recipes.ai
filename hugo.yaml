@@ -76,6 +76,18 @@ menu:
       name: Docs
       pageRef: docs
       weight: 3
+      params:
+        type: menu
+    - identifier: docs-overview
+      parent: docs
+      name: Overview
+      pageRef: docs
+      weight: 30
+    - identifier: docs-agent-integration
+      parent: docs
+      name: Integrate an AI Agent
+      pageRef: docs/agent-integration
+      weight: 31
 
     - identifier: agents
       name: Agents
@@ -114,6 +126,19 @@ menu:
       pageRef: claude
       weight: 25
 
+    # ----------------------------------------------------------------------
+    # Prompt Library
+    # ----------------------------------------------------------------------
+    # NAVIGATION CONTRACT: the top-nav dropdown lists *per-tool*
+    # subsections (Claude / Cursor / Codex / Devin / Copilot / General)
+    # plus the two cross-cutting collections (CVE Recipes, Classic
+    # Vulnerable Defaults). Each of those is a hub whose contents are
+    # auto-discovered by the `prompt-toc` / `cve-toc` shortcodes — so
+    # individual recipes never appear here.
+    #
+    # As tools or cross-cutting collections grow, expect a small,
+    # bounded number of new entries. Individual prompts and CVE
+    # recipes do **not** get menu entries.
     - identifier: prompt-library
       name: Prompt Library
       pageRef: prompt-library
@@ -176,6 +201,18 @@ menu:
       pageRef: mcp-servers
       weight: 6
 
+    # ----------------------------------------------------------------------
+    # Security Remediation
+    # ----------------------------------------------------------------------
+    # NAVIGATION CONTRACT (don't break this): the top-nav dropdown lists
+    # only the *Overview* and stable hub-level categories — never the
+    # leaf workflow / operations pages. Hextra's sidebar auto-discovers
+    # every page in the section from the filesystem, so dropping a new
+    # workflow at `content/security-remediation/<slug>/_index.md`
+    # appears in-section without any edit here.
+    #
+    # When in doubt: add a card on the section's _index.md, not a menu
+    # entry here.
     - identifier: security-remediation
       name: Security Remediation
       pageRef: security-remediation
@@ -187,41 +224,6 @@ menu:
       name: Overview
       pageRef: security-remediation
       weight: 60
-    - identifier: secrem-sensitive-data
-      parent: security-remediation
-      name: Sensitive Data Element
-      pageRef: security-remediation/sensitive-data
-      weight: 61
-    - identifier: secrem-vuln-deps
-      parent: security-remediation
-      name: Vulnerable Dependencies
-      pageRef: security-remediation/vulnerable-dependencies
-      weight: 62
-    - identifier: secrem-sast
-      parent: security-remediation
-      name: SAST Findings
-      pageRef: security-remediation/sast-findings
-      weight: 63
-    - identifier: secrem-base-images
-      parent: security-remediation
-      name: Base Image & Container Layers
-      pageRef: security-remediation/base-images
-      weight: 64
-    - identifier: secrem-cache-purge
-      parent: security-remediation
-      name: Artifact Cache Purge
-      pageRef: security-remediation/artifact-cache-purge
-      weight: 65
-    - identifier: secrem-classic-defaults
-      parent: security-remediation
-      name: Classic Vulnerable Defaults
-      pageRef: security-remediation/classic-vulnerable-defaults
-      weight: 66
-    - identifier: secrem-metrics
-      parent: security-remediation
-      name: Program Metrics & KPIs
-      pageRef: security-remediation/metrics
-      weight: 67
     - identifier: secrem-reviewer
       parent: security-remediation
       name: Reviewer Playbook
@@ -237,11 +239,6 @@ menu:
       name: Runtime Controls
       pageRef: security-remediation/runtime-controls
       weight: 70
-    - identifier: secrem-maturity
-      parent: security-remediation
-      name: Rollout & Maturity Model
-      pageRef: security-remediation/maturity
-      weight: 71
     - identifier: secrem-compliance
       parent: security-remediation
       name: Compliance & Audit
