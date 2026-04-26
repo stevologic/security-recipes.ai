@@ -223,6 +223,29 @@ jobs:
           # Belt-and-braces: tell GitHub Pages not to run the output through Jekyll.
           touch public/.nojekyll
 
+      - name: Verify MCP recipes index artifact
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          index_path = Path("public/recipes-index.json")
+          if not index_path.exists() or index_path.stat().st_size == 0:
+              raise SystemExit("public/recipes-index.json is missing or empty")
+
+          docs = json.loads(index_path.read_text(encoding="utf-8"))
+          if not isinstance(docs, list) or not docs:
+              raise SystemExit("recipes-index.json must be a non-empty JSON array")
+
+          required = {"slug", "title", "url", "content"}
+          missing = required - set(docs[0].keys())
+          if missing:
+              raise SystemExit(f"recipes-index.json is missing required fields: {sorted(missing)}")
+
+          print(f"Validated public/recipes-index.json with {len(docs)} documents.")
+          PY
+
       - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:

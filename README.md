@@ -208,8 +208,39 @@ The project ships with a GitHub Actions workflow
 2. Fetches the Hextra theme via Hugo Modules.
 3. Runs `hugo --gc --minify` with `HUGO_PARAMS_REPOURL` wired to the
    hosting repo.
-4. Pushes the compiled `public/` directory to a dedicated **`gh-pages`**
+4. Verifies `public/recipes-index.json` is generated for MCP
+   search/retrieval servers.
+5. Pushes the compiled `public/` directory to a dedicated **`gh-pages`**
    branch using `peaceiris/actions-gh-pages`.
+
+### MCP server-friendly content index
+
+This site generates a machine-readable JSON corpus at:
+
+- **`/recipes-index.json`** (for example,
+  `https://security-recipes.ai/recipes-index.json`)
+
+The index is emitted by Hugo during the normal build (`hugo --gc --minify`)
+using:
+
+- `hugo.yaml` output format: `RECIPESINDEX` (base name: `recipes-index`)
+- template: `layouts/index.recipesindex.json`
+
+Each record includes structured fields intended for MCP tools such as
+`search_recipes` and `get_recipe`, including:
+
+- `slug`, `title`, `url`, `path`, `section`
+- `agent`, `tags`, `severity`
+- `last_updated`, `summary`, `content`, `source_file`
+
+In CI, the workflow validates that `public/recipes-index.json` is:
+
+1. Present and non-empty
+2. Valid JSON
+3. A non-empty array with required fields (`slug`, `title`, `url`, `content`)
+
+This keeps the static site MCP-ready without requiring runtime crawling of
+rendered HTML.
 
 ### One-time setup
 

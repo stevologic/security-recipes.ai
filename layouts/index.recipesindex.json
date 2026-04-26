@@ -1,0 +1,22 @@
+{{- $docs := slice -}}
+{{- range sort .Site.RegularPages "RelPermalink" -}}
+  {{- $source := "" -}}
+  {{- with .File }}
+    {{- $source = .Path -}}
+  {{- end -}}
+  {{- $docs = $docs | append (dict
+    "slug" (.File.TranslationBaseName | default .Slug | default .Title)
+    "title" .Title
+    "url" .Permalink
+    "path" .RelPermalink
+    "section" .Section
+    "agent" (.Params.agent | default "general")
+    "tags" (.Params.tags | default (slice))
+    "severity" (.Params.severity | default "unspecified")
+    "last_updated" (.Lastmod.Format "2006-01-02")
+    "summary" (.Summary | plainify)
+    "content" .Plain
+    "source_file" $source
+  ) -}}
+{{- end -}}
+{{- $docs | jsonify -}}

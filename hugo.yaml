@@ -42,11 +42,18 @@ markup:
     noClasses: false
     style: github-dark
 
-# Output formats needed by Hextra search
+# Output formats needed by Hextra search + MCP recipe indexing.
 outputs:
-  home: [HTML]
+  home: [HTML, RECIPESINDEX]
   page: [HTML]
   section: [HTML, RSS]
+
+outputFormats:
+  RECIPESINDEX:
+    mediaType: application/json
+    baseName: recipes-index
+    isPlainText: true
+    notAlternative: true
 
 # ----------------------------------------------------------------------------
 # Menus
