@@ -71,6 +71,7 @@ def main() -> int:
     parser.add_argument("--advisory-root", required=True, type=Path)
     parser.add_argument("--output-root", required=True, type=Path)
     parser.add_argument("--report-path", type=Path)
+    parser.add_argument("--published-year", type=int)
     parser.add_argument("--author", default="Codex")
     parser.add_argument("--team", default="Security")
     args = parser.parse_args()
@@ -98,6 +99,9 @@ def main() -> int:
             continue
 
         ghsa_id = advisory.get("id", "unknown")
+        published = advisory.get("published") or ""
+        if args.published_year and not published.startswith(f"{args.published_year}-"):
+            continue
         aliases = advisory.get("aliases", [])
         cves = [a for a in aliases if a.startswith("CVE-")]
         if not cves:
@@ -152,7 +156,7 @@ def main() -> int:
                 break
 
         fixed_str = ", ".join(fixed[:6])
-        disclosed = (advisory.get("published") or "")[:10] or today
+        disclosed = published[:10] or today
         slug = slugify(summary)
         path = args.output_root / f"{cve.lower()}-{slug}.md"
 
@@ -249,6 +253,7 @@ def main() -> int:
         "generated_at": dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "advisory_root": str(args.advisory_root),
         "output_root": str(args.output_root),
+        "published_year": args.published_year,
         "totals": totals,
         "assessment": assessment,
     }

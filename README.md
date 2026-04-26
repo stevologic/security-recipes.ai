@@ -124,11 +124,12 @@ and a fixed version event) using:
 python scripts/generate_cve_recipes_from_ghad.py \
   --advisory-root /path/to/advisory-database/advisories/github-reviewed \
   --output-root content/prompt-library/cve/generated \
-  --report-path data/ghad-assessment/latest.json
+  --report-path data/ghad-assessment/latest.json \
+  --published-year 2026
 ```
 
 The generator assesses **all High/Critical advisories** in the input
-path and records one decision per advisory in the JSON report
+path (optionally filtered by `--published-year`) and records one decision per advisory in the JSON report
 (`generated`, `skipped_no_cve`, `skipped_no_fix`, `skipped_no_ranges`).
 Generated pages are intentionally marked **draft** so maintainers can
 review wording and add CVE-specific nuances before publishing. After
