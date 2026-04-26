@@ -93,6 +93,17 @@ window.__NAV_ROUTES = (function () {
 {{ end }}
 
 {{/*
+  Global docs search modal — adds "/" search access on Hextra content
+  pages (the landing page has its own dedicated search UI).
+*/}}
+<script>
+window.__SITE_BASE_PREFIX = {{ "/" | relURL | jsonify }};
+</script>
+{{ with resources.Get "js/docs-search.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
+
+{{/*
   Strip any PWA manifest the theme may have injected earlier in <head>,
   and any external <link rel="preconnect"> / <link rel="dns-prefetch">
   hints that would advertise an external dependency. This runs inline
