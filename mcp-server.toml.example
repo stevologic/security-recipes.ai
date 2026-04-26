@@ -1,0 +1,17 @@
+# security-recipes MCP server configuration
+
+# URL to the generated index.json from your Hugo site (GitHub Pages or custom host).
+source_index_url = "https://security-recipes.ai/recipes-index.json"
+
+# Security allow-list: hostname from source_index_url MUST exist here.
+allowed_source_hosts = ["security-recipes.ai"]
+
+# Public URL where this MCP server itself is hosted (metadata only).
+# Change this to your own hostname/subdomain when self-hosting.
+server_public_base_url = "https://mcp.security-recipes.ai"
+
+# Cache and behavior tuning
+cache_ttl_seconds = 3600
+request_timeout_seconds = 15
+max_results_default = 8
+max_results_cap = 25

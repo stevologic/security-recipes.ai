@@ -242,6 +242,46 @@ In CI, the workflow validates that `public/recipes-index.json` is:
 This keeps the static site MCP-ready without requiring runtime crawling of
 rendered HTML.
 
+### Standalone MCP server (Python + Docker)
+
+This repo also includes a standalone MCP server implementation that reads
+`recipes-index.json` directly from GitHub Pages (or any forked host):
+
+- Script: `mcp_server.py`
+- Config template: `mcp-server.toml.example`
+- Docker image recipe: `Dockerfile.mcp-server`
+- Python deps: `requirements-mcp-server.txt`
+
+#### Local run
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-mcp-server.txt
+cp mcp-server.toml.example mcp-server.toml
+python mcp_server.py
+```
+
+#### Docker run
+
+```bash
+docker build -f Dockerfile.mcp-server -t security-recipes-mcp .
+docker run --rm -it \
+  -v "$(pwd)/mcp-server.toml:/app/mcp-server.toml:ro" \
+  security-recipes-mcp
+```
+
+#### Re-pointing for forks / custom domains
+
+Edit `mcp-server.toml`:
+
+- `source_index_url` → where your fork publishes `recipes-index.json`
+- `allowed_source_hosts` → strict allow-list for that index hostname
+- `server_public_base_url` → your MCP server's own hostname (metadata)
+
+This lets teams host the Hugo site and MCP server under different domains
+without changing code.
+
 ### One-time setup
 
 1. **Push `hugo-site/` into a GitHub repo.**

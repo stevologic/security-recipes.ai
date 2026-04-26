@@ -1,0 +1,18 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    RECIPES_MCP_CONFIG=/app/mcp-server.toml
+
+WORKDIR /app
+
+COPY requirements-mcp-server.txt /app/requirements-mcp-server.txt
+RUN pip install --no-cache-dir -r /app/requirements-mcp-server.txt
+
+COPY mcp_server.py /app/mcp_server.py
+COPY mcp-server.toml.example /app/mcp-server.toml.example
+
+# Copy default config if the caller doesn't mount one.
+RUN cp /app/mcp-server.toml.example /app/mcp-server.toml
+
+CMD ["python", "/app/mcp_server.py"]
