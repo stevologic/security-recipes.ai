@@ -1,10 +1,10 @@
 ---
-title: Prompt Library
-linkTitle: Prompt Library
+title: Prompt Forge
+linkTitle: Prompt Forge
 weight: 8
 description: >
-  A community-driven collection of working prompts, rules files,
-  and skills for agentic remediation — organized by tool.
+  Prompt Forge: community prompts plus agent-verified premium prompts
+  delivered through the SecurityRecipes production MCP server.
 sidebar:
   open: true
 cascade:
@@ -21,14 +21,14 @@ to see what a good entry looks like.
 {{< /callout >}}
 
 The recipes elsewhere on this site show you **how** to enable
-agentic remediation in each tool. The Prompt Library is where we
+agentic remediation in each tool. Prompt Forge is where we
 collect the actual **prompts, rules, skills, and instruction
-files** that are shipping fixes in production today.
+files** that are shipping fixes in production today — with a clear split between open community prompts and premium agent-verified packs.
 
 Think of this as a shared cookbook for AI coding agents —
 community-driven, versioned, and reviewed.
 
-## Browse by tool
+## Prompt Forge: community + premium
 
 Every prompt lives under the folder for the agent it targets. If a
 prompt works the same across two or more agents, it belongs in
@@ -42,6 +42,13 @@ prompt works the same across two or more agents, it belongs in
   {{< card link="/prompt-library/devin/" title="Devin" subtitle="Knowledge entries, playbooks, and task prompts." >}}
   {{< card link="/prompt-library/general/" title="General" subtitle="Tool-agnostic triage frameworks, guardrails, review checklists, and PR templates." >}}
 {{< /cards >}}
+
+## Free vs Premium in Prompt Forge
+
+| Access | Includes |
+| --- | --- |
+| **Free (on-site)** | Community prompts, public playbooks, and tool-specific examples. |
+| **Premium (via production MCP server)** | Agent-verified premium prompts, curated workflow packs, and premium-only context features. |
 
 ## Start with the sample
 

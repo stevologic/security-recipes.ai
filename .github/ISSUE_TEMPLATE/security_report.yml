@@ -1,0 +1,18 @@
+name: Security report
+description: Private security reports should use SECURITY.md contact channel
+title: "[Security]: "
+labels: [security]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ Please do not disclose vulnerabilities publicly.
+
+        Use **SECURITY.md** and report privately to security@security-recipes.ai.
+  - type: input
+    id: confirmation
+    attributes:
+      label: Confirmation
+      description: Type "I will report privately"
+    validations:
+      required: true

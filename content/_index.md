@@ -1,11 +1,9 @@
 ---
 title: security-recipes.ai
 description: >
-  Community-driven recipes that turn AI coding agents — GitHub
-  Copilot, Claude, Cursor, Codex, and Devin — into reviewer-gated
-  security remediators. CVE fix playbooks, prompt library, MCP
-  connectors, and reference workflows for SDE, vulnerable
-  dependencies, SAST, base images, and more.
+  The trusted secure context layer for agentic AI and MCP servers.
+  SecurityRecipes combines free open recipes with an agent-verified
+  production MCP server for faster, reviewable remediation workflows.
 keywords:
   - "agentic security remediation"
   - "AI security agents"

@@ -2,17 +2,22 @@
 
 A Hugo docs site (built with the [Hextra](https://imfing.github.io/hextra/)
 theme) — published as **[security-recipes.ai](https://security-recipes.ai/)** —
-that catalogs **community-driven recipes** for turning the AI coding
-tools engineering teams already use — GitHub Copilot, Devin, Cursor,
-Codex, and Claude — into autonomous security remediators.
+positioning SecurityRecipes as **the trusted secure context layer for agentic AI and MCP servers**.
 
-## Purpose
+It combines:
+- **Open knowledge (MIT Licensed):** community recipes, docs, and prompt playbooks.
+- **Production MCP path:** free and premium MCP access, including premium-only
+  features delivered through MCP for enterprise operations.
+
+## Vision
 
 The agentic landscape is moving faster than any single team's internal
 documentation can keep up with. New models ship monthly, new agent
 platforms launch quarterly, MCP connectors proliferate across every
 SaaS an engineering org touches, and the guardrails that kept a pilot
 safe last quarter may not cover the capabilities shipping next quarter.
+
+SecurityRecipes is designed to become a high-trust foundation for agentic security operations in 2026 and beyond.
 
 This project exists for two reasons:
 
@@ -36,6 +41,14 @@ all written to be **industry-generic**: rename the labels, swap the
 tools, bring your own policy — the shape travels. As the landscape
 evolves, so does this site. Forks are encouraged; contributions back
 are the whole point.
+
+## Standards alignment
+
+SecurityRecipes content is designed to align with established security references:
+
+- **OWASP Top 10** for common application security failure modes.
+- **NIST AI Risk Management Framework (AI RMF 1.0)** for governable AI system lifecycle controls.
+- **Least-privilege + auditable control design** reflected in MCP guidance and reviewer-gated workflows.
 
 ## What's in the site
 

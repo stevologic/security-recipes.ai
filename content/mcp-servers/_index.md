@@ -1,15 +1,14 @@
 ---
-title: MCP Server Access
-linkTitle: MCP Server Access
+title: Production MCP Server
+linkTitle: Production MCP Server
 weight: 10
 toc: true
 sidebar:
   open: true
 description: >
-  The context layer behind agentic remediation. Catalog of MCP
-  data sources, how to wire them into each agent, and why
-  giving agents direct, scoped access to the right signals is
-  how risk reduction actually speeds up.
+  The trusted secure context layer for agentic AI and MCP servers.
+  Production MCP architecture, free vs premium tiers, and how to wire
+  scoped context for faster reviewer-gated remediation.
 ---
 
 {{< callout type="info" >}}
@@ -20,6 +19,15 @@ between a new finding and a reviewed PR. This section catalogs
 what's wired up today, what's on deck, and how to integrate a
 new source.
 {{< /callout >}}
+
+## SecurityRecipes production MCP vision
+
+SecurityRecipes is building **the trusted secure context layer for agentic AI and MCP servers**.
+
+- **Free tier (open):** public recipe retrieval, community prompt context, and baseline connector patterns.
+- **Premium tier (production MCP):** agent-verified prompt packs, higher-rate endpoints, enterprise policy controls, and premium-only remediation features available exclusively through the MCP server.
+
+This model keeps foundational knowledge open while funding production-grade context infrastructure.
 
 ## Why agentic workflows need direct data access
 
@@ -516,3 +524,16 @@ of these:
 [Emerging Patterns → elicitation]({{< relref "/fundamentals/emerging-patterns#elicitation-structured-input-from-the-user" >}})
 ·
 [Emerging Patterns → tasks primitive]({{< relref "/fundamentals/emerging-patterns#mcp-tasks-primitive-for-long-running-work" >}}).
+
+## Free vs Premium MCP access
+
+| Capability | Free Tier (Site + MCP) | Premium Tier (Production MCP) |
+| --- | --- | --- |
+| Public recipes and handbook content | ✅ | ✅ |
+| Community prompt retrieval | ✅ | ✅ |
+| Agent-verified premium prompts | ❌ | ✅ |
+| Premium-only tools and workflows | ❌ | ✅ |
+| Production throughput and SLAs | ❌ | ✅ |
+| Enterprise policy packs | ❌ | ✅ |
+
+Premium features are intentionally delivered via MCP so access is scoped, auditable, and controllable.
