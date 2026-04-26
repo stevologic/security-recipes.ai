@@ -113,6 +113,31 @@ the `model` it was validated against. See any existing prompt — for
 example, `content/prompt-library/general/owasp-top-10-2026-audit.md` —
 as a template.
 
+
+### Generate CVE recipe drafts from GitHub Advisory Database
+
+If you have a local checkout of `github/advisory-database`, you can
+bulk-generate draft CVE recipe pages (High/Critical entries with CVE IDs
+and a fixed version event) using:
+
+```bash
+python scripts/generate_cve_recipes_from_ghad.py \
+  --advisory-root /path/to/advisory-database/advisories/github-reviewed \
+  --output-root content/prompt-library/cve/generated \
+  --report-path data/ghad-assessment/latest.json \
+  --published-year 2026
+```
+
+The generator assesses **all High/Critical advisories** in the input
+path (optionally filtered by `--published-year`) and records one decision per advisory in the JSON report
+(`generated`, `skipped_no_cve`, `skipped_no_fix`, `skipped_no_ranges`).
+Generated pages are intentionally marked **draft** so maintainers can
+review wording and add CVE-specific nuances before publishing. After
+generation, iterate through each `generated` result in the assessment
+report and either (a) promote to a curated file in
+`content/prompt-library/cve/` or (b) discard if no real remediation path
+exists.
+
 ---
 
 ## Project layout

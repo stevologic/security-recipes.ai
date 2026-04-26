@@ -1,0 +1,14 @@
+{
+  "id": "GHSA-7xcv-9j6c-2fmc",
+  "summary": "Modular allows for unsafe deserialization in max serve",
+  "details": "In modular prior to 25.6.0, max serve has unsafe deserialization that can cause remote code execution when --experimental-enable-kvcache-agent is enabled.",
+  "published": "2025-11-18T21:40:00Z",
+  "aliases": ["CVE-2025-60455"],
+  "database_specific": {"severity": "CRITICAL"},
+  "affected": [
+    {
+      "package": {"ecosystem": "PyPI", "name": "modular"},
+      "ranges": [{"type": "ECOSYSTEM", "events": [{"introduced": "0"}, {"fixed": "25.6.0"}]}]
+    }
+  ]
+}
