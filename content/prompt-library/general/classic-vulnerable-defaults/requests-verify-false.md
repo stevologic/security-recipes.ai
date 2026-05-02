@@ -212,5 +212,5 @@ Add tests:
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})
   — workflow context.
-- [OWASP Top 10 (2026) → A02 Cryptographic Failures]({{< relref "/prompt-library/general/owasp-top-10-2026-remediate" >}})
+- [OWASP Top 10:2025 -> A04 Cryptographic Failures]({{< relref "/prompt-library/general/owasp-top-10-2025-remediate" >}})
   — broader crypto-failure pattern.

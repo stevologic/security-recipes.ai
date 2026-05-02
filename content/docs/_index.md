@@ -71,6 +71,7 @@ Copilot, Claude, Cursor, Codex, and Devin.
 
 {{< cards >}}
   {{< card link="/docs/agent-integration/" title="Integrate an AI Agent →" subtitle="Five integration shapes, per-agent walkthroughs, and the cross-cutting concerns (pinning, audit, fetched-content hygiene) that keep an integration trustworthy." >}}
+  {{< card link="/docs/recipe-routing-evals/" title="Recipe Routing Evals →" subtitle="Golden-set tests for proving MCP search, CI dispatch, and agent wrappers choose the right recipe before touching production repositories." >}}
 {{< /cards >}}
 
 ## How the site is organised

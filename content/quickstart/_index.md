@@ -199,7 +199,7 @@ use **Cursor Background Agents** (`Cursor → Background Agents
 ## Codex — five-minute path {#codex-five-minute-path}
 
 **Install.** Install the Codex CLI from OpenAI's
-[Codex docs](https://platform.openai.com/docs/codex):
+[Codex docs](https://developers.openai.com/codex):
 
 ```bash
 npm install -g @openai/codex

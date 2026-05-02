@@ -46,30 +46,35 @@ documented flow.
 3. **Connect your source host.** Install the GitHub / GitLab
    integration from **Workspace → Integrations** so Devin can
    clone repos and open PRs. See
-   [Devin Integrations](https://docs.devin.ai/integrations).
+   [Devin Integrations](https://docs.devin.ai/integrations/overview).
 4. **Document your runbooks as Knowledge entries.** Knowledge
    is Devin's long-term memory — used at the start of every
    session. See [Devin Knowledge](https://docs.devin.ai/product-guides/knowledge).
 5. **Author Playbooks for repeatable tasks** you can invoke by
    name. See [Devin Playbooks](https://docs.devin.ai/product-guides/using-playbooks).
-6. **Mint an API key** at **Workspace → Settings → API keys**
+6. **Mint an API credential** at **Workspace → Settings → Service users**
    and start dispatching sessions via
-   [`POST /v1/sessions`](https://docs.devin.ai/api-reference/sessions/create-a-new-devin-session).
+   [`POST /v3/organizations/{org_id}/sessions`](https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions).
 
 
 **Vendor-side reference index:**
 
 - [Devin docs home](https://docs.devin.ai)
-- [API: `POST /v1/sessions`](https://docs.devin.ai/api-reference/sessions/create-a-new-devin-session)
-- [API: list sessions](https://docs.devin.ai/api-reference/sessions/list-sessions)
+- [API: `POST /v3/organizations/{org_id}/sessions`](https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions)
+- [API overview and migration notes](https://docs.devin.ai/api-reference/overview)
+- [Authentication](https://docs.devin.ai/api-reference/authentication)
+- [API: list sessions](https://docs.devin.ai/api-reference/v3/sessions/organizations-sessions)
 - [Knowledge](https://docs.devin.ai/product-guides/knowledge)
 - [Playbooks](https://docs.devin.ai/product-guides/using-playbooks)
-- [Integrations (GitHub, GitLab, Jira, Linear, Slack)](https://docs.devin.ai/integrations)
+- [Integrations (GitHub, GitLab, Jira, Linear, Slack)](https://docs.devin.ai/integrations/overview)
 - [Pricing](https://devin.ai/pricing)
-- [Cognition trust & security](https://devin.ai/trust)
+- [Cognition trust & security](https://docs.devin.ai/admin/security)
 
-API base URL: `https://api.devin.ai/v1`. Authenticate with a
-workspace API key as `Authorization: Bearer <token>`.
+Current organization API base URL: `https://api.devin.ai/v3/organizations/{org_id}`.
+Authenticate with a Devin service-user credential as
+`Authorization: Bearer <token>`. The older v1/v2 APIs remain
+documented as legacy APIs during migration, but new automation
+should start on v3.
 
 ## Enterprise onboarding
 
@@ -187,23 +192,25 @@ are fast.
 
 ### 3. Mint a scoped Devin API key
 
-In **Workspace → Settings → API keys**, create a key named
-`remediation-webhook`. Scope: "Create sessions only." Store the
-key as a secret in the ticket system / CI that will POST to the
-API.
+In **Workspace → Settings → Service users**, create a service user
+named `remediation-webhook` with the org-level session permission
+required by the current API. Store both `DEVIN_API_KEY` and
+`DEVIN_ORG_ID` as secrets in the ticket system / CI that will POST
+to the API. Add `ImpersonateOrgSessions` only if the automation uses
+`create_as_user_id`.
 
 ### 4. Webhook your backlog into Devin
 
 When a finding enters "ready-for-agent" (a Jira status, a Linear
-label, a GitHub Issues tag), POST to `/v1/sessions`. The body
-becomes Devin's task brief.
+label, a GitHub Issues tag), POST to
+`/v3/organizations/{org_id}/sessions`. The body becomes Devin's
+task brief.
 
-Valid `POST /v1/sessions` body fields include `prompt`,
-`idempotent`, `knowledge_ids`, `playbook_id`, `max_acu_limit`,
-`secret_ids`, `snapshot_id`, `tags`, `title`, and `unlisted`. The
-repo Devin operates on is selected via the connected GitHub /
-GitLab integration (and named inside the `prompt`), not by a
-`repos` body field.
+Common `POST /v3/organizations/{org_id}/sessions` body fields include
+`prompt`, `title`, `tags`, `repos`, `knowledge_ids`, `playbook_id`,
+`max_acu_limit`, `secret_ids`, `session_links`, and
+`create_as_user_id`. Use `repos` when the connected GitHub / GitLab
+integration should be constrained to specific repositories.
 
 {{< tabs items="GitHub Issues,GitHub Webhook → Actions,Jira Automation,Linear webhook,Scheduled sweep" >}}
   {{< tab >}}
@@ -222,6 +229,7 @@ jobs:
       - name: Create Devin session
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          DEVIN_ORG_ID: ${{ secrets.DEVIN_ORG_ID }}
           REPO: ${{ github.repository }}
           ISSUE_NUM: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
@@ -242,11 +250,12 @@ jobs:
           jq -n \
             --arg prompt "$BRIEF" \
             --arg title "Remediate #${ISSUE_NUM} in ${REPO}" \
+            --arg repo "$REPO" \
             '{prompt: $prompt,
               title: $title,
-              idempotent: true,
+              repos: [$repo],
               tags: ["remediation","github-issue"]}' \
-          | curl -fsSL -X POST https://api.devin.ai/v1/sessions \
+          | curl -fsSL -X POST "https://api.devin.ai/v3/organizations/${DEVIN_ORG_ID}/sessions" \
               -H "Authorization: Bearer $DEVIN_API_KEY" \
               -H "Content-Type: application/json" \
               --data @-
@@ -269,17 +278,20 @@ jobs:
       - name: Create Devin session from scanner payload
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          DEVIN_ORG_ID: ${{ secrets.DEVIN_ORG_ID }}
+          REPO: ${{ github.repository }}
           FINDING_ID: ${{ github.event.client_payload.finding_id }}
           FINDING_BODY: ${{ github.event.client_payload.description }}
         run: |
           jq -n \
             --arg prompt "Remediate finding ${FINDING_ID}. Details:\n${FINDING_BODY}" \
             --arg title "Devin: ${FINDING_ID}" \
+            --arg repo "$REPO" \
             '{prompt: $prompt,
               title: $title,
-              idempotent: true,
+              repos: [$repo],
               tags: ["remediation","webhook"]}' \
-          | curl -fsSL -X POST https://api.devin.ai/v1/sessions \
+          | curl -fsSL -X POST "https://api.devin.ai/v3/organizations/${DEVIN_ORG_ID}/sessions" \
               -H "Authorization: Bearer $DEVIN_API_KEY" \
               -H "Content-Type: application/json" \
               --data @-
@@ -293,7 +305,7 @@ Devin. Works the same shape for Bitbucket Pipelines or GitLab CI.
 ```
 # Jira → Automation → "Send web request"
 Method:  POST
-URL:     https://api.devin.ai/v1/sessions
+URL:     https://api.devin.ai/v3/organizations/{{DEVIN_ORG_ID}}/sessions
 Headers: Authorization: Bearer {{DEVIN_API_KEY}}
          Content-Type: application/json
 
@@ -301,7 +313,6 @@ Body:
 {
   "prompt": "Remediate {{issue.key}} ({{issue.summary}}) in the connected repo. Follow the Security Remediation Runbook. Issue body:\n\n{{issue.description}}",
   "title": "Devin: {{issue.key}}",
-  "idempotent": true,
   "tags": ["remediation","jira","{{issue.key}}"]
 }
 ```
@@ -322,10 +333,9 @@ export default {
               `(${event.data.title}) in the connected repo. Follow ` +
               `the Security Remediation Runbook.\n\n${event.data.description ?? ""}`,
       title: `Devin: ${event.data.identifier}`,
-      idempotent: true,
       tags: ["remediation", "linear", event.data.identifier],
     };
-    const res = await fetch("https://api.devin.ai/v1/sessions", {
+    const res = await fetch(`https://api.devin.ai/v3/organizations/${env.DEVIN_ORG_ID}/sessions`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${env.DEVIN_API_KEY}`,
@@ -356,15 +366,15 @@ jobs:
       - name: Create a Devin session per high/critical finding
         env:
           DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          DEVIN_ORG_ID: ${{ secrets.DEVIN_ORG_ID }}
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           for FINDING_ID in $(./scripts/list-open-findings.sh --severity high,critical | head -5); do
             jq -n --arg id "$FINDING_ID" \
               '{prompt: ("Remediate finding " + $id + " per the Security Remediation Runbook. Open a draft PR."),
                 title: ("Devin: " + $id),
-                idempotent: true,
                 tags: ["remediation","scheduled"]}' \
-            | curl -fsSL -X POST https://api.devin.ai/v1/sessions \
+            | curl -fsSL -X POST "https://api.devin.ai/v3/organizations/${DEVIN_ORG_ID}/sessions" \
                 -H "Authorization: Bearer $DEVIN_API_KEY" \
                 -H "Content-Type: application/json" \
                 --data @-
@@ -506,8 +516,8 @@ orchestration is write-once.
 ## See also
 
 - Cognition: [Devin docs home](https://docs.devin.ai)
-- Devin API: [`POST /v1/sessions`](https://docs.devin.ai/api-reference/sessions/create-a-new-devin-session)
-- Devin docs: [Knowledge](https://docs.devin.ai/product-guides/knowledge) · [Playbooks](https://docs.devin.ai/product-guides/using-playbooks) · [Integrations](https://docs.devin.ai/product-guides/integrations)
+- Devin API: [`POST /v3/organizations/{org_id}/sessions`](https://docs.devin.ai/api-reference/v3/sessions/post-organizations-sessions)
+- Devin docs: [Knowledge](https://docs.devin.ai/product-guides/knowledge) · [Playbooks](https://docs.devin.ai/product-guides/using-playbooks) · [Integrations](https://docs.devin.ai/integrations/overview)
 - [MCP Server Access]({{< relref "/mcp-servers" >}}) — exposing richer context to agents
 - Recipe: [Codex]({{< relref "/codex" >}}) — for similar batch flows
 - [Prompt Library]({{< relref "/prompt-library" >}}) — share your Devin session briefs (see `prompt-library/devin/` for live examples)

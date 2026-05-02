@@ -12,7 +12,7 @@ date: 2026-04-21
 ---
 
 A Codex CLI prompt designed for **non-interactive, CI-driven** runs
-(`codex exec --full-auto --json`). It picks up a single CVE /
+(`codex exec --sandbox workspace-write --json`). It picks up a single CVE /
 advisory id, locates the affected dependency in the repo's
 manifest + lockfile, applies the minimum viable patched version,
 runs the project's tests, and either opens a PR or writes a
@@ -62,7 +62,7 @@ surfaces it.
 Invoke as:
 
 ```bash
-codex exec --full-auto --model gpt-5.3-codex --json \
+codex exec --sandbox workspace-write --model gpt-5.3-codex --json \
   "$(envsubst < prompts/remediate-dep.md)" \
   > "/tmp/codex-${FINDING_ID}.jsonl"
 ```
@@ -258,5 +258,5 @@ GUARDRAILS
 ## Changelog
 
 - 2026-04-21 — v1, first published. Shaped for `codex exec
-  --full-auto --json`. Handles Node / Python / Go / Rust / Ruby;
+  --sandbox workspace-write --json`. Handles Node / Python / Go / Rust / Ruby;
   monorepo + Maven handling deferred to v2.

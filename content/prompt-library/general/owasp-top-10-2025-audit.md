@@ -1,6 +1,6 @@
 ---
-title: "OWASP Top 10 (2026) — repo audit"
-linkTitle: "OWASP Top 10 2026 audit"
+title: "OWASP Top 10:2025 — repo audit"
+linkTitle: "OWASP Top 10:2025 audit"
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"
@@ -12,12 +12,13 @@ date: 2026-04-22
 ---
 
 A tool-agnostic **hunt prompt** that walks an agent through a structured
-audit of a repository against every category in the OWASP Top 10 (2026
-iteration). The output is a prioritised report with file-level pointers
+audit of a repository against every category in the OWASP Web Application
+Top 10:2025. As of 2026-05-02, OWASP's official web-application Top 10 is
+the 2025 edition. The output is a prioritised report with file-level pointers
 and concrete remediation recommendations — not a fix.
 
 Pair this with the companion remediate prompt,
-[OWASP Top 10 (2026) — remediate]({{< relref "/prompt-library/general/owasp-top-10-2026-remediate" >}}),
+[OWASP Top 10:2025 — remediate]({{< relref "/prompt-library/general/owasp-top-10-2025-remediate" >}}),
 to take a single finding from the report to an open PR.
 
 ## What this prompt does
@@ -26,7 +27,7 @@ It asks the agent to:
 
 1. **Enumerate the repo** — language, framework, entry points, auth
    mechanism, data stores, external calls, secret-handling paths.
-2. **Walk each OWASP Top 10 2026 category** and look for concrete
+2. **Walk each OWASP Top 10:2025 category** and look for concrete
    instances, not theoretical risk.
 3. **Score and group findings** by category, severity, and blast
    radius.
@@ -69,7 +70,7 @@ report you can and flag the gaps.
 
 ~~~markdown
 You are performing a security posture audit of this repository against
-the OWASP Top 10 (2026). Run read-only. Do not edit files or run
+the OWASP Web Application Top 10:2025. Run read-only. Do not edit files or run
 destructive commands.
 
 ## Step 0 — Repo orientation
@@ -89,7 +90,7 @@ Before auditing, infer and record:
 Record these in a short "Context" section at the top of the report.
 If any are unknown after a reasonable look, say so — do not guess.
 
-## Step 1 — Walk each OWASP Top 10 2026 category
+## Step 1 — Walk each OWASP Top 10:2025 category
 
 For each category, answer three questions:
 
@@ -103,50 +104,50 @@ For each category, answer three questions:
 
 ### Categories to cover
 
-Use the current OWASP Top 10 2026 naming. If the release is still
-draft, note the version you are auditing against at the top of the
-report. Cover at minimum:
+Use the official OWASP Top 10:2025 web-application category names. If OWASP
+publishes a newer web-application Top 10, note the newer version and date at
+the top of the report before applying this prompt. Cover:
 
 - **A01 — Broken Access Control.** Missing authz checks on routes,
   IDOR patterns, tenant-id trust from client, over-broad admin
-  endpoints.
-- **A02 — Cryptographic Failures.** Weak/old ciphers, hard-coded
-  keys, TLS verification disabled, plaintext-at-rest for sensitive
-  fields, bad password hashing (MD5/SHA1/unsalted).
-- **A03 — Injection.** SQL/NoSQL/command/LDAP/XPath injection,
-  unsafe template rendering, prompt injection paths for LLM
-  features (untrusted text pasted into a system prompt or tool
-  call).
-- **A04 — Insecure Design.** Missing rate limits on auth-adjacent
-  endpoints, enumeration oracles (login, password-reset,
-  invite-by-email), trust boundaries crossed without validation,
-  features shipped without a threat model.
-- **A05 — Security Misconfiguration.** Debug mode in production
+  endpoints. Include SSRF-shaped outbound-request trust failures here
+  when they cross access-control boundaries.
+- **A02 — Security Misconfiguration.** Debug mode in production
   paths, permissive CORS, default credentials, verbose error
   pages, cloud resources without least-privilege IAM, missing
   security headers.
-- **A06 — Vulnerable and Outdated Components.** Lockfile entries
-  with known CVEs, unpinned or wildcard deps, abandoned upstreams,
-  vendored code without a clear origin.
-- **A07 — Identification and Authentication Failures.** Weak
+- **A03 — Software Supply Chain Failures.** Unpinned or vulnerable
+  dependencies, unsigned release artifacts, CI pipelines that trust
+  unverified third-party actions, abandoned upstreams, vendored code
+  without clear provenance.
+- **A04 — Cryptographic Failures.** Weak/old ciphers, hard-coded
+  keys, TLS verification disabled, plaintext-at-rest for sensitive
+  fields, bad password hashing (MD5/SHA1/unsalted).
+- **A05 — Injection.** SQL/NoSQL/command/LDAP/XPath injection,
+  unsafe template rendering, prompt injection paths for LLM
+  features (untrusted text pasted into a system prompt or tool
+  call).
+- **A06 — Insecure Design.** Missing rate limits on auth-adjacent
+  endpoints, enumeration oracles (login, password-reset,
+  invite-by-email), trust boundaries crossed without validation,
+  features shipped without a threat model.
+- **A07 — Authentication Failures.** Weak
   session handling, no MFA for sensitive ops, no account lockout
   or rate limiting on login, password policy gaps, tokens in URLs.
-- **A08 — Software and Data Integrity Failures.** Unsigned release
-  artifacts, CI pipelines that trust unverified third-party
-  actions, deserialization of untrusted data, auto-update paths
-  without signature checks.
-- **A09 — Security Logging and Monitoring Failures.** Sensitive
+- **A08 — Software or Data Integrity Failures.** Deserialization of
+  untrusted data, unsafe auto-update paths, unsigned data artifacts,
+  missing integrity checks for code or data inputs.
+- **A09 — Security Logging and Alerting Failures.** Sensitive
   operations that emit no audit record, PII/secrets in logs,
   missing correlation IDs, no alerting on auth anomalies.
-- **A10 — Server-Side Request Forgery (SSRF).** Outbound HTTP
-  built from user input without allowlisting, webhook fetchers,
-  URL preview services, metadata-endpoint (169.254.169.254) not
-  blocked.
+- **A10 — Mishandling of Exceptional Conditions.** Failing open,
+  unsafe error recovery, exception paths that skip authorization or
+  validation, verbose exception leaks, and crash loops that become
+  denial-of-service or privilege boundary failures.
 
-If the published 2026 list adds or renames a category (for example,
-a standalone entry for LLM/agent-supply-chain risks), include it
-using the current OWASP wording and drop any category that was
-merged or retired.
+Do not substitute the OWASP LLM, Agentic, API, Mobile, or Smart Contract
+Top 10 projects unless the finding explicitly targets those domains; those
+are separate OWASP projects with different category taxonomies.
 
 ## Step 2 — Score and prioritise
 
@@ -168,9 +169,9 @@ Write the report to `SECURITY_AUDIT.md` at the repo root (or print
 to stdout if the session is read-only). Use this structure:
 
 ```markdown
-# OWASP Top 10 (2026) audit — <repo name>
+# OWASP Top 10:2025 audit — <repo name>
 
-_Generated by <agent name> on <date>. OWASP version: <draft/final, date>._
+_Generated by <agent name> on <date>. OWASP version: Web Application Top 10:2025._
 
 ## Context
 - Language / framework: ...
@@ -236,7 +237,7 @@ Stop and write a note rather than guessing if:
 - Pick the top finding.
 - Feed its file, line, category, and recommended fix into the
   companion prompt:
-  [OWASP Top 10 (2026) — remediate]({{< relref "/prompt-library/general/owasp-top-10-2026-remediate" >}}).
+  [OWASP Top 10:2025 — remediate]({{< relref "/prompt-library/general/owasp-top-10-2025-remediate" >}}).
 - Review the PR it opens.
 
 ## Related
@@ -245,4 +246,5 @@ Stop and write a note rather than guessing if:
   the report (SAST, SSRF, blast radius).
 - [MCP Server Access]({{< relref "/mcp-servers" >}}) — wiring an
   agent to scanners so audits can cross-reference existing findings.
-- [OWASP Top 10 (2026) — remediate]({{< relref "/prompt-library/general/owasp-top-10-2026-remediate" >}})
+- [OWASP Top 10:2025 — remediate]({{< relref "/prompt-library/general/owasp-top-10-2025-remediate" >}})
+- [OWASP Top 10:2025 official project](https://owasp.org/Top10/2025/)

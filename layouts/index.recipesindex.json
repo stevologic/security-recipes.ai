@@ -1,5 +1,6 @@
 {{- $docs := slice -}}
-{{- range sort .Site.RegularPages "RelPermalink" -}}
+{{- $recipePages := where .Site.Pages "Kind" "in" (slice "page" "section") -}}
+{{- range sort $recipePages "RelPermalink" -}}
   {{- $source := "" -}}
   {{- with .File }}
     {{- $source = .Path -}}

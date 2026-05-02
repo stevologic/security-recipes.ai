@@ -316,7 +316,7 @@ dispatches the agent run.
     case "${{ github.event.client_payload.cve }}" in
       CVE-2021-44228) echo "path=vendor/security-recipes/content/prompt-library/cve/cve-2021-44228-log4shell.md" >> $GITHUB_OUTPUT ;;
       CVE-2024-3094)  echo "path=vendor/security-recipes/content/prompt-library/cve/cve-2024-3094-xz-utils.md" >> $GITHUB_OUTPUT ;;
-      *)              echo "path=vendor/security-recipes/content/prompt-library/general/owasp-top-10-2026-remediate.md" >> $GITHUB_OUTPUT ;;
+      *)              echo "path=vendor/security-recipes/content/prompt-library/general/owasp-top-10-2025-remediate.md" >> $GITHUB_OUTPUT ;;
     esac
 
 - name: Run agent

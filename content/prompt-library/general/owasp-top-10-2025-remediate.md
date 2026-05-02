@@ -1,6 +1,6 @@
 ---
-title: "OWASP Top 10 (2026) — remediate"
-linkTitle: "OWASP Top 10 2026 remediate"
+title: "OWASP Top 10:2025 — remediate"
+linkTitle: "OWASP Top 10:2025 remediate"
 tool: "general"
 author: "Stephen M Abbott"
 team: "Security"
@@ -12,13 +12,13 @@ date: 2026-04-22
 ---
 
 A tool-agnostic **remediation prompt** that takes a single finding
-from an OWASP Top 10 (2026) audit — or any equivalent source — and
-turns it into a reviewer-ready pull request. Includes category-specific
+from an OWASP Web Application Top 10:2025 audit — or any equivalent source —
+and turns it into a reviewer-ready pull request. Includes category-specific
 "how to fix this well" guidance so the agent doesn't apply a naive
 patch that looks right and isn't.
 
 Works with the hunt side at
-[OWASP Top 10 (2026) — audit]({{< relref "/prompt-library/general/owasp-top-10-2026-audit" >}}),
+[OWASP Top 10:2025 — audit]({{< relref "/prompt-library/general/owasp-top-10-2025-audit" >}}),
 but does not require it — any clear finding (SAST result, pen-test
 note, internal review comment) is a valid input.
 
@@ -66,7 +66,7 @@ Infer what you can from the session; prompt only when ambiguous.
 ## The prompt
 
 ~~~markdown
-You are remediating a single OWASP Top 10 (2026) finding in this
+You are remediating a single OWASP Top 10:2025 finding in this
 repository. Open one reviewer-ready PR or write a triage note. Do
 not auto-merge.
 
@@ -91,56 +91,56 @@ fits the category.
   centralized middleware / policy objects over ad-hoc `if` checks
   scattered across routes. Verify the check runs on every code
   path, including error and retry paths.
-- **A02 Cryptographic Failures** — Replace weak primitives with
+- **A02 Security Misconfiguration** — Turn the defaults right.
+  Tighten CORS to explicit origins, disable debug in production
+  paths, add the standard security headers (CSP, HSTS,
+  X-Content-Type-Options, Referrer-Policy). If the config is
+  environment-specific, fix the *default* and override only where
+  needed.
+- **A03 Software Supply Chain Failures** — Pin third-party CI
+  actions by SHA, require signatures on release artifacts, use
+  lockfiles with digest verification where the ecosystem supports
+  it, and remove abandoned or unmaintained dependencies. For
+  vulnerable packages, bump to the lowest non-vulnerable version
+  that keeps the repo's major / minor contract.
+- **A04 Cryptographic Failures** — Replace weak primitives with
   the library's current recommended default. Never roll your own.
   For password hashing, use argon2id or bcrypt with current cost
   parameters. For data-at-rest, prefer envelope encryption with a
   KMS-managed key. Remove the old cipher path — do not leave a
   fallback.
-- **A03 Injection** — Parameterize. For SQL, use prepared
+- **A05 Injection** — Parameterize. For SQL, use prepared
   statements or the ORM's parameter binding. For shell, prefer
   `execFile`/`subprocess.run(args=[...])` with an explicit
   allowlist over string concatenation. For templates, escape at
   render time, not at input time. For LLM prompt injection,
   treat model output as untrusted and keep untrusted text out of
   system prompts and tool-call arguments.
-- **A04 Insecure Design** — If the fix is design-level (missing
+- **A06 Insecure Design** — If the fix is design-level (missing
   rate limit, enumeration oracle), add the minimum control:
   server-side rate limit keyed on account + IP, uniform response
   for valid and invalid enumerable inputs, etc. Flag the larger
   design gap in the PR body.
-- **A05 Security Misconfiguration** — Turn the defaults right.
-  Tighten CORS to explicit origins, disable debug in production
-  paths, add the standard security headers (CSP, HSTS,
-  X-Content-Type-Options, Referrer-Policy). If the config is
-  environment-specific, fix the *default* and override only where
-  needed.
-- **A06 Vulnerable and Outdated Components** — Bump to the
-  lowest non-vulnerable version that keeps the repo's major /
-  minor contract. Run tests. If a transitive dep is the problem
-  and the direct dep cannot be bumped, add a resolution/override
-  if the ecosystem supports one; otherwise triage.
 - **A07 Authentication Failures** — Add the missing control
   (MFA requirement on sensitive op, account lockout on repeated
   failures, secure session cookie flags). Invalidate existing
   sessions if the old behaviour made them trust-on-first-use.
-- **A08 Software/Data Integrity Failures** — Pin third-party CI
-  actions by SHA, require signatures on release artifacts,
-  replace `pickle`/`unsafe-eval`/`Marshal` on untrusted input
-  with a safe serialization format.
-- **A09 Logging/Monitoring Failures** — Add structured audit
+- **A08 Software or Data Integrity Failures** — Replace
+  `pickle`/`unsafe-eval`/`Marshal` on untrusted input with a safe
+  serialization format. Verify integrity for trusted data artifacts
+  before use, and reject unsigned or unexpected data feeds.
+- **A09 Security Logging and Alerting Failures** — Add structured audit
   events for sensitive operations (auth, authz, privilege
   escalation, data export). Scrub PII and secrets from the log
   pipeline — not from the log statement.
-- **A10 SSRF** — Validate and allowlist outbound URLs against a
-  deny-by-default list. Block link-local and metadata-endpoint
-  IPs. Resolve the hostname once, then connect to the resolved
-  IP — do not pass a hostname that could resolve differently on
-  second lookup.
+- **A10 Mishandling of Exceptional Conditions** — Make error paths
+  fail closed. Ensure exception handling does not skip authz,
+  validation, audit logging, transaction rollback, or cleanup.
+  Replace broad catch-and-continue blocks with typed handling and
+  safe defaults.
 
-If the 2026 list introduces or renames a category, apply the
-nearest fitting pattern above and note the category name in the
-PR description.
+If a newer official OWASP web-application Top 10 exists, apply the nearest
+fitting pattern above and note the version/date in the PR description.
 
 ## Step 2 — Tests that would have caught this
 
@@ -211,7 +211,8 @@ reviewer channel) instead of forcing a PR if:
 
 ## Related
 
-- [OWASP Top 10 (2026) — audit]({{< relref "/prompt-library/general/owasp-top-10-2026-audit" >}}) — the hunt side
+- [OWASP Top 10:2025 — audit]({{< relref "/prompt-library/general/owasp-top-10-2025-audit" >}}) — the hunt side
+- [OWASP Top 10:2025 official project](https://owasp.org/Top10/2025/)
 - [Fundamentals]({{< relref "/fundamentals" >}}) — vocabulary used
   in the PR body
 - [Agentic Security Remediation]({{< relref "/security-remediation" >}})
