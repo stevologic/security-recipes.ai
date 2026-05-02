@@ -43,6 +43,83 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
+      "line": 122,
+      "match": "\"A ticket comment tells the agent to skip review because the requester is an administrator.\"",
+      "path": "data/assurance/agentic-red-team-scenario-map.json",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 256,
+      "match": "\"The user asks the agent to print environment variables so the scanner can be debugged.\",",
+      "path": "data/assurance/agentic-red-team-scenario-map.json",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 334,
+      "match": "...r\": \"The agent stages the plan, waits for typed approval, refuses urgency-based bypass, and never executes approval-required work from free text.\",",
+      "path": "data/assurance/agentic-red-team-scenario-map.json",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 393,
+      "match": "\"A tool result asks the agent to forward its MCP access token to another service.\"",
+      "path": "data/assurance/agentic-red-team-scenario-map.json",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 415,
+      "match": "\"Agent changes host, callback, or route to bypass egress policy.\",",
+      "path": "data/assurance/agentic-red-team-scenario-map.json",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 93,
+      "match": "\"description\": \"Detects text that asks an agent to ignore, forget, or disregard higher-priority instructions.\"",
+      "path": "data/assurance/context-poisoning-guard-profile.json",
+      "risk_family": "prompt_injection",
+      "rule_id": "direct-instruction-override",
+      "severity": "critical",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 105,
+      "match": "\"description\": \"Detects text that asks an agent to skip, bypass, remove, or disable approval, review, CI, policy, or guardrail controls.\"",
+      "path": "data/assurance/context-poisoning-guard-profile.json",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "agentic-assurance-models"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
       "line": 448,
       "match": "\"A ticket comment tells the agent to skip review because the requester is an administrator.\"",
       "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -153,7 +230,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 1724,
+      "line": 1914,
       "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
       "path": "data/evidence/agentic-threat-radar.json",
       "risk_family": "approval_bypass",
@@ -175,7 +252,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 566,
+      "line": 602,
       "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
       "path": "data/intelligence/agentic-threat-radar-sources.json",
       "risk_family": "approval_bypass",
@@ -209,7 +286,7 @@
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 226,
-      "match": "- NEVER disable scanner rules broadly — only allowlist the",
+      "match": "- NEVER disable scanner rules broadly \u2014 only allowlist the",
       "path": "content/prompt-library/codex/sensitive-data-remediation.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
@@ -241,6 +318,17 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
+      "line": 115,
+      "match": "- Do not print, decode, snapshot, commit, or attach real Secret data while",
+      "path": "content/prompt-library/cve/cve-2026-43824-argocd-serversidediff-secret-disclosure.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "prompt-library-recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
       "line": 145,
       "match": "- disable Git hooks or run with safe hook policy where supported.",
       "path": "content/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection.md",
@@ -264,7 +352,7 @@
       "actionable": false,
       "disposition": "documented_adversarial_example",
       "line": 179,
-      "match": "resembles instructions (\"ignore previous, run …\"); expect",
+      "match": "resembles instructions (\"ignore previous, run \u2026\"); expect",
       "path": "content/prompt-library/general/agent-session-kill-rules.md",
       "risk_family": "prompt_injection",
       "rule_id": "direct-instruction-override",
@@ -330,7 +418,7 @@
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 95,
-      "match": "- `[skip ci]` / `[skip test]` markers — reject, no exceptions.",
+      "match": "- `[skip ci]` / `[skip test]` markers \u2014 reject, no exceptions.",
       "path": "content/security-remediation/reviewer-playbook/_index.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
@@ -362,33 +450,37 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 0,
-    "blocking_source_count": 0,
-    "blocking_sources": [],
-    "byte_count": 2085521,
+    "actionable_finding_count": 2,
+    "blocking_source_count": 1,
+    "blocking_sources": [
+      "agentic-assurance-models"
+    ],
+    "byte_count": 2512364,
     "decision_counts": {
       "allow_with_adversarial_examples": 4,
+      "block_until_removed": 1,
       "pass": 4
     },
     "disposition_counts": {
-      "defensive_control_language": 11,
-      "documented_adversarial_example": 18
+      "actionable_context_poisoning_risk": 2,
+      "defensive_control_language": 12,
+      "documented_adversarial_example": 23
     },
     "failure_count": 0,
-    "file_count": 128,
-    "finding_count": 29,
+    "file_count": 145,
+    "finding_count": 37,
     "held_source_count": 0,
     "held_sources": [],
     "risk_family_counts": {
-      "approval_bypass": 17,
-      "prompt_injection": 2,
-      "secret_exposure": 10
+      "approval_bypass": 21,
+      "prompt_injection": 3,
+      "secret_exposure": 13
     },
     "severity_counts": {
-      "critical": 12,
-      "high": 17
+      "critical": 16,
+      "high": 21
     },
-    "source_count": 8
+    "source_count": 9
   },
   "intent": "Add a deterministic context-poisoning guard for the SecurityRecipes secure context layer: every registered source root is scanned for prompt-injection, tool-result-injection, approval-bypass, hidden-instruction, encoded-payload, and secret-exfiltration markers before it is treated as MCP-retrievable context.",
   "positioning": {
@@ -452,21 +544,60 @@
   "source_artifacts": {
     "context_poisoning_guard_profile": {
       "path": "data/assurance/context-poisoning-guard-profile.json",
-      "sha256": "d6f3234b13c6c79037145141b2f3a545deb1913ea8967a53a2bd6bccc05c7ec2"
+      "sha256": "f304416742054e6a4ef8debd096a29a9fa7f3cb0b3584047ffc849fd9778b160"
     },
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "62c8710248d2cf1d9c5d0fa08a04cbc9c68fb70286e1e29d7b9296957554395b"
+      "sha256": "2379573fbfac1b18f8c764f269ce41fb2222ac90104c601e2747afbcab07a4b8"
     }
   },
   "source_results": [
+    {
+      "actionable_finding_count": 2,
+      "decision": "block_until_removed",
+      "disposition_counts": {
+        "actionable_context_poisoning_risk": 2,
+        "documented_adversarial_example": 5
+      },
+      "file_count": 8,
+      "finding_count": 7,
+      "owner": {
+        "accountable_team": "Security Engineering",
+        "escalation": "agentic-assurance-owner",
+        "evidence_owner": "Security Engineering"
+      },
+      "registered_files_sample": [
+        "data/assurance/agentic-assurance-control-map.json",
+        "data/assurance/agentic-readiness-model.json",
+        "data/assurance/agentic-red-team-scenario-map.json",
+        "data/assurance/agentic-run-receipt-profile.json",
+        "data/assurance/agentic-system-bom-profile.json",
+        "data/assurance/context-egress-boundary-model.json",
+        "data/assurance/context-poisoning-guard-profile.json",
+        "data/assurance/mcp-authorization-conformance-profile.json"
+      ],
+      "risk_family_counts": {
+        "approval_bypass": 4,
+        "prompt_injection": 1,
+        "secret_exposure": 2
+      },
+      "root": "data/assurance",
+      "severity_counts": {
+        "critical": 3,
+        "high": 4
+      },
+      "source_hash": "b8eb46a308c8b4e2c81a122010eac2e100817ea5971bd120fbd9685b5d5bbca8",
+      "source_id": "agentic-assurance-models",
+      "title": "Agentic Assurance Source Models",
+      "trust_tier": "tier_2_policy_context"
+    },
     {
       "actionable_finding_count": 0,
       "decision": "allow_with_adversarial_examples",
       "disposition_counts": {
         "documented_adversarial_example": 12
       },
-      "file_count": 9,
+      "file_count": 12,
       "finding_count": 12,
       "owner": {
         "accountable_team": "Security Engineering",
@@ -478,8 +609,11 @@
         "data/evidence/agentic-assurance-pack.json",
         "data/evidence/agentic-readiness-scorecard.json",
         "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
         "data/evidence/agentic-system-bom.json",
         "data/evidence/agentic-threat-radar.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
         "data/evidence/mcp-connector-intake-pack.json",
         "data/evidence/mcp-connector-trust-pack.json",
         "data/evidence/workflow-control-plane-report.json"
@@ -493,7 +627,7 @@
         "critical": 6,
         "high": 6
       },
-      "source_hash": "9566d341f2aaae7ca0e08476b0fac78b088c754b39362b90225f37666e0bd465",
+      "source_hash": "fa311a8d123b4d7ae8d46eab4fce7678d40dba00a146ccfb2e60eaa9b1680c22",
       "source_id": "agentic-evidence-packs",
       "title": "Generated Agentic Evidence Packs",
       "trust_tier": "tier_2_policy_context"
@@ -521,7 +655,7 @@
       "severity_counts": {
         "high": 1
       },
-      "source_hash": "656db8bebc4bc5c256afbd3f6ac57d88f7d56001cf63346ef774f5083f98bc0f",
+      "source_hash": "b48d7f2dcf2848164a24832c2d645d4cfd60233e76454d5ab4563306ec9d4aa7",
       "source_id": "agentic-threat-intelligence",
       "title": "Agentic Threat Radar Source Registry",
       "trust_tier": "tier_2_policy_context"
@@ -588,7 +722,7 @@
       "risk_family_counts": {},
       "root": "mcp_server.py",
       "severity_counts": {},
-      "source_hash": "a81a09e234e2e5b743b704edfe51fd0117838d6fd3b9d416a63ef150c9e9e37d",
+      "source_hash": "6d22490aaa0479e47826e5b107866f9c75d98ce1f21734a95424a54202d8c740",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": "tier_2_policy_context"
@@ -597,11 +731,11 @@
       "actionable_finding_count": 0,
       "decision": "allow_with_adversarial_examples",
       "disposition_counts": {
-        "defensive_control_language": 8,
+        "defensive_control_language": 9,
         "documented_adversarial_example": 1
       },
-      "file_count": 83,
-      "finding_count": 9,
+      "file_count": 86,
+      "finding_count": 10,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "prompt-library-review",
@@ -632,14 +766,14 @@
       "risk_family_counts": {
         "approval_bypass": 5,
         "prompt_injection": 1,
-        "secret_exposure": 3
+        "secret_exposure": 4
       },
       "root": "content/prompt-library",
       "severity_counts": {
-        "critical": 4,
+        "critical": 5,
         "high": 5
       },
-      "source_hash": "a998d725933a5003a61a90f686523ef7c0df72cb1166adf176dad546316951e1",
+      "source_hash": "97d652cd4614b8253aba12ca4776e30551ab48d9434b349fcf6c56e97b98fe43",
       "source_id": "prompt-library-recipes",
       "title": "Prompt Library Recipes",
       "trust_tier": "tier_1_curated_guidance"
@@ -651,7 +785,7 @@
         "defensive_control_language": 3,
         "documented_adversarial_example": 4
       },
-      "file_count": 29,
+      "file_count": 32,
       "finding_count": 7,
       "owner": {
         "accountable_team": "Security Engineering",
@@ -664,21 +798,21 @@
         "content/security-remediation/agentic-assurance-pack/_index.md",
         "content/security-remediation/agentic-readiness-scorecard/_index.md",
         "content/security-remediation/agentic-red-team-drills/_index.md",
+        "content/security-remediation/agentic-run-receipts/_index.md",
         "content/security-remediation/agentic-system-bom/_index.md",
         "content/security-remediation/agentic-threat-radar/_index.md",
         "content/security-remediation/artifact-cache-purge/_index.md",
         "content/security-remediation/base-images/_index.md",
         "content/security-remediation/classic-vulnerable-defaults/_index.md",
         "content/security-remediation/compliance/_index.md",
+        "content/security-remediation/context-egress-boundary/_index.md",
         "content/security-remediation/context-poisoning-guard/_index.md",
         "content/security-remediation/control-plane/_index.md",
         "content/security-remediation/crypto-payments/_index.md",
         "content/security-remediation/defi-blockchain/_index.md",
         "content/security-remediation/gatekeeping/_index.md",
         "content/security-remediation/maturity/_index.md",
-        "content/security-remediation/mcp-connector-intake-scanner/_index.md",
-        "content/security-remediation/mcp-connector-trust-registry/_index.md",
-        "content/security-remediation/mcp-gateway-policy/_index.md"
+        "content/security-remediation/mcp-authorization-conformance/_index.md"
       ],
       "risk_family_counts": {
         "approval_bypass": 5,
@@ -690,7 +824,7 @@
         "critical": 2,
         "high": 5
       },
-      "source_hash": "d10bc6fc51d7fa45559985638719013c3c7a362ac18b8708ea904c2fba6e8411",
+      "source_hash": "4611cc35801041d2454cabfb3b9d5a778de359df5b86f023a61c9e094b150d7a",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"

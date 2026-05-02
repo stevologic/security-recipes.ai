@@ -113,6 +113,15 @@
       ]
     },
     {
+      "capability_id": "mcp-authorization-conformance",
+      "critical_or_high_signal_count": 1,
+      "max_strategic_score": 95,
+      "signal_count": 1,
+      "signal_ids": [
+        "mcp-token-passthrough-and-scope-creep"
+      ]
+    },
+    {
       "capability_id": "mcp-connector-intake-scanner",
       "critical_or_high_signal_count": 2,
       "max_strategic_score": 95,
@@ -216,6 +225,23 @@
       "why": "Context provenance and hash drift are central to secure retrieval, and this is a natural paid layer above the open trust pack."
     },
     {
+      "id": "mcp-authorization-conformance",
+      "related_signal_ids": [
+        "mcp-token-passthrough-and-scope-creep",
+        "agent-identity-explosion",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "status": "implemented",
+      "supporting_signal_count": 3,
+      "supporting_signal_max_score": 95,
+      "supporting_signal_priority_counts": {
+        "critical": 2,
+        "high": 1
+      },
+      "title": "MCP authorization conformance and scope-drift checks",
+      "why": "Remote MCP rollout makes resource indicators, token audience validation, token-passthrough denial, and scope drift board-level control questions; this run implemented the generated conformance pack and runtime evaluator."
+    },
+    {
       "id": "mcp-connector-intake-scanner",
       "related_signal_ids": [
         "tool-poisoning-and-shadow-mcp",
@@ -266,6 +292,10 @@
       "sha256": "2386c85485b7af9cb4e0335d03d307c40cca5b57121b2b8dbca642020272abfe"
     },
     {
+      "path": "content/security-remediation/mcp-authorization-conformance/_index.md",
+      "sha256": "e3b9a04b5a98d195f5820b762e4c77ca721b834c6eb44879b733054b0293c304"
+    },
+    {
       "path": "content/security-remediation/mcp-connector-intake-scanner/_index.md",
       "sha256": "dcfa3672c2da75abd22902ec2f7679ed45e0ad13effe7f45d6839315447bd57b"
     },
@@ -298,16 +328,20 @@
       "sha256": "f304416742054e6a4ef8debd096a29a9fa7f3cb0b3584047ffc849fd9778b160"
     },
     {
+      "path": "data/assurance/mcp-authorization-conformance-profile.json",
+      "sha256": "8a8ec4251dd78604a84d0fff7c61df9be5b03c05f691336708290827e98d580e"
+    },
+    {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "eac3e9ba8b61a5d77d6ef8629c6959722d53fee2fb4fa5b2ebfeb574e7b772fd"
+      "sha256": "2379573fbfac1b18f8c764f269ce41fb2222ac90104c601e2747afbcab07a4b8"
     },
     {
       "path": "data/evidence/agent-identity-delegation-ledger.json",
-      "sha256": "690de03ff300a5d11f99676422fb9f6db0c69c48fb7e03ebccf3a1429ef60551"
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
     },
     {
       "path": "data/evidence/agentic-assurance-pack.json",
-      "sha256": "f97a022e915e0357b265f2546c5abaa4d7228ca4f636e0f5f063accfc5dba8f1"
+      "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f"
     },
     {
       "path": "data/evidence/agentic-readiness-scorecard.json",
@@ -315,7 +349,7 @@
     },
     {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
+      "sha256": "c28356c01555a2badaf678238aa525abeb343ff2ed60e58f27c4af8736d1188b"
     },
     {
       "path": "data/evidence/agentic-system-bom.json",
@@ -323,11 +357,15 @@
     },
     {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "2846a9f75a9365eddce822ef0bcce3171e61ed98396fc4243ea307fae57612a8"
+      "sha256": "dc39c775185aa838a9a5928c2685e6168849d23cb845952c3bdf6f537fa26e67"
     },
     {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "bf8df9688e623bd965cd296784ab6af24533441a2f7aad0fe80404508f99db20"
+      "sha256": "8d56a31fb3c2bc9ba10d2a8ac92e6fc29e4d40f67227233fef16a193b0c55f22"
+    },
+    {
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "sha256": "a4ebcb2e1f781c2893283937acbf5d34356c93de685aad730d1a0353f2412d26"
     },
     {
       "path": "data/evidence/mcp-connector-intake-pack.json",
@@ -339,11 +377,11 @@
     },
     {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "62db92368261a42f7d77de6a6f1e24304e5fbf6fd11d512823641f385aeb1d03"
+      "sha256": "59190bacc08caf9f8a90cdfd068763ef0011d787bc94f6f3a132174a5fd97289"
     },
     {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "cf325df60b041fa9ac819777a4731d0963b982436965848fbaa90212de62a759"
+      "sha256": "915323700d2e98e8fc8a59aa08ae35dcc326fc777d5e0c62ae1ca11303097af6"
     },
     {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -360,6 +398,10 @@
     {
       "path": "scripts/evaluate_context_egress_decision.py",
       "sha256": "376546eccacfec8664c7f86fc3779b53a618267f6367249a16b088b2395a125c"
+    },
+    {
+      "path": "scripts/evaluate_mcp_authorization_decision.py",
+      "sha256": "31a82189233dfe7a3b4366fad51831c88239611325111f354b825bb805c12d1b"
     },
     {
       "path": "scripts/evaluate_secure_context_retrieval.py",
@@ -392,6 +434,10 @@
     {
       "path": "scripts/generate_context_poisoning_guard_pack.py",
       "sha256": "6bbde1f8f47f028aae2ae705c0659956e18eefdc200278924dacad1c78d95ce8"
+    },
+    {
+      "path": "scripts/generate_mcp_authorization_conformance_pack.py",
+      "sha256": "63326be14c9a6ea32ad9efafc5a98a35d7deffa2b190aa201a5b764c1002da91"
     },
     {
       "path": "scripts/generate_mcp_connector_intake_pack.py",
@@ -547,6 +593,23 @@
       "title": "MCP Connector Intake Scanner"
     },
     {
+      "buyer_value": "Verifies MCP resource binding, token audience, PKCE, token-passthrough denial, session binding, and scope drift before tool calls execute.",
+      "evidence_paths": [
+        "data/assurance/mcp-authorization-conformance-profile.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "scripts/generate_mcp_authorization_conformance_pack.py",
+        "scripts/evaluate_mcp_authorization_decision.py",
+        "content/security-remediation/mcp-authorization-conformance/_index.md"
+      ],
+      "id": "mcp-authorization-conformance",
+      "mcp_tools": [
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision"
+      ],
+      "status": "implemented",
+      "title": "MCP Authorization Conformance"
+    },
+    {
       "buyer_value": "Turns agentic risks into repeatable adversarial drills with expected decisions and evidence requirements.",
       "evidence_paths": [
         "data/assurance/agentic-red-team-scenario-map.json",
@@ -618,7 +681,7 @@
   "source_artifacts": {
     "agentic_threat_radar_sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "cf325df60b041fa9ac819777a4731d0963b982436965848fbaa90212de62a759"
+      "sha256": "915323700d2e98e8fc8a59aa08ae35dcc326fc777d5e0c62ae1ca11303097af6"
     }
   },
   "source_references": [
@@ -763,12 +826,12 @@
       "high": 10
     },
     "critical_or_high_signal_count": 9,
-    "feature_backlog_count": 4,
+    "feature_backlog_count": 5,
     "horizon_counts": {
       "next": 2,
       "now": 8
     },
-    "implemented_capability_count": 13,
+    "implemented_capability_count": 14,
     "priority_counts": {
       "critical": 3,
       "high": 6,
@@ -1010,6 +1073,23 @@
           "title": "MCP Connector Intake Scanner"
         },
         {
+          "buyer_value": "Verifies MCP resource binding, token audience, PKCE, token-passthrough denial, session binding, and scope drift before tool calls execute.",
+          "evidence_paths": [
+            "data/assurance/mcp-authorization-conformance-profile.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "scripts/generate_mcp_authorization_conformance_pack.py",
+            "scripts/evaluate_mcp_authorization_decision.py",
+            "content/security-remediation/mcp-authorization-conformance/_index.md"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_evaluate_mcp_authorization_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        },
+        {
           "buyer_value": "Inventories MCP namespaces, owners, trust tiers, controls, promotion criteria, and kill signals.",
           "evidence_paths": [
             "data/mcp/connector-trust-registry.json",
@@ -1052,6 +1132,7 @@
         "mcp-gateway-policy",
         "agent-identity-ledger",
         "mcp-connector-intake-scanner",
+        "mcp-authorization-conformance",
         "mcp-connector-trust-pack",
         "agentic-assurance-pack"
       ],

@@ -163,7 +163,9 @@
     },
     "state": "untrusted_until_complete"
   },
-  "failures": [],
+  "failures": [
+    "source packs must have zero failures"
+  ],
   "generated_at": "2026-05-02",
   "intent": "Define the portable proof object SecurityRecipes expects for every governed agentic remediation run: a signed or attestable receipt that joins identity, context retrieval, context poisoning inspection, MCP tool decisions, context egress, human approval, verifier output, evidence retention, and revocation into one enterprise review artifact.",
   "positioning": {
@@ -251,18 +253,18 @@
       "scale_ready": 4
     },
     "required_event_class_count": 10,
-    "source_failure_count": 0,
+    "source_failure_count": 20,
     "workflow_count": 8
   },
   "schema_version": "1.0",
   "source_artifacts": {
     "agent_identity_ledger": {
       "path": "data/evidence/agent-identity-delegation-ledger.json",
-      "sha256": "690de03ff300a5d11f99676422fb9f6db0c69c48fb7e03ebccf3a1429ef60551"
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
     },
     "agentic_assurance_pack": {
       "path": "data/evidence/agentic-assurance-pack.json",
-      "sha256": "f97a022e915e0357b265f2546c5abaa4d7228ca4f636e0f5f063accfc5dba8f1"
+      "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f"
     },
     "agentic_readiness_scorecard": {
       "path": "data/evidence/agentic-readiness-scorecard.json",
@@ -270,7 +272,7 @@
     },
     "agentic_red_team_drill_pack": {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
+      "sha256": "c28356c01555a2badaf678238aa525abeb343ff2ed60e58f27c4af8736d1188b"
     },
     "agentic_run_receipt_profile": {
       "path": "data/assurance/agentic-run-receipt-profile.json",
@@ -282,11 +284,11 @@
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "2846a9f75a9365eddce822ef0bcce3171e61ed98396fc4243ea307fae57612a8"
+      "sha256": "dc39c775185aa838a9a5928c2685e6168849d23cb845952c3bdf6f537fa26e67"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "bf8df9688e623bd965cd296784ab6af24533441a2f7aad0fe80404508f99db20"
+      "sha256": "8d56a31fb3c2bc9ba10d2a8ac92e6fc29e4d40f67227233fef16a193b0c55f22"
     },
     "mcp_gateway_policy": {
       "path": "data/policy/mcp-gateway-policy.json",
@@ -294,7 +296,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "59190bacc08caf9f8a90cdfd068763ef0011d787bc94f6f3a132174a5fd97289"
+      "sha256": "aaa1749fa3dce741aaaedca272c00a5a9be54d5d632be3628504b2a878b4c708"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -374,7 +376,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::artifact-cache-quarantine",
-      "context_package_hash": "9548462a9b1060f2d92deb02aa1efae74204e35384e0d3c14ab60f6c7225c5db",
+      "context_package_hash": "6750088fadbb083bc1228934dfadf7950155bd92369dbe7124d3abb497495524",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -382,6 +384,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
@@ -634,7 +637,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::base-image-remediation",
-      "context_package_hash": "144b1f7dc626cbabcf44b8c259e6ba8ce00726925849b8b6087b2dafd0a8cdd2",
+      "context_package_hash": "960eb0ce4f79b51012198ff66486806629c801b91425844da32fc96fb8f70c37",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -642,6 +645,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
@@ -895,7 +899,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::classic-vulnerable-defaults",
-      "context_package_hash": "871d5e2122bfac2d8898aa0faf0bf80ef0765551452406b5017a4151127345ea",
+      "context_package_hash": "d7e77c91894aa0ec3904e90787feddf2765513dae4032a4735fbee5ae134e8ae",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -903,6 +907,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
@@ -1154,7 +1159,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::crypto-payment-security",
-      "context_package_hash": "04e2832684ae0db38f3e991b50724417a97b1f75d65926ca7a6185e30bd28113",
+      "context_package_hash": "144bad7a183e1ccef9e8b5a67db102441f68b6e42d0c31f262b054c0b02c9450",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -1162,6 +1167,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
@@ -1412,7 +1418,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::defi-blockchain-security",
-      "context_package_hash": "3695523da72e7e09913fadec3969258ac806a771bbef974c410f74193de62c01",
+      "context_package_hash": "d5149a6be9bbc7523c20eeef0f2df8c9d46991bfcbd585abdce5654bdfa745a9",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -1420,6 +1426,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
@@ -1671,7 +1678,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::sast-finding-remediation",
-      "context_package_hash": "995ce75b4d679ecc6bfc1a0764c6e4d47f4cbed659bb6c79e63fb8dde886fd83",
+      "context_package_hash": "8487f50a4dd995e6292131949ebccdf132f727d6cf2b2191276676d63209de7d",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -1679,6 +1686,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
@@ -1932,7 +1940,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::sensitive-data-remediation",
-      "context_package_hash": "7602a53574a7d011834ec33413348a84550fae0b2aa4e21adb3ee623bcaf2475",
+      "context_package_hash": "20ba2299fecd896e9d027d6cb13a42121fee66c6c7ccef5bda70e94908c30fa5",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -1940,6 +1948,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
@@ -2194,7 +2203,7 @@
         "SR-AI-10"
       ],
       "bom_component_id": "workflow::vulnerable-dependency-remediation",
-      "context_package_hash": "843a3aac93340799888e7a33293e586fd0f767e14e1a501162b304860cb708f4",
+      "context_package_hash": "349f769f0925d5178dbd8cda9ca7f404a38f0d2cdd022acd07dbcca6fae3e2c9",
       "context_source_ids": [
         "security-remediation-workflows",
         "prompt-library-recipes",
@@ -2202,6 +2211,7 @@
         "workflow-control-plane",
         "mcp-gateway-policy",
         "mcp-connector-trust",
+        "agentic-assurance-models",
         "agentic-evidence-packs"
       ],
       "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",

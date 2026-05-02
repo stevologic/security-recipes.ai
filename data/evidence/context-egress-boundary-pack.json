@@ -468,16 +468,16 @@
   "egress_boundary_summary": {
     "data_class_counts": {
       "curated_security_guidance": 2,
-      "generated_policy_evidence": 6
+      "generated_policy_evidence": 7
     },
     "decision_counts": {
-      "allow_public_egress_with_citation": 8
+      "allow_public_egress_with_citation": 9
     },
     "destination_class_count": 7,
-    "failure_count": 0,
+    "failure_count": 20,
     "namespace_policy_count": 24,
     "prohibited_data_class_count": 2,
-    "source_count": 8,
+    "source_count": 9,
     "tenant_bound_data_class_count": 7,
     "workflow_count": 8,
     "workflow_namespace_data_class_counts": {
@@ -566,7 +566,28 @@
     "recommended_first_use": "Attach this pack to AI platform intake, remote MCP approval, model-provider review, privacy review, and customer trust-center evidence.",
     "sales_motion": "Lead with open data-boundary evidence, then sell tenant-side egress enforcement, provider policy adapters, residency alerts, DLP integrations, and trust-center exports."
   },
-  "failures": [],
+  "failures": [
+    "securityrecipes_public_corpus: destination id must be kebab-case",
+    "tenant_mcp_gateway: destination id must be kebab-case",
+    "approved_model_provider: destination id must be kebab-case",
+    "approved_remote_mcp_server: destination id must be kebab-case",
+    "observability_sink: destination id must be kebab-case",
+    "untrusted_remote_mcp_server: destination id must be kebab-case",
+    "external_url_or_webhook: destination id must be kebab-case",
+    "public_reference: data class id must be kebab-case",
+    "curated_security_guidance: data class id must be kebab-case",
+    "generated_policy_evidence: data class id must be kebab-case",
+    "public_vulnerability_intelligence: data class id must be kebab-case",
+    "customer_asset_metadata: data class id must be kebab-case",
+    "customer_source_code: data class id must be kebab-case",
+    "customer_finding_metadata: data class id must be kebab-case",
+    "customer_pipeline_metadata: data class id must be kebab-case",
+    "customer_case_context: data class id must be kebab-case",
+    "customer_runtime_log: data class id must be kebab-case",
+    "regulated_personal_data: data class id must be kebab-case",
+    "secret_or_token: data class id must be kebab-case",
+    "signing_material: data class id must be kebab-case"
+  ],
   "generated_at": "2026-05-02",
   "intent": "Define the SecurityRecipes context egress boundary for agentic AI and MCP systems: every data class, destination class, workflow namespace, source trust tier, redaction requirement, residency constraint, and secret-egress kill rule is expressed as machine-readable policy before context leaves a tenant, model, MCP server, or observability boundary.",
   "positioning": {
@@ -597,7 +618,7 @@
     },
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "eac3e9ba8b61a5d77d6ef8629c6959722d53fee2fb4fa5b2ebfeb574e7b772fd"
+      "sha256": "2379573fbfac1b18f8c764f269ce41fb2222ac90104c601e2747afbcab07a4b8"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -614,7 +635,44 @@
       "data_class": "generated_policy_evidence",
       "default_decision": "allow_public_egress_with_citation",
       "exposure": "public",
-      "file_count": 10,
+      "file_count": 8,
+      "hold_destination_classes": [
+        "approved_remote_mcp_server",
+        "observability_sink"
+      ],
+      "owner": {
+        "accountable_team": "Security Engineering",
+        "escalation": "agentic-assurance-owner",
+        "evidence_owner": "Security Engineering"
+      },
+      "prohibited_destination_classes": [
+        "untrusted_remote_mcp_server",
+        "external_url_or_webhook"
+      ],
+      "redaction_required_before_external": false,
+      "required_controls": [
+        "source_hash_required",
+        "schema_validation",
+        "ci_drift_check"
+      ],
+      "root": "data/assurance",
+      "sensitivity": "public_control_evidence",
+      "source_hash": "b8eb46a308c8b4e2c81a122010eac2e100817ea5971bd120fbd9685b5d5bbca8",
+      "source_id": "agentic-assurance-models",
+      "tenant_id_required": false,
+      "title": "Agentic Assurance Source Models",
+      "trust_tier": "tier_2_policy_context"
+    },
+    {
+      "allowed_destination_classes": [
+        "securityrecipes_public_corpus",
+        "tenant_mcp_gateway",
+        "approved_model_provider"
+      ],
+      "data_class": "generated_policy_evidence",
+      "default_decision": "allow_public_egress_with_citation",
+      "exposure": "public",
+      "file_count": 12,
       "hold_destination_classes": [
         "approved_remote_mcp_server",
         "observability_sink"
@@ -636,7 +694,7 @@
       ],
       "root": "data/evidence",
       "sensitivity": "public_control_evidence",
-      "source_hash": "9ccd66494c38fba9c4ae577be4ac52787400c2ab30437d124a014c518e64818e",
+      "source_hash": "2614e9c27856df654a6304be6f77bec720aeae5a9af40029b52bda60582fe661",
       "source_id": "agentic-evidence-packs",
       "tenant_id_required": false,
       "title": "Generated Agentic Evidence Packs",
@@ -673,7 +731,7 @@
       ],
       "root": "data/intelligence",
       "sensitivity": "public_control_evidence",
-      "source_hash": "edf354870a3739e77936aee570be16418eafa5c3baaa266b732c68f5545b077b",
+      "source_hash": "b48d7f2dcf2848164a24832c2d645d4cfd60233e76454d5ab4563306ec9d4aa7",
       "source_id": "agentic-threat-intelligence",
       "tenant_id_required": false,
       "title": "Agentic Threat Radar Source Registry",
@@ -784,7 +842,7 @@
       ],
       "root": "mcp_server.py",
       "sensitivity": "public_control_evidence",
-      "source_hash": "4b0a3392aa35664992c2409b3af892f8afb36f1086fa4d16237be35afab05f70",
+      "source_hash": "6d22490aaa0479e47826e5b107866f9c75d98ce1f21734a95424a54202d8c740",
       "source_id": "mcp-server-runtime",
       "tenant_id_required": false,
       "title": "MCP Server Runtime Contract",
@@ -799,7 +857,7 @@
       "data_class": "curated_security_guidance",
       "default_decision": "allow_public_egress_with_citation",
       "exposure": "public",
-      "file_count": 84,
+      "file_count": 86,
       "hold_destination_classes": [
         "approved_remote_mcp_server",
         "observability_sink"
@@ -821,7 +879,7 @@
       ],
       "root": "content/prompt-library",
       "sensitivity": "public",
-      "source_hash": "414b5457bbc34d5e654f85fbc2e18f228e27d6340dbd430d0fe2cc2502a6c96e",
+      "source_hash": "97d652cd4614b8253aba12ca4776e30551ab48d9434b349fcf6c56e97b98fe43",
       "source_id": "prompt-library-recipes",
       "tenant_id_required": false,
       "title": "Prompt Library Recipes",
@@ -836,7 +894,7 @@
       "data_class": "curated_security_guidance",
       "default_decision": "allow_public_egress_with_citation",
       "exposure": "public",
-      "file_count": 30,
+      "file_count": 32,
       "hold_destination_classes": [
         "approved_remote_mcp_server",
         "observability_sink"
@@ -858,7 +916,7 @@
       ],
       "root": "content/security-remediation",
       "sensitivity": "public",
-      "source_hash": "680919db1aef91d83f328ae364ecbac33bb56be949fbe0a5139b42c80501962c",
+      "source_hash": "4611cc35801041d2454cabfb3b9d5a778de359df5b86f023a61c9e094b150d7a",
       "source_id": "security-remediation-workflows",
       "tenant_id_required": false,
       "title": "Security Remediation Workflow Docs",
