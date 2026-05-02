@@ -69,7 +69,9 @@ def stable_json(payload: dict[str, Any]) -> str:
 
 
 def sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    # Hash canonical UTF-8 text so evidence hashes are stable across
+    # Windows CRLF and GitHub Actions Ubuntu LF checkouts.
+    return hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
 
 
 def normalize_path(path: Path) -> str:
