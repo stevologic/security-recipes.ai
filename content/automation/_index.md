@@ -42,12 +42,12 @@ it, or *how* to migrate callers, an agent is earning its keep.
 
 ### Version bumps & SCA
 
-- **GitHub Dependabot** — version updates, security updates, grouped
+- **[GitHub Dependabot](https://docs.github.com/en/code-security/dependabot)** — version updates, security updates, grouped
   updates. Native to GitHub; configuration lives in
   `.github/dependabot.yml`. Great first line of defense against known
   CVEs in `package.json`, `requirements.txt`, `go.mod`, `Gemfile`,
   `composer.json`, and more.
-- **Renovate** — the open-source competitor to Dependabot with
+- **[Renovate](https://docs.renovatebot.com/)** — the open-source competitor to Dependabot with
   substantially more configuration surface: custom schedules, auto-
   merge rules per dep, regex managers for arbitrary manifests, and
   presets. Worth the setup if you need fine control.
@@ -55,7 +55,7 @@ it, or *how* to migrate callers, an agent is earning its keep.
   `npm audit fix` applies lockfile-only upgrades within your semver
   ranges; `npm audit fix --force` also crosses major versions (review
   carefully).
-- **pip-audit** — `pip-audit --fix` rewrites `requirements.txt`
+- **[pip-audit](https://github.com/pypa/pip-audit)** — `pip-audit --fix` rewrites `requirements.txt`
   pinning against PyPI's vulnerability database. Pair with a
   `requirements.in` / `pip-compile` workflow for clean diffs.
 - **uv / Poetry** — both expose `add`/`lock` commands that resolve
@@ -67,23 +67,27 @@ it, or *how* to migrate callers, an agent is earning its keep.
   reporting via RustSec.
 - **Bundler** — `bundle update --conservative <gem>` bumps a single
   gem without cascading the rest of the lockfile.
+- **[Mend](https://www.mend.io/)** / **[Black Duck](https://www.blackduck.com/)** / **[JFrog Xray](https://jfrog.com/xray/)** — enterprise SCA platforms with broad ecosystem coverage, policy workflows, and license compliance.
+- **[OWASP Dependency-Check](https://owasp.org/www-project-dependency-check/)** / **[OSV-Scanner](https://google.github.io/osv-scanner/)** — free/open-source SCA options that fit well in CI for teams that want self-managed scanning.
 
 ### Code scanning & lint auto-fix
 
-- **GitHub code scanning (CodeQL)** — SARIF output, PR annotations,
+- **[GitHub code scanning (CodeQL)](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql)** — SARIF output, PR annotations,
   default setup for most languages. Starts showing value the same day
   you flip it on.
 - **ESLint / Prettier / Biome** — `--fix` flags. Wire into a
   pre-commit hook and a CI job; most style drift disappears on its
   own.
-- **Ruff** — `ruff check --fix` and `ruff format` for Python. Fast
+- **[Ruff](https://docs.astral.sh/ruff/)** — `ruff check --fix` and `ruff format` for Python. Fast
   enough that there's no reason not to run it on every save.
-- **gofmt / goimports** — the table stakes for Go style.
-- **Clippy** — `cargo clippy --fix` for Rust.
+- **[gofmt](https://pkg.go.dev/cmd/gofmt) / [goimports](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)** — the table stakes for Go style.
+- **[Clippy](https://doc.rust-lang.org/clippy/)** — `cargo clippy --fix` for Rust.
+- **[Semgrep](https://semgrep.dev/)** — fast OSS + enterprise SAST with managed rule packs, custom rules, and autofix support for many findings.
+- **[SonarQube](https://www.sonarsource.com/products/sonarqube/) / [SonarCloud](https://www.sonarsource.com/products/sonarcloud/)** — widely adopted code quality + security gates for pull requests and release branches.
 
 ### Secret detection
 
-- **Gitleaks** — open-source SAST for secrets. Detects hardcoded
+- **[Gitleaks](https://github.com/gitleaks/gitleaks)** — open-source SAST for secrets. Detects hardcoded
   credentials, API keys, tokens, and high-entropy strings across
   source code, git history, and uncommitted changes. Configuration
   lives in `.gitleaks.toml` (rules, allowlists, path filters).
@@ -103,13 +107,13 @@ it, or *how* to migrate callers, an agent is earning its keep.
   in a large repo. Pair with `gitleaks git` in the pre-receive hook
   if you run a self-hosted git server.
 
-- **TruffleHog** — credential detection with **verified / unverified**
+- **[TruffleHog](https://github.com/trufflesecurity/trufflehog)** — credential detection with **verified / unverified**
   confidence tiers. The killer feature is live verification: when
   TruffleHog finds what looks like an AWS key, it calls AWS to
   confirm the key is active before flagging it. Dramatically cuts
   false positives but requires the scanner to have outbound network
   access.
-- **GitHub secret scanning** — built into GitHub for supported
+- **[GitHub secret scanning](https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning)** — built into GitHub for supported
   partners, with push protection. Flip it on — zero config, and
   the push-protection path stops secrets at the git-push boundary
   rather than after the fact.
@@ -148,10 +152,10 @@ content that shouldn't live in source, logs, or shared configs.
   Earlybird for the wider SDE surface on the working tree. Dedupe
   downstream if you route both into the same triage queue.
 
-- **detect-secrets** (Yelp) — the original audit-style scanner
+- **[detect-secrets](https://github.com/Yelp/detect-secrets)** (Yelp) — the original audit-style scanner
   with a `.secrets.baseline` file so reviewers can snooze known
   findings deliberately rather than by allowlist regex.
-- **Presidio** (Microsoft) — PII detection and redaction library
+- **[Presidio](https://microsoft.github.io/presidio/)** (Microsoft) — PII detection and redaction library
   aimed at structured and unstructured text (logs, free-form
   fields, CSV exports), with named-entity and regex recognizers
   bundled. Heavier to stand up than Earlybird but the right tool
@@ -168,27 +172,28 @@ an alternative.
 
 ### Policy-as-code
 
-- **OPA / Conftest** — deterministic policy checks against Terraform
+- **[OPA](https://www.openpolicyagent.org/) / [Conftest](https://www.conftest.dev/)** — deterministic policy checks against Terraform
   plans, Kubernetes manifests, Dockerfiles. The fix is usually "edit
   the file"; the automation is the *enforcement* of what "correct"
   means.
-- **tfsec / Checkov / kube-linter** — category-specific scanners
+- **[tfsec](https://aquasecurity.github.io/tfsec/) / [Checkov](https://www.checkov.io/) / [kube-linter](https://github.com/stackrox/kube-linter)** — category-specific scanners
   that ship with sensible defaults and `--fix` in many cases.
+- **[Spectral](https://github.com/stoplightio/spectral) / [42Crunch API Security Testing](https://42crunch.com/)** — API contract linting and security checks for OpenAPI specs in CI.
 
 ### Container image scanning
 
-- **Trivy** (Aqua) — fast, open-source scanner for OS packages,
+- **[Trivy](https://trivy.dev/latest/)** (Aqua) — fast, open-source scanner for OS packages,
   language dependencies, IaC, and secrets inside container
   images. `trivy image <image>` on every build is the default
   starting point.
-- **Grype** (Anchore) — companion to Syft (SBOM) and widely used
+- **[Grype](https://github.com/anchore/grype)** (Anchore) — companion to Syft (SBOM) and widely used
   in CI. Integrates cleanly with Sigstore and Cosign for signed
   SBOM attestations.
-- **Clair** (Quay) — registry-side scanning; pairs well with
+- **[Clair](https://github.com/quay/clair)** (Quay) — registry-side scanning; pairs well with
   Harbor / Quay-style private registries.
-- **Docker Scout** — Docker Hub–native scanning with
+- **[Docker Scout](https://docs.docker.com/scout/)** — Docker Hub–native scanning with
   vulnerability policy and base-image recommendations.
-- **Snyk Container / Wiz / Prisma Cloud / Aqua** — commercial
+- **[Snyk Container](https://docs.snyk.io/scan-with-snyk/snyk-container) / [Wiz](https://www.wiz.io/) / [Prisma Cloud](https://www.paloaltonetworks.com/prisma/cloud) / [Aqua](https://www.aquasec.com/)** — commercial
   scanners with richer prioritization, context, and
   registry-level reporting. All layer on top of the same CVE
   feeds; the differentiator is usually prioritization, not
