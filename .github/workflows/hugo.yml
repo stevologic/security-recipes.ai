@@ -220,6 +220,14 @@ jobs:
         run: |
           python3 scripts/generate_agentic_system_bom.py --check
 
+      - name: Refresh secure context trust pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          # Content edits change the source hashes embedded in this generated
+          # evidence pack. Refresh it in CI, then keep the check below as the
+          # validation gate for malformed or incomplete trust-pack inputs.
+          python3 scripts/generate_secure_context_trust_pack.py
+
       - name: Validate secure context trust pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |

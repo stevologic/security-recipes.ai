@@ -144,6 +144,14 @@
         "meaning": "Customer runtime context may be retrieved only inside a tenant-controlled MCP gateway with audit logging and redaction."
       },
       {
+        "decision": "hold_for_context_recertification",
+        "meaning": "Registered context is paused until the owner recertifies freshness or reconciles a source-hash mismatch."
+      },
+      {
+        "decision": "deny_unapproved_workflow_context",
+        "meaning": "The source is registered, but the workflow, retrieval mode, or requested path is not approved for this context package."
+      },
+      {
         "decision": "deny_unregistered_context",
         "meaning": "Unregistered or unowned context is not supplied to agents."
       },
@@ -509,6 +517,7 @@
       },
       "retrieval_modes": [
         "recipes_server_info",
+        "recipes_evaluate_context_retrieval_decision",
         "tool_contract_context"
       ],
       "allowed_file_globs": [

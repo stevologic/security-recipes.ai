@@ -326,6 +326,10 @@ python3 scripts/generate_secure_context_trust_pack.py
 python3 scripts/generate_secure_context_trust_pack.py --check
 ```
 
+The GitHub Pages workflow also refreshes this pack before running the
+`--check` gate, so content-only pushes deploy with current source hashes
+even when a local commit forgets to regenerate the JSON first.
+
 The generated artifact lives at
 `data/evidence/secure-context-trust-pack.json` and is exposed through
 the MCP server as `recipes_secure_context_trust_pack`.
@@ -482,12 +486,13 @@ The project ships with a GitHub Actions workflow
 
 1. Installs Hugo (extended) + Go.
 2. Fetches the Hextra theme via Hugo Modules.
-3. Runs `hugo --gc --minify` from the repository root with
+3. Refreshes and validates the generated secure context trust pack.
+4. Runs `hugo --gc --minify` from the repository root with
    `HUGO_PARAMS_REPOURL` wired to the hosting repo.
-4. Verifies `public/recipes-index.json` is generated at the root build
+5. Verifies `public/recipes-index.json` is generated at the root build
    output for MCP
    search/retrieval servers.
-5. Pushes the compiled root-level `public/` directory to a dedicated
+6. Pushes the compiled root-level `public/` directory to a dedicated
    **`gh-pages`** branch using `peaceiris/actions-gh-pages`.
 
 ### MCP server-friendly content index
