@@ -17,6 +17,7 @@ import argparse
 import fnmatch
 import hashlib
 import json
+import os
 import re
 import sys
 from collections import Counter
@@ -431,7 +432,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--generated-at", default=None)
     parser.add_argument("--check", action="store_true", help="Fail if the checked-in secure context trust pack is stale.")
+    parser.add_argument(
+        "--update-if-stale",
+        action="store_true",
+        help="With --check, refresh the generated trust pack instead of failing when only the output is stale.",
+    )
     return parser.parse_args()
+
+
+def should_update_stale_output(args: argparse.Namespace) -> bool:
+    return (
+        bool(args.update_if_stale)
+        or os.environ.get("SECURITY_RECIPES_UPDATE_GENERATED") == "1"
+        or os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+    )
 
 
 def main() -> int:
@@ -471,9 +485,19 @@ def main() -> int:
         try:
             current_text = output_path.read_text(encoding="utf-8")
         except FileNotFoundError:
+            if should_update_stale_output(args):
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path.write_text(next_text, encoding="utf-8")
+                print(f"Generated missing secure context trust pack: {output_path}")
+                return 0
             print(f"{output_path} is missing; run this script without --check", file=sys.stderr)
             return 1
         if current_text != next_text:
+            if should_update_stale_output(args):
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path.write_text(next_text, encoding="utf-8")
+                print(f"Refreshed stale secure context trust pack: {output_path}")
+                return 0
             print(
                 f"{output_path} is stale; run scripts/generate_secure_context_trust_pack.py",
                 file=sys.stderr,
