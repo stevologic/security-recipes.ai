@@ -1,0 +1,10 @@
+services:
+  security-recipes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BASE_URL: "http://localhost:8080/"
+        REPO_URL: "https://github.com/stevologic/security-recipes.ai"
+    ports:
+      - "8080:80"
