@@ -55,6 +55,9 @@ SecurityRecipes content is designed to align with established security reference
 The site is a polished landing page backed by a full docs experience,
 and ships with:
 
+- **Visual Guide** - four GPT Image-2 walkthrough panels that show how
+  to explore the repo, run a first agent PR, operate workflows, and
+  scale through MCP.
 - **Fundamentals** — plain-English primer on agents, prompts, MCP,
   and the vocabulary the rest of the site assumes.
 - **Agents** — five per-tool recipe pages with install / configure /
@@ -92,9 +95,54 @@ and ships with:
   workflows.
 
 It's designed to be hosted on **GitHub Pages** with zero manual deploy
-steps: pushing to `main` rebuilds and publishes. The Repository link
-and the "Edit on GitHub" base resolve **dynamically** to whichever
-repo hosts the site — no find-and-replace required before forking.
+steps: pushing to `main` rebuilds and publishes. The Repository and
+Contribute links resolve **dynamically** to whichever repo hosts the
+site — no find-and-replace required before forking.
+
+---
+
+## Visual guide: how to use this repo
+
+This repo is easiest to use as a path, not a pile of pages. The
+visual guide below shows the intended reading order and the operational
+loop the site is designed to support.
+
+### 1. Start with the map
+
+![Visual map of the security-recipes.ai docs showing Start, Search, Pick, and Read across Quick Start, Agents, Prompt Library, MCP Servers, and Security Remediation.](static/images/how-to-use/visual-site-map.png)
+
+Begin with **Quick Start** when you want a five-minute path, use search
+when you already know the problem, then pick the section that matches
+your job: agent setup, prompt reuse, MCP access, or security-operated
+remediation workflows.
+
+### 2. Run one safe agent PR
+
+![Workflow showing Pick Agent, Add Rules, Draft PR, and Review for a first reviewer-gated remediation pull request.](static/images/how-to-use/first-agent-pr.png)
+
+Pick one agent your team already uses, add the matching house-rules
+file from the recipe or prompt library, let the agent draft a branch
+and pull request, and review it like any other human-authored change.
+
+### 3. Operate remediation as a security workflow
+
+![Security operations workflow showing Intake, Gate, Sandbox, Evidence, and Review.](static/images/how-to-use/security-workflow-ops.png)
+
+For scale, treat agentic remediation as a security-owned workflow:
+findings enter a queue, eligibility gates decide what can run, the
+agent works in a bounded sandbox, evidence is produced, and humans keep
+the merge decision.
+
+### 4. Use MCP as the context layer
+
+![Architecture view showing Agents, Recipes, MCP Server, Policy, Audit, and Scoped Tools.](static/images/how-to-use/mcp-context-layer.png)
+
+The production shape is MCP-backed: agents retrieve recipe context,
+policy narrows tool access, scoped connectors reach enterprise systems,
+and audit records make the whole run reviewable.
+
+The same walkthrough is available in the Hugo site on the
+[Visual Guide page](content/how-to-use/_index.md).
 
 ---
 
@@ -108,6 +156,9 @@ repo hosts the site — no find-and-replace required before forking.
 
 ### Run locally
 
+Run from the repository root, the directory that contains `hugo.yaml`.
+The current layout does not use a nested site directory.
+
 ```bash
 hugo mod get -u           # fetch the Hextra theme
 hugo server -D            # http://localhost:1313
@@ -119,6 +170,7 @@ A multi-stage `Dockerfile` builds the site with Hugo extended and
 serves it from `nginx:alpine`:
 
 ```bash
+# from the repository root
 docker build -t security-recipes .
 docker run --rm -p 8080:80 security-recipes
 # open http://localhost:8080
@@ -283,6 +335,9 @@ The same decision function is exposed through the MCP server as
 
 ## Project layout
 
+The Hugo project lives directly at the repository root. All paths below
+are root-relative.
+
 ```
 .
 ├── hugo.yaml                       # Site config (menus, params, dynamic repoURL)
@@ -291,6 +346,7 @@ The same decision function is exposed through the MCP server as
 ├── assets/css/custom.css           # Hextra overrides — matches landing theme
 ├── content/
 │   ├── _index.md                   # Home page (rendered by custom layout)
+│   ├── how-to-use/_index.md         # Visual guide for using the repo/site
 │   ├── fundamentals/_index.md      # Primer — agents, prompts, MCP, vocabulary
 │   ├── docs/_index.md              # Docs landing — purpose of this site
 │   ├── agents/_index.md            # Agents overview / decision tree
@@ -328,6 +384,7 @@ The same decision function is exposed through the MCP server as
 │   ├── .nojekyll                   # Tell GH Pages "this is not Jekyll"
 │   └── images/
 │       ├── logo.svg
+│       ├── how-to-use/              # GPT Image-2 visual walkthrough panels
 │       └── covers/                 # Per-tool hero illustrations
 ├── Dockerfile                      # Multi-stage: Hugo extended → nginx:alpine
 └── .github/workflows/hugo.yml      # GH Pages CI/CD + dynamic repoURL injection
@@ -342,6 +399,7 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 
 | Section | What's in it |
 | ------- | ------------ |
+| **Visual Guide** | Four GPT Image-2 walkthrough panels that explain how to use the repo as a path: explore, run one PR, operate workflows, and scale through MCP. |
 | **Fundamentals** | What an agent is; the five tools; prompts; MCP; MCP gateways; agentic remediation; vocabulary. |
 | **Docs** | Orientation for the site — who it's for, how to read a recipe, how to contribute. |
 | **Agents** | Per-tool recipes for GitHub Copilot, Claude, Cursor, Codex, Devin — each with Install → Configure → Dispatch → Guardrails, plus General and Enterprise onboarding. |
@@ -355,18 +413,22 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 
 ## Dynamic repository URL
 
-The "Repository" link on the landing page and the "Edit on GitHub"
-base are resolved from `params.repoURL`, which CI overrides at build
-time:
+The "Repository" link on the landing page and repo-backed Contribute
+links are resolved from the root-level `hugo.yaml` and site content. CI
+runs from the repository root and updates repo-aware values during the
+build:
 
-```yaml
-env:
-  HUGO_PARAMS_REPOURL: "https://github.com/${{ github.repository }}"
-  HUGO_PARAMS_EDITURL_BASE: "https://github.com/${{ github.repository }}/edit/${{ github.ref_name }}/content"
+```bash
+HUGO_PARAMS_REPOURL="https://github.com/${{ github.repository }}"
+CANONICAL_REPOSITORY="stevologic/security-recipes.ai"
+sed -i "s|${CANONICAL_REPOSITORY}|${{ github.repository }}|g" hugo.yaml
+find content -type f -name "*.md" -exec sed -i \
+  "s|${CANONICAL_REPOSITORY}|${{ github.repository }}|g" {} +
 ```
 
 This means you can fork the repo under any org/user and the links
-follow — no `hugo.yaml` edits required.
+follow without moving files or adding a subdirectory-specific
+`working-directory`.
 
 ---
 
@@ -377,12 +439,13 @@ The project ships with a GitHub Actions workflow
 
 1. Installs Hugo (extended) + Go.
 2. Fetches the Hextra theme via Hugo Modules.
-3. Runs `hugo --gc --minify` with `HUGO_PARAMS_REPOURL` wired to the
-   hosting repo.
-4. Verifies `public/recipes-index.json` is generated for MCP
+3. Runs `hugo --gc --minify` from the repository root with
+   `HUGO_PARAMS_REPOURL` wired to the hosting repo.
+4. Verifies `public/recipes-index.json` is generated at the root build
+   output for MCP
    search/retrieval servers.
-5. Pushes the compiled `public/` directory to a dedicated **`gh-pages`**
-   branch using `peaceiris/actions-gh-pages`.
+5. Pushes the compiled root-level `public/` directory to a dedicated
+   **`gh-pages`** branch using `peaceiris/actions-gh-pages`.
 
 ### MCP server-friendly content index
 
@@ -594,10 +657,14 @@ without changing code.
    `content/`, `layouts/`, `assets/`, `static/`, `data/`, and
    `.github/workflows/hugo.yml` together at the top level.
 
-2. **Update `baseURL`.**
-   In `hugo.yaml`, set `baseURL` to your GitHub Pages URL (e.g.
-   `https://<user>.github.io/<repo>/`). The Repository link is
-   dynamic — only `baseURL` needs updating per fork.
+2. **Choose your Pages URL.**
+   For normal GitHub Pages hosting, no path edits are required:
+   the workflow computes the correct `baseURL` for either
+   `https://<user>.github.io/` or `https://<user>.github.io/<repo>/`
+   and patches the root `hugo.yaml` during CI. For a custom domain,
+   keep `static/CNAME` at the repo root's `static/` directory. For
+   non-GitHub-Actions builds, set `baseURL` in `hugo.yaml` to the
+   URL where the compiled site will be served.
 
 3. **Push to `main`.**
    The workflow runs, creates the `gh-pages` branch on first deploy,
@@ -646,9 +713,11 @@ without changing code.
 The site is designed to be forked and customised without code
 changes:
 
-- `baseURL` is the only value you need to touch for hosting.
-- `HUGO_PARAMS_REPOURL` overrides the Repository / Edit-on-GitHub
-  link targets via CI.
+- GitHub Pages forks usually need no path edits: the workflow computes
+  `baseURL`, runs Hugo from the repo root, and publishes root `public/`.
+- Use `static/CNAME` for a custom GitHub Pages domain, or update
+  `baseURL` in `hugo.yaml` only for non-GitHub-Actions hosting.
+- `HUGO_PARAMS_REPOURL` overrides Repository link targets via CI.
 - Per-agent pages carry an **Enterprise Onboarding** section as a
   placeholder — a forking enterprise fills it with its own
   identity-provider, policy, and deployment specifics while leaving

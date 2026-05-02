@@ -70,6 +70,7 @@ and CI-time injection — with per-agent walkthroughs for
 Copilot, Claude, Cursor, Codex, and Devin.
 
 {{< cards >}}
+  {{< card link="/how-to-use/" title="Visual Guide ->" subtitle="A four-panel walkthrough for using the site: explore the map, run one agent PR, operate workflows, then scale with MCP-backed context." >}}
   {{< card link="/docs/agent-integration/" title="Integrate an AI Agent →" subtitle="Five integration shapes, per-agent walkthroughs, and the cross-cutting concerns (pinning, audit, fetched-content hygiene) that keep an integration trustworthy." >}}
   {{< card link="/security-remediation/control-plane/" title="Workflow Control Plane ->" subtitle="Declarative workflow manifests for scope, MCP context, gates, evidence, KPIs, and kill signals." >}}
   {{< card link="/security-remediation/mcp-gateway-policy/" title="MCP Gateway Policy Pack ->" subtitle="Generated policy contract for enforcing scoped MCP tool access and runtime kill signals." >}}

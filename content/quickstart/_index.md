@@ -19,6 +19,17 @@ engineer, or a curious platform lead can go from zero to a
 first agentic remediation PR before the end of a coffee break.
 {{< /callout >}}
 
+## Prefer a visual route?
+
+<figure class="visual-guide-figure">
+  <img src="../images/how-to-use/visual-site-map.png" alt="Visual map of the security-recipes.ai docs showing Start, Search, Pick, and Read across Quick Start, Agents, Prompt Library, MCP Servers, and Security Remediation." loading="lazy">
+</figure>
+
+If you are still orienting, open the
+[Visual Guide]({{< relref "/how-to-use" >}}) first. It shows how the
+repo fits together before you pick an agent or copy a prompt into a
+project.
+
 ## The minimum viable shape
 
 Every agentic remediation flow on this site, regardless of

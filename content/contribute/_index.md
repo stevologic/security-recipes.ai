@@ -17,7 +17,7 @@ guardrails that are working for them.
 
 {{< callout type="info" >}}
 The same guide lives at
-[`CONTRIBUTING.md`](https://github.com/stevologic/agentic-remediation-recipes/blob/main/CONTRIBUTING.md)
+[`CONTRIBUTING.md`](https://github.com/stevologic/security-recipes.ai/blob/main/CONTRIBUTING.md)
 in the repo root, so GitHub's "Contribute" button points at it. The
 two copies are intentionally redundant.
 {{< /callout >}}
@@ -27,11 +27,11 @@ two copies are intentionally redundant.
 1. **Fork** the repo on GitHub.
 2. **Branch** off `main` — `recipe/<tool>-<topic>` or
    `prompt/<tool>/<short-name>`.
-3. **Make your change** under `content/…`.
-4. **Preview locally** with `hugo server -D` (see
+3. **Make your change** under the root-level `content/…` directory.
+4. **Preview locally** from the repo root with `hugo server -D` (see
    [Running the site locally](#running-the-site-locally)).
 5. **Open a PR** against `main` on
-   [`stevologic/agentic-remediation-recipes`](https://github.com/stevologic/agentic-remediation-recipes).
+   [`stevologic/security-recipes.ai`](https://github.com/stevologic/security-recipes.ai).
 6. Get **one reviewer from Security** and **one from the team that
    owns the prompt or recipe**.
 7. On merge, the GitHub Actions workflow rebuilds the site and
@@ -50,8 +50,8 @@ pick your own account or a team org.
 ### 2. Clone your fork
 
 ```bash
-git clone https://github.com/<your-user>/agentic-remediation-recipes.git
-cd agentic-remediation-recipes
+git clone https://github.com/<your-user>/security-recipes.ai.git
+cd security-recipes.ai
 ```
 
 ### 3. Add the upstream remote
@@ -60,7 +60,7 @@ This lets you pull new changes from the canonical repo into your
 fork.
 
 ```bash
-git remote add upstream https://github.com/stevologic/agentic-remediation-recipes.git
+git remote add upstream https://github.com/stevologic/security-recipes.ai.git
 git fetch upstream
 ```
 
@@ -92,7 +92,7 @@ Closes #42.
 ```
 
 ```bash
-git add content/…
+git add content/...
 git commit
 git push origin prompt/claude/cve-triage
 ```
@@ -100,7 +100,7 @@ git push origin prompt/claude/cve-triage
 ### 6. Open a PR against `main`
 
 Open a pull request from your branch to
-`stevologic/agentic-remediation-recipes:main`. The PR template
+`stevologic/security-recipes.ai:main`. The PR template
 prompts for the four things reviewers check:
 
 - **What** the recipe or prompt does
@@ -129,11 +129,13 @@ git push origin main
 Anything that makes agentic remediation more reliable, reviewable,
 or repeatable for the next team:
 
-- **A new agent recipe** — your `<tool>/_index.md` playbook.
+- **A new agent recipe** — your `content/<tool>/_index.md` playbook.
 - **An update to an existing recipe** — new guardrails, new failure
   mode, new verification step.
 - **A prompt, rules file, or skill** — drop under
   `content/prompt-library/<tool>/`.
+- **A CVE recipe prompt** — drop under `content/prompt-library/cve/`
+  when a named CVE needs a specific remediation prompt.
 - **A fix** — broken link, wrong command, outdated screenshot.
 - **An issue** — file one if you spot something broken and don't
   have time to fix it yourself; the template asks for repro steps.
@@ -173,6 +175,7 @@ content/prompt-library/
 ├── claude/
 ├── codex/
 ├── cursor/
+├── cve/              # per-CVE remediation prompts and recipes
 ├── devin/
 ├── general/          # tool-agnostic prompts, patterns, hooks
 └── github_copilot/
@@ -180,7 +183,10 @@ content/prompt-library/
 
 Drop your file in the subdirectory that matches the agent it
 targets. If it's tool-agnostic (e.g. a triage framework you use
-across every agent), put it in `general/`.
+across every agent), put it in `content/prompt-library/general/`.
+If it is anchored to a specific CVE, put it in
+`content/prompt-library/cve/` so it appears in the CVE Recipes
+catalogue.
 
 ### Template
 
@@ -189,7 +195,7 @@ Every prompt file uses the same frontmatter:
 ```markdown
 ---
 title: "<Short, descriptive name — e.g. 'Claude CVE triage skill'>"
-tool: "<claude | copilot | cursor | codex | devin | general>"
+tool: "<claude | copilot | cursor | codex | cve | devin | general>"
 author: "<your @handle>"
 team: "<team name>"
 maturity: "<experimental | production>"
@@ -223,6 +229,35 @@ breaking change wasn't auto-resolved."
 Want to see the template in action? The
 [Claude CVE triage skill]({{< relref "/prompt-library/claude/cve-triage-skill" >}})
 is a fully worked example.
+
+### CVE recipe prompts
+
+CVE recipe prompts live under `content/prompt-library/cve/`. Use this
+section when the prompt is tied to a named vulnerability and needs
+specific remediation guidance beyond the generic vulnerable-dependency
+workflow.
+
+Name the file after the CVE and a short slug:
+
+```text
+content/prompt-library/cve/cve-YYYY-NNNN-short-name.md
+```
+
+In addition to the standard prompt frontmatter, include the CVE fields
+that power the catalogue:
+
+```yaml
+cve: "CVE-YYYY-NNNN"
+aliases: ["Popular Name"]
+kev: false
+severity: "high"
+ecosystem: "language/package-manager"
+disclosed: "YYYY-MM-DD"
+```
+
+A good CVE recipe prompt explains the affected versions, the
+indicator-of-exposure, the remediation strategy, stop conditions, and
+the exact verification steps a reviewer can run.
 
 ### What does _not_ belong
 
@@ -273,18 +308,20 @@ Prereqs:
 - [Go](https://go.dev/dl/) `>= 1.21` (Hextra is a Hugo Module)
 - Git
 
+Run these from the repository root, the directory that contains
+`hugo.yaml`; the current layout does not use a nested site directory.
+
 ```bash
-hugo mod get -u github.com/imfing/hextra
-hugo mod tidy
-hugo server -D --disableFastRender
+hugo mod get -u
+hugo server -D
 # → http://localhost:1313
 ```
 
 Prefer Docker?
 
 ```bash
-docker build -t arr .
-docker run --rm -p 3000:80 arr
+docker build -t security-recipes .
+docker run --rm -p 3000:80 security-recipes
 # → http://localhost:3000
 ```
 

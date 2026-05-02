@@ -25,9 +25,9 @@ fork-and-PR workflow we use to land changes.
 1. **Fork** the repo on GitHub.
 2. **Branch** off `main` — `recipe/<tool>-<topic>` or
    `prompt/<short-name>`.
-3. **Make your change** under `content/…`.
-4. **Preview locally** with `hugo server -D` (see [Running the site
-   locally](#running-the-site-locally)).
+3. **Make your change** under the root-level `content/…` directory.
+4. **Preview locally** from the repo root with `hugo server -D` (see
+   [Running the site locally](#running-the-site-locally)).
 5. **Open a PR** against `main` on the upstream repo.
 6. Get **one reviewer from Security** and **one from the team that owns
    the prompt or recipe**.
@@ -49,8 +49,8 @@ pick your own account or a team org.
 ### 2. Clone your fork
 
 ```bash
-git clone https://github.com/<your-user>/agentic-remediation-recipes.git
-cd agentic-remediation-recipes
+git clone https://github.com/<your-user>/security-recipes.ai.git
+cd security-recipes.ai
 ```
 
 ### 3. Add the upstream remote
@@ -58,7 +58,7 @@ cd agentic-remediation-recipes
 This lets you pull new changes from the canonical repo into your fork.
 
 ```bash
-git remote add upstream https://github.com/stevologic/agentic-remediation-recipes.git
+git remote add upstream https://github.com/stevologic/security-recipes.ai.git
 git fetch upstream
 ```
 
@@ -90,7 +90,7 @@ Closes #42.
 ```
 
 ```bash
-git add content/…
+git add content/...
 git commit
 git push origin recipe/claude-triage-skill
 ```
@@ -98,7 +98,7 @@ git push origin recipe/claude-triage-skill
 ### 6. Open a PR against `main`
 
 On GitHub, open a pull request from your branch to
-`stevologic/agentic-remediation-recipes:main`. The PR template
+`stevologic/security-recipes.ai:main`. The PR template
 will prompt you for the four things reviewers will check:
 
 - **What** the recipe/prompt does
@@ -129,11 +129,13 @@ git push origin main
 Anything that makes agentic remediation more reliable, reviewable, or
 repeatable for the next team:
 
-- **A new agent recipe** — your `<tool>/_index.md` playbook.
+- **A new agent recipe** — your `content/<tool>/_index.md` playbook.
 - **An update to an existing recipe** — new guardrails, new failure
   mode, new verification step.
 - **A prompt, rules file, or skill** — drop under
   `content/prompt-library/`.
+- **A CVE recipe prompt** — drop under `content/prompt-library/cve/`
+  when a named CVE needs a specific remediation prompt.
 - **A fix** — broken link, wrong command, outdated screenshot.
 - **An issue** — file one if you spot something broken and don't
   have time to fix it yourself; the template asks for repro steps.
@@ -169,17 +171,37 @@ Things reviewers look for in a recipe PR:
 
 ## Contributing a prompt
 
-The Prompt Library lives under `content/prompt-library/`.
+The Prompt Library lives under `content/prompt-library/`:
+
+```text
+content/prompt-library/
+├── claude/
+├── codex/
+├── cursor/
+├── cve/              # per-CVE remediation prompts and recipes
+├── devin/
+├── general/          # tool-agnostic prompts, patterns, hooks
+└── github_copilot/
+```
+
+Drop your file in the subdirectory that matches the agent it targets.
+If it's tool-agnostic, put it in `content/prompt-library/general/`.
+If it is anchored to a specific CVE, put it in
+`content/prompt-library/cve/` so it appears in the CVE Recipes
+catalogue.
+
 Every prompt file has the same frontmatter:
 
 ```markdown
 ---
 title: "<Short, descriptive name — e.g. 'Claude CVE triage skill'>"
-tool: "<claude | copilot | cursor | codex | devin>"
+tool: "<claude | copilot | cursor | codex | cve | devin | general>"
 author: "<your @handle>"
 team: "<team name>"
 maturity: "<experimental | production>"
+model: "<model string you ran this on — e.g. Opus 4.7, gpt-5-codex>"
 tags: ["triage", "sca", "..."]
+weight: 99
 ---
 
 ## What this prompt does
@@ -202,6 +224,35 @@ Concrete trigger.
 
 - YYYY-MM-DD — v1, first published.
 ```
+
+### CVE recipe prompts
+
+CVE recipe prompts live under `content/prompt-library/cve/`. Use this
+section when the prompt is tied to a named vulnerability and needs
+specific remediation guidance beyond the generic vulnerable-dependency
+workflow.
+
+Name the file after the CVE and a short slug:
+
+```text
+content/prompt-library/cve/cve-YYYY-NNNN-short-name.md
+```
+
+In addition to the standard prompt frontmatter, include the CVE fields
+that power the catalogue:
+
+```yaml
+cve: "CVE-YYYY-NNNN"
+aliases: ["Popular Name"]
+kev: false
+severity: "high"
+ecosystem: "language/package-manager"
+disclosed: "YYYY-MM-DD"
+```
+
+A good CVE recipe prompt explains the affected versions, the
+indicator-of-exposure, the remediation strategy, stop conditions, and
+the exact verification steps a reviewer can run.
 
 **What does _not_ belong:**
 
@@ -245,26 +296,26 @@ is a new recipe inside an existing hub**, do not.
 
 ### Rule 2 — Hubs auto-discover their pages
 
-Each hub page (`<section>/_index.md`) renders its catalogue
+Each hub page (`content/<section>/_index.md`) renders its catalogue
 through one of three shortcodes that walk the section tree:
 
-- `{{< prompt-toc >}}` — for prompt-library tool subsections
-  and `classic-vulnerable-defaults`. Reads each child page's
+- `{{< prompt-toc >}}` — for `content/prompt-library/` tool
+  subsections and `classic-vulnerable-defaults`. Reads each child page's
   frontmatter and renders a card with title, description,
   maturity badge, author / team / model, and tags.
-- `{{< cve-toc >}}` — for `prompt-library/cve/`. Groups by
+- `{{< cve-toc >}}` — for `content/prompt-library/cve/`. Groups by
   `ecosystem` frontmatter, sorts by `disclosed` date, shows
   severity and KEV badges.
 - The Hextra `{{< cards >}}` shortcode — used on hubs where
   the editorial structure matters more than the page list
-  (e.g., the `security-remediation/_index.md` page that
+  (e.g., the `content/security-remediation/_index.md` page that
   separates "Active workflows" from "Program operations").
 
 To add a new recipe, drop a markdown file in the section
 folder with the right frontmatter:
 
-**Prompt-library prompts** (`prompt-library/<tool>/*.md` and
-`prompt-library/general/classic-vulnerable-defaults/*.md`):
+**Prompt-library prompts** (`content/prompt-library/<tool>/*.md` and
+`content/prompt-library/general/classic-vulnerable-defaults/*.md`):
 
 ```yaml
 ---
@@ -282,7 +333,7 @@ date: 2026-04-25
 ---
 ```
 
-**CVE recipes** (`prompt-library/cve/cve-XXXX-YYYYY-<slug>.md`):
+**CVE recipes** (`content/prompt-library/cve/cve-XXXX-YYYYY-<slug>.md`):
 
 ```yaml
 ---
@@ -331,12 +382,12 @@ If you find yourself wanting to split, ask:
 ### What this means in practice
 
 - **Adding a CVE recipe?** New file under
-  `prompt-library/cve/`. Frontmatter as above. Done.
+  `content/prompt-library/cve/`. Frontmatter as above. Done.
 - **Adding a classic-default recipe?** New file under
-  `prompt-library/general/classic-vulnerable-defaults/`.
+  `content/prompt-library/general/classic-vulnerable-defaults/`.
   Frontmatter as above. Done.
 - **Adding a new workflow?** New folder under
-  `security-remediation/<slug>/_index.md`. Add a card to
+  `content/security-remediation/<slug>/_index.md`. Add a card to
   the section's `_index.md` cards block (editorial
   ordering matters there). Don't touch `hugo.yaml`.
 - **Adding a brand-new hub category?** *Only then* edit
@@ -463,6 +514,9 @@ Prereqs:
 - [Go](https://go.dev/dl/) `>= 1.21` (Hextra is loaded as a Hugo Module)
 - Git
 
+Run these from the repository root, the directory that contains
+`hugo.yaml`; the current layout does not use a nested site directory.
+
 ```bash
 hugo mod get -u              # fetch the Hextra theme
 hugo server -D               # http://localhost:1313
@@ -471,8 +525,8 @@ hugo server -D               # http://localhost:1313
 Prefer Docker?
 
 ```bash
-docker build -t arr .
-docker run --rm -p 3000:80 arr
+docker build -t security-recipes .
+docker run --rm -p 3000:80 security-recipes
 # → http://localhost:3000
 ```
 

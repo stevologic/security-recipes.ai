@@ -1,4 +1,4 @@
-module github.com/stevologic/agentic-remediation-recipes
+module github.com/stevologic/security-recipes.ai
 
 go 1.21
 

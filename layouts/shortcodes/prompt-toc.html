@@ -22,8 +22,8 @@
 
   Why not `"/contribute/#contributing-a-prompt" | relURL`? When the input
   starts with "/" AND carries a URL fragment, Hugo's relURL can leave the
-  leading "/" alone, producing e.g. `/contribute/#…` instead of
-  `/agentic-remediation-recipes/contribute/#…` on a project-page deploy. Going
+  leading "/" alone, producing e.g. `/contribute/#...` instead of
+  `/<repo>/contribute/#...` on a project-page deploy. Going
   through GetPage → RelPermalink always produces the correctly-prefixed path
   because it's computed from the page object, not string-parsed.
 

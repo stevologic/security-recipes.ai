@@ -9,10 +9,10 @@
 # Usage
 # -----
 #   # Build (from the directory containing hugo.yaml):
-#   docker build -t agentic-remediation-recipes .
+#   docker build -t security-recipes .
 #
 #   # Run:
-#   docker run --rm -p 3000:80 agentic-remediation-recipes
+#   docker run --rm -p 3000:80 security-recipes
 #   # → http://localhost:3000
 #
 #   # Override baseURL / repoURL at build time (e.g. when deploying behind
@@ -20,7 +20,7 @@
 #   docker build \
 #     --build-arg BASE_URL="https://example.com/docs/" \
 #     --build-arg REPO_URL="https://github.com/your-org/your-repo" \
-#     -t agentic-remediation-recipes .
+#     -t security-recipes .
 # ============================================================================
 
 
@@ -83,15 +83,18 @@ RUN hugo mod get -u github.com/imfing/hextra
 # Now pull in the rest of the project.
 COPY . .
 
-# If REPO_URL was passed, rewrite any `stevologic/agentic-remediation-recipes`
-# reference in hugo.yaml AND in content markdown (matches the CI approach).
-# Covers: editURL base, Contribute menu URL, sidebar Contribute, and
-# CONTRIBUTING.md links inside Prompt Library copy.
+# If REPO_URL was passed, rewrite canonical repo references in hugo.yaml AND
+# in content markdown (matches the CI approach). Covers repo URL, Contribute
+# menu URL, sidebar Contribute, and CONTRIBUTING.md links inside site copy.
 RUN if [ -n "${REPO_URL}" ]; then \
         OWNER_REPO=$(printf '%s' "${REPO_URL%/}" | sed 's|^https\?://github.com/||') ; \
-        sed -i "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" hugo.yaml ; \
+        sed -i \
+            -e "s|stevologic/security-recipes.ai|${OWNER_REPO}|g" \
+            -e "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" \
+            hugo.yaml ; \
         find content -type f -name "*.md" -exec sed -i \
-            "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" {} + ; \
+            -e "s|stevologic/security-recipes.ai|${OWNER_REPO}|g" \
+            -e "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" {} + ; \
     fi
 
 # Rewrite absolute card links so Hextra's `{{< card link="/..." >}}` shortcode
@@ -113,9 +116,9 @@ RUN BASE_PATH=$(printf '%s' "${BASE_URL}" | sed -E 's|^https?://[^/]+||; s|/$||'
 
 # Build. `HUGO_PARAMS_REPOURL` surfaces the repo URL to the landing page
 # template. `--baseURL` overrides the value in hugo.yaml so the image's
-# generated links don't carry the GitHub Pages subpath (`/agentic-...`)
+# generated links don't carry a GitHub Pages project subpath
 # into a container that's served from `/`.
-RUN HUGO_PARAMS_REPOURL="${REPO_URL:-https://github.com/stevologic/agentic-remediation-recipes}" \
+RUN HUGO_PARAMS_REPOURL="${REPO_URL:-https://github.com/stevologic/security-recipes.ai}" \
     hugo --gc --minify \
         --baseURL="${BASE_URL}" \
     && touch public/.nojekyll
@@ -126,7 +129,7 @@ FROM nginx:1.27-alpine AS runtime
 
 LABEL org.opencontainers.image.title="security-recipes.ai" \
       org.opencontainers.image.description="Community-driven recipes for agentic remediation across AI coding tools." \
-      org.opencontainers.image.source="https://github.com/stevologic/agentic-remediation-recipes"
+      org.opencontainers.image.source="https://github.com/stevologic/security-recipes.ai"
 
 # Minimal nginx config — static site, gzip on, SPA-friendly fallbacks off
 # (Hugo outputs real files for every route).

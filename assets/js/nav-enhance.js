@@ -9,8 +9,8 @@
  *      cmd/ctrl-click, right-click "Open in new tab", and screen readers
  *      all work the way they would on any other nav link.
  *   2. The URL has to be whatever Hugo decided at build time — which on
- *      Docker-localhost is `/fundamentals/` (no port), on GitHub Pages is
- *      `/agentic-remediation-recipes/fundamentals/`. Hard-coding baseURL
+ *      Docker-localhost is `/fundamentals/` (no port), and on GitHub Pages
+ *      project hosting may be `/<repo>/fundamentals/`. Hard-coding baseURL
  *      in JS breaks when the browser port differs from the build port
  *      (e.g. `docker run -p 3000:80`), so we read URLs from a map emitted
  *      by `head-end.html` from Hugo's menu config.

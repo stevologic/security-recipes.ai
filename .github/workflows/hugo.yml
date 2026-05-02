@@ -224,17 +224,24 @@ jobs:
           # hosting this site. No manual hugo.yaml edit required when you fork.
           HUGO_PARAMS_REPOURL: "https://github.com/${{ github.repository }}"
         run: |
-          # Rewrite every `stevologic/agentic-remediation-recipes` reference in
-          # hugo.yaml (editURL base, Contribute menu URL, sidebar Contribute)
-          # so every link tracks whichever repo is hosting this site. Nested
-          # params and YAML `url:` fields can't be overridden via
-          # HUGO_PARAMS_* env vars, so we patch the YAML directly.
-          sed -i "s|stevologic/agentic-remediation-recipes|${{ github.repository }}|g" hugo.yaml
-          # Same substitution across any markdown content that hard-links
-          # back to the template repo (e.g. the Prompt Library pointing at
+          # Rewrite hard-coded canonical repo references in hugo.yaml
+          # (repo URL, Contribute menu URL, sidebar Contribute) so every link
+          # tracks whichever repo is hosting this site. Nested params and YAML
+          # `url:` fields can't be overridden via HUGO_PARAMS_* env vars, so we
+          # patch the YAML directly. Keep the legacy name here so older forks
+          # still self-heal during deploy.
+          CANONICAL_REPOSITORY="stevologic/security-recipes.ai"
+          LEGACY_REPOSITORY="stevologic/agentic-remediation-recipes"
+          sed -i \
+            -e "s|${CANONICAL_REPOSITORY}|${{ github.repository }}|g" \
+            -e "s|${LEGACY_REPOSITORY}|${{ github.repository }}|g" \
+            hugo.yaml
+          # Same substitution across any markdown content that hard-links back
+          # to the canonical repo (e.g. the Contribute page pointing at
           # CONTRIBUTING.md).
           find content -type f -name "*.md" -exec sed -i \
-            "s|stevologic/agentic-remediation-recipes|${{ github.repository }}|g" {} +
+            -e "s|${CANONICAL_REPOSITORY}|${{ github.repository }}|g" \
+            -e "s|${LEGACY_REPOSITORY}|${{ github.repository }}|g" {} +
           # Refresh the editURL branch segment so "Edit on GitHub" points at
           # the actual deploy branch and root-level content directory.
           sed -i "s|/edit/main/content|/edit/${{ github.ref_name }}${{ steps.hugo-dir.outputs.editprefix }}|g" hugo.yaml
