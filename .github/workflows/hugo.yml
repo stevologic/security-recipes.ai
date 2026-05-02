@@ -143,6 +143,53 @@ jobs:
         run: |
           python3 scripts/generate_mcp_gateway_policy.py --check
 
+      - name: Validate MCP gateway runtime decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_mcp_gateway_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --run-id ci-allow \
+            --tool-namespace repo.contents \
+            --tool-access-mode write_branch \
+            --branch-name sec-auto-remediation/fix-cve \
+            --changed-path package.json \
+            --changed-path package-lock.json \
+            --diff-line-count 120 \
+            --gate-phase tool_call \
+            --expect-decision allow_scoped_branch
+
+          python3 scripts/evaluate_mcp_gateway_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --run-id ci-deny \
+            --tool-namespace repo.contents \
+            --tool-access-mode write_branch \
+            --branch-name sec-auto-remediation/fix-cve \
+            --changed-path .github/workflows/release.yml \
+            --diff-line-count 20 \
+            --gate-phase tool_call \
+            --expect-decision deny
+
+          python3 scripts/evaluate_mcp_gateway_decision.py \
+            --workflow-id artifact-cache-quarantine \
+            --agent-id sr-agent::artifact-cache-quarantine::codex \
+            --run-id ci-hold \
+            --tool-namespace registries.quarantine \
+            --tool-access-mode approval_required \
+            --gate-phase tool_call \
+            --expect-decision hold_for_approval
+
+          python3 scripts/evaluate_mcp_gateway_decision.py \
+            --workflow-id base-image-remediation \
+            --agent-id sr-agent::base-image-remediation::codex \
+            --run-id ci-kill \
+            --tool-namespace repo.contents \
+            --tool-access-mode write_branch \
+            --gate-phase runtime \
+            --runtime-kill-signal "agent attempts registry write or deployment" \
+            --expect-decision kill_session
+
       - name: Validate MCP connector trust pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |

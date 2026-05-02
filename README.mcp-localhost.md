@@ -66,6 +66,7 @@ After connecting, the server exposes these tools:
 - `recipes_get`
 - `recipes_workflow_control_plane`
 - `recipes_mcp_gateway_policy`
+- `recipes_evaluate_mcp_gateway_decision`
 - `recipes_agentic_assurance_pack`
 - `recipes_agent_identity_ledger`
 - `recipes_mcp_connector_trust_pack`

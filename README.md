@@ -70,6 +70,9 @@ and ships with:
 - **MCP Connector Trust Registry** - generated connector trust evidence
   for every workflow MCP namespace: tiers, access modes, required
   controls, evidence, promotion criteria, and kill signals.
+- **MCP Runtime Decision Evaluator** - deterministic allow, hold, deny,
+  and kill-session decisions for each agent tool call before it reaches
+  enterprise systems.
 - **Agentic Assurance Pack** — generated enterprise evidence that maps
   workflows, MCP policy, control objectives, and AI/Agent BOM seed data
   to current agentic AI security expectations.
@@ -253,6 +256,31 @@ MCP server as `recipes_mcp_connector_trust_pack`.
 
 ---
 
+### Evaluate an MCP gateway runtime decision
+
+The runtime evaluator turns the generated MCP gateway policy into a
+single pre-call decision an agent host, MCP gateway, CI admission check,
+or policy sidecar can log and enforce:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id run-123 \
+  --tool-namespace repo.contents \
+  --tool-access-mode write_branch \
+  --branch-name sec-auto-remediation/fix-cve \
+  --changed-path package.json \
+  --changed-path package-lock.json \
+  --diff-line-count 120 \
+  --gate-phase tool_call
+```
+
+The same decision function is exposed through the MCP server as
+`recipes_evaluate_mcp_gateway_decision`.
+
+---
+
 ## Project layout
 
 ```
@@ -319,7 +347,7 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 | **Agents** | Per-tool recipes for GitHub Copilot, Claude, Cursor, Codex, Devin — each with Install → Configure → Dispatch → Guardrails, plus General and Enterprise onboarding. |
 | **Prompt Library** | Tool-agnostic prompts under `general/` (OWASP Top 10 2026 audit, OWASP Top 10 2026 remediate) plus per-tool prompts for CVE triage, vulnerable deps, and SDE remediation. |
 | **MCP Servers** | Why MCP exists; connector catalog (risk, ownership, ticket, knowledge, code, observability); MCP gateway patterns; integration on-ramp. |
-| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the workflow control plane, MCP gateway policy pack, MCP connector trust registry, agentic assurance pack, readiness scorecard, red-team drill pack, agent identity ledger, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
+| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the workflow control plane, MCP gateway policy pack, runtime decision evaluator, MCP connector trust registry, agentic assurance pack, readiness scorecard, red-team drill pack, agent identity ledger, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
 | **Automation** | The "just use a linter" checklist — deterministic automation that earns its keep before an agent ever runs. |
 | **Contribute** | How to add a recipe, a prompt, or a new workflow. |
 
@@ -406,12 +434,20 @@ policy pack:
 
 - policy: `data/policy/mcp-gateway-policy.json`
 - generator: `scripts/generate_mcp_gateway_policy.py`
+- runtime evaluator: `scripts/evaluate_mcp_gateway_decision.py`
+- MCP tools: `recipes_mcp_gateway_policy`,
+  `recipes_evaluate_mcp_gateway_decision`
 
 The generated pack gives an MCP gateway or agent host a default-deny
 decision contract for scoped tool access, remediation branch writes,
 ticket writes, approval holds, runtime session kills, and evidence
 records. CI runs the generator in `--check` mode so workflow changes must
 update the policy artifact.
+
+The runtime evaluator executes the same policy for one tool-call request
+and returns `allow`, `allow_scoped_branch`, `allow_scoped_ticket`,
+`hold_for_approval`, `deny`, or `kill_session` with matched scope,
+violations, approval state, and source manifest hash.
 
 ### MCP connector trust pack
 
@@ -535,7 +571,8 @@ Edit `mcp-server.toml`:
 - `control_plane_manifest_path` -> local workflow-control-plane manifest
   exposed through the `recipes_workflow_control_plane` MCP tool
 - `gateway_policy_path` -> generated policy pack exposed through the
-  `recipes_mcp_gateway_policy` MCP tool
+  `recipes_mcp_gateway_policy` and
+  `recipes_evaluate_mcp_gateway_decision` MCP tools
 - `assurance_pack_path` -> generated assurance pack exposed through the
   `recipes_agentic_assurance_pack` MCP tool
 - `identity_ledger_path` -> generated agent identity ledger exposed
