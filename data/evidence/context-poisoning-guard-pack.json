@@ -230,7 +230,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 1995,
+      "line": 2330,
       "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
       "path": "data/evidence/agentic-threat-radar.json",
       "risk_family": "approval_bypass",
@@ -252,7 +252,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 602,
+      "line": 646,
       "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
       "path": "data/intelligence/agentic-threat-radar-sources.json",
       "risk_family": "approval_bypass",
@@ -455,7 +455,7 @@
     "blocking_sources": [
       "agentic-assurance-models"
     ],
-    "byte_count": 2531777,
+    "byte_count": 2967425,
     "decision_counts": {
       "allow_with_adversarial_examples": 4,
       "block_until_removed": 1,
@@ -467,7 +467,7 @@
       "documented_adversarial_example": 23
     },
     "failure_count": 0,
-    "file_count": 145,
+    "file_count": 168,
     "finding_count": 37,
     "held_source_count": 0,
     "held_sources": [],
@@ -548,7 +548,7 @@
     },
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "2379573fbfac1b18f8c764f269ce41fb2222ac90104c601e2747afbcab07a4b8"
+      "sha256": "6ddb8c23507be42091be481c04f4d35756c3ec37db9e3616b43ad205c22145ba"
     }
   },
   "source_results": [
@@ -559,7 +559,7 @@
         "actionable_context_poisoning_risk": 2,
         "documented_adversarial_example": 5
       },
-      "file_count": 8,
+      "file_count": 15,
       "finding_count": 7,
       "owner": {
         "accountable_team": "Security Engineering",
@@ -567,14 +567,21 @@
         "evidence_owner": "Security Engineering"
       },
       "registered_files_sample": [
+        "data/assurance/agent-capability-risk-model.json",
+        "data/assurance/agent-memory-boundary-model.json",
+        "data/assurance/agent-skill-supply-chain-model.json",
         "data/assurance/agentic-assurance-control-map.json",
+        "data/assurance/agentic-control-plane-blueprint.json",
+        "data/assurance/agentic-measurement-probe-profile.json",
         "data/assurance/agentic-readiness-model.json",
         "data/assurance/agentic-red-team-scenario-map.json",
         "data/assurance/agentic-run-receipt-profile.json",
         "data/assurance/agentic-system-bom-profile.json",
         "data/assurance/context-egress-boundary-model.json",
         "data/assurance/context-poisoning-guard-profile.json",
-        "data/assurance/mcp-authorization-conformance-profile.json"
+        "data/assurance/mcp-authorization-conformance-profile.json",
+        "data/assurance/secure-context-attestation-profile.json",
+        "data/assurance/secure-context-eval-scenarios.json"
       ],
       "risk_family_counts": {
         "approval_bypass": 4,
@@ -586,7 +593,7 @@
         "critical": 3,
         "high": 4
       },
-      "source_hash": "b8eb46a308c8b4e2c81a122010eac2e100817ea5971bd120fbd9685b5d5bbca8",
+      "source_hash": "de07ff0fc43b608ecf394131e353881c9cdfc6d8915e417a47470a95ea63e9bf",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": "tier_2_policy_context"
@@ -597,7 +604,7 @@
       "disposition_counts": {
         "documented_adversarial_example": 12
       },
-      "file_count": 12,
+      "file_count": 14,
       "finding_count": 12,
       "owner": {
         "accountable_team": "Security Engineering",
@@ -605,7 +612,9 @@
         "evidence_owner": "Security Engineering"
       },
       "registered_files_sample": [
+        "data/evidence/agent-capability-risk-register.json",
         "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agent-memory-boundary-pack.json",
         "data/evidence/agentic-assurance-pack.json",
         "data/evidence/agentic-readiness-scorecard.json",
         "data/evidence/agentic-red-team-drill-pack.json",
@@ -627,7 +636,7 @@
         "critical": 6,
         "high": 6
       },
-      "source_hash": "baf84df947d64dd72a2545bb44500d26ba71873ad5ffdf952df6e72c6af17b7c",
+      "source_hash": "e3d40d6ec29510b1fc7f4ab4f3b8a6e498ed255d3a00af565a86797c2cd75cb7",
       "source_id": "agentic-evidence-packs",
       "title": "Generated Agentic Evidence Packs",
       "trust_tier": "tier_2_policy_context"
@@ -655,7 +664,7 @@
       "severity_counts": {
         "high": 1
       },
-      "source_hash": "b48d7f2dcf2848164a24832c2d645d4cfd60233e76454d5ab4563306ec9d4aa7",
+      "source_hash": "791084c0204ddf70779fcceaea215e13f9859143b5180afc9e6d17d7d62045a4",
       "source_id": "agentic-threat-intelligence",
       "title": "Agentic Threat Radar Source Registry",
       "trust_tier": "tier_2_policy_context"
@@ -722,7 +731,7 @@
       "risk_family_counts": {},
       "root": "mcp_server.py",
       "severity_counts": {},
-      "source_hash": "6d22490aaa0479e47826e5b107866f9c75d98ce1f21734a95424a54202d8c740",
+      "source_hash": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": "tier_2_policy_context"
@@ -734,7 +743,7 @@
         "defensive_control_language": 9,
         "documented_adversarial_example": 1
       },
-      "file_count": 86,
+      "file_count": 93,
       "finding_count": 10,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
@@ -773,7 +782,7 @@
         "critical": 5,
         "high": 5
       },
-      "source_hash": "97d652cd4614b8253aba12ca4776e30551ab48d9434b349fcf6c56e97b98fe43",
+      "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
       "source_id": "prompt-library-recipes",
       "title": "Prompt Library Recipes",
       "trust_tier": "tier_1_curated_guidance"
@@ -785,7 +794,7 @@
         "defensive_control_language": 3,
         "documented_adversarial_example": 4
       },
-      "file_count": 32,
+      "file_count": 39,
       "finding_count": 7,
       "owner": {
         "accountable_team": "Security Engineering",
@@ -794,8 +803,13 @@
       },
       "registered_files_sample": [
         "content/security-remediation/_index.md",
+        "content/security-remediation/agent-capability-risk-register/_index.md",
         "content/security-remediation/agent-identity-ledger/_index.md",
+        "content/security-remediation/agent-memory-boundary/_index.md",
+        "content/security-remediation/agent-skill-supply-chain/_index.md",
         "content/security-remediation/agentic-assurance-pack/_index.md",
+        "content/security-remediation/agentic-control-plane-blueprint/_index.md",
+        "content/security-remediation/agentic-measurement-probes/_index.md",
         "content/security-remediation/agentic-readiness-scorecard/_index.md",
         "content/security-remediation/agentic-red-team-drills/_index.md",
         "content/security-remediation/agentic-run-receipts/_index.md",
@@ -807,12 +821,7 @@
         "content/security-remediation/compliance/_index.md",
         "content/security-remediation/context-egress-boundary/_index.md",
         "content/security-remediation/context-poisoning-guard/_index.md",
-        "content/security-remediation/control-plane/_index.md",
-        "content/security-remediation/crypto-payments/_index.md",
-        "content/security-remediation/defi-blockchain/_index.md",
-        "content/security-remediation/gatekeeping/_index.md",
-        "content/security-remediation/maturity/_index.md",
-        "content/security-remediation/mcp-authorization-conformance/_index.md"
+        "content/security-remediation/control-plane/_index.md"
       ],
       "risk_family_counts": {
         "approval_bypass": 5,
@@ -824,7 +833,7 @@
         "critical": 2,
         "high": 5
       },
-      "source_hash": "4611cc35801041d2454cabfb3b9d5a778de359df5b86f023a61c9e094b150d7a",
+      "source_hash": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"

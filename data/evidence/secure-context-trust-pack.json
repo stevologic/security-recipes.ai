@@ -4,8 +4,8 @@
       "allowed_file_globs": [
         "*.json"
       ],
-      "authority": "Source-controlled assurance models for agent identity, capability risk, memory boundaries, agent skill supply chain, red-team drills, system BOMs, context poisoning, context egress, run receipts, measurement probes, secure context attestations, and MCP authorization conformance.",
-      "byte_count": 243588,
+      "authority": "Source-controlled assurance models for agent identity, capability risk, memory boundaries, agent skill supply chain, red-team drills, system BOMs, context poisoning, context egress, run receipts, measurement probes, secure context attestations, secure context evals, and MCP authorization conformance.",
+      "byte_count": 244042,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [],
@@ -67,7 +67,9 @@
         "recipes_agentic_control_plane_blueprint",
         "recipes_agentic_measurement_probe_pack",
         "recipes_secure_context_attestation_pack",
-        "recipes_evaluate_context_attestation_decision"
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_secure_context_eval_pack",
+        "recipes_evaluate_secure_context_eval_case"
       ],
       "risk_families": [
         "tool_result_injection",
@@ -80,7 +82,7 @@
       ],
       "root": "data/assurance",
       "root_type": "directory",
-      "source_hash": "7ec673b66729f606ed05384ad2d4211d55377b559a842988d2e260e88a352224",
+      "source_hash": "de07ff0fc43b608ecf394131e353881c9cdfc6d8915e417a47470a95ea63e9bf",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": {
@@ -92,13 +94,14 @@
       "allowed_file_globs": [
         "*.json"
       ],
-      "authority": "Generated evidence for assurance, identity, capability risk, memory boundaries, agent skill supply-chain decisions, connector trust, MCP authorization conformance, red-team drills, readiness, run receipts, measurement probes, secure context attestations, context-poisoning inspection, context-egress boundaries, and system BOM inspection.",
-      "byte_count": 1346167,
+      "authority": "Generated evidence for assurance, identity, capability risk, memory boundaries, agent skill supply-chain decisions, connector trust, MCP authorization conformance, red-team drills, readiness, run receipts, measurement probes, secure context attestations, secure context evals, context-poisoning inspection, context-egress boundaries, and system BOM inspection.",
+      "byte_count": 1354558,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [
         "secure-context-trust-pack.json",
         "secure-context-attestation-pack.json",
+        "secure-context-eval-pack.json",
         "agentic-control-plane-blueprint.json",
         "agentic-measurement-probe-pack.json",
         "agent-skill-supply-chain-pack.json"
@@ -170,7 +173,9 @@
         "recipes_evaluate_agent_skill_decision",
         "recipes_agentic_measurement_probe_pack",
         "recipes_secure_context_attestation_pack",
-        "recipes_evaluate_context_attestation_decision"
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_secure_context_eval_pack",
+        "recipes_evaluate_secure_context_eval_case"
       ],
       "risk_families": [
         "tool_result_injection",
@@ -184,7 +189,7 @@
       ],
       "root": "data/evidence",
       "root_type": "directory",
-      "source_hash": "b2afc1c6a006336407e2e4b53b4d5f61c68a96b46d26b2de1d0b11aae2f9a3d3",
+      "source_hash": "14bc793ba8c933192dbd0750df8ef3bc727d1c69ef34283ecf873cc8e8c401b4",
       "source_id": "agentic-evidence-packs",
       "title": "Generated Agentic Evidence Packs",
       "trust_tier": {
@@ -327,7 +332,7 @@
         "*.json"
       ],
       "authority": "Generated default-deny policy for MCP tool access, approval holds, branch writes, ticket writes, and runtime kill decisions.",
-      "byte_count": 52526,
+      "byte_count": 54131,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [],
@@ -389,8 +394,8 @@
       "allowed_file_globs": [
         "*.py"
       ],
-      "authority": "Runtime tool surface that exposes recipes, workflow control plane, policy decisions, authorization decisions, measurement probes, evidence packs, context trust, and secure context attestations over MCP.",
-      "byte_count": 158016,
+      "authority": "Runtime tool surface that exposes recipes, workflow control plane, policy decisions, authorization decisions, measurement probes, evidence packs, context trust, secure context attestations, and secure context evals over MCP.",
+      "byte_count": 165497,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [],
@@ -440,6 +445,8 @@
         "recipes_agentic_measurement_probe_pack",
         "recipes_secure_context_attestation_pack",
         "recipes_evaluate_context_attestation_decision",
+        "recipes_secure_context_eval_pack",
+        "recipes_evaluate_secure_context_eval_case",
         "tool_contract_context"
       ],
       "risk_families": [
@@ -451,7 +458,7 @@
       ],
       "root": "mcp_server.py",
       "root_type": "file",
-      "source_hash": "38ab3d2d32e67cba58ecb17a6185af77ecd2b217b69b248b24dc86604695e365",
+      "source_hash": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": {
@@ -536,7 +543,7 @@
       ],
       "root": "content/prompt-library",
       "root_type": "directory",
-      "source_hash": "485911da5a9af8622d5ece0e6be1ccd596aabea34742a54a086240976f54d7b1",
+      "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
       "source_id": "prompt-library-recipes",
       "title": "Prompt Library Recipes",
       "trust_tier": {
@@ -549,12 +556,12 @@
         "*.md"
       ],
       "authority": "Human-readable workflow guidance for scope, gates, evidence, KPIs, and review expectations.",
-      "byte_count": 325625,
+      "byte_count": 333330,
       "citation_required": true,
       "decision": "allow_public_context",
       "exclude_file_globs": [],
       "exposure": "public",
-      "file_count": 38,
+      "file_count": 39,
       "freshness_sla_days": 90,
       "freshness_state": "declared_current",
       "hash_algorithm": "sha256",
@@ -621,7 +628,7 @@
       ],
       "root": "content/security-remediation",
       "root_type": "directory",
-      "source_hash": "0b751d0132e4569c5ed0405e5cdb22495e41f81f753b44e2696186b39fbfd284",
+      "source_hash": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": {
@@ -702,8 +709,8 @@
     "default_decision": "deny_unregistered_context",
     "failure_count": 0,
     "prohibited_data_class_count": 7,
-    "registered_byte_count": 2981309,
-    "registered_file_count": 168,
+    "registered_byte_count": 3006945,
+    "registered_file_count": 169,
     "risk_family_counts": {
       "context_poisoning": 8,
       "memory_poisoning": 3,
@@ -828,7 +835,7 @@
   "source_artifacts": {
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "f28b07cf9e955ae216c5d93a29919a977038ef962d01a10702ed33577929e573"
+      "sha256": "6ddb8c23507be42091be481c04f4d35756c3ec37db9e3616b43ad205c22145ba"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -1011,7 +1018,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "c1823a90337d28d28df54fa9483c5ecead32008209c4cb77b852e2ac82789235",
+      "context_package_hash": "d65ba4419af71adb16c60ceef959e603f7441c987e768acbc026cce7cab72f6e",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1044,7 +1051,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "e8a91035cde2863b3199a0dfe1e2a1dc4ff1f718e087201b1d677bacb16cc9d4",
+      "context_package_hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1076,7 +1083,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "7bde3a43edc056c63b088f58b42b06597864c82426bf66532da738dff25386b0",
+      "context_package_hash": "354528a16e2271a68e57b8171e5646e86bf61910780730ad369bba6ea2e11070",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1109,7 +1116,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "09356da839984c5bbc16eeb70a4d50a9d767fd9839b50a98c78b5c59a8aaccce",
+      "context_package_hash": "a4a1912b833508945c0fc53ebdc02c3ffd46a83602a6e81e6f995de7acefd485",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1140,7 +1147,7 @@
         "claude",
         "devin"
       ],
-      "context_package_hash": "423421074d55787d1031ccca90859a72f4ff23f20ab1cff7770fbb8085613f83",
+      "context_package_hash": "57f645643f721b9cdfd41f432712908970674651a63bbff5d106b63c7c0ec2a0",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1172,7 +1179,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "c9d86778a149ec063f41575f1db4beb58b78c3b90a60d9b0edf354e814503c08",
+      "context_package_hash": "259063db40ffa7014da193875e569323913da7a0d05657d510ba42a5b1b36887",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1203,7 +1210,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "e52c333b9a34bb7a3d6ab8c1e346b875d5bb798368fa9d79945a524ed1e0c798",
+      "context_package_hash": "99b3a9595e30bfdc5d0ed1df53e4de38f806907f21d5ec99af47e01d3f37e527",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1234,7 +1241,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "43919bc03ffcbfe7e4da3af766ffd593a192807da2b9dbca94e0191c82c5d371",
+      "context_package_hash": "5b29dbba6de1cb416c5c6719363197cb2a949ffd56ed79d7515a6581d50b57d1",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",

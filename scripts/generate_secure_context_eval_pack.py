@@ -298,7 +298,7 @@ def answer_contract_check(
         "check_id": f"{scenario_id}:answer-contract",
         "check_type": "runtime_answer_contract",
         "expected_decision": "citations_and_hashes_required",
-        "observed_decision": "contract_defined" if status == "pass" else "missing_required_source",
+        "observed_decision": "citations_and_hashes_required" if status == "pass" else "missing_required_source",
         "status": status,
         "evidence": {
             "forbidden_claims": expectation.get("forbidden_claims", []),
@@ -322,7 +322,7 @@ def handoff_check(scenario_id: str, expectation: dict[str, Any]) -> dict[str, An
         "check_id": f"{scenario_id}:handoff-boundary",
         "check_type": "a2a_handoff_boundary",
         "expected_decision": "metadata_only_handoff",
-        "observed_decision": "contract_defined" if status == "pass" else "incomplete_contract",
+        "observed_decision": "metadata_only_handoff" if status == "pass" else "incomplete_contract",
         "status": status,
         "evidence": {
             "allowed_payload_fields": allowed,

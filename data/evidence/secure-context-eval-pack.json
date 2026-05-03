@@ -157,16 +157,23 @@
           "check_type": "secure_context_retrieval",
           "evidence": {
             "matched_source": {
+              "citation_required": true,
               "decision": "allow_public_context",
+              "exposure": "public",
               "freshness_state": "declared_current",
+              "retrieval_modes": [
+                "recipes_search",
+                "recipes_get",
+                "workflow_prompt_context"
+              ],
               "root": "content/prompt-library",
-              "source_hash": "485911da5a9af8622d5ece0e6be1ccd596aabea34742a54a086240976f54d7b1",
+              "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
               "source_id": "prompt-library-recipes",
               "title": "Prompt Library Recipes",
               "trust_tier": "tier_1_curated_guidance"
             },
             "matched_workflow": {
-              "context_package_hash": "e8a91035cde2863b3199a0dfe1e2a1dc4ff1f718e087201b1d677bacb16cc9d4",
+              "context_package_hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -181,7 +188,7 @@
               "title": "Vulnerable Dependency Remediation",
               "workflow_id": "vulnerable-dependency-remediation"
             },
-            "reason": "registered source is approved for workflow context",
+            "reason": "runtime request satisfies secure context retrieval policy",
             "violations": []
           },
           "expected_decision": "allow_public_context",
@@ -195,7 +202,7 @@
             "actionable_finding_count": 0,
             "finding_count": 10,
             "max_actionable_findings": 0,
-            "source_hash": "97d652cd4614b8253aba12ca4776e30551ab48d9434b349fcf6c56e97b98fe43",
+            "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
             "source_id": "prompt-library-recipes"
           },
           "expected_decision": [
@@ -222,11 +229,11 @@
               "prompt-library-recipes"
             ],
             "source_hashes": {
-              "prompt-library-recipes": "485911da5a9af8622d5ece0e6be1ccd596aabea34742a54a086240976f54d7b1"
+              "prompt-library-recipes": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469"
             }
           },
           "expected_decision": "citations_and_hashes_required",
-          "observed_decision": "contract_defined",
+          "observed_decision": "citations_and_hashes_required",
           "status": "pass"
         }
       ],
@@ -265,8 +272,14 @@
           "check_type": "secure_context_retrieval",
           "evidence": {
             "matched_source": {
+              "citation_required": true,
               "decision": "allow_policy_context_with_citation",
+              "exposure": "public",
               "freshness_state": "declared_current",
+              "retrieval_modes": [
+                "recipes_workflow_control_plane",
+                "policy_context"
+              ],
               "root": "data/control-plane",
               "source_hash": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21",
               "source_id": "workflow-control-plane",
@@ -274,7 +287,7 @@
               "trust_tier": "tier_2_policy_context"
             },
             "matched_workflow": {
-              "context_package_hash": "c1823a90337d28d28df54fa9483c5ecead32008209c4cb77b852e2ac82789235",
+              "context_package_hash": "d65ba4419af71adb16c60ceef959e603f7441c987e768acbc026cce7cab72f6e",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -289,7 +302,7 @@
               "title": "Sensitive Data Element Remediation",
               "workflow_id": "sensitive-data-remediation"
             },
-            "reason": "registered source is approved for workflow context",
+            "reason": "runtime request satisfies secure context retrieval policy",
             "violations": []
           },
           "expected_decision": "allow_policy_context_with_citation",
@@ -333,7 +346,7 @@
             }
           },
           "expected_decision": "citations_and_hashes_required",
-          "observed_decision": "contract_defined",
+          "observed_decision": "citations_and_hashes_required",
           "status": "pass"
         }
       ],
@@ -371,16 +384,36 @@
           "check_type": "secure_context_retrieval",
           "evidence": {
             "matched_source": {
+              "citation_required": true,
               "decision": "allow_policy_context_with_citation",
+              "exposure": "public",
               "freshness_state": "declared_current",
+              "retrieval_modes": [
+                "recipes_server_info",
+                "recipes_agent_capability_risk_register",
+                "recipes_agent_memory_boundary_pack",
+                "recipes_evaluate_agent_memory_decision",
+                "recipes_agent_skill_supply_chain_pack",
+                "recipes_evaluate_agent_skill_decision",
+                "recipes_evaluate_context_retrieval_decision",
+                "recipes_evaluate_mcp_authorization_decision",
+                "recipes_evaluate_context_egress_decision",
+                "recipes_agentic_control_plane_blueprint",
+                "recipes_agentic_measurement_probe_pack",
+                "recipes_secure_context_attestation_pack",
+                "recipes_evaluate_context_attestation_decision",
+                "recipes_secure_context_eval_pack",
+                "recipes_evaluate_secure_context_eval_case",
+                "tool_contract_context"
+              ],
               "root": "mcp_server.py",
-              "source_hash": "38ab3d2d32e67cba58ecb17a6185af77ecd2b217b69b248b24dc86604695e365",
+              "source_hash": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209",
               "source_id": "mcp-server-runtime",
               "title": "MCP Server Runtime Contract",
               "trust_tier": "tier_2_policy_context"
             },
             "matched_workflow": {
-              "context_package_hash": "e8a91035cde2863b3199a0dfe1e2a1dc4ff1f718e087201b1d677bacb16cc9d4",
+              "context_package_hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -395,9 +428,9 @@
               "title": "Vulnerable Dependency Remediation",
               "workflow_id": "vulnerable-dependency-remediation"
             },
-            "reason": "source, mode, or path is not approved for workflow context",
+            "reason": "source is registered but not approved for this workflow context package",
             "violations": [
-              "source_id mcp-server-runtime is not approved for workflow vulnerable-dependency-remediation"
+              "source_id 'mcp-server-runtime' is not in workflow source_ids"
             ]
           },
           "expected_decision": "deny_unapproved_workflow_context",
@@ -411,7 +444,7 @@
             "actionable_finding_count": 0,
             "finding_count": 0,
             "max_actionable_findings": 0,
-            "source_hash": "6d22490aaa0479e47826e5b107866f9c75d98ce1f21734a95424a54202d8c740",
+            "source_hash": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209",
             "source_id": "mcp-server-runtime"
           },
           "expected_decision": [
@@ -436,11 +469,11 @@
               "mcp-server-runtime"
             ],
             "source_hashes": {
-              "mcp-server-runtime": "38ab3d2d32e67cba58ecb17a6185af77ecd2b217b69b248b24dc86604695e365"
+              "mcp-server-runtime": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209"
             }
           },
           "expected_decision": "citations_and_hashes_required",
-          "observed_decision": "contract_defined",
+          "observed_decision": "citations_and_hashes_required",
           "status": "pass"
         }
       ],
@@ -494,7 +527,6 @@
               "allowed_destination_classes": [],
               "default_decision": "kill_session_on_secret_egress",
               "hold_destination_classes": [],
-              "human_approval_required": false,
               "id": "secret_or_token",
               "prohibited_destination_classes": [
                 "securityrecipes_public_corpus",
@@ -506,14 +538,19 @@
                 "external_url_or_webhook"
               ],
               "redaction_required_before_external": true,
-              "required_controls": [
-                "deny_egress",
-                "kill_session",
-                "incident_evidence"
-              ],
               "sensitivity": "prohibited",
               "tenant_id_required": false,
               "title": "Secret or Token"
+            },
+            "matched_destination": {
+              "category": "untrusted_egress",
+              "external_processor": true,
+              "id": "external_url_or_webhook",
+              "requires_dpa": true,
+              "requires_residency_match": true,
+              "requires_zero_data_retention": true,
+              "title": "External URL or Webhook",
+              "trusted": false
             },
             "matched_source": null,
             "reason": "secret or prohibited context egress attempt",
@@ -541,7 +578,7 @@
             "source_hashes": {}
           },
           "expected_decision": "citations_and_hashes_required",
-          "observed_decision": "contract_defined",
+          "observed_decision": "citations_and_hashes_required",
           "status": "pass"
         }
       ],
@@ -582,15 +619,19 @@
             "matched_subject": {
               "attestation_id": "wfctx-vulnerable-dependency-remediation",
               "decision": "allow_attested_workflow_context",
+              "freshness_state": "declared_current",
+              "hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
               "source_id": null,
               "status": "active",
               "subject_type": "workflow_context_package",
               "title": "Vulnerable Dependency Remediation",
+              "trust_tier": null,
               "workflow_id": "vulnerable-dependency-remediation"
             },
-            "reason": "signed environment requires signature bundle and transparency-log verification",
+            "reason": "production or diligence environment requires keyless signature and transparency-log proof",
             "violations": [
-              "signature evidence missing"
+              "signature_bundle_present",
+              "transparency_log_verified"
             ]
           },
           "expected_decision": "hold_for_signature",
@@ -604,7 +645,7 @@
             "actionable_finding_count": 0,
             "finding_count": 12,
             "max_actionable_findings": 0,
-            "source_hash": "baf84df947d64dd72a2545bb44500d26ba71873ad5ffdf952df6e72c6af17b7c",
+            "source_hash": "e3d40d6ec29510b1fc7f4ab4f3b8a6e498ed255d3a00af565a86797c2cd75cb7",
             "source_id": "agentic-evidence-packs"
           },
           "expected_decision": [
@@ -631,11 +672,11 @@
               "agentic-evidence-packs"
             ],
             "source_hashes": {
-              "agentic-evidence-packs": "b2afc1c6a006336407e2e4b53b4d5f61c68a96b46d26b2de1d0b11aae2f9a3d3"
+              "agentic-evidence-packs": "14bc793ba8c933192dbd0750df8ef3bc727d1c69ef34283ecf873cc8e8c401b4"
             }
           },
           "expected_decision": "citations_and_hashes_required",
-          "observed_decision": "contract_defined",
+          "observed_decision": "citations_and_hashes_required",
           "status": "pass"
         }
       ],
@@ -684,60 +725,38 @@
                 "approved_remote_mcp_server",
                 "observability_sink"
               ],
-              "human_approval_required": false,
               "id": "curated_security_guidance",
               "prohibited_destination_classes": [
                 "untrusted_remote_mcp_server",
                 "external_url_or_webhook"
               ],
               "redaction_required_before_external": false,
-              "required_controls": [
-                "citation_required",
-                "source_hash_required",
-                "instruction_demoted"
-              ],
               "sensitivity": "public",
               "tenant_id_required": false,
               "title": "Curated Security Guidance"
             },
+            "matched_destination": {
+              "category": "external_processor",
+              "external_processor": true,
+              "id": "approved_model_provider",
+              "requires_dpa": true,
+              "requires_residency_match": true,
+              "requires_zero_data_retention": true,
+              "title": "Approved Model Provider",
+              "trusted": true
+            },
             "matched_source": {
-              "allowed_destination_classes": [
-                "securityrecipes_public_corpus",
-                "tenant_mcp_gateway",
-                "approved_model_provider"
-              ],
               "data_class": "curated_security_guidance",
               "default_decision": "allow_public_egress_with_citation",
               "exposure": "public",
-              "file_count": 86,
-              "hold_destination_classes": [
-                "approved_remote_mcp_server",
-                "observability_sink"
-              ],
-              "owner": {
-                "accountable_team": "SecurityRecipes Maintainers",
-                "escalation": "prompt-library-review",
-                "evidence_owner": "Security Engineering"
-              },
-              "prohibited_destination_classes": [
-                "untrusted_remote_mcp_server",
-                "external_url_or_webhook"
-              ],
-              "redaction_required_before_external": false,
-              "required_controls": [
-                "citation_required",
-                "source_hash_required",
-                "instruction_demoted"
-              ],
               "root": "content/prompt-library",
               "sensitivity": "public",
-              "source_hash": "97d652cd4614b8253aba12ca4776e30551ab48d9434b349fcf6c56e97b98fe43",
+              "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
               "source_id": "prompt-library-recipes",
-              "tenant_id_required": false,
               "title": "Prompt Library Recipes",
               "trust_tier": "tier_1_curated_guidance"
             },
-            "reason": "destination is allowed for data class",
+            "reason": "egress request satisfies data-class and destination controls",
             "violations": []
           },
           "expected_decision": "allow_public_egress_with_citation",
@@ -751,7 +770,7 @@
             "actionable_finding_count": 0,
             "finding_count": 10,
             "max_actionable_findings": 0,
-            "source_hash": "97d652cd4614b8253aba12ca4776e30551ab48d9434b349fcf6c56e97b98fe43",
+            "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
             "source_id": "prompt-library-recipes"
           },
           "expected_decision": [
@@ -778,11 +797,11 @@
               "prompt-library-recipes"
             ],
             "source_hashes": {
-              "prompt-library-recipes": "485911da5a9af8622d5ece0e6be1ccd596aabea34742a54a086240976f54d7b1"
+              "prompt-library-recipes": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469"
             }
           },
           "expected_decision": "citations_and_hashes_required",
-          "observed_decision": "contract_defined",
+          "observed_decision": "citations_and_hashes_required",
           "status": "pass"
         }
       ],
@@ -821,16 +840,23 @@
           "check_type": "secure_context_retrieval",
           "evidence": {
             "matched_source": {
+              "citation_required": true,
               "decision": "allow_public_context",
+              "exposure": "public",
               "freshness_state": "declared_current",
+              "retrieval_modes": [
+                "workflow_overview_context",
+                "reviewer_context",
+                "enterprise_onboarding_context"
+              ],
               "root": "content/security-remediation",
-              "source_hash": "0b751d0132e4569c5ed0405e5cdb22495e41f81f753b44e2696186b39fbfd284",
+              "source_hash": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6",
               "source_id": "security-remediation-workflows",
               "title": "Security Remediation Workflow Docs",
               "trust_tier": "tier_1_curated_guidance"
             },
             "matched_workflow": {
-              "context_package_hash": "423421074d55787d1031ccca90859a72f4ff23f20ab1cff7770fbb8085613f83",
+              "context_package_hash": "57f645643f721b9cdfd41f432712908970674651a63bbff5d106b63c7c0ec2a0",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -845,7 +871,7 @@
               "title": "Artifact Cache and Mirror Quarantine",
               "workflow_id": "artifact-cache-quarantine"
             },
-            "reason": "registered source is approved for workflow context",
+            "reason": "runtime request satisfies secure context retrieval policy",
             "violations": []
           },
           "expected_decision": "allow_public_context",
@@ -859,7 +885,7 @@
             "actionable_finding_count": 0,
             "finding_count": 7,
             "max_actionable_findings": 0,
-            "source_hash": "4611cc35801041d2454cabfb3b9d5a778de359df5b86f023a61c9e094b150d7a",
+            "source_hash": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6",
             "source_id": "security-remediation-workflows"
           },
           "expected_decision": [
@@ -886,11 +912,11 @@
               "security-remediation-workflows"
             ],
             "source_hashes": {
-              "security-remediation-workflows": "0b751d0132e4569c5ed0405e5cdb22495e41f81f753b44e2696186b39fbfd284"
+              "security-remediation-workflows": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6"
             }
           },
           "expected_decision": "citations_and_hashes_required",
-          "observed_decision": "contract_defined",
+          "observed_decision": "citations_and_hashes_required",
           "status": "pass"
         },
         {
@@ -914,7 +940,7 @@
             "target_class": "opaque_remote_agent"
           },
           "expected_decision": "metadata_only_handoff",
-          "observed_decision": "contract_defined",
+          "observed_decision": "metadata_only_handoff",
           "status": "pass"
         }
       ],
@@ -937,19 +963,19 @@
   "source_artifacts": {
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "4228c743985a6ae43143e64feac493bd600af0eb42951bd973b3b7f9b514b9be"
+      "sha256": "e13a0c68d026174b6be7910d4f4f6988309582cb1deac15db40faa50db37c30a"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "bb52d63d3aeedd28d9a22007228adafb18a2369aa9f93b5b2a5bf75a2ae2d60f"
+      "sha256": "07edcffbc4aef554649510bb640e6589e1de91b339997538bdc1f207e8021a71"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "a91a16d5d439bc5dfde49f8bfbe5efa83e47fef0fb22e359f4dbd95a9535dc8e"
+      "sha256": "0e5fbabe54b1c4df1e3b2cad486ddd3869a1bee7f8b672151a4bad023bb0fae6"
     },
     "secure_context_attestation_pack": {
       "path": "data/evidence/secure-context-attestation-pack.json",
-      "sha256": "9d8632cb98a2d2b4c96afa307d7c68f08886b6c4537ce0ef18b7f0f5b8c25a09"
+      "sha256": "9d047538e2e4215d2d6791be9fbc81ce888070efbeba02cbb12cfd1f50d7f5ba"
     },
     "secure_context_eval_profile": {
       "path": "data/assurance/secure-context-eval-scenarios.json",
@@ -957,7 +983,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "14734274bbb8babf289236afc4b828f01b79e7fffbc7f93d69856ccfcea1a603"
+      "sha256": "ccb196ec997a38877931dc7233a729c06a96e9860d80ea5f5302970c611b0fb3"
     }
   },
   "standards_alignment": [
