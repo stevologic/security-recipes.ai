@@ -1,0 +1,1391 @@
+{
+  "capability_risk_summary": {
+    "active_workflow_count": 8,
+    "average_control_credit": 38.5,
+    "average_raw_capability_score": 68,
+    "average_residual_risk_score": 29.5,
+    "decision_counts": {
+      "guarded_rollout": 3,
+      "security_architecture_review": 3,
+      "standard_agentic_use": 2
+    },
+    "failure_count": 0,
+    "high_risk_workflow_count": 3,
+    "risk_tier_counts": {
+      "high": 3,
+      "low": 2,
+      "medium": 3
+    },
+    "source_failure_count": 0,
+    "top_risk_workflows": [
+      {
+        "decision": "security_architecture_review",
+        "residual_risk_score": 52,
+        "risk_tier": "high",
+        "title": "Cryptocurrency and Crypto Payments Security",
+        "workflow_id": "crypto-payment-security"
+      },
+      {
+        "decision": "security_architecture_review",
+        "residual_risk_score": 52,
+        "risk_tier": "high",
+        "title": "DeFi and Blockchain Protocol Security",
+        "workflow_id": "defi-blockchain-security"
+      },
+      {
+        "decision": "security_architecture_review",
+        "residual_risk_score": 42,
+        "risk_tier": "high",
+        "title": "Artifact Cache and Mirror Quarantine",
+        "workflow_id": "artifact-cache-quarantine"
+      },
+      {
+        "decision": "guarded_rollout",
+        "residual_risk_score": 26,
+        "risk_tier": "medium",
+        "title": "Sensitive Data Element Remediation",
+        "workflow_id": "sensitive-data-remediation"
+      },
+      {
+        "decision": "guarded_rollout",
+        "residual_risk_score": 22,
+        "risk_tier": "medium",
+        "title": "Base Image and Container Layer Remediation",
+        "workflow_id": "base-image-remediation"
+      }
+    ],
+    "workflow_count": 8
+  },
+  "control_credit_model": {
+    "credits": [
+      {
+        "condition": "Readiness score is 90 or higher and the readiness decision is scale_ready.",
+        "id": "readiness_scale_ready",
+        "points": 16
+      },
+      {
+        "condition": "Readiness score is 78 or higher and the readiness decision is pilot_guarded.",
+        "id": "readiness_pilot_guarded",
+        "points": 12
+      },
+      {
+        "condition": "The MCP gateway policy defaults to deny.",
+        "id": "default_deny_gateway",
+        "points": 6
+      },
+      {
+        "condition": "All workflow MCP namespaces have production connector status.",
+        "id": "connector_production_coverage",
+        "points": 8
+      },
+      {
+        "condition": "All workflow MCP namespaces are registered even if some are pilot.",
+        "id": "connector_registered_coverage",
+        "points": 4
+      },
+      {
+        "condition": "The workflow has at least five generated adversarial drills.",
+        "id": "red_team_coverage",
+        "points": 8
+      },
+      {
+        "condition": "Workflow and gateway policy expose runtime kill/session disablement controls.",
+        "id": "runtime_kill_signal",
+        "points": 4
+      }
+    ],
+    "max_credit": 42
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes measures agentic AI risk by capability and consequence, then proves which controls reduce the residual risk before MCP access scales.",
+    "default_questions_answered": [
+      "Which workflows are high residual risk and why?",
+      "Which workflows can run under standard controls?",
+      "Which dimensions drive the risk score: criticality, autonomy, access, or impact radius?",
+      "Which control credits lower the residual risk?",
+      "Which workflows need architecture review before expansion?"
+    ],
+    "recommended_first_use": "Attach the register to AI platform intake, MCP access approval, security architecture review, and procurement-security diligence.",
+    "sales_motion": "Lead with the open risk register, then sell hosted capability scoring, customer runtime telemetry ingestion, workflow expansion gates, and trust-center exports."
+  },
+  "factor_model": [
+    {
+      "id": "system_criticality",
+      "levels": [
+        {
+          "description": "Low operational consequence and limited security impact.",
+          "id": "low",
+          "points": 5
+        },
+        {
+          "description": "Security-relevant workflow with bounded application impact.",
+          "id": "medium",
+          "points": 10
+        },
+        {
+          "description": "Workflow touches supply chain, privacy, fleet configuration, or security-control outcomes.",
+          "id": "high",
+          "points": 16
+        },
+        {
+          "description": "Workflow can affect irreversible financial, wallet, signing, governance, or critical-infrastructure outcomes.",
+          "id": "critical",
+          "points": 22
+        }
+      ],
+      "question": "How consequential is the workflow domain if the agent makes a wrong change or trusts hostile context?",
+      "title": "System Criticality"
+    },
+    {
+      "id": "ai_autonomy",
+      "levels": [
+        {
+          "description": "Agent drafts or triages under close human instruction.",
+          "id": "supervised_assist",
+          "points": 6
+        },
+        {
+          "description": "Agent can plan and open scoped remediation output with mandatory review.",
+          "id": "bounded_agentic_pr",
+          "points": 12
+        },
+        {
+          "description": "Workflow supports several agent hosts and repeatable delegated remediation.",
+          "id": "multi_agentic_remediation",
+          "points": 16
+        },
+        {
+          "description": "Workflow includes approval-required or high-consequence operations that need policy-backed supervision.",
+          "id": "high_autonomy_or_approval_path",
+          "points": 20
+        }
+      ],
+      "question": "How much planning, tool selection, and multi-step execution can the agent perform before a human review point?",
+      "title": "AI Autonomy"
+    },
+    {
+      "id": "access_permissions",
+      "levels": [
+        {
+          "description": "Read-only context or evidence access.",
+          "id": "read_only",
+          "points": 5
+        },
+        {
+          "description": "Scoped source write on remediation branches only.",
+          "id": "scoped_branch_write",
+          "points": 14
+        },
+        {
+          "description": "Scoped source write plus ticket, quarantine, or workflow evidence writes.",
+          "id": "branch_and_ticket_write",
+          "points": 18
+        },
+        {
+          "description": "Approval-required operation or domain where a mistaken action may be hard to reverse.",
+          "id": "approval_or_irreversible_action",
+          "points": 22
+        }
+      ],
+      "question": "What is the most powerful MCP access mode the workflow can request?",
+      "title": "Access Permissions"
+    },
+    {
+      "id": "impact_radius",
+      "levels": [
+        {
+          "description": "Single repository or narrow file set.",
+          "id": "single_repo",
+          "points": 6
+        },
+        {
+          "description": "One service, team, or application boundary.",
+          "id": "service_or_team",
+          "points": 12
+        },
+        {
+          "description": "Many repositories, shared build infrastructure, tenant data, or supply-chain assets.",
+          "id": "fleet_or_tenant",
+          "points": 18
+        },
+        {
+          "description": "Payment, wallet, chain, governance, signing, or other irreversible consequence domain.",
+          "id": "financial_or_irreversible",
+          "points": 22
+        }
+      ],
+      "question": "How far can a bad agent decision spread across repositories, tenants, infrastructure, users, or financial systems?",
+      "title": "Impact Radius"
+    }
+  ],
+  "failures": [],
+  "generated_at": "2026-05-02",
+  "intent": "Define a repeatable capability-based risk model for SecurityRecipes agentic workflows so AI platform, security architecture, GRC, procurement, and acquisition reviewers can see which agents are low, medium, or high residual risk before MCP access expands.",
+  "positioning": {
+    "buyer": "AI Platform, Security Architecture, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
+    "category": "Capability-based risk register for agentic AI remediation",
+    "enterprise_promise": "SecurityRecipes can classify each approved agentic workflow by system criticality, AI autonomy, access permissions, and impact radius, then show the compensating controls that make the residual risk acceptable.",
+    "why_now": "Agentic AI programs are moving from demos to delegated production work. The board-level question is no longer whether an agent can complete a task; it is whether the organization understands the capability, consequence, access, and oversight profile before letting the agent act."
+  },
+  "residual_risks": [
+    {
+      "risk": "Capability scoring is a reference decision surface, not proof of customer runtime enforcement.",
+      "treatment": "Bind risk decisions to customer MCP gateway logs, identity issuance, approval receipts, and runtime kill evidence before production expansion."
+    },
+    {
+      "risk": "A low residual score can become stale after workflow, connector, model, prompt, or policy drift.",
+      "treatment": "Run this generator in CI and require recertification when source hashes or capability dimensions change."
+    },
+    {
+      "risk": "Critical financial or signing domains need domain-specific simulation beyond generic agent controls.",
+      "treatment": "Keep live signer, wallet, payment, and chain actions outside autonomous execution unless dry-run, simulator, dual approval, and kill-switch evidence are present."
+    }
+  ],
+  "risk_tiers": [
+    {
+      "decision": "standard_agentic_use",
+      "id": "low",
+      "max_score": 20,
+      "meaning": "May run inside the normal MCP gateway policy and review flow.",
+      "min_score": 0
+    },
+    {
+      "decision": "guarded_rollout",
+      "id": "medium",
+      "max_score": 40,
+      "meaning": "May run with bounded rollout, current readiness evidence, and workflow-owner review.",
+      "min_score": 21
+    },
+    {
+      "decision": "security_architecture_review",
+      "id": "high",
+      "max_score": 100,
+      "meaning": "Requires security architecture review, explicit control acceptance, and runtime evidence before expansion.",
+      "min_score": 41
+    }
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "agent_capability_risk_model": {
+      "path": "data/assurance/agent-capability-risk-model.json",
+      "sha256": "e7d5c3d9ebb17c20cabdfaf130052adc95b314b1e76ef84d82e36bebc35e5083"
+    },
+    "agentic_readiness_scorecard": {
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c"
+    },
+    "agentic_red_team_drill_pack": {
+      "path": "data/evidence/agentic-red-team-drill-pack.json",
+      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
+    },
+    "connector_trust_pack": {
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+    },
+    "gateway_policy_pack": {
+      "path": "data/policy/mcp-gateway-policy.json",
+      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Capability scoring across system criticality, AI autonomy, access permissions, and impact radius for autonomous and agentic AI systems.",
+      "id": "csa-cbra-agentic-risk-2025",
+      "name": "Cloud Security Alliance Capabilities-Based Risk Assessment",
+      "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk"
+    },
+    {
+      "coverage": "Agent behavior hijacking, tool misuse, identity and privilege abuse, and agentic supply-chain risk.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/"
+    },
+    {
+      "coverage": "MCP token mismanagement, scope creep, tool poisoning, command execution, intent flow subversion, insufficient authorization, audit gaps, shadow servers, and context over-sharing.",
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "url": "https://owasp.org/www-project-mcp-top-10/"
+    },
+    {
+      "coverage": "OAuth 2.1 authorization, protected resource metadata, resource indicators, audience validation, token handling, and PKCE expectations for protected MCP servers.",
+      "id": "mcp-authorization-2025-06-18",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization"
+    },
+    {
+      "coverage": "Lifecycle governance, measurement, third-party dependency, provenance, monitoring, and incident-response risk actions for generative AI.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Govern, Map, Measure, and Manage functions for trustworthy AI risk management.",
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework 1.0",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+    }
+  ],
+  "workflow_capability_risks": [
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Financial, chain, signing, or irreversible consequence domain.",
+          "factor_id": "system_criticality",
+          "level": "critical",
+          "points": 22,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Workflow includes approval-required or high-consequence agent paths.",
+          "factor_id": "ai_autonomy",
+          "level": "high_autonomy_or_approval_path",
+          "points": 20,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow domain or namespace can involve approval-required or hard-to-reverse operations.",
+          "factor_id": "access_permissions",
+          "level": "approval_or_irreversible_action",
+          "points": 22,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "A bad action can affect payments, wallet controls, chain state, or governance outcomes.",
+          "factor_id": "impact_radius",
+          "level": "financial_or_irreversible",
+          "points": 22,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "payments.findings",
+          "repo.contents",
+          "payments.simulation"
+        ],
+        "production_connector_count": 1,
+        "production_connector_percent": 33.33,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "payments.findings",
+          "status": "pilot",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        },
+        {
+          "access": "read",
+          "namespace": "payments.simulation",
+          "status": "pilot",
+          "trust_tier": "tier_1_internal_read"
+        }
+      ],
+      "control_credit": 34,
+      "control_credits": [
+        {
+          "evidence": "readiness=pilot_guarded, score=93",
+          "id": "readiness_pilot_guarded",
+          "points": 12
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are registered; at least one remains pilot",
+          "id": "connector_registered_coverage",
+          "points": 4
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "security_architecture_review",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "payments.findings",
+        "repo.contents",
+        "payments.simulation"
+      ],
+      "next_actions": [
+        "Run security architecture review before expanding this workflow.",
+        "Graduate or explicitly accept pilot MCP namespaces: payments.findings, payments.simulation.",
+        "Require typed approval receipts for privileged or irreversible operations."
+      ],
+      "owner": {
+        "accountable_team": "Fintech Security",
+        "escalation": "financial-risk",
+        "reviewer_pools": [
+          "fintech-security",
+          "payments-owner"
+        ]
+      },
+      "public_path": "/security-remediation/crypto-payments/",
+      "raw_capability_score": 86,
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion",
+        "Security architecture review before expansion",
+        "Typed human approval record for privileged or irreversible actions",
+        "Dry-run, simulator, or canary proof before production effect",
+        "Per-run identity revocation and session kill switch",
+        "Quarterly capability-risk recertification"
+      ],
+      "residual_risk_score": 52,
+      "risk_tier": "high",
+      "risk_tier_meaning": "Requires security architecture review, explicit control acceptance, and runtime evidence before expansion.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Financial, chain, signing, or irreversible consequence domain.",
+          "factor_id": "system_criticality",
+          "level": "critical",
+          "points": 22,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Workflow includes approval-required or high-consequence agent paths.",
+          "factor_id": "ai_autonomy",
+          "level": "high_autonomy_or_approval_path",
+          "points": 20,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow domain or namespace can involve approval-required or hard-to-reverse operations.",
+          "factor_id": "access_permissions",
+          "level": "approval_or_irreversible_action",
+          "points": 22,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "A bad action can affect payments, wallet controls, chain state, or governance outcomes.",
+          "factor_id": "impact_radius",
+          "level": "financial_or_irreversible",
+          "points": 22,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "protocol.findings",
+          "repo.contents",
+          "chain.simulation"
+        ],
+        "production_connector_count": 1,
+        "production_connector_percent": 33.33,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "protocol.findings",
+          "status": "pilot",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        },
+        {
+          "access": "read",
+          "namespace": "chain.simulation",
+          "status": "pilot",
+          "trust_tier": "tier_1_internal_read"
+        }
+      ],
+      "control_credit": 34,
+      "control_credits": [
+        {
+          "evidence": "readiness=pilot_guarded, score=93",
+          "id": "readiness_pilot_guarded",
+          "points": 12
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are registered; at least one remains pilot",
+          "id": "connector_registered_coverage",
+          "points": 4
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "security_architecture_review",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "protocol.findings",
+        "repo.contents",
+        "chain.simulation"
+      ],
+      "next_actions": [
+        "Run security architecture review before expanding this workflow.",
+        "Graduate or explicitly accept pilot MCP namespaces: protocol.findings, chain.simulation.",
+        "Require typed approval receipts for privileged or irreversible operations."
+      ],
+      "owner": {
+        "accountable_team": "Protocol Security",
+        "escalation": "protocol-risk-council",
+        "reviewer_pools": [
+          "protocol-security",
+          "smart-contract-owner"
+        ]
+      },
+      "public_path": "/security-remediation/defi-blockchain/",
+      "raw_capability_score": 86,
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion",
+        "Security architecture review before expansion",
+        "Typed human approval record for privileged or irreversible actions",
+        "Dry-run, simulator, or canary proof before production effect",
+        "Per-run identity revocation and session kill switch",
+        "Quarterly capability-risk recertification"
+      ],
+      "residual_risk_score": 52,
+      "risk_tier": "high",
+      "risk_tier_meaning": "Requires security architecture review, explicit control acceptance, and runtime evidence before expansion.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    },
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Privacy, supply-chain, fleet, artifact, or security-control workflow.",
+          "factor_id": "system_criticality",
+          "level": "high",
+          "points": 16,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Workflow includes approval-required or high-consequence agent paths.",
+          "factor_id": "ai_autonomy",
+          "level": "high_autonomy_or_approval_path",
+          "points": 20,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow domain or namespace can involve approval-required or hard-to-reverse operations.",
+          "factor_id": "access_permissions",
+          "level": "approval_or_irreversible_action",
+          "points": 22,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "Workflow can affect tenant data, supply-chain artifacts, container fleets, or shared remediation paths.",
+          "factor_id": "impact_radius",
+          "level": "fleet_or_tenant",
+          "points": 18,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "inventory.artifacts",
+          "registries.quarantine",
+          "incidents.security"
+        ],
+        "production_connector_count": 2,
+        "production_connector_percent": 66.67,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "inventory.artifacts",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "approval_required",
+          "namespace": "registries.quarantine",
+          "status": "pilot",
+          "trust_tier": "tier_3_approval_required"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "incidents.security",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        }
+      ],
+      "control_credit": 34,
+      "control_credits": [
+        {
+          "evidence": "readiness=pilot_guarded, score=93",
+          "id": "readiness_pilot_guarded",
+          "points": 12
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are registered; at least one remains pilot",
+          "id": "connector_registered_coverage",
+          "points": 4
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "security_architecture_review",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "inventory.artifacts",
+        "registries.quarantine",
+        "incidents.security"
+      ],
+      "next_actions": [
+        "Run security architecture review before expanding this workflow.",
+        "Graduate or explicitly accept pilot MCP namespaces: registries.quarantine.",
+        "Require typed approval receipts for privileged or irreversible operations."
+      ],
+      "owner": {
+        "accountable_team": "Supply Chain Security",
+        "escalation": "security-incident-commander",
+        "reviewer_pools": [
+          "supply-chain-security",
+          "platform-owner"
+        ]
+      },
+      "public_path": "/security-remediation/artifact-cache-purge/",
+      "raw_capability_score": 76,
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion",
+        "Security architecture review before expansion",
+        "Typed human approval record for privileged or irreversible actions",
+        "Dry-run, simulator, or canary proof before production effect",
+        "Per-run identity revocation and session kill switch",
+        "Quarterly capability-risk recertification"
+      ],
+      "residual_risk_score": 42,
+      "risk_tier": "high",
+      "risk_tier_meaning": "Requires security architecture review, explicit control acceptance, and runtime evidence before expansion.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Privacy, supply-chain, fleet, artifact, or security-control workflow.",
+          "factor_id": "system_criticality",
+          "level": "high",
+          "points": 16,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Workflow supports repeatable delegated remediation across several agent hosts.",
+          "factor_id": "ai_autonomy",
+          "level": "multi_agentic_remediation",
+          "points": 16,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow can write scoped branches and operational evidence or tickets.",
+          "factor_id": "access_permissions",
+          "level": "branch_and_ticket_write",
+          "points": 18,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "Workflow can affect tenant data, supply-chain artifacts, container fleets, or shared remediation paths.",
+          "factor_id": "impact_radius",
+          "level": "fleet_or_tenant",
+          "points": 18,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "findings.sde",
+          "repo.contents",
+          "tickets.security"
+        ],
+        "production_connector_count": 3,
+        "production_connector_percent": 100,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "findings.sde",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "tickets.security",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        }
+      ],
+      "control_credit": 42,
+      "control_credits": [
+        {
+          "evidence": "readiness=scale_ready, score=98",
+          "id": "readiness_scale_ready",
+          "points": 16
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are production connectors",
+          "id": "connector_production_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "guarded_rollout",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "findings.sde",
+        "repo.contents",
+        "tickets.security"
+      ],
+      "next_actions": [
+        "Keep expansion behind a guarded rollout cohort and workflow-owner approval."
+      ],
+      "owner": {
+        "accountable_team": "Security Engineering",
+        "escalation": "privacy-security",
+        "reviewer_pools": [
+          "security-remediation",
+          "service-owner"
+        ]
+      },
+      "public_path": "/security-remediation/sensitive-data/",
+      "raw_capability_score": 68,
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion",
+        "Bounded rollout cohort",
+        "Workflow-owner approval for expansion",
+        "Red-team drill replay on connector or model changes",
+        "Context retrieval and egress boundary checks"
+      ],
+      "residual_risk_score": 26,
+      "risk_tier": "medium",
+      "risk_tier_meaning": "May run with bounded rollout, current readiness evidence, and workflow-owner review.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Privacy, supply-chain, fleet, artifact, or security-control workflow.",
+          "factor_id": "system_criticality",
+          "level": "high",
+          "points": 16,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Workflow supports repeatable delegated remediation across several agent hosts.",
+          "factor_id": "ai_autonomy",
+          "level": "multi_agentic_remediation",
+          "points": 16,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow can write inside scoped remediation boundaries.",
+          "factor_id": "access_permissions",
+          "level": "scoped_branch_write",
+          "points": 14,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "Workflow can affect tenant data, supply-chain artifacts, container fleets, or shared remediation paths.",
+          "factor_id": "impact_radius",
+          "level": "fleet_or_tenant",
+          "points": 18,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "images.golden",
+          "repo.contents",
+          "ci.runs"
+        ],
+        "production_connector_count": 3,
+        "production_connector_percent": 100,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "images.golden",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        }
+      ],
+      "control_credit": 42,
+      "control_credits": [
+        {
+          "evidence": "readiness=scale_ready, score=98",
+          "id": "readiness_scale_ready",
+          "points": 16
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are production connectors",
+          "id": "connector_production_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "guarded_rollout",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "images.golden",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "next_actions": [
+        "Keep expansion behind a guarded rollout cohort and workflow-owner approval."
+      ],
+      "owner": {
+        "accountable_team": "Platform Security",
+        "escalation": "container-platform",
+        "reviewer_pools": [
+          "platform-security",
+          "service-owner"
+        ]
+      },
+      "public_path": "/security-remediation/base-images/",
+      "raw_capability_score": 64,
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion",
+        "Bounded rollout cohort",
+        "Workflow-owner approval for expansion",
+        "Red-team drill replay on connector or model changes",
+        "Context retrieval and egress boundary checks"
+      ],
+      "residual_risk_score": 22,
+      "risk_tier": "medium",
+      "risk_tier_meaning": "May run with bounded rollout, current readiness evidence, and workflow-owner review.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Privacy, supply-chain, fleet, artifact, or security-control workflow.",
+          "factor_id": "system_criticality",
+          "level": "high",
+          "points": 16,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Workflow supports repeatable delegated remediation across several agent hosts.",
+          "factor_id": "ai_autonomy",
+          "level": "multi_agentic_remediation",
+          "points": 16,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow can write inside scoped remediation boundaries.",
+          "factor_id": "access_permissions",
+          "level": "scoped_branch_write",
+          "points": 14,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "Workflow can affect tenant data, supply-chain artifacts, container fleets, or shared remediation paths.",
+          "factor_id": "impact_radius",
+          "level": "fleet_or_tenant",
+          "points": 18,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "advisories.vulnerability",
+          "sbom.inventory",
+          "repo.contents"
+        ],
+        "production_connector_count": 3,
+        "production_connector_percent": 100,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "advisories.vulnerability",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "read",
+          "namespace": "sbom.inventory",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        }
+      ],
+      "control_credit": 42,
+      "control_credits": [
+        {
+          "evidence": "readiness=scale_ready, score=98",
+          "id": "readiness_scale_ready",
+          "points": 16
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are production connectors",
+          "id": "connector_production_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "guarded_rollout",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "advisories.vulnerability",
+        "sbom.inventory",
+        "repo.contents"
+      ],
+      "next_actions": [
+        "Keep expansion behind a guarded rollout cohort and workflow-owner approval."
+      ],
+      "owner": {
+        "accountable_team": "Product Security",
+        "escalation": "supply-chain-security",
+        "reviewer_pools": [
+          "dependency-remediation",
+          "service-owner"
+        ]
+      },
+      "public_path": "/security-remediation/vulnerable-dependencies/",
+      "raw_capability_score": 64,
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion",
+        "Bounded rollout cohort",
+        "Workflow-owner approval for expansion",
+        "Red-team drill replay on connector or model changes",
+        "Context retrieval and egress boundary checks"
+      ],
+      "residual_risk_score": 22,
+      "risk_tier": "medium",
+      "risk_tier_meaning": "May run with bounded rollout, current readiness evidence, and workflow-owner review.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    },
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Active security workflow with bounded application impact.",
+          "factor_id": "system_criticality",
+          "level": "medium",
+          "points": 10,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Workflow supports repeatable delegated remediation across several agent hosts.",
+          "factor_id": "ai_autonomy",
+          "level": "multi_agentic_remediation",
+          "points": 16,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow can write inside scoped remediation boundaries.",
+          "factor_id": "access_permissions",
+          "level": "scoped_branch_write",
+          "points": 14,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "Workflow impact is bounded to a service or team review boundary.",
+          "factor_id": "impact_radius",
+          "level": "service_or_team",
+          "points": 12,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "recipes.defaults",
+          "repo.contents",
+          "ci.runs"
+        ],
+        "production_connector_count": 3,
+        "production_connector_percent": 100,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "recipes.defaults",
+          "status": "production",
+          "trust_tier": "tier_0_public_context"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        }
+      ],
+      "control_credit": 42,
+      "control_credits": [
+        {
+          "evidence": "readiness=scale_ready, score=98",
+          "id": "readiness_scale_ready",
+          "points": 16
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are production connectors",
+          "id": "connector_production_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "standard_agentic_use",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "recipes.defaults",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "next_actions": [
+        "Continue standard MCP gateway audit and drift checks."
+      ],
+      "owner": {
+        "accountable_team": "Application Security",
+        "escalation": "secure-code-review",
+        "reviewer_pools": [
+          "appsec",
+          "service-owner"
+        ]
+      },
+      "public_path": "/security-remediation/classic-vulnerable-defaults/",
+      "raw_capability_score": 52,
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion"
+      ],
+      "residual_risk_score": 10,
+      "risk_tier": "low",
+      "risk_tier_meaning": "May run inside the normal MCP gateway policy and review flow.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "capability_dimensions": [
+        {
+          "evidence": "Active security workflow with bounded application impact.",
+          "factor_id": "system_criticality",
+          "level": "medium",
+          "points": 10,
+          "title": "System Criticality"
+        },
+        {
+          "evidence": "Agent can create scoped remediation output with mandatory review.",
+          "factor_id": "ai_autonomy",
+          "level": "bounded_agentic_pr",
+          "points": 12,
+          "title": "AI Autonomy"
+        },
+        {
+          "evidence": "Workflow can write inside scoped remediation boundaries.",
+          "factor_id": "access_permissions",
+          "level": "scoped_branch_write",
+          "points": 14,
+          "title": "Access Permissions"
+        },
+        {
+          "evidence": "Workflow impact is bounded to a service or team review boundary.",
+          "factor_id": "impact_radius",
+          "level": "service_or_team",
+          "points": 12,
+          "title": "Impact Radius"
+        }
+      ],
+      "connector_coverage": {
+        "connector_count": 3,
+        "missing_namespaces": [],
+        "namespaces": [
+          "findings.sast",
+          "repo.contents",
+          "ci.runs"
+        ],
+        "production_connector_count": 3,
+        "production_connector_percent": 100,
+        "registered_connector_count": 3
+      },
+      "connector_statuses": [
+        {
+          "access": "read",
+          "namespace": "findings.sast",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents",
+          "status": "production",
+          "trust_tier": "tier_2_scoped_write"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs",
+          "status": "production",
+          "trust_tier": "tier_1_internal_read"
+        }
+      ],
+      "control_credit": 38,
+      "control_credits": [
+        {
+          "evidence": "readiness=pilot_guarded, score=95",
+          "id": "readiness_pilot_guarded",
+          "points": 12
+        },
+        {
+          "evidence": "workflow gateway policy defaults to deny",
+          "id": "default_deny_gateway",
+          "points": 6
+        },
+        {
+          "evidence": "all workflow MCP namespaces are production connectors",
+          "id": "connector_production_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "7 generated adversarial drills",
+          "id": "red_team_coverage",
+          "points": 8
+        },
+        {
+          "evidence": "session disablement and workflow kill signals are declared",
+          "id": "runtime_kill_signal",
+          "points": 4
+        }
+      ],
+      "decision": "standard_agentic_use",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "findings.sast",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "next_actions": [
+        "Continue standard MCP gateway audit and drift checks."
+      ],
+      "owner": {
+        "accountable_team": "Application Security",
+        "escalation": "secure-code-review",
+        "reviewer_pools": [
+          "appsec",
+          "service-owner"
+        ]
+      },
+      "public_path": "/security-remediation/sast-findings/",
+      "raw_capability_score": 48,
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 95,
+      "red_team_drill_count": 7,
+      "required_guardrails": [
+        "Default-deny MCP gateway policy",
+        "Human review before merge or operational closure",
+        "Per-run audit evidence and run receipt",
+        "Generated pack drift checks before promotion"
+      ],
+      "residual_risk_score": 10,
+      "risk_tier": "low",
+      "risk_tier_meaning": "May run inside the normal MCP gateway policy and review flow.",
+      "source_failure_count": 0,
+      "status": "active",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    }
+  ]
+}

@@ -97,6 +97,9 @@ and ships with:
   agent run: identity issuance, secure-context retrieval, poisoning scan,
   MCP tool decisions, context egress, human approvals, verifier output,
   evidence retention, run closure, and identity revocation.
+- **Agentic Measurement Probes** - generated traceability probes for
+  context integrity, MCP authorization, identity, memory, egress,
+  red-team replay, readiness, run receipts, and threat alignment.
 - **Secure Context Trust Pack** - generated provenance, source-hash,
   trust-tier, retrieval-policy, and workflow context-package evidence for
   the secure context layer agents consume through MCP.
@@ -321,6 +324,61 @@ the MCP server as `recipes_agentic_readiness_scorecard`.
 
 ---
 
+### Generate the agent capability risk register
+
+The capability risk register joins the workflow manifest, MCP gateway
+policy, connector trust pack, red-team drill pack, readiness scorecard,
+and capability-risk model into a residual-risk artifact:
+
+```bash
+python3 scripts/generate_agent_capability_risk_register.py
+python3 scripts/generate_agent_capability_risk_register.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agent-capability-risk-register.json` and is exposed
+through the MCP server as `recipes_agent_capability_risk_register`.
+
+---
+
+### Generate the agent memory boundary pack
+
+The memory boundary pack joins the workflow manifest and memory-boundary
+model into a runtime policy for ephemeral scratchpads, append-only run
+receipts, read-only policy memory, tenant runtime memory, vector memory,
+TTL, provenance, rollback, and prohibited persistence:
+
+```bash
+python3 scripts/generate_agent_memory_boundary_pack.py
+python3 scripts/generate_agent_memory_boundary_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agent-memory-boundary-pack.json` and is exposed through
+the MCP server as `recipes_agent_memory_boundary_pack` and
+`recipes_evaluate_agent_memory_decision`.
+
+---
+
+### Generate the agent skill supply-chain pack
+
+The skill supply-chain pack joins the workflow manifest, secure context
+trust pack, memory boundary pack, connector trust pack, and skill model
+into a provenance and runtime decision surface for agent skills, rules
+files, hooks, extensions, and behavior packages:
+
+```bash
+python3 scripts/generate_agent_skill_supply_chain_pack.py
+python3 scripts/generate_agent_skill_supply_chain_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agent-skill-supply-chain-pack.json` and is exposed through
+the MCP server as `recipes_agent_skill_supply_chain_pack` and
+`recipes_evaluate_agent_skill_decision`.
+
+---
+
 ### Generate the Agentic System BOM
 
 The Agentic System Bill of Materials joins the workflow manifest, MCP
@@ -354,6 +412,24 @@ python3 scripts/generate_agentic_run_receipt_pack.py --check
 The generated artifact lives at
 `data/evidence/agentic-run-receipt-pack.json` and is exposed through the
 MCP server as `recipes_agentic_run_receipt_pack`.
+
+---
+
+### Generate the agentic measurement probe pack
+
+The measurement probe pack joins workflow scope, MCP gateway policy,
+authorization conformance, secure context, poisoning scans, egress,
+memory boundaries, red-team drills, readiness, capability risk, run
+receipts, and threat radar into repeatable traceability checks:
+
+```bash
+python3 scripts/generate_agentic_measurement_probe_pack.py
+python3 scripts/generate_agentic_measurement_probe_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agentic-measurement-probe-pack.json` and is exposed
+through the MCP server as `recipes_agentic_measurement_probe_pack`.
 
 ---
 
@@ -587,7 +663,7 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 | **Agents** | Per-tool recipes for GitHub Copilot, Claude, Cursor, Codex, Devin — each with Install → Configure → Dispatch → Guardrails, plus General and Enterprise onboarding. |
 | **Prompt Library** | Tool-agnostic prompts under `general/` (OWASP Top 10 2026 audit, OWASP Top 10 2026 remediate) plus per-tool prompts for CVE triage, vulnerable deps, and SDE remediation. |
 | **MCP Servers** | Why MCP exists; connector catalog (risk, ownership, ticket, knowledge, code, observability); MCP gateway patterns; integration on-ramp. |
-| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic threat radar, workflow control plane, MCP gateway policy pack, runtime decision evaluator, MCP connector intake scanner, MCP connector trust registry, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, red-team drill pack, agent identity ledger, Agentic System BOM, agentic run receipts, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
+| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic threat radar, workflow control plane, MCP gateway policy pack, runtime decision evaluator, MCP connector intake scanner, MCP connector trust registry, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, capability risk register, red-team drill pack, agent identity ledger, Agentic System BOM, agentic run receipts, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
 | **Automation** | The "just use a linter" checklist — deterministic automation that earns its keep before an agent ever runs. |
 | **Contribute** | How to add a recipe, a prompt, or a new workflow. |
 
@@ -805,6 +881,62 @@ scores, blockers, pilot connector dependencies, and next actions. CI
 runs the generator in `--check` mode so adoption decisions cannot drift
 from the underlying control artifacts.
 
+### Agent capability risk register
+
+Capability risk tiers are generated from the workflow manifest, gateway
+policy, connector trust pack, red-team drill pack, readiness scorecard,
+and source-controlled capability-risk model:
+
+- model: `data/assurance/agent-capability-risk-model.json`
+- generator: `scripts/generate_agent_capability_risk_register.py`
+- register: `data/evidence/agent-capability-risk-register.json`
+- MCP tool: `recipes_agent_capability_risk_register`
+
+The generated register scores each workflow by system criticality, AI
+autonomy, access permissions, and impact radius, then subtracts control
+credit for readiness, default-deny policy, connector coverage,
+red-team drills, and runtime kill signals. CI runs the generator in
+`--check` mode so capability-risk decisions cannot drift from the
+underlying control artifacts.
+
+### Agent memory boundary pack
+
+The generated memory boundary pack turns persistent agent state into a
+governed control surface:
+
+- model: `data/assurance/agent-memory-boundary-model.json`
+- generator: `scripts/generate_agent_memory_boundary_pack.py`
+- runtime evaluator: `scripts/evaluate_agent_memory_boundary_decision.py`
+- pack: `data/evidence/agent-memory-boundary-pack.json`
+- MCP tools: `recipes_agent_memory_boundary_pack`,
+  `recipes_evaluate_agent_memory_decision`
+
+The pack defines ephemeral scratchpads, append-only receipt memory,
+read-only policy memory, tenant runtime memory, vector memory, TTLs,
+provenance, approval, rollback, and prohibited persistence. The runtime
+evaluator returns allow, hold, deny, or kill-session decisions before an
+agent stores or replays memory.
+
+### Agent skill supply-chain pack
+
+The generated skill supply-chain pack turns agent behavior packages into
+governed inventory:
+
+- model: `data/assurance/agent-skill-supply-chain-model.json`
+- generator: `scripts/generate_agent_skill_supply_chain_pack.py`
+- runtime evaluator:
+  `scripts/evaluate_agent_skill_supply_chain_decision.py`
+- pack: `data/evidence/agent-skill-supply-chain-pack.json`
+- MCP tools: `recipes_agent_skill_supply_chain_pack`,
+  `recipes_evaluate_agent_skill_decision`
+
+The pack scores skills, rules files, hooks, and extensions by publisher,
+registry, version pinning, package hash, signature status, scan status,
+filesystem access, network egress, shell access, memory writes, identity
+file writes, and MCP permissions. The runtime evaluator returns allow,
+hold, deny, or kill-session decisions before install, update, enable, or
+run.
+
 ### Agentic System BOM
 
 The generated Agentic System Bill of Materials turns the same control
@@ -835,6 +967,21 @@ The pack requires identity issuance, context retrieval decisions,
 context poisoning inspection, MCP tool decisions, context egress
 decisions, human approval, verifier output, evidence attachment, run
 closure, and identity revocation before a run is trusted.
+
+### Agentic measurement probe pack
+
+The generated measurement probe pack turns the same control artifacts
+into repeatable traceability checks for agentic workflow expansion:
+
+- profile: `data/assurance/agentic-measurement-probe-profile.json`
+- generator: `scripts/generate_agentic_measurement_probe_pack.py`
+- pack: `data/evidence/agentic-measurement-probe-pack.json`
+- MCP tool: `recipes_agentic_measurement_probe_pack`
+
+The pack verifies context integrity, MCP authorization, non-human
+identity, context egress, memory boundaries, red-team replay, run
+receipt reconstruction, readiness decisions, and current threat-radar
+alignment before a workflow is treated as measurement-ready.
 
 ### Secure context trust pack
 
@@ -952,6 +1099,15 @@ Edit `mcp-server.toml`:
   exposed through the `recipes_agentic_red_team_drill_pack` MCP tool
 - `readiness_scorecard_path` -> generated agentic readiness scorecard
   exposed through the `recipes_agentic_readiness_scorecard` MCP tool
+- `capability_risk_register_path` -> generated capability risk register
+  exposed through the `recipes_agent_capability_risk_register` MCP tool
+- `agent_memory_boundary_pack_path` -> generated agent memory boundary
+  pack exposed through the `recipes_agent_memory_boundary_pack` and
+  `recipes_evaluate_agent_memory_decision` MCP tools
+- `agent_skill_supply_chain_pack_path` -> generated agent skill
+  supply-chain pack exposed through the
+  `recipes_agent_skill_supply_chain_pack` and
+  `recipes_evaluate_agent_skill_decision` MCP tools
 - `agentic_system_bom_path` -> generated Agentic System BOM exposed
   through the `recipes_agentic_system_bom` MCP tool
 - `agentic_run_receipt_pack_path` -> generated run receipt pack exposed
@@ -964,6 +1120,8 @@ Edit `mcp-server.toml`:
   MCP tool
 - `threat_radar_path` -> generated agentic threat radar exposed through
   the `recipes_agentic_threat_radar` MCP tool
+- `measurement_probe_pack_path` -> generated measurement probe pack
+  exposed through the `recipes_agentic_measurement_probe_pack` MCP tool
 
 This lets teams host the Hugo site and MCP server under different domains
 without changing code.

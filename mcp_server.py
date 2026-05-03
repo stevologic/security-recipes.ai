@@ -22,11 +22,15 @@ import tomli
 from fastmcp import FastMCP
 
 try:
+    from scripts.evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
+    from scripts.evaluate_agent_memory_boundary_decision import evaluate_agent_memory_boundary_decision
     from scripts.evaluate_context_egress_decision import evaluate_context_egress_decision
     from scripts.evaluate_mcp_authorization_decision import evaluate_mcp_authorization_decision
     from scripts.evaluate_mcp_gateway_decision import evaluate_policy_decision
     from scripts.evaluate_secure_context_retrieval import evaluate_context_retrieval_decision
 except ImportError:  # pragma: no cover - supports direct script-directory execution.
+    from evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
+    from evaluate_agent_memory_boundary_decision import evaluate_agent_memory_boundary_decision
     from evaluate_context_egress_decision import evaluate_context_egress_decision
     from evaluate_mcp_authorization_decision import evaluate_mcp_authorization_decision
     from evaluate_mcp_gateway_decision import evaluate_policy_decision
@@ -86,6 +90,18 @@ class ServerConfig:
         "RECIPES_MCP_READINESS_SCORECARD_PATH",
         "./data/evidence/agentic-readiness-scorecard.json",
     )
+    capability_risk_register_path: str = os.environ.get(
+        "RECIPES_MCP_CAPABILITY_RISK_REGISTER_PATH",
+        "./data/evidence/agent-capability-risk-register.json",
+    )
+    agent_memory_boundary_pack_path: str = os.environ.get(
+        "RECIPES_MCP_AGENT_MEMORY_BOUNDARY_PACK_PATH",
+        "./data/evidence/agent-memory-boundary-pack.json",
+    )
+    agent_skill_supply_chain_pack_path: str = os.environ.get(
+        "RECIPES_MCP_AGENT_SKILL_SUPPLY_CHAIN_PACK_PATH",
+        "./data/evidence/agent-skill-supply-chain-pack.json",
+    )
     agentic_system_bom_path: str = os.environ.get(
         "RECIPES_MCP_AGENTIC_SYSTEM_BOM_PATH",
         "./data/evidence/agentic-system-bom.json",
@@ -109,6 +125,10 @@ class ServerConfig:
     threat_radar_path: str = os.environ.get(
         "RECIPES_MCP_THREAT_RADAR_PATH",
         "./data/evidence/agentic-threat-radar.json",
+    )
+    measurement_probe_pack_path: str = os.environ.get(
+        "RECIPES_MCP_MEASUREMENT_PROBE_PACK_PATH",
+        "./data/evidence/agentic-measurement-probe-pack.json",
     )
 
 
@@ -1385,6 +1405,485 @@ class AgenticReadinessScorecard:
         }
 
 
+class AgentCapabilityRiskRegister:
+    def __init__(self, register_path: str):
+        self.path = Path(register_path)
+        self._mtime: float | None = None
+        self._register: dict[str, Any] | None = None
+        self._workflow_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._register is not None and self._mtime == stat.st_mtime:
+            return self._register
+
+        register = json.loads(self.path.read_text(encoding="utf-8"))
+        workflows = register.get("workflow_capability_risks") if isinstance(register, dict) else []
+        self._workflow_by_id = {
+            str(workflow.get("workflow_id")): workflow
+            for workflow in workflows
+            if isinstance(workflow, dict) and workflow.get("workflow_id")
+        }
+        self._register = register
+        self._mtime = stat.st_mtime
+        return register
+
+    @staticmethod
+    def _preview(workflow: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "control_credit": workflow.get("control_credit"),
+            "decision": workflow.get("decision"),
+            "maturity_stage": workflow.get("maturity_stage"),
+            "next_actions": workflow.get("next_actions", []),
+            "raw_capability_score": workflow.get("raw_capability_score"),
+            "readiness_decision": workflow.get("readiness_decision"),
+            "readiness_score": workflow.get("readiness_score"),
+            "residual_risk_score": workflow.get("residual_risk_score"),
+            "risk_tier": workflow.get("risk_tier"),
+            "title": workflow.get("title"),
+            "workflow_id": workflow.get("workflow_id"),
+        }
+
+    def get(
+        self,
+        workflow_id: str | None = None,
+        risk_tier: str | None = None,
+        decision: str | None = None,
+        minimum_residual_score: int | None = None,
+    ) -> dict[str, Any]:
+        try:
+            register = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agent capability risk register: {exc}",
+                "register_path": str(self.path),
+            }
+
+        if register is None:
+            return {
+                "available": False,
+                "error": "agent capability risk register is not present",
+                "register_path": str(self.path),
+            }
+
+        if not isinstance(register, dict):
+            return {
+                "available": False,
+                "error": "agent capability risk register root must be an object",
+                "register_path": str(self.path),
+            }
+
+        if workflow_id:
+            workflow = self._workflow_by_id.get(workflow_id.strip())
+            return {
+                "available": True,
+                "found": workflow is not None,
+                "workflow_capability_risk": workflow,
+                "workflow_id": workflow_id,
+            }
+
+        workflows = list(self._workflow_by_id.values())
+        if risk_tier:
+            key = risk_tier.strip()
+            workflows = [
+                workflow
+                for workflow in workflows
+                if str(workflow.get("risk_tier")) == key
+            ]
+        if decision:
+            key = decision.strip()
+            workflows = [
+                workflow
+                for workflow in workflows
+                if str(workflow.get("decision")) == key
+            ]
+        if minimum_residual_score is not None:
+            workflows = [
+                workflow
+                for workflow in workflows
+                if int(workflow.get("residual_risk_score") or 0) >= minimum_residual_score
+            ]
+
+        workflows = sorted(
+            workflows,
+            key=lambda workflow: (
+                -int(workflow.get("residual_risk_score") or 0),
+                str(workflow.get("workflow_id")),
+            ),
+        )
+        return {
+            "available": True,
+            "capability_risk_summary": register.get("capability_risk_summary"),
+            "decision": decision,
+            "enterprise_adoption_packet": register.get("enterprise_adoption_packet"),
+            "factor_model": register.get("factor_model", []),
+            "generated_at": register.get("generated_at"),
+            "minimum_residual_score": minimum_residual_score,
+            "risk_tier": risk_tier,
+            "risk_tiers": register.get("risk_tiers", []),
+            "schema_version": register.get("schema_version"),
+            "source_artifacts": register.get("source_artifacts"),
+            "standards_alignment": register.get("standards_alignment", []),
+            "workflow_capability_risks": [
+                self._preview(workflow)
+                for workflow in workflows
+            ],
+        }
+
+
+class AgentSkillSupplyChainPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._skill_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        skills = pack.get("skill_profiles") if isinstance(pack, dict) else []
+        self._skill_by_id = {
+            str(skill.get("skill_id")): skill
+            for skill in skills
+            if isinstance(skill, dict) and skill.get("skill_id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _preview(skill: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "allowed_workflow_ids": skill.get("allowed_workflow_ids", []),
+            "decision": skill.get("decision"),
+            "lethal_trifecta": skill.get("lethal_trifecta"),
+            "next_actions": skill.get("next_actions", []),
+            "package_hash": skill.get("package_hash"),
+            "platforms": skill.get("platforms", []),
+            "publisher": skill.get("publisher", {}),
+            "registry": skill.get("registry", {}),
+            "residual_risk_score": skill.get("residual_risk_score"),
+            "risk_tier": skill.get("risk_tier"),
+            "sandbox_required": skill.get("sandbox_required"),
+            "scan_status": skill.get("scan_status"),
+            "signature_present": skill.get("signature_present"),
+            "skill_id": skill.get("skill_id"),
+            "title": skill.get("title"),
+            "version": skill.get("version"),
+            "version_pinned": skill.get("version_pinned"),
+        }
+
+    def get(
+        self,
+        skill_id: str | None = None,
+        platform: str | None = None,
+        decision: str | None = None,
+        risk_tier: str | None = None,
+        minimum_score: int | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agent skill supply-chain pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agent skill supply-chain pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "agent skill supply-chain pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if skill_id:
+            skill = self._skill_by_id.get(skill_id.strip())
+            return {
+                "available": True,
+                "found": skill is not None,
+                "skill": skill,
+                "skill_id": skill_id,
+            }
+
+        skills = list(self._skill_by_id.values())
+        if platform:
+            key = platform.strip()
+            skills = [
+                skill
+                for skill in skills
+                if key in {str(item) for item in skill.get("platforms", []) or []}
+            ]
+        if decision:
+            key = decision.strip()
+            skills = [
+                skill
+                for skill in skills
+                if str(skill.get("decision")) == key
+            ]
+        if risk_tier:
+            key = risk_tier.strip()
+            skills = [
+                skill
+                for skill in skills
+                if str(skill.get("risk_tier")) == key
+            ]
+        if minimum_score is not None:
+            skills = [
+                skill
+                for skill in skills
+                if int(skill.get("residual_risk_score") or 0) >= minimum_score
+            ]
+
+        skills = sorted(
+            skills,
+            key=lambda skill: (
+                -int(skill.get("residual_risk_score") or 0),
+                str(skill.get("skill_id")),
+            ),
+        )
+        return {
+            "available": True,
+            "decision": decision,
+            "decision_contract": pack.get("decision_contract"),
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "generated_at": pack.get("generated_at"),
+            "minimum_score": minimum_score,
+            "platform": platform,
+            "risk_model": pack.get("risk_model", {}),
+            "risk_tier": risk_tier,
+            "schema_version": pack.get("schema_version"),
+            "skill_profiles": [self._preview(skill) for skill in skills],
+            "skill_supply_chain_summary": pack.get("skill_supply_chain_summary"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "standards_alignment": pack.get("standards_alignment", []),
+        }
+
+    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agent skill supply-chain pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agent skill supply-chain pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_agent_skill_supply_chain_decision(pack, runtime_request)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate agent skill decision: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
+class AgentMemoryBoundaryPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._class_by_id: dict[str, dict[str, Any]] = {}
+        self._workflow_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        classes = pack.get("memory_classes") if isinstance(pack, dict) else []
+        workflows = pack.get("workflow_memory_profiles") if isinstance(pack, dict) else []
+        self._class_by_id = {
+            str(memory_class.get("id")): memory_class
+            for memory_class in classes
+            if isinstance(memory_class, dict) and memory_class.get("id")
+        }
+        self._workflow_by_id = {
+            str(workflow.get("workflow_id")): workflow
+            for workflow in workflows
+            if isinstance(workflow, dict) and workflow.get("workflow_id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _class_preview(memory_class: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "default_decision": memory_class.get("default_decision"),
+            "exposure": memory_class.get("exposure"),
+            "human_approval_required": memory_class.get("human_approval_required"),
+            "id": memory_class.get("id"),
+            "kind": memory_class.get("kind"),
+            "max_ttl_days": memory_class.get("max_ttl_days"),
+            "persistent": memory_class.get("persistent"),
+            "runtime_writes_allowed": memory_class.get("runtime_writes_allowed"),
+            "tenant_id_required": memory_class.get("tenant_id_required"),
+            "title": memory_class.get("title"),
+            "trust_tier": memory_class.get("trust_tier"),
+        }
+
+    @staticmethod
+    def _workflow_preview(workflow: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "allowed_memory_class_ids": workflow.get("allowed_memory_class_ids", []),
+            "hold_memory_class_ids": workflow.get("hold_memory_class_ids", []),
+            "kill_memory_class_ids": workflow.get("kill_memory_class_ids", []),
+            "maturity_stage": workflow.get("maturity_stage"),
+            "memory_profile_hash": workflow.get("memory_profile_hash"),
+            "public_path": workflow.get("public_path"),
+            "status": workflow.get("status"),
+            "title": workflow.get("title"),
+            "workflow_id": workflow.get("workflow_id"),
+        }
+
+    def get(
+        self,
+        memory_class_id: str | None = None,
+        workflow_id: str | None = None,
+        decision: str | None = None,
+        persistent: bool | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agent memory boundary pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agent memory boundary pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "agent memory boundary pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if memory_class_id:
+            memory_class = self._class_by_id.get(memory_class_id.strip())
+            return {
+                "available": True,
+                "found": memory_class is not None,
+                "memory_class": memory_class,
+                "memory_class_id": memory_class_id,
+            }
+
+        if workflow_id:
+            workflow = self._workflow_by_id.get(workflow_id.strip())
+            return {
+                "available": True,
+                "found": workflow is not None,
+                "workflow_id": workflow_id,
+                "workflow_memory_profile": workflow,
+            }
+
+        classes = list(self._class_by_id.values())
+        if decision:
+            key = decision.strip()
+            classes = [
+                memory_class
+                for memory_class in classes
+                if str(memory_class.get("default_decision")) == key
+            ]
+        if persistent is not None:
+            classes = [
+                memory_class
+                for memory_class in classes
+                if bool(memory_class.get("persistent")) is persistent
+            ]
+
+        return {
+            "available": True,
+            "agent_memory_boundary_summary": pack.get("agent_memory_boundary_summary"),
+            "decision": decision,
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "generated_at": pack.get("generated_at"),
+            "memory_classes": [
+                self._class_preview(memory_class)
+                for memory_class in classes
+            ],
+            "memory_decision_contract": pack.get("memory_decision_contract"),
+            "persistent": persistent,
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "standards_alignment": pack.get("standards_alignment", []),
+            "workflow_memory_defaults": pack.get("workflow_memory_defaults"),
+            "workflows": [
+                self._workflow_preview(workflow)
+                for workflow in self._workflow_by_id.values()
+            ],
+        }
+
+    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agent memory boundary pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agent memory boundary pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_agent_memory_boundary_decision(pack, runtime_request)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate agent memory decision: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
 class AgenticSystemBOM:
     def __init__(self, bom_path: str):
         self.path = Path(bom_path)
@@ -1994,6 +2493,164 @@ class AgenticThreatRadar:
         }
 
 
+class AgenticMeasurementProbePack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._workflow_by_id: dict[str, dict[str, Any]] = {}
+        self._probe_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        workflows = pack.get("workflow_probes") if isinstance(pack, dict) else []
+        probes = pack.get("probes") if isinstance(pack, dict) else []
+        self._workflow_by_id = {
+            str(workflow.get("workflow_id")): workflow
+            for workflow in workflows
+            if isinstance(workflow, dict) and workflow.get("workflow_id")
+        }
+        self._probe_by_id = {
+            str(probe.get("id")): probe
+            for probe in probes
+            if isinstance(probe, dict) and probe.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _probe_preview(probe: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "class_id": probe.get("class_id"),
+            "earned_weight": probe.get("earned_weight"),
+            "mapped_signal_ids": probe.get("mapped_signal_ids", []),
+            "probe_id": probe.get("probe_id"),
+            "status": probe.get("status"),
+            "title": probe.get("title"),
+            "weight": probe.get("weight"),
+            "workflow_id": probe.get("workflow_id"),
+        }
+
+    @staticmethod
+    def _workflow_preview(workflow: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "decision": workflow.get("decision"),
+            "failed_probe_count": workflow.get("failed_probe_count"),
+            "maturity_stage": workflow.get("maturity_stage"),
+            "probe_count": workflow.get("probe_count"),
+            "public_path": workflow.get("public_path"),
+            "readiness_decision": workflow.get("readiness_decision"),
+            "readiness_score": workflow.get("readiness_score"),
+            "risk_tier": workflow.get("risk_tier"),
+            "score": workflow.get("score"),
+            "title": workflow.get("title"),
+            "workflow_id": workflow.get("workflow_id"),
+        }
+
+    def get(
+        self,
+        probe_id: str | None = None,
+        workflow_id: str | None = None,
+        decision: str | None = None,
+        class_id: str | None = None,
+        status: str | None = None,
+        minimum_score: int | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agentic measurement probe pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agentic measurement probe pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "agentic measurement probe pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if probe_id:
+            probe = self._probe_by_id.get(probe_id.strip())
+            return {
+                "available": True,
+                "found": probe is not None,
+                "probe": probe,
+                "probe_id": probe_id,
+            }
+
+        if workflow_id:
+            workflow = self._workflow_by_id.get(workflow_id.strip())
+            return {
+                "available": True,
+                "found": workflow is not None,
+                "workflow": workflow,
+                "workflow_id": workflow_id,
+            }
+
+        workflows = list(self._workflow_by_id.values())
+        if decision:
+            key = decision.strip()
+            workflows = [workflow for workflow in workflows if str(workflow.get("decision")) == key]
+        if minimum_score is not None:
+            workflows = [
+                workflow
+                for workflow in workflows
+                if int(workflow.get("score") or 0) >= minimum_score
+            ]
+
+        probe_results = [
+            probe
+            for workflow in workflows
+            for probe in workflow.get("probe_results", [])
+            if isinstance(probe, dict)
+        ]
+        if class_id:
+            key = class_id.strip()
+            probe_results = [probe for probe in probe_results if str(probe.get("class_id")) == key]
+        if status:
+            key = status.strip()
+            probe_results = [probe for probe in probe_results if str(probe.get("status")) == key]
+
+        return {
+            "available": True,
+            "decision": decision,
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "generated_at": pack.get("generated_at"),
+            "measurement_probe_summary": pack.get("measurement_probe_summary"),
+            "minimum_score": minimum_score,
+            "probe_class": class_id,
+            "probe_classes": pack.get("probe_classes", []),
+            "probe_contract": pack.get("probe_contract"),
+            "probe_count": len(probe_results),
+            "probes": [self._probe_preview(probe) for probe in probe_results],
+            "schema_version": pack.get("schema_version"),
+            "selected_feature": pack.get("selected_feature"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "standards_alignment": pack.get("standards_alignment", []),
+            "status": status,
+            "workflow_count": len(workflows),
+            "workflows": [self._workflow_preview(workflow) for workflow in workflows],
+        }
+
+
 class ContextPoisoningGuardPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -2434,6 +3091,18 @@ def load_config(config_path: str) -> ServerConfig:
         "readiness_scorecard_path",
         cfg.readiness_scorecard_path,
     )
+    cfg.capability_risk_register_path = data.get(
+        "capability_risk_register_path",
+        cfg.capability_risk_register_path,
+    )
+    cfg.agent_memory_boundary_pack_path = data.get(
+        "agent_memory_boundary_pack_path",
+        cfg.agent_memory_boundary_pack_path,
+    )
+    cfg.agent_skill_supply_chain_pack_path = data.get(
+        "agent_skill_supply_chain_pack_path",
+        cfg.agent_skill_supply_chain_pack_path,
+    )
     cfg.agentic_system_bom_path = data.get(
         "agentic_system_bom_path",
         cfg.agentic_system_bom_path,
@@ -2455,6 +3124,10 @@ def load_config(config_path: str) -> ServerConfig:
         cfg.context_egress_boundary_pack_path,
     )
     cfg.threat_radar_path = data.get("threat_radar_path", cfg.threat_radar_path)
+    cfg.measurement_probe_pack_path = data.get(
+        "measurement_probe_pack_path",
+        cfg.measurement_probe_pack_path,
+    )
     return cfg
 
 
@@ -2509,12 +3182,16 @@ connector_intake_pack = MCPConnectorIntakePack(config.connector_intake_pack_path
 authorization_conformance_pack = MCPAuthorizationConformancePack(config.authorization_conformance_pack_path)
 red_team_drill_pack = AgenticRedTeamDrillPack(config.red_team_drill_pack_path)
 readiness_scorecard = AgenticReadinessScorecard(config.readiness_scorecard_path)
+capability_risk_register = AgentCapabilityRiskRegister(config.capability_risk_register_path)
+agent_memory_boundary_pack = AgentMemoryBoundaryPack(config.agent_memory_boundary_pack_path)
+agent_skill_supply_chain_pack = AgentSkillSupplyChainPack(config.agent_skill_supply_chain_pack_path)
 agentic_system_bom = AgenticSystemBOM(config.agentic_system_bom_path)
 agentic_run_receipt_pack = AgenticRunReceiptPack(config.agentic_run_receipt_pack_path)
 secure_context_trust_pack = SecureContextTrustPack(config.secure_context_trust_pack_path)
 context_poisoning_guard_pack = ContextPoisoningGuardPack(config.context_poisoning_guard_pack_path)
 context_egress_boundary_pack = ContextEgressBoundaryPack(config.context_egress_boundary_pack_path)
 threat_radar = AgenticThreatRadar(config.threat_radar_path)
+measurement_probe_pack = AgenticMeasurementProbePack(config.measurement_probe_pack_path)
 mcp = FastMCP(name="security-recipes-mcp")
 
 
@@ -2536,12 +3213,16 @@ async def recipes_server_info() -> dict[str, Any]:
         "authorization_conformance_pack_path": config.authorization_conformance_pack_path,
         "red_team_drill_pack_path": config.red_team_drill_pack_path,
         "readiness_scorecard_path": config.readiness_scorecard_path,
+        "capability_risk_register_path": config.capability_risk_register_path,
+        "agent_memory_boundary_pack_path": config.agent_memory_boundary_pack_path,
+        "agent_skill_supply_chain_pack_path": config.agent_skill_supply_chain_pack_path,
         "agentic_system_bom_path": config.agentic_system_bom_path,
         "agentic_run_receipt_pack_path": config.agentic_run_receipt_pack_path,
         "secure_context_trust_pack_path": config.secure_context_trust_pack_path,
         "context_poisoning_guard_pack_path": config.context_poisoning_guard_pack_path,
         "context_egress_boundary_pack_path": config.context_egress_boundary_pack_path,
         "threat_radar_path": config.threat_radar_path,
+        "measurement_probe_pack_path": config.measurement_probe_pack_path,
     }
 
 
@@ -2778,6 +3459,136 @@ async def recipes_agentic_readiness_scorecard(
 
 
 @mcp.tool()
+async def recipes_agent_capability_risk_register(
+    workflow_id: str | None = None,
+    risk_tier: str | None = None,
+    decision: str | None = None,
+    minimum_residual_score: int | None = None,
+) -> dict[str, Any]:
+    """Return capability-based residual risk scores for agentic workflows."""
+    return capability_risk_register.get(
+        workflow_id=workflow_id,
+        risk_tier=risk_tier,
+        decision=decision,
+        minimum_residual_score=minimum_residual_score,
+    )
+
+
+@mcp.tool()
+async def recipes_agent_memory_boundary_pack(
+    memory_class_id: str | None = None,
+    workflow_id: str | None = None,
+    decision: str | None = None,
+    persistent: bool | None = None,
+) -> dict[str, Any]:
+    """Return agent memory classes, workflow profiles, TTLs, and persistence decisions."""
+    return agent_memory_boundary_pack.get(
+        memory_class_id=memory_class_id,
+        workflow_id=workflow_id,
+        decision=decision,
+        persistent=persistent,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_agent_memory_decision(
+    workflow_id: str,
+    memory_class_id: str,
+    operation: str,
+    agent_id: str | None = None,
+    run_id: str | None = None,
+    tenant_id: str | None = None,
+    source_id: str | None = None,
+    provenance_hash: str | None = None,
+    requested_ttl_days: int | None = None,
+    data_class: str | None = None,
+    data_classes: list[str] | None = None,
+    contains_secret: bool = False,
+    contains_unredacted_pii: bool = False,
+    human_approval_record: dict[str, Any] | None = None,
+    runtime_kill_signal: str | None = None,
+) -> dict[str, Any]:
+    """Return a deterministic memory read, write, delete, replay, or reindex decision."""
+    return agent_memory_boundary_pack.evaluate(
+        {
+            "agent_id": agent_id,
+            "contains_secret": contains_secret,
+            "contains_unredacted_pii": contains_unredacted_pii,
+            "data_class": data_class,
+            "data_classes": data_classes or [],
+            "human_approval_record": human_approval_record,
+            "memory_class_id": memory_class_id,
+            "operation": operation,
+            "provenance_hash": provenance_hash,
+            "requested_ttl_days": requested_ttl_days,
+            "run_id": run_id,
+            "runtime_kill_signal": runtime_kill_signal,
+            "source_id": source_id,
+            "tenant_id": tenant_id,
+            "workflow_id": workflow_id,
+        }
+    )
+
+
+@mcp.tool()
+async def recipes_agent_skill_supply_chain_pack(
+    skill_id: str | None = None,
+    platform: str | None = None,
+    decision: str | None = None,
+    risk_tier: str | None = None,
+    minimum_score: int | None = None,
+) -> dict[str, Any]:
+    """Return agent skill provenance, permission, isolation, and supply-chain decisions."""
+    return agent_skill_supply_chain_pack.get(
+        skill_id=skill_id,
+        platform=platform,
+        decision=decision,
+        risk_tier=risk_tier,
+        minimum_score=minimum_score,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_agent_skill_decision(
+    skill_id: str,
+    operation: str,
+    workflow_id: str | None = None,
+    platform: str | None = None,
+    agent_id: str | None = None,
+    run_id: str | None = None,
+    package_hash: str | None = None,
+    signature_present: bool = False,
+    verified_publisher: bool = False,
+    registry_verified: bool = False,
+    sandboxed: bool = False,
+    requested_permissions: dict[str, Any] | None = None,
+    network_egress_domains: list[str] | None = None,
+    human_approval_record: dict[str, Any] | None = None,
+    runtime_kill_signal: str | None = None,
+) -> dict[str, Any]:
+    """Return a deterministic install, update, enable, or run decision for an agent skill."""
+    return agent_skill_supply_chain_pack.evaluate(
+        {
+            "agent_id": agent_id,
+            "human_approval_record": human_approval_record,
+            "network_egress_domains": network_egress_domains or [],
+            "operation": operation,
+            "package_hash": package_hash,
+            "platform": platform,
+            "registry_verified": registry_verified,
+            "requested_permissions": requested_permissions or {},
+            "run_id": run_id,
+            "runtime_kill_signal": runtime_kill_signal,
+            "sandboxed": sandboxed,
+            "signature_present": signature_present,
+            "skill_id": skill_id,
+            "verified_publisher": verified_publisher,
+            "workflow_id": workflow_id,
+        }
+    )
+
+
+@mcp.tool()
 async def recipes_agentic_system_bom(
     component_type: str | None = None,
     workflow_id: str | None = None,
@@ -2941,6 +3752,26 @@ async def recipes_agentic_threat_radar(
         priority=priority,
         horizon=horizon,
         capability_id=capability_id,
+        minimum_score=minimum_score,
+    )
+
+
+@mcp.tool()
+async def recipes_agentic_measurement_probe_pack(
+    probe_id: str | None = None,
+    workflow_id: str | None = None,
+    decision: str | None = None,
+    class_id: str | None = None,
+    status: str | None = None,
+    minimum_score: int | None = None,
+) -> dict[str, Any]:
+    """Return measurement probes for agentic workflow traceability and readiness."""
+    return measurement_probe_pack.get(
+        probe_id=probe_id,
+        workflow_id=workflow_id,
+        decision=decision,
+        class_id=class_id,
+        status=status,
         minimum_score=minimum_score,
     )
 

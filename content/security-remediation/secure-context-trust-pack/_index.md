@@ -95,12 +95,16 @@ context is safe.
 
 This feature follows current primary guidance:
 
-- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
   for resource indicators, audience validation, HTTPS, PKCE, and token
   handling.
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices)
   for confused-deputy prevention, token-passthrough avoidance, SSRF,
   session safety, local MCP server controls, and scope minimization.
+- [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
+  for agent goal hijack, memory and context poisoning, identity abuse,
+  cascading failures, human-agent trust exploitation, and rogue-agent
+  containment.
 - [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/)
   for prompt injection, supply chain, poisoning, improper output
   handling, excessive agency, vector weakness, and over-retrieval risk.
@@ -174,3 +178,11 @@ it.
   - connector trust tiers and promotion criteria.
 - [Agentic System BOM]({{< relref "/security-remediation/agentic-system-bom" >}})
   - inspectable inventory for the agentic system.
+- [Agent Capability Risk Register]({{< relref "/security-remediation/agent-capability-risk-register" >}})
+  - the residual-risk view for workflows before MCP access expands.
+- [Agent Memory Boundary]({{< relref "/security-remediation/agent-memory-boundary" >}})
+  - persistent-memory classes, TTLs, provenance, rollback, and runtime
+    decisions before agent state is stored or replayed.
+- [Agent Skill Supply Chain]({{< relref "/security-remediation/agent-skill-supply-chain" >}})
+  - provenance, permission, isolation, package-hash, signature, and
+    runtime decisions for skills, rules files, hooks, and extensions.

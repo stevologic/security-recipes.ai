@@ -1,0 +1,1263 @@
+{
+  "decision_contract": {
+    "decisions": [
+      {
+        "decision": "allow_pinned_readonly_skill",
+        "meaning": "A registered, pinned, low-risk skill may run with read-only or context-only authority."
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "meaning": "A registered skill may run only with declared sandbox, permission, egress, approval, and evidence controls."
+      },
+      {
+        "decision": "hold_for_skill_security_review",
+        "meaning": "The skill or requested permission set needs security-owner review before install, update, or run."
+      },
+      {
+        "decision": "deny_untrusted_skill",
+        "meaning": "The skill is registered but fails provenance, permission, version, isolation, or scan requirements."
+      },
+      {
+        "decision": "deny_unregistered_skill",
+        "meaning": "The skill is not in the SecurityRecipes supply-chain register and must not be installed or invoked."
+      },
+      {
+        "decision": "kill_session_on_malicious_skill_signal",
+        "meaning": "A kill signal, prohibited capability, or private-data-plus-egress pattern disables the agent session and creates incident evidence."
+      }
+    ],
+    "default_decision": "deny_unregistered_skill",
+    "kill_signals": [
+      "skill attempts to read private keys, seed phrases, raw tokens, browser passwords, wallet material, or production credentials",
+      "skill attempts to modify AGENTS.md, CLAUDE.md, SOUL.md, MEMORY.md, hook configs, or identity files outside an approved policy change",
+      "skill combines private data access, untrusted content ingestion, and external network egress",
+      "skill package hash changes without version bump, review, and pack regeneration",
+      "skill invokes shell, package manager, curl, wget, PowerShell, or bash through untrusted retrieved context"
+    ],
+    "prohibited_capabilities": [
+      "read_private_keys",
+      "read_seed_phrases",
+      "read_browser_passwords",
+      "read_raw_tokens",
+      "write_agent_identity_files",
+      "write_agent_memory_without_policy",
+      "execute_shell_with_untrusted_input",
+      "external_egress_without_allowlist",
+      "install_unpinned_update",
+      "load_untrusted_serialized_skill_config"
+    ],
+    "required_install_evidence": [
+      "publisher_identity",
+      "source_registry",
+      "pinned_version",
+      "package_hash",
+      "signature_or_approved_exception",
+      "permission_manifest",
+      "scan_status",
+      "sandbox_profile",
+      "egress_policy",
+      "owner_review"
+    ],
+    "runtime_attributes": [
+      "skill_id",
+      "operation",
+      "workflow_id",
+      "platform",
+      "agent_id",
+      "run_id",
+      "package_hash",
+      "signature_present",
+      "verified_publisher",
+      "registry_verified",
+      "sandboxed",
+      "requested_permissions",
+      "network_egress_domains",
+      "human_approval_record",
+      "runtime_kill_signal"
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can prove which agent skills are trusted enough to install or run, and can block untrusted behavior packages before they inherit MCP, filesystem, shell, memory, or network authority.",
+    "default_questions_answered": [
+      "Which agent skills are installed or proposed?",
+      "Who published and owns each skill?",
+      "Which skills are pinned, signed, scanned, and hash verified?",
+      "Which skills combine private data access, untrusted content, and network egress?",
+      "Which skills require human approval, sandboxing, or denial?",
+      "Which runtime decision should an MCP gateway make before install, update, or run?"
+    ],
+    "recommended_first_use": "Attach this pack to AI platform intake, agent-host hardening, skill marketplace approval, MCP gateway policy review, and quarterly agent workspace recertification.",
+    "sales_motion": "Lead with open skill provenance and runtime decisions, then sell hosted skill inventory ingestion, registry transparency checks, semantic skill scanning, signed package admission, sandbox policies, and trust-center exports."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define an enterprise-ready supply-chain model for agentic skills, rules files, hooks, and tool bundles so SecurityRecipes can govern the behavior layer between model prompts and MCP tool execution. The model turns skill provenance, permissions, registry trust, version pinning, isolation, and runtime evidence into deterministic install, update, and run decisions.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, and acquisition diligence teams",
+    "category": "Agent skill provenance, permission, and isolation firewall",
+    "enterprise_promise": "SecurityRecipes can inventory agent skills across Claude Code, Cursor, Codex, Devin, VS Code, and MCP-adjacent ecosystems, prove which behaviors are pinned and reviewed, and block untrusted skills before they reach agents with filesystem, network, memory, shell, or MCP authority.",
+    "why_now": "Agentic AI risk is moving from isolated prompts to reusable behavior packages. Skills, rules files, hooks, extensions, and MCP tool bundles can quietly combine private data, untrusted instructions, and external egress. Enterprises need a default-deny admission layer before these packages become trusted execution context."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open pack models declared skills, not a live customer endpoint inventory.",
+      "treatment": "Production deployments should ingest installed skill manifests, hashes, host versions, registry metadata, and gateway logs before enforcement."
+    },
+    {
+      "risk": "Static manifest scanning cannot prove natural-language skill behavior is benign.",
+      "treatment": "Pair this pack with semantic review, behavioral sandbox runs, red-team prompts, and runtime egress monitoring."
+    },
+    {
+      "risk": "A skill can become unsafe after a publisher, dependency, registry, or host update.",
+      "treatment": "Disable unpinned auto-updates and regenerate this pack whenever package hashes, permissions, scans, or host runtimes change."
+    }
+  ],
+  "risk_coverage": {
+    "ast_risk_counts": {
+      "AST01": 2,
+      "AST02": 5,
+      "AST03": 4,
+      "AST04": 1,
+      "AST05": 1,
+      "AST06": 4,
+      "AST07": 5,
+      "AST08": 3,
+      "AST09": 5,
+      "AST10": 3
+    },
+    "mcp_risk_counts": {
+      "MCP01": 1,
+      "MCP02": 4,
+      "MCP03": 3,
+      "MCP04": 3,
+      "MCP05": 2,
+      "MCP06": 1,
+      "MCP07": 3,
+      "MCP08": 5,
+      "MCP09": 2,
+      "MCP10": 3
+    }
+  },
+  "risk_model": {
+    "control_credits": {
+      "credits": [
+        {
+          "condition": "Publisher identity is verified and reviewable.",
+          "id": "verified_publisher",
+          "points": 8
+        },
+        {
+          "condition": "The skill package is signed or has a documented temporary exception.",
+          "id": "signed_package",
+          "points": 10
+        },
+        {
+          "condition": "The installed package hash is pinned in the supply-chain pack.",
+          "id": "content_hash_pinned",
+          "points": 8
+        },
+        {
+          "condition": "Automatic unreviewed updates are disabled.",
+          "id": "version_pinned",
+          "points": 8
+        },
+        {
+          "condition": "The skill must run in an isolated sandbox or container profile.",
+          "id": "sandbox_required",
+          "points": 8
+        },
+        {
+          "condition": "Network egress is denied by default and limited to declared domains.",
+          "id": "egress_allowlisted",
+          "points": 6
+        },
+        {
+          "condition": "Static, manifest, and behavioral scan status is pass.",
+          "id": "scan_pass",
+          "points": 8
+        },
+        {
+          "condition": "High-consequence install, update, or run paths require owner approval.",
+          "id": "human_approval_required",
+          "points": 6
+        }
+      ],
+      "max_credit": 46
+    },
+    "risk_tiers": [
+      {
+        "decision": "allow_pinned_readonly_skill",
+        "id": "low",
+        "max_score": 24,
+        "meaning": "May run under standard MCP gateway, context, and audit controls.",
+        "min_score": 0
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "id": "medium",
+        "max_score": 49,
+        "meaning": "May run with explicit sandboxing, egress allow-listing, provenance evidence, and workflow-owner visibility.",
+        "min_score": 25
+      },
+      {
+        "decision": "hold_for_skill_security_review",
+        "id": "high",
+        "max_score": 74,
+        "meaning": "Requires security review before install, update, or workflow expansion.",
+        "min_score": 50
+      },
+      {
+        "decision": "deny_untrusted_skill",
+        "id": "critical",
+        "max_score": 200,
+        "meaning": "Denied until architecture, provenance, isolation, and permission controls materially change.",
+        "min_score": 75
+      }
+    ],
+    "risk_weights": {
+      "cross_platform_reuse": 6,
+      "domain_allowlisted_egress": 8,
+      "failed_or_missing_scan": 16,
+      "identity_or_memory_write": 24,
+      "mcp_read": 6,
+      "mcp_write": 18,
+      "missing_hash": 10,
+      "missing_signature": 10,
+      "persistent_memory": 16,
+      "private_data_read": 24,
+      "repo_write": 12,
+      "shell_access": 30,
+      "unpinned_version": 12,
+      "unrestricted_network_egress": 24,
+      "untrusted_registry": 18,
+      "unverified_publisher": 14,
+      "wide_filesystem_read": 18
+    }
+  },
+  "schema_version": "1.0",
+  "skill_profiles": [
+    {
+      "allowed_workflow_ids": [],
+      "control_credit": 14,
+      "control_credits": [
+        {
+          "evidence": "sandbox profile is required",
+          "id": "sandbox_required",
+          "points": 8
+        },
+        {
+          "evidence": "human approval is required for high-consequence paths",
+          "id": "human_approval_required",
+          "points": 6
+        }
+      ],
+      "cross_platform_reuse": true,
+      "data_access_classes": [
+        "private_key",
+        "raw_access_token",
+        "wallet_material",
+        "browser_password",
+        "tenant_runtime_context"
+      ],
+      "decision": "kill_session_on_malicious_skill_signal",
+      "human_approval_required": true,
+      "lethal_trifecta": true,
+      "mapped_ast_risks": [
+        "AST01",
+        "AST02",
+        "AST03",
+        "AST04",
+        "AST05",
+        "AST06",
+        "AST07",
+        "AST08",
+        "AST09",
+        "AST10"
+      ],
+      "mapped_mcp_risks": [
+        "MCP01",
+        "MCP02",
+        "MCP03",
+        "MCP04",
+        "MCP05",
+        "MCP06",
+        "MCP07",
+        "MCP08",
+        "MCP09",
+        "MCP10"
+      ],
+      "network_egress": [
+        "*"
+      ],
+      "next_actions": [
+        "Block install and create incident evidence if observed in a live agent host.",
+        "Deny install or runtime invocation until provenance and permission controls change.",
+        "Require a package hash before treating the skill as installable.",
+        "Require package signature or an expiring security exception."
+      ],
+      "owner": {
+        "accountable_team": "Unassigned",
+        "escalation": "agent-skill-security-review",
+        "evidence_owner": "AI Platform"
+      },
+      "package_hash": "",
+      "permissions": {
+        "data_access_classes": [
+          "private_key",
+          "raw_access_token",
+          "wallet_material",
+          "browser_password",
+          "tenant_runtime_context"
+        ],
+        "filesystem_read": [
+          "~/**",
+          ".env",
+          "**/*.pem",
+          "**/*.key"
+        ],
+        "filesystem_write": [
+          "AGENTS.md",
+          "CLAUDE.md",
+          "MEMORY.md",
+          ".claude/**"
+        ],
+        "identity_file_write": true,
+        "mcp_namespaces": [
+          {
+            "access": "write",
+            "namespace": "*"
+          }
+        ],
+        "network_egress": [
+          "*"
+        ],
+        "persistent_memory": true,
+        "shell": true
+      },
+      "platforms": [
+        "claude",
+        "cursor",
+        "codex",
+        "vscode"
+      ],
+      "publisher": {
+        "identity": "",
+        "name": "Unknown Publisher",
+        "verified": false
+      },
+      "raw_risk_score": 240,
+      "registry": {
+        "name": "third-party-marketplace",
+        "source": "external",
+        "verified": false
+      },
+      "required_controls": [
+        "do not install",
+        "block external egress",
+        "disable session on access attempt",
+        "incident evidence required"
+      ],
+      "residual_risk_score": 226,
+      "risk_factors": [
+        {
+          "evidence": "skill declares shell access",
+          "id": "shell_access",
+          "points": 30
+        },
+        {
+          "evidence": "skill declares wildcard or unrestricted network egress",
+          "id": "unrestricted_network_egress",
+          "points": 24
+        },
+        {
+          "evidence": "skill can read broad local paths",
+          "id": "wide_filesystem_read",
+          "points": 18
+        },
+        {
+          "evidence": "skill can read private or credential-like data",
+          "id": "private_data_read",
+          "points": 24
+        },
+        {
+          "evidence": "skill can write protected agent identity or memory files",
+          "id": "identity_or_memory_write",
+          "points": 24
+        },
+        {
+          "evidence": "skill uses write or approval-required MCP namespaces",
+          "id": "mcp_write",
+          "points": 18
+        },
+        {
+          "evidence": "skill persists memory or cross-session state",
+          "id": "persistent_memory",
+          "points": 16
+        },
+        {
+          "evidence": "skill registry is not verified",
+          "id": "untrusted_registry",
+          "points": 18
+        },
+        {
+          "evidence": "skill publisher is not verified",
+          "id": "unverified_publisher",
+          "points": 14
+        },
+        {
+          "evidence": "skill has no package signature",
+          "id": "missing_signature",
+          "points": 10
+        },
+        {
+          "evidence": "skill has no package hash",
+          "id": "missing_hash",
+          "points": 10
+        },
+        {
+          "evidence": "skill is not version pinned",
+          "id": "unpinned_version",
+          "points": 12
+        },
+        {
+          "evidence": "skill scan status is not pass",
+          "id": "failed_or_missing_scan",
+          "points": 16
+        },
+        {
+          "evidence": "skill is reusable across agent hosts",
+          "id": "cross_platform_reuse",
+          "points": 6
+        }
+      ],
+      "risk_tier": "critical",
+      "risk_tier_meaning": "No matching tier; fail closed.",
+      "sandbox_required": true,
+      "scan_status": "missing",
+      "signature_present": false,
+      "skill_id": "untrusted-marketplace-shell-skill",
+      "source_path": "",
+      "title": "Untrusted Marketplace Shell Skill",
+      "version": "latest",
+      "version_pinned": false
+    },
+    {
+      "allowed_workflow_ids": [
+        "artifact-cache-quarantine"
+      ],
+      "control_credit": 46,
+      "control_credits": [
+        {
+          "evidence": "publisher identity is verified",
+          "id": "verified_publisher",
+          "points": 8
+        },
+        {
+          "evidence": "package signature or maintained exception is present",
+          "id": "signed_package",
+          "points": 10
+        },
+        {
+          "evidence": "package hash is pinned",
+          "id": "content_hash_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "version is pinned",
+          "id": "version_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "sandbox profile is required",
+          "id": "sandbox_required",
+          "points": 8
+        },
+        {
+          "evidence": "network egress uses explicit domains",
+          "id": "egress_allowlisted",
+          "points": 6
+        },
+        {
+          "evidence": "scan status is pass",
+          "id": "scan_pass",
+          "points": 8
+        },
+        {
+          "evidence": "human approval is required for high-consequence paths",
+          "id": "human_approval_required",
+          "points": 6
+        }
+      ],
+      "cross_platform_reuse": true,
+      "data_access_classes": [
+        "artifact_inventory",
+        "incident_metadata",
+        "generated_policy_evidence"
+      ],
+      "decision": "allow_guarded_skill",
+      "human_approval_required": true,
+      "lethal_trifecta": false,
+      "mapped_ast_risks": [
+        "AST01",
+        "AST02",
+        "AST03",
+        "AST06",
+        "AST07",
+        "AST08",
+        "AST09"
+      ],
+      "mapped_mcp_risks": [
+        "MCP02",
+        "MCP04",
+        "MCP07",
+        "MCP08",
+        "MCP09"
+      ],
+      "network_egress": [
+        "artifact-registry.example",
+        "tickets.example",
+        "inventory.example"
+      ],
+      "next_actions": [
+        "Require sandbox profile, explicit egress allow-list, and run receipt evidence."
+      ],
+      "owner": {
+        "accountable_team": "Supply Chain Security",
+        "escalation": "security-incident-commander",
+        "evidence_owner": "Security Incident Response"
+      },
+      "package_hash": "sha256:18785e82a03e4e3daf50d745220bfa3ceed6d919422437fb031699254e737c1f",
+      "permissions": {
+        "data_access_classes": [
+          "artifact_inventory",
+          "incident_metadata",
+          "generated_policy_evidence"
+        ],
+        "filesystem_read": [
+          "security/advisories/**",
+          "supply-chain/**",
+          "docs/incidents/**"
+        ],
+        "filesystem_write": [
+          "security/advisories/**",
+          "supply-chain/**",
+          "docs/incidents/**"
+        ],
+        "identity_file_write": false,
+        "mcp_namespaces": [
+          {
+            "access": "read",
+            "namespace": "inventory.artifacts"
+          },
+          {
+            "access": "approval_required",
+            "namespace": "registries.quarantine"
+          },
+          {
+            "access": "write_ticket",
+            "namespace": "incidents.security"
+          }
+        ],
+        "network_egress": [
+          "artifact-registry.example",
+          "tickets.example",
+          "inventory.example"
+        ],
+        "persistent_memory": false,
+        "shell": false
+      },
+      "platforms": [
+        "codex",
+        "claude",
+        "devin"
+      ],
+      "publisher": {
+        "identity": "did:web:security-recipes.ai",
+        "name": "SecurityRecipes Maintainers",
+        "verified": true
+      },
+      "raw_risk_score": 50,
+      "registry": {
+        "name": "security-recipes.ai",
+        "source": "repo",
+        "verified": true
+      },
+      "required_controls": [
+        "human approval before quarantine execution",
+        "sandboxed staging",
+        "pinned version",
+        "hash verification",
+        "registry write denial unless approved",
+        "incident evidence retention"
+      ],
+      "residual_risk_score": 4,
+      "risk_factors": [
+        {
+          "evidence": "skill declares network egress domains",
+          "id": "domain_allowlisted_egress",
+          "points": 8
+        },
+        {
+          "evidence": "skill can write repository or evidence files",
+          "id": "repo_write",
+          "points": 12
+        },
+        {
+          "evidence": "skill uses read-only MCP namespaces",
+          "id": "mcp_read",
+          "points": 6
+        },
+        {
+          "evidence": "skill uses write or approval-required MCP namespaces",
+          "id": "mcp_write",
+          "points": 18
+        },
+        {
+          "evidence": "skill is reusable across agent hosts",
+          "id": "cross_platform_reuse",
+          "points": 6
+        }
+      ],
+      "risk_tier": "low",
+      "risk_tier_meaning": "May run under standard MCP gateway, context, and audit controls.",
+      "sandbox_required": true,
+      "scan_status": "pass",
+      "signature_present": true,
+      "skill_id": "sr-artifact-quarantine-operator-skill",
+      "source_path": "content/security-remediation/artifact-cache-purge/_index.md",
+      "title": "SecurityRecipes Artifact Quarantine Operator Skill",
+      "version": "2026.05.03",
+      "version_pinned": true
+    },
+    {
+      "allowed_workflow_ids": [
+        "vulnerable-dependency-remediation",
+        "base-image-remediation",
+        "artifact-cache-quarantine"
+      ],
+      "control_credit": 46,
+      "control_credits": [
+        {
+          "evidence": "publisher identity is verified",
+          "id": "verified_publisher",
+          "points": 8
+        },
+        {
+          "evidence": "package signature or maintained exception is present",
+          "id": "signed_package",
+          "points": 10
+        },
+        {
+          "evidence": "package hash is pinned",
+          "id": "content_hash_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "version is pinned",
+          "id": "version_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "sandbox profile is required",
+          "id": "sandbox_required",
+          "points": 8
+        },
+        {
+          "evidence": "network egress uses explicit domains",
+          "id": "egress_allowlisted",
+          "points": 6
+        },
+        {
+          "evidence": "scan status is pass",
+          "id": "scan_pass",
+          "points": 8
+        }
+      ],
+      "cross_platform_reuse": true,
+      "data_access_classes": [
+        "public_advisory",
+        "repository_metadata",
+        "generated_policy_evidence"
+      ],
+      "decision": "allow_guarded_skill",
+      "human_approval_required": false,
+      "lethal_trifecta": false,
+      "mapped_ast_risks": [
+        "AST02",
+        "AST03",
+        "AST06",
+        "AST07",
+        "AST08",
+        "AST09",
+        "AST10"
+      ],
+      "mapped_mcp_risks": [
+        "MCP02",
+        "MCP03",
+        "MCP04",
+        "MCP05",
+        "MCP08"
+      ],
+      "network_egress": [
+        "github.com",
+        "api.github.com",
+        "pypi.org",
+        "registry.npmjs.org",
+        "pkg.go.dev",
+        "osv.dev"
+      ],
+      "next_actions": [
+        "Require sandbox profile, explicit egress allow-list, and run receipt evidence."
+      ],
+      "owner": {
+        "accountable_team": "Product Security",
+        "escalation": "dependency-remediation-owner",
+        "evidence_owner": "Security Engineering"
+      },
+      "package_hash": "sha256:719cdf62cd8e288e2992715c38aae2c94d353020d0d6ab1c9ad93396d79d49ab",
+      "permissions": {
+        "data_access_classes": [
+          "public_advisory",
+          "repository_metadata",
+          "generated_policy_evidence"
+        ],
+        "filesystem_read": [
+          "package.json",
+          "package-lock.json",
+          "requirements*.txt",
+          "pyproject.toml",
+          "go.mod",
+          "go.sum",
+          "Dockerfile",
+          "**/Dockerfile"
+        ],
+        "filesystem_write": [
+          "package.json",
+          "package-lock.json",
+          "requirements*.txt",
+          "pyproject.toml",
+          "go.mod",
+          "go.sum",
+          "Dockerfile",
+          "**/Dockerfile"
+        ],
+        "identity_file_write": false,
+        "mcp_namespaces": [
+          {
+            "access": "read",
+            "namespace": "advisories.vulnerability"
+          },
+          {
+            "access": "write_branch",
+            "namespace": "repo.contents"
+          },
+          {
+            "access": "read",
+            "namespace": "ci.runs"
+          }
+        ],
+        "network_egress": [
+          "github.com",
+          "api.github.com",
+          "pypi.org",
+          "registry.npmjs.org",
+          "pkg.go.dev",
+          "osv.dev"
+        ],
+        "persistent_memory": false,
+        "shell": false
+      },
+      "platforms": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "publisher": {
+        "identity": "did:web:security-recipes.ai",
+        "name": "SecurityRecipes Maintainers",
+        "verified": true
+      },
+      "raw_risk_score": 50,
+      "registry": {
+        "name": "security-recipes.ai",
+        "source": "repo",
+        "verified": true
+      },
+      "required_controls": [
+        "sandboxed resolver execution",
+        "pinned version",
+        "hash verification",
+        "branch-only writes",
+        "no package publish authority",
+        "scanner before/after evidence"
+      ],
+      "residual_risk_score": 4,
+      "risk_factors": [
+        {
+          "evidence": "skill declares network egress domains",
+          "id": "domain_allowlisted_egress",
+          "points": 8
+        },
+        {
+          "evidence": "skill can write repository or evidence files",
+          "id": "repo_write",
+          "points": 12
+        },
+        {
+          "evidence": "skill uses read-only MCP namespaces",
+          "id": "mcp_read",
+          "points": 6
+        },
+        {
+          "evidence": "skill uses write or approval-required MCP namespaces",
+          "id": "mcp_write",
+          "points": 18
+        },
+        {
+          "evidence": "skill is reusable across agent hosts",
+          "id": "cross_platform_reuse",
+          "points": 6
+        }
+      ],
+      "risk_tier": "low",
+      "risk_tier_meaning": "May run under standard MCP gateway, context, and audit controls.",
+      "sandbox_required": true,
+      "scan_status": "pass",
+      "signature_present": true,
+      "skill_id": "sr-cve-remediation-skill",
+      "source_path": "content/prompt-library/cve/_index.md",
+      "title": "SecurityRecipes CVE Remediation Skill",
+      "version": "2026.05.03",
+      "version_pinned": true
+    },
+    {
+      "allowed_workflow_ids": [
+        "sensitive-data-remediation",
+        "vulnerable-dependency-remediation",
+        "sast-finding-remediation",
+        "base-image-remediation",
+        "artifact-cache-quarantine",
+        "classic-vulnerable-defaults",
+        "crypto-payment-security",
+        "defi-blockchain-security"
+      ],
+      "control_credit": 46,
+      "control_credits": [
+        {
+          "evidence": "publisher identity is verified",
+          "id": "verified_publisher",
+          "points": 8
+        },
+        {
+          "evidence": "package signature or maintained exception is present",
+          "id": "signed_package",
+          "points": 10
+        },
+        {
+          "evidence": "package hash is pinned",
+          "id": "content_hash_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "version is pinned",
+          "id": "version_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "sandbox profile is required",
+          "id": "sandbox_required",
+          "points": 8
+        },
+        {
+          "evidence": "scan status is pass",
+          "id": "scan_pass",
+          "points": 8
+        },
+        {
+          "evidence": "human approval is required for high-consequence paths",
+          "id": "human_approval_required",
+          "points": 6
+        }
+      ],
+      "cross_platform_reuse": false,
+      "data_access_classes": [
+        "tenant_runtime_context",
+        "generated_policy_evidence"
+      ],
+      "decision": "allow_guarded_skill",
+      "human_approval_required": true,
+      "lethal_trifecta": false,
+      "mapped_ast_risks": [
+        "AST02",
+        "AST03",
+        "AST06",
+        "AST07",
+        "AST09"
+      ],
+      "mapped_mcp_risks": [
+        "MCP02",
+        "MCP07",
+        "MCP08",
+        "MCP10"
+      ],
+      "network_egress": [],
+      "next_actions": [
+        "Require sandbox profile, explicit egress allow-list, and run receipt evidence."
+      ],
+      "owner": {
+        "accountable_team": "AI Platform",
+        "escalation": "agent-memory-owner",
+        "evidence_owner": "Security Engineering"
+      },
+      "package_hash": "sha256:414592c1d5f50b487c34b15a8232caa4986e61ca1d9ca64c212a7500bb661438",
+      "permissions": {
+        "data_access_classes": [
+          "tenant_runtime_context",
+          "generated_policy_evidence"
+        ],
+        "filesystem_read": [
+          "data/evidence/agent-memory-boundary-pack.json",
+          "data/evidence/agentic-run-receipt-pack.json"
+        ],
+        "filesystem_write": [],
+        "identity_file_write": false,
+        "mcp_namespaces": [
+          {
+            "access": "approval_required",
+            "namespace": "agent.memory"
+          }
+        ],
+        "network_egress": [],
+        "persistent_memory": true,
+        "shell": false
+      },
+      "platforms": [
+        "codex",
+        "claude"
+      ],
+      "publisher": {
+        "identity": "did:web:security-recipes.ai",
+        "name": "SecurityRecipes Maintainers",
+        "verified": true
+      },
+      "raw_risk_score": 34,
+      "registry": {
+        "name": "security-recipes.ai",
+        "source": "repo",
+        "verified": true
+      },
+      "required_controls": [
+        "tenant boundary check",
+        "human approval before persistent writes",
+        "provenance hash required",
+        "memory TTL enforced",
+        "rollback evidence",
+        "session kill on prohibited data class"
+      ],
+      "residual_risk_score": 0,
+      "risk_factors": [
+        {
+          "evidence": "skill uses write or approval-required MCP namespaces",
+          "id": "mcp_write",
+          "points": 18
+        },
+        {
+          "evidence": "skill persists memory or cross-session state",
+          "id": "persistent_memory",
+          "points": 16
+        }
+      ],
+      "risk_tier": "low",
+      "risk_tier_meaning": "May run under standard MCP gateway, context, and audit controls.",
+      "sandbox_required": true,
+      "scan_status": "pass",
+      "signature_present": true,
+      "skill_id": "sr-agent-memory-operator-skill",
+      "source_path": "content/security-remediation/agent-memory-boundary/_index.md",
+      "title": "SecurityRecipes Agent Memory Operator Skill",
+      "version": "2026.05.03",
+      "version_pinned": true
+    },
+    {
+      "allowed_workflow_ids": [
+        "sensitive-data-remediation",
+        "vulnerable-dependency-remediation",
+        "sast-finding-remediation",
+        "base-image-remediation",
+        "artifact-cache-quarantine",
+        "classic-vulnerable-defaults",
+        "crypto-payment-security",
+        "defi-blockchain-security"
+      ],
+      "control_credit": 46,
+      "control_credits": [
+        {
+          "evidence": "publisher identity is verified",
+          "id": "verified_publisher",
+          "points": 8
+        },
+        {
+          "evidence": "package signature or maintained exception is present",
+          "id": "signed_package",
+          "points": 10
+        },
+        {
+          "evidence": "package hash is pinned",
+          "id": "content_hash_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "version is pinned",
+          "id": "version_pinned",
+          "points": 8
+        },
+        {
+          "evidence": "network egress uses explicit domains",
+          "id": "egress_allowlisted",
+          "points": 6
+        },
+        {
+          "evidence": "scan status is pass",
+          "id": "scan_pass",
+          "points": 8
+        }
+      ],
+      "cross_platform_reuse": true,
+      "data_access_classes": [
+        "public_guidance",
+        "generated_policy_evidence"
+      ],
+      "decision": "allow_pinned_readonly_skill",
+      "human_approval_required": false,
+      "lethal_trifecta": false,
+      "mapped_ast_risks": [
+        "AST02",
+        "AST07",
+        "AST09",
+        "AST10"
+      ],
+      "mapped_mcp_risks": [
+        "MCP03",
+        "MCP08",
+        "MCP10"
+      ],
+      "network_egress": [
+        "security-recipes.ai"
+      ],
+      "next_actions": [
+        "Run under standard MCP gateway audit and context citation controls."
+      ],
+      "owner": {
+        "accountable_team": "AI Platform",
+        "escalation": "secure-context-owner",
+        "evidence_owner": "Security Engineering"
+      },
+      "package_hash": "sha256:aeb55bb2e00f2a2d8e307d2475ee7994fbb146f70edf07a811b7242bfab797c7",
+      "permissions": {
+        "data_access_classes": [
+          "public_guidance",
+          "generated_policy_evidence"
+        ],
+        "filesystem_read": [
+          "content/**",
+          "data/evidence/*.json"
+        ],
+        "filesystem_write": [],
+        "identity_file_write": false,
+        "mcp_namespaces": [
+          {
+            "access": "read",
+            "namespace": "recipes.context"
+          }
+        ],
+        "network_egress": [
+          "security-recipes.ai"
+        ],
+        "persistent_memory": false,
+        "shell": false
+      },
+      "platforms": [
+        "codex",
+        "claude",
+        "cursor"
+      ],
+      "publisher": {
+        "identity": "did:web:security-recipes.ai",
+        "name": "SecurityRecipes Maintainers",
+        "verified": true
+      },
+      "raw_risk_score": 20,
+      "registry": {
+        "name": "security-recipes.ai",
+        "source": "repo",
+        "verified": true
+      },
+      "required_controls": [
+        "source-controlled package",
+        "signed package or maintained exception",
+        "pinned version",
+        "hash verification",
+        "retrieved text demoted from instruction to evidence",
+        "default-deny egress"
+      ],
+      "residual_risk_score": 0,
+      "risk_factors": [
+        {
+          "evidence": "skill declares network egress domains",
+          "id": "domain_allowlisted_egress",
+          "points": 8
+        },
+        {
+          "evidence": "skill uses read-only MCP namespaces",
+          "id": "mcp_read",
+          "points": 6
+        },
+        {
+          "evidence": "skill is reusable across agent hosts",
+          "id": "cross_platform_reuse",
+          "points": 6
+        }
+      ],
+      "risk_tier": "low",
+      "risk_tier_meaning": "May run under standard MCP gateway, context, and audit controls.",
+      "sandbox_required": false,
+      "scan_status": "pass",
+      "signature_present": true,
+      "skill_id": "sr-secure-context-retrieval-skill",
+      "source_path": "content/security-remediation/secure-context-trust-pack/_index.md",
+      "title": "SecurityRecipes Secure Context Retrieval Skill",
+      "version": "2026.05.03",
+      "version_pinned": true
+    }
+  ],
+  "skill_supply_chain_summary": {
+    "decision_counts": {
+      "allow_guarded_skill": 3,
+      "allow_pinned_readonly_skill": 1,
+      "kill_session_on_malicious_skill_signal": 1
+    },
+    "failure_count": 0,
+    "lethal_trifecta_count": 1,
+    "platform_counts": {
+      "claude": 5,
+      "codex": 5,
+      "cursor": 3,
+      "devin": 2,
+      "github_copilot": 1,
+      "vscode": 1
+    },
+    "risk_tier_counts": {
+      "critical": 1,
+      "low": 4
+    },
+    "signed_skill_count": 4,
+    "skill_count": 5,
+    "top_risk_skills": [
+      {
+        "decision": "kill_session_on_malicious_skill_signal",
+        "residual_risk_score": 226,
+        "risk_tier": "critical",
+        "skill_id": "untrusted-marketplace-shell-skill",
+        "title": "Untrusted Marketplace Shell Skill"
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "residual_risk_score": 4,
+        "risk_tier": "low",
+        "skill_id": "sr-artifact-quarantine-operator-skill",
+        "title": "SecurityRecipes Artifact Quarantine Operator Skill"
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "residual_risk_score": 4,
+        "risk_tier": "low",
+        "skill_id": "sr-cve-remediation-skill",
+        "title": "SecurityRecipes CVE Remediation Skill"
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "residual_risk_score": 0,
+        "risk_tier": "low",
+        "skill_id": "sr-agent-memory-operator-skill",
+        "title": "SecurityRecipes Agent Memory Operator Skill"
+      },
+      {
+        "decision": "allow_pinned_readonly_skill",
+        "residual_risk_score": 0,
+        "risk_tier": "low",
+        "skill_id": "sr-secure-context-retrieval-skill",
+        "title": "SecurityRecipes Secure Context Retrieval Skill"
+      }
+    ],
+    "verified_publisher_count": 4,
+    "workflow_count": 8
+  },
+  "source_artifacts": {
+    "agent_memory_boundary_pack": {
+      "path": "data/evidence/agent-memory-boundary-pack.json",
+      "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed"
+    },
+    "agent_skill_supply_chain_model": {
+      "path": "data/assurance/agent-skill-supply-chain-model.json",
+      "sha256": "191e4a1c0ce2dab2975d41e27f884d207bfda2d5161bf52b5a9d5fad6fa06024"
+    },
+    "mcp_connector_trust_pack": {
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+    },
+    "secure_context_trust_pack": {
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "sha256": "d2105b771769ff71d87aecd60f9f5eee711e928bb55b90006df659c4e97f7e23"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Malicious skills, supply-chain compromise, over-privileged manifests, unsafe metadata, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse.",
+      "id": "owasp-agentic-skills-top-10-2026",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "Agent behavior hijacking, tool misuse, identity and privilege abuse, supply-chain vulnerabilities, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/"
+    },
+    {
+      "coverage": "Token mismanagement, scope creep, tool poisoning, software supply-chain attacks, command execution, intent-flow subversion, insufficient authorization, audit gaps, shadow MCP servers, and context over-sharing.",
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "url": "https://owasp.org/www-project-mcp-top-10/"
+    },
+    {
+      "coverage": "OAuth 2.1, client metadata, protected resource metadata, resource indicators, token audience validation, PKCE, token handling, and trust policy expectations for protected MCP servers.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Confused-deputy prevention, token-passthrough avoidance, SSRF, session safety, local server controls, scope minimization, and auditability.",
+      "id": "mcp-security-best-practices-current",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "Lifecycle governance, provenance, third-party dependency risk, monitoring, measurement, incident response, and risk management for generative AI systems.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Secure development, supply-chain integrity, vulnerability response evidence, and trusted release practices for software components.",
+      "id": "nist-ssdf-800-218",
+      "name": "NIST SP 800-218 Secure Software Development Framework",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final"
+    }
+  ]
+}

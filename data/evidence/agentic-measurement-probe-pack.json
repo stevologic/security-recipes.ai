@@ -1,0 +1,3433 @@
+{
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can prove agentic workflow readiness through measurement probes that reconstruct context, tools, policies, identities, approvals, verifiers, memory, egress, and threat alignment.",
+    "default_questions_answered": [
+      "Which probes must pass before a workflow scales?",
+      "Which evidence pack proves each probe?",
+      "Which current agentic and MCP threats are covered?",
+      "Which runtime fields must appear in a customer trace?",
+      "Which probe failures force a manual gate or kill-session decision?"
+    ],
+    "recommended_first_use": "Attach the generated probe pack to AI platform promotion reviews, MCP connector intake, quarterly red-team replay, procurement security reviews, and acquisition diligence.",
+    "sales_motion": "Lead with open measurement probes, then sell hosted trace ingestion, probe execution, eval replay, context signing, evidence retention, and trust-center exports."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define SecurityRecipes measurement probes for agentic AI workflows so the secure context layer can prove traceability, policy fit, runtime evidence, and adversarial readiness with machine-readable checks instead of static assurance claims.",
+  "measurement_probe_summary": {
+    "average_score": 100,
+    "decision_counts": {
+      "measurement_ready": 8
+    },
+    "failure_count": 0,
+    "probe_class_status_counts": {
+      "context_integrity": {
+        "pass": 8
+      },
+      "egress_boundary": {
+        "pass": 8
+      },
+      "identity_delegation": {
+        "pass": 8
+      },
+      "memory_boundary": {
+        "pass": 8
+      },
+      "readiness_decision": {
+        "pass": 8
+      },
+      "red_team_replay": {
+        "pass": 8
+      },
+      "run_receipt_integrity": {
+        "pass": 8
+      },
+      "threat_radar_alignment": {
+        "pass": 8
+      },
+      "tool_authorization": {
+        "pass": 8
+      }
+    },
+    "probe_status_counts": {
+      "pass": 72
+    },
+    "total_probe_results": 72,
+    "workflow_count": 8
+  },
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, GRC, model risk, procurement security, and acquisition diligence teams",
+    "category": "Agentic AI measurement probes and runtime evidence readiness",
+    "enterprise_promise": "SecurityRecipes converts agentic workflow controls into repeatable probes that verify context integrity, MCP authorization, identity, memory, egress, red-team replay, and receipt evidence before workflows scale.",
+    "why_now": "Agentic AI is moving into higher-stakes enterprise operations where teams need to reconstruct which context, tools, policies, identities, approvals, and verifiers shaped a decision. Measurement probes turn that traceability requirement into an MCP-readable product surface."
+  },
+  "probe_classes": [
+    {
+      "id": "context_integrity",
+      "question": "Can the workflow prove retrieved context is registered, owned, hash-bound, cited, and scanned before an agent treats it as evidence?",
+      "title": "Context Integrity Probe"
+    },
+    {
+      "id": "tool_authorization",
+      "question": "Can the workflow prove each MCP namespace is default-deny, resource-bound, audience-bound, and scoped before tool execution?",
+      "title": "Tool Authorization Probe"
+    },
+    {
+      "id": "identity_delegation",
+      "question": "Can the workflow prove the agent acts through a scoped non-human identity with revocation and explicit denied actions?",
+      "title": "Identity Delegation Probe"
+    },
+    {
+      "id": "egress_boundary",
+      "question": "Can the workflow prove context cannot leave tenant, model, telemetry, MCP, or public-corpus boundaries without data-class and destination checks?",
+      "title": "Context Egress Probe"
+    },
+    {
+      "id": "memory_boundary",
+      "question": "Can the workflow prove persistent memory, replay, vector indexes, and prohibited memory are gated before reuse?",
+      "title": "Memory Boundary Probe"
+    },
+    {
+      "id": "red_team_replay",
+      "question": "Can the workflow replay adversarial cases for prompt injection, goal hijack, approval bypass, exfiltration, drift, loops, and evidence integrity?",
+      "title": "Red-Team Replay Probe"
+    },
+    {
+      "id": "run_receipt_integrity",
+      "question": "Can the workflow reconstruct the full chain of context, tools, policy decisions, approvals, verifier results, closure, and identity revocation?",
+      "title": "Run Receipt Integrity Probe"
+    },
+    {
+      "id": "readiness_decision",
+      "question": "Can the workflow prove the current evidence supports scale, guarded pilot, manual gate, or block decisions?",
+      "title": "Readiness Decision Probe"
+    },
+    {
+      "id": "threat_radar_alignment",
+      "question": "Can the workflow show which current source-backed agentic and MCP threat signals its controls address?",
+      "title": "Threat Radar Alignment Probe"
+    }
+  ],
+  "probe_contract": {
+    "block_on_source_failures": true,
+    "default_state": "unverified_until_probe_passes",
+    "minimum_pass_score": 85,
+    "minimum_probe_classes": 8,
+    "minimum_probes_per_workflow": 8,
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "agent_class",
+      "identity_id",
+      "policy_pack_hash",
+      "context_package_hash",
+      "egress_policy_hash",
+      "authorization_policy_hash",
+      "receipt_hash",
+      "verifier_result",
+      "correlation_id"
+    ],
+    "required_source_packs": [
+      "workflow_manifest",
+      "gateway_policy",
+      "mcp_authorization_conformance",
+      "secure_context_trust_pack",
+      "context_poisoning_guard_pack",
+      "context_egress_boundary_pack",
+      "agent_memory_boundary_pack",
+      "agentic_red_team_drill_pack",
+      "agentic_readiness_scorecard",
+      "agent_capability_risk_register",
+      "agentic_run_receipt_pack",
+      "agentic_threat_radar"
+    ]
+  },
+  "probes": [
+    {
+      "class_id": "context_integrity",
+      "evidence_inputs": [
+        "secure_context_trust_pack.workflow_context_map",
+        "secure_context_trust_pack.context_sources",
+        "context_poisoning_guard_pack.source_results"
+      ],
+      "failure_actions": [
+        "hold retrieval until source owner recertifies context",
+        "kill session if prohibited context or actionable hidden instruction appears"
+      ],
+      "id": "context-source-hash-and-poisoning",
+      "mapped_signal_ids": [
+        "indirect-prompt-injection-social-engineering",
+        "context-over-sharing-and-memory-poisoning",
+        "ai-data-security-and-provenance"
+      ],
+      "pass_conditions": [
+        "workflow context package exists and includes source hashes",
+        "all default context sources require citation",
+        "poisoning guard has generated source scan output"
+      ],
+      "title": "Registered context hash and poisoning probe",
+      "weight": 12
+    },
+    {
+      "class_id": "tool_authorization",
+      "evidence_inputs": [
+        "mcp_gateway_policy.workflow_policies",
+        "mcp_authorization_conformance_pack.workflow_authorization_map"
+      ],
+      "failure_actions": [
+        "deny unregistered MCP namespace",
+        "hold OAuth-backed connector until audience and resource checks pass"
+      ],
+      "id": "mcp-auth-resource-and-scope",
+      "mapped_signal_ids": [
+        "mcp-token-passthrough-and-scope-creep",
+        "tool-poisoning-and-shadow-mcp",
+        "agent-identity-explosion"
+      ],
+      "pass_conditions": [
+        "gateway policy defaults to deny",
+        "workflow namespaces have authorization conformance rows",
+        "authorization decisions require gateway attestation"
+      ],
+      "title": "MCP resource, audience, and scope probe",
+      "weight": 12
+    },
+    {
+      "class_id": "identity_delegation",
+      "evidence_inputs": [
+        "agentic_run_receipt_pack.workflow_receipt_templates",
+        "agentic_readiness_scorecard.workflow_readiness"
+      ],
+      "failure_actions": [
+        "hold workflow if identity coverage is incomplete",
+        "kill session if revocation evidence cannot be written"
+      ],
+      "id": "agent-identity-revocation",
+      "mapped_signal_ids": [
+        "agent-identity-explosion",
+        "human-approval-and-tool-safeguards",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "pass_conditions": [
+        "receipt template lists identity IDs",
+        "identity revocation is a required event",
+        "readiness evidence counts identity coverage"
+      ],
+      "title": "Scoped agent identity and revocation probe",
+      "weight": 10
+    },
+    {
+      "class_id": "egress_boundary",
+      "evidence_inputs": [
+        "context_egress_boundary_pack.workflow_egress_map",
+        "context_egress_boundary_pack.destination_classes"
+      ],
+      "failure_actions": [
+        "hold model-provider egress without DPA and zero-data-retention evidence",
+        "deny public-corpus egress for tenant runtime context"
+      ],
+      "id": "context-egress-destination-policy",
+      "mapped_signal_ids": [
+        "context-over-sharing-and-memory-poisoning",
+        "ai-data-security-and-provenance",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "pass_conditions": [
+        "workflow egress policy hash exists",
+        "namespace policies require tenant and destination checks",
+        "public corpus and untrusted webhook destinations are prohibited"
+      ],
+      "title": "Context egress destination and data-class probe",
+      "weight": 10
+    },
+    {
+      "class_id": "memory_boundary",
+      "evidence_inputs": [
+        "agent_memory_boundary_pack.workflow_memory_profiles",
+        "agent_memory_boundary_pack.memory_classes"
+      ],
+      "failure_actions": [
+        "deny replay from unregistered memory class",
+        "kill session on private key, token, or cross-tenant memory"
+      ],
+      "id": "memory-ttl-and-replay-boundary",
+      "mapped_signal_ids": [
+        "context-over-sharing-and-memory-poisoning",
+        "indirect-prompt-injection-social-engineering",
+        "secure-by-design-agentic-products"
+      ],
+      "pass_conditions": [
+        "workflow memory profile exists",
+        "customer and vector memory hold for tenant controls",
+        "prohibited memory kills the session"
+      ],
+      "title": "Memory TTL, replay, and prohibited-memory probe",
+      "weight": 10
+    },
+    {
+      "class_id": "red_team_replay",
+      "evidence_inputs": [
+        "agentic_red_team_drill_pack.workflow_drills"
+      ],
+      "failure_actions": [
+        "block scale decision until drill coverage is restored",
+        "hold connector promotion when schema drift drills fail"
+      ],
+      "id": "adversarial-replay-coverage",
+      "mapped_signal_ids": [
+        "continuous-red-team-and-evals",
+        "indirect-prompt-injection-social-engineering",
+        "tool-poisoning-and-shadow-mcp"
+      ],
+      "pass_conditions": [
+        "workflow has at least five red-team drills",
+        "drills include high or critical scenarios",
+        "drills exercise declared MCP namespaces"
+      ],
+      "title": "Adversarial replay coverage probe",
+      "weight": 12
+    },
+    {
+      "class_id": "run_receipt_integrity",
+      "evidence_inputs": [
+        "agentic_run_receipt_pack.workflow_receipt_templates"
+      ],
+      "failure_actions": [
+        "manual gate run if receipt is incomplete",
+        "do not close finding from unsealed or non-replayable evidence"
+      ],
+      "id": "run-receipt-chain-reconstruction",
+      "mapped_signal_ids": [
+        "audit-telemetry-and-evidence-chain",
+        "human-approval-and-tool-safeguards",
+        "secure-by-design-agentic-products"
+      ],
+      "pass_conditions": [
+        "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+        "receipt records context and egress policy hashes",
+        "receipt acceptance criteria forbid unverifiable success claims"
+      ],
+      "title": "Run receipt chain reconstruction probe",
+      "weight": 12
+    },
+    {
+      "class_id": "readiness_decision",
+      "evidence_inputs": [
+        "agentic_readiness_scorecard.workflow_readiness",
+        "agent_capability_risk_register.workflow_risk_register"
+      ],
+      "failure_actions": [
+        "manual gate workflow when readiness score falls below threshold",
+        "block workflow when source evidence reports validation failures"
+      ],
+      "id": "readiness-and-capability-risk",
+      "mapped_signal_ids": [
+        "capability-based-agentic-risk-governance",
+        "secure-by-design-agentic-products",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "pass_conditions": [
+        "readiness score is at least guarded-pilot threshold",
+        "no readiness blockers are present",
+        "capability risk is represented before expansion"
+      ],
+      "title": "Readiness and capability-risk decision probe",
+      "weight": 10
+    },
+    {
+      "class_id": "threat_radar_alignment",
+      "evidence_inputs": [
+        "agentic_threat_radar.threat_signals",
+        "agentic_threat_radar.product_capabilities"
+      ],
+      "failure_actions": [
+        "refresh threat radar before enterprise review",
+        "create roadmap action when a critical signal lacks product coverage"
+      ],
+      "id": "current-threat-signal-coverage",
+      "mapped_signal_ids": [
+        "indirect-prompt-injection-social-engineering",
+        "mcp-token-passthrough-and-scope-creep",
+        "context-over-sharing-and-memory-poisoning",
+        "continuous-red-team-and-evals",
+        "capability-based-agentic-risk-governance"
+      ],
+      "pass_conditions": [
+        "mapped signals exist in the source-backed threat radar",
+        "at least one mapped signal is critical or high",
+        "product capabilities are linked to MCP-readable evidence"
+      ],
+      "title": "Current threat-signal coverage probe",
+      "weight": 12
+    }
+  ],
+  "residual_risks": [
+    {
+      "risk": "Generated probes verify source-controlled evidence, not a customer's live runtime trace.",
+      "treatment": "Hosted deployments must ingest tenant runtime events and compare them to this probe contract."
+    },
+    {
+      "risk": "A passing probe does not guarantee model behavior under every future prompt, model, or connector change.",
+      "treatment": "Re-run probes after model, tool, policy, context, memory, or workflow drift."
+    },
+    {
+      "risk": "Judges and verifiers can fail if they are not grounded in the declared evidence pack.",
+      "treatment": "Use deterministic checks for policy, hashes, and event completeness before model-graded evaluations."
+    }
+  ],
+  "schema_version": "1.0",
+  "selected_feature": {
+    "id": "agentic-measurement-probe-pack",
+    "implementation": [
+      "Probe profile under data/assurance.",
+      "Deterministic generator under scripts.",
+      "Generated evidence pack under data/evidence.",
+      "Human-readable docs page under security-remediation.",
+      "MCP tool exposure through recipes_agentic_measurement_probe_pack."
+    ],
+    "reason": "NIST's 2026 agentic measurement probe direction creates a clear enterprise opportunity: make SecurityRecipes the measurable context, policy, and traceability layer for agentic AI."
+  },
+  "source_artifacts": {
+    "agent_capability_risk_register": {
+      "path": "data/evidence/agent-capability-risk-register.json",
+      "sha256": "a20b47280e97c578cab5e14bd1632679254129a95803168086c1a9dd92cb99a2"
+    },
+    "agent_memory_boundary_pack": {
+      "path": "data/evidence/agent-memory-boundary-pack.json",
+      "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed"
+    },
+    "agentic_readiness_scorecard": {
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "sha256": "c175181e8a7afeba2c1c7d6483f69c7a635fcf8242d65a20fb76462499cc45ae"
+    },
+    "agentic_red_team_drill_pack": {
+      "path": "data/evidence/agentic-red-team-drill-pack.json",
+      "sha256": "c28356c01555a2badaf678238aa525abeb343ff2ed60e58f27c4af8736d1188b"
+    },
+    "agentic_run_receipt_pack": {
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "sha256": "de61da0bccd9f668c34fe2d01e92014363e72b8e159749c6cff6839dd51804b5"
+    },
+    "agentic_threat_radar": {
+      "path": "data/evidence/agentic-threat-radar.json",
+      "sha256": "16b6090d218979a07763dce20ce8ceb334e22d03857e3abf3b5e65760e26c64c"
+    },
+    "context_egress_boundary_pack": {
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "sha256": "002008f9cb4fb3a5a352bc03b7ce82a90fb10d19d7d6431055fc3c8993609036"
+    },
+    "context_poisoning_guard_pack": {
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "sha256": "9fda63d1cc443ba1e52e62840bba377789a6d232a9c83646a9bf7a2a43ceda12"
+    },
+    "gateway_policy": {
+      "path": "data/policy/mcp-gateway-policy.json",
+      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+    },
+    "mcp_authorization_conformance": {
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "sha256": "a4ebcb2e1f781c2893283937acbf5d34356c93de685aad730d1a0353f2412d26"
+    },
+    "profile": {
+      "path": "data/assurance/agentic-measurement-probe-profile.json",
+      "sha256": "eddf3fcc6d835af16be4de1bf4124e63d578bd758259da6c3a65434361eda109"
+    },
+    "secure_context_trust_pack": {
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "sha256": "4b193df090cf4bf53da6dc5909839d85908fc849078cbfa193f4150e1fe2c6e8"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Anchors the feature in traceability, reconstruction of tool use and evidence, judges/verifiers, and dynamic verification for agentic AI systems.",
+      "id": "nist-agentic-measurement-probes-2026",
+      "name": "NIST Building Measurement Probes into Agentic AI Ecosystems",
+      "url": "https://www.nist.gov/news-events/events/2026/04/nist-information-technology-laboratory-ai-webinar-series-building"
+    },
+    {
+      "coverage": "Maps probes to Govern, Map, Measure, and Manage expectations for AI systems that need lifecycle risk management and evidence.",
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework 1.0",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "coverage": "Supports GAI measurement, data provenance, third-party dependency, monitoring, and risk response expectations.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Covers autonomous goal pursuit, tool use, delegation, rogue behavior, and cascading failure modes that need repeatable probes.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Covers MCP token exposure, scope creep, tool poisoning, command execution, auth gaps, missing telemetry, shadow servers, and context over-sharing.",
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP Top 10 for Model Context Protocol",
+      "url": "https://owasp.org/www-project-mcp-top-10/"
+    },
+    {
+      "coverage": "Requires probes for audience-bound tokens, resource indicators, PKCE support, token lifetime, token-passthrough denial, and HTTPS transport assumptions.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Supports confused-deputy prevention, least-privilege scopes, token safety, SSRF resistance, session safety, local server hardening, and auditability.",
+      "id": "mcp-security-best-practices-2025-06-18",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+    },
+    {
+      "coverage": "Connects measurement probes to system criticality, autonomy, access permissions, and impact radius before enterprise expansion.",
+      "id": "csa-cbra-agentic-risk-2025",
+      "name": "CSA Capabilities-Based Risk Assessment for Agentic AI",
+      "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk"
+    }
+  ],
+  "workflow_probes": [
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "inventory.artifacts",
+        "registries.quarantine",
+        "incidents.security"
+      ],
+      "owner": {
+        "accountable_team": "Supply Chain Security",
+        "escalation": "security-incident-commander",
+        "reviewer_pools": [
+          "supply-chain-security",
+          "platform-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "0875b3f83e77d8a864f199c956ce557794d0610636160b8306924962208ad610",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "5502fa113292dc7ea35d349973c36277f60abe0de4fe4fca22269f8fc69c4045",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 3,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 3
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 3
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "70f03ca2c0b80f6d0919a4ceb090329d295fc37fadadb3491bc447917f112c6b"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agentic_supply_chain_drift",
+              "approval_bypass",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::artifact-cache-quarantine",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "pilot_guarded",
+            "readiness_score": 93,
+            "residual_risk_score": 42,
+            "risk_tier": "high"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "artifact-cache-quarantine"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "artifact-cache-quarantine"
+        }
+      ],
+      "public_path": "/security-remediation/artifact-cache-purge/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "risk_tier": "high",
+      "score": 100,
+      "status": "active",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "total_weight": 100,
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "images.golden",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "owner": {
+        "accountable_team": "Platform Security",
+        "escalation": "container-platform",
+        "reviewer_pools": [
+          "platform-security",
+          "service-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "217ee583f1501a24fe09f969c136687a9028c3f976db3ce4f2c91f30e39e1db9",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "0f5377b2127c5c70a93093dd5d81843ee85c04033f7744ac691d55ee0d4c4053",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 5,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 5
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 5
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "aaa80862a0f97e2d1c2fb88a74cf5f602e393e22d29efb6f26b9fdd612b9913b"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agent_goal_hijack",
+              "agentic_supply_chain_drift",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::base-image-remediation",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "scale_ready",
+            "readiness_score": 98,
+            "residual_risk_score": 22,
+            "risk_tier": "medium"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "base-image-remediation"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "base-image-remediation"
+        }
+      ],
+      "public_path": "/security-remediation/base-images/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "risk_tier": "medium",
+      "score": 100,
+      "status": "active",
+      "title": "Base Image and Container Layer Remediation",
+      "total_weight": 100,
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "recipes.defaults",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "owner": {
+        "accountable_team": "Application Security",
+        "escalation": "secure-code-review",
+        "reviewer_pools": [
+          "appsec",
+          "service-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "66e1a8f030baa4feb74bdd68923a7220e6e8f80e3db8a185de78d06beed73d23",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "4aa2afc4455b1dc82226b979ed70141e6a14e98ed982ee088c0a52d6947e1056",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 4,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 4
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 5
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "b48b1cd032f519a4eab99292556bf141b052ce308433fe783cacde0e44db10e1"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agent_goal_hijack",
+              "agentic_supply_chain_drift",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::classic-vulnerable-defaults",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "scale_ready",
+            "readiness_score": 98,
+            "residual_risk_score": 10,
+            "risk_tier": "low"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "classic-vulnerable-defaults"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "classic-vulnerable-defaults"
+        }
+      ],
+      "public_path": "/security-remediation/classic-vulnerable-defaults/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "risk_tier": "low",
+      "score": 100,
+      "status": "active",
+      "title": "Classic Vulnerable Defaults",
+      "total_weight": 100,
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "payments.findings",
+        "repo.contents",
+        "payments.simulation"
+      ],
+      "owner": {
+        "accountable_team": "Fintech Security",
+        "escalation": "financial-risk",
+        "reviewer_pools": [
+          "fintech-security",
+          "payments-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "d2619fdef0df412eafd968bcce9f5c7db1e8f5d269a079665d86b4086256e177",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "1a011f70e2e0be1b4efac650873bff7ef3d73b08d9dae0e7aa926d93d6eb7cb5",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 3,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 3
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 5
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "671dd655d9040c591604427ff5b313fc443e45917e409fd1f3c1a4bc97b3c7f0"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agent_goal_hijack",
+              "agentic_supply_chain_drift",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::crypto-payment-security",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "pilot_guarded",
+            "readiness_score": 93,
+            "residual_risk_score": 52,
+            "risk_tier": "high"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "crypto-payment-security"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "crypto-payment-security"
+        }
+      ],
+      "public_path": "/security-remediation/crypto-payments/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "risk_tier": "high",
+      "score": 100,
+      "status": "active",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "total_weight": 100,
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "protocol.findings",
+        "repo.contents",
+        "chain.simulation"
+      ],
+      "owner": {
+        "accountable_team": "Protocol Security",
+        "escalation": "protocol-risk-council",
+        "reviewer_pools": [
+          "protocol-security",
+          "smart-contract-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "f1b9b70289f91d2ea51f5f9ee13b47e5e5c4a719d09d872109c412bcb9386afc",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "7c90a08d9acea79ba2d8e20206d286fb25e04f2a07296edf53f5cf4b3e2a8920",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 3,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 3
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 5
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "10cd83857ae5dd5e2757119e5ffd53f91bb4899d9d67e13dca51d6c181259989"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agent_goal_hijack",
+              "agentic_supply_chain_drift",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::defi-blockchain-security",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "pilot_guarded",
+            "readiness_score": 93,
+            "residual_risk_score": 52,
+            "risk_tier": "high"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "defi-blockchain-security"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "defi-blockchain-security"
+        }
+      ],
+      "public_path": "/security-remediation/defi-blockchain/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "risk_tier": "high",
+      "score": 100,
+      "status": "active",
+      "title": "DeFi and Blockchain Protocol Security",
+      "total_weight": 100,
+      "workflow_id": "defi-blockchain-security"
+    },
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "findings.sast",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "owner": {
+        "accountable_team": "Application Security",
+        "escalation": "secure-code-review",
+        "reviewer_pools": [
+          "appsec",
+          "service-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "609977ad46af094db5461bd102123e3f7817688f4470ad5f22d278fe472b0786",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "6049c1c6645bb8ee3be03d2f5fa88d0ce4e5fe6780a95bfda4e03fbb150b567b",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 4,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 4
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 5
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "729ad6eaf51f2534beb7ce8a53843155c5a36849518ecd5950d934daeb521769"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agent_goal_hijack",
+              "agentic_supply_chain_drift",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::sast-finding-remediation",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "pilot_guarded",
+            "readiness_score": 95,
+            "residual_risk_score": 10,
+            "risk_tier": "low"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "sast-finding-remediation"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "sast-finding-remediation"
+        }
+      ],
+      "public_path": "/security-remediation/sast-findings/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 95,
+      "risk_tier": "low",
+      "score": 100,
+      "status": "active",
+      "title": "SAST Finding Remediation",
+      "total_weight": 100,
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "findings.sde",
+        "repo.contents",
+        "tickets.security"
+      ],
+      "owner": {
+        "accountable_team": "Security Engineering",
+        "escalation": "privacy-security",
+        "reviewer_pools": [
+          "security-remediation",
+          "service-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "84d05aae25801673acbcb62414d350a6488450ecf5512a580dc2bb279189cc2d",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "9ef61cdf1c839d291886fc4a95a46f7b561be6500dbe2775be8e1d8ecb83de97",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 5,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 5
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 5
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "e1c2d75467a21c3a44a0a46043fd6662b774f374619b2073208ea4dbbef49dd0"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agent_goal_hijack",
+              "agentic_supply_chain_drift",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::sensitive-data-remediation",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "scale_ready",
+            "readiness_score": 98,
+            "residual_risk_score": 26,
+            "risk_tier": "medium"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "sensitive-data-remediation"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "sensitive-data-remediation"
+        }
+      ],
+      "public_path": "/security-remediation/sensitive-data/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "risk_tier": "medium",
+      "score": 100,
+      "status": "active",
+      "title": "Sensitive Data Element Remediation",
+      "total_weight": 100,
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "decision": "measurement_ready",
+      "earned_weight": 100,
+      "failed_probe_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "advisories.vulnerability",
+        "sbom.inventory",
+        "repo.contents"
+      ],
+      "owner": {
+        "accountable_team": "Product Security",
+        "escalation": "supply-chain-security",
+        "reviewer_pools": [
+          "dependency-remediation",
+          "service-owner"
+        ]
+      },
+      "probe_count": 9,
+      "probe_results": [
+        {
+          "class_id": "context_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "context_package_hash": "c5e0d5678e33423433cc7444b6b78935e09f5f8b5eefe6205b5d8aa9407fa077",
+            "context_source_count": 8,
+            "poisoning_source_result_count": 9
+          },
+          "evidence_inputs": [
+            "secure_context_trust_pack.workflow_context_map",
+            "secure_context_trust_pack.context_sources",
+            "context_poisoning_guard_pack.source_results"
+          ],
+          "failure_actions": [
+            "hold retrieval until source owner recertifies context",
+            "kill session if prohibited context or actionable hidden instruction appears"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance"
+          ],
+          "notes": [
+            "Retrieved text is measured as evidence, not authority."
+          ],
+          "pass_conditions": [
+            "workflow context package exists and includes source hashes",
+            "all default context sources require citation",
+            "poisoning guard has generated source scan output"
+          ],
+          "probe_id": "context-source-hash-and-poisoning",
+          "status": "pass",
+          "title": "Registered context hash and poisoning probe",
+          "weight": 12,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "tool_authorization",
+          "earned_weight": 12,
+          "evidence": {
+            "authorization_policy_hash": "1bb48c4dcfc00b8a67cef524dd1ed88641aac925e201c01c2814242d08eb486b",
+            "gateway_default_decision": "deny",
+            "namespace_count": 3
+          },
+          "evidence_inputs": [
+            "mcp_gateway_policy.workflow_policies",
+            "mcp_authorization_conformance_pack.workflow_authorization_map"
+          ],
+          "failure_actions": [
+            "deny unregistered MCP namespace",
+            "hold OAuth-backed connector until audience and resource checks pass"
+          ],
+          "mapped_signal_ids": [
+            "mcp-token-passthrough-and-scope-creep",
+            "tool-poisoning-and-shadow-mcp",
+            "agent-identity-explosion"
+          ],
+          "notes": [
+            "MCP calls must pass both gateway policy and authorization conformance checks."
+          ],
+          "pass_conditions": [
+            "gateway policy defaults to deny",
+            "workflow namespaces have authorization conformance rows",
+            "authorization decisions require gateway attestation"
+          ],
+          "probe_id": "mcp-auth-resource-and-scope",
+          "status": "pass",
+          "title": "MCP resource, audience, and scope probe",
+          "weight": 12,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "identity_delegation",
+          "earned_weight": 10,
+          "evidence": {
+            "identity_count": 5,
+            "identity_revocation_required": true,
+            "readiness_identity_count": 5
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates",
+            "agentic_readiness_scorecard.workflow_readiness"
+          ],
+          "failure_actions": [
+            "hold workflow if identity coverage is incomplete",
+            "kill session if revocation evidence cannot be written"
+          ],
+          "mapped_signal_ids": [
+            "agent-identity-explosion",
+            "human-approval-and-tool-safeguards",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Agent actions must be attributable to scoped non-human identities."
+          ],
+          "pass_conditions": [
+            "receipt template lists identity IDs",
+            "identity revocation is a required event",
+            "readiness evidence counts identity coverage"
+          ],
+          "probe_id": "agent-identity-revocation",
+          "status": "pass",
+          "title": "Scoped agent identity and revocation probe",
+          "weight": 10,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "egress_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",
+            "namespace_policy_count": 3,
+            "prohibited_destination_count": 5
+          },
+          "evidence_inputs": [
+            "context_egress_boundary_pack.workflow_egress_map",
+            "context_egress_boundary_pack.destination_classes"
+          ],
+          "failure_actions": [
+            "hold model-provider egress without DPA and zero-data-retention evidence",
+            "deny public-corpus egress for tenant runtime context"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "ai-data-security-and-provenance",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Context movement is measured before it reaches model, MCP, telemetry, or public boundaries."
+          ],
+          "pass_conditions": [
+            "workflow egress policy hash exists",
+            "namespace policies require tenant and destination checks",
+            "public corpus and untrusted webhook destinations are prohibited"
+          ],
+          "probe_id": "context-egress-destination-policy",
+          "status": "pass",
+          "title": "Context egress destination and data-class probe",
+          "weight": 10,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "memory_boundary",
+          "earned_weight": 10,
+          "evidence": {
+            "hold_memory_class_ids": [
+              "customer-runtime-memory",
+              "vector-embedding-memory"
+            ],
+            "kill_memory_class_ids": [
+              "prohibited-memory"
+            ],
+            "memory_profile_hash": "ddce895e0928f8e5f83b18390e3fa15dded3ff97f7387aca67c1337ec18aa66d"
+          },
+          "evidence_inputs": [
+            "agent_memory_boundary_pack.workflow_memory_profiles",
+            "agent_memory_boundary_pack.memory_classes"
+          ],
+          "failure_actions": [
+            "deny replay from unregistered memory class",
+            "kill session on private key, token, or cross-tenant memory"
+          ],
+          "mapped_signal_ids": [
+            "context-over-sharing-and-memory-poisoning",
+            "indirect-prompt-injection-social-engineering",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "Persistent memory is treated as a gated data boundary."
+          ],
+          "pass_conditions": [
+            "workflow memory profile exists",
+            "customer and vector memory hold for tenant controls",
+            "prohibited memory kills the session"
+          ],
+          "probe_id": "memory-ttl-and-replay-boundary",
+          "status": "pass",
+          "title": "Memory TTL, replay, and prohibited-memory probe",
+          "weight": 10,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "red_team_replay",
+          "earned_weight": 12,
+          "evidence": {
+            "attack_families": [
+              "agent_goal_hijack",
+              "agentic_supply_chain_drift",
+              "cascading_failure_and_unbounded_consumption",
+              "evidence_integrity_failure",
+              "identity_and_privilege_abuse",
+              "sensitive_data_exfiltration",
+              "tool_result_prompt_injection"
+            ],
+            "drill_count": 7,
+            "severity_coverage": [
+              "critical",
+              "high"
+            ]
+          },
+          "evidence_inputs": [
+            "agentic_red_team_drill_pack.workflow_drills"
+          ],
+          "failure_actions": [
+            "block scale decision until drill coverage is restored",
+            "hold connector promotion when schema drift drills fail"
+          ],
+          "mapped_signal_ids": [
+            "continuous-red-team-and-evals",
+            "indirect-prompt-injection-social-engineering",
+            "tool-poisoning-and-shadow-mcp"
+          ],
+          "notes": [
+            "Probe results should feed quarterly replay and connector promotion gates."
+          ],
+          "pass_conditions": [
+            "workflow has at least five red-team drills",
+            "drills include high or critical scenarios",
+            "drills exercise declared MCP namespaces"
+          ],
+          "probe_id": "adversarial-replay-coverage",
+          "status": "pass",
+          "title": "Adversarial replay coverage probe",
+          "weight": 12,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "run_receipt_integrity",
+          "earned_weight": 12,
+          "evidence": {
+            "acceptance_criteria_count": 10,
+            "receipt_id": "sr-run-receipt::vulnerable-dependency-remediation",
+            "required_event_class_count": 10
+          },
+          "evidence_inputs": [
+            "agentic_run_receipt_pack.workflow_receipt_templates"
+          ],
+          "failure_actions": [
+            "manual gate run if receipt is incomplete",
+            "do not close finding from unsealed or non-replayable evidence"
+          ],
+          "mapped_signal_ids": [
+            "audit-telemetry-and-evidence-chain",
+            "human-approval-and-tool-safeguards",
+            "secure-by-design-agentic-products"
+          ],
+          "notes": [
+            "A trusted agent run needs a sealed receipt, not a natural-language success claim."
+          ],
+          "pass_conditions": [
+            "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+            "receipt records context and egress policy hashes",
+            "receipt acceptance criteria forbid unverifiable success claims"
+          ],
+          "probe_id": "run-receipt-chain-reconstruction",
+          "status": "pass",
+          "title": "Run receipt chain reconstruction probe",
+          "weight": 12,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "readiness_decision",
+          "earned_weight": 10,
+          "evidence": {
+            "readiness_decision": "scale_ready",
+            "readiness_score": 98,
+            "residual_risk_score": 22,
+            "risk_tier": "medium"
+          },
+          "evidence_inputs": [
+            "agentic_readiness_scorecard.workflow_readiness",
+            "agent_capability_risk_register.workflow_risk_register"
+          ],
+          "failure_actions": [
+            "manual gate workflow when readiness score falls below threshold",
+            "block workflow when source evidence reports validation failures"
+          ],
+          "mapped_signal_ids": [
+            "capability-based-agentic-risk-governance",
+            "secure-by-design-agentic-products",
+            "audit-telemetry-and-evidence-chain"
+          ],
+          "notes": [
+            "Capability risk and readiness must be reviewed together before scale."
+          ],
+          "pass_conditions": [
+            "readiness score is at least guarded-pilot threshold",
+            "no readiness blockers are present",
+            "capability risk is represented before expansion"
+          ],
+          "probe_id": "readiness-and-capability-risk",
+          "status": "pass",
+          "title": "Readiness and capability-risk decision probe",
+          "weight": 10,
+          "workflow_id": "vulnerable-dependency-remediation"
+        },
+        {
+          "class_id": "threat_radar_alignment",
+          "earned_weight": 12,
+          "evidence": {
+            "mapped_signal_count": 5,
+            "priority_counts": {
+              "critical": 2,
+              "high": 3
+            },
+            "source_reference_count": 16
+          },
+          "evidence_inputs": [
+            "agentic_threat_radar.threat_signals",
+            "agentic_threat_radar.product_capabilities"
+          ],
+          "failure_actions": [
+            "refresh threat radar before enterprise review",
+            "create roadmap action when a critical signal lacks product coverage"
+          ],
+          "mapped_signal_ids": [
+            "indirect-prompt-injection-social-engineering",
+            "mcp-token-passthrough-and-scope-creep",
+            "context-over-sharing-and-memory-poisoning",
+            "continuous-red-team-and-evals",
+            "capability-based-agentic-risk-governance"
+          ],
+          "notes": [
+            "Threat alignment keeps probes anchored to current industry signals."
+          ],
+          "pass_conditions": [
+            "mapped signals exist in the source-backed threat radar",
+            "at least one mapped signal is critical or high",
+            "product capabilities are linked to MCP-readable evidence"
+          ],
+          "probe_id": "current-threat-signal-coverage",
+          "status": "pass",
+          "title": "Current threat-signal coverage probe",
+          "weight": 12,
+          "workflow_id": "vulnerable-dependency-remediation"
+        }
+      ],
+      "public_path": "/security-remediation/vulnerable-dependencies/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "risk_tier": "medium",
+      "score": 100,
+      "status": "active",
+      "title": "Vulnerable Dependency Remediation",
+      "total_weight": 100,
+      "workflow_id": "vulnerable-dependency-remediation"
+    }
+  ]
+}

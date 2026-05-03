@@ -1,0 +1,626 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define the SecurityRecipes agent memory boundary for enterprise agentic remediation: every persistent or replayable memory surface must have a declared class, owner, tenant boundary, TTL, write rule, provenance requirement, poisoning control, rollback expectation, and deterministic allow, hold, deny, or kill-session decision before an agent can store or reuse state across runs.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, IAM, GRC, privacy, security operations, procurement security, vendor-risk, and acquisition diligence teams",
+    "category": "Agent memory governance and persistent-state boundary for secure context",
+    "enterprise_promise": "SecurityRecipes can tell an agent what it may remember, which memories must stay tenant-side, which runtime writes require review, which memory classes are append-only evidence, and which attempted memories must kill the session.",
+    "why_now": "Agentic AI is moving from stateless chat into persistent workflows with project memory, vector stores, scratchpads, run receipts, skills, and MCP-backed state. Memory poisoning, cross-tenant leakage, stale policy replay, and hidden persistence are now enterprise control-plane risks rather than prompt-writing problems."
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Agent memory boundaries directly address memory and context poisoning, goal hijack, identity and privilege abuse, cascading failures, human-agent trust exploitation, and rogue-agent containment."
+    },
+    {
+      "id": "owasp-agent-memory-guard",
+      "name": "OWASP Agent Memory Guard",
+      "publisher": "OWASP Foundation",
+      "published": "2026",
+      "url": "https://owasp.org/www-project-agent-memory-guard/",
+      "coverage": "Runtime memory controls should use cryptographic baselines, declarative read/write policies, injection and leakage detection, snapshots, and rollback for persistent agent memory."
+    },
+    {
+      "id": "owasp-llm-top-10-2025",
+      "name": "OWASP Top 10 for LLM Applications 2025",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025",
+      "url": "https://genai.owasp.org/llm-top-10/",
+      "coverage": "Persistent memory controls reduce prompt injection, sensitive information disclosure, supply-chain, data poisoning, excessive agency, vector weakness, misinformation, and unbounded consumption risks."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization 2025-11-25",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Memory-bound MCP operations need resource indicators, token audience validation, PKCE, consent, HTTPS, and a hard ban on token passthrough."
+    },
+    {
+      "id": "mcp-security-best-practices-current",
+      "name": "Model Context Protocol Security Best Practices",
+      "publisher": "Model Context Protocol",
+      "published": "2025",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
+      "coverage": "Memory-aware MCP servers need confused-deputy prevention, token-passthrough avoidance, session safety, local server controls, scope minimization, and auditability."
+    },
+    {
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework 1.0",
+      "publisher": "NIST",
+      "published": "2023-01-26",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "coverage": "Persistent agent memory must be governed, mapped, measured, and managed across the AI system lifecycle."
+    },
+    {
+      "id": "nist-ai-critical-infrastructure-profile-concept-2026",
+      "name": "NIST AI RMF Profile for Trustworthy AI in Critical Infrastructure concept note",
+      "publisher": "NIST",
+      "published": "2026-04-06",
+      "url": "https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure",
+      "coverage": "Critical-infrastructure operators need actionable trustworthiness requirements for AI agents, tested guardrails, auditability, and lifecycle risk communication."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "publisher": "NIST",
+      "published": "2024-07-26",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Memory boundaries support provenance, data integrity, third-party risk, monitoring, measurement, incident response, and operational lifecycle control."
+    },
+    {
+      "id": "cisa-ai-data-security-2025",
+      "name": "AI Data Security: Best Practices for Securing Data Used to Train and Operate AI Systems",
+      "publisher": "CISA, NSA, FBI, and international partners",
+      "published": "2025-05-22",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "coverage": "Agent memory should inherit data provenance, integrity, access control, monitoring, retention, and incident-evidence requirements."
+    }
+  ],
+  "memory_decision_contract": {
+    "default_decision": "hold_for_memory_admission_review",
+    "runtime_attributes": [
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "memory_class_id",
+      "operation",
+      "tenant_id",
+      "source_id",
+      "provenance_hash",
+      "requested_ttl_days",
+      "contains_secret",
+      "contains_unredacted_pii",
+      "human_approval_record",
+      "runtime_kill_signal"
+    ],
+    "decisions": [
+      {
+        "decision": "allow_ephemeral_memory",
+        "meaning": "The agent may use short-lived scratchpad state that is deleted at run closure and never replayed across runs."
+      },
+      {
+        "decision": "allow_append_only_evidence_memory",
+        "meaning": "The agent may append non-secret run evidence to an immutable receipt or audit stream with provenance and retention metadata."
+      },
+      {
+        "decision": "allow_readonly_policy_memory",
+        "meaning": "The agent may read source-controlled policy, workflow, or evidence memory but may not mutate it at runtime."
+      },
+      {
+        "decision": "hold_for_tenant_memory_boundary",
+        "meaning": "The memory may be read or written only inside a tenant-controlled boundary with redaction, audit, and approval where required."
+      },
+      {
+        "decision": "hold_for_memory_admission_review",
+        "meaning": "The memory class, write request, TTL, provenance, or data classification needs review before persistence."
+      },
+      {
+        "decision": "deny_runtime_memory_write",
+        "meaning": "Runtime writes are not allowed for this memory class or operation."
+      },
+      {
+        "decision": "deny_cross_tenant_memory",
+        "meaning": "The request lacks tenant isolation or would reuse memory across tenant, model-provider, or customer boundaries."
+      },
+      {
+        "decision": "kill_session_on_prohibited_memory",
+        "meaning": "The agent attempted to store or replay secrets, signing material, raw tokens, unrestricted PII, or another prohibited memory class."
+      }
+    ],
+    "global_rules": [
+      "Memory is data, not authority; system, developer, gateway, and human-review policy always outrank remembered content.",
+      "Every persistent memory write requires source, timestamp, actor, workflow, tenant boundary, TTL, provenance hash, and deletion path.",
+      "Project memory, vector memory, and tool-result summaries must pass poisoning and DLP checks before persistence.",
+      "Customer runtime memory stays tenant-side and must never be embedded in the open public corpus.",
+      "Memory that changes permissions, reviewers, owners, tool scopes, or approval policy is denied unless it is source-controlled policy reviewed through normal change control.",
+      "Secrets, private keys, signing material, raw access tokens, seed phrases, and unrestricted personal data are prohibited memory targets."
+    ],
+    "prohibited_data_classes": [
+      "private_key",
+      "seed_phrase",
+      "live_signing_material",
+      "raw_access_token",
+      "production_credential",
+      "unredacted_pii_bulk",
+      "unrestricted_customer_log",
+      "approval_bypass_instruction",
+      "tool_scope_escalation_instruction"
+    ]
+  },
+  "memory_classes": [
+    {
+      "id": "ephemeral-scratchpad",
+      "title": "Ephemeral Scratchpad",
+      "kind": "volatile_runtime_state",
+      "trust_tier": "run_local",
+      "exposure": "tenant",
+      "persistent": false,
+      "append_only": false,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": false,
+      "human_approval_required": false,
+      "provenance_hash_required": false,
+      "ttl_days": 1,
+      "max_ttl_days": 1,
+      "default_decision": "allow_ephemeral_memory",
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete"
+      ],
+      "allowed_data_classes": [
+        "task_state",
+        "non_sensitive_working_notes",
+        "transient_plan"
+      ],
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk"
+      ],
+      "required_controls": [
+        "run_scope_bound",
+        "deleted_at_run_close",
+        "no_cross_run_replay",
+        "poisoning_scan_before_promotion",
+        "egress_policy_applies"
+      ],
+      "write_controls": [
+        "Allow only within the current run and current workflow.",
+        "Do not use scratchpad content as policy or approval evidence.",
+        "Delete on run closure, kill signal, or tenant boundary change."
+      ],
+      "evidence_required": [
+        "run_id",
+        "workflow_id",
+        "agent_id",
+        "deletion_event"
+      ],
+      "rollback_required": false,
+      "risk_families": [
+        "prompt_injection",
+        "stale_context",
+        "memory_poisoning",
+        "over_retrieval"
+      ]
+    },
+    {
+      "id": "run-receipt-evidence",
+      "title": "Run Receipt Evidence Memory",
+      "kind": "append_only_evidence",
+      "trust_tier": "evidence_context",
+      "exposure": "tenant",
+      "persistent": true,
+      "append_only": true,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "human_approval_required": false,
+      "provenance_hash_required": true,
+      "ttl_days": 400,
+      "max_ttl_days": 400,
+      "default_decision": "allow_append_only_evidence_memory",
+      "allowed_operations": [
+        "read",
+        "write"
+      ],
+      "allowed_data_classes": [
+        "run_metadata",
+        "tool_decision_metadata",
+        "context_retrieval_metadata",
+        "approval_metadata",
+        "verifier_metadata",
+        "evidence_hash"
+      ],
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk"
+      ],
+      "required_controls": [
+        "append_only",
+        "provenance_hash",
+        "tenant_bound",
+        "retention_declared",
+        "source_hash_recorded",
+        "redaction_required",
+        "audit_logged"
+      ],
+      "write_controls": [
+        "Allow append-only evidence events with source, actor, run, workflow, and hash metadata.",
+        "Reject raw secrets and full transcripts unless redacted and approved by the tenant.",
+        "Seal receipt envelope after run closure."
+      ],
+      "evidence_required": [
+        "receipt_id",
+        "provenance_hash",
+        "tenant_id",
+        "retention_days",
+        "source_artifact_hash"
+      ],
+      "rollback_required": false,
+      "risk_families": [
+        "memory_poisoning",
+        "policy_drift",
+        "secret_exposure",
+        "stale_context"
+      ]
+    },
+    {
+      "id": "workflow-policy-memory",
+      "title": "Workflow Policy Memory",
+      "kind": "source_controlled_policy",
+      "trust_tier": "policy_context",
+      "exposure": "public",
+      "persistent": true,
+      "append_only": false,
+      "runtime_writes_allowed": false,
+      "tenant_id_required": false,
+      "human_approval_required": true,
+      "provenance_hash_required": true,
+      "ttl_days": 30,
+      "max_ttl_days": 30,
+      "default_decision": "allow_readonly_policy_memory",
+      "allowed_operations": [
+        "read"
+      ],
+      "allowed_data_classes": [
+        "workflow_policy",
+        "gateway_policy",
+        "connector_policy",
+        "context_policy",
+        "risk_model"
+      ],
+      "denied_data_classes": [
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction",
+        "raw_access_token"
+      ],
+      "required_controls": [
+        "source_controlled",
+        "review_required",
+        "schema_validation",
+        "hash_recorded",
+        "ci_drift_check",
+        "runtime_policy_binding"
+      ],
+      "write_controls": [
+        "Deny runtime writes to policy memory.",
+        "Require source review and generator validation for policy changes.",
+        "Regenerate dependent packs before new policy memory becomes current."
+      ],
+      "evidence_required": [
+        "source_path",
+        "source_hash",
+        "review_record",
+        "generator_check"
+      ],
+      "rollback_required": true,
+      "risk_families": [
+        "memory_poisoning",
+        "policy_drift",
+        "tool_result_injection",
+        "untrusted_source_confusion"
+      ]
+    },
+    {
+      "id": "user-preference-memory",
+      "title": "User Preference Memory",
+      "kind": "tenant_user_state",
+      "trust_tier": "customer_runtime_context",
+      "exposure": "tenant",
+      "persistent": true,
+      "append_only": false,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "human_approval_required": true,
+      "provenance_hash_required": true,
+      "ttl_days": 90,
+      "max_ttl_days": 90,
+      "default_decision": "hold_for_tenant_memory_boundary",
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete"
+      ],
+      "allowed_data_classes": [
+        "workflow_preference",
+        "reviewer_preference",
+        "notification_preference",
+        "non_sensitive_user_context"
+      ],
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction"
+      ],
+      "required_controls": [
+        "tenant_bound",
+        "user_visible",
+        "delete_supported",
+        "consent_recorded",
+        "redaction_required",
+        "poisoning_scan",
+        "audit_logged"
+      ],
+      "write_controls": [
+        "Hold new persistent preferences until tenant controls and deletion path are confirmed.",
+        "Deny preferences that change approval requirements, tool scopes, owners, or security policy.",
+        "Require a user-visible delete or reset path."
+      ],
+      "evidence_required": [
+        "tenant_id",
+        "user_or_delegate_id",
+        "consent_record_id",
+        "provenance_hash",
+        "delete_path"
+      ],
+      "rollback_required": true,
+      "risk_families": [
+        "memory_poisoning",
+        "secret_exposure",
+        "human_agent_trust_exploitation",
+        "stale_context"
+      ]
+    },
+    {
+      "id": "customer-runtime-memory",
+      "title": "Customer Runtime Memory",
+      "kind": "tenant_operational_state",
+      "trust_tier": "customer_runtime_context",
+      "exposure": "tenant",
+      "persistent": true,
+      "append_only": false,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "human_approval_required": true,
+      "provenance_hash_required": true,
+      "ttl_days": 30,
+      "max_ttl_days": 30,
+      "default_decision": "hold_for_tenant_memory_boundary",
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete"
+      ],
+      "allowed_data_classes": [
+        "finding_summary",
+        "ticket_summary",
+        "repository_summary",
+        "scanner_summary",
+        "redacted_log_summary"
+      ],
+      "denied_data_classes": [
+        "private_key",
+        "seed_phrase",
+        "live_signing_material",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk",
+        "unrestricted_customer_log"
+      ],
+      "required_controls": [
+        "tenant_isolated",
+        "least_privilege_scope",
+        "audit_logged",
+        "redaction_required",
+        "retention_declared",
+        "poisoning_scan",
+        "rollback_supported",
+        "human_approval_on_sensitive_context"
+      ],
+      "write_controls": [
+        "Hold for tenant gateway, redaction, source provenance, and approval when sensitive.",
+        "Deny cross-tenant replay or export to public context.",
+        "Snapshot before mutation and support rollback to known-good state."
+      ],
+      "evidence_required": [
+        "tenant_id",
+        "source_id",
+        "provenance_hash",
+        "redaction_record",
+        "snapshot_id",
+        "rollback_path"
+      ],
+      "rollback_required": true,
+      "risk_families": [
+        "memory_poisoning",
+        "context_poisoning",
+        "secret_exposure",
+        "cross_tenant_leakage",
+        "stale_context"
+      ]
+    },
+    {
+      "id": "vector-embedding-memory",
+      "title": "Vector and Embedding Memory",
+      "kind": "retrieval_index_state",
+      "trust_tier": "customer_runtime_context",
+      "exposure": "tenant",
+      "persistent": true,
+      "append_only": false,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "human_approval_required": true,
+      "provenance_hash_required": true,
+      "ttl_days": 30,
+      "max_ttl_days": 30,
+      "default_decision": "hold_for_memory_admission_review",
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete",
+        "reindex"
+      ],
+      "allowed_data_classes": [
+        "redacted_context_chunk",
+        "retrieval_metadata",
+        "source_citation",
+        "embedding_index_metadata"
+      ],
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk",
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction"
+      ],
+      "required_controls": [
+        "tenant_isolated",
+        "source_hash_recorded",
+        "chunk_provenance",
+        "poisoning_scan",
+        "redaction_required",
+        "reindex_on_source_change",
+        "delete_supported",
+        "retrieval_eval_required"
+      ],
+      "write_controls": [
+        "Hold new embedding writes until source provenance, redaction, and poisoning scan pass.",
+        "Reindex on source hash changes or owner recertification failures.",
+        "Prevent embedding lookup from returning cross-tenant or unregistered context."
+      ],
+      "evidence_required": [
+        "tenant_id",
+        "source_id",
+        "source_hash",
+        "chunk_manifest_hash",
+        "retrieval_eval_id"
+      ],
+      "rollback_required": true,
+      "risk_families": [
+        "memory_poisoning",
+        "vector_embedding_weakness",
+        "over_retrieval",
+        "cross_tenant_leakage",
+        "stale_context"
+      ]
+    },
+    {
+      "id": "prohibited-memory",
+      "title": "Prohibited Memory",
+      "kind": "forbidden_persistence_target",
+      "trust_tier": "prohibited_context",
+      "exposure": "prohibited",
+      "persistent": false,
+      "append_only": false,
+      "runtime_writes_allowed": false,
+      "tenant_id_required": false,
+      "human_approval_required": false,
+      "provenance_hash_required": false,
+      "ttl_days": 0,
+      "max_ttl_days": 0,
+      "default_decision": "kill_session_on_prohibited_memory",
+      "allowed_operations": [],
+      "allowed_data_classes": [],
+      "denied_data_classes": [
+        "private_key",
+        "seed_phrase",
+        "live_signing_material",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk",
+        "unrestricted_customer_log",
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction"
+      ],
+      "required_controls": [
+        "deny_persistence",
+        "kill_session_on_access_attempt",
+        "incident_evidence_required",
+        "credential_rotation_review"
+      ],
+      "write_controls": [
+        "Kill the session when an agent attempts to persist prohibited data.",
+        "Create incident evidence and route to security operations.",
+        "Trigger credential rotation review for credential-like material."
+      ],
+      "evidence_required": [
+        "incident_id",
+        "agent_id",
+        "run_id",
+        "workflow_id",
+        "data_class",
+        "containment_action"
+      ],
+      "rollback_required": true,
+      "risk_families": [
+        "secret_exposure",
+        "memory_poisoning",
+        "identity_privilege_abuse",
+        "rogue_agent"
+      ]
+    }
+  ],
+  "workflow_memory_defaults": {
+    "default_memory_class_ids": [
+      "ephemeral-scratchpad",
+      "run-receipt-evidence",
+      "workflow-policy-memory",
+      "customer-runtime-memory",
+      "vector-embedding-memory",
+      "prohibited-memory"
+    ],
+    "minimum_evidence_records_per_workflow": 3,
+    "required_profile_controls": [
+      "memory_class_declared",
+      "tenant_boundary_declared",
+      "ttl_declared",
+      "poisoning_scan_declared",
+      "provenance_hash_declared",
+      "delete_or_rollback_path_declared"
+    ],
+    "manual_review_required_for": [
+      "new persistent memory class",
+      "memory TTL extension",
+      "cross-run replay",
+      "cross-tenant retrieval",
+      "write access to policy memory",
+      "embedding index promotion",
+      "user preference that changes approval or tool scope",
+      "customer runtime context export"
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes governs agent memory as a first-class attack surface, not an invisible side effect of agent orchestration.",
+    "default_questions_answered": [
+      "What can an agent remember after the run ends?",
+      "Which memory classes are append-only, read-only, tenant-bound, or prohibited?",
+      "Which memory writes require human approval, provenance, redaction, or rollback?",
+      "How are memory poisoning, stale replay, vector weakness, and cross-tenant leakage handled?",
+      "Which workflow profiles can be exposed through MCP for runtime memory decisions?"
+    ],
+    "recommended_first_use": "Attach this pack to AI platform intake, MCP server approval, agent memory store design review, privacy review, and quarterly persistent-memory recertification.",
+    "sales_motion": "Lead with open memory policy and runtime evaluators, then sell hosted memory admission, provenance signing, poisoning alerts, rollback evidence, SIEM exports, and tenant trust-center reports."
+  }
+}

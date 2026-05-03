@@ -138,6 +138,8 @@ evidence that justifies them.
 
 - [Agentic Assurance Pack]({{< relref "/security-remediation/agentic-assurance-pack" >}})
   - the buyer and auditor control narrative.
+- [Agent Capability Risk Register]({{< relref "/security-remediation/agent-capability-risk-register" >}})
+  - the capability and residual-risk view before MCP access expands.
 - [Agentic Red-Team Drill Pack]({{< relref "/security-remediation/agentic-red-team-drills" >}})
   - the adversarial eval layer.
 - [Agent Identity & Delegation Ledger]({{< relref "/security-remediation/agent-identity-ledger" >}})

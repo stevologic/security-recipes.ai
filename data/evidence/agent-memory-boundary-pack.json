@@ -1,0 +1,1464 @@
+{
+  "agent_memory_boundary_summary": {
+    "allow_class_count": 3,
+    "decision_counts": {
+      "allow_append_only_evidence_memory": 1,
+      "allow_ephemeral_memory": 1,
+      "allow_readonly_policy_memory": 1,
+      "hold_for_memory_admission_review": 1,
+      "hold_for_tenant_memory_boundary": 2,
+      "kill_session_on_prohibited_memory": 1
+    },
+    "failure_count": 0,
+    "hold_class_count": 3,
+    "kill_class_count": 1,
+    "memory_class_count": 7,
+    "memory_kind_counts": {
+      "append_only_evidence": 1,
+      "forbidden_persistence_target": 1,
+      "retrieval_index_state": 1,
+      "source_controlled_policy": 1,
+      "tenant_operational_state": 1,
+      "tenant_user_state": 1,
+      "volatile_runtime_state": 1
+    },
+    "persistent_class_count": 5,
+    "prohibited_data_class_count": 9,
+    "risk_family_counts": {
+      "context_poisoning": 1,
+      "cross_tenant_leakage": 2,
+      "human_agent_trust_exploitation": 1,
+      "identity_privilege_abuse": 1,
+      "memory_poisoning": 7,
+      "over_retrieval": 2,
+      "policy_drift": 2,
+      "prompt_injection": 1,
+      "rogue_agent": 1,
+      "secret_exposure": 4,
+      "stale_context": 5,
+      "tool_result_injection": 1,
+      "untrusted_source_confusion": 1,
+      "vector_embedding_weakness": 1
+    },
+    "workflow_profile_count": 8
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes governs agent memory as a first-class attack surface, not an invisible side effect of agent orchestration.",
+    "default_questions_answered": [
+      "What can an agent remember after the run ends?",
+      "Which memory classes are append-only, read-only, tenant-bound, or prohibited?",
+      "Which memory writes require human approval, provenance, redaction, or rollback?",
+      "How are memory poisoning, stale replay, vector weakness, and cross-tenant leakage handled?",
+      "Which workflow profiles can be exposed through MCP for runtime memory decisions?"
+    ],
+    "recommended_first_use": "Attach this pack to AI platform intake, MCP server approval, agent memory store design review, privacy review, and quarterly persistent-memory recertification.",
+    "sales_motion": "Lead with open memory policy and runtime evaluators, then sell hosted memory admission, provenance signing, poisoning alerts, rollback evidence, SIEM exports, and tenant trust-center reports."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define the SecurityRecipes agent memory boundary for enterprise agentic remediation: every persistent or replayable memory surface must have a declared class, owner, tenant boundary, TTL, write rule, provenance requirement, poisoning control, rollback expectation, and deterministic allow, hold, deny, or kill-session decision before an agent can store or reuse state across runs.",
+  "memory_classes": [
+    {
+      "allowed_data_classes": [
+        "task_state",
+        "non_sensitive_working_notes",
+        "transient_plan"
+      ],
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete"
+      ],
+      "append_only": false,
+      "default_decision": "allow_ephemeral_memory",
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk"
+      ],
+      "evidence_required": [
+        "run_id",
+        "workflow_id",
+        "agent_id",
+        "deletion_event"
+      ],
+      "exposure": "tenant",
+      "human_approval_required": false,
+      "id": "ephemeral-scratchpad",
+      "kind": "volatile_runtime_state",
+      "max_ttl_days": 1,
+      "persistent": false,
+      "provenance_hash_required": false,
+      "required_controls": [
+        "run_scope_bound",
+        "deleted_at_run_close",
+        "no_cross_run_replay",
+        "poisoning_scan_before_promotion",
+        "egress_policy_applies"
+      ],
+      "risk_families": [
+        "prompt_injection",
+        "stale_context",
+        "memory_poisoning",
+        "over_retrieval"
+      ],
+      "rollback_required": false,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": false,
+      "title": "Ephemeral Scratchpad",
+      "trust_tier": "run_local",
+      "ttl_days": 1,
+      "write_controls": [
+        "Allow only within the current run and current workflow.",
+        "Do not use scratchpad content as policy or approval evidence.",
+        "Delete on run closure, kill signal, or tenant boundary change."
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "run_metadata",
+        "tool_decision_metadata",
+        "context_retrieval_metadata",
+        "approval_metadata",
+        "verifier_metadata",
+        "evidence_hash"
+      ],
+      "allowed_operations": [
+        "read",
+        "write"
+      ],
+      "append_only": true,
+      "default_decision": "allow_append_only_evidence_memory",
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk"
+      ],
+      "evidence_required": [
+        "receipt_id",
+        "provenance_hash",
+        "tenant_id",
+        "retention_days",
+        "source_artifact_hash"
+      ],
+      "exposure": "tenant",
+      "human_approval_required": false,
+      "id": "run-receipt-evidence",
+      "kind": "append_only_evidence",
+      "max_ttl_days": 400,
+      "persistent": true,
+      "provenance_hash_required": true,
+      "required_controls": [
+        "append_only",
+        "provenance_hash",
+        "tenant_bound",
+        "retention_declared",
+        "source_hash_recorded",
+        "redaction_required",
+        "audit_logged"
+      ],
+      "risk_families": [
+        "memory_poisoning",
+        "policy_drift",
+        "secret_exposure",
+        "stale_context"
+      ],
+      "rollback_required": false,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "title": "Run Receipt Evidence Memory",
+      "trust_tier": "evidence_context",
+      "ttl_days": 400,
+      "write_controls": [
+        "Allow append-only evidence events with source, actor, run, workflow, and hash metadata.",
+        "Reject raw secrets and full transcripts unless redacted and approved by the tenant.",
+        "Seal receipt envelope after run closure."
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "workflow_policy",
+        "gateway_policy",
+        "connector_policy",
+        "context_policy",
+        "risk_model"
+      ],
+      "allowed_operations": [
+        "read"
+      ],
+      "append_only": false,
+      "default_decision": "allow_readonly_policy_memory",
+      "denied_data_classes": [
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction",
+        "raw_access_token"
+      ],
+      "evidence_required": [
+        "source_path",
+        "source_hash",
+        "review_record",
+        "generator_check"
+      ],
+      "exposure": "public",
+      "human_approval_required": true,
+      "id": "workflow-policy-memory",
+      "kind": "source_controlled_policy",
+      "max_ttl_days": 30,
+      "persistent": true,
+      "provenance_hash_required": true,
+      "required_controls": [
+        "source_controlled",
+        "review_required",
+        "schema_validation",
+        "hash_recorded",
+        "ci_drift_check",
+        "runtime_policy_binding"
+      ],
+      "risk_families": [
+        "memory_poisoning",
+        "policy_drift",
+        "tool_result_injection",
+        "untrusted_source_confusion"
+      ],
+      "rollback_required": true,
+      "runtime_writes_allowed": false,
+      "tenant_id_required": false,
+      "title": "Workflow Policy Memory",
+      "trust_tier": "policy_context",
+      "ttl_days": 30,
+      "write_controls": [
+        "Deny runtime writes to policy memory.",
+        "Require source review and generator validation for policy changes.",
+        "Regenerate dependent packs before new policy memory becomes current."
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "workflow_preference",
+        "reviewer_preference",
+        "notification_preference",
+        "non_sensitive_user_context"
+      ],
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete"
+      ],
+      "append_only": false,
+      "default_decision": "hold_for_tenant_memory_boundary",
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction"
+      ],
+      "evidence_required": [
+        "tenant_id",
+        "user_or_delegate_id",
+        "consent_record_id",
+        "provenance_hash",
+        "delete_path"
+      ],
+      "exposure": "tenant",
+      "human_approval_required": true,
+      "id": "user-preference-memory",
+      "kind": "tenant_user_state",
+      "max_ttl_days": 90,
+      "persistent": true,
+      "provenance_hash_required": true,
+      "required_controls": [
+        "tenant_bound",
+        "user_visible",
+        "delete_supported",
+        "consent_recorded",
+        "redaction_required",
+        "poisoning_scan",
+        "audit_logged"
+      ],
+      "risk_families": [
+        "memory_poisoning",
+        "secret_exposure",
+        "human_agent_trust_exploitation",
+        "stale_context"
+      ],
+      "rollback_required": true,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "title": "User Preference Memory",
+      "trust_tier": "customer_runtime_context",
+      "ttl_days": 90,
+      "write_controls": [
+        "Hold new persistent preferences until tenant controls and deletion path are confirmed.",
+        "Deny preferences that change approval requirements, tool scopes, owners, or security policy.",
+        "Require a user-visible delete or reset path."
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "finding_summary",
+        "ticket_summary",
+        "repository_summary",
+        "scanner_summary",
+        "redacted_log_summary"
+      ],
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete"
+      ],
+      "append_only": false,
+      "default_decision": "hold_for_tenant_memory_boundary",
+      "denied_data_classes": [
+        "private_key",
+        "seed_phrase",
+        "live_signing_material",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk",
+        "unrestricted_customer_log"
+      ],
+      "evidence_required": [
+        "tenant_id",
+        "source_id",
+        "provenance_hash",
+        "redaction_record",
+        "snapshot_id",
+        "rollback_path"
+      ],
+      "exposure": "tenant",
+      "human_approval_required": true,
+      "id": "customer-runtime-memory",
+      "kind": "tenant_operational_state",
+      "max_ttl_days": 30,
+      "persistent": true,
+      "provenance_hash_required": true,
+      "required_controls": [
+        "tenant_isolated",
+        "least_privilege_scope",
+        "audit_logged",
+        "redaction_required",
+        "retention_declared",
+        "poisoning_scan",
+        "rollback_supported",
+        "human_approval_on_sensitive_context"
+      ],
+      "risk_families": [
+        "memory_poisoning",
+        "context_poisoning",
+        "secret_exposure",
+        "cross_tenant_leakage",
+        "stale_context"
+      ],
+      "rollback_required": true,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "title": "Customer Runtime Memory",
+      "trust_tier": "customer_runtime_context",
+      "ttl_days": 30,
+      "write_controls": [
+        "Hold for tenant gateway, redaction, source provenance, and approval when sensitive.",
+        "Deny cross-tenant replay or export to public context.",
+        "Snapshot before mutation and support rollback to known-good state."
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "redacted_context_chunk",
+        "retrieval_metadata",
+        "source_citation",
+        "embedding_index_metadata"
+      ],
+      "allowed_operations": [
+        "read",
+        "write",
+        "delete",
+        "reindex"
+      ],
+      "append_only": false,
+      "default_decision": "hold_for_memory_admission_review",
+      "denied_data_classes": [
+        "private_key",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk",
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction"
+      ],
+      "evidence_required": [
+        "tenant_id",
+        "source_id",
+        "source_hash",
+        "chunk_manifest_hash",
+        "retrieval_eval_id"
+      ],
+      "exposure": "tenant",
+      "human_approval_required": true,
+      "id": "vector-embedding-memory",
+      "kind": "retrieval_index_state",
+      "max_ttl_days": 30,
+      "persistent": true,
+      "provenance_hash_required": true,
+      "required_controls": [
+        "tenant_isolated",
+        "source_hash_recorded",
+        "chunk_provenance",
+        "poisoning_scan",
+        "redaction_required",
+        "reindex_on_source_change",
+        "delete_supported",
+        "retrieval_eval_required"
+      ],
+      "risk_families": [
+        "memory_poisoning",
+        "vector_embedding_weakness",
+        "over_retrieval",
+        "cross_tenant_leakage",
+        "stale_context"
+      ],
+      "rollback_required": true,
+      "runtime_writes_allowed": true,
+      "tenant_id_required": true,
+      "title": "Vector and Embedding Memory",
+      "trust_tier": "customer_runtime_context",
+      "ttl_days": 30,
+      "write_controls": [
+        "Hold new embedding writes until source provenance, redaction, and poisoning scan pass.",
+        "Reindex on source hash changes or owner recertification failures.",
+        "Prevent embedding lookup from returning cross-tenant or unregistered context."
+      ]
+    },
+    {
+      "allowed_data_classes": [],
+      "allowed_operations": [],
+      "append_only": false,
+      "default_decision": "kill_session_on_prohibited_memory",
+      "denied_data_classes": [
+        "private_key",
+        "seed_phrase",
+        "live_signing_material",
+        "raw_access_token",
+        "production_credential",
+        "unredacted_pii_bulk",
+        "unrestricted_customer_log",
+        "approval_bypass_instruction",
+        "tool_scope_escalation_instruction"
+      ],
+      "evidence_required": [
+        "incident_id",
+        "agent_id",
+        "run_id",
+        "workflow_id",
+        "data_class",
+        "containment_action"
+      ],
+      "exposure": "prohibited",
+      "human_approval_required": false,
+      "id": "prohibited-memory",
+      "kind": "forbidden_persistence_target",
+      "max_ttl_days": 0,
+      "persistent": false,
+      "provenance_hash_required": false,
+      "required_controls": [
+        "deny_persistence",
+        "kill_session_on_access_attempt",
+        "incident_evidence_required",
+        "credential_rotation_review"
+      ],
+      "risk_families": [
+        "secret_exposure",
+        "memory_poisoning",
+        "identity_privilege_abuse",
+        "rogue_agent"
+      ],
+      "rollback_required": true,
+      "runtime_writes_allowed": false,
+      "tenant_id_required": false,
+      "title": "Prohibited Memory",
+      "trust_tier": "prohibited_context",
+      "ttl_days": 0,
+      "write_controls": [
+        "Kill the session when an agent attempts to persist prohibited data.",
+        "Create incident evidence and route to security operations.",
+        "Trigger credential rotation review for credential-like material."
+      ]
+    }
+  ],
+  "memory_decision_contract": {
+    "decisions": [
+      {
+        "decision": "allow_ephemeral_memory",
+        "meaning": "The agent may use short-lived scratchpad state that is deleted at run closure and never replayed across runs."
+      },
+      {
+        "decision": "allow_append_only_evidence_memory",
+        "meaning": "The agent may append non-secret run evidence to an immutable receipt or audit stream with provenance and retention metadata."
+      },
+      {
+        "decision": "allow_readonly_policy_memory",
+        "meaning": "The agent may read source-controlled policy, workflow, or evidence memory but may not mutate it at runtime."
+      },
+      {
+        "decision": "hold_for_tenant_memory_boundary",
+        "meaning": "The memory may be read or written only inside a tenant-controlled boundary with redaction, audit, and approval where required."
+      },
+      {
+        "decision": "hold_for_memory_admission_review",
+        "meaning": "The memory class, write request, TTL, provenance, or data classification needs review before persistence."
+      },
+      {
+        "decision": "deny_runtime_memory_write",
+        "meaning": "Runtime writes are not allowed for this memory class or operation."
+      },
+      {
+        "decision": "deny_cross_tenant_memory",
+        "meaning": "The request lacks tenant isolation or would reuse memory across tenant, model-provider, or customer boundaries."
+      },
+      {
+        "decision": "kill_session_on_prohibited_memory",
+        "meaning": "The agent attempted to store or replay secrets, signing material, raw tokens, unrestricted PII, or another prohibited memory class."
+      }
+    ],
+    "default_decision": "hold_for_memory_admission_review",
+    "global_rules": [
+      "Memory is data, not authority; system, developer, gateway, and human-review policy always outrank remembered content.",
+      "Every persistent memory write requires source, timestamp, actor, workflow, tenant boundary, TTL, provenance hash, and deletion path.",
+      "Project memory, vector memory, and tool-result summaries must pass poisoning and DLP checks before persistence.",
+      "Customer runtime memory stays tenant-side and must never be embedded in the open public corpus.",
+      "Memory that changes permissions, reviewers, owners, tool scopes, or approval policy is denied unless it is source-controlled policy reviewed through normal change control.",
+      "Secrets, private keys, signing material, raw access tokens, seed phrases, and unrestricted personal data are prohibited memory targets."
+    ],
+    "prohibited_data_classes": [
+      "private_key",
+      "seed_phrase",
+      "live_signing_material",
+      "raw_access_token",
+      "production_credential",
+      "unredacted_pii_bulk",
+      "unrestricted_customer_log",
+      "approval_bypass_instruction",
+      "tool_scope_escalation_instruction"
+    ],
+    "runtime_attributes": [
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "memory_class_id",
+      "operation",
+      "tenant_id",
+      "source_id",
+      "provenance_hash",
+      "requested_ttl_days",
+      "contains_secret",
+      "contains_unredacted_pii",
+      "human_approval_record",
+      "runtime_kill_signal"
+    ]
+  },
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, IAM, GRC, privacy, security operations, procurement security, vendor-risk, and acquisition diligence teams",
+    "category": "Agent memory governance and persistent-state boundary for secure context",
+    "enterprise_promise": "SecurityRecipes can tell an agent what it may remember, which memories must stay tenant-side, which runtime writes require review, which memory classes are append-only evidence, and which attempted memories must kill the session.",
+    "why_now": "Agentic AI is moving from stateless chat into persistent workflows with project memory, vector stores, scratchpads, run receipts, skills, and MCP-backed state. Memory poisoning, cross-tenant leakage, stale policy replay, and hidden persistence are now enterprise control-plane risks rather than prompt-writing problems."
+  },
+  "residual_risks": [
+    {
+      "risk": "Memory controls do not prove every downstream agent framework enforces them.",
+      "treatment": "Deploying organizations must bind the pack to an MCP gateway, memory middleware, or agent host that can enforce read, write, delete, and replay decisions."
+    },
+    {
+      "risk": "Cryptographic hashes prove memory provenance, not semantic truth.",
+      "treatment": "Persistent memories still require poisoning scans, source recertification, verifier evidence, and rollback paths."
+    },
+    {
+      "risk": "Tenant-specific memory policy is customer-specific.",
+      "treatment": "Customer memory stores must supply tenant IDs, retention, DLP, approval, and deletion evidence before persistence is allowed."
+    }
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "agent_memory_boundary_model": {
+      "path": "data/assurance/agent-memory-boundary-model.json",
+      "sha256": "f92d066a1104c726be1caadd0db68d39681c50d1658504484d7a158c77fabff7"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Agent memory boundaries directly address memory and context poisoning, goal hijack, identity and privilege abuse, cascading failures, human-agent trust exploitation, and rogue-agent containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "published": "2025-12-09",
+      "publisher": "OWASP GenAI Security Project",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Runtime memory controls should use cryptographic baselines, declarative read/write policies, injection and leakage detection, snapshots, and rollback for persistent agent memory.",
+      "id": "owasp-agent-memory-guard",
+      "name": "OWASP Agent Memory Guard",
+      "published": "2026",
+      "publisher": "OWASP Foundation",
+      "url": "https://owasp.org/www-project-agent-memory-guard/"
+    },
+    {
+      "coverage": "Persistent memory controls reduce prompt injection, sensitive information disclosure, supply-chain, data poisoning, excessive agency, vector weakness, misinformation, and unbounded consumption risks.",
+      "id": "owasp-llm-top-10-2025",
+      "name": "OWASP Top 10 for LLM Applications 2025",
+      "published": "2025",
+      "publisher": "OWASP GenAI Security Project",
+      "url": "https://genai.owasp.org/llm-top-10/"
+    },
+    {
+      "coverage": "Memory-bound MCP operations need resource indicators, token audience validation, PKCE, consent, HTTPS, and a hard ban on token passthrough.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization 2025-11-25",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Memory-aware MCP servers need confused-deputy prevention, token-passthrough avoidance, session safety, local server controls, scope minimization, and auditability.",
+      "id": "mcp-security-best-practices-current",
+      "name": "Model Context Protocol Security Best Practices",
+      "published": "2025",
+      "publisher": "Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "Persistent agent memory must be governed, mapped, measured, and managed across the AI system lifecycle.",
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework 1.0",
+      "published": "2023-01-26",
+      "publisher": "NIST",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "coverage": "Critical-infrastructure operators need actionable trustworthiness requirements for AI agents, tested guardrails, auditability, and lifecycle risk communication.",
+      "id": "nist-ai-critical-infrastructure-profile-concept-2026",
+      "name": "NIST AI RMF Profile for Trustworthy AI in Critical Infrastructure concept note",
+      "published": "2026-04-06",
+      "publisher": "NIST",
+      "url": "https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure"
+    },
+    {
+      "coverage": "Memory boundaries support provenance, data integrity, third-party risk, monitoring, measurement, incident response, and operational lifecycle control.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "published": "2024-07-26",
+      "publisher": "NIST",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Agent memory should inherit data provenance, integrity, access control, monitoring, retention, and incident-evidence requirements.",
+      "id": "cisa-ai-data-security-2025",
+      "name": "AI Data Security: Best Practices for Securing Data Used to Train and Operate AI Systems",
+      "published": "2025-05-22",
+      "publisher": "CISA, NSA, FBI, and international partners",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems"
+    }
+  ],
+  "workflow_memory_defaults": {
+    "default_memory_class_ids": [
+      "ephemeral-scratchpad",
+      "run-receipt-evidence",
+      "workflow-policy-memory",
+      "customer-runtime-memory",
+      "vector-embedding-memory",
+      "prohibited-memory"
+    ],
+    "manual_review_required_for": [
+      "new persistent memory class",
+      "memory TTL extension",
+      "cross-run replay",
+      "cross-tenant retrieval",
+      "write access to policy memory",
+      "embedding index promotion",
+      "user preference that changes approval or tool scope",
+      "customer runtime context export"
+    ],
+    "minimum_evidence_records_per_workflow": 3,
+    "required_profile_controls": [
+      "memory_class_declared",
+      "tenant_boundary_declared",
+      "ttl_declared",
+      "poisoning_scan_declared",
+      "provenance_hash_declared",
+      "delete_or_rollback_path_declared"
+    ]
+  },
+  "workflow_memory_profiles": [
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "sde-scanner-before-after",
+          "owner": "Security Engineering",
+          "retention": "400d",
+          "source": "scanner SARIF or JSON"
+        },
+        {
+          "id": "sde-pr-review-record",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "source host review events"
+        },
+        {
+          "id": "sde-agent-tool-audit",
+          "owner": "AI Platform",
+          "retention": "400d",
+          "source": "MCP gateway audit log"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "walk",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "e1c2d75467a21c3a44a0a46043fd6662b774f374619b2073208ea4dbbef49dd0",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "findings.sde",
+          "purpose": "Read scanner finding metadata and data classification."
+        },
+        {
+          "access": "write_branch",
+          "memory_boundary": "tenant_bound",
+          "namespace": "repo.contents",
+          "purpose": "Patch scoped files on a remediation branch only."
+        },
+        {
+          "access": "write_ticket",
+          "memory_boundary": "tenant_bound",
+          "namespace": "tickets.security",
+          "purpose": "Open triage tickets when data ownership or redaction rules are unclear."
+        }
+      ],
+      "public_path": "/security-remediation/sensitive-data/",
+      "status": "active",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "dependency-advisory-record",
+          "owner": "Product Security",
+          "retention": "400d",
+          "source": "advisory feed or SCA platform"
+        },
+        {
+          "id": "dependency-resolver-log",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "CI artifact"
+        },
+        {
+          "id": "dependency-pr-review-record",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "source host review events"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "walk",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "ddce895e0928f8e5f83b18390e3fa15dded3ff97f7387aca67c1337ec18aa66d",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "advisories.vulnerability",
+          "purpose": "Read advisory ranges, severity, EPSS, and known-exploited status."
+        },
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "sbom.inventory",
+          "purpose": "Locate affected manifests, images, packages, and owners."
+        },
+        {
+          "access": "write_branch",
+          "memory_boundary": "tenant_bound",
+          "namespace": "repo.contents",
+          "purpose": "Patch manifests and lockfiles on remediation branch only."
+        }
+      ],
+      "public_path": "/security-remediation/vulnerable-dependencies/",
+      "status": "active",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "sast-rule-trace",
+          "owner": "Application Security",
+          "retention": "400d",
+          "source": "SAST SARIF"
+        },
+        {
+          "id": "sast-verifier-run",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "CI scanner artifact"
+        },
+        {
+          "id": "sast-pr-review-record",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "source host review events"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "crawl",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "729ad6eaf51f2534beb7ce8a53843155c5a36849518ecd5950d934daeb521769",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "findings.sast",
+          "purpose": "Read rule metadata, evidence path, sink/source trace, and severity."
+        },
+        {
+          "access": "write_branch",
+          "memory_boundary": "tenant_bound",
+          "namespace": "repo.contents",
+          "purpose": "Patch localized source and tests on remediation branch only."
+        },
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "ci.runs",
+          "purpose": "Read test and scanner re-run outcomes."
+        }
+      ],
+      "public_path": "/security-remediation/sast-findings/",
+      "status": "active",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "base-image-sbom-signature",
+          "owner": "Platform Security",
+          "retention": "400d",
+          "source": "registry attestation and cosign verification"
+        },
+        {
+          "id": "base-image-scan-before-after",
+          "owner": "Platform Security",
+          "retention": "400d",
+          "source": "Trivy, Grype, or commercial scanner"
+        },
+        {
+          "id": "base-image-rollout-record",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "deployment platform events"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "walk",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "aaa80862a0f97e2d1c2fb88a74cf5f602e393e22d29efb6f26b9fdd612b9913b",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "images.golden",
+          "purpose": "Read approved base-image catalog, signatures, SBOMs, and deprecation windows."
+        },
+        {
+          "access": "write_branch",
+          "memory_boundary": "tenant_bound",
+          "namespace": "repo.contents",
+          "purpose": "Patch Dockerfiles or image pin files on remediation branch only."
+        },
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "ci.runs",
+          "purpose": "Read build, scan, and signing verification results."
+        }
+      ],
+      "public_path": "/security-remediation/base-images/",
+      "status": "active",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "devin"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "artifact-identifier-record",
+          "owner": "Supply Chain Security",
+          "retention": "400d",
+          "source": "incident ticket and advisory"
+        },
+        {
+          "id": "artifact-quarantine-approval",
+          "owner": "Security Incident Response",
+          "retention": "400d",
+          "source": "MCP elicitation or change-management record"
+        },
+        {
+          "id": "artifact-post-purge-verification",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "registry and proxy audit logs"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "crawl",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "70f03ca2c0b80f6d0919a4ceb090329d295fc37fadadb3491bc447917f112c6b",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "inventory.artifacts",
+          "purpose": "Locate affected packages, images, hashes, mirrors, and consumers."
+        },
+        {
+          "access": "approval_required",
+          "memory_boundary": "tenant_bound",
+          "namespace": "registries.quarantine",
+          "purpose": "Stage quarantine or purge operations for human approval."
+        },
+        {
+          "access": "write_ticket",
+          "memory_boundary": "tenant_bound",
+          "namespace": "incidents.security",
+          "purpose": "Attach evidence and remediation links to incident record."
+        }
+      ],
+      "public_path": "/security-remediation/artifact-cache-purge/",
+      "status": "active",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "classic-default-rule-record",
+          "owner": "Application Security",
+          "retention": "400d",
+          "source": "SAST or custom scanner output"
+        },
+        {
+          "id": "classic-default-test-record",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "CI test artifact"
+        },
+        {
+          "id": "classic-default-review-record",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "source host review events"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "walk",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "b48b1cd032f519a4eab99292556bf141b052ce308433fe783cacde0e44db10e1",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "recipes.defaults",
+          "purpose": "Retrieve approved migration pattern for the vulnerable default."
+        },
+        {
+          "access": "write_branch",
+          "memory_boundary": "tenant_bound",
+          "namespace": "repo.contents",
+          "purpose": "Patch localized source and tests on remediation branch only."
+        },
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "ci.runs",
+          "purpose": "Read test and scanner outcomes."
+        }
+      ],
+      "public_path": "/security-remediation/classic-vulnerable-defaults/",
+      "status": "active",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "crypto-payment-simulation",
+          "owner": "Fintech Security",
+          "retention": "400d",
+          "source": "sandbox transaction simulation artifact"
+        },
+        {
+          "id": "crypto-payment-two-key-review",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "source host review events"
+        },
+        {
+          "id": "crypto-payment-agent-audit",
+          "owner": "AI Platform",
+          "retention": "400d",
+          "source": "MCP gateway audit log"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "crawl",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "671dd655d9040c591604427ff5b313fc443e45917e409fd1f3c1a4bc97b3c7f0",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "payments.findings",
+          "purpose": "Read payment-security finding details and affected service metadata."
+        },
+        {
+          "access": "write_branch",
+          "memory_boundary": "tenant_bound",
+          "namespace": "repo.contents",
+          "purpose": "Patch validation, policy, and test files on remediation branch only."
+        },
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "payments.simulation",
+          "purpose": "Run or read dry-run transaction simulation output."
+        }
+      ],
+      "public_path": "/security-remediation/crypto-payments/",
+      "status": "active",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor"
+      ],
+      "allowed_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory"
+      ],
+      "control_profile": {
+        "manual_review_required_for": [
+          "new persistent memory class",
+          "memory TTL extension",
+          "cross-run replay",
+          "cross-tenant retrieval",
+          "write access to policy memory",
+          "embedding index promotion",
+          "user preference that changes approval or tool scope",
+          "customer runtime context export"
+        ],
+        "required_profile_controls": [
+          "memory_class_declared",
+          "tenant_boundary_declared",
+          "ttl_declared",
+          "poisoning_scan_declared",
+          "provenance_hash_declared",
+          "delete_or_rollback_path_declared"
+        ]
+      },
+      "default_memory_class_ids": [
+        "ephemeral-scratchpad",
+        "run-receipt-evidence",
+        "workflow-policy-memory",
+        "customer-runtime-memory",
+        "vector-embedding-memory",
+        "prohibited-memory"
+      ],
+      "evidence_records": [
+        {
+          "id": "defi-fork-or-invariant-test",
+          "owner": "Protocol Security",
+          "retention": "400d",
+          "source": "Foundry, Hardhat, Echidna, or simulator artifact"
+        },
+        {
+          "id": "defi-two-key-review",
+          "owner": "Engineering Platform",
+          "retention": "400d",
+          "source": "source host review events"
+        },
+        {
+          "id": "defi-agent-tool-audit",
+          "owner": "AI Platform",
+          "retention": "400d",
+          "source": "MCP gateway audit log"
+        }
+      ],
+      "hold_memory_class_ids": [
+        "customer-runtime-memory",
+        "vector-embedding-memory"
+      ],
+      "kill_memory_class_ids": [
+        "prohibited-memory"
+      ],
+      "kill_signal_count": 3,
+      "maturity_stage": "crawl",
+      "memory_boundary_summary": "Ephemeral scratchpad is allowed; policy memory is read-only; run receipts are append-only; customer, preference, and vector memory hold for tenant controls; prohibited memory kills the session.",
+      "memory_profile_hash": "10cd83857ae5dd5e2757119e5ffd53f91bb4899d9d67e13dca51d6c181259989",
+      "namespace_memory_boundaries": [
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "protocol.findings",
+          "purpose": "Read protocol-security finding details, affected contract, and severity."
+        },
+        {
+          "access": "write_branch",
+          "memory_boundary": "tenant_bound",
+          "namespace": "repo.contents",
+          "purpose": "Patch contracts, policy docs, or tests on remediation branch only."
+        },
+        {
+          "access": "read",
+          "memory_boundary": "read_only_or_ephemeral",
+          "namespace": "chain.simulation",
+          "purpose": "Run or read fork-test and invariant-test outputs."
+        }
+      ],
+      "public_path": "/security-remediation/defi-blockchain/",
+      "status": "active",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    }
+  ]
+}

@@ -80,12 +80,16 @@ Second, it reads local generated packs from the filesystem:
 | MCP authorization conformance pack | `./data/evidence/mcp-authorization-conformance-pack.json` | `recipes_mcp_authorization_conformance_pack`, `recipes_evaluate_mcp_authorization_decision` |
 | Agentic red-team drill pack | `./data/evidence/agentic-red-team-drill-pack.json` | `recipes_agentic_red_team_drill_pack` |
 | Agentic readiness scorecard | `./data/evidence/agentic-readiness-scorecard.json` | `recipes_agentic_readiness_scorecard` |
+| Agent capability risk register | `./data/evidence/agent-capability-risk-register.json` | `recipes_agent_capability_risk_register` |
+| Agent memory boundary pack | `./data/evidence/agent-memory-boundary-pack.json` | `recipes_agent_memory_boundary_pack`, `recipes_evaluate_agent_memory_decision` |
+| Agent skill supply-chain pack | `./data/evidence/agent-skill-supply-chain-pack.json` | `recipes_agent_skill_supply_chain_pack`, `recipes_evaluate_agent_skill_decision` |
 | Agentic System BOM | `./data/evidence/agentic-system-bom.json` | `recipes_agentic_system_bom` |
 | Agentic run receipt pack | `./data/evidence/agentic-run-receipt-pack.json` | `recipes_agentic_run_receipt_pack` |
 | Secure context trust pack | `./data/evidence/secure-context-trust-pack.json` | `recipes_secure_context_trust_pack`, `recipes_evaluate_context_retrieval_decision` |
 | Context poisoning guard pack | `./data/evidence/context-poisoning-guard-pack.json` | `recipes_context_poisoning_guard_pack` |
 | Context egress boundary pack | `./data/evidence/context-egress-boundary-pack.json` | `recipes_context_egress_boundary_pack`, `recipes_evaluate_context_egress_decision` |
 | Agentic threat radar | `./data/evidence/agentic-threat-radar.json` | `recipes_agentic_threat_radar` |
+| Agentic measurement probe pack | `./data/evidence/agentic-measurement-probe-pack.json` | `recipes_agentic_measurement_probe_pack` |
 
 These packs are data artifacts, not live external connectors. For
 example, `recipes_mcp_connector_trust_pack` returns connector trust
@@ -117,6 +121,11 @@ listed in `README.mcp-localhost.md`.
 | `recipes_evaluate_mcp_authorization_decision` | `workflow_id`, `namespace`, `requested_access_mode`, plus optional connector, token, session, consent, and scope attributes | A deterministic allow, hold, deny, or kill-session decision before an MCP tool call is forwarded. |
 | `recipes_agentic_red_team_drill_pack` | Optional `scenario_id`, `workflow_id`, `attack_family` | Adversarial scenarios and workflow drills for agentic remediation and MCP control boundaries. |
 | `recipes_agentic_readiness_scorecard` | Optional `workflow_id`, `decision`, `minimum_score` | Scale, pilot, gate, or block decisions for workflows, including score summaries and next actions. |
+| `recipes_agent_capability_risk_register` | Optional `workflow_id`, `risk_tier`, `decision`, `minimum_residual_score` | Capability-based raw and residual risk tiers for workflows, including criticality, autonomy, MCP permissions, impact radius, control credits, and next actions. |
+| `recipes_agent_memory_boundary_pack` | Optional `memory_class_id`, `workflow_id`, `decision`, `persistent` | Agent memory classes, workflow profiles, TTLs, tenant boundaries, provenance requirements, rollback expectations, and persistence decisions. |
+| `recipes_evaluate_agent_memory_decision` | `workflow_id`, `memory_class_id`, `operation`, plus optional tenant, provenance, TTL, approval, data-class, and kill-signal attributes | A deterministic memory read, write, delete, replay, or reindex decision before agent state is stored or reused. |
+| `recipes_agent_skill_supply_chain_pack` | Optional `skill_id`, `platform`, `decision`, `risk_tier`, `minimum_score` | Agent skill provenance, publisher and registry trust, permissions, package hashes, version pinning, signatures, sandbox requirements, and install/run decisions. |
+| `recipes_evaluate_agent_skill_decision` | `skill_id`, `operation`, plus optional workflow, platform, package hash, publisher, registry, sandbox, requested permissions, egress, approval, and kill-signal attributes | A deterministic install, update, enable, or run decision before an agent skill, rules file, hook, or behavior package inherits agent authority. |
 | `recipes_agentic_system_bom` | Optional `component_type`, `workflow_id`, `agent_class`, `namespace` | The Agentic System BOM for workflows, agent classes, identities, MCP connectors, policies, evidence artifacts, knowledge sources, eval drills, and drift triggers. |
 | `recipes_agentic_run_receipt_pack` | Optional `workflow_id`, `receipt_id`, `minimum_score` | Agent run receipt templates for identity issuance, context retrieval, poisoning scans, MCP decisions, egress, approvals, verifier output, evidence, closure, and identity revocation. |
 | `recipes_secure_context_trust_pack` | Optional `source_id`, `workflow_id`, `trust_tier`, `decision` | Source provenance, trust tiers, source hashes, retrieval contracts, and workflow context packages for the secure context layer. |
@@ -125,6 +134,7 @@ listed in `README.mcp-localhost.md`.
 | `recipes_context_egress_boundary_pack` | Optional `data_class`, `destination_class`, `source_id`, `workflow_id` | Data-class, destination-class, source, and workflow egress policy for the secure context layer. |
 | `recipes_evaluate_context_egress_decision` | `workflow_id`, `destination_class`, plus optional `data_class`, `source_id`, `mcp_namespace`, tenant, residency, DPA, ZDR, and approval attributes | A deterministic allow, hold, deny, or kill-session decision before context leaves a tenant, model, MCP, telemetry, or public-corpus boundary. |
 | `recipes_agentic_threat_radar` | Optional `signal_id`, `priority`, `horizon`, `capability_id`, `minimum_score` | Current source-backed agentic AI and MCP threat signals, mapped product capabilities, buyer triggers, and roadmap priorities. |
+| `recipes_agentic_measurement_probe_pack` | Optional `probe_id`, `workflow_id`, `decision`, `class_id`, `status`, `minimum_score` | Measurement probes for context integrity, MCP authorization, identity, memory, egress, red-team replay, readiness, run receipts, and threat alignment. |
 
 ## Runtime Behavior
 
@@ -169,12 +179,16 @@ The main TOML fields are:
 | `authorization_conformance_pack_path` | Local path for the generated MCP authorization conformance pack. |
 | `red_team_drill_pack_path` | Local path for the generated agentic red-team drill pack. |
 | `readiness_scorecard_path` | Local path for the generated agentic readiness scorecard. |
+| `capability_risk_register_path` | Local path for the generated agent capability risk register. |
+| `agent_memory_boundary_pack_path` | Local path for the generated agent memory boundary pack. |
+| `agent_skill_supply_chain_pack_path` | Local path for the generated agent skill supply-chain pack. |
 | `agentic_system_bom_path` | Local path for the generated Agentic System BOM. |
 | `agentic_run_receipt_pack_path` | Local path for the generated agentic run receipt pack. |
 | `secure_context_trust_pack_path` | Local path for the generated secure context trust pack. |
 | `context_poisoning_guard_pack_path` | Local path for the generated context poisoning guard pack. |
 | `context_egress_boundary_pack_path` | Local path for the generated context egress boundary pack. |
 | `threat_radar_path` | Local path for the generated agentic threat radar. |
+| `measurement_probe_pack_path` | Local path for the generated agentic measurement probe pack. |
 | `cache_ttl_seconds` | In-memory recipe index cache lifetime. |
 | `request_timeout_seconds` | HTTP timeout for fetching the recipe index. |
 | `max_results_default` | Default result count for list and search tools. |
@@ -196,7 +210,8 @@ such as `RECIPES_MCP_GATEWAY_POLICY_PATH`,
 `RECIPES_MCP_ASSURANCE_PACK_PATH`,
 `RECIPES_MCP_AUTHORIZATION_CONFORMANCE_PACK_PATH`,
 `RECIPES_MCP_READINESS_SCORECARD_PATH`, and
-`RECIPES_MCP_CONTEXT_EGRESS_BOUNDARY_PACK_PATH`. The TOML config can
+`RECIPES_MCP_CONTEXT_EGRESS_BOUNDARY_PACK_PATH`,
+`RECIPES_MCP_MEASUREMENT_PROBE_PACK_PATH`. The TOML config can
 override those resolved defaults.
 
 ## Run Locally
@@ -376,4 +391,8 @@ claims that the repository does not support.
 - [Agentic Assurance Pack]({{< relref "/security-remediation/agentic-assurance-pack" >}}) - enterprise assurance evidence.
 - [Agentic Red-Team Drills]({{< relref "/security-remediation/agentic-red-team-drills" >}}) - adversarial scenarios for workflow validation.
 - [Agentic Readiness Scorecard]({{< relref "/security-remediation/agentic-readiness-scorecard" >}}) - scale, pilot, gate, and block decisions.
+- [Agentic Measurement Probes]({{< relref "/security-remediation/agentic-measurement-probes" >}}) - generated traceability probes before workflow expansion.
+- [Agent Capability Risk Register]({{< relref "/security-remediation/agent-capability-risk-register" >}}) - capability-based residual-risk tiers.
+- [Agent Memory Boundary]({{< relref "/security-remediation/agent-memory-boundary" >}}) - persistent-memory classes, TTLs, provenance, rollback, and runtime decisions.
+- [Agent Skill Supply Chain]({{< relref "/security-remediation/agent-skill-supply-chain" >}}) - skill provenance, permission, isolation, and install/run decisions.
 - [Agent Identity Ledger]({{< relref "/security-remediation/agent-identity-ledger" >}}) - non-human identity and delegation contracts.

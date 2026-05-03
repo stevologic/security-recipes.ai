@@ -4,13 +4,13 @@
       "allowed_file_globs": [
         "*.json"
       ],
-      "authority": "Source-controlled assurance models for agent identity, red-team drills, system BOMs, context poisoning, context egress, run receipts, and MCP authorization conformance.",
-      "byte_count": 123364,
+      "authority": "Source-controlled assurance models for agent identity, capability risk, memory boundaries, agent skill supply chain, red-team drills, system BOMs, context poisoning, context egress, run receipts, measurement probes, and MCP authorization conformance.",
+      "byte_count": 197291,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [],
       "exposure": "public",
-      "file_count": 8,
+      "file_count": 12,
       "freshness_sla_days": 30,
       "freshness_state": "declared_current",
       "hash_algorithm": "sha256",
@@ -27,7 +27,11 @@
         "runtime evaluators use generated packs rather than model judgment"
       ],
       "registered_files": [
+        "data/assurance/agent-capability-risk-model.json",
+        "data/assurance/agent-memory-boundary-model.json",
+        "data/assurance/agent-skill-supply-chain-model.json",
         "data/assurance/agentic-assurance-control-map.json",
+        "data/assurance/agentic-measurement-probe-profile.json",
         "data/assurance/agentic-readiness-model.json",
         "data/assurance/agentic-red-team-scenario-map.json",
         "data/assurance/agentic-run-receipt-profile.json",
@@ -50,12 +54,19 @@
       ],
       "retrieval_modes": [
         "assurance_model_context",
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision",
         "recipes_mcp_authorization_conformance_pack",
-        "recipes_evaluate_mcp_authorization_decision"
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_agentic_measurement_probe_pack"
       ],
       "risk_families": [
         "tool_result_injection",
         "context_poisoning",
+        "memory_poisoning",
         "stale_context",
         "secret_exposure",
         "policy_drift",
@@ -63,7 +74,7 @@
       ],
       "root": "data/assurance",
       "root_type": "directory",
-      "source_hash": "b8eb46a308c8b4e2c81a122010eac2e100817ea5971bd120fbd9685b5d5bbca8",
+      "source_hash": "1c8c1f37a7852f4959a1d7617f1adb0df1c2dae678949649f482a4b31a17608d",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": {
@@ -75,15 +86,17 @@
       "allowed_file_globs": [
         "*.json"
       ],
-      "authority": "Generated evidence for assurance, identity, connector trust, MCP authorization conformance, red-team drills, readiness, run receipts, context-poisoning inspection, context-egress boundaries, and system BOM inspection.",
-      "byte_count": 1231448,
+      "authority": "Generated evidence for assurance, identity, capability risk, memory boundaries, agent skill supply-chain decisions, connector trust, MCP authorization conformance, red-team drills, readiness, run receipts, measurement probes, context-poisoning inspection, context-egress boundaries, and system BOM inspection.",
+      "byte_count": 1339688,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [
-        "secure-context-trust-pack.json"
+        "secure-context-trust-pack.json",
+        "agentic-measurement-probe-pack.json",
+        "agent-skill-supply-chain-pack.json"
       ],
       "exposure": "public",
-      "file_count": 13,
+      "file_count": 15,
       "freshness_sla_days": 30,
       "freshness_state": "declared_current",
       "hash_algorithm": "sha256",
@@ -100,7 +113,9 @@
         "MCP tools expose filtered views instead of raw broad dumps when requested"
       ],
       "registered_files": [
+        "data/evidence/agent-capability-risk-register.json",
         "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agent-memory-boundary-pack.json",
         "data/evidence/agentic-assurance-pack.json",
         "data/evidence/agentic-readiness-scorecard.json",
         "data/evidence/agentic-red-team-drill-pack.json",
@@ -138,11 +153,18 @@
         "recipes_agentic_run_receipt_pack",
         "recipes_context_poisoning_guard_pack",
         "recipes_context_egress_boundary_pack",
-        "recipes_agentic_threat_radar"
+        "recipes_agentic_threat_radar",
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_agentic_measurement_probe_pack"
       ],
       "risk_families": [
         "tool_result_injection",
         "context_poisoning",
+        "memory_poisoning",
         "stale_context",
         "secret_exposure",
         "untrusted_source_confusion",
@@ -151,7 +173,7 @@
       ],
       "root": "data/evidence",
       "root_type": "directory",
-      "source_hash": "d5b764c25fb7fd40cfd98f2956f8b951b9b4689f2bd759ca07ec0b2f31b740ac",
+      "source_hash": "65b9b9b2ff4991996f957910c27d89ec6d6143ad1588022635e54518d631a410",
       "source_id": "agentic-evidence-packs",
       "title": "Generated Agentic Evidence Packs",
       "trust_tier": {
@@ -164,7 +186,7 @@
         "*.json"
       ],
       "authority": "Source-backed threat and market intelligence for agentic AI, MCP security, mapped product capabilities, buyer triggers, and roadmap priorities.",
-      "byte_count": 38002,
+      "byte_count": 41265,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [],
@@ -217,7 +239,7 @@
       ],
       "root": "data/intelligence",
       "root_type": "directory",
-      "source_hash": "b48d7f2dcf2848164a24832c2d645d4cfd60233e76454d5ab4563306ec9d4aa7",
+      "source_hash": "849939db9cb52035abd4a3b80d5c29c62dd841ff358f9e24977032cb88d5d2d7",
       "source_id": "agentic-threat-intelligence",
       "title": "Agentic Threat Radar Source Registry",
       "trust_tier": {
@@ -356,8 +378,8 @@
       "allowed_file_globs": [
         "*.py"
       ],
-      "authority": "Runtime tool surface that exposes recipes, workflow control plane, policy decisions, authorization decisions, evidence packs, and context trust over MCP.",
-      "byte_count": 112373,
+      "authority": "Runtime tool surface that exposes recipes, workflow control plane, policy decisions, authorization decisions, measurement probes, evidence packs, and context trust over MCP.",
+      "byte_count": 143703,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [],
@@ -395,20 +417,27 @@
       ],
       "retrieval_modes": [
         "recipes_server_info",
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision",
         "recipes_evaluate_context_retrieval_decision",
         "recipes_evaluate_mcp_authorization_decision",
         "recipes_evaluate_context_egress_decision",
+        "recipes_agentic_measurement_probe_pack",
         "tool_contract_context"
       ],
       "risk_families": [
         "tool_result_injection",
+        "memory_poisoning",
         "secret_exposure",
         "policy_drift",
         "over_retrieval"
       ],
       "root": "mcp_server.py",
       "root_type": "file",
-      "source_hash": "6d22490aaa0479e47826e5b107866f9c75d98ce1f21734a95424a54202d8c740",
+      "source_hash": "4d1f550b8fd98441607f592ecffc0144628c7529f996fc2f4cd0f11a603de176",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": {
@@ -421,12 +450,12 @@
         "*.md"
       ],
       "authority": "Reusable prompt and remediation guidance; never overrides gateway policy or human review.",
-      "byte_count": 634010,
+      "byte_count": 688163,
       "citation_required": true,
       "decision": "allow_public_context",
       "exclude_file_globs": [],
       "exposure": "public",
-      "file_count": 86,
+      "file_count": 91,
       "freshness_sla_days": 90,
       "freshness_state": "declared_current",
       "hash_algorithm": "sha256",
@@ -493,7 +522,7 @@
       ],
       "root": "content/prompt-library",
       "root_type": "directory",
-      "source_hash": "97d652cd4614b8253aba12ca4776e30551ab48d9434b349fcf6c56e97b98fe43",
+      "source_hash": "ed90999e2ff475e096f8f4a82caf9ec5ce151c322ffdf3e7730b7e39761f9ba1",
       "source_id": "prompt-library-recipes",
       "title": "Prompt Library Recipes",
       "trust_tier": {
@@ -506,12 +535,12 @@
         "*.md"
       ],
       "authority": "Human-readable workflow guidance for scope, gates, evidence, KPIs, and review expectations.",
-      "byte_count": 279403,
+      "byte_count": 308555,
       "citation_required": true,
       "decision": "allow_public_context",
       "exclude_file_globs": [],
       "exposure": "public",
-      "file_count": 32,
+      "file_count": 36,
       "freshness_sla_days": 90,
       "freshness_state": "declared_current",
       "hash_algorithm": "sha256",
@@ -529,8 +558,12 @@
       ],
       "registered_files": [
         "content/security-remediation/_index.md",
+        "content/security-remediation/agent-capability-risk-register/_index.md",
         "content/security-remediation/agent-identity-ledger/_index.md",
+        "content/security-remediation/agent-memory-boundary/_index.md",
+        "content/security-remediation/agent-skill-supply-chain/_index.md",
         "content/security-remediation/agentic-assurance-pack/_index.md",
+        "content/security-remediation/agentic-measurement-probes/_index.md",
         "content/security-remediation/agentic-readiness-scorecard/_index.md",
         "content/security-remediation/agentic-red-team-drills/_index.md",
         "content/security-remediation/agentic-run-receipts/_index.md",
@@ -548,11 +581,7 @@
         "content/security-remediation/gatekeeping/_index.md",
         "content/security-remediation/maturity/_index.md",
         "content/security-remediation/mcp-authorization-conformance/_index.md",
-        "content/security-remediation/mcp-connector-intake-scanner/_index.md",
-        "content/security-remediation/mcp-connector-trust-registry/_index.md",
-        "content/security-remediation/mcp-gateway-policy/_index.md",
-        "content/security-remediation/mcp-runtime-decision-evaluator/_index.md",
-        "content/security-remediation/metrics/_index.md"
+        "content/security-remediation/mcp-connector-intake-scanner/_index.md"
       ],
       "registered_files_truncated": true,
       "required_controls": [
@@ -578,7 +607,7 @@
       ],
       "root": "content/security-remediation",
       "root_type": "directory",
-      "source_hash": "4611cc35801041d2454cabfb3b9d5a778de359df5b86f023a61c9e094b150d7a",
+      "source_hash": "c58e3498f2b6e7dcc84300baff6fa2fd33be57735a774b9cc0b082a342480ba6",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": {
@@ -659,10 +688,11 @@
     "default_decision": "deny_unregistered_context",
     "failure_count": 0,
     "prohibited_data_class_count": 7,
-    "registered_byte_count": 2570680,
-    "registered_file_count": 146,
+    "registered_byte_count": 2870745,
+    "registered_file_count": 161,
     "risk_family_counts": {
       "context_poisoning": 8,
+      "memory_poisoning": 3,
       "over_retrieval": 7,
       "policy_drift": 8,
       "prompt_injection": 3,
@@ -698,7 +728,7 @@
     "sales_motion": "Lead with open context provenance, then sell hosted context signing, customer evidence ingestion, retrieval policy enforcement, source drift alerts, and trust-center exports."
   },
   "failures": [],
-  "generated_at": "2026-05-02",
+  "generated_at": "2026-05-03",
   "intent": "Define the SecurityRecipes secure context layer as an auditable retrieval and provenance system: every recipe, workflow, policy, evidence pack, and MCP runtime surface that can be supplied to an agent is registered with an owner, trust tier, source hash, instruction-handling rule, freshness expectation, and poisoning-control contract.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -784,7 +814,7 @@
   "source_artifacts": {
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "2379573fbfac1b18f8c764f269ce41fb2222ac90104c601e2747afbcab07a4b8"
+      "sha256": "45faa9fa7358de1fa59d6bc9e64a29478dfeab265e0eb8d1e510b310c7f98248"
     },
     "workflow_manifest": {
       "path": "data/control-plane/workflow-manifests.json",
@@ -816,6 +846,7 @@
       "prompt_injection",
       "tool_result_injection",
       "context_poisoning",
+      "memory_poisoning",
       "stale_context",
       "secret_exposure",
       "untrusted_source_confusion",
@@ -833,15 +864,15 @@
   "standards_alignment": [
     {
       "coverage": "Resource indicators, token audience validation, PKCE, HTTPS, dynamic client registration, and forbidden token passthrough.",
-      "id": "mcp-authorization-2025-06-18",
+      "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization"
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
     },
     {
       "coverage": "Confused deputy prevention, token passthrough avoidance, SSRF, session safety, local server compromise controls, scope minimization, and auditability.",
-      "id": "mcp-security-best-practices",
+      "id": "mcp-security-best-practices-current",
       "name": "Model Context Protocol Security Best Practices",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
     },
     {
       "coverage": "Prompt injection, supply chain, data and model poisoning, improper output handling, excessive agency, vector and embedding weakness, misinformation, and unbounded consumption.",
@@ -856,10 +887,28 @@
       "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
     },
     {
+      "coverage": "Agent goal hijack, tool misuse, identity and privilege abuse, supply-chain vulnerabilities, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Malicious skills, supply-chain compromise, over-privileged skills, insecure metadata, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse.",
+      "id": "owasp-agentic-skills-top-10-2026",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
       "coverage": "AI governance, mapping, measurement, and management across the system lifecycle.",
       "id": "nist-ai-rmf-1.0",
       "name": "NIST AI Risk Management Framework 1.0",
       "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "coverage": "Trustworthy AI agents, tested guardrails, auditability, and lifecycle communication for critical-infrastructure AI-enabled capabilities.",
+      "id": "nist-ai-critical-infrastructure-profile-concept-2026",
+      "name": "NIST AI RMF Profile for Trustworthy AI in Critical Infrastructure concept note",
+      "url": "https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure"
     },
     {
       "coverage": "Generative AI risk actions for data provenance, third-party components, monitoring, measurement, and incident response.",
@@ -948,7 +997,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "96c24a0af461129e01743f93758d5b0686129c602140138b8ca73cf441675783",
+      "context_package_hash": "bf2b24f126d9316720e18d53ec682a40e5edc9ffae957f5eef79bfe86ffec7a6",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -981,7 +1030,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "364ad92bfb750f327eb3bbc9e1440ac46ee51faba5b4bc6fc97fd2d01c3ab030",
+      "context_package_hash": "826a680de50f001652876b428625c8dd636c1fb225ba14e94b1dbea3e3f16085",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1013,7 +1062,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "fff82d7c9178d43680854bf857c17e5995fb570a41fb6c0f96ae3521c321fc51",
+      "context_package_hash": "404dfa8dc10c80ad09cc33a65936d3c241fa4c92a87d58eb87d5b2686624a980",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1046,7 +1095,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "d174b78492a0c3c0dae060f5109b34146da7ef62a008a98cabce3c3bd96ee816",
+      "context_package_hash": "4a4f88d7fe7106e769ec5a517360ecdd2524da90bffc9fa14a177964c82ec939",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1077,7 +1126,7 @@
         "claude",
         "devin"
       ],
-      "context_package_hash": "b8f0da32b7ffe211979051053138f69eaac67c08eca2df1524d82e5318b57819",
+      "context_package_hash": "a393888d9d88557f2f3b90ea3e19cbbe096224bb3015f3d72a05f0dbc2b6df78",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1109,7 +1158,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "7363cc4afaba8de3d3523d357865d86b7923157e2bdc05055054e7d90023cf13",
+      "context_package_hash": "51afc4ad4366540383d24bdc3eb67f722dec3d7f6b7b581275d467dbe92ac441",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1140,7 +1189,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "6fd3e542b4fe732ab6cdd91b1312654883695d17cec3b5cf6ea2e001d6d70efb",
+      "context_package_hash": "2fb5bdd9a3728035a2d4bf076231a76782b38024e1e0365ab6fbf4a4492d6540",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1171,7 +1220,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "d6a3fcd69bbab64c915099ac6a132d974b522143d8f7104b64a120fd8f55f527",
+      "context_package_hash": "8318122c6ed17a827283b68c71d218270828f39d76acac6b2019bd9eaa1e5012",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",

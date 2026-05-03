@@ -143,6 +143,15 @@
       "url": "https://cloudsecurityalliance.org/blog/2025/07/10/agentic-ai-mcp-and-the-identity-explosion-you-can-t-ignore",
       "source_class": "industry_guidance",
       "why_it_matters": "Agentic AI creates non-human identity pressure because agents act through credentials, tokens, scopes, and delegated authority that traditional IAM often does not govern cleanly."
+    },
+    {
+      "id": "csa-cbra-agentic-risk-2025",
+      "name": "Capabilities-Based Risk Assessment for Agentic AI",
+      "publisher": "Cloud Security Alliance",
+      "published": "2025-11-13",
+      "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk",
+      "source_class": "industry_guidance",
+      "why_it_matters": "CSA's CBRA framing gives enterprises a consequence-driven way to measure autonomous AI risk through system criticality, AI autonomy, access permissions, and impact radius."
     }
   ],
   "product_capabilities": [
@@ -319,6 +328,21 @@
         "recipes_agentic_readiness_scorecard"
       ],
       "buyer_value": "Converts control evidence into scale, pilot, gate, or block decisions."
+    },
+    {
+      "id": "agent-capability-risk-register",
+      "title": "Agent Capability Risk Register",
+      "status": "implemented",
+      "evidence_paths": [
+        "data/assurance/agent-capability-risk-model.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "scripts/generate_agent_capability_risk_register.py",
+        "content/security-remediation/agent-capability-risk-register/_index.md"
+      ],
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register"
+      ],
+      "buyer_value": "Classifies each agentic workflow by capability, consequence, MCP access, control credit, and residual risk before expansion."
     },
     {
       "id": "agentic-system-bom",
@@ -715,6 +739,43 @@
         "enterprise_control_value": 5,
         "mcp_monetization_fit": 4,
         "defensibility": 5,
+        "ease_of_adoption": 5
+      }
+    },
+    {
+      "id": "capability-based-agentic-risk-governance",
+      "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents",
+      "priority": "high",
+      "horizon": "now",
+      "confidence": "high",
+      "source_ids": [
+        "csa-cbra-agentic-risk-2025",
+        "owasp-agentic-top-10-2026",
+        "owasp-mcp-top-10-2025",
+        "nist-ai-600-1"
+      ],
+      "trend": "Enterprises are shifting from generic AI governance to consequence-driven assessment of what an agent can do, how autonomous it is, which systems it can reach, and how far a failure can spread.",
+      "enterprise_risk": "Without a capability risk register, teams may scale low-friction agent workflows and high-impact agent workflows under the same approval path, hiding financial, privacy, supply-chain, and MCP access consequences.",
+      "control_objectives": [
+        "Score workflows by system criticality, AI autonomy, access permissions, and impact radius.",
+        "Separate inherent capability risk from residual risk after compensating controls.",
+        "Require architecture review for high residual-risk workflows.",
+        "Tie risk decisions to generated readiness, connector trust, red-team, and gateway-policy evidence."
+      ],
+      "mapped_capability_ids": [
+        "agent-capability-risk-register",
+        "agentic-readiness-scorecard",
+        "agentic-assurance-pack",
+        "agentic-system-bom",
+        "mcp-gateway-policy"
+      ],
+      "buyer_trigger": "AI platform, GRC, or security architecture asks which agentic workflows are safe to expand and which require deeper review.",
+      "roadmap_action": "Offer hosted capability scoring that ingests customer runtime telemetry, connector inventory, approval records, and trust-center export requirements.",
+      "scores": {
+        "market_urgency": 5,
+        "enterprise_control_value": 5,
+        "mcp_monetization_fit": 5,
+        "defensibility": 4,
         "ease_of_adoption": 5
       }
     }

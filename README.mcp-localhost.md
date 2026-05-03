@@ -75,6 +75,11 @@ After connecting, the server exposes these tools:
 - `recipes_evaluate_mcp_authorization_decision`
 - `recipes_agentic_red_team_drill_pack`
 - `recipes_agentic_readiness_scorecard`
+- `recipes_agent_capability_risk_register`
+- `recipes_agent_memory_boundary_pack`
+- `recipes_evaluate_agent_memory_decision`
+- `recipes_agent_skill_supply_chain_pack`
+- `recipes_evaluate_agent_skill_decision`
 - `recipes_agentic_system_bom`
 - `recipes_agentic_run_receipt_pack`
 - `recipes_secure_context_trust_pack`
@@ -83,6 +88,7 @@ After connecting, the server exposes these tools:
 - `recipes_context_egress_boundary_pack`
 - `recipes_evaluate_context_egress_decision`
 - `recipes_agentic_threat_radar`
+- `recipes_agentic_measurement_probe_pack`
 - `recipes_match_finding`
 
 ## Use a custom config

@@ -257,6 +257,47 @@ jobs:
         run: |
           python3 scripts/generate_agentic_readiness_scorecard.py --check
 
+      - name: Validate agent capability risk register
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agent_capability_risk_register.py --check
+
+      - name: Validate agent memory boundary pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agent_memory_boundary_pack.py --check
+
+      - name: Validate agent memory boundary decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agent_memory_boundary_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --memory-class-id ephemeral-scratchpad \
+            --operation write \
+            --expect-decision allow_ephemeral_memory
+
+          python3 scripts/evaluate_agent_memory_boundary_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --memory-class-id run-receipt-evidence \
+            --operation write \
+            --tenant-id tenant-ci \
+            --provenance-hash ci-provenance-hash \
+            --expect-decision allow_append_only_evidence_memory
+
+          python3 scripts/evaluate_agent_memory_boundary_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --memory-class-id workflow-policy-memory \
+            --operation write \
+            --provenance-hash ci-policy-hash \
+            --expect-decision deny_runtime_memory_write
+
+          python3 scripts/evaluate_agent_memory_boundary_decision.py \
+            --workflow-id sensitive-data-remediation \
+            --memory-class-id prohibited-memory \
+            --operation write \
+            --contains-secret \
+            --expect-decision kill_session_on_prohibited_memory
+
       - name: Validate Agentic System BOM
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -367,6 +408,51 @@ jobs:
             --data-class private_key \
             --expect-decision kill_session_on_prohibited_context
 
+      - name: Refresh agent skill supply-chain pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agent_skill_supply_chain_pack.py
+
+      - name: Validate agent skill supply-chain pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agent_skill_supply_chain_pack.py --check
+
+      - name: Validate agent skill runtime decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
+            --skill-id sr-secure-context-retrieval-skill \
+            --operation run \
+            --workflow-id vulnerable-dependency-remediation \
+            --platform codex \
+            --expect-decision allow_pinned_readonly_skill
+
+          python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
+            --skill-id sr-cve-remediation-skill \
+            --operation run \
+            --workflow-id vulnerable-dependency-remediation \
+            --platform codex \
+            --sandboxed \
+            --expect-decision allow_guarded_skill
+
+          python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
+            --skill-id sr-artifact-quarantine-operator-skill \
+            --operation run \
+            --workflow-id artifact-cache-quarantine \
+            --platform claude \
+            --sandboxed \
+            --human-approval-id ci-approval \
+            --expect-decision allow_guarded_skill
+
+          python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
+            --skill-id untrusted-marketplace-shell-skill \
+            --operation run \
+            --permission filesystem_read="~/**,.env,**/*.pem" \
+            --permission network_egress="*" \
+            --permission shell=true \
+            --expect-decision kill_session_on_malicious_skill_signal
+
       - name: Refresh agentic run receipt pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -376,6 +462,16 @@ jobs:
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
           python3 scripts/generate_agentic_run_receipt_pack.py --check --update-if-stale
+
+      - name: Refresh agentic measurement probe pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_measurement_probe_pack.py
+
+      - name: Validate agentic measurement probe pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_measurement_probe_pack.py --check
 
       - name: Build site
         working-directory: ${{ steps.hugo-dir.outputs.path }}

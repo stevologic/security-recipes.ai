@@ -16,6 +16,15 @@
   },
   "capability_coverage": [
     {
+      "capability_id": "agent-capability-risk-register",
+      "critical_or_high_signal_count": 1,
+      "max_strategic_score": 93,
+      "signal_count": 1,
+      "signal_ids": [
+        "capability-based-agentic-risk-governance"
+      ]
+    },
+    {
       "capability_id": "agent-identity-ledger",
       "critical_or_high_signal_count": 3,
       "max_strategic_score": 95,
@@ -28,12 +37,13 @@
     },
     {
       "capability_id": "agentic-assurance-pack",
-      "critical_or_high_signal_count": 5,
+      "critical_or_high_signal_count": 6,
       "max_strategic_score": 95,
-      "signal_count": 6,
+      "signal_count": 7,
       "signal_ids": [
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
+        "capability-based-agentic-risk-governance",
         "context-over-sharing-and-memory-poisoning",
         "ai-data-security-and-provenance",
         "audit-telemetry-and-evidence-chain",
@@ -42,10 +52,11 @@
     },
     {
       "capability_id": "agentic-readiness-scorecard",
-      "critical_or_high_signal_count": 3,
-      "max_strategic_score": 88,
-      "signal_count": 4,
+      "critical_or_high_signal_count": 4,
+      "max_strategic_score": 93,
+      "signal_count": 5,
       "signal_ids": [
+        "capability-based-agentic-risk-governance",
         "audit-telemetry-and-evidence-chain",
         "human-approval-and-tool-safeguards",
         "continuous-red-team-and-evals",
@@ -66,11 +77,12 @@
     },
     {
       "capability_id": "agentic-system-bom",
-      "critical_or_high_signal_count": 6,
+      "critical_or_high_signal_count": 7,
       "max_strategic_score": 93,
-      "signal_count": 7,
+      "signal_count": 8,
       "signal_ids": [
         "agent-identity-explosion",
+        "capability-based-agentic-risk-governance",
         "context-over-sharing-and-memory-poisoning",
         "tool-poisoning-and-shadow-mcp",
         "ai-data-security-and-provenance",
@@ -143,13 +155,14 @@
     },
     {
       "capability_id": "mcp-gateway-policy",
-      "critical_or_high_signal_count": 5,
+      "critical_or_high_signal_count": 6,
       "max_strategic_score": 98,
-      "signal_count": 5,
+      "signal_count": 6,
       "signal_ids": [
         "indirect-prompt-injection-social-engineering",
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
+        "capability-based-agentic-risk-governance",
         "tool-poisoning-and-shadow-mcp",
         "human-approval-and-tool-safeguards"
       ]
@@ -280,6 +293,10 @@
   "intent": "Maintain a source-backed market and threat radar for SecurityRecipes so the secure context layer tracks current agentic AI risk, MCP security guidance, enterprise buyer pressure, and product opportunities before they become stale documentation.",
   "path_evidence": [
     {
+      "path": "content/security-remediation/agent-capability-risk-register/_index.md",
+      "sha256": "a7489bde3cf6eeca2cf61739c48f3c76e29bdcf158acc05358773f533914579d"
+    },
+    {
       "path": "content/security-remediation/agentic-threat-radar/_index.md",
       "sha256": "fde7cbe09a8049d2c8e844bb38791b3ec9f879cd5935c97b1230b1dce8f010e5"
     },
@@ -302,6 +319,10 @@
     {
       "path": "content/security-remediation/secure-context-firewall/_index.md",
       "sha256": "85b194501c5bd5ba7a79b7aa8547765aa26b48fc090f5bbb2ac06a8f5d86f3ec"
+    },
+    {
+      "path": "data/assurance/agent-capability-risk-model.json",
+      "sha256": "e7d5c3d9ebb17c20cabdfaf130052adc95b314b1e76ef84d82e36bebc35e5083"
     },
     {
       "path": "data/assurance/agentic-assurance-control-map.json",
@@ -333,39 +354,43 @@
     },
     {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "2379573fbfac1b18f8c764f269ce41fb2222ac90104c601e2747afbcab07a4b8"
+      "sha256": "4436cb3d1030abc44e264e3f8a4d42b443ec004fdb4dc4fce498a074d88dbaa4"
+    },
+    {
+      "path": "data/evidence/agent-capability-risk-register.json",
+      "sha256": "a20b47280e97c578cab5e14bd1632679254129a95803168086c1a9dd92cb99a2"
     },
     {
       "path": "data/evidence/agent-identity-delegation-ledger.json",
-      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
+      "sha256": "690de03ff300a5d11f99676422fb9f6db0c69c48fb7e03ebccf3a1429ef60551"
     },
     {
       "path": "data/evidence/agentic-assurance-pack.json",
-      "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f"
+      "sha256": "c434995287e687217f279b878ac25ffeefbe81f86cc64e43b1547193c339c6f9"
     },
     {
       "path": "data/evidence/agentic-readiness-scorecard.json",
-      "sha256": "442cecb2d6d32283436deb472e3f9397126cf2d6e9d222030cca3235d24286cb"
+      "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c"
     },
     {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "sha256": "c28356c01555a2badaf678238aa525abeb343ff2ed60e58f27c4af8736d1188b"
+      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
     },
     {
       "path": "data/evidence/agentic-system-bom.json",
-      "sha256": "e8ce7c0ef1c932965606e1da56d27c863622377dfb4d8a9342c4f137b81f82c7"
+      "sha256": "19d9de3f6cdc0003d61a75477cc5549d857fb6a9f3342884807ae079299e95cd"
     },
     {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "dc39c775185aa838a9a5928c2685e6168849d23cb845952c3bdf6f537fa26e67"
+      "sha256": "bb52d63d3aeedd28d9a22007228adafb18a2369aa9f93b5b2a5bf75a2ae2d60f"
     },
     {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "8d56a31fb3c2bc9ba10d2a8ac92e6fc29e4d40f67227233fef16a193b0c55f22"
+      "sha256": "a91a16d5d439bc5dfde49f8bfbe5efa83e47fef0fb22e359f4dbd95a9535dc8e"
     },
     {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
-      "sha256": "a4ebcb2e1f781c2893283937acbf5d34356c93de685aad730d1a0353f2412d26"
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
     },
     {
       "path": "data/evidence/mcp-connector-intake-pack.json",
@@ -377,11 +402,11 @@
     },
     {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "59190bacc08caf9f8a90cdfd068763ef0011d787bc94f6f3a132174a5fd97289"
+      "sha256": "5583c023b7657d3b09d2e1309fc83f0226b9499418373a4d09dcb790dfc206d2"
     },
     {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "915323700d2e98e8fc8a59aa08ae35dcc326fc777d5e0c62ae1ca11303097af6"
+      "sha256": "c06100a39468ea99f38a7880d32639f42312aeea48352a8350bc0496a96abc75"
     },
     {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -408,6 +433,10 @@
       "sha256": "3269ebdd020842ea0f6234c417aff55b9418a8048d313f9a09bfb8964a1a7537"
     },
     {
+      "path": "scripts/generate_agent_capability_risk_register.py",
+      "sha256": "b2b1c4883ed980f2a63d87a81da7908acf5c0d8d0020d003e6007179222db167"
+    },
+    {
       "path": "scripts/generate_agent_identity_ledger.py",
       "sha256": "83bc081dbe70c64018239903babe7ce1b7b1cfb30bf8ccceb589c1a72346c8a8"
     },
@@ -429,7 +458,7 @@
     },
     {
       "path": "scripts/generate_context_egress_boundary_pack.py",
-      "sha256": "046d153462416c013186fd171e56a8ef82aa74c34852b798cb94d64a1227b358"
+      "sha256": "8c676cea706f636fa9cc06f0ed268de095b551f5ed1a5d3c4c80d3fd978914bb"
     },
     {
       "path": "scripts/generate_context_poisoning_guard_pack.py",
@@ -638,6 +667,21 @@
       "title": "Agentic Readiness Scorecard"
     },
     {
+      "buyer_value": "Classifies each agentic workflow by capability, consequence, MCP access, control credit, and residual risk before expansion.",
+      "evidence_paths": [
+        "data/assurance/agent-capability-risk-model.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "scripts/generate_agent_capability_risk_register.py",
+        "content/security-remediation/agent-capability-risk-register/_index.md"
+      ],
+      "id": "agent-capability-risk-register",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register"
+      ],
+      "status": "implemented",
+      "title": "Agent Capability Risk Register"
+    },
+    {
       "buyer_value": "Makes workflows, agents, identities, MCP connectors, evidence, evals, and drift triggers inspectable.",
       "evidence_paths": [
         "data/assurance/agentic-system-bom-profile.json",
@@ -681,7 +725,7 @@
   "source_artifacts": {
     "agentic_threat_radar_sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "915323700d2e98e8fc8a59aa08ae35dcc326fc777d5e0c62ae1ca11303097af6"
+      "sha256": "c06100a39468ea99f38a7880d32639f42312aeea48352a8350bc0496a96abc75"
     }
   },
   "source_references": [
@@ -819,36 +863,45 @@
       "source_class": "industry_guidance",
       "url": "https://cloudsecurityalliance.org/blog/2025/07/10/agentic-ai-mcp-and-the-identity-explosion-you-can-t-ignore",
       "why_it_matters": "Agentic AI creates non-human identity pressure because agents act through credentials, tokens, scopes, and delegated authority that traditional IAM often does not govern cleanly."
+    },
+    {
+      "id": "csa-cbra-agentic-risk-2025",
+      "name": "Capabilities-Based Risk Assessment for Agentic AI",
+      "published": "2025-11-13",
+      "publisher": "Cloud Security Alliance",
+      "source_class": "industry_guidance",
+      "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk",
+      "why_it_matters": "CSA's CBRA framing gives enterprises a consequence-driven way to measure autonomous AI risk through system criticality, AI autonomy, access permissions, and impact radius."
     }
   ],
   "threat_radar_summary": {
     "confidence_counts": {
-      "high": 10
+      "high": 11
     },
-    "critical_or_high_signal_count": 9,
+    "critical_or_high_signal_count": 10,
     "feature_backlog_count": 5,
     "horizon_counts": {
       "next": 2,
-      "now": 8
+      "now": 9
     },
-    "implemented_capability_count": 14,
+    "implemented_capability_count": 15,
     "priority_counts": {
       "critical": 3,
-      "high": 6,
+      "high": 7,
       "medium": 1
     },
-    "signal_count": 10,
+    "signal_count": 11,
     "source_class_counts": {
       "frontier_lab_guidance": 3,
       "government_framework": 2,
       "government_guidance": 2,
-      "industry_guidance": 2,
+      "industry_guidance": 3,
       "industry_standard": 3,
       "protocol_guidance": 1,
       "protocol_specification": 1,
       "vendor_architecture_guidance": 1
     },
-    "source_reference_count": 15,
+    "source_reference_count": 16,
     "top_signals": [
       {
         "id": "indirect-prompt-injection-social-engineering",
@@ -869,16 +922,16 @@
         "title": "Agent identities are becoming a new non-human identity class"
       },
       {
+        "id": "capability-based-agentic-risk-governance",
+        "priority": "high",
+        "strategic_score": 93,
+        "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
+      },
+      {
         "id": "context-over-sharing-and-memory-poisoning",
         "priority": "high",
         "strategic_score": 93,
         "title": "Context over-sharing and memory poisoning make retrieval policy a product category"
-      },
-      {
-        "id": "tool-poisoning-and-shadow-mcp",
-        "priority": "high",
-        "strategic_score": 90,
-        "title": "Tool poisoning, schema drift, and shadow MCP servers expand the agent attack surface"
       }
     ]
   },
@@ -1316,6 +1369,151 @@
       "strategic_score": 93,
       "title": "Agent identities are becoming a new non-human identity class",
       "trend": "Enterprise agents act through service accounts, OAuth tokens, delegated user scopes, API keys, and MCP connector permissions. Traditional IAM often cannot distinguish which agent run used which authority for which intent."
+    },
+    {
+      "buyer_trigger": "AI platform, GRC, or security architecture asks which agentic workflows are safe to expand and which require deeper review.",
+      "capabilities": [
+        {
+          "buyer_value": "Classifies each agentic workflow by capability, consequence, MCP access, control credit, and residual risk before expansion.",
+          "evidence_paths": [
+            "data/assurance/agent-capability-risk-model.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "scripts/generate_agent_capability_risk_register.py",
+            "content/security-remediation/agent-capability-risk-register/_index.md"
+          ],
+          "id": "agent-capability-risk-register",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register"
+          ],
+          "status": "implemented",
+          "title": "Agent Capability Risk Register"
+        },
+        {
+          "buyer_value": "Converts control evidence into scale, pilot, gate, or block decisions.",
+          "evidence_paths": [
+            "data/assurance/agentic-readiness-model.json",
+            "data/evidence/agentic-readiness-scorecard.json",
+            "scripts/generate_agentic_readiness_scorecard.py"
+          ],
+          "id": "agentic-readiness-scorecard",
+          "mcp_tools": [
+            "recipes_agentic_readiness_scorecard"
+          ],
+          "status": "implemented",
+          "title": "Agentic Readiness Scorecard"
+        },
+        {
+          "buyer_value": "Packages controls, workflow evidence, standards mapping, and adoption story for AI platform and GRC review.",
+          "evidence_paths": [
+            "data/assurance/agentic-assurance-control-map.json",
+            "data/evidence/agentic-assurance-pack.json",
+            "scripts/generate_agentic_assurance_pack.py"
+          ],
+          "id": "agentic-assurance-pack",
+          "mcp_tools": [
+            "recipes_agentic_assurance_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Assurance Pack"
+        },
+        {
+          "buyer_value": "Makes workflows, agents, identities, MCP connectors, evidence, evals, and drift triggers inspectable.",
+          "evidence_paths": [
+            "data/assurance/agentic-system-bom-profile.json",
+            "data/evidence/agentic-system-bom.json",
+            "scripts/generate_agentic_system_bom.py"
+          ],
+          "id": "agentic-system-bom",
+          "mcp_tools": [
+            "recipes_agentic_system_bom"
+          ],
+          "status": "implemented",
+          "title": "Agentic System BOM"
+        },
+        {
+          "buyer_value": "Enforces default-deny tool access, approval holds, scoped branch writes, and runtime kill decisions.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json",
+            "scripts/generate_mcp_gateway_policy.py"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy",
+            "recipes_evaluate_mcp_gateway_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy Pack"
+        }
+      ],
+      "confidence": "high",
+      "control_objectives": [
+        "Score workflows by system criticality, AI autonomy, access permissions, and impact radius.",
+        "Separate inherent capability risk from residual risk after compensating controls.",
+        "Require architecture review for high residual-risk workflows.",
+        "Tie risk decisions to generated readiness, connector trust, red-team, and gateway-policy evidence."
+      ],
+      "enterprise_risk": "Without a capability risk register, teams may scale low-friction agent workflows and high-impact agent workflows under the same approval path, hiding financial, privacy, supply-chain, and MCP access consequences.",
+      "horizon": "now",
+      "id": "capability-based-agentic-risk-governance",
+      "mapped_capability_ids": [
+        "agent-capability-risk-register",
+        "agentic-readiness-scorecard",
+        "agentic-assurance-pack",
+        "agentic-system-bom",
+        "mcp-gateway-policy"
+      ],
+      "priority": "high",
+      "roadmap_action": "Offer hosted capability scoring that ingests customer runtime telemetry, connector inventory, approval records, and trust-center export requirements.",
+      "scores": {
+        "defensibility": 4,
+        "ease_of_adoption": 5,
+        "enterprise_control_value": 5,
+        "market_urgency": 5,
+        "mcp_monetization_fit": 5
+      },
+      "source_ids": [
+        "csa-cbra-agentic-risk-2025",
+        "owasp-agentic-top-10-2026",
+        "owasp-mcp-top-10-2025",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "csa-cbra-agentic-risk-2025",
+          "name": "Capabilities-Based Risk Assessment for Agentic AI",
+          "published": "2025-11-13",
+          "publisher": "Cloud Security Alliance",
+          "source_class": "industry_guidance",
+          "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk"
+        },
+        {
+          "id": "owasp-agentic-top-10-2026",
+          "name": "OWASP Top 10 for Agentic Applications",
+          "published": "2025-12-09",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/"
+        },
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP Top 10 for Model Context Protocol",
+          "published": "2025",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "strategic_score": 93,
+      "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents",
+      "trend": "Enterprises are shifting from generic AI governance to consequence-driven assessment of what an agent can do, how autonomous it is, which systems it can reach, and how far a failure can spread."
     },
     {
       "buyer_trigger": "The buyer is moving from prompt libraries to RAG, memory, or MCP-backed runtime context.",

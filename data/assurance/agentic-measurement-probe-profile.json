@@ -1,0 +1,374 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define SecurityRecipes measurement probes for agentic AI workflows so the secure context layer can prove traceability, policy fit, runtime evidence, and adversarial readiness with machine-readable checks instead of static assurance claims.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, GRC, model risk, procurement security, and acquisition diligence teams",
+    "category": "Agentic AI measurement probes and runtime evidence readiness",
+    "enterprise_promise": "SecurityRecipes converts agentic workflow controls into repeatable probes that verify context integrity, MCP authorization, identity, memory, egress, red-team replay, and receipt evidence before workflows scale.",
+    "why_now": "Agentic AI is moving into higher-stakes enterprise operations where teams need to reconstruct which context, tools, policies, identities, approvals, and verifiers shaped a decision. Measurement probes turn that traceability requirement into an MCP-readable product surface."
+  },
+  "standards_alignment": [
+    {
+      "id": "nist-agentic-measurement-probes-2026",
+      "name": "NIST Building Measurement Probes into Agentic AI Ecosystems",
+      "url": "https://www.nist.gov/news-events/events/2026/04/nist-information-technology-laboratory-ai-webinar-series-building",
+      "coverage": "Anchors the feature in traceability, reconstruction of tool use and evidence, judges/verifiers, and dynamic verification for agentic AI systems."
+    },
+    {
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework 1.0",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "coverage": "Maps probes to Govern, Map, Measure, and Manage expectations for AI systems that need lifecycle risk management and evidence."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Supports GAI measurement, data provenance, third-party dependency, monitoring, and risk response expectations."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Covers autonomous goal pursuit, tool use, delegation, rogue behavior, and cascading failure modes that need repeatable probes."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP Top 10 for Model Context Protocol",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "coverage": "Covers MCP token exposure, scope creep, tool poisoning, command execution, auth gaps, missing telemetry, shadow servers, and context over-sharing."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Requires probes for audience-bound tokens, resource indicators, PKCE support, token lifetime, token-passthrough denial, and HTTPS transport assumptions."
+    },
+    {
+      "id": "mcp-security-best-practices-2025-06-18",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Supports confused-deputy prevention, least-privilege scopes, token safety, SSRF resistance, session safety, local server hardening, and auditability."
+    },
+    {
+      "id": "csa-cbra-agentic-risk-2025",
+      "name": "CSA Capabilities-Based Risk Assessment for Agentic AI",
+      "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk",
+      "coverage": "Connects measurement probes to system criticality, autonomy, access permissions, and impact radius before enterprise expansion."
+    }
+  ],
+  "probe_contract": {
+    "default_state": "unverified_until_probe_passes",
+    "minimum_probe_classes": 8,
+    "minimum_probes_per_workflow": 8,
+    "minimum_pass_score": 85,
+    "block_on_source_failures": true,
+    "required_source_packs": [
+      "workflow_manifest",
+      "gateway_policy",
+      "mcp_authorization_conformance",
+      "secure_context_trust_pack",
+      "context_poisoning_guard_pack",
+      "context_egress_boundary_pack",
+      "agent_memory_boundary_pack",
+      "agentic_red_team_drill_pack",
+      "agentic_readiness_scorecard",
+      "agent_capability_risk_register",
+      "agentic_run_receipt_pack",
+      "agentic_threat_radar"
+    ],
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "agent_class",
+      "identity_id",
+      "policy_pack_hash",
+      "context_package_hash",
+      "egress_policy_hash",
+      "authorization_policy_hash",
+      "receipt_hash",
+      "verifier_result",
+      "correlation_id"
+    ]
+  },
+  "probe_classes": [
+    {
+      "id": "context_integrity",
+      "title": "Context Integrity Probe",
+      "question": "Can the workflow prove retrieved context is registered, owned, hash-bound, cited, and scanned before an agent treats it as evidence?"
+    },
+    {
+      "id": "tool_authorization",
+      "title": "Tool Authorization Probe",
+      "question": "Can the workflow prove each MCP namespace is default-deny, resource-bound, audience-bound, and scoped before tool execution?"
+    },
+    {
+      "id": "identity_delegation",
+      "title": "Identity Delegation Probe",
+      "question": "Can the workflow prove the agent acts through a scoped non-human identity with revocation and explicit denied actions?"
+    },
+    {
+      "id": "egress_boundary",
+      "title": "Context Egress Probe",
+      "question": "Can the workflow prove context cannot leave tenant, model, telemetry, MCP, or public-corpus boundaries without data-class and destination checks?"
+    },
+    {
+      "id": "memory_boundary",
+      "title": "Memory Boundary Probe",
+      "question": "Can the workflow prove persistent memory, replay, vector indexes, and prohibited memory are gated before reuse?"
+    },
+    {
+      "id": "red_team_replay",
+      "title": "Red-Team Replay Probe",
+      "question": "Can the workflow replay adversarial cases for prompt injection, goal hijack, approval bypass, exfiltration, drift, loops, and evidence integrity?"
+    },
+    {
+      "id": "run_receipt_integrity",
+      "title": "Run Receipt Integrity Probe",
+      "question": "Can the workflow reconstruct the full chain of context, tools, policy decisions, approvals, verifier results, closure, and identity revocation?"
+    },
+    {
+      "id": "readiness_decision",
+      "title": "Readiness Decision Probe",
+      "question": "Can the workflow prove the current evidence supports scale, guarded pilot, manual gate, or block decisions?"
+    },
+    {
+      "id": "threat_radar_alignment",
+      "title": "Threat Radar Alignment Probe",
+      "question": "Can the workflow show which current source-backed agentic and MCP threat signals its controls address?"
+    }
+  ],
+  "probes": [
+    {
+      "id": "context-source-hash-and-poisoning",
+      "class_id": "context_integrity",
+      "title": "Registered context hash and poisoning probe",
+      "weight": 12,
+      "mapped_signal_ids": [
+        "indirect-prompt-injection-social-engineering",
+        "context-over-sharing-and-memory-poisoning",
+        "ai-data-security-and-provenance"
+      ],
+      "evidence_inputs": [
+        "secure_context_trust_pack.workflow_context_map",
+        "secure_context_trust_pack.context_sources",
+        "context_poisoning_guard_pack.source_results"
+      ],
+      "pass_conditions": [
+        "workflow context package exists and includes source hashes",
+        "all default context sources require citation",
+        "poisoning guard has generated source scan output"
+      ],
+      "failure_actions": [
+        "hold retrieval until source owner recertifies context",
+        "kill session if prohibited context or actionable hidden instruction appears"
+      ]
+    },
+    {
+      "id": "mcp-auth-resource-and-scope",
+      "class_id": "tool_authorization",
+      "title": "MCP resource, audience, and scope probe",
+      "weight": 12,
+      "mapped_signal_ids": [
+        "mcp-token-passthrough-and-scope-creep",
+        "tool-poisoning-and-shadow-mcp",
+        "agent-identity-explosion"
+      ],
+      "evidence_inputs": [
+        "mcp_gateway_policy.workflow_policies",
+        "mcp_authorization_conformance_pack.workflow_authorization_map"
+      ],
+      "pass_conditions": [
+        "gateway policy defaults to deny",
+        "workflow namespaces have authorization conformance rows",
+        "authorization decisions require gateway attestation"
+      ],
+      "failure_actions": [
+        "deny unregistered MCP namespace",
+        "hold OAuth-backed connector until audience and resource checks pass"
+      ]
+    },
+    {
+      "id": "agent-identity-revocation",
+      "class_id": "identity_delegation",
+      "title": "Scoped agent identity and revocation probe",
+      "weight": 10,
+      "mapped_signal_ids": [
+        "agent-identity-explosion",
+        "human-approval-and-tool-safeguards",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "evidence_inputs": [
+        "agentic_run_receipt_pack.workflow_receipt_templates",
+        "agentic_readiness_scorecard.workflow_readiness"
+      ],
+      "pass_conditions": [
+        "receipt template lists identity IDs",
+        "identity revocation is a required event",
+        "readiness evidence counts identity coverage"
+      ],
+      "failure_actions": [
+        "hold workflow if identity coverage is incomplete",
+        "kill session if revocation evidence cannot be written"
+      ]
+    },
+    {
+      "id": "context-egress-destination-policy",
+      "class_id": "egress_boundary",
+      "title": "Context egress destination and data-class probe",
+      "weight": 10,
+      "mapped_signal_ids": [
+        "context-over-sharing-and-memory-poisoning",
+        "ai-data-security-and-provenance",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "evidence_inputs": [
+        "context_egress_boundary_pack.workflow_egress_map",
+        "context_egress_boundary_pack.destination_classes"
+      ],
+      "pass_conditions": [
+        "workflow egress policy hash exists",
+        "namespace policies require tenant and destination checks",
+        "public corpus and untrusted webhook destinations are prohibited"
+      ],
+      "failure_actions": [
+        "hold model-provider egress without DPA and zero-data-retention evidence",
+        "deny public-corpus egress for tenant runtime context"
+      ]
+    },
+    {
+      "id": "memory-ttl-and-replay-boundary",
+      "class_id": "memory_boundary",
+      "title": "Memory TTL, replay, and prohibited-memory probe",
+      "weight": 10,
+      "mapped_signal_ids": [
+        "context-over-sharing-and-memory-poisoning",
+        "indirect-prompt-injection-social-engineering",
+        "secure-by-design-agentic-products"
+      ],
+      "evidence_inputs": [
+        "agent_memory_boundary_pack.workflow_memory_profiles",
+        "agent_memory_boundary_pack.memory_classes"
+      ],
+      "pass_conditions": [
+        "workflow memory profile exists",
+        "customer and vector memory hold for tenant controls",
+        "prohibited memory kills the session"
+      ],
+      "failure_actions": [
+        "deny replay from unregistered memory class",
+        "kill session on private key, token, or cross-tenant memory"
+      ]
+    },
+    {
+      "id": "adversarial-replay-coverage",
+      "class_id": "red_team_replay",
+      "title": "Adversarial replay coverage probe",
+      "weight": 12,
+      "mapped_signal_ids": [
+        "continuous-red-team-and-evals",
+        "indirect-prompt-injection-social-engineering",
+        "tool-poisoning-and-shadow-mcp"
+      ],
+      "evidence_inputs": [
+        "agentic_red_team_drill_pack.workflow_drills"
+      ],
+      "pass_conditions": [
+        "workflow has at least five red-team drills",
+        "drills include high or critical scenarios",
+        "drills exercise declared MCP namespaces"
+      ],
+      "failure_actions": [
+        "block scale decision until drill coverage is restored",
+        "hold connector promotion when schema drift drills fail"
+      ]
+    },
+    {
+      "id": "run-receipt-chain-reconstruction",
+      "class_id": "run_receipt_integrity",
+      "title": "Run receipt chain reconstruction probe",
+      "weight": 12,
+      "mapped_signal_ids": [
+        "audit-telemetry-and-evidence-chain",
+        "human-approval-and-tool-safeguards",
+        "secure-by-design-agentic-products"
+      ],
+      "evidence_inputs": [
+        "agentic_run_receipt_pack.workflow_receipt_templates"
+      ],
+      "pass_conditions": [
+        "receipt requires identity, context, tool, egress, approval, verifier, closure, and revocation events",
+        "receipt records context and egress policy hashes",
+        "receipt acceptance criteria forbid unverifiable success claims"
+      ],
+      "failure_actions": [
+        "manual gate run if receipt is incomplete",
+        "do not close finding from unsealed or non-replayable evidence"
+      ]
+    },
+    {
+      "id": "readiness-and-capability-risk",
+      "class_id": "readiness_decision",
+      "title": "Readiness and capability-risk decision probe",
+      "weight": 10,
+      "mapped_signal_ids": [
+        "capability-based-agentic-risk-governance",
+        "secure-by-design-agentic-products",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "evidence_inputs": [
+        "agentic_readiness_scorecard.workflow_readiness",
+        "agent_capability_risk_register.workflow_risk_register"
+      ],
+      "pass_conditions": [
+        "readiness score is at least guarded-pilot threshold",
+        "no readiness blockers are present",
+        "capability risk is represented before expansion"
+      ],
+      "failure_actions": [
+        "manual gate workflow when readiness score falls below threshold",
+        "block workflow when source evidence reports validation failures"
+      ]
+    },
+    {
+      "id": "current-threat-signal-coverage",
+      "class_id": "threat_radar_alignment",
+      "title": "Current threat-signal coverage probe",
+      "weight": 12,
+      "mapped_signal_ids": [
+        "indirect-prompt-injection-social-engineering",
+        "mcp-token-passthrough-and-scope-creep",
+        "context-over-sharing-and-memory-poisoning",
+        "continuous-red-team-and-evals",
+        "capability-based-agentic-risk-governance"
+      ],
+      "evidence_inputs": [
+        "agentic_threat_radar.threat_signals",
+        "agentic_threat_radar.product_capabilities"
+      ],
+      "pass_conditions": [
+        "mapped signals exist in the source-backed threat radar",
+        "at least one mapped signal is critical or high",
+        "product capabilities are linked to MCP-readable evidence"
+      ],
+      "failure_actions": [
+        "refresh threat radar before enterprise review",
+        "create roadmap action when a critical signal lacks product coverage"
+      ]
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can prove agentic workflow readiness through measurement probes that reconstruct context, tools, policies, identities, approvals, verifiers, memory, egress, and threat alignment.",
+    "default_questions_answered": [
+      "Which probes must pass before a workflow scales?",
+      "Which evidence pack proves each probe?",
+      "Which current agentic and MCP threats are covered?",
+      "Which runtime fields must appear in a customer trace?",
+      "Which probe failures force a manual gate or kill-session decision?"
+    ],
+    "recommended_first_use": "Attach the generated probe pack to AI platform promotion reviews, MCP connector intake, quarterly red-team replay, procurement security reviews, and acquisition diligence.",
+    "sales_motion": "Lead with open measurement probes, then sell hosted trace ingestion, probe execution, eval replay, context signing, evidence retention, and trust-center exports."
+  }
+}

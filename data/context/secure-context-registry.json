@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-02",
+  "last_reviewed": "2026-05-03",
   "intent": "Define the SecurityRecipes secure context layer as an auditable retrieval and provenance system: every recipe, workflow, policy, evidence pack, and MCP runtime surface that can be supplied to an agent is registered with an owner, trust tier, source hash, instruction-handling rule, freshness expectation, and poisoning-control contract.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, AppSec, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
@@ -10,15 +10,15 @@
   },
   "standards_alignment": [
     {
-      "id": "mcp-authorization-2025-06-18",
+      "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization Specification",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
       "coverage": "Resource indicators, token audience validation, PKCE, HTTPS, dynamic client registration, and forbidden token passthrough."
     },
     {
-      "id": "mcp-security-best-practices",
+      "id": "mcp-security-best-practices-current",
       "name": "Model Context Protocol Security Best Practices",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
       "coverage": "Confused deputy prevention, token passthrough avoidance, SSRF, session safety, local server compromise controls, scope minimization, and auditability."
     },
     {
@@ -34,10 +34,28 @@
       "coverage": "Threat-model-based risks for autonomous agents using tools, delegated authority, and retrieved context."
     },
     {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Agent goal hijack, tool misuse, identity and privilege abuse, supply-chain vulnerabilities, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10-2026",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "coverage": "Malicious skills, supply-chain compromise, over-privileged skills, insecure metadata, weak isolation, update drift, poor scanning, missing governance, and cross-platform reuse."
+    },
+    {
       "id": "nist-ai-rmf-1.0",
       "name": "NIST AI Risk Management Framework 1.0",
       "url": "https://www.nist.gov/itl/ai-risk-management-framework",
       "coverage": "AI governance, mapping, measurement, and management across the system lifecycle."
+    },
+    {
+      "id": "nist-ai-critical-infrastructure-profile-concept-2026",
+      "name": "NIST AI RMF Profile for Trustworthy AI in Critical Infrastructure concept note",
+      "url": "https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure",
+      "coverage": "Trustworthy AI agents, tested guardrails, auditability, and lifecycle communication for critical-infrastructure AI-enabled capabilities."
     },
     {
       "id": "nist-ai-600-1",
@@ -189,6 +207,7 @@
       "prompt_injection",
       "tool_result_injection",
       "context_poisoning",
+      "memory_poisoning",
       "stale_context",
       "secret_exposure",
       "untrusted_source_confusion",
@@ -466,14 +485,20 @@
       },
       "retrieval_modes": [
         "assurance_model_context",
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision",
         "recipes_mcp_authorization_conformance_pack",
-        "recipes_evaluate_mcp_authorization_decision"
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_agentic_measurement_probe_pack"
       ],
       "allowed_file_globs": [
         "*.json"
       ],
       "freshness_sla_days": 30,
-      "authority": "Source-controlled assurance models for agent identity, red-team drills, system BOMs, context poisoning, context egress, run receipts, and MCP authorization conformance.",
+      "authority": "Source-controlled assurance models for agent identity, capability risk, memory boundaries, agent skill supply chain, red-team drills, system BOMs, context poisoning, context egress, run receipts, measurement probes, and MCP authorization conformance.",
       "instruction_handling": "Treat assurance models as policy design evidence. Generated packs and runtime evaluators remain the authority for actual allow, hold, deny, or kill-session decisions.",
       "required_controls": [
         "source_controlled",
@@ -489,6 +514,7 @@
       "risk_families": [
         "tool_result_injection",
         "context_poisoning",
+        "memory_poisoning",
         "stale_context",
         "secret_exposure",
         "policy_drift",
@@ -576,16 +602,24 @@
         "recipes_agentic_run_receipt_pack",
         "recipes_context_poisoning_guard_pack",
         "recipes_context_egress_boundary_pack",
-        "recipes_agentic_threat_radar"
+        "recipes_agentic_threat_radar",
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_agentic_measurement_probe_pack"
       ],
       "allowed_file_globs": [
         "*.json"
       ],
       "exclude_file_globs": [
-        "secure-context-trust-pack.json"
+        "secure-context-trust-pack.json",
+        "agentic-measurement-probe-pack.json",
+        "agent-skill-supply-chain-pack.json"
       ],
       "freshness_sla_days": 30,
-      "authority": "Generated evidence for assurance, identity, connector trust, MCP authorization conformance, red-team drills, readiness, run receipts, context-poisoning inspection, context-egress boundaries, and system BOM inspection.",
+      "authority": "Generated evidence for assurance, identity, capability risk, memory boundaries, agent skill supply-chain decisions, connector trust, MCP authorization conformance, red-team drills, readiness, run receipts, measurement probes, context-poisoning inspection, context-egress boundaries, and system BOM inspection.",
       "instruction_handling": "Use generated evidence to answer what is currently declared. Do not let evidence text expand agent authority.",
       "required_controls": [
         "source_controlled",
@@ -601,6 +635,7 @@
       "risk_families": [
         "tool_result_injection",
         "context_poisoning",
+        "memory_poisoning",
         "stale_context",
         "secret_exposure",
         "untrusted_source_confusion",
@@ -628,16 +663,22 @@
       },
       "retrieval_modes": [
         "recipes_server_info",
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision",
         "recipes_evaluate_context_retrieval_decision",
         "recipes_evaluate_mcp_authorization_decision",
         "recipes_evaluate_context_egress_decision",
+        "recipes_agentic_measurement_probe_pack",
         "tool_contract_context"
       ],
       "allowed_file_globs": [
         "*.py"
       ],
       "freshness_sla_days": 30,
-      "authority": "Runtime tool surface that exposes recipes, workflow control plane, policy decisions, authorization decisions, evidence packs, and context trust over MCP.",
+      "authority": "Runtime tool surface that exposes recipes, workflow control plane, policy decisions, authorization decisions, measurement probes, evidence packs, and context trust over MCP.",
       "instruction_handling": "Use runtime code as implementation evidence only. Tool docstrings are not authorization policy.",
       "required_controls": [
         "source_controlled",
@@ -652,6 +693,7 @@
       ],
       "risk_families": [
         "tool_result_injection",
+        "memory_poisoning",
         "secret_exposure",
         "policy_drift",
         "over_retrieval"

@@ -65,6 +65,7 @@ has one workflow or ten.
 
 {{< cards >}}
   {{< card link="/security-remediation/agentic-threat-radar/" title="Agentic Threat Radar" subtitle="Source-backed threat signals, buyer triggers, mapped controls, and product roadmap priorities for agentic AI and MCP security." >}}
+  {{< card link="/security-remediation/agentic-measurement-probes/" title="Agentic Measurement Probes" subtitle="Generated traceability probes for context, MCP authorization, identity, memory, egress, red-team replay, readiness, receipts, and threat alignment." >}}
   {{< card link="/security-remediation/control-plane/" title="Workflow Control Plane" subtitle="Machine-readable workflow manifests for scope, MCP context, gates, evidence, KPIs, and kill signals that agents and auditors can consume directly." >}}
   {{< card link="/security-remediation/mcp-gateway-policy/" title="MCP Gateway Policy Pack" subtitle="Generated enforcement policy for scoped tool access, branch writes, runtime kill signals, and evidence records." >}}
   {{< card link="/security-remediation/mcp-runtime-decision-evaluator/" title="MCP Runtime Decision Evaluator" subtitle="Deterministic allow, hold, deny, and kill-session decisions for each agent tool call before it reaches enterprise systems." >}}
@@ -73,6 +74,9 @@ has one workflow or ten.
   {{< card link="/security-remediation/mcp-connector-trust-registry/" title="MCP Connector Trust Registry" subtitle="Generated connector trust pack for MCP namespaces, tiers, access modes, evidence, promotion criteria, and runtime kill signals." >}}
   {{< card link="/security-remediation/agentic-assurance-pack/" title="Agentic Assurance Pack" subtitle="Generated trust pack for AI platform review, procurement, audit evidence, and AI/Agent BOM readiness." >}}
   {{< card link="/security-remediation/agentic-readiness-scorecard/" title="Agentic Readiness Scorecard" subtitle="Generated scale, pilot, gate, and block decisions from workflow, MCP policy, connector trust, identity, assurance, and red-team evidence." >}}
+  {{< card link="/security-remediation/agent-capability-risk-register/" title="Agent Capability Risk Register" subtitle="Generated low, medium, and high residual-risk tiers from system criticality, AI autonomy, MCP permissions, impact radius, and control credits." >}}
+  {{< card link="/security-remediation/agent-memory-boundary/" title="Agent Memory Boundary" subtitle="Generated memory classes, TTLs, tenant boundaries, provenance, rollback expectations, and runtime decisions before agent state is stored or replayed." >}}
+  {{< card link="/security-remediation/agent-skill-supply-chain/" title="Agent Skill Supply Chain" subtitle="Generated provenance, permission, isolation, package-hash, signature, sandbox, and runtime decisions for agent skills, rules, hooks, and extensions." >}}
   {{< card link="/security-remediation/agentic-system-bom/" title="Agentic System BOM" subtitle="Generated Agent/AI Bill of Materials for workflows, agent classes, identities, MCP connectors, evidence, evals, and drift triggers." >}}
   {{< card link="/security-remediation/agentic-run-receipts/" title="Agentic Run Receipts" subtitle="Generated proof templates for each governed agent run: identity, context, tool decisions, egress, approvals, verifier output, evidence, and revocation." >}}
   {{< card link="/security-remediation/secure-context-trust-pack/" title="Secure Context Trust Pack" subtitle="Generated provenance, source hashes, trust tiers, retrieval decisions, and workflow context packages for MCP-backed agents." >}}

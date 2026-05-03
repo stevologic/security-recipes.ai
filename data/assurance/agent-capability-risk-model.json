@@ -1,0 +1,234 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-02",
+  "intent": "Define a repeatable capability-based risk model for SecurityRecipes agentic workflows so AI platform, security architecture, GRC, procurement, and acquisition reviewers can see which agents are low, medium, or high residual risk before MCP access expands.",
+  "positioning": {
+    "buyer": "AI Platform, Security Architecture, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
+    "category": "Capability-based risk register for agentic AI remediation",
+    "enterprise_promise": "SecurityRecipes can classify each approved agentic workflow by system criticality, AI autonomy, access permissions, and impact radius, then show the compensating controls that make the residual risk acceptable.",
+    "why_now": "Agentic AI programs are moving from demos to delegated production work. The board-level question is no longer whether an agent can complete a task; it is whether the organization understands the capability, consequence, access, and oversight profile before letting the agent act."
+  },
+  "standards_alignment": [
+    {
+      "id": "csa-cbra-agentic-risk-2025",
+      "name": "Cloud Security Alliance Capabilities-Based Risk Assessment",
+      "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk",
+      "coverage": "Capability scoring across system criticality, AI autonomy, access permissions, and impact radius for autonomous and agentic AI systems."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/",
+      "coverage": "Agent behavior hijacking, tool misuse, identity and privilege abuse, and agentic supply-chain risk."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "coverage": "MCP token mismanagement, scope creep, tool poisoning, command execution, intent flow subversion, insufficient authorization, audit gaps, shadow servers, and context over-sharing."
+    },
+    {
+      "id": "mcp-authorization-2025-06-18",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization",
+      "coverage": "OAuth 2.1 authorization, protected resource metadata, resource indicators, audience validation, token handling, and PKCE expectations for protected MCP servers."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Lifecycle governance, measurement, third-party dependency, provenance, monitoring, and incident-response risk actions for generative AI."
+    },
+    {
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework 1.0",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "coverage": "Govern, Map, Measure, and Manage functions for trustworthy AI risk management."
+    }
+  ],
+  "factor_model": [
+    {
+      "id": "system_criticality",
+      "title": "System Criticality",
+      "question": "How consequential is the workflow domain if the agent makes a wrong change or trusts hostile context?",
+      "levels": [
+        {
+          "id": "low",
+          "points": 5,
+          "description": "Low operational consequence and limited security impact."
+        },
+        {
+          "id": "medium",
+          "points": 10,
+          "description": "Security-relevant workflow with bounded application impact."
+        },
+        {
+          "id": "high",
+          "points": 16,
+          "description": "Workflow touches supply chain, privacy, fleet configuration, or security-control outcomes."
+        },
+        {
+          "id": "critical",
+          "points": 22,
+          "description": "Workflow can affect irreversible financial, wallet, signing, governance, or critical-infrastructure outcomes."
+        }
+      ]
+    },
+    {
+      "id": "ai_autonomy",
+      "title": "AI Autonomy",
+      "question": "How much planning, tool selection, and multi-step execution can the agent perform before a human review point?",
+      "levels": [
+        {
+          "id": "supervised_assist",
+          "points": 6,
+          "description": "Agent drafts or triages under close human instruction."
+        },
+        {
+          "id": "bounded_agentic_pr",
+          "points": 12,
+          "description": "Agent can plan and open scoped remediation output with mandatory review."
+        },
+        {
+          "id": "multi_agentic_remediation",
+          "points": 16,
+          "description": "Workflow supports several agent hosts and repeatable delegated remediation."
+        },
+        {
+          "id": "high_autonomy_or_approval_path",
+          "points": 20,
+          "description": "Workflow includes approval-required or high-consequence operations that need policy-backed supervision."
+        }
+      ]
+    },
+    {
+      "id": "access_permissions",
+      "title": "Access Permissions",
+      "question": "What is the most powerful MCP access mode the workflow can request?",
+      "levels": [
+        {
+          "id": "read_only",
+          "points": 5,
+          "description": "Read-only context or evidence access."
+        },
+        {
+          "id": "scoped_branch_write",
+          "points": 14,
+          "description": "Scoped source write on remediation branches only."
+        },
+        {
+          "id": "branch_and_ticket_write",
+          "points": 18,
+          "description": "Scoped source write plus ticket, quarantine, or workflow evidence writes."
+        },
+        {
+          "id": "approval_or_irreversible_action",
+          "points": 22,
+          "description": "Approval-required operation or domain where a mistaken action may be hard to reverse."
+        }
+      ]
+    },
+    {
+      "id": "impact_radius",
+      "title": "Impact Radius",
+      "question": "How far can a bad agent decision spread across repositories, tenants, infrastructure, users, or financial systems?",
+      "levels": [
+        {
+          "id": "single_repo",
+          "points": 6,
+          "description": "Single repository or narrow file set."
+        },
+        {
+          "id": "service_or_team",
+          "points": 12,
+          "description": "One service, team, or application boundary."
+        },
+        {
+          "id": "fleet_or_tenant",
+          "points": 18,
+          "description": "Many repositories, shared build infrastructure, tenant data, or supply-chain assets."
+        },
+        {
+          "id": "financial_or_irreversible",
+          "points": 22,
+          "description": "Payment, wallet, chain, governance, signing, or other irreversible consequence domain."
+        }
+      ]
+    }
+  ],
+  "risk_tiers": [
+    {
+      "id": "low",
+      "min_score": 0,
+      "max_score": 20,
+      "decision": "standard_agentic_use",
+      "meaning": "May run inside the normal MCP gateway policy and review flow."
+    },
+    {
+      "id": "medium",
+      "min_score": 21,
+      "max_score": 40,
+      "decision": "guarded_rollout",
+      "meaning": "May run with bounded rollout, current readiness evidence, and workflow-owner review."
+    },
+    {
+      "id": "high",
+      "min_score": 41,
+      "max_score": 100,
+      "decision": "security_architecture_review",
+      "meaning": "Requires security architecture review, explicit control acceptance, and runtime evidence before expansion."
+    }
+  ],
+  "control_credit_model": {
+    "max_credit": 42,
+    "credits": [
+      {
+        "id": "readiness_scale_ready",
+        "points": 16,
+        "condition": "Readiness score is 90 or higher and the readiness decision is scale_ready."
+      },
+      {
+        "id": "readiness_pilot_guarded",
+        "points": 12,
+        "condition": "Readiness score is 78 or higher and the readiness decision is pilot_guarded."
+      },
+      {
+        "id": "default_deny_gateway",
+        "points": 6,
+        "condition": "The MCP gateway policy defaults to deny."
+      },
+      {
+        "id": "connector_production_coverage",
+        "points": 8,
+        "condition": "All workflow MCP namespaces have production connector status."
+      },
+      {
+        "id": "connector_registered_coverage",
+        "points": 4,
+        "condition": "All workflow MCP namespaces are registered even if some are pilot."
+      },
+      {
+        "id": "red_team_coverage",
+        "points": 8,
+        "condition": "The workflow has at least five generated adversarial drills."
+      },
+      {
+        "id": "runtime_kill_signal",
+        "points": 4,
+        "condition": "Workflow and gateway policy expose runtime kill/session disablement controls."
+      }
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes measures agentic AI risk by capability and consequence, then proves which controls reduce the residual risk before MCP access scales.",
+    "default_questions_answered": [
+      "Which workflows are high residual risk and why?",
+      "Which workflows can run under standard controls?",
+      "Which dimensions drive the risk score: criticality, autonomy, access, or impact radius?",
+      "Which control credits lower the residual risk?",
+      "Which workflows need architecture review before expansion?"
+    ],
+    "recommended_first_use": "Attach the register to AI platform intake, MCP access approval, security architecture review, and procurement-security diligence.",
+    "sales_motion": "Lead with the open risk register, then sell hosted capability scoring, customer runtime telemetry ingestion, workflow expansion gates, and trust-center exports."
+  }
+}
