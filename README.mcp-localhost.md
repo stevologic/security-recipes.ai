@@ -84,10 +84,15 @@ After connecting, the server exposes these tools:
 - `recipes_agentic_run_receipt_pack`
 - `recipes_secure_context_trust_pack`
 - `recipes_evaluate_context_retrieval_decision`
+- `recipes_secure_context_attestation_pack`
+- `recipes_evaluate_context_attestation_decision`
+- `recipes_secure_context_eval_pack`
+- `recipes_evaluate_secure_context_eval_case`
 - `recipes_context_poisoning_guard_pack`
 - `recipes_context_egress_boundary_pack`
 - `recipes_evaluate_context_egress_decision`
 - `recipes_agentic_threat_radar`
+- `recipes_agentic_control_plane_blueprint`
 - `recipes_agentic_measurement_probe_pack`
 - `recipes_match_finding`
 
@@ -112,8 +117,9 @@ or self-hosted `recipes-index.json`, workflow manifest, gateway policy,
 assurance pack, identity ledger, connector trust pack, connector intake
 pack, authorization conformance pack, red-team drill pack, readiness
 scorecard, Agentic System BOM, secure context trust pack, context
-poisoning guard pack, context egress boundary pack, or agentic threat
-radar. The secure context retrieval, authorization, and egress
+attestation pack, secure context eval pack, context poisoning guard pack,
+context egress boundary pack, or agentic threat radar. The secure
+context retrieval, attestation, eval, authorization, and egress
 evaluators use those generated packs and do not require separate config
 paths.
 

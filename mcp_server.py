@@ -25,6 +25,8 @@ try:
     from scripts.evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
     from scripts.evaluate_agent_memory_boundary_decision import evaluate_agent_memory_boundary_decision
     from scripts.evaluate_context_egress_decision import evaluate_context_egress_decision
+    from scripts.evaluate_context_attestation_decision import evaluate_context_attestation_decision
+    from scripts.evaluate_secure_context_eval_case import evaluate_secure_context_eval_case
     from scripts.evaluate_mcp_authorization_decision import evaluate_mcp_authorization_decision
     from scripts.evaluate_mcp_gateway_decision import evaluate_policy_decision
     from scripts.evaluate_secure_context_retrieval import evaluate_context_retrieval_decision
@@ -32,6 +34,8 @@ except ImportError:  # pragma: no cover - supports direct script-directory execu
     from evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
     from evaluate_agent_memory_boundary_decision import evaluate_agent_memory_boundary_decision
     from evaluate_context_egress_decision import evaluate_context_egress_decision
+    from evaluate_context_attestation_decision import evaluate_context_attestation_decision
+    from evaluate_secure_context_eval_case import evaluate_secure_context_eval_case
     from evaluate_mcp_authorization_decision import evaluate_mcp_authorization_decision
     from evaluate_mcp_gateway_decision import evaluate_policy_decision
     from evaluate_secure_context_retrieval import evaluate_context_retrieval_decision
@@ -114,6 +118,14 @@ class ServerConfig:
         "RECIPES_MCP_SECURE_CONTEXT_TRUST_PACK_PATH",
         "./data/evidence/secure-context-trust-pack.json",
     )
+    secure_context_attestation_pack_path: str = os.environ.get(
+        "RECIPES_MCP_SECURE_CONTEXT_ATTESTATION_PACK_PATH",
+        "./data/evidence/secure-context-attestation-pack.json",
+    )
+    secure_context_eval_pack_path: str = os.environ.get(
+        "RECIPES_MCP_SECURE_CONTEXT_EVAL_PACK_PATH",
+        "./data/evidence/secure-context-eval-pack.json",
+    )
     context_poisoning_guard_pack_path: str = os.environ.get(
         "RECIPES_MCP_CONTEXT_POISONING_GUARD_PACK_PATH",
         "./data/evidence/context-poisoning-guard-pack.json",
@@ -125,6 +137,10 @@ class ServerConfig:
     threat_radar_path: str = os.environ.get(
         "RECIPES_MCP_THREAT_RADAR_PATH",
         "./data/evidence/agentic-threat-radar.json",
+    )
+    control_plane_blueprint_path: str = os.environ.get(
+        "RECIPES_MCP_CONTROL_PLANE_BLUEPRINT_PATH",
+        "./data/evidence/agentic-control-plane-blueprint.json",
     )
     measurement_probe_pack_path: str = os.environ.get(
         "RECIPES_MCP_MEASUREMENT_PROBE_PACK_PATH",
@@ -2371,6 +2387,322 @@ class SecureContextTrustPack:
         return decision
 
 
+class SecureContextAttestationPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._source_by_id: dict[str, dict[str, Any]] = {}
+        self._workflow_by_id: dict[str, dict[str, Any]] = {}
+        self._artifact_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        manifest = pack.get("attestation_manifest") if isinstance(pack, dict) else {}
+        sources = manifest.get("context_source_attestations") if isinstance(manifest, dict) else []
+        workflows = manifest.get("workflow_context_package_attestations") if isinstance(manifest, dict) else []
+        artifacts = manifest.get("source_artifact_attestations") if isinstance(manifest, dict) else []
+        self._source_by_id = {
+            str(source.get("source_id")): source
+            for source in sources
+            if isinstance(source, dict) and source.get("source_id")
+        }
+        self._workflow_by_id = {
+            str(workflow.get("workflow_id")): workflow
+            for workflow in workflows
+            if isinstance(workflow, dict) and workflow.get("workflow_id")
+        }
+        self._artifact_by_id = {
+            str(artifact.get("attestation_id")).removeprefix("artifact-"): artifact
+            for artifact in artifacts
+            if isinstance(artifact, dict) and artifact.get("attestation_id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _subject_preview(subject: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "attestation_id": subject.get("attestation_id"),
+            "decision": subject.get("decision"),
+            "freshness_state": subject.get("freshness_state"),
+            "source_id": subject.get("source_id"),
+            "status": subject.get("status"),
+            "subject_type": subject.get("subject_type"),
+            "title": subject.get("title"),
+            "trust_tier": subject.get("trust_tier"),
+            "workflow_id": subject.get("workflow_id"),
+        }
+
+    def get(
+        self,
+        source_id: str | None = None,
+        workflow_id: str | None = None,
+        artifact_id: str | None = None,
+        subject_type: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context attestation pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "secure context attestation pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "secure context attestation pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if source_id:
+            subject = self._source_by_id.get(source_id.strip())
+            return {
+                "available": True,
+                "found": subject is not None,
+                "source_id": source_id,
+                "subject": subject,
+            }
+
+        if workflow_id:
+            subject = self._workflow_by_id.get(workflow_id.strip())
+            return {
+                "available": True,
+                "found": subject is not None,
+                "subject": subject,
+                "workflow_id": workflow_id,
+            }
+
+        if artifact_id:
+            subject = self._artifact_by_id.get(artifact_id.strip())
+            return {
+                "artifact_id": artifact_id,
+                "available": True,
+                "found": subject is not None,
+                "subject": subject,
+            }
+
+        subjects = [
+            *self._source_by_id.values(),
+            *self._workflow_by_id.values(),
+            *self._artifact_by_id.values(),
+        ]
+        if subject_type:
+            key = subject_type.strip()
+            subjects = [subject for subject in subjects if str(subject.get("subject_type")) == key]
+        if status:
+            key = status.strip()
+            subjects = [subject for subject in subjects if str(subject.get("status")) == key]
+
+        return {
+            "available": True,
+            "attestation_contract": pack.get("attestation_contract"),
+            "attestation_summary": pack.get("attestation_summary"),
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "generated_at": pack.get("generated_at"),
+            "in_toto_statement_sha256": pack.get("in_toto_statement_sha256"),
+            "recertification_queue": pack.get("recertification_queue", []),
+            "schema_version": pack.get("schema_version"),
+            "signature_readiness": pack.get("signature_readiness"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "standards_alignment": pack.get("standards_alignment", []),
+            "subjects": [self._subject_preview(subject) for subject in subjects],
+            "verification_policy": pack.get("verification_policy"),
+        }
+
+    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context attestation pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "secure context attestation pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_context_attestation_decision(pack, runtime_request)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate context attestation decision: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
+class SecureContextEvalPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._scenario_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        scenarios = pack.get("scenarios") if isinstance(pack, dict) else []
+        self._scenario_by_id = {
+            str(scenario.get("scenario_id")): scenario
+            for scenario in scenarios
+            if isinstance(scenario, dict) and scenario.get("scenario_id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _scenario_preview(scenario: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "decision": scenario.get("decision"),
+            "failed_check_count": scenario.get("failed_check_count"),
+            "mapped_signal_ids": scenario.get("mapped_signal_ids", []),
+            "scenario_id": scenario.get("scenario_id"),
+            "scenario_type": scenario.get("scenario_type"),
+            "score": scenario.get("score"),
+            "title": scenario.get("title"),
+            "workflow_id": scenario.get("workflow_id"),
+        }
+
+    def get(
+        self,
+        scenario_id: str | None = None,
+        workflow_id: str | None = None,
+        scenario_type: str | None = None,
+        decision: str | None = None,
+        minimum_score: int | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context eval pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "secure context eval pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "secure context eval pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if scenario_id:
+            scenario = self._scenario_by_id.get(scenario_id.strip())
+            return {
+                "available": True,
+                "found": scenario is not None,
+                "scenario": scenario,
+                "scenario_id": scenario_id,
+            }
+
+        scenarios = list(self._scenario_by_id.values())
+        if workflow_id:
+            key = workflow_id.strip()
+            scenarios = [scenario for scenario in scenarios if str(scenario.get("workflow_id")) == key]
+        if scenario_type:
+            key = scenario_type.strip()
+            scenarios = [scenario for scenario in scenarios if str(scenario.get("scenario_type")) == key]
+        if decision:
+            key = decision.strip()
+            scenarios = [scenario for scenario in scenarios if str(scenario.get("decision")) == key]
+        if minimum_score is not None:
+            scenarios = [
+                scenario
+                for scenario in scenarios
+                if int(scenario.get("score") or 0) >= minimum_score
+            ]
+
+        return {
+            "available": True,
+            "decision": decision,
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "eval_summary": pack.get("eval_summary"),
+            "evaluation_contract": pack.get("evaluation_contract"),
+            "generated_at": pack.get("generated_at"),
+            "minimum_score": minimum_score,
+            "runtime_answer_contract": pack.get("runtime_answer_contract"),
+            "scenario_count": len(scenarios),
+            "scenario_type": scenario_type,
+            "scenarios": [self._scenario_preview(scenario) for scenario in scenarios],
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "standards_alignment": pack.get("standards_alignment", []),
+            "threat_signal_coverage": pack.get("threat_signal_coverage", []),
+            "workflow_id": workflow_id,
+        }
+
+    def evaluate(self, runtime_result: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context eval pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "secure context eval pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_secure_context_eval_case(pack, runtime_result)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate secure context eval case: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
 class AgenticThreatRadar:
     def __init__(self, radar_path: str):
         self.path = Path(radar_path)
@@ -2490,6 +2822,123 @@ class AgenticThreatRadar:
             "source_artifacts": radar.get("source_artifacts"),
             "source_references": radar.get("source_references", []),
             "threat_radar_summary": radar.get("threat_radar_summary"),
+        }
+
+
+class AgenticControlPlaneBlueprint:
+    def __init__(self, blueprint_path: str):
+        self.path = Path(blueprint_path)
+        self._mtime: float | None = None
+        self._blueprint: dict[str, Any] | None = None
+        self._layer_by_id: dict[str, dict[str, Any]] = {}
+        self._question_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._blueprint is not None and self._mtime == stat.st_mtime:
+            return self._blueprint
+
+        blueprint = json.loads(self.path.read_text(encoding="utf-8"))
+        layers = blueprint.get("layers") if isinstance(blueprint, dict) else []
+        questions = blueprint.get("buyer_due_diligence_matrix") if isinstance(blueprint, dict) else []
+        self._layer_by_id = {
+            str(layer.get("id")): layer
+            for layer in layers
+            if isinstance(layer, dict) and layer.get("id")
+        }
+        self._question_by_id = {
+            str(question.get("id")): question
+            for question in questions
+            if isinstance(question, dict) and question.get("id")
+        }
+        self._blueprint = blueprint
+        self._mtime = stat.st_mtime
+        return blueprint
+
+    @staticmethod
+    def _layer_preview(layer: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "evidence_coverage_score": layer.get("evidence_coverage_score"),
+            "evidence_paths": layer.get("evidence_paths", []),
+            "id": layer.get("id"),
+            "mcp_tools": layer.get("mcp_tools", []),
+            "premium_path": layer.get("premium_path"),
+            "proof_question": layer.get("proof_question"),
+            "status": layer.get("status"),
+            "title": layer.get("title"),
+        }
+
+    def get(
+        self,
+        layer_id: str | None = None,
+        question_id: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            blueprint = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agentic control plane blueprint: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if blueprint is None:
+            return {
+                "available": False,
+                "error": "agentic control plane blueprint is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(blueprint, dict):
+            return {
+                "available": False,
+                "error": "agentic control plane blueprint root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if layer_id:
+            layer = self._layer_by_id.get(layer_id.strip())
+            return {
+                "available": True,
+                "found": layer is not None,
+                "layer": layer,
+                "layer_id": layer_id,
+            }
+
+        if question_id:
+            question = self._question_by_id.get(question_id.strip())
+            return {
+                "available": True,
+                "found": question is not None,
+                "question": question,
+                "question_id": question_id,
+            }
+
+        layers = list(self._layer_by_id.values())
+        if status:
+            key = status.strip()
+            layers = [layer for layer in layers if str(layer.get("status")) == key]
+
+        return {
+            "available": True,
+            "acquisition_readiness": blueprint.get("acquisition_readiness"),
+            "buyer_due_diligence_matrix": list(self._question_by_id.values()),
+            "commercialization_path": blueprint.get("commercialization_path", {}),
+            "control_plane_contract": blueprint.get("control_plane_contract", {}),
+            "control_plane_summary": blueprint.get("control_plane_summary"),
+            "enterprise_adoption_packet": blueprint.get("enterprise_adoption_packet"),
+            "generated_at": blueprint.get("generated_at"),
+            "layer_count": len(layers),
+            "layers": [self._layer_preview(layer) for layer in layers],
+            "pack_summaries": blueprint.get("pack_summaries", {}),
+            "schema_version": blueprint.get("schema_version"),
+            "source_artifacts": blueprint.get("source_artifacts"),
+            "standards_alignment": blueprint.get("standards_alignment", []),
+            "status": status,
         }
 
 
@@ -3115,6 +3564,14 @@ def load_config(config_path: str) -> ServerConfig:
         "secure_context_trust_pack_path",
         cfg.secure_context_trust_pack_path,
     )
+    cfg.secure_context_attestation_pack_path = data.get(
+        "secure_context_attestation_pack_path",
+        cfg.secure_context_attestation_pack_path,
+    )
+    cfg.secure_context_eval_pack_path = data.get(
+        "secure_context_eval_pack_path",
+        cfg.secure_context_eval_pack_path,
+    )
     cfg.context_poisoning_guard_pack_path = data.get(
         "context_poisoning_guard_pack_path",
         cfg.context_poisoning_guard_pack_path,
@@ -3124,6 +3581,10 @@ def load_config(config_path: str) -> ServerConfig:
         cfg.context_egress_boundary_pack_path,
     )
     cfg.threat_radar_path = data.get("threat_radar_path", cfg.threat_radar_path)
+    cfg.control_plane_blueprint_path = data.get(
+        "control_plane_blueprint_path",
+        cfg.control_plane_blueprint_path,
+    )
     cfg.measurement_probe_pack_path = data.get(
         "measurement_probe_pack_path",
         cfg.measurement_probe_pack_path,
@@ -3188,9 +3649,12 @@ agent_skill_supply_chain_pack = AgentSkillSupplyChainPack(config.agent_skill_sup
 agentic_system_bom = AgenticSystemBOM(config.agentic_system_bom_path)
 agentic_run_receipt_pack = AgenticRunReceiptPack(config.agentic_run_receipt_pack_path)
 secure_context_trust_pack = SecureContextTrustPack(config.secure_context_trust_pack_path)
+secure_context_attestation_pack = SecureContextAttestationPack(config.secure_context_attestation_pack_path)
+secure_context_eval_pack = SecureContextEvalPack(config.secure_context_eval_pack_path)
 context_poisoning_guard_pack = ContextPoisoningGuardPack(config.context_poisoning_guard_pack_path)
 context_egress_boundary_pack = ContextEgressBoundaryPack(config.context_egress_boundary_pack_path)
 threat_radar = AgenticThreatRadar(config.threat_radar_path)
+control_plane_blueprint = AgenticControlPlaneBlueprint(config.control_plane_blueprint_path)
 measurement_probe_pack = AgenticMeasurementProbePack(config.measurement_probe_pack_path)
 mcp = FastMCP(name="security-recipes-mcp")
 
@@ -3219,9 +3683,12 @@ async def recipes_server_info() -> dict[str, Any]:
         "agentic_system_bom_path": config.agentic_system_bom_path,
         "agentic_run_receipt_pack_path": config.agentic_run_receipt_pack_path,
         "secure_context_trust_pack_path": config.secure_context_trust_pack_path,
+        "secure_context_attestation_pack_path": config.secure_context_attestation_pack_path,
+        "secure_context_eval_pack_path": config.secure_context_eval_pack_path,
         "context_poisoning_guard_pack_path": config.context_poisoning_guard_pack_path,
         "context_egress_boundary_pack_path": config.context_egress_boundary_pack_path,
         "threat_radar_path": config.threat_radar_path,
+        "control_plane_blueprint_path": config.control_plane_blueprint_path,
         "measurement_probe_pack_path": config.measurement_probe_pack_path,
     }
 
@@ -3663,6 +4130,94 @@ async def recipes_evaluate_context_retrieval_decision(
 
 
 @mcp.tool()
+async def recipes_secure_context_attestation_pack(
+    source_id: str | None = None,
+    workflow_id: str | None = None,
+    artifact_id: str | None = None,
+    subject_type: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return secure-context attestation subjects, verification policy, and recertification state."""
+    return secure_context_attestation_pack.get(
+        source_id=source_id,
+        workflow_id=workflow_id,
+        artifact_id=artifact_id,
+        subject_type=subject_type,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_context_attestation_decision(
+    subject_type: str,
+    environment: str = "open_reference",
+    source_id: str | None = None,
+    workflow_id: str | None = None,
+    artifact_id: str | None = None,
+    subject_hash: str | None = None,
+    data_class: str | None = None,
+    signature_bundle_present: bool = False,
+    transparency_log_verified: bool = False,
+) -> dict[str, Any]:
+    """Return a deterministic attestation decision before context is trusted for an agent."""
+    return secure_context_attestation_pack.evaluate(
+        {
+            "artifact_id": artifact_id,
+            "data_class": data_class,
+            "environment": environment,
+            "signature_bundle_present": signature_bundle_present,
+            "source_id": source_id,
+            "subject_hash": subject_hash,
+            "subject_type": subject_type,
+            "transparency_log_verified": transparency_log_verified,
+            "workflow_id": workflow_id,
+        }
+    )
+
+
+@mcp.tool()
+async def recipes_secure_context_eval_pack(
+    scenario_id: str | None = None,
+    workflow_id: str | None = None,
+    scenario_type: str | None = None,
+    decision: str | None = None,
+    minimum_score: int | None = None,
+) -> dict[str, Any]:
+    """Return scenario-backed secure-context evals for retrieval, attestation, egress, and handoffs."""
+    return secure_context_eval_pack.get(
+        scenario_id=scenario_id,
+        workflow_id=workflow_id,
+        scenario_type=scenario_type,
+        decision=decision,
+        minimum_score=minimum_score,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_secure_context_eval_case(
+    scenario_id: str,
+    agent_id: str | None = None,
+    run_id: str | None = None,
+    answer_text: str | None = None,
+    citations: list[dict[str, Any]] | None = None,
+    observed_decisions: dict[str, Any] | None = None,
+    handoff_payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Evaluate one observed answer against the generated secure-context eval contract."""
+    return secure_context_eval_pack.evaluate(
+        {
+            "agent_id": agent_id,
+            "answer_text": answer_text,
+            "citations": citations or [],
+            "handoff_payload": handoff_payload or {},
+            "observed_decisions": observed_decisions or {},
+            "run_id": run_id,
+            "scenario_id": scenario_id,
+        }
+    )
+
+
+@mcp.tool()
 async def recipes_context_poisoning_guard_pack(
     source_id: str | None = None,
     decision: str | None = None,
@@ -3753,6 +4308,20 @@ async def recipes_agentic_threat_radar(
         horizon=horizon,
         capability_id=capability_id,
         minimum_score=minimum_score,
+    )
+
+
+@mcp.tool()
+async def recipes_agentic_control_plane_blueprint(
+    layer_id: str | None = None,
+    question_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return the acquisition-ready agentic control plane architecture and buyer evidence map."""
+    return control_plane_blueprint.get(
+        layer_id=layer_id,
+        question_id=question_id,
+        status=status,
     )
 
 

@@ -103,6 +103,10 @@ and ships with:
 - **Secure Context Trust Pack** - generated provenance, source-hash,
   trust-tier, retrieval-policy, and workflow context-package evidence for
   the secure context layer agents consume through MCP.
+- **Secure Context Evals** - generated scenario-backed evals for
+  retrieval correctness, attestation holds, context-poisoning resilience,
+  egress safety, runtime answer contracts, and agent-to-agent handoff
+  boundaries.
 - **Context Poisoning Guard** - generated pre-retrieval scan evidence for
   prompt-injection, tool-poisoning, approval-bypass, hidden-instruction,
   encoded-payload, and exfiltration markers across registered context
@@ -117,6 +121,9 @@ and ships with:
 - **Agentic Threat Radar** - generated source-backed threat signals,
   buyer triggers, mapped controls, and product roadmap priorities for
   agentic AI and MCP security.
+- **Agentic Control Plane Blueprint** - generated architecture, buyer
+  diligence map, MCP evidence surface, and commercialization path for
+  the secure context layer.
 - **MCP Connector Intake Scanner** - generated admission decisions,
   control gaps, registry patch previews, and red-team drills for new or
   changed MCP servers before connector promotion.
@@ -455,6 +462,47 @@ the MCP server as `recipes_secure_context_trust_pack`.
 
 ---
 
+### Generate the secure context attestation pack
+
+The secure context attestation pack turns the trust pack into an
+attestation-shaped evidence artifact: context-source subjects, workflow
+context package subjects, source artifact subjects, verification
+policy, recertification queue, and production signature-readiness
+requirements.
+
+```bash
+python3 scripts/generate_secure_context_attestation_pack.py
+python3 scripts/generate_secure_context_attestation_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/secure-context-attestation-pack.json` and is exposed
+through the MCP server as `recipes_secure_context_attestation_pack`.
+Runtime decisions are exposed as
+`recipes_evaluate_context_attestation_decision`.
+
+---
+
+### Generate the secure context eval pack
+
+The secure context eval pack joins the trust pack, attestation pack,
+context poisoning guard, egress boundary, and threat radar into
+scenario-backed evals for retrieval correctness, production holds,
+prohibited data classes, answer citations, and agent-to-agent handoff
+boundaries.
+
+```bash
+python3 scripts/generate_secure_context_eval_pack.py
+python3 scripts/generate_secure_context_eval_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/secure-context-eval-pack.json` and is exposed through the
+MCP server as `recipes_secure_context_eval_pack`. Runtime answer checks
+are exposed as `recipes_evaluate_secure_context_eval_case`.
+
+---
+
 ### Generate the context poisoning guard pack
 
 The context poisoning guard pack scans every registered secure-context
@@ -509,6 +557,24 @@ python3 scripts/generate_agentic_threat_radar.py --check
 The generated artifact lives at
 `data/evidence/agentic-threat-radar.json` and is exposed through the
 MCP server as `recipes_agentic_threat_radar`.
+
+---
+
+### Generate the agentic control plane blueprint
+
+The control plane blueprint joins existing generated evidence into an
+architecture and buyer-diligence artifact for the secure context layer:
+layers, source packs, MCP tools, diligence questions, and
+commercialization path.
+
+```bash
+python3 scripts/generate_agentic_control_plane_blueprint.py
+python3 scripts/generate_agentic_control_plane_blueprint.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agentic-control-plane-blueprint.json` and is exposed
+through the MCP server as `recipes_agentic_control_plane_blueprint`.
 
 ---
 
@@ -663,7 +729,7 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 | **Agents** | Per-tool recipes for GitHub Copilot, Claude, Cursor, Codex, Devin — each with Install → Configure → Dispatch → Guardrails, plus General and Enterprise onboarding. |
 | **Prompt Library** | Tool-agnostic prompts under `general/` (OWASP Top 10 2026 audit, OWASP Top 10 2026 remediate) plus per-tool prompts for CVE triage, vulnerable deps, and SDE remediation. |
 | **MCP Servers** | Why MCP exists; connector catalog (risk, ownership, ticket, knowledge, code, observability); MCP gateway patterns; integration on-ramp. |
-| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic threat radar, workflow control plane, MCP gateway policy pack, runtime decision evaluator, MCP connector intake scanner, MCP connector trust registry, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, capability risk register, red-team drill pack, agent identity ledger, Agentic System BOM, agentic run receipts, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
+| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic control plane blueprint, threat radar, workflow control plane, MCP gateway policy pack, runtime decision evaluator, MCP connector intake scanner, MCP connector trust registry, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, capability risk register, red-team drill pack, agent identity ledger, Agentic System BOM, agentic run receipts, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
 | **Automation** | The "just use a linter" checklist — deterministic automation that earns its keep before an agent ever runs. |
 | **Contribute** | How to add a recipe, a prompt, or a new workflow. |
 
@@ -1004,6 +1070,41 @@ pack as a default-deny context firewall: unregistered context is denied,
 workflow-unapproved context is denied, hash drift holds for
 recertification, and prohibited data classes kill the session.
 
+### Secure context attestation pack
+
+The generated secure context attestation pack turns the trust pack into a
+verifiable context-subject inventory:
+
+- profile: `data/assurance/secure-context-attestation-profile.json`
+- generator: `scripts/generate_secure_context_attestation_pack.py`
+- runtime evaluator: `scripts/evaluate_context_attestation_decision.py`
+- pack: `data/evidence/secure-context-attestation-pack.json`
+- MCP tools: `recipes_secure_context_attestation_pack`,
+  `recipes_evaluate_context_attestation_decision`
+
+The pack creates an in-toto-shaped statement seed for context sources,
+workflow context packages, and source artifacts. Open-reference and CI
+environments can verify hashes immediately; production MCP,
+trust-center, and diligence environments hold until a keyless signature
+bundle and transparency-log proof are present.
+
+### Secure context eval pack
+
+The generated secure context eval pack turns the secure context layer
+into scenario-backed product evidence:
+
+- profile: `data/assurance/secure-context-eval-scenarios.json`
+- generator: `scripts/generate_secure_context_eval_pack.py`
+- runtime evaluator: `scripts/evaluate_secure_context_eval_case.py`
+- pack: `data/evidence/secure-context-eval-pack.json`
+- MCP tools: `recipes_secure_context_eval_pack`,
+  `recipes_evaluate_secure_context_eval_case`
+
+The pack checks retrieval correctness, production attestation holds,
+context-poisoning scan status, egress decisions, answer citation
+contracts, and agent-to-agent handoff boundaries. It is designed for CI,
+MCP gateways, trust-center exports, and acquisition diligence.
+
 ### Context poisoning guard pack
 
 The generated context poisoning guard pack adds deterministic inspection
@@ -1036,6 +1137,21 @@ buyer triggers, mapped capabilities, source URLs, and recommended
 roadmap actions. CI runs the generator in `--check` mode so market and
 threat intelligence cannot drift silently from the generated MCP-facing
 artifact.
+
+### Agentic control plane blueprint
+
+The generated agentic control plane blueprint turns the existing packs
+into one architecture and buyer-diligence artifact:
+
+- profile: `data/assurance/agentic-control-plane-blueprint.json`
+- generator: `scripts/generate_agentic_control_plane_blueprint.py`
+- blueprint: `data/evidence/agentic-control-plane-blueprint.json`
+- MCP tool: `recipes_agentic_control_plane_blueprint`
+
+The blueprint maps architecture layers to source packs, MCP tools,
+buyer questions, commercialization path, and acquisition-readiness
+signals. It is designed for AI platform architecture review, MCP server
+intake, procurement security, GRC, and acquisition diligence.
 
 ### Standalone MCP server (Python + Docker)
 
@@ -1115,11 +1231,20 @@ Edit `mcp-server.toml`:
 - `secure_context_trust_pack_path` -> generated secure context trust pack
   exposed through the `recipes_secure_context_trust_pack` and
   `recipes_evaluate_context_retrieval_decision` MCP tools
+- `secure_context_attestation_pack_path` -> generated secure context
+  attestation pack exposed through
+  `recipes_secure_context_attestation_pack` and
+  `recipes_evaluate_context_attestation_decision` MCP tools
+- `secure_context_eval_pack_path` -> generated secure context eval pack
+  exposed through `recipes_secure_context_eval_pack` and
+  `recipes_evaluate_secure_context_eval_case` MCP tools
 - `context_poisoning_guard_pack_path` -> generated context poisoning
   guard pack exposed through the `recipes_context_poisoning_guard_pack`
   MCP tool
 - `threat_radar_path` -> generated agentic threat radar exposed through
   the `recipes_agentic_threat_radar` MCP tool
+- `control_plane_blueprint_path` -> generated control plane blueprint
+  exposed through the `recipes_agentic_control_plane_blueprint` MCP tool
 - `measurement_probe_pack_path` -> generated measurement probe pack
   exposed through the `recipes_agentic_measurement_probe_pack` MCP tool
 

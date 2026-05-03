@@ -64,6 +64,7 @@ identity, runtime, and compliance layers every program needs whether it
 has one workflow or ten.
 
 {{< cards >}}
+  {{< card link="/security-remediation/agentic-control-plane-blueprint/" title="Agentic Control Plane Blueprint" subtitle="Generated architecture, buyer diligence map, MCP evidence surface, and commercialization path for the secure context layer." >}}
   {{< card link="/security-remediation/agentic-threat-radar/" title="Agentic Threat Radar" subtitle="Source-backed threat signals, buyer triggers, mapped controls, and product roadmap priorities for agentic AI and MCP security." >}}
   {{< card link="/security-remediation/agentic-measurement-probes/" title="Agentic Measurement Probes" subtitle="Generated traceability probes for context, MCP authorization, identity, memory, egress, red-team replay, readiness, receipts, and threat alignment." >}}
   {{< card link="/security-remediation/control-plane/" title="Workflow Control Plane" subtitle="Machine-readable workflow manifests for scope, MCP context, gates, evidence, KPIs, and kill signals that agents and auditors can consume directly." >}}
@@ -80,6 +81,8 @@ has one workflow or ten.
   {{< card link="/security-remediation/agentic-system-bom/" title="Agentic System BOM" subtitle="Generated Agent/AI Bill of Materials for workflows, agent classes, identities, MCP connectors, evidence, evals, and drift triggers." >}}
   {{< card link="/security-remediation/agentic-run-receipts/" title="Agentic Run Receipts" subtitle="Generated proof templates for each governed agent run: identity, context, tool decisions, egress, approvals, verifier output, evidence, and revocation." >}}
   {{< card link="/security-remediation/secure-context-trust-pack/" title="Secure Context Trust Pack" subtitle="Generated provenance, source hashes, trust tiers, retrieval decisions, and workflow context packages for MCP-backed agents." >}}
+  {{< card link="/security-remediation/secure-context-attestation/" title="Secure Context Attestation" subtitle="Generated in-toto-shaped attestation seed, recertification queue, signature-readiness policy, and runtime decisions before context is trusted." >}}
+  {{< card link="/security-remediation/secure-context-evals/" title="Secure Context Evals" subtitle="Scenario-backed evals for retrieval correctness, attestation holds, poisoning resilience, egress safety, answer contracts, and A2A handoff boundaries." >}}
   {{< card link="/security-remediation/context-poisoning-guard/" title="Context Poisoning Guard" subtitle="Generated pre-retrieval scanner for prompt-injection, tool-poisoning, approval-bypass, hidden-instruction, and exfiltration markers in registered context." >}}
   {{< card link="/security-remediation/secure-context-firewall/" title="Secure Context Firewall" subtitle="Deterministic allow, hold, deny, and kill-session decisions before MCP-backed context is returned to an agent." >}}
   {{< card link="/security-remediation/context-egress-boundary/" title="Context Egress Boundary" subtitle="Generated data-boundary policy and runtime decisions before context leaves a tenant, model provider, MCP server, telemetry sink, or public corpus." >}}

@@ -1,0 +1,180 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define the attestation contract for the SecurityRecipes secure context layer so approved context sources and workflow context packages can be represented as verifiable, recertifiable, MCP-readable claims before agents consume them.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, GRC, procurement security, vendor-risk, and acquisition diligence teams",
+    "category": "Secure context attestation and recertification for agentic AI",
+    "enterprise_promise": "SecurityRecipes can turn context provenance into an attestation-shaped evidence artifact: source hashes, workflow package hashes, owner recertification expectations, verification policy, and production signing requirements.",
+    "why_now": "Agentic systems now depend on fast-changing context, MCP tools, connector metadata, and generated evidence. Enterprise buyers need a way to prove which context was current, approved, and policy-bound at the moment an agent used it."
+  },
+  "standards_alignment": [
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Token audience validation, resource indicators, PKCE, HTTPS, and per-request authorization expectations for protected MCP servers."
+    },
+    {
+      "id": "mcp-security-best-practices-current",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Token passthrough denial, confused-deputy protections, SSRF mitigations, session binding, scope minimization, and local server compromise controls."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP Top 10 for Model Context Protocol",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "coverage": "Token exposure, scope creep, tool poisoning, supply-chain tampering, command injection, audit gaps, shadow MCP servers, context injection, and over-sharing."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "coverage": "The behavior layer between MCP tools and agents, including skill provenance, governance, isolation, over-privilege, update drift, and cross-platform reuse risk."
+    },
+    {
+      "id": "aws-agentic-ai-security-2026",
+      "name": "AWS Security for Agentic AI",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/introduction.html",
+      "coverage": "Threat modeling, deterministic logic where possible, agent scoping, shared memory management, session isolation, data governance, and continuous posture management."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Generative AI lifecycle governance, measurement, third-party component risk, data provenance, monitoring, and incident response."
+    },
+    {
+      "id": "sigstore-keyless-signing",
+      "name": "Sigstore keyless signing",
+      "url": "https://docs.sigstore.dev/",
+      "coverage": "Ephemeral signing keys, OIDC identity binding, short-lived certificates, artifact signatures, and transparency-log-backed verification."
+    },
+    {
+      "id": "slsa-1-2-attestations",
+      "name": "SLSA specification 1.2",
+      "url": "https://slsa.dev/spec/latest/",
+      "coverage": "Attestation formats and provenance expectations for software supply-chain integrity and policy engines."
+    },
+    {
+      "id": "in-toto-attestation-framework",
+      "name": "in-toto Attestation Framework",
+      "url": "https://github.com/in-toto/attestation",
+      "coverage": "Verifiable claims about how an artifact was produced so consumers can validate origins and supply-chain trust."
+    }
+  ],
+  "attestation_contract": {
+    "default_state": "untrusted_until_attested_and_recertified",
+    "predicate_type": "https://security-recipes.ai/attestations/secure-context/v1",
+    "statement_type": "https://in-toto.io/Statement/v1",
+    "hash_algorithm": "sha256",
+    "minimum_context_source_subjects": 6,
+    "minimum_workflow_package_subjects": 3,
+    "open_reference_environments": [
+      "open_reference",
+      "ci_drift_check"
+    ],
+    "signed_environments": [
+      "production_mcp",
+      "customer_trust_center",
+      "acquisition_diligence"
+    ],
+    "required_subject_fields": [
+      "subject_type",
+      "name",
+      "digest.sha256",
+      "owner",
+      "trust_tier",
+      "freshness_state",
+      "recertification_due_days",
+      "policy_decision"
+    ],
+    "required_context_controls": [
+      "owner_declared",
+      "hash_recorded",
+      "citation_required",
+      "instruction_demoted",
+      "poisoning_review",
+      "schema_validation",
+      "ci_drift_check",
+      "runtime_policy_binding"
+    ],
+    "trust_tier_recertification_days": {
+      "tier_0_public_reference": 180,
+      "tier_1_curated_guidance": 90,
+      "tier_2_policy_context": 30,
+      "tier_3_customer_runtime_context": 7,
+      "tier_4_prohibited_context": 0
+    }
+  },
+  "verification_policy": {
+    "default_decision": "deny_unregistered_attestation",
+    "decisions": [
+      {
+        "decision": "allow_attested_context",
+        "meaning": "The context source is registered, current, hash-matched, and acceptable in the requested environment."
+      },
+      {
+        "decision": "allow_attested_workflow_context",
+        "meaning": "The workflow context package is registered, current, hash-matched, and its source set is covered by context-source attestations."
+      },
+      {
+        "decision": "hold_for_signature",
+        "meaning": "The request is for a production or diligence environment that requires a keyless signature bundle and transparency-log verification."
+      },
+      {
+        "decision": "hold_for_recertification",
+        "meaning": "The subject is registered, but owner freshness, recertification, or source-hash evidence is not current enough for agent use."
+      },
+      {
+        "decision": "deny_attestation_mismatch",
+        "meaning": "The supplied hash does not match the attested subject hash."
+      },
+      {
+        "decision": "deny_unregistered_attestation",
+        "meaning": "The requested context source, workflow package, or artifact has no attestation subject."
+      },
+      {
+        "decision": "kill_session_on_forbidden_attestation",
+        "meaning": "The request attempts to attest or retrieve prohibited context such as live signing material, private keys, raw tokens, or unrestricted customer data."
+      }
+    ],
+    "production_signature_requirements": [
+      "keyless_signature_bundle",
+      "oidc_identity_bound_certificate",
+      "transparency_log_entry",
+      "artifact_digest_match",
+      "issuer_identity_policy_match",
+      "ci_workflow_identity_recorded"
+    ],
+    "forbidden_data_classes": [
+      "private_key",
+      "seed_phrase",
+      "live_signing_material",
+      "raw_access_token",
+      "production_credential",
+      "unredacted_pii_bulk",
+      "unrestricted_customer_log"
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can present secure context as a verifiable artifact, not a loose documentation bundle.",
+    "default_questions_answered": [
+      "Which context sources are attested?",
+      "Which workflow context packages are attested?",
+      "Which owner must recertify each source and how often?",
+      "Which hash should the MCP server or gateway verify before returning context?",
+      "Which environments require keyless signing and transparency-log proof?",
+      "Which subjects are not ready for production MCP use?"
+    ],
+    "recommended_first_use": "Use the generated pack in CI drift checks, MCP server intake, AI platform review, procurement-security questionnaires, and acquisition diligence.",
+    "sales_motion": "Keep the attestation seed open, then sell hosted keyless signing, customer-specific context recertification, transparency-log monitoring, and trust-center export."
+  },
+  "commercialization_path": {
+    "open_layer": "Generated attestation seed and verification policy for the public SecurityRecipes corpus.",
+    "team_layer": "Private context recertification for customer repositories, ticket systems, logs, approval records, and MCP connector metadata.",
+    "enterprise_layer": "Hosted signing, verification APIs, transparency-log monitoring, policy-as-code gates, and auditor-ready exports.",
+    "acquirer_value": "A frontier lab, cloud platform, or security company gets a credible control primitive for trusted agent context instead of another prompt library."
+  }
+}

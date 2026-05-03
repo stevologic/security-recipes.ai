@@ -13,7 +13,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{ .Site.Title }}</title>
-{{ $homeDescription := "SecurityRecipes is an open, MIT-licensed library of agentic security remediation recipes, prompts, guardrails, generated governance packs, and a read-only MCP server for trusted context retrieval." }}
+{{ $homeDescription := "SecurityRecipes is the Secure Context Layer for Agentic AI: open security remediation knowledge, reviewer-ready prompts, generated trust evidence, and a production-oriented read-only MCP server." }}
 <meta name="description" content="{{ $homeDescription }}">
 {{/*
   Hardening — same as content pages. No PWA manifest (kills the
@@ -52,10 +52,10 @@
     --ink-1: #c8cdd9;
     --ink-2: #8a92a6;
     --ink-3: #555c70;
-    --accent-1: #7c5cff;
-    --accent-2: #00e5ff;
-    --accent-3: #ff4ecb;
-    --accent-glow: rgba(124, 92, 255, 0.45);
+    --accent-1: #14b8a6;
+    --accent-2: #f59e0b;
+    --accent-3: #8b5cf6;
+    --accent-glow: rgba(20, 184, 166, 0.36);
     --card-bg: rgba(255, 255, 255, 0.025);
     --card-border: rgba(255, 255, 255, 0.07);
     --card-hover-border: rgba(255, 255, 255, 0.18);
@@ -86,50 +86,8 @@
     z-index: -2;
     overflow: hidden;
     background:
-      radial-gradient(ellipse 120% 80% at 50% -10%, rgba(124, 92, 255, 0.18), transparent 60%),
-      radial-gradient(ellipse 80% 60% at 100% 100%, rgba(0, 229, 255, 0.12), transparent 60%),
-      radial-gradient(ellipse 80% 60% at 0% 100%, rgba(255, 78, 203, 0.08), transparent 60%),
-      linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 100%);
-  }
-
-  .orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.55;
-    will-change: transform;
-  }
-  .orb.o1 {
-    width: 520px; height: 520px;
-    background: radial-gradient(circle, var(--accent-1), transparent 70%);
-    top: -10%; left: -8%;
-    animation: drift1 28s ease-in-out infinite alternate;
-  }
-  .orb.o2 {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, var(--accent-2), transparent 70%);
-    bottom: -15%; right: -10%;
-    animation: drift2 34s ease-in-out infinite alternate;
-  }
-  .orb.o3 {
-    width: 380px; height: 380px;
-    background: radial-gradient(circle, var(--accent-3), transparent 70%);
-    top: 40%; left: 45%;
-    opacity: 0.32;
-    animation: drift3 40s ease-in-out infinite alternate;
-  }
-
-  @keyframes drift1 {
-    0%   { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(180px, 120px) scale(1.15); }
-  }
-  @keyframes drift2 {
-    0%   { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(-160px, -100px) scale(1.1); }
-  }
-  @keyframes drift3 {
-    0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
-    100% { transform: translate(-120px, 80px) scale(0.9) rotate(45deg); }
+      radial-gradient(ellipse 120% 70% at 50% -20%, rgba(20, 184, 166, 0.14), transparent 58%),
+      linear-gradient(135deg, #05060a 0%, #0b1014 48%, #101016 100%);
   }
 
   /* Subtle grid */
@@ -397,6 +355,46 @@
     background: rgba(8,10,16,0.95);
     backdrop-filter: blur(12px);
     display: none;
+  }
+
+  /* ============ PROOF STRIP ============ */
+  .proof-strip {
+    position: relative;
+    z-index: 5;
+    width: min(1120px, calc(100% - 96px));
+    margin: 18px auto 36px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    background: var(--card-border);
+  }
+  .proof-item {
+    min-height: 112px;
+    padding: 18px 20px;
+    background: rgba(5, 6, 10, 0.72);
+  }
+  .proof-label {
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-2);
+  }
+  .proof-item strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+  }
+  .proof-item span {
+    display: block;
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.45;
   }
   .home-search-results[data-open="1"] { display: block; }
   .home-search-empty {
@@ -924,6 +922,40 @@
   .dual-cta-card.secrem .dual-cta-link { color: #ff9be0; }
   .dual-cta-card:hover .dual-cta-link { gap: 12px; }
 
+  /* ============ TRUST STACK ============ */
+  .trust-stack {
+    position: relative;
+    z-index: 5;
+    padding: 8px 48px 84px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .trust-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .trust-card {
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.024);
+    padding: 24px 22px;
+  }
+  .trust-card h3 {
+    margin-bottom: 10px;
+    font-size: 17px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .trust-card p {
+    color: var(--ink-2);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+  .trust-card .dual-cta-tags {
+    margin: 18px 0 0;
+  }
+
   /* ============ FOOTER ============ */
   footer {
     position: relative;
@@ -974,12 +1006,23 @@
     .promptlib-chips {
       grid-template-columns: repeat(2, 1fr);
     }
+    .proof-strip {
+      width: min(100% - 48px, 1120px);
+      grid-template-columns: 1fr 1fr;
+    }
     .dual-cta-section {
+      grid-template-columns: 1fr;
+    }
+    .trust-grid {
       grid-template-columns: 1fr;
     }
   }
   @media (min-width: 821px) and (max-width: 1080px) {
     .dual-cta-section {
+      grid-template-columns: 1fr 1fr;
+    }
+    .proof-strip,
+    .trust-grid {
       grid-template-columns: 1fr 1fr;
     }
   }
@@ -988,8 +1031,10 @@
     .hero { padding: 48px 24px 24px; }
     .tools-section { padding: 48px 24px 16px; }
     .promptlib-section { padding: 24px 24px 40px; }
+    .proof-strip { grid-template-columns: 1fr; }
     .dual-cta-section { padding: 0 24px 72px; }
     .dual-cta-card { padding: 28px 24px; }
+    .trust-stack { padding: 0 24px 56px; }
     .section-header { flex-direction: column; align-items: flex-start; }
     .section-header p { text-align: left; }
     footer { padding: 24px; }
@@ -1016,9 +1061,6 @@
 
 <!-- Background layers -->
 <div class="bg-stage">
-  <div class="orb o1"></div>
-  <div class="orb o2"></div>
-  <div class="orb o3"></div>
 </div>
 <div class="grid-overlay"></div>
 <svg class="lines" preserveAspectRatio="none" viewBox="0 0 1440 900">
@@ -1063,14 +1105,14 @@
 <section class="hero">
   <div class="eyebrow reveal d1">
     <span class="dot"></span>
-    <span>2026 Focus · MIT Licensed · Read-Only MCP · Reviewer-Gated</span>
+    <span>2026 Focus - MIT Licensed - Read-Only MCP - Reviewer-Gated</span>
   </div>
   <h1 class="title reveal d2">
-    The trusted secure context layer<br/>
-    for <span class="accent">agentic AI and MCP servers</span>.
+    The Secure Context Layer<br/>
+    for <span class="accent">Agentic AI</span>.
   </h1>
   <p class="subtitle reveal d3">
-    SecurityRecipes is an open playbook for security teams adopting AI coding agents. It provides per-agent setup recipes, reusable prompts and rules files, reviewer-gated remediation workflows, generated governance evidence, and a repo-shipped FastMCP server that controls trusted context retrieval and egress.
+    SecurityRecipes turns open remediation knowledge into trusted agent context: production-grade prompts, reviewer-gated workflows, generated assurance evidence, and a repo-shipped FastMCP server for policy-aware retrieval and egress.
   </p>
   <div class="hero-cta-row reveal d3">
     <a class="hero-cta-primary" href="{{ $base }}/quickstart/">
@@ -1084,11 +1126,11 @@
     </a>
   </div>
   <div class="hero-meta reveal d4">
-    <span>MIT licensed docs and prompts</span>
+    <span>Open knowledge base</span>
     <span class="sep"></span>
-    <span>Read-only FastMCP context server</span>
+    <span>Production MCP surface</span>
     <span class="sep"></span>
-    <span>Generated trust, egress, policy, and evidence packs</span>
+    <span>Trust, attestation, eval, policy, egress, and run evidence</span>
   </div>
   <div class="home-search reveal d4">
     <label class="home-search-label" for="home-search-input">Search docs</label>
@@ -1098,6 +1140,29 @@
       <span class="home-search-hint">/</span>
     </div>
     <div id="home-search-results" class="home-search-results" role="listbox" aria-label="Search results"></div>
+  </div>
+</section>
+
+<section class="proof-strip" aria-label="SecurityRecipes proof points">
+  <div class="proof-item reveal d1">
+    <div class="proof-label">Context Layer</div>
+    <strong>Trusted retrieval before action</strong>
+    <span>Recipes, prompts, and generated packs are served as bounded context instead of improvised agent instructions.</span>
+  </div>
+  <div class="proof-item reveal d2">
+    <div class="proof-label">Evidence</div>
+    <strong>Generated trust artifacts</strong>
+    <span>Source hashes, policy decisions, attestation records, and run receipts make context provenance reviewable.</span>
+  </div>
+  <div class="proof-item reveal d3">
+    <div class="proof-label">MCP</div>
+    <strong>Read-only production surface</strong>
+    <span>The shipped FastMCP server exposes typed retrieval and decision tools without hidden vendor-side effects.</span>
+  </div>
+  <div class="proof-item reveal d4">
+    <div class="proof-label">Adoption</div>
+    <strong>Open core with enterprise path</strong>
+    <span>Open knowledge compounds into premium context packs, assurance workflows, and governed MCP deployment.</span>
   </div>
 </section>
 
@@ -1301,7 +1366,7 @@
     </div>
     <h3>Repo-shipped MCP Server</h3>
     <p>
-      The included FastMCP server searches SecurityRecipes pages and local generated JSON packs, then exposes deterministic retrieval, authorization, egress, and tool-policy decisions. It is read-only by design: no PR creation, no ticket edits, no secret storage, and no live vendor connector calls hidden behind the tool surface.
+      The included FastMCP server searches SecurityRecipes pages and local generated JSON packs, then exposes deterministic retrieval, authorization, egress, eval, and tool-policy decisions. It is read-only by design: no PR creation, no ticket edits, no secret storage, and no live vendor connector calls hidden behind the tool surface.
     </p>
     <div class="dual-cta-tags">
       <span class="dual-cta-tag">read-only tools</span>
@@ -1309,6 +1374,7 @@
       <span class="dual-cta-tag">site index</span>
       <span class="dual-cta-tag">generated packs</span>
       <span class="dual-cta-tag">runtime decisions</span>
+      <span class="dual-cta-tag">secure context evals</span>
       <span class="dual-cta-tag">egress boundaries</span>
     </div>
     <span class="dual-cta-link">
@@ -1319,6 +1385,47 @@
 
 </section>
 
+
+<section class="trust-stack">
+  <div class="section-header reveal d2">
+    <h2>Built for Due Diligence</h2>
+    <p>SecurityRecipes is shaped as a credible open foundation with a production MCP path: auditable context, deterministic controls, and evidence a buyer or platform team can inspect.</p>
+  </div>
+  <div class="trust-grid">
+    <div class="trust-card reveal d1">
+      <h3>Open Knowledge Moat</h3>
+      <p>Reviewed recipes and CVE prompts create durable search demand while giving teams a practical reason to return, fork, and contribute.</p>
+      <div class="dual-cta-tags">
+        <span class="dual-cta-tag">MIT docs</span>
+        <span class="dual-cta-tag">CVE prompts</span>
+      </div>
+    </div>
+    <div class="trust-card reveal d2">
+      <h3>Secure Context Product</h3>
+      <p>The MCP server turns static knowledge into governed context retrieval, authorization checks, eval evidence, egress decisions, and run evidence.</p>
+      <div class="dual-cta-tags">
+        <span class="dual-cta-tag">FastMCP</span>
+        <span class="dual-cta-tag">typed tools</span>
+      </div>
+    </div>
+    <div class="trust-card reveal d3">
+      <h3>Trust Center Ready</h3>
+      <p>Generated JSON packs give procurement, platform, and security reviewers concrete artifacts instead of claims about agent safety.</p>
+      <div class="dual-cta-tags">
+        <span class="dual-cta-tag">attestation</span>
+        <span class="dual-cta-tag">provenance</span>
+      </div>
+    </div>
+    <div class="trust-card reveal d4">
+      <h3>Commercial Expansion</h3>
+      <p>The natural paid surface is hosted MCP, private context packs, enterprise policy mappings, and remediation workflow assurance.</p>
+      <div class="dual-cta-tags">
+        <span class="dual-cta-tag">open core</span>
+        <span class="dual-cta-tag">enterprise MCP</span>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section class="tools-section">
   <div class="section-header reveal d2">
@@ -1347,9 +1454,12 @@
     </div>
     <div class="dual-cta-card mcp reveal d4">
       <h3>MCP Context + Evidence</h3>
-      <p>A read-only server and generated packs for workflow control, gateway policy, connector intake, connector trust, MCP authorization conformance, identity, assurance, readiness, red-team drills, secure context trust, skill supply-chain decisions, runtime retrieval, context egress decisions, and agentic run receipts.</p>
+      <p>A read-only server and generated packs for the control plane blueprint, workflow control, gateway policy, connector intake, connector trust, MCP authorization conformance, identity, assurance, readiness, red-team drills, secure context trust, context attestations, secure context evals, skill supply-chain decisions, runtime retrieval, context egress decisions, and agentic run receipts.</p>
       <div class="dual-cta-tags">
         <span class="dual-cta-tag">FastMCP</span>
+        <span class="dual-cta-tag">control plane blueprint</span>
+        <span class="dual-cta-tag">context attestation</span>
+        <span class="dual-cta-tag">context evals</span>
         <span class="dual-cta-tag">JSON packs</span>
         <span class="dual-cta-tag">default-deny decisions</span>
         <span class="dual-cta-tag">run receipts</span>

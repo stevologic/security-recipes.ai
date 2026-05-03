@@ -184,6 +184,23 @@
       "buyer_value": "Proves which context sources agents may retrieve, who owns them, and which hashes show current state."
     },
     {
+      "id": "secure-context-attestation-pack",
+      "title": "Secure Context Attestation Pack",
+      "status": "implemented",
+      "evidence_paths": [
+        "data/assurance/secure-context-attestation-profile.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "scripts/generate_secure_context_attestation_pack.py",
+        "scripts/evaluate_context_attestation_decision.py",
+        "content/security-remediation/secure-context-attestation/_index.md"
+      ],
+      "mcp_tools": [
+        "recipes_secure_context_attestation_pack",
+        "recipes_evaluate_context_attestation_decision"
+      ],
+      "buyer_value": "Turns context sources and workflow packages into hash-verifiable attestation subjects with recertification and production signature-readiness policy."
+    },
+    {
       "id": "secure-context-firewall",
       "title": "Secure Context Firewall",
       "status": "implemented",
@@ -396,6 +413,7 @@
       ],
       "mapped_capability_ids": [
         "secure-context-trust-pack",
+        "secure-context-attestation-pack",
         "secure-context-firewall",
         "context-poisoning-guard",
         "agentic-red-team-drill-pack",
@@ -544,6 +562,7 @@
       ],
       "mapped_capability_ids": [
         "secure-context-trust-pack",
+        "secure-context-attestation-pack",
         "secure-context-firewall",
         "context-poisoning-guard",
         "context-egress-boundary",
@@ -584,7 +603,8 @@
         "agentic-assurance-pack",
         "agentic-readiness-scorecard",
         "agentic-system-bom",
-        "agentic-threat-radar"
+        "agentic-threat-radar",
+        "secure-context-attestation-pack"
       ],
       "buyer_trigger": "GRC, procurement, or security architecture asks for evidence before approving agentic workflows.",
       "roadmap_action": "Create a customer trust-center export that bundles threat radar, assurance, readiness, BOM, and runtime decision evidence.",
@@ -654,6 +674,7 @@
       ],
       "mapped_capability_ids": [
         "secure-context-trust-pack",
+        "secure-context-attestation-pack",
         "context-egress-boundary",
         "context-poisoning-guard",
         "agentic-assurance-pack",
@@ -781,6 +802,17 @@
     }
   ],
   "feature_backlog": [
+    {
+      "id": "secure-context-attestation-pack",
+      "title": "Secure context attestation pack",
+      "status": "implemented",
+      "why": "Context provenance guidance now needs verification, recertification, and production signing readiness; this run implemented the generated attestation seed, runtime evaluator, and MCP tools without overstating that hosted keyless signing exists yet.",
+      "related_signal_ids": [
+        "context-over-sharing-and-memory-poisoning",
+        "ai-data-security-and-provenance",
+        "audit-telemetry-and-evidence-chain"
+      ]
+    },
     {
       "id": "hosted-context-signing",
       "title": "Hosted context signing and recertification",

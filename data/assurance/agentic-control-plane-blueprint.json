@@ -1,0 +1,431 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define the SecurityRecipes agentic control plane blueprint: a board-, buyer-, and engineering-ready architecture that connects open knowledge, secure context provenance, MCP authorization, connector trust, non-human identity, memory boundaries, egress policy, run receipts, red-team replay, and measurement probes into one defensible product narrative.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, model risk, procurement security, and acquisition diligence teams",
+    "category": "Secure context and control plane for agentic AI",
+    "enterprise_promise": "SecurityRecipes turns agent context into an inspectable control plane: every workflow, source, connector, identity, tool decision, memory class, egress path, and run receipt can be queried as structured MCP evidence before agents act.",
+    "why_now": "Agentic AI adoption is shifting from isolated assistants to autonomous systems that call tools, persist memory, use MCP connectors, and operate through delegated authority. The durable product wedge is a vendor-neutral control layer that makes context, authorization, and evidence easy for security teams and agent hosts to consume."
+  },
+  "standards_alignment": [
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "coverage": "Aligns the blueprint to industry-led agent standards, community-led protocols, secure agent identity, agent authentication, and security evaluations."
+    },
+    {
+      "id": "nist-ai-800-2-draft-2026",
+      "name": "NIST AI 800-2 Practices for Automated Benchmark Evaluations",
+      "url": "https://www.nist.gov/news-events/news/2026/01/towards-best-practices-automated-benchmark-evaluations",
+      "coverage": "Supports reproducible automated benchmark and agent-system evaluations through measurement probes, red-team replay, and evidence reconstruction."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Maps secure context and generated evidence to GAI provenance, third-party components, monitoring, measurement, and risk-response expectations."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Covers agent goal hijack, tool misuse, identity abuse, agentic supply-chain risk, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human trust exploitation, and rogue-agent containment."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Anchors MCP authorization in OAuth 2.1, protected resource metadata, client metadata documents, resource indicators, token audience validation, PKCE S256, HTTPS, and forbidden token passthrough."
+    },
+    {
+      "id": "csa-agentic-control-plane-2026",
+      "name": "CSA Securing the Agentic Control Plane",
+      "url": "https://labs.cloudsecurityalliance.org/agentic/",
+      "coverage": "Aligns the product thesis to identity, authorization, orchestration, runtime behavior, risk intelligence, certification, and trust assurance layers for autonomous AI agent ecosystems."
+    },
+    {
+      "id": "csa-ai-agent-governance-gap-2026",
+      "name": "CSA The AI Agent Governance Gap: What CISOs Need Now",
+      "url": "https://labs.cloudsecurityalliance.org/research/csa-research-note-ai-agent-governance-framework-gap-20260403/",
+      "coverage": "Supports the near-term need for internal agent governance while formal agent-specific standards and enforceable controls continue to mature."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "CSA AI Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "coverage": "Maps the architecture to vendor-neutral AI control objectives, AI-CAIQ style assessment evidence, role accountability, and trustworthy AI operations."
+    }
+  ],
+  "control_plane_contract": {
+    "default_state": "untrusted_until_registered_measured_and_policy_bound",
+    "minimum_layers": 8,
+    "minimum_source_packs": 14,
+    "minimum_mcp_tools": 12,
+    "board_level_success_criteria": [
+      "Every agentic workflow has declared ownership, scope, gates, KPIs, and kill signals.",
+      "Every context source has owner, trust tier, source hash, poisoning controls, citation requirements, and retrieval policy.",
+      "Every MCP namespace has connector trust, authorization conformance, gateway policy, and scoped access mode.",
+      "Every agent run can be reconstructed through identity, context, tool, egress, approval, verifier, closure, and revocation evidence.",
+      "Every scale decision is backed by readiness, capability risk, red-team replay, measurement probes, and current threat-radar alignment."
+    ],
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "agent_class",
+      "identity_id",
+      "tenant_id",
+      "mcp_namespace",
+      "policy_pack_hash",
+      "context_package_hash",
+      "context_attestation_hash",
+      "authorization_policy_hash",
+      "egress_policy_hash",
+      "memory_policy_hash",
+      "receipt_hash",
+      "verifier_result",
+      "correlation_id"
+    ]
+  },
+  "source_pack_catalog": [
+    {
+      "id": "workflow_manifest",
+      "path": "data/control-plane/workflow-manifests.json",
+      "title": "Workflow Control Plane"
+    },
+    {
+      "id": "mcp_gateway_policy",
+      "path": "data/policy/mcp-gateway-policy.json",
+      "title": "MCP Gateway Policy"
+    },
+    {
+      "id": "agentic_assurance_pack",
+      "path": "data/evidence/agentic-assurance-pack.json",
+      "title": "Agentic Assurance Pack"
+    },
+    {
+      "id": "agent_identity_ledger",
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "title": "Agent Identity Ledger"
+    },
+    {
+      "id": "mcp_connector_trust_pack",
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "title": "MCP Connector Trust Pack"
+    },
+    {
+      "id": "mcp_connector_intake_pack",
+      "path": "data/evidence/mcp-connector-intake-pack.json",
+      "title": "MCP Connector Intake Pack"
+    },
+    {
+      "id": "mcp_authorization_conformance_pack",
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "title": "MCP Authorization Conformance Pack"
+    },
+    {
+      "id": "agentic_red_team_drill_pack",
+      "path": "data/evidence/agentic-red-team-drill-pack.json",
+      "title": "Agentic Red-Team Drill Pack"
+    },
+    {
+      "id": "agentic_readiness_scorecard",
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "title": "Agentic Readiness Scorecard"
+    },
+    {
+      "id": "agent_capability_risk_register",
+      "path": "data/evidence/agent-capability-risk-register.json",
+      "title": "Agent Capability Risk Register"
+    },
+    {
+      "id": "agent_memory_boundary_pack",
+      "path": "data/evidence/agent-memory-boundary-pack.json",
+      "title": "Agent Memory Boundary Pack"
+    },
+    {
+      "id": "agent_skill_supply_chain_pack",
+      "path": "data/evidence/agent-skill-supply-chain-pack.json",
+      "title": "Agent Skill Supply-Chain Pack"
+    },
+    {
+      "id": "agentic_system_bom",
+      "path": "data/evidence/agentic-system-bom.json",
+      "title": "Agentic System BOM"
+    },
+    {
+      "id": "agentic_run_receipt_pack",
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "title": "Agentic Run Receipt Pack"
+    },
+    {
+      "id": "secure_context_trust_pack",
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "title": "Secure Context Trust Pack"
+    },
+    {
+      "id": "secure_context_attestation_pack",
+      "path": "data/evidence/secure-context-attestation-pack.json",
+      "title": "Secure Context Attestation Pack"
+    },
+    {
+      "id": "context_poisoning_guard_pack",
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "title": "Context Poisoning Guard Pack"
+    },
+    {
+      "id": "context_egress_boundary_pack",
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "title": "Context Egress Boundary Pack"
+    },
+    {
+      "id": "agentic_threat_radar",
+      "path": "data/evidence/agentic-threat-radar.json",
+      "title": "Agentic Threat Radar"
+    },
+    {
+      "id": "agentic_measurement_probe_pack",
+      "path": "data/evidence/agentic-measurement-probe-pack.json",
+      "title": "Agentic Measurement Probe Pack"
+    }
+  ],
+  "layers": [
+    {
+      "id": "workflow_scope_and_default_deny",
+      "title": "Workflow Scope and Default-Deny Control",
+      "proof_question": "Can the buyer see exactly which workflows agents may run, which gates apply, and why undeclared actions fail closed?",
+      "source_pack_ids": [
+        "workflow_manifest",
+        "mcp_gateway_policy",
+        "agentic_assurance_pack",
+        "agentic_readiness_scorecard"
+      ],
+      "mcp_tools": [
+        "recipes_workflow_control_plane",
+        "recipes_mcp_gateway_policy",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "premium_path": "Hosted workflow promotion gates, customer evidence ingestion, and policy drift alerts.",
+      "exit_value": "Shows the project is an enforceable control plane, not a static prompt library."
+    },
+    {
+      "id": "secure_context_provenance",
+      "title": "Secure Context Provenance",
+      "proof_question": "Can the buyer prove which context an agent received, who owns it, how fresh it is, which attestation hash applies, and how retrieved text is demoted from instruction to evidence?",
+      "source_pack_ids": [
+        "secure_context_trust_pack",
+        "secure_context_attestation_pack",
+        "context_poisoning_guard_pack",
+        "agentic_system_bom",
+        "agentic_measurement_probe_pack"
+      ],
+      "mcp_tools": [
+        "recipes_secure_context_trust_pack",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_secure_context_attestation_pack",
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_agentic_measurement_probe_pack"
+      ],
+      "premium_path": "Signed context releases, tenant context registries, source-hash recertification, context attestation APIs, and retrieval approval workflows.",
+      "exit_value": "Creates a durable data moat around trusted agent context."
+    },
+    {
+      "id": "mcp_authorization_and_connector_trust",
+      "title": "MCP Authorization and Connector Trust",
+      "proof_question": "Can the buyer approve remote MCP servers without token passthrough, audience confusion, scope creep, shadow tools, or unreviewed connector drift?",
+      "source_pack_ids": [
+        "mcp_connector_trust_pack",
+        "mcp_connector_intake_pack",
+        "mcp_authorization_conformance_pack",
+        "mcp_gateway_policy"
+      ],
+      "mcp_tools": [
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision"
+      ],
+      "premium_path": "Remote connector inventory, OAuth metadata checks, scope-drift detection, and connector trust-center export.",
+      "exit_value": "Directly maps to the MCP ecosystem problem large AI labs and platforms need solved."
+    },
+    {
+      "id": "agent_identity_and_delegation",
+      "title": "Agent Identity and Delegation",
+      "proof_question": "Can the buyer identify which non-human identity acted, which human owner delegated authority, which scopes were denied, and how unsafe sessions are revoked?",
+      "source_pack_ids": [
+        "agent_identity_ledger",
+        "mcp_gateway_policy",
+        "agentic_run_receipt_pack",
+        "agent_capability_risk_register"
+      ],
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_mcp_gateway_decision"
+      ],
+      "premium_path": "OIDC, SPIFFE/SPIRE, source-host, and MCP gateway identity adapters for per-run authority.",
+      "exit_value": "Turns non-human identity for agents into a governed security category."
+    },
+    {
+      "id": "memory_skill_and_runtime_boundaries",
+      "title": "Memory, Skill, and Runtime Boundaries",
+      "proof_question": "Can the buyer prevent persistent memory, vector recall, skills, hooks, and rules files from quietly inheriting agent authority?",
+      "source_pack_ids": [
+        "agent_memory_boundary_pack",
+        "agent_skill_supply_chain_pack",
+        "context_poisoning_guard_pack",
+        "agentic_red_team_drill_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision"
+      ],
+      "premium_path": "Hosted skill registry scanning, memory policy enforcement, vector-memory approvals, and drift replay tests.",
+      "exit_value": "Covers the next agent supply-chain surface before most enterprises have tooling."
+    },
+    {
+      "id": "context_egress_and_data_boundaries",
+      "title": "Context Egress and Data Boundaries",
+      "proof_question": "Can the buyer prove context does not leave tenant, model-provider, telemetry, MCP, or public-corpus boundaries without data-class and destination policy?",
+      "source_pack_ids": [
+        "context_egress_boundary_pack",
+        "secure_context_trust_pack",
+        "agentic_run_receipt_pack",
+        "agentic_assurance_pack"
+      ],
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_secure_context_trust_pack",
+        "recipes_agentic_assurance_pack"
+      ],
+      "premium_path": "DLP, DPA, zero-data-retention, telemetry, and residency policy exports for enterprise AI platforms.",
+      "exit_value": "Makes security and privacy teams comfortable enough to approve agentic context at scale."
+    },
+    {
+      "id": "evidence_receipts_and_system_bom",
+      "title": "Evidence Receipts and Agentic System BOM",
+      "proof_question": "Can the buyer reconstruct what an agent saw, which tools it used, which policies allowed it, who approved it, and which component changed?",
+      "source_pack_ids": [
+        "agentic_run_receipt_pack",
+        "agentic_system_bom",
+        "agentic_assurance_pack",
+        "agentic_measurement_probe_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_system_bom",
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack"
+      ],
+      "premium_path": "Customer trust-center exports, trace retention, audit-ready receipts, and BOM drift notifications.",
+      "exit_value": "Converts agent operations into buyer- and auditor-readable proof."
+    },
+    {
+      "id": "measurement_red_team_and_threat_alignment",
+      "title": "Measurement, Red-Team Replay, and Threat Alignment",
+      "proof_question": "Can the buyer show that current threat signals become probes, drills, readiness decisions, and roadmap actions instead of stale docs?",
+      "source_pack_ids": [
+        "agentic_threat_radar",
+        "agentic_measurement_probe_pack",
+        "agentic_red_team_drill_pack",
+        "agentic_readiness_scorecard"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_threat_radar",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "premium_path": "Hosted replay runner, model and connector drift probes, executive threat posture reports, and risk trend dashboards.",
+      "exit_value": "Shows a path from open knowledge to recurring enterprise control-plane revenue."
+    }
+  ],
+  "buyer_due_diligence_questions": [
+    {
+      "id": "context-trust",
+      "question": "Which context sources are allowed into an agent run, and how is source drift detected?",
+      "layer_ids": [
+        "secure_context_provenance",
+        "context_egress_and_data_boundaries"
+      ]
+    },
+    {
+      "id": "mcp-authorization",
+      "question": "How does the product prevent token passthrough, wrong-audience tokens, scope creep, and unreviewed remote MCP tools?",
+      "layer_ids": [
+        "mcp_authorization_and_connector_trust",
+        "workflow_scope_and_default_deny"
+      ]
+    },
+    {
+      "id": "agent-identity",
+      "question": "Who owns an agent identity, what can it do, and how is one unsafe run revoked?",
+      "layer_ids": [
+        "agent_identity_and_delegation",
+        "evidence_receipts_and_system_bom"
+      ]
+    },
+    {
+      "id": "runtime-evidence",
+      "question": "Can the team reconstruct the exact policy, context, tool, approval, verifier, and egress path after an incident?",
+      "layer_ids": [
+        "evidence_receipts_and_system_bom",
+        "measurement_red_team_and_threat_alignment"
+      ]
+    },
+    {
+      "id": "scale-gate",
+      "question": "Which workflows are ready to scale, which stay in a guarded pilot, and which are blocked?",
+      "layer_ids": [
+        "workflow_scope_and_default_deny",
+        "measurement_red_team_and_threat_alignment"
+      ]
+    }
+  ],
+  "commercialization_path": {
+    "open_foundation": [
+      "MIT-licensed recipes and docs",
+      "Generated JSON evidence packs",
+      "Read-only MCP server",
+      "Deterministic runtime decision evaluators"
+    ],
+    "production_mcp_server": [
+      "Hosted secure-context retrieval",
+      "Connector trust and authorization conformance APIs",
+      "Context signing and recertification",
+      "Run receipt storage and trust-center export"
+    ],
+    "enterprise_expansion": [
+      "Tenant evidence ingestion",
+      "Identity provider and source-host adapters",
+      "Hosted red-team replay and measurement probes",
+      "Procurement, GRC, and AI platform reporting"
+    ],
+    "strategic_acquirer_fit": [
+      "Frontier model labs need safe tool and context layers around agents.",
+      "AI coding platforms need buyer-grade evidence before enterprise expansion.",
+      "Cloud and security platforms need MCP authorization, connector trust, and non-human identity controls.",
+      "The open corpus creates adoption while hosted evidence, policy, and MCP operations create enterprise value."
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes is the secure context and control plane for agentic AI, with machine-readable evidence for context, MCP authorization, identity, memory, egress, receipts, measurement, and readiness.",
+    "default_questions_answered": [
+      "What is the product architecture?",
+      "Which standards and current agentic security guidance does it track?",
+      "Which MCP tools expose the evidence?",
+      "Which generated packs prove control coverage?",
+      "What is the credible path from open project to enterprise revenue?"
+    ],
+    "recommended_first_use": "Attach the generated blueprint to AI platform architecture review, enterprise MCP server intake, procurement security review, quarterly agentic threat model, and acquisition diligence.",
+    "sales_motion": "Lead with open secure-context evidence, then sell hosted context signing, MCP authorization conformance, connector trust monitoring, trace ingestion, red-team replay, and trust-center exports."
+  }
+}

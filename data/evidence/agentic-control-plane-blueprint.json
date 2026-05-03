@@ -1,0 +1,1064 @@
+{
+  "acquisition_readiness": {
+    "active_workflow_count": 8,
+    "blueprint_score": 90,
+    "distinct_mcp_tool_count": 27,
+    "ready_layer_count": 8,
+    "ready_source_pack_count": 20,
+    "scale_ready_workflow_count": 4,
+    "source_pack_count": 20,
+    "status": "acquisition_diligence_ready",
+    "total_layer_count": 8
+  },
+  "buyer_due_diligence_matrix": [
+    {
+      "evidence_paths": [
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "data/evidence/secure-context-trust-pack.json"
+      ],
+      "id": "context-trust",
+      "layer_ids": [
+        "secure_context_provenance",
+        "context_egress_and_data_boundaries"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_secure_context_attestation_pack",
+        "recipes_secure_context_trust_pack"
+      ],
+      "question": "Which context sources are allowed into an agent run, and how is source drift detected?"
+    },
+    {
+      "evidence_paths": [
+        "data/control-plane/workflow-manifests.json",
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "mcp-authorization",
+      "layer_ids": [
+        "mcp_authorization_and_connector_trust",
+        "workflow_scope_and_default_deny"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_readiness_scorecard",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_workflow_control_plane"
+      ],
+      "question": "How does the product prevent token passthrough, wrong-audience tokens, scope creep, and unreviewed remote MCP tools?"
+    },
+    {
+      "evidence_paths": [
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "agent-identity",
+      "layer_ids": [
+        "agent_identity_and_delegation",
+        "evidence_receipts_and_system_bom"
+      ],
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_mcp_gateway_decision"
+      ],
+      "question": "Who owns an agent identity, what can it do, and how is one unsafe run revoked?"
+    },
+    {
+      "evidence_paths": [
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/agentic-threat-radar.json"
+      ],
+      "id": "runtime-evidence",
+      "layer_ids": [
+        "evidence_receipts_and_system_bom",
+        "measurement_red_team_and_threat_alignment"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_system_bom",
+        "recipes_agentic_threat_radar"
+      ],
+      "question": "Can the team reconstruct the exact policy, context, tool, approval, verifier, and egress path after an incident?"
+    },
+    {
+      "evidence_paths": [
+        "data/control-plane/workflow-manifests.json",
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-threat-radar.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "scale-gate",
+      "layer_ids": [
+        "workflow_scope_and_default_deny",
+        "measurement_red_team_and_threat_alignment"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_threat_radar",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_mcp_gateway_policy",
+        "recipes_workflow_control_plane"
+      ],
+      "question": "Which workflows are ready to scale, which stay in a guarded pilot, and which are blocked?"
+    }
+  ],
+  "commercialization_path": {
+    "enterprise_expansion": [
+      "Tenant evidence ingestion",
+      "Identity provider and source-host adapters",
+      "Hosted red-team replay and measurement probes",
+      "Procurement, GRC, and AI platform reporting"
+    ],
+    "open_foundation": [
+      "MIT-licensed recipes and docs",
+      "Generated JSON evidence packs",
+      "Read-only MCP server",
+      "Deterministic runtime decision evaluators"
+    ],
+    "production_mcp_server": [
+      "Hosted secure-context retrieval",
+      "Connector trust and authorization conformance APIs",
+      "Context signing and recertification",
+      "Run receipt storage and trust-center export"
+    ],
+    "strategic_acquirer_fit": [
+      "Frontier model labs need safe tool and context layers around agents.",
+      "AI coding platforms need buyer-grade evidence before enterprise expansion.",
+      "Cloud and security platforms need MCP authorization, connector trust, and non-human identity controls.",
+      "The open corpus creates adoption while hosted evidence, policy, and MCP operations create enterprise value."
+    ]
+  },
+  "control_plane_contract": {
+    "board_level_success_criteria": [
+      "Every agentic workflow has declared ownership, scope, gates, KPIs, and kill signals.",
+      "Every context source has owner, trust tier, source hash, poisoning controls, citation requirements, and retrieval policy.",
+      "Every MCP namespace has connector trust, authorization conformance, gateway policy, and scoped access mode.",
+      "Every agent run can be reconstructed through identity, context, tool, egress, approval, verifier, closure, and revocation evidence.",
+      "Every scale decision is backed by readiness, capability risk, red-team replay, measurement probes, and current threat-radar alignment."
+    ],
+    "default_state": "untrusted_until_registered_measured_and_policy_bound",
+    "minimum_layers": 8,
+    "minimum_mcp_tools": 12,
+    "minimum_source_packs": 14,
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "agent_class",
+      "identity_id",
+      "tenant_id",
+      "mcp_namespace",
+      "policy_pack_hash",
+      "context_package_hash",
+      "context_attestation_hash",
+      "authorization_policy_hash",
+      "egress_policy_hash",
+      "memory_policy_hash",
+      "receipt_hash",
+      "verifier_result",
+      "correlation_id"
+    ]
+  },
+  "control_plane_summary": {
+    "active_workflow_count": 8,
+    "agent_class_count": 5,
+    "agent_classes": [
+      "claude",
+      "codex",
+      "cursor",
+      "devin",
+      "github_copilot"
+    ],
+    "bom_component_counts": {
+      "agent_classes": 5,
+      "agent_identities": 32,
+      "evaluation_drills": 56,
+      "evidence_artifacts": 9,
+      "knowledge_sources": 4,
+      "mcp_connectors": 16,
+      "policy_components": 4,
+      "workflows": 8
+    },
+    "maturity_counts": {
+      "crawl": 4,
+      "walk": 4
+    },
+    "mcp_namespace_count": 16,
+    "readiness_decision_counts": {
+      "pilot_guarded": 4,
+      "scale_ready": 4
+    },
+    "status_counts": {
+      "active": 8
+    },
+    "workflow_count": 8
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes is the secure context and control plane for agentic AI, with machine-readable evidence for context, MCP authorization, identity, memory, egress, receipts, measurement, and readiness.",
+    "default_questions_answered": [
+      "What is the product architecture?",
+      "Which standards and current agentic security guidance does it track?",
+      "Which MCP tools expose the evidence?",
+      "Which generated packs prove control coverage?",
+      "What is the credible path from open project to enterprise revenue?"
+    ],
+    "recommended_first_use": "Attach the generated blueprint to AI platform architecture review, enterprise MCP server intake, procurement security review, quarterly agentic threat model, and acquisition diligence.",
+    "sales_motion": "Lead with open secure-context evidence, then sell hosted context signing, MCP authorization conformance, connector trust monitoring, trace ingestion, red-team replay, and trust-center exports."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define the SecurityRecipes agentic control plane blueprint: a board-, buyer-, and engineering-ready architecture that connects open knowledge, secure context provenance, MCP authorization, connector trust, non-human identity, memory boundaries, egress policy, run receipts, red-team replay, and measurement probes into one defensible product narrative.",
+  "layers": [
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/control-plane/workflow-manifests.json",
+        "data/policy/mcp-gateway-policy.json",
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json"
+      ],
+      "exit_value": "Shows the project is an enforceable control plane, not a static prompt library.",
+      "id": "workflow_scope_and_default_deny",
+      "mcp_tool_count": 4,
+      "mcp_tools": [
+        "recipes_workflow_control_plane",
+        "recipes_mcp_gateway_policy",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "premium_path": "Hosted workflow promotion gates, customer evidence ingestion, and policy drift alerts.",
+      "proof_question": "Can the buyer see exactly which workflows agents may run, which gates apply, and why undeclared actions fail closed?",
+      "source_pack_count": 4,
+      "source_pack_ids": [
+        "workflow_manifest",
+        "mcp_gateway_policy",
+        "agentic_assurance_pack",
+        "agentic_readiness_scorecard"
+      ],
+      "status": "ready",
+      "title": "Workflow Scope and Default-Deny Control"
+    },
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "exit_value": "Creates a durable data moat around trusted agent context.",
+      "id": "secure_context_provenance",
+      "mcp_tool_count": 6,
+      "mcp_tools": [
+        "recipes_secure_context_trust_pack",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_secure_context_attestation_pack",
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_agentic_measurement_probe_pack"
+      ],
+      "premium_path": "Signed context releases, tenant context registries, source-hash recertification, context attestation APIs, and retrieval approval workflows.",
+      "proof_question": "Can the buyer prove which context an agent received, who owns it, how fresh it is, which attestation hash applies, and how retrieved text is demoted from instruction to evidence?",
+      "source_pack_count": 5,
+      "source_pack_ids": [
+        "secure_context_trust_pack",
+        "secure_context_attestation_pack",
+        "context_poisoning_guard_pack",
+        "agentic_system_bom",
+        "agentic_measurement_probe_pack"
+      ],
+      "status": "ready",
+      "title": "Secure Context Provenance"
+    },
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "exit_value": "Directly maps to the MCP ecosystem problem large AI labs and platforms need solved.",
+      "id": "mcp_authorization_and_connector_trust",
+      "mcp_tool_count": 4,
+      "mcp_tools": [
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision"
+      ],
+      "premium_path": "Remote connector inventory, OAuth metadata checks, scope-drift detection, and connector trust-center export.",
+      "proof_question": "Can the buyer approve remote MCP servers without token passthrough, audience confusion, scope creep, shadow tools, or unreviewed connector drift?",
+      "source_pack_count": 4,
+      "source_pack_ids": [
+        "mcp_connector_trust_pack",
+        "mcp_connector_intake_pack",
+        "mcp_authorization_conformance_pack",
+        "mcp_gateway_policy"
+      ],
+      "status": "ready",
+      "title": "MCP Authorization and Connector Trust"
+    },
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/policy/mcp-gateway-policy.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-capability-risk-register.json"
+      ],
+      "exit_value": "Turns non-human identity for agents into a governed security category.",
+      "id": "agent_identity_and_delegation",
+      "mcp_tool_count": 4,
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_mcp_gateway_decision"
+      ],
+      "premium_path": "OIDC, SPIFFE/SPIRE, source-host, and MCP gateway identity adapters for per-run authority.",
+      "proof_question": "Can the buyer identify which non-human identity acted, which human owner delegated authority, which scopes were denied, and how unsafe sessions are revoked?",
+      "source_pack_count": 4,
+      "source_pack_ids": [
+        "agent_identity_ledger",
+        "mcp_gateway_policy",
+        "agentic_run_receipt_pack",
+        "agent_capability_risk_register"
+      ],
+      "status": "ready",
+      "title": "Agent Identity and Delegation"
+    },
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json"
+      ],
+      "exit_value": "Covers the next agent supply-chain surface before most enterprises have tooling.",
+      "id": "memory_skill_and_runtime_boundaries",
+      "mcp_tool_count": 4,
+      "mcp_tools": [
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision"
+      ],
+      "premium_path": "Hosted skill registry scanning, memory policy enforcement, vector-memory approvals, and drift replay tests.",
+      "proof_question": "Can the buyer prevent persistent memory, vector recall, skills, hooks, and rules files from quietly inheriting agent authority?",
+      "source_pack_count": 4,
+      "source_pack_ids": [
+        "agent_memory_boundary_pack",
+        "agent_skill_supply_chain_pack",
+        "context_poisoning_guard_pack",
+        "agentic_red_team_drill_pack"
+      ],
+      "status": "ready",
+      "title": "Memory, Skill, and Runtime Boundaries"
+    },
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-assurance-pack.json"
+      ],
+      "exit_value": "Makes security and privacy teams comfortable enough to approve agentic context at scale.",
+      "id": "context_egress_and_data_boundaries",
+      "mcp_tool_count": 4,
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_secure_context_trust_pack",
+        "recipes_agentic_assurance_pack"
+      ],
+      "premium_path": "DLP, DPA, zero-data-retention, telemetry, and residency policy exports for enterprise AI platforms.",
+      "proof_question": "Can the buyer prove context does not leave tenant, model-provider, telemetry, MCP, or public-corpus boundaries without data-class and destination policy?",
+      "source_pack_count": 4,
+      "source_pack_ids": [
+        "context_egress_boundary_pack",
+        "secure_context_trust_pack",
+        "agentic_run_receipt_pack",
+        "agentic_assurance_pack"
+      ],
+      "status": "ready",
+      "title": "Context Egress and Data Boundaries"
+    },
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "exit_value": "Converts agent operations into buyer- and auditor-readable proof.",
+      "id": "evidence_receipts_and_system_bom",
+      "mcp_tool_count": 4,
+      "mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_system_bom",
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack"
+      ],
+      "premium_path": "Customer trust-center exports, trace retention, audit-ready receipts, and BOM drift notifications.",
+      "proof_question": "Can the buyer reconstruct what an agent saw, which tools it used, which policies allowed it, who approved it, and which component changed?",
+      "source_pack_count": 4,
+      "source_pack_ids": [
+        "agentic_run_receipt_pack",
+        "agentic_system_bom",
+        "agentic_assurance_pack",
+        "agentic_measurement_probe_pack"
+      ],
+      "status": "ready",
+      "title": "Evidence Receipts and Agentic System BOM"
+    },
+    {
+      "evidence_coverage_score": 100,
+      "evidence_paths": [
+        "data/evidence/agentic-threat-radar.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json"
+      ],
+      "exit_value": "Shows a path from open knowledge to recurring enterprise control-plane revenue.",
+      "id": "measurement_red_team_and_threat_alignment",
+      "mcp_tool_count": 4,
+      "mcp_tools": [
+        "recipes_agentic_threat_radar",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "premium_path": "Hosted replay runner, model and connector drift probes, executive threat posture reports, and risk trend dashboards.",
+      "proof_question": "Can the buyer show that current threat signals become probes, drills, readiness decisions, and roadmap actions instead of stale docs?",
+      "source_pack_count": 4,
+      "source_pack_ids": [
+        "agentic_threat_radar",
+        "agentic_measurement_probe_pack",
+        "agentic_red_team_drill_pack",
+        "agentic_readiness_scorecard"
+      ],
+      "status": "ready",
+      "title": "Measurement, Red-Team Replay, and Threat Alignment"
+    }
+  ],
+  "pack_summaries": {
+    "agentic_assurance": {
+      "active_workflow_count": 8,
+      "control_count": 10,
+      "external_evidence_artifact_count": 3,
+      "failure_count": 0,
+      "gateway_default_decision": "deny",
+      "standards_count": 9,
+      "workflow_count": 8
+    },
+    "agentic_measurement": {
+      "average_score": 100,
+      "decision_counts": {
+        "measurement_ready": 8
+      },
+      "failure_count": 0,
+      "probe_class_status_counts": {
+        "context_integrity": {
+          "pass": 8
+        },
+        "egress_boundary": {
+          "pass": 8
+        },
+        "identity_delegation": {
+          "pass": 8
+        },
+        "memory_boundary": {
+          "pass": 8
+        },
+        "readiness_decision": {
+          "pass": 8
+        },
+        "red_team_replay": {
+          "pass": 8
+        },
+        "run_receipt_integrity": {
+          "pass": 8
+        },
+        "threat_radar_alignment": {
+          "pass": 8
+        },
+        "tool_authorization": {
+          "pass": 8
+        }
+      },
+      "probe_status_counts": {
+        "pass": 72
+      },
+      "total_probe_results": 72,
+      "workflow_count": 8
+    },
+    "agentic_system_bom": {
+      "active_workflow_count": 8,
+      "agent_class_count": 5,
+      "agent_identity_count": 32,
+      "component_counts": {
+        "agent_classes": 5,
+        "agent_identities": 32,
+        "evaluation_drills": 56,
+        "evidence_artifacts": 9,
+        "knowledge_sources": 4,
+        "mcp_connectors": 16,
+        "policy_components": 4,
+        "workflows": 8
+      },
+      "connector_count": 16,
+      "drift_trigger_count": 12,
+      "evaluation_drill_count": 56,
+      "failure_count": 0,
+      "mcp_namespace_count": 16,
+      "missing_identity_workflow_count": 0,
+      "readiness_decision_counts": {
+        "pilot_guarded": 4,
+        "scale_ready": 4
+      },
+      "source_failure_count": 0,
+      "workflow_count": 8
+    },
+    "agentic_threat_radar": {
+      "confidence_counts": {
+        "high": 11
+      },
+      "critical_or_high_signal_count": 10,
+      "feature_backlog_count": 6,
+      "horizon_counts": {
+        "next": 2,
+        "now": 9
+      },
+      "implemented_capability_count": 16,
+      "priority_counts": {
+        "critical": 3,
+        "high": 7,
+        "medium": 1
+      },
+      "signal_count": 11,
+      "source_class_counts": {
+        "frontier_lab_guidance": 3,
+        "government_framework": 2,
+        "government_guidance": 2,
+        "industry_guidance": 3,
+        "industry_standard": 3,
+        "protocol_guidance": 1,
+        "protocol_specification": 1,
+        "vendor_architecture_guidance": 1
+      },
+      "source_reference_count": 16,
+      "top_signals": [
+        {
+          "id": "indirect-prompt-injection-social-engineering",
+          "priority": "critical",
+          "strategic_score": 98,
+          "title": "Indirect prompt injection is now social engineering against agents"
+        },
+        {
+          "id": "mcp-token-passthrough-and-scope-creep",
+          "priority": "critical",
+          "strategic_score": 95,
+          "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
+        },
+        {
+          "id": "agent-identity-explosion",
+          "priority": "critical",
+          "strategic_score": 93,
+          "title": "Agent identities are becoming a new non-human identity class"
+        },
+        {
+          "id": "capability-based-agentic-risk-governance",
+          "priority": "high",
+          "strategic_score": 93,
+          "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
+        },
+        {
+          "id": "context-over-sharing-and-memory-poisoning",
+          "priority": "high",
+          "strategic_score": 93,
+          "title": "Context over-sharing and memory poisoning make retrieval policy a product category"
+        }
+      ]
+    },
+    "authorization_conformance": {
+      "candidate_count": 3,
+      "candidate_decision_counts": {
+        "approve_for_pilot": 1,
+        "deny_until_redesigned": 1,
+        "hold_for_authorization_evidence": 1
+      },
+      "connector_count": 16,
+      "failure_count": 0,
+      "metadata_evidence_required_count": 16,
+      "registered_decision_counts": {
+        "approve_public_context_no_auth": 1,
+        "approve_with_gateway_attestation": 15
+      },
+      "workflow_count": 8
+    },
+    "connector_trust": {
+      "access_mode_counts": {
+        "approval_required": 1,
+        "read": 12,
+        "write_branch": 1,
+        "write_ticket": 2
+      },
+      "approval_required_connector_count": 1,
+      "connector_count": 16,
+      "failure_count": 0,
+      "missing_workflow_namespaces": [],
+      "production_connector_count": 11,
+      "registry_namespace_count": 16,
+      "scoped_write_connector_count": 3,
+      "status_counts": {
+        "pilot": 5,
+        "production": 11
+      },
+      "tier_counts": {
+        "tier_0_public_context": 1,
+        "tier_1_internal_read": 11,
+        "tier_2_scoped_write": 3,
+        "tier_3_approval_required": 1
+      },
+      "workflow_namespace_count": 16,
+      "workflow_namespace_coverage_percent": 100
+    },
+    "context_attestation": {
+      "active_subject_count": 19,
+      "context_source_subject_count": 9,
+      "decision_counts": {
+        "allow_attested_context": 9,
+        "allow_attested_workflow_context": 8
+      },
+      "failure_count": 0,
+      "source_artifact_subject_count": 2,
+      "status": "ready_for_open_reference_use",
+      "status_counts": {
+        "active": 19
+      },
+      "total_subject_count": 19,
+      "workflow_package_subject_count": 8
+    },
+    "context_egress": {
+      "data_class_counts": {
+        "curated_security_guidance": 2,
+        "generated_policy_evidence": 7
+      },
+      "decision_counts": {
+        "allow_public_egress_with_citation": 9
+      },
+      "destination_class_count": 7,
+      "failure_count": 0,
+      "namespace_policy_count": 24,
+      "prohibited_data_class_count": 2,
+      "source_count": 9,
+      "tenant_bound_data_class_count": 7,
+      "workflow_count": 8,
+      "workflow_namespace_data_class_counts": {
+        "curated_security_guidance": 1,
+        "customer_asset_metadata": 5,
+        "customer_case_context": 2,
+        "customer_finding_metadata": 5,
+        "customer_pipeline_metadata": 3,
+        "customer_source_code": 7,
+        "public_vulnerability_intelligence": 1
+      }
+    },
+    "context_poisoning": {
+      "actionable_finding_count": 2,
+      "blocking_source_count": 1,
+      "blocking_sources": [
+        "agentic-assurance-models"
+      ],
+      "byte_count": 2531777,
+      "decision_counts": {
+        "allow_with_adversarial_examples": 4,
+        "block_until_removed": 1,
+        "pass": 4
+      },
+      "disposition_counts": {
+        "actionable_context_poisoning_risk": 2,
+        "defensive_control_language": 12,
+        "documented_adversarial_example": 23
+      },
+      "failure_count": 0,
+      "file_count": 145,
+      "finding_count": 37,
+      "held_source_count": 0,
+      "held_sources": [],
+      "risk_family_counts": {
+        "approval_bypass": 21,
+        "prompt_injection": 3,
+        "secret_exposure": 13
+      },
+      "severity_counts": {
+        "critical": 16,
+        "high": 21
+      },
+      "source_count": 9
+    },
+    "context_trust": {
+      "context_source_count": 9,
+      "decision_counts": {
+        "allow_policy_context_with_citation": 7,
+        "allow_public_context": 2
+      },
+      "default_decision": "deny_unregistered_context",
+      "failure_count": 0,
+      "prohibited_data_class_count": 7,
+      "registered_byte_count": 2945611,
+      "registered_file_count": 166,
+      "risk_family_counts": {
+        "context_poisoning": 8,
+        "memory_poisoning": 3,
+        "over_retrieval": 7,
+        "policy_drift": 8,
+        "prompt_injection": 3,
+        "secret_exposure": 6,
+        "stale_context": 8,
+        "tool_result_injection": 7,
+        "untrusted_source_confusion": 3
+      },
+      "source_kind_counts": {
+        "generated_evidence": 1,
+        "markdown_corpus": 2,
+        "policy_json": 5,
+        "runtime_code": 1
+      },
+      "sources_requiring_citation": 9,
+      "trust_tier_counts": {
+        "tier_1_curated_guidance": 2,
+        "tier_2_policy_context": 7
+      },
+      "workflow_context_package_count": 8
+    },
+    "readiness": {
+      "active_workflow_count": 8,
+      "average_score": 95.75,
+      "blocked_workflow_count": 0,
+      "decision_counts": {
+        "pilot_guarded": 4,
+        "scale_ready": 4
+      },
+      "failure_count": 0,
+      "manual_gate_workflow_count": 0,
+      "pilot_connector_workflows": [
+        "artifact-cache-quarantine",
+        "crypto-payment-security",
+        "defi-blockchain-security"
+      ],
+      "pilot_guarded_workflow_count": 4,
+      "scale_ready_workflow_count": 4,
+      "source_failure_count": 0,
+      "workflow_count": 8
+    }
+  },
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, model risk, procurement security, and acquisition diligence teams",
+    "category": "Secure context and control plane for agentic AI",
+    "enterprise_promise": "SecurityRecipes turns agent context into an inspectable control plane: every workflow, source, connector, identity, tool decision, memory class, egress path, and run receipt can be queried as structured MCP evidence before agents act.",
+    "why_now": "Agentic AI adoption is shifting from isolated assistants to autonomous systems that call tools, persist memory, use MCP connectors, and operate through delegated authority. The durable product wedge is a vendor-neutral control layer that makes context, authorization, and evidence easy for security teams and agent hosts to consume."
+  },
+  "residual_risks": [
+    {
+      "risk": "The blueprint proves the open reference architecture, not live customer enforcement.",
+      "treatment": "Bind generated packs to tenant MCP gateway logs, identity-provider records, source-host reviews, and runtime receipts before production attestation."
+    },
+    {
+      "risk": "Agentic standards and MCP authorization guidance are still evolving.",
+      "treatment": "Review the source model quarterly and regenerate the blueprint when NIST, OWASP, MCP, CSA, CISA, or model-lab guidance changes."
+    },
+    {
+      "risk": "A ready architecture can still fail if connectors, models, prompts, or customer data drift after approval.",
+      "treatment": "Use measurement probes, red-team replay, source-hash checks, and readiness regeneration as promotion gates."
+    }
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "blueprint_profile": {
+      "path": "data/assurance/agentic-control-plane-blueprint.json",
+      "sha256": "e2558729f081f43b54e778cc3643922ab1e24594fded46b45bc1b846ea9ab9da"
+    },
+    "source_packs": [
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "workflow_manifest",
+        "path": "data/control-plane/workflow-manifests.json",
+        "schema_version": "1.0",
+        "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb",
+        "title": "Workflow Control Plane"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "mcp_gateway_policy",
+        "path": "data/policy/mcp-gateway-policy.json",
+        "schema_version": "1.0",
+        "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2",
+        "title": "MCP Gateway Policy"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agentic_assurance_pack",
+        "path": "data/evidence/agentic-assurance-pack.json",
+        "schema_version": "1.0",
+        "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f",
+        "title": "Agentic Assurance Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agent_identity_ledger",
+        "path": "data/evidence/agent-identity-delegation-ledger.json",
+        "schema_version": "1.0",
+        "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42",
+        "title": "Agent Identity Ledger"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "mcp_connector_trust_pack",
+        "path": "data/evidence/mcp-connector-trust-pack.json",
+        "schema_version": "1.0",
+        "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be",
+        "title": "MCP Connector Trust Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "mcp_connector_intake_pack",
+        "path": "data/evidence/mcp-connector-intake-pack.json",
+        "schema_version": "1.0",
+        "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f",
+        "title": "MCP Connector Intake Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "mcp_authorization_conformance_pack",
+        "path": "data/evidence/mcp-authorization-conformance-pack.json",
+        "schema_version": "1.0",
+        "sha256": "a4ebcb2e1f781c2893283937acbf5d34356c93de685aad730d1a0353f2412d26",
+        "title": "MCP Authorization Conformance Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agentic_red_team_drill_pack",
+        "path": "data/evidence/agentic-red-team-drill-pack.json",
+        "schema_version": "1.0",
+        "sha256": "c28356c01555a2badaf678238aa525abeb343ff2ed60e58f27c4af8736d1188b",
+        "title": "Agentic Red-Team Drill Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agentic_readiness_scorecard",
+        "path": "data/evidence/agentic-readiness-scorecard.json",
+        "schema_version": "1.0",
+        "sha256": "c175181e8a7afeba2c1c7d6483f69c7a635fcf8242d65a20fb76462499cc45ae",
+        "title": "Agentic Readiness Scorecard"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agent_capability_risk_register",
+        "path": "data/evidence/agent-capability-risk-register.json",
+        "schema_version": "1.0",
+        "sha256": "a20b47280e97c578cab5e14bd1632679254129a95803168086c1a9dd92cb99a2",
+        "title": "Agent Capability Risk Register"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agent_memory_boundary_pack",
+        "path": "data/evidence/agent-memory-boundary-pack.json",
+        "schema_version": "1.0",
+        "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed",
+        "title": "Agent Memory Boundary Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agent_skill_supply_chain_pack",
+        "path": "data/evidence/agent-skill-supply-chain-pack.json",
+        "schema_version": "1.0",
+        "sha256": "2da2e7e7444c30f00a29d1a79f4f804c281dc08813754cf4c9fd99112502a79d",
+        "title": "Agent Skill Supply-Chain Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agentic_system_bom",
+        "path": "data/evidence/agentic-system-bom.json",
+        "schema_version": "1.0",
+        "sha256": "63e54ee764128a717c0366087778b26109387bc6de3b04fc352e59fff8acd649",
+        "title": "Agentic System BOM"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agentic_run_receipt_pack",
+        "path": "data/evidence/agentic-run-receipt-pack.json",
+        "schema_version": "1.0",
+        "sha256": "de61da0bccd9f668c34fe2d01e92014363e72b8e159749c6cff6839dd51804b5",
+        "title": "Agentic Run Receipt Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "secure_context_trust_pack",
+        "path": "data/evidence/secure-context-trust-pack.json",
+        "schema_version": "1.0",
+        "sha256": "62fc11adf3e0a582bb609f9c2c65f19693a6a171c9c08221827ec8dea737af11",
+        "title": "Secure Context Trust Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "secure_context_attestation_pack",
+        "path": "data/evidence/secure-context-attestation-pack.json",
+        "schema_version": "1.0",
+        "sha256": "9d8632cb98a2d2b4c96afa307d7c68f08886b6c4537ce0ef18b7f0f5b8c25a09",
+        "title": "Secure Context Attestation Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "context_poisoning_guard_pack",
+        "path": "data/evidence/context-poisoning-guard-pack.json",
+        "schema_version": "1.0",
+        "sha256": "9fda63d1cc443ba1e52e62840bba377789a6d232a9c83646a9bf7a2a43ceda12",
+        "title": "Context Poisoning Guard Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "context_egress_boundary_pack",
+        "path": "data/evidence/context-egress-boundary-pack.json",
+        "schema_version": "1.0",
+        "sha256": "002008f9cb4fb3a5a352bc03b7ce82a90fb10d19d7d6431055fc3c8993609036",
+        "title": "Context Egress Boundary Pack"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agentic_threat_radar",
+        "path": "data/evidence/agentic-threat-radar.json",
+        "schema_version": "1.0",
+        "sha256": "4228c743985a6ae43143e64feac493bd600af0eb42951bd973b3b7f9b514b9be",
+        "title": "Agentic Threat Radar"
+      },
+      {
+        "available": true,
+        "failure_count": 0,
+        "id": "agentic_measurement_probe_pack",
+        "path": "data/evidence/agentic-measurement-probe-pack.json",
+        "schema_version": "1.0",
+        "sha256": "e26497095de29a9a543d583405dc57721ca1aaf46e1b03e28cde42840aa41c56",
+        "title": "Agentic Measurement Probe Pack"
+      }
+    ]
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Aligns the blueprint to industry-led agent standards, community-led protocols, secure agent identity, agent authentication, and security evaluations.",
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+    },
+    {
+      "coverage": "Supports reproducible automated benchmark and agent-system evaluations through measurement probes, red-team replay, and evidence reconstruction.",
+      "id": "nist-ai-800-2-draft-2026",
+      "name": "NIST AI 800-2 Practices for Automated Benchmark Evaluations",
+      "url": "https://www.nist.gov/news-events/news/2026/01/towards-best-practices-automated-benchmark-evaluations"
+    },
+    {
+      "coverage": "Maps secure context and generated evidence to GAI provenance, third-party components, monitoring, measurement, and risk-response expectations.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Covers agent goal hijack, tool misuse, identity abuse, agentic supply-chain risk, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human trust exploitation, and rogue-agent containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Anchors MCP authorization in OAuth 2.1, protected resource metadata, client metadata documents, resource indicators, token audience validation, PKCE S256, HTTPS, and forbidden token passthrough.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Aligns the product thesis to identity, authorization, orchestration, runtime behavior, risk intelligence, certification, and trust assurance layers for autonomous AI agent ecosystems.",
+      "id": "csa-agentic-control-plane-2026",
+      "name": "CSA Securing the Agentic Control Plane",
+      "url": "https://labs.cloudsecurityalliance.org/agentic/"
+    },
+    {
+      "coverage": "Supports the near-term need for internal agent governance while formal agent-specific standards and enforceable controls continue to mature.",
+      "id": "csa-ai-agent-governance-gap-2026",
+      "name": "CSA The AI Agent Governance Gap: What CISOs Need Now",
+      "url": "https://labs.cloudsecurityalliance.org/research/csa-research-note-ai-agent-governance-framework-gap-20260403/"
+    },
+    {
+      "coverage": "Maps the architecture to vendor-neutral AI control objectives, AI-CAIQ style assessment evidence, role accountability, and trustworthy AI operations.",
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "CSA AI Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+    }
+  ]
+}

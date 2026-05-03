@@ -354,16 +354,6 @@ jobs:
             --contains-secret \
             --expect-decision kill_session_on_secret_egress
 
-      - name: Refresh agentic threat radar
-        working-directory: ${{ steps.hugo-dir.outputs.path }}
-        run: |
-          python3 scripts/generate_agentic_threat_radar.py
-
-      - name: Validate agentic threat radar
-        working-directory: ${{ steps.hugo-dir.outputs.path }}
-        run: |
-          python3 scripts/generate_agentic_threat_radar.py --check
-
       - name: Refresh secure context trust pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -407,6 +397,47 @@ jobs:
             --retrieval-mode workflow_prompt_context \
             --data-class private_key \
             --expect-decision kill_session_on_prohibited_context
+
+      - name: Refresh secure context attestation pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_attestation_pack.py
+
+      - name: Validate secure context attestation pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_attestation_pack.py --check
+
+      - name: Validate secure context attestation decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_context_attestation_decision.py \
+            --subject-type context_source \
+            --source-id prompt-library-recipes \
+            --environment open_reference \
+            --expect-decision allow_attested_context
+
+          python3 scripts/evaluate_context_attestation_decision.py \
+            --subject-type workflow_context_package \
+            --workflow-id vulnerable-dependency-remediation \
+            --environment production_mcp \
+            --expect-decision hold_for_signature
+
+          python3 scripts/evaluate_context_attestation_decision.py \
+            --subject-type context_source \
+            --source-id prompt-library-recipes \
+            --data-class raw_access_token \
+            --expect-decision kill_session_on_forbidden_attestation
+
+      - name: Refresh agentic threat radar
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_threat_radar.py
+
+      - name: Validate agentic threat radar
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_threat_radar.py --check
 
       - name: Refresh agent skill supply-chain pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
@@ -472,6 +503,34 @@ jobs:
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
           python3 scripts/generate_agentic_measurement_probe_pack.py --check
+
+      - name: Refresh secure context eval pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_eval_pack.py
+
+      - name: Validate secure context eval pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_eval_pack.py --check
+
+      - name: Validate secure context eval runtime case
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_secure_context_eval_case.py \
+            --scenario-id ctx-eval-prohibited-data-kill \
+            --answer-text "kill_session" \
+            --expect-decision eval_ready
+
+      - name: Refresh agentic control plane blueprint
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_control_plane_blueprint.py
+
+      - name: Validate agentic control plane blueprint
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_control_plane_blueprint.py --check
 
       - name: Build site
         working-directory: ${{ steps.hugo-dir.outputs.path }}

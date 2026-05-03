@@ -168,6 +168,18 @@
       ]
     },
     {
+      "capability_id": "secure-context-attestation-pack",
+      "critical_or_high_signal_count": 4,
+      "max_strategic_score": 98,
+      "signal_count": 4,
+      "signal_ids": [
+        "indirect-prompt-injection-social-engineering",
+        "context-over-sharing-and-memory-poisoning",
+        "ai-data-security-and-provenance",
+        "audit-telemetry-and-evidence-chain"
+      ]
+    },
+    {
       "capability_id": "secure-context-firewall",
       "critical_or_high_signal_count": 2,
       "max_strategic_score": 98,
@@ -287,6 +299,22 @@
       },
       "title": "Agent run attestation and approval receipts",
       "why": "Buyers need to prove which agent acted, which context it used, which policy allowed it, and who approved high-risk steps."
+    },
+    {
+      "id": "secure-context-attestation-pack",
+      "related_signal_ids": [
+        "context-over-sharing-and-memory-poisoning",
+        "ai-data-security-and-provenance",
+        "audit-telemetry-and-evidence-chain"
+      ],
+      "status": "implemented",
+      "supporting_signal_count": 3,
+      "supporting_signal_max_score": 93,
+      "supporting_signal_priority_counts": {
+        "high": 3
+      },
+      "title": "Secure context attestation pack",
+      "why": "Context provenance guidance now needs verification, recertification, and production signing readiness; this run implemented the generated attestation seed, runtime evaluator, and MCP tools without overstating that hosted keyless signing exists yet."
     }
   ],
   "generated_at": "2026-05-02",
@@ -315,6 +343,10 @@
     {
       "path": "content/security-remediation/mcp-connector-intake-scanner/_index.md",
       "sha256": "dcfa3672c2da75abd22902ec2f7679ed45e0ad13effe7f45d6839315447bd57b"
+    },
+    {
+      "path": "content/security-remediation/secure-context-attestation/_index.md",
+      "sha256": "e00edce1a90002676e1e3b84aa04e8c22566c69c9b312697e7d0f91816be5a5a"
     },
     {
       "path": "content/security-remediation/secure-context-firewall/_index.md",
@@ -353,8 +385,12 @@
       "sha256": "8a8ec4251dd78604a84d0fff7c61df9be5b03c05f691336708290827e98d580e"
     },
     {
+      "path": "data/assurance/secure-context-attestation-profile.json",
+      "sha256": "ec35933bb28254b8bff973d31917cf780256ca604acec79a3cd2fa6af053de9a"
+    },
+    {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "4436cb3d1030abc44e264e3f8a4d42b443ec004fdb4dc4fce498a074d88dbaa4"
+      "sha256": "f28b07cf9e955ae216c5d93a29919a977038ef962d01a10702ed33577929e573"
     },
     {
       "path": "data/evidence/agent-capability-risk-register.json",
@@ -362,35 +398,35 @@
     },
     {
       "path": "data/evidence/agent-identity-delegation-ledger.json",
-      "sha256": "690de03ff300a5d11f99676422fb9f6db0c69c48fb7e03ebccf3a1429ef60551"
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
     },
     {
       "path": "data/evidence/agentic-assurance-pack.json",
-      "sha256": "c434995287e687217f279b878ac25ffeefbe81f86cc64e43b1547193c339c6f9"
+      "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f"
     },
     {
       "path": "data/evidence/agentic-readiness-scorecard.json",
-      "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c"
+      "sha256": "c175181e8a7afeba2c1c7d6483f69c7a635fcf8242d65a20fb76462499cc45ae"
     },
     {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
+      "sha256": "c28356c01555a2badaf678238aa525abeb343ff2ed60e58f27c4af8736d1188b"
     },
     {
       "path": "data/evidence/agentic-system-bom.json",
-      "sha256": "19d9de3f6cdc0003d61a75477cc5549d857fb6a9f3342884807ae079299e95cd"
+      "sha256": "63e54ee764128a717c0366087778b26109387bc6de3b04fc352e59fff8acd649"
     },
     {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "bb52d63d3aeedd28d9a22007228adafb18a2369aa9f93b5b2a5bf75a2ae2d60f"
+      "sha256": "002008f9cb4fb3a5a352bc03b7ce82a90fb10d19d7d6431055fc3c8993609036"
     },
     {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "a91a16d5d439bc5dfde49f8bfbe5efa83e47fef0fb22e359f4dbd95a9535dc8e"
+      "sha256": "9fda63d1cc443ba1e52e62840bba377789a6d232a9c83646a9bf7a2a43ceda12"
     },
     {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
-      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+      "sha256": "a4ebcb2e1f781c2893283937acbf5d34356c93de685aad730d1a0353f2412d26"
     },
     {
       "path": "data/evidence/mcp-connector-intake-pack.json",
@@ -401,12 +437,16 @@
       "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
     },
     {
+      "path": "data/evidence/secure-context-attestation-pack.json",
+      "sha256": "9d8632cb98a2d2b4c96afa307d7c68f08886b6c4537ce0ef18b7f0f5b8c25a09"
+    },
+    {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "5583c023b7657d3b09d2e1309fc83f0226b9499418373a4d09dcb790dfc206d2"
+      "sha256": "62fc11adf3e0a582bb609f9c2c65f19693a6a171c9c08221827ec8dea737af11"
     },
     {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "c06100a39468ea99f38a7880d32639f42312aeea48352a8350bc0496a96abc75"
+      "sha256": "dd8655b863b0f91e1b758af899b68f9a3818ac339c42094743a53c7e17a0b057"
     },
     {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -419,6 +459,10 @@
     {
       "path": "data/policy/mcp-gateway-policy.json",
       "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+    },
+    {
+      "path": "scripts/evaluate_context_attestation_decision.py",
+      "sha256": "3e0ab6a6f4115c7a24c3d4ff14b8a010065954d4b19551415f90d9b93f5d09c8"
     },
     {
       "path": "scripts/evaluate_context_egress_decision.py",
@@ -481,6 +525,10 @@
       "sha256": "1b39704bafda6ba2adc09cae5783a33ffe557038d351494aee3cd8aba9edf9f3"
     },
     {
+      "path": "scripts/generate_secure_context_attestation_pack.py",
+      "sha256": "7445ea8c3d80362d367eca08598c8e55fcc4ce7ff144ee3a1fe62770a9f08d65"
+    },
+    {
       "path": "scripts/generate_secure_context_trust_pack.py",
       "sha256": "ed0642a89f46c9aa9717b649062f3b5209ca05f6821a1b89841a1da55a0895aa"
     }
@@ -519,6 +567,23 @@
       ],
       "status": "implemented",
       "title": "Secure Context Trust Pack"
+    },
+    {
+      "buyer_value": "Turns context sources and workflow packages into hash-verifiable attestation subjects with recertification and production signature-readiness policy.",
+      "evidence_paths": [
+        "data/assurance/secure-context-attestation-profile.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "scripts/generate_secure_context_attestation_pack.py",
+        "scripts/evaluate_context_attestation_decision.py",
+        "content/security-remediation/secure-context-attestation/_index.md"
+      ],
+      "id": "secure-context-attestation-pack",
+      "mcp_tools": [
+        "recipes_secure_context_attestation_pack",
+        "recipes_evaluate_context_attestation_decision"
+      ],
+      "status": "implemented",
+      "title": "Secure Context Attestation Pack"
     },
     {
       "buyer_value": "Converts retrieval policy into deterministic allow, hold, deny, or kill-session decisions before agents receive context.",
@@ -725,7 +790,7 @@
   "source_artifacts": {
     "agentic_threat_radar_sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "c06100a39468ea99f38a7880d32639f42312aeea48352a8350bc0496a96abc75"
+      "sha256": "dd8655b863b0f91e1b758af899b68f9a3818ac339c42094743a53c7e17a0b057"
     }
   },
   "source_references": [
@@ -879,12 +944,12 @@
       "high": 11
     },
     "critical_or_high_signal_count": 10,
-    "feature_backlog_count": 5,
+    "feature_backlog_count": 6,
     "horizon_counts": {
       "next": 2,
       "now": 9
     },
-    "implemented_capability_count": 15,
+    "implemented_capability_count": 16,
     "priority_counts": {
       "critical": 3,
       "high": 7,
@@ -952,6 +1017,23 @@
           ],
           "status": "implemented",
           "title": "Secure Context Trust Pack"
+        },
+        {
+          "buyer_value": "Turns context sources and workflow packages into hash-verifiable attestation subjects with recertification and production signature-readiness policy.",
+          "evidence_paths": [
+            "data/assurance/secure-context-attestation-profile.json",
+            "data/evidence/secure-context-attestation-pack.json",
+            "scripts/generate_secure_context_attestation_pack.py",
+            "scripts/evaluate_context_attestation_decision.py",
+            "content/security-remediation/secure-context-attestation/_index.md"
+          ],
+          "id": "secure-context-attestation-pack",
+          "mcp_tools": [
+            "recipes_secure_context_attestation_pack",
+            "recipes_evaluate_context_attestation_decision"
+          ],
+          "status": "implemented",
+          "title": "Secure Context Attestation Pack"
         },
         {
           "buyer_value": "Converts retrieval policy into deterministic allow, hold, deny, or kill-session decisions before agents receive context.",
@@ -1022,6 +1104,7 @@
       "id": "indirect-prompt-injection-social-engineering",
       "mapped_capability_ids": [
         "secure-context-trust-pack",
+        "secure-context-attestation-pack",
         "secure-context-firewall",
         "context-poisoning-guard",
         "agentic-red-team-drill-pack",
@@ -1533,6 +1616,23 @@
           "title": "Secure Context Trust Pack"
         },
         {
+          "buyer_value": "Turns context sources and workflow packages into hash-verifiable attestation subjects with recertification and production signature-readiness policy.",
+          "evidence_paths": [
+            "data/assurance/secure-context-attestation-profile.json",
+            "data/evidence/secure-context-attestation-pack.json",
+            "scripts/generate_secure_context_attestation_pack.py",
+            "scripts/evaluate_context_attestation_decision.py",
+            "content/security-remediation/secure-context-attestation/_index.md"
+          ],
+          "id": "secure-context-attestation-pack",
+          "mcp_tools": [
+            "recipes_secure_context_attestation_pack",
+            "recipes_evaluate_context_attestation_decision"
+          ],
+          "status": "implemented",
+          "title": "Secure Context Attestation Pack"
+        },
+        {
           "buyer_value": "Converts retrieval policy into deterministic allow, hold, deny, or kill-session decisions before agents receive context.",
           "evidence_paths": [
             "scripts/evaluate_secure_context_retrieval.py",
@@ -1618,6 +1718,7 @@
       "id": "context-over-sharing-and-memory-poisoning",
       "mapped_capability_ids": [
         "secure-context-trust-pack",
+        "secure-context-attestation-pack",
         "secure-context-firewall",
         "context-poisoning-guard",
         "context-egress-boundary",
@@ -1840,6 +1941,23 @@
           "title": "Secure Context Trust Pack"
         },
         {
+          "buyer_value": "Turns context sources and workflow packages into hash-verifiable attestation subjects with recertification and production signature-readiness policy.",
+          "evidence_paths": [
+            "data/assurance/secure-context-attestation-profile.json",
+            "data/evidence/secure-context-attestation-pack.json",
+            "scripts/generate_secure_context_attestation_pack.py",
+            "scripts/evaluate_context_attestation_decision.py",
+            "content/security-remediation/secure-context-attestation/_index.md"
+          ],
+          "id": "secure-context-attestation-pack",
+          "mcp_tools": [
+            "recipes_secure_context_attestation_pack",
+            "recipes_evaluate_context_attestation_decision"
+          ],
+          "status": "implemented",
+          "title": "Secure Context Attestation Pack"
+        },
+        {
           "buyer_value": "Turns data-class, destination, DPA, zero-data-retention, residency, and secret-egress requirements into deterministic MCP-readable decisions before context leaves a boundary.",
           "evidence_paths": [
             "data/assurance/context-egress-boundary-model.json",
@@ -1926,6 +2044,7 @@
       "id": "ai-data-security-and-provenance",
       "mapped_capability_ids": [
         "secure-context-trust-pack",
+        "secure-context-attestation-pack",
         "context-egress-boundary",
         "context-poisoning-guard",
         "agentic-assurance-pack",
@@ -2043,6 +2162,23 @@
           ],
           "status": "implemented",
           "title": "Agentic Threat Radar"
+        },
+        {
+          "buyer_value": "Turns context sources and workflow packages into hash-verifiable attestation subjects with recertification and production signature-readiness policy.",
+          "evidence_paths": [
+            "data/assurance/secure-context-attestation-profile.json",
+            "data/evidence/secure-context-attestation-pack.json",
+            "scripts/generate_secure_context_attestation_pack.py",
+            "scripts/evaluate_context_attestation_decision.py",
+            "content/security-remediation/secure-context-attestation/_index.md"
+          ],
+          "id": "secure-context-attestation-pack",
+          "mcp_tools": [
+            "recipes_secure_context_attestation_pack",
+            "recipes_evaluate_context_attestation_decision"
+          ],
+          "status": "implemented",
+          "title": "Secure Context Attestation Pack"
         }
       ],
       "confidence": "high",
@@ -2059,7 +2195,8 @@
         "agentic-assurance-pack",
         "agentic-readiness-scorecard",
         "agentic-system-bom",
-        "agentic-threat-radar"
+        "agentic-threat-radar",
+        "secure-context-attestation-pack"
       ],
       "priority": "high",
       "roadmap_action": "Create a customer trust-center export that bundles threat radar, assurance, readiness, BOM, and runtime decision evidence.",

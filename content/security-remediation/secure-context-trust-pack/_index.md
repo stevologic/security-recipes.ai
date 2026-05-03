@@ -174,6 +174,12 @@ it.
 - [Context Egress Boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
   - data-class and destination decisions before retrieved context leaves
     a tenant, model, MCP, telemetry, or public-corpus boundary.
+- [Secure Context Attestation]({{< relref "/security-remediation/secure-context-attestation" >}})
+  - in-toto-shaped attestation seed, recertification queue, and
+    signature-readiness policy for trusted context.
+- [Secure Context Evals]({{< relref "/security-remediation/secure-context-evals" >}})
+  - scenario-backed evals for retrieval correctness, attestation holds,
+    poisoning resilience, egress safety, answer contracts, and handoffs.
 - [MCP Connector Trust Registry]({{< relref "/security-remediation/mcp-connector-trust-registry" >}})
   - connector trust tiers and promotion criteria.
 - [Agentic System BOM]({{< relref "/security-remediation/agentic-system-bom" >}})

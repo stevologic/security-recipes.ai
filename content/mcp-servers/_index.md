@@ -86,9 +86,12 @@ Second, it reads local generated packs from the filesystem:
 | Agentic System BOM | `./data/evidence/agentic-system-bom.json` | `recipes_agentic_system_bom` |
 | Agentic run receipt pack | `./data/evidence/agentic-run-receipt-pack.json` | `recipes_agentic_run_receipt_pack` |
 | Secure context trust pack | `./data/evidence/secure-context-trust-pack.json` | `recipes_secure_context_trust_pack`, `recipes_evaluate_context_retrieval_decision` |
+| Secure context attestation pack | `./data/evidence/secure-context-attestation-pack.json` | `recipes_secure_context_attestation_pack`, `recipes_evaluate_context_attestation_decision` |
+| Secure context eval pack | `./data/evidence/secure-context-eval-pack.json` | `recipes_secure_context_eval_pack`, `recipes_evaluate_secure_context_eval_case` |
 | Context poisoning guard pack | `./data/evidence/context-poisoning-guard-pack.json` | `recipes_context_poisoning_guard_pack` |
 | Context egress boundary pack | `./data/evidence/context-egress-boundary-pack.json` | `recipes_context_egress_boundary_pack`, `recipes_evaluate_context_egress_decision` |
 | Agentic threat radar | `./data/evidence/agentic-threat-radar.json` | `recipes_agentic_threat_radar` |
+| Agentic control plane blueprint | `./data/evidence/agentic-control-plane-blueprint.json` | `recipes_agentic_control_plane_blueprint` |
 | Agentic measurement probe pack | `./data/evidence/agentic-measurement-probe-pack.json` | `recipes_agentic_measurement_probe_pack` |
 
 These packs are data artifacts, not live external connectors. For
@@ -130,10 +133,15 @@ listed in `README.mcp-localhost.md`.
 | `recipes_agentic_run_receipt_pack` | Optional `workflow_id`, `receipt_id`, `minimum_score` | Agent run receipt templates for identity issuance, context retrieval, poisoning scans, MCP decisions, egress, approvals, verifier output, evidence, closure, and identity revocation. |
 | `recipes_secure_context_trust_pack` | Optional `source_id`, `workflow_id`, `trust_tier`, `decision` | Source provenance, trust tiers, source hashes, retrieval contracts, and workflow context packages for the secure context layer. |
 | `recipes_evaluate_context_retrieval_decision` | `workflow_id`, `source_id`, `retrieval_mode`, plus optional source path/hash/runtime attributes | A deterministic allow, hold, deny, or kill-session decision before MCP-backed context is returned to an agent. |
+| `recipes_secure_context_attestation_pack` | Optional `source_id`, `workflow_id`, `artifact_id`, `subject_type`, `status` | Attestation subjects, in-toto statement hash, verification policy, signature readiness, and recertification state for secure-context sources and workflow packages. |
+| `recipes_evaluate_context_attestation_decision` | `subject_type`, optional source/workflow/artifact/hash/environment/signature attributes | A deterministic attestation decision before context is trusted for open-reference, CI, production MCP, trust-center, or diligence use. |
+| `recipes_secure_context_eval_pack` | Optional `scenario_id`, `workflow_id`, `scenario_type`, `decision`, `minimum_score` | Scenario-backed evals for retrieval correctness, attestation holds, poisoning resilience, egress safety, answer contracts, and agent-to-agent handoff boundaries. |
+| `recipes_evaluate_secure_context_eval_case` | `scenario_id`, optional answer text, citations, observed decisions, handoff payload, agent, and run IDs | A deterministic eval decision for one observed runtime answer before the answer is treated as secure-context evidence. |
 | `recipes_context_poisoning_guard_pack` | Optional `source_id`, `decision`, `severity`, `rule_id`, `actionable_only`, `limit` | Pre-retrieval scan results for prompt-injection, tool-poisoning, approval-bypass, hidden-instruction, encoded-payload, and exfiltration markers in registered context. |
 | `recipes_context_egress_boundary_pack` | Optional `data_class`, `destination_class`, `source_id`, `workflow_id` | Data-class, destination-class, source, and workflow egress policy for the secure context layer. |
 | `recipes_evaluate_context_egress_decision` | `workflow_id`, `destination_class`, plus optional `data_class`, `source_id`, `mcp_namespace`, tenant, residency, DPA, ZDR, and approval attributes | A deterministic allow, hold, deny, or kill-session decision before context leaves a tenant, model, MCP, telemetry, or public-corpus boundary. |
 | `recipes_agentic_threat_radar` | Optional `signal_id`, `priority`, `horizon`, `capability_id`, `minimum_score` | Current source-backed agentic AI and MCP threat signals, mapped product capabilities, buyer triggers, and roadmap priorities. |
+| `recipes_agentic_control_plane_blueprint` | Optional `layer_id`, `question_id`, `status` | Acquisition-ready architecture, source-pack map, MCP evidence surface, buyer diligence questions, and commercialization path. |
 | `recipes_agentic_measurement_probe_pack` | Optional `probe_id`, `workflow_id`, `decision`, `class_id`, `status`, `minimum_score` | Measurement probes for context integrity, MCP authorization, identity, memory, egress, red-team replay, readiness, run receipts, and threat alignment. |
 
 ## Runtime Behavior
@@ -185,9 +193,12 @@ The main TOML fields are:
 | `agentic_system_bom_path` | Local path for the generated Agentic System BOM. |
 | `agentic_run_receipt_pack_path` | Local path for the generated agentic run receipt pack. |
 | `secure_context_trust_pack_path` | Local path for the generated secure context trust pack. |
+| `secure_context_attestation_pack_path` | Local path for the generated secure context attestation pack. |
+| `secure_context_eval_pack_path` | Local path for the generated secure context eval pack. |
 | `context_poisoning_guard_pack_path` | Local path for the generated context poisoning guard pack. |
 | `context_egress_boundary_pack_path` | Local path for the generated context egress boundary pack. |
 | `threat_radar_path` | Local path for the generated agentic threat radar. |
+| `control_plane_blueprint_path` | Local path for the generated agentic control plane blueprint. |
 | `measurement_probe_pack_path` | Local path for the generated agentic measurement probe pack. |
 | `cache_ttl_seconds` | In-memory recipe index cache lifetime. |
 | `request_timeout_seconds` | HTTP timeout for fetching the recipe index. |
@@ -211,6 +222,9 @@ such as `RECIPES_MCP_GATEWAY_POLICY_PATH`,
 `RECIPES_MCP_AUTHORIZATION_CONFORMANCE_PACK_PATH`,
 `RECIPES_MCP_READINESS_SCORECARD_PATH`, and
 `RECIPES_MCP_CONTEXT_EGRESS_BOUNDARY_PACK_PATH`,
+`RECIPES_MCP_SECURE_CONTEXT_ATTESTATION_PACK_PATH`,
+`RECIPES_MCP_SECURE_CONTEXT_EVAL_PACK_PATH`,
+`RECIPES_MCP_CONTROL_PLANE_BLUEPRINT_PATH`, and
 `RECIPES_MCP_MEASUREMENT_PROBE_PACK_PATH`. The TOML config can
 override those resolved defaults.
 
@@ -384,6 +398,7 @@ claims that the repository does not support.
 ## Related Pages
 
 - [MCP Gateway Policy]({{< relref "/security-remediation/mcp-gateway-policy" >}}) - generated policy pack for scoped tool access.
+- [Agentic Control Plane Blueprint]({{< relref "/security-remediation/agentic-control-plane-blueprint" >}}) - acquisition-ready architecture and buyer evidence map.
 - [MCP Runtime Decision Evaluator]({{< relref "/security-remediation/mcp-runtime-decision-evaluator" >}}) - deterministic runtime decisions.
 - [MCP Connector Intake Scanner]({{< relref "/security-remediation/mcp-connector-intake-scanner" >}}) - pre-promotion decisions for proposed MCP servers.
 - [MCP Authorization Conformance]({{< relref "/security-remediation/mcp-authorization-conformance" >}}) - resource, audience, and scope-drift decisions.
@@ -392,6 +407,8 @@ claims that the repository does not support.
 - [Agentic Red-Team Drills]({{< relref "/security-remediation/agentic-red-team-drills" >}}) - adversarial scenarios for workflow validation.
 - [Agentic Readiness Scorecard]({{< relref "/security-remediation/agentic-readiness-scorecard" >}}) - scale, pilot, gate, and block decisions.
 - [Agentic Measurement Probes]({{< relref "/security-remediation/agentic-measurement-probes" >}}) - generated traceability probes before workflow expansion.
+- [Secure Context Attestation]({{< relref "/security-remediation/secure-context-attestation" >}}) - attestation seed, recertification queue, and signature-readiness policy.
+- [Secure Context Evals]({{< relref "/security-remediation/secure-context-evals" >}}) - scenario-backed evals for context retrieval, attestation, egress, answers, and A2A handoffs.
 - [Agent Capability Risk Register]({{< relref "/security-remediation/agent-capability-risk-register" >}}) - capability-based residual-risk tiers.
 - [Agent Memory Boundary]({{< relref "/security-remediation/agent-memory-boundary" >}}) - persistent-memory classes, TTLs, provenance, rollback, and runtime decisions.
 - [Agent Skill Supply Chain]({{< relref "/security-remediation/agent-skill-supply-chain" >}}) - skill provenance, permission, isolation, and install/run decisions.
