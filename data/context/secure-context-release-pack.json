@@ -1,0 +1,1025 @@
+{
+  "buyer_views": [
+    {
+      "answer_contract": "Return release decision, channel, source hashes, attestation state, poisoning blockers, eval blockers, egress evidence, and signature requirements.",
+      "id": "ai-platform-release-review",
+      "question": "Which context bundle can production agents consume, and what blocks promotion?",
+      "release_ids": [
+        "production-policy-context-release",
+        "agent-handoff-context-release"
+      ],
+      "title": "AI Platform Release Review"
+    },
+    {
+      "answer_contract": "Return a compact source-hash manifest, release channel, generated evidence references, rollback triggers, and whether the release is signed or held.",
+      "id": "procurement-trust-center",
+      "question": "Can the buyer inspect a point-in-time context release without reading every source file?",
+      "release_ids": [
+        "agent-handoff-context-release",
+        "assurance-model-source-release"
+      ],
+      "title": "Procurement Trust Center"
+    },
+    {
+      "answer_contract": "Return open, production, and trust-center release channels with the paid path for keyless signing, release promotion APIs, customer-private context, and rollback evidence.",
+      "id": "acquirer-diligence",
+      "question": "Does SecurityRecipes have a credible hosted signing and release-control path?",
+      "release_ids": [
+        "open-remediation-context-release",
+        "production-policy-context-release",
+        "agent-handoff-context-release"
+      ],
+      "title": "Acquirer Diligence"
+    }
+  ],
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, AI coding platform, cloud provider, or security vendor gets a secure context release primitive that helps enterprises trust agent inputs before production deployment.",
+    "enterprise_layer": "Sell hosted keyless signing, transparency-log proof, release promotion APIs, source drift alerts, release rollback, and trust-center export automation.",
+    "open_layer": "Publish unsigned open-reference release manifests with source hashes, eval evidence, poisoning state, and rollback triggers.",
+    "team_layer": "Let teams define private context releases for repositories, tickets, incidents, and workflow evidence without placing tenant data in the public corpus."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can promote secure context through release gates instead of relying on unversioned prompt libraries.",
+    "default_questions_answered": [
+      "Which source hashes define this context release?",
+      "Which attestation, poisoning, eval, and egress checks support the release?",
+      "Which channels require signatures?",
+      "Which rollback triggers disable a release?",
+      "Which release is safe for open reference, production MCP, or trust-center diligence?"
+    ],
+    "recommended_first_use": "Attach this release pack to MCP gateway release review, context-source recertification, trust-center export, and acquisition diligence.",
+    "sales_motion": "Lead with open release manifests, then sell hosted signed context releases, customer-private release channels, promotion workflows, and rollback alerts."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define a release gate for SecurityRecipes secure-context bundles so registered context, generated evidence, MCP policy, and trust-center packets are not distributed to agents or buyers until provenance, attestation, poisoning scans, eval readiness, egress posture, and signing requirements are checked together.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, GRC, procurement security, model-risk, and acquisition diligence teams",
+    "category": "Secure context release governance for agentic AI",
+    "enterprise_promise": "SecurityRecipes can package agent context as versioned releases with source hashes, attestation state, poisoning scan evidence, eval coverage, rollback signals, and production signature requirements instead of handing agents an unversioned pile of docs.",
+    "why_now": "Agent hosts, MCP gateways, and A2A handoffs are becoming distribution channels for security context. Enterprises need an explicit release step between source-controlled knowledge and runtime agent consumption so context can be promoted, held, rolled back, or signed before it reaches production."
+  },
+  "release_channels": [
+    {
+      "allowed_audiences": [
+        "public_docs",
+        "local_mcp",
+        "ci"
+      ],
+      "id": "open-reference",
+      "minimum_controls": [
+        "source_hashes_present",
+        "citations_required",
+        "instruction_demoted",
+        "poisoning_scan_complete",
+        "eval_reference_present"
+      ],
+      "release_use": "Public documentation, local MCP development, CI checks, and open-source buyer exploration.",
+      "requires_signature": false,
+      "target_environment": "open_reference",
+      "title": "Open Reference Context"
+    },
+    {
+      "allowed_audiences": [
+        "hosted_mcp",
+        "enterprise_agent_host"
+      ],
+      "id": "production-mcp",
+      "minimum_controls": [
+        "source_hashes_present",
+        "attestation_active",
+        "poisoning_scan_complete",
+        "eval_reference_present",
+        "egress_policy_bound",
+        "signature_bundle_required",
+        "transparency_log_required"
+      ],
+      "release_use": "Hosted or enterprise MCP gateways that distribute curated context to production agent runs.",
+      "requires_signature": true,
+      "target_environment": "production_mcp",
+      "title": "Production MCP Context"
+    },
+    {
+      "allowed_audiences": [
+        "procurement_security",
+        "ai_platform_review",
+        "acquisition_diligence"
+      ],
+      "id": "trust-center",
+      "minimum_controls": [
+        "source_hashes_present",
+        "attestation_active",
+        "poisoning_scan_complete",
+        "eval_reference_present",
+        "trust_center_pack_linked",
+        "signature_bundle_required",
+        "rollback_triggers_declared"
+      ],
+      "release_use": "Buyer-facing evidence packets, procurement exports, and acquirer diligence snapshots.",
+      "requires_signature": true,
+      "target_environment": "enterprise_trust_center",
+      "title": "Trust Center and Diligence Context"
+    }
+  ],
+  "release_contract": {
+    "decisions": [
+      {
+        "decision": "allow_open_reference_release",
+        "meaning": "Unsigned open-reference context can be used locally or in CI with source hashes and citations."
+      },
+      {
+        "decision": "allow_context_release",
+        "meaning": "The requested release is active, hash-matched, policy-bound, and signed when the channel requires production-grade signing."
+      },
+      {
+        "decision": "hold_for_signature",
+        "meaning": "The release is structurally ready but production, trust-center, or diligence use requires a signature bundle and transparency proof."
+      },
+      {
+        "decision": "hold_for_recertification",
+        "meaning": "At least one source or workflow context package is stale, inactive, or missing current attestation evidence."
+      },
+      {
+        "decision": "hold_for_poisoning_review",
+        "meaning": "A source in the release has actionable poisoning findings or a blocked poisoning decision."
+      },
+      {
+        "decision": "hold_for_eval_replay",
+        "meaning": "Required secure-context eval scenarios are missing or no longer eval-ready."
+      },
+      {
+        "decision": "deny_unregistered_release_source",
+        "meaning": "The release references context that is not registered in the secure-context trust pack."
+      },
+      {
+        "decision": "deny_release_hash_mismatch",
+        "meaning": "Runtime-supplied source hashes do not match the generated release manifest."
+      },
+      {
+        "decision": "deny_release_channel_mismatch",
+        "meaning": "The caller requested a release through a channel the release was not built for."
+      },
+      {
+        "decision": "kill_session_on_release_violation",
+        "meaning": "The release request includes prohibited context, runtime kill signals, secrets, private keys, raw tokens, or unrestricted customer logs."
+      }
+    ],
+    "default_state": "not_releasable_until_context_is_attested_scanned_evaluated_and_signed_when_required",
+    "minimum_release_bundles": 4,
+    "minimum_release_channels": 3,
+    "open_reference_environments": [
+      "open_reference",
+      "ci"
+    ],
+    "required_release_fields": [
+      "release_id",
+      "channel_id",
+      "workflow_id",
+      "source_ids",
+      "source_hashes",
+      "context_package_hash",
+      "attestation_state",
+      "poisoning_scan_state",
+      "eval_state",
+      "egress_policy_state",
+      "release_decision",
+      "rollback_triggers"
+    ],
+    "required_source_packs": [
+      "secure_context_trust_pack",
+      "secure_context_attestation_pack",
+      "context_poisoning_guard_pack",
+      "secure_context_eval_pack",
+      "context_egress_boundary_pack",
+      "agentic_threat_radar"
+    ],
+    "signed_environments": [
+      "production_mcp",
+      "enterprise_trust_center",
+      "acquisition_diligence"
+    ]
+  },
+  "release_manifest": [
+    {
+      "allowed_audiences": [
+        "public_docs",
+        "local_mcp",
+        "ci"
+      ],
+      "blockers": [],
+      "channel": {
+        "id": "open-reference",
+        "requires_signature": false,
+        "target_environment": "open_reference",
+        "title": "Open Reference Context"
+      },
+      "commercial_value": "Gives open-source users a hash-bound context bundle they can consume without waiting for hosted infrastructure.",
+      "context_package_hash": "c4ff210dca8806edde715cc091dc93809794bd86c5d441919a6352187e73515c",
+      "default_release_decision": "allow_open_reference_release",
+      "egress_policy_state": {
+        "pack": "context_egress_boundary_pack",
+        "summary": {
+          "data_class_counts": {
+            "curated_security_guidance": 2,
+            "generated_policy_evidence": 7
+          },
+          "decision_counts": {
+            "allow_public_egress_with_citation": 9
+          },
+          "destination_class_count": 7,
+          "failure_count": 0,
+          "namespace_policy_count": 24,
+          "prohibited_data_class_count": 2,
+          "source_count": 9,
+          "tenant_bound_data_class_count": 7,
+          "workflow_count": 8,
+          "workflow_namespace_data_class_counts": {
+            "curated_security_guidance": 1,
+            "customer_asset_metadata": 5,
+            "customer_case_context": 2,
+            "customer_finding_metadata": 5,
+            "customer_pipeline_metadata": 3,
+            "customer_source_code": 7,
+            "public_vulnerability_intelligence": 1
+          }
+        }
+      },
+      "eval_state": {
+        "required_scenario_ids": [
+          "ctx-eval-vuln-dep-prompt-context",
+          "ctx-eval-control-plane-policy-context"
+        ],
+        "scenario_results": [
+          {
+            "decision": "eval_ready",
+            "failed_check_count": 0,
+            "scenario_id": "ctx-eval-vuln-dep-prompt-context",
+            "score": 100,
+            "workflow_id": "vulnerable-dependency-remediation"
+          },
+          {
+            "decision": "eval_ready",
+            "failed_check_count": 0,
+            "scenario_id": "ctx-eval-control-plane-policy-context",
+            "score": 100,
+            "workflow_id": "sensitive-data-remediation"
+          }
+        ]
+      },
+      "missing_source_ids": [],
+      "poisoning_scan_state": {
+        "source_results": [
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "prompt-library-recipes"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "security-remediation-workflows"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "workflow-control-plane"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-gateway-policy"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-connector-trust"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-server-runtime"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "agentic-threat-intelligence"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "agentic-evidence-packs"
+          }
+        ]
+      },
+      "release_id": "open-remediation-context-release",
+      "release_manifest_hash": "a52f0380c57309b6104c80fc0876fc875bd462584530169c6225b1986a4c5890",
+      "rollback_triggers": [
+        "source_hash_change",
+        "poisoning_decision_blocked",
+        "eval_scenario_not_ready",
+        "workflow_scope_change"
+      ],
+      "signature_policy": {
+        "open_reference_state": "unsigned_release_manifest",
+        "production_state": "signature_not_required",
+        "requires_signature": false,
+        "requires_transparency_log": false
+      },
+      "source_attestation_state": {
+        "source_attestations": [
+          {
+            "attestation_id": "ctxsrc-prompt-library-recipes",
+            "decision": "allow_attested_context",
+            "source_id": "prompt-library-recipes",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-security-remediation-workflows",
+            "decision": "allow_attested_context",
+            "source_id": "security-remediation-workflows",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-workflow-control-plane",
+            "decision": "allow_attested_context",
+            "source_id": "workflow-control-plane",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-gateway-policy",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-gateway-policy",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-connector-trust",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-connector-trust",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-server-runtime",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-server-runtime",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-agentic-threat-intelligence",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-threat-intelligence",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-agentic-evidence-packs",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-evidence-packs",
+            "status": "active"
+          }
+        ],
+        "workflow_context_attestation": {
+          "attestation_id": "wfctx-vulnerable-dependency-remediation",
+          "decision": "allow_attested_workflow_context",
+          "status": "active",
+          "workflow_id": "vulnerable-dependency-remediation"
+        }
+      },
+      "source_hashes": {
+        "agentic-evidence-packs": "61107610c1ecea9f1340a0da156d4e0733b8fe812a5df0d78d9a798e7dbf5e46",
+        "agentic-threat-intelligence": "ee729132cdc42652e2e455c7386605267ea92a59c27b3848124b508c901e2ed7",
+        "mcp-connector-trust": "1c66108b9ba0c120e3e7f7aa5d9a5a7e5609d152ed6d66c8737144f4370ac289",
+        "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
+        "mcp-server-runtime": "fb7cccb6c4d4304a078e9a860dfb592bee45bffa95946af473526d5758975592",
+        "prompt-library-recipes": "83f47c50165509523a2e7826fff2b8c5db83f62c37f1c271be5d5221c1917e92",
+        "security-remediation-workflows": "6b507f7fb6ff65f2402d5e3efc8f46ee3fb9f970d3336b2117ad85a84912eb70",
+        "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
+      },
+      "source_ids": [
+        "prompt-library-recipes",
+        "security-remediation-workflows",
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-connector-trust",
+        "mcp-server-runtime",
+        "agentic-threat-intelligence",
+        "agentic-evidence-packs"
+      ],
+      "title": "Open remediation context release",
+      "workflow_id": "vulnerable-dependency-remediation"
+    },
+    {
+      "allowed_audiences": [
+        "hosted_mcp",
+        "enterprise_agent_host"
+      ],
+      "blockers": [
+        "signature bundle and transparency proof required for this channel"
+      ],
+      "channel": {
+        "id": "production-mcp",
+        "requires_signature": true,
+        "target_environment": "production_mcp",
+        "title": "Production MCP Context"
+      },
+      "commercial_value": "Creates the paid product path for signed production MCP context releases.",
+      "context_package_hash": "344d2f0428676f236f741eb67a895811cabe853b208c01aa91b52f7f2dda229f",
+      "default_release_decision": "hold_for_signature",
+      "egress_policy_state": {
+        "pack": "context_egress_boundary_pack",
+        "summary": {
+          "data_class_counts": {
+            "curated_security_guidance": 2,
+            "generated_policy_evidence": 7
+          },
+          "decision_counts": {
+            "allow_public_egress_with_citation": 9
+          },
+          "destination_class_count": 7,
+          "failure_count": 0,
+          "namespace_policy_count": 24,
+          "prohibited_data_class_count": 2,
+          "source_count": 9,
+          "tenant_bound_data_class_count": 7,
+          "workflow_count": 8,
+          "workflow_namespace_data_class_counts": {
+            "curated_security_guidance": 1,
+            "customer_asset_metadata": 5,
+            "customer_case_context": 2,
+            "customer_finding_metadata": 5,
+            "customer_pipeline_metadata": 3,
+            "customer_source_code": 7,
+            "public_vulnerability_intelligence": 1
+          }
+        }
+      },
+      "eval_state": {
+        "required_scenario_ids": [
+          "ctx-eval-control-plane-policy-context",
+          "ctx-eval-production-attestation-hold",
+          "ctx-eval-prohibited-data-kill"
+        ],
+        "scenario_results": [
+          {
+            "decision": "eval_ready",
+            "failed_check_count": 0,
+            "scenario_id": "ctx-eval-control-plane-policy-context",
+            "score": 100,
+            "workflow_id": "sensitive-data-remediation"
+          },
+          {
+            "decision": "eval_ready",
+            "failed_check_count": 0,
+            "scenario_id": "ctx-eval-production-attestation-hold",
+            "score": 100,
+            "workflow_id": "vulnerable-dependency-remediation"
+          },
+          {
+            "decision": "eval_ready",
+            "failed_check_count": 0,
+            "scenario_id": "ctx-eval-prohibited-data-kill",
+            "score": 100,
+            "workflow_id": "sensitive-data-remediation"
+          }
+        ]
+      },
+      "missing_source_ids": [],
+      "poisoning_scan_state": {
+        "source_results": [
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "security-remediation-workflows"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "workflow-control-plane"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-gateway-policy"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-connector-trust"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-server-runtime"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "agentic-threat-intelligence"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "agentic-evidence-packs"
+          }
+        ]
+      },
+      "release_id": "production-policy-context-release",
+      "release_manifest_hash": "e27e5b3790ecd210f56aef443b9d8873c71cb49879e15703781eb6a841337a6f",
+      "rollback_triggers": [
+        "signature_bundle_missing",
+        "transparency_log_missing",
+        "source_hash_change",
+        "secret_or_pii_egress_signal"
+      ],
+      "signature_policy": {
+        "open_reference_state": "unsigned_release_manifest",
+        "production_state": "requires_external_keyless_signature_bundle",
+        "requires_signature": true,
+        "requires_transparency_log": true
+      },
+      "source_attestation_state": {
+        "source_attestations": [
+          {
+            "attestation_id": "ctxsrc-security-remediation-workflows",
+            "decision": "allow_attested_context",
+            "source_id": "security-remediation-workflows",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-workflow-control-plane",
+            "decision": "allow_attested_context",
+            "source_id": "workflow-control-plane",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-gateway-policy",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-gateway-policy",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-connector-trust",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-connector-trust",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-server-runtime",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-server-runtime",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-agentic-threat-intelligence",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-threat-intelligence",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-agentic-evidence-packs",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-evidence-packs",
+            "status": "active"
+          }
+        ],
+        "workflow_context_attestation": {
+          "attestation_id": "wfctx-sensitive-data-remediation",
+          "decision": "allow_attested_workflow_context",
+          "status": "active",
+          "workflow_id": "sensitive-data-remediation"
+        }
+      },
+      "source_hashes": {
+        "agentic-evidence-packs": "61107610c1ecea9f1340a0da156d4e0733b8fe812a5df0d78d9a798e7dbf5e46",
+        "agentic-threat-intelligence": "ee729132cdc42652e2e455c7386605267ea92a59c27b3848124b508c901e2ed7",
+        "mcp-connector-trust": "1c66108b9ba0c120e3e7f7aa5d9a5a7e5609d152ed6d66c8737144f4370ac289",
+        "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
+        "mcp-server-runtime": "fb7cccb6c4d4304a078e9a860dfb592bee45bffa95946af473526d5758975592",
+        "security-remediation-workflows": "6b507f7fb6ff65f2402d5e3efc8f46ee3fb9f970d3336b2117ad85a84912eb70",
+        "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
+      },
+      "source_ids": [
+        "security-remediation-workflows",
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-connector-trust",
+        "mcp-server-runtime",
+        "agentic-threat-intelligence",
+        "agentic-evidence-packs"
+      ],
+      "title": "Production MCP policy context release",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "allowed_audiences": [
+        "procurement_security",
+        "ai_platform_review",
+        "acquisition_diligence"
+      ],
+      "blockers": [
+        "signature bundle and transparency proof required for this channel"
+      ],
+      "channel": {
+        "id": "trust-center",
+        "requires_signature": true,
+        "target_environment": "enterprise_trust_center",
+        "title": "Trust Center and Diligence Context"
+      },
+      "commercial_value": "Packages multi-agent context boundaries in a buyer-readable release that can be signed and exported.",
+      "context_package_hash": "5d87d3fe2aceb250252ecfa9ac779acdf355d88247e3a28a70c31a8b26e35738",
+      "default_release_decision": "hold_for_signature",
+      "egress_policy_state": {
+        "pack": "context_egress_boundary_pack",
+        "summary": {
+          "data_class_counts": {
+            "curated_security_guidance": 2,
+            "generated_policy_evidence": 7
+          },
+          "decision_counts": {
+            "allow_public_egress_with_citation": 9
+          },
+          "destination_class_count": 7,
+          "failure_count": 0,
+          "namespace_policy_count": 24,
+          "prohibited_data_class_count": 2,
+          "source_count": 9,
+          "tenant_bound_data_class_count": 7,
+          "workflow_count": 8,
+          "workflow_namespace_data_class_counts": {
+            "curated_security_guidance": 1,
+            "customer_asset_metadata": 5,
+            "customer_case_context": 2,
+            "customer_finding_metadata": 5,
+            "customer_pipeline_metadata": 3,
+            "customer_source_code": 7,
+            "public_vulnerability_intelligence": 1
+          }
+        }
+      },
+      "eval_state": {
+        "required_scenario_ids": [
+          "ctx-eval-a2a-handoff-boundary"
+        ],
+        "scenario_results": [
+          {
+            "decision": "eval_ready",
+            "failed_check_count": 0,
+            "scenario_id": "ctx-eval-a2a-handoff-boundary",
+            "score": 100,
+            "workflow_id": "artifact-cache-quarantine"
+          }
+        ]
+      },
+      "missing_source_ids": [],
+      "poisoning_scan_state": {
+        "source_results": [
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "security-remediation-workflows"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "workflow-control-plane"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-gateway-policy"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "mcp-connector-trust"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "agentic-threat-intelligence"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "agentic-evidence-packs"
+          }
+        ]
+      },
+      "release_id": "agent-handoff-context-release",
+      "release_manifest_hash": "819c607a7791dc4187caa9f9b491b83de4c4e898ae805e8eda6c8e1f26e99110",
+      "rollback_triggers": [
+        "agent_card_trust_drift",
+        "handoff_payload_expands",
+        "egress_policy_change",
+        "eval_scenario_not_ready"
+      ],
+      "signature_policy": {
+        "open_reference_state": "unsigned_release_manifest",
+        "production_state": "requires_external_keyless_signature_bundle",
+        "requires_signature": true,
+        "requires_transparency_log": true
+      },
+      "source_attestation_state": {
+        "source_attestations": [
+          {
+            "attestation_id": "ctxsrc-security-remediation-workflows",
+            "decision": "allow_attested_context",
+            "source_id": "security-remediation-workflows",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-workflow-control-plane",
+            "decision": "allow_attested_context",
+            "source_id": "workflow-control-plane",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-gateway-policy",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-gateway-policy",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-mcp-connector-trust",
+            "decision": "allow_attested_context",
+            "source_id": "mcp-connector-trust",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-agentic-threat-intelligence",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-threat-intelligence",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-agentic-evidence-packs",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-evidence-packs",
+            "status": "active"
+          }
+        ],
+        "workflow_context_attestation": {
+          "attestation_id": "wfctx-artifact-cache-quarantine",
+          "decision": "allow_attested_workflow_context",
+          "status": "active",
+          "workflow_id": "artifact-cache-quarantine"
+        }
+      },
+      "source_hashes": {
+        "agentic-evidence-packs": "61107610c1ecea9f1340a0da156d4e0733b8fe812a5df0d78d9a798e7dbf5e46",
+        "agentic-threat-intelligence": "ee729132cdc42652e2e455c7386605267ea92a59c27b3848124b508c901e2ed7",
+        "mcp-connector-trust": "1c66108b9ba0c120e3e7f7aa5d9a5a7e5609d152ed6d66c8737144f4370ac289",
+        "mcp-gateway-policy": "a52079afd7bf65c0be2b9bd2455046b22b4b03b10fd65632663ebf503a0acc46",
+        "security-remediation-workflows": "6b507f7fb6ff65f2402d5e3efc8f46ee3fb9f970d3336b2117ad85a84912eb70",
+        "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
+      },
+      "source_ids": [
+        "security-remediation-workflows",
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-connector-trust",
+        "agentic-threat-intelligence",
+        "agentic-evidence-packs"
+      ],
+      "title": "Agent handoff diligence context release",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "allowed_audiences": [
+        "ai_platform_review",
+        "acquisition_diligence"
+      ],
+      "blockers": [
+        "poisoning review required: agentic-assurance-models"
+      ],
+      "channel": {
+        "id": "trust-center",
+        "requires_signature": true,
+        "target_environment": "enterprise_trust_center",
+        "title": "Trust Center and Diligence Context"
+      },
+      "commercial_value": "Shows that the release gate can hold context with actionable poisoning evidence instead of overstating production readiness.",
+      "context_package_hash": "a529eaa497c50c5d1602df4857ecd739ddb361d4af0378622ee660d50a787399",
+      "default_release_decision": "hold_for_poisoning_review",
+      "egress_policy_state": {
+        "pack": "context_egress_boundary_pack",
+        "summary": {
+          "data_class_counts": {
+            "curated_security_guidance": 2,
+            "generated_policy_evidence": 7
+          },
+          "decision_counts": {
+            "allow_public_egress_with_citation": 9
+          },
+          "destination_class_count": 7,
+          "failure_count": 0,
+          "namespace_policy_count": 24,
+          "prohibited_data_class_count": 2,
+          "source_count": 9,
+          "tenant_bound_data_class_count": 7,
+          "workflow_count": 8,
+          "workflow_namespace_data_class_counts": {
+            "curated_security_guidance": 1,
+            "customer_asset_metadata": 5,
+            "customer_case_context": 2,
+            "customer_finding_metadata": 5,
+            "customer_pipeline_metadata": 3,
+            "customer_source_code": 7,
+            "public_vulnerability_intelligence": 1
+          }
+        }
+      },
+      "eval_state": {
+        "required_scenario_ids": [
+          "ctx-eval-production-attestation-hold"
+        ],
+        "scenario_results": [
+          {
+            "decision": "eval_ready",
+            "failed_check_count": 0,
+            "scenario_id": "ctx-eval-production-attestation-hold",
+            "score": 100,
+            "workflow_id": "vulnerable-dependency-remediation"
+          }
+        ]
+      },
+      "missing_source_ids": [],
+      "poisoning_scan_state": {
+        "source_results": [
+          {
+            "actionable_finding_count": 2,
+            "decision": "block_until_removed",
+            "source_id": "agentic-assurance-models"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "allow_with_adversarial_examples",
+            "source_id": "agentic-evidence-packs"
+          },
+          {
+            "actionable_finding_count": 0,
+            "decision": "pass",
+            "source_id": "workflow-control-plane"
+          }
+        ]
+      },
+      "release_id": "assurance-model-source-release",
+      "release_manifest_hash": "f48bf7a727f2878326665207a302089ef0f4f5971171c81eafb4867b41ec09fd",
+      "rollback_triggers": [
+        "assurance_model_poisoning_finding",
+        "source_hash_change",
+        "standards_mapping_change",
+        "eval_scenario_not_ready"
+      ],
+      "signature_policy": {
+        "open_reference_state": "unsigned_release_manifest",
+        "production_state": "requires_external_keyless_signature_bundle",
+        "requires_signature": true,
+        "requires_transparency_log": true
+      },
+      "source_attestation_state": {
+        "source_attestations": [
+          {
+            "attestation_id": "ctxsrc-agentic-assurance-models",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-assurance-models",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-agentic-evidence-packs",
+            "decision": "allow_attested_context",
+            "source_id": "agentic-evidence-packs",
+            "status": "active"
+          },
+          {
+            "attestation_id": "ctxsrc-workflow-control-plane",
+            "decision": "allow_attested_context",
+            "source_id": "workflow-control-plane",
+            "status": "active"
+          }
+        ],
+        "workflow_context_attestation": {
+          "attestation_id": "wfctx-vulnerable-dependency-remediation",
+          "decision": "allow_attested_workflow_context",
+          "status": "active",
+          "workflow_id": "vulnerable-dependency-remediation"
+        }
+      },
+      "source_hashes": {
+        "agentic-assurance-models": "fd5ebf81e7f15ca2ad03eed757594624c9792f5eaa906b961d0baf5931299f1c",
+        "agentic-evidence-packs": "61107610c1ecea9f1340a0da156d4e0733b8fe812a5df0d78d9a798e7dbf5e46",
+        "workflow-control-plane": "f72c4bf711d6d8ac8f54f44f6f1e5dcc644ae2470a01ac9a89b68ea4076f6e21"
+      },
+      "source_ids": [
+        "agentic-assurance-models",
+        "agentic-evidence-packs",
+        "workflow-control-plane"
+      ],
+      "title": "Assurance model source release",
+      "workflow_id": "vulnerable-dependency-remediation"
+    }
+  ],
+  "release_summary": {
+    "channel_counts": {
+      "open-reference": 1,
+      "production-mcp": 1,
+      "trust-center": 2
+    },
+    "failure_count": 0,
+    "release_count": 4,
+    "release_decision_counts": {
+      "allow_open_reference_release": 1,
+      "hold_for_poisoning_review": 1,
+      "hold_for_signature": 2
+    },
+    "signed_release_count": 3,
+    "status": "release_gate_ready"
+  },
+  "residual_risks": [
+    {
+      "risk": "Open-reference releases are unsigned and prove source state, not live customer enforcement.",
+      "treatment": "Production MCP and trust-center channels require external keyless signatures and transparency-log proof before release promotion."
+    },
+    {
+      "risk": "A release can become stale after context, model, workflow, connector, or eval drift.",
+      "treatment": "Regenerate the release pack in CI and use hosted release rollback alerts when source hashes, eval states, or poisoning decisions change."
+    },
+    {
+      "risk": "Customer-private context cannot be stored in this public release manifest.",
+      "treatment": "Customer releases should keep private data tenant-side and export only hashes, policy decisions, and redacted trust-center summaries."
+    }
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "agentic_threat_radar": {
+      "path": "data/evidence/agentic-threat-radar.json",
+      "sha256": "c36eb376ab0f1576116c8ade981106d4446aab6f9feebbea39a9b7cca6271eda"
+    },
+    "context_egress_boundary_pack": {
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+    },
+    "context_poisoning_guard_pack": {
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8"
+    },
+    "secure_context_attestation_pack": {
+      "path": "data/evidence/secure-context-attestation-pack.json",
+      "sha256": "3ed40d601397eec16a6d941187a62a5d5512584230c66f40e926cb99d1a3ee9d"
+    },
+    "secure_context_eval_pack": {
+      "path": "data/evidence/secure-context-eval-pack.json",
+      "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995"
+    },
+    "secure_context_release_profile": {
+      "path": "data/context/secure-context-release-profile.json",
+      "sha256": "e5647520c81a33cd72d4984908ef6371e5735e56971146cdf3c9a3564f4b4743"
+    },
+    "secure_context_trust_pack": {
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085"
+    }
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Maps release gating to memory/context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment."
+    },
+    {
+      "id": "owasp-genai-exploit-roundup-q1-2026",
+      "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
+      "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/",
+      "coverage": "Anchors the release gate in current exploit patterns around agent identities, orchestration layers, supply chains, prompt injection, data exfiltration, and RCE in AI tooling."
+    },
+    {
+      "id": "mcp-security-best-practices-2025",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Connects secure context release to MCP confused-deputy prevention, token-passthrough avoidance, SSRF controls, session binding, local-server sandboxing, scope minimization, and auditability."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Requires production context release consumers to preserve protected resource metadata, token audience binding, resource indicators, HTTPS, PKCE, and token-use boundaries."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Supports provenance, third-party component risk, data governance, measurement, monitoring, and lifecycle risk treatment for released AI context."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "CSA AI Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "coverage": "Aligns release evidence to vendor-agnostic AI control objectives, accountability, lifecycle relevance, threat categories, and enterprise assessment expectations."
+    },
+    {
+      "id": "cisa-ai-data-security-2025",
+      "name": "AI Data Security Best Practices",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "coverage": "Treats context release as an AI data security control for data integrity, confidentiality, monitoring, threat detection, and lifecycle operations."
+    }
+  ]
+}

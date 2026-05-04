@@ -1,0 +1,916 @@
+{
+  "app_intake_profiles": [
+    {
+      "a2a_or_remote_agent": true,
+      "app_id": "financial-operations-agent",
+      "autonomy_level": "autonomous",
+      "business_purpose": "Prepare finance operations and payment workflows that may touch production payment records, bank files, or signing controls.",
+      "buyer_stage": "blocked_high_impact_autonomy",
+      "control_credit": 18,
+      "control_credits": [
+        {
+          "evidence": "mcp_authorization_conformance",
+          "id": "mcp_authorization_conformance",
+          "points": 10
+        },
+        {
+          "evidence": "agentic_telemetry_contract",
+          "id": "agentic_telemetry_contract",
+          "points": 8
+        }
+      ],
+      "control_evidence": [
+        "mcp_authorization_conformance",
+        "agentic_telemetry_contract"
+      ],
+      "data_classes": [
+        "regulated_financial_data",
+        "production_credential",
+        "live_signing_material"
+      ],
+      "decision": "deny_until_controls_exist",
+      "deployment_environment": "production_candidate",
+      "destructive_or_irreversible": true,
+      "external_write": true,
+      "indirect_prompt_injection_risk": "high",
+      "lethal_secret_or_signer_path": true,
+      "mcp_access_modes": [
+        "read",
+        "approval_required"
+      ],
+      "mcp_namespaces": [
+        "finance.records",
+        "payments.execution",
+        "identity.admin"
+      ],
+      "memory_persistence": "tenant_memory",
+      "missing_control_evidence": [
+        "agent_skill_supply_chain_pack",
+        "agentic_run_receipt_pack",
+        "context_egress_boundary",
+        "human_approval_path",
+        "incident_response_pack",
+        "mcp_tool_risk_contract",
+        "secure_context_eval_pack",
+        "workflow_manifest"
+      ],
+      "next_actions": [
+        "Remove secret, signer, production credential, or irreversible action access from the app before any launch.",
+        "Block launch until missing controls and high-impact authority are redesigned.",
+        "Add missing control evidence: agent_skill_supply_chain_pack, agentic_run_receipt_pack, context_egress_boundary, human_approval_path, incident_response_pack, mcp_tool_risk_contract, secure_context_eval_pack, workflow_manifest."
+      ],
+      "owner": "Finance Platform",
+      "production_write": true,
+      "raw_risk_score": 264,
+      "recommended_controls": [
+        "Keep agents read-only for finance and payment records until two-key approval, signer isolation, and transaction simulation evidence exist.",
+        "Deny live funds movement, production deploy, identity administration, and signer access to autonomous agents.",
+        "Use the catastrophic-risk annex and action runtime pack before any production pilot."
+      ],
+      "residual_risk_score": 246,
+      "risk_factors": [
+        {
+          "evidence": "autonomy_level=autonomous",
+          "id": "autonomy_autonomous",
+          "points": 24
+        },
+        {
+          "evidence": "app can touch secret, credential, or signer data classes",
+          "id": "data_secret_or_signer",
+          "points": 35
+        },
+        {
+          "evidence": "app ingests untrusted user, web, ticket, advisory, scanner, or document content",
+          "id": "untrusted_input",
+          "points": 12
+        },
+        {
+          "evidence": "app has high indirect prompt injection exposure",
+          "id": "high_indirect_prompt_injection_risk",
+          "points": 16
+        },
+        {
+          "evidence": "app uses MCP read namespaces",
+          "id": "mcp_read",
+          "points": 5
+        },
+        {
+          "evidence": "app uses approval-required MCP namespaces",
+          "id": "mcp_approval_required",
+          "points": 18
+        },
+        {
+          "evidence": "app uses remote MCP transport or hosted MCP surface",
+          "id": "remote_mcp",
+          "points": 8
+        },
+        {
+          "evidence": "app can write to an external communication or ticketing surface",
+          "id": "external_write",
+          "points": 16
+        },
+        {
+          "evidence": "app can affect production state",
+          "id": "production_write",
+          "points": 20
+        },
+        {
+          "evidence": "app can trigger destructive or irreversible effects",
+          "id": "destructive_or_irreversible",
+          "points": 25
+        },
+        {
+          "evidence": "app uses persistent memory beyond append-only run receipts",
+          "id": "persistent_memory",
+          "points": 14
+        },
+        {
+          "evidence": "app delegates to A2A or remote agents",
+          "id": "a2a_or_remote_agent",
+          "points": 10
+        },
+        {
+          "evidence": "app installs or launches packages at runtime",
+          "id": "startup_or_package_install",
+          "points": 10
+        },
+        {
+          "evidence": "missing control evidence: secure_context_eval_pack",
+          "id": "missing_guardrail_eval",
+          "points": 15
+        },
+        {
+          "evidence": "missing control evidence: agentic_run_receipt_pack",
+          "id": "missing_run_receipts",
+          "points": 10
+        },
+        {
+          "evidence": "missing control evidence: context_egress_boundary",
+          "id": "missing_egress_boundary",
+          "points": 10
+        },
+        {
+          "evidence": "missing control evidence: human_approval_path",
+          "id": "missing_human_approval_path",
+          "points": 16
+        }
+      ],
+      "risk_tier": "critical",
+      "startup_or_package_install": true,
+      "title": "Financial operations agent",
+      "untrusted_input": true
+    },
+    {
+      "a2a_or_remote_agent": true,
+      "app_id": "customer-support-autonomous-agent",
+      "autonomy_level": "autonomous",
+      "business_purpose": "Answer customer requests and update support tickets using private account context and public web or document inputs.",
+      "buyer_stage": "security_architecture_review",
+      "control_credit": 50,
+      "control_credits": [
+        {
+          "evidence": "mcp_authorization_conformance",
+          "id": "mcp_authorization_conformance",
+          "points": 10
+        },
+        {
+          "evidence": "mcp_tool_risk_contract",
+          "id": "mcp_tool_risk_contract",
+          "points": 8
+        },
+        {
+          "evidence": "context_egress_boundary",
+          "id": "context_egress_boundary",
+          "points": 8
+        },
+        {
+          "evidence": "agentic_telemetry_contract",
+          "id": "agentic_telemetry_contract",
+          "points": 8
+        },
+        {
+          "evidence": "agentic_run_receipt_pack",
+          "id": "agentic_run_receipt_pack",
+          "points": 8
+        },
+        {
+          "evidence": "isolated_runtime",
+          "id": "isolated_runtime",
+          "points": 8
+        }
+      ],
+      "control_evidence": [
+        "mcp_authorization_conformance",
+        "mcp_tool_risk_contract",
+        "context_egress_boundary",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack"
+      ],
+      "data_classes": [
+        "customer_pii",
+        "tenant_private_data",
+        "support_ticket_history"
+      ],
+      "decision": "hold_for_agentic_app_security_review",
+      "deployment_environment": "enterprise_pilot",
+      "destructive_or_irreversible": false,
+      "external_write": true,
+      "indirect_prompt_injection_risk": "high",
+      "lethal_secret_or_signer_path": false,
+      "mcp_access_modes": [
+        "read",
+        "write_ticket"
+      ],
+      "mcp_namespaces": [
+        "tickets.customer",
+        "crm.accounts",
+        "knowledge.web"
+      ],
+      "memory_persistence": "tenant_memory",
+      "missing_control_evidence": [
+        "agent_skill_supply_chain_pack",
+        "human_approval_path",
+        "incident_response_pack",
+        "secure_context_eval_pack",
+        "workflow_manifest"
+      ],
+      "next_actions": [
+        "Complete architecture review for autonomy, XPIA exposure, MCP tool combinations, memory, and external writes.",
+        "Add missing control evidence: agent_skill_supply_chain_pack, human_approval_path, incident_response_pack, secure_context_eval_pack, workflow_manifest."
+      ],
+      "owner": "Customer Operations",
+      "production_write": false,
+      "raw_risk_score": 170,
+      "recommended_controls": [
+        "Add blocking tool guardrails around every ticket or customer-communication write.",
+        "Require explicit human approval until XPIA evals, egress boundaries, and data-retention evidence are complete.",
+        "Separate public web retrieval sessions from private customer context sessions."
+      ],
+      "residual_risk_score": 120,
+      "risk_factors": [
+        {
+          "evidence": "autonomy_level=autonomous",
+          "id": "autonomy_autonomous",
+          "points": 24
+        },
+        {
+          "evidence": "app can touch regulated or tenant-private data",
+          "id": "data_regulated",
+          "points": 22
+        },
+        {
+          "evidence": "app ingests untrusted user, web, ticket, advisory, scanner, or document content",
+          "id": "untrusted_input",
+          "points": 12
+        },
+        {
+          "evidence": "app has high indirect prompt injection exposure",
+          "id": "high_indirect_prompt_injection_risk",
+          "points": 16
+        },
+        {
+          "evidence": "app uses MCP read namespaces",
+          "id": "mcp_read",
+          "points": 5
+        },
+        {
+          "evidence": "app uses MCP write namespaces",
+          "id": "mcp_write",
+          "points": 12
+        },
+        {
+          "evidence": "app uses remote MCP transport or hosted MCP surface",
+          "id": "remote_mcp",
+          "points": 8
+        },
+        {
+          "evidence": "app can write to an external communication or ticketing surface",
+          "id": "external_write",
+          "points": 16
+        },
+        {
+          "evidence": "app uses persistent memory beyond append-only run receipts",
+          "id": "persistent_memory",
+          "points": 14
+        },
+        {
+          "evidence": "app delegates to A2A or remote agents",
+          "id": "a2a_or_remote_agent",
+          "points": 10
+        },
+        {
+          "evidence": "missing control evidence: secure_context_eval_pack",
+          "id": "missing_guardrail_eval",
+          "points": 15
+        },
+        {
+          "evidence": "missing control evidence: human_approval_path",
+          "id": "missing_human_approval_path",
+          "points": 16
+        }
+      ],
+      "risk_tier": "critical",
+      "startup_or_package_install": false,
+      "title": "Customer support autonomous agent",
+      "untrusted_input": true
+    },
+    {
+      "a2a_or_remote_agent": false,
+      "app_id": "repository-remediation-agent-host",
+      "autonomy_level": "bounded_agent",
+      "business_purpose": "Run bounded vulnerable-dependency, SAST, base-image, and sensitive-data remediation workflows that produce PRs or triage notes.",
+      "buyer_stage": "guarded_enterprise_pilot",
+      "control_credit": 52,
+      "control_credits": [
+        {
+          "evidence": "human_approval_path",
+          "id": "human_approval_path",
+          "points": 10
+        },
+        {
+          "evidence": "mcp_authorization_conformance",
+          "id": "mcp_authorization_conformance",
+          "points": 10
+        },
+        {
+          "evidence": "mcp_tool_risk_contract",
+          "id": "mcp_tool_risk_contract",
+          "points": 8
+        },
+        {
+          "evidence": "context_egress_boundary",
+          "id": "context_egress_boundary",
+          "points": 8
+        },
+        {
+          "evidence": "secure_context_eval_pack",
+          "id": "secure_context_eval_pack",
+          "points": 8
+        },
+        {
+          "evidence": "agentic_telemetry_contract",
+          "id": "agentic_telemetry_contract",
+          "points": 8
+        },
+        {
+          "evidence": "agentic_run_receipt_pack",
+          "id": "agentic_run_receipt_pack",
+          "points": 8
+        },
+        {
+          "evidence": "agent_skill_supply_chain_pack",
+          "id": "agent_skill_supply_chain_pack",
+          "points": 6
+        },
+        {
+          "evidence": "isolated_runtime",
+          "id": "isolated_runtime",
+          "points": 8
+        },
+        {
+          "evidence": "incident_response_pack",
+          "id": "incident_response_pack",
+          "points": 6
+        }
+      ],
+      "control_evidence": [
+        "workflow_manifest",
+        "mcp_authorization_conformance",
+        "mcp_tool_risk_contract",
+        "context_egress_boundary",
+        "secure_context_eval_pack",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack",
+        "agent_skill_supply_chain_pack",
+        "incident_response_pack",
+        "human_approval_path"
+      ],
+      "data_classes": [
+        "private_repository",
+        "security_findings",
+        "build_logs"
+      ],
+      "decision": "approve_guarded_pilot",
+      "deployment_environment": "enterprise_pilot",
+      "destructive_or_irreversible": false,
+      "external_write": true,
+      "indirect_prompt_injection_risk": "medium",
+      "lethal_secret_or_signer_path": false,
+      "mcp_access_modes": [
+        "read",
+        "write_branch",
+        "write_ticket"
+      ],
+      "mcp_namespaces": [
+        "repo.contents",
+        "advisories.vulnerability",
+        "ci.runs",
+        "tickets.security"
+      ],
+      "memory_persistence": "append_only_receipts",
+      "missing_control_evidence": [],
+      "next_actions": [
+        "Run only in a guarded pilot with human approval, telemetry, egress decisions, and run receipts enabled."
+      ],
+      "owner": "Product Security",
+      "production_write": false,
+      "raw_risk_score": 81,
+      "recommended_controls": [
+        "Restrict writes to branch-only remediation paths.",
+        "Require human review before merge or ticket closure.",
+        "Block private-data plus untrusted-content plus external-write sessions without explicit approval."
+      ],
+      "residual_risk_score": 29,
+      "risk_factors": [
+        {
+          "evidence": "autonomy_level=bounded_agent",
+          "id": "autonomy_bounded_agent",
+          "points": 12
+        },
+        {
+          "evidence": "app can touch confidential or private data",
+          "id": "data_confidential",
+          "points": 16
+        },
+        {
+          "evidence": "app ingests untrusted user, web, ticket, advisory, scanner, or document content",
+          "id": "untrusted_input",
+          "points": 12
+        },
+        {
+          "evidence": "app uses MCP read namespaces",
+          "id": "mcp_read",
+          "points": 5
+        },
+        {
+          "evidence": "app uses MCP write namespaces",
+          "id": "mcp_write",
+          "points": 12
+        },
+        {
+          "evidence": "app uses remote MCP transport or hosted MCP surface",
+          "id": "remote_mcp",
+          "points": 8
+        },
+        {
+          "evidence": "app can write to an external communication or ticketing surface",
+          "id": "external_write",
+          "points": 16
+        }
+      ],
+      "risk_tier": "medium",
+      "startup_or_package_install": false,
+      "title": "Repository remediation agent host",
+      "untrusted_input": true
+    },
+    {
+      "a2a_or_remote_agent": false,
+      "app_id": "security-recipes-reference-mcp-context-layer",
+      "autonomy_level": "assisted",
+      "business_purpose": "Expose open security guidance and generated evidence packs to agents through read-only MCP tools.",
+      "buyer_stage": "open_reference",
+      "control_credit": 52,
+      "control_credits": [
+        {
+          "evidence": "mcp_authorization_conformance",
+          "id": "mcp_authorization_conformance",
+          "points": 10
+        },
+        {
+          "evidence": "mcp_tool_risk_contract",
+          "id": "mcp_tool_risk_contract",
+          "points": 8
+        },
+        {
+          "evidence": "context_egress_boundary",
+          "id": "context_egress_boundary",
+          "points": 8
+        },
+        {
+          "evidence": "secure_context_eval_pack",
+          "id": "secure_context_eval_pack",
+          "points": 8
+        },
+        {
+          "evidence": "agentic_telemetry_contract",
+          "id": "agentic_telemetry_contract",
+          "points": 8
+        },
+        {
+          "evidence": "agentic_run_receipt_pack",
+          "id": "agentic_run_receipt_pack",
+          "points": 8
+        },
+        {
+          "evidence": "isolated_runtime",
+          "id": "isolated_runtime",
+          "points": 8
+        },
+        {
+          "evidence": "incident_response_pack",
+          "id": "incident_response_pack",
+          "points": 6
+        }
+      ],
+      "control_evidence": [
+        "workflow_manifest",
+        "mcp_authorization_conformance",
+        "mcp_tool_risk_contract",
+        "context_egress_boundary",
+        "secure_context_eval_pack",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack",
+        "incident_response_pack"
+      ],
+      "data_classes": [
+        "public_security_guidance",
+        "generated_open_evidence"
+      ],
+      "decision": "approve_reference_launch",
+      "deployment_environment": "open_reference",
+      "destructive_or_irreversible": false,
+      "external_write": false,
+      "indirect_prompt_injection_risk": "low",
+      "lethal_secret_or_signer_path": false,
+      "mcp_access_modes": [
+        "read"
+      ],
+      "mcp_namespaces": [
+        "recipes.search",
+        "recipes.evidence"
+      ],
+      "memory_persistence": "none",
+      "missing_control_evidence": [
+        "agent_skill_supply_chain_pack",
+        "human_approval_path"
+      ],
+      "next_actions": [
+        "Keep the launch read-only and regenerate evidence when context, tools, or MCP metadata change.",
+        "Add missing control evidence: agent_skill_supply_chain_pack, human_approval_path."
+      ],
+      "owner": "SecurityRecipes maintainers",
+      "production_write": false,
+      "raw_risk_score": 33,
+      "recommended_controls": [
+        "Keep the MCP server read-only.",
+        "Keep generated packs fresh in CI before publication.",
+        "Require signed production context releases before enterprise hosting."
+      ],
+      "residual_risk_score": 0,
+      "risk_factors": [
+        {
+          "evidence": "autonomy_level=assisted",
+          "id": "autonomy_assisted",
+          "points": 4
+        },
+        {
+          "evidence": "app uses MCP read namespaces",
+          "id": "mcp_read",
+          "points": 5
+        },
+        {
+          "evidence": "app uses remote MCP transport or hosted MCP surface",
+          "id": "remote_mcp",
+          "points": 8
+        },
+        {
+          "evidence": "missing control evidence: human_approval_path",
+          "id": "missing_human_approval_path",
+          "points": 16
+        }
+      ],
+      "risk_tier": "low",
+      "startup_or_package_install": false,
+      "title": "SecurityRecipes read-only MCP context layer",
+      "untrusted_input": false
+    }
+  ],
+  "app_intake_summary": {
+    "app_count": 4,
+    "critical_or_high_count": 2,
+    "decision_counts": {
+      "approve_guarded_pilot": 1,
+      "approve_reference_launch": 1,
+      "deny_until_controls_exist": 1,
+      "hold_for_agentic_app_security_review": 1
+    },
+    "failure_count": 0,
+    "lethal_secret_or_signer_path_count": 1,
+    "risk_tier_counts": {
+      "critical": 2,
+      "low": 1,
+      "medium": 1
+    },
+    "source_snapshot": {
+      "agentic_posture_decision": "guarded_enterprise_pilot",
+      "agentic_posture_score": 96,
+      "lethal_tool_combination_workflows": 2,
+      "registered_workflows": 8,
+      "telemetry_signal_classes": 9
+    }
+  },
+  "decision_contract": {
+    "control_evidence_keys": [
+      "workflow_manifest",
+      "mcp_authorization_conformance",
+      "mcp_tool_risk_contract",
+      "context_egress_boundary",
+      "secure_context_eval_pack",
+      "agentic_telemetry_contract",
+      "agentic_run_receipt_pack",
+      "agent_skill_supply_chain_pack",
+      "incident_response_pack",
+      "human_approval_path"
+    ],
+    "default_decision": "hold_for_agentic_app_security_review",
+    "hash_algorithm": "sha256",
+    "prohibited_without_two_key_review": [
+      "live_funds_movement",
+      "production_deployment",
+      "identity_or_policy_admin",
+      "credential_or_secret_access",
+      "external_customer_communication",
+      "persistent_memory_write"
+    ],
+    "required_runtime_attributes": [
+      "app_id",
+      "owner",
+      "business_purpose",
+      "autonomy_level",
+      "deployment_environment",
+      "data_classes",
+      "mcp_namespaces",
+      "external_write",
+      "production_write",
+      "memory_persistence",
+      "a2a_or_remote_agent",
+      "indirect_prompt_injection_risk",
+      "control_evidence",
+      "human_approval_record",
+      "telemetry_decision",
+      "egress_decision",
+      "authorization_decision"
+    ],
+    "runtime_kill_signals": [
+      "secret_or_signer_material_requested",
+      "raw_token_passthrough",
+      "private_network_or_metadata_ip_egress",
+      "autonomous_live_funds_or_production_deploy",
+      "unregistered_agent_host",
+      "tool_or_skill_changed_after_approval",
+      "approval_bypass_attempt"
+    ],
+    "score_thresholds": {
+      "approve_guarded_pilot_max": 39,
+      "approve_reference_launch_max": 19,
+      "hold_for_review_max": 129
+    },
+    "valid_decisions": [
+      "approve_reference_launch",
+      "approve_guarded_pilot",
+      "hold_for_agentic_app_security_review",
+      "deny_until_controls_exist",
+      "kill_session_on_launch_signal"
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can gate new agentic apps before launch by turning autonomy, data, MCP authority, XPIA exposure, memory, guardrails, telemetry, and approval proof into generated evidence.",
+    "default_questions_answered": [
+      "Which agentic apps are reference-safe, pilot-ready, review-only, or blocked?",
+      "Which apps combine high autonomy, indirect prompt injection risk, private data, and external writes?",
+      "Which control evidence is missing before production launch?",
+      "Which MCP namespaces and data classes create material buyer diligence risk?",
+      "Where should paid production controls attach: app intake API, live MCP logs, private app inventory, launch approvals, and posture diffs?"
+    ],
+    "recommended_first_use": "Attach this gate to model-agent launch review, MCP server rollout, AI platform intake, vendor-risk review, procurement security, and quarterly agentic posture review.",
+    "sales_motion": "Lead with the open intake gate, then sell hosted private app inventory, live launch gates, posture diffs, policy-as-code exports, and trust-center API evidence for production agent fleets."
+  },
+  "evaluator_contract": {
+    "allow_decisions": [
+      "approve_reference_launch",
+      "approve_guarded_pilot"
+    ],
+    "default_decision": "hold_for_agentic_app_security_review",
+    "required_runtime_attributes": [
+      "app_id",
+      "owner",
+      "business_purpose",
+      "autonomy_level",
+      "deployment_environment",
+      "data_classes",
+      "mcp_namespaces",
+      "external_write",
+      "production_write",
+      "memory_persistence",
+      "a2a_or_remote_agent",
+      "indirect_prompt_injection_risk",
+      "control_evidence",
+      "human_approval_record",
+      "telemetry_decision",
+      "egress_decision",
+      "authorization_decision"
+    ],
+    "runtime_kill_signals": [
+      "secret_or_signer_material_requested",
+      "raw_token_passthrough",
+      "private_network_or_metadata_ip_egress",
+      "autonomous_live_funds_or_production_deploy",
+      "unregistered_agent_host",
+      "tool_or_skill_changed_after_approval",
+      "approval_bypass_attempt"
+    ]
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define a repeatable SecurityRecipes intake gate for new agentic applications, agent hosts, and enterprise MCP rollouts so AI platform, security architecture, GRC, procurement, and acquisition diligence teams can decide whether an agentic app can launch as open reference, guarded pilot, architecture review, or blocked high-impact autonomy.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, vendor-risk, and acquisition diligence teams",
+    "category": "Agentic application launch review and enterprise MCP intake",
+    "enterprise_promise": "SecurityRecipes can make AI easy by turning agentic app launch review into a deterministic evidence gate across autonomy, data, tools, MCP authorization, memory, A2A, guardrails, telemetry, incident response, and trust-center proof.",
+    "why_now": "Agentic AI is moving from pilots to production systems that can retrieve private context, call tools, persist memory, hand work to other agents, and act with real enterprise identities. Buyers need launch evidence before autonomy expands."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open pack models declared sample applications, not a customer's live agent inventory.",
+      "treatment": "Hosted deployments should ingest app manifests, MCP gateway logs, IAM issuance events, tool-list diffs, approval records, and telemetry traces."
+    },
+    {
+      "risk": "Launch posture can drift after model, prompt, skill, tool, memory, or MCP metadata changes.",
+      "treatment": "Regenerate the pack in CI and require runtime evaluation whenever app capabilities or control evidence change."
+    },
+    {
+      "risk": "An approved pilot can still be unsafe if humans approve broad actions without context.",
+      "treatment": "Use typed approvals, two-key review for high-impact classes, policy receipts, and session kill signals."
+    }
+  ],
+  "schema_version": "1.0",
+  "scoring_model": {
+    "control_credits": {
+      "agent_skill_supply_chain_pack": 6,
+      "agentic_run_receipt_pack": 8,
+      "agentic_telemetry_contract": 8,
+      "context_egress_boundary": 8,
+      "human_approval_path": 10,
+      "incident_response_pack": 6,
+      "isolated_runtime": 8,
+      "max_credit": 52,
+      "mcp_authorization_conformance": 10,
+      "mcp_tool_risk_contract": 8,
+      "secure_context_eval_pack": 8,
+      "two_key_review": 8
+    },
+    "risk_weights": {
+      "a2a_or_remote_agent": 10,
+      "autonomy_assisted": 4,
+      "autonomy_autonomous": 24,
+      "autonomy_bounded_agent": 12,
+      "autonomy_multi_agent_coordinator": 28,
+      "data_confidential": 16,
+      "data_internal": 8,
+      "data_regulated": 22,
+      "data_secret_or_signer": 35,
+      "destructive_or_irreversible": 25,
+      "external_write": 16,
+      "high_indirect_prompt_injection_risk": 16,
+      "mcp_approval_required": 18,
+      "mcp_read": 5,
+      "mcp_write": 12,
+      "missing_authz_binding": 10,
+      "missing_egress_boundary": 10,
+      "missing_guardrail_eval": 15,
+      "missing_human_approval_path": 16,
+      "missing_run_receipts": 10,
+      "missing_telemetry": 12,
+      "persistent_memory": 14,
+      "production_write": 20,
+      "remote_mcp": 8,
+      "startup_or_package_install": 10,
+      "untrusted_input": 12
+    }
+  },
+  "selected_feature": {
+    "id": "agentic-app-intake-gate",
+    "implementation": [
+      "Launch-review profile under data/assurance.",
+      "Deterministic generator under scripts.",
+      "Runtime evaluator for launch and production expansion decisions.",
+      "Generated evidence pack under data/evidence.",
+      "Human-readable docs page and MCP tool exposure."
+    ],
+    "reason": "Enterprise buyers need one easy, evidence-backed launch gate before agentic apps gain MCP tools, private context, memory, A2A handoffs, or production authority."
+  },
+  "source_artifacts": {
+    "agent_skill_supply_chain_pack": {
+      "path": "data/evidence/agent-skill-supply-chain-pack.json",
+      "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450"
+    },
+    "agentic_app_intake_profile": {
+      "path": "data/assurance/agentic-app-intake-profile.json",
+      "sha256": "6585ad93cd1b248998be392d4a06cb3d83775181dfa42f31f68dc3ca042bc3d0"
+    },
+    "agentic_incident_response_pack": {
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527"
+    },
+    "agentic_posture_snapshot": {
+      "path": "data/evidence/agentic-posture-snapshot.json",
+      "sha256": "19ea3207a783792db5674b67f721a41a7e2b4c98afced290c778e28c2fb037b0"
+    },
+    "agentic_run_receipt_pack": {
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+    },
+    "agentic_telemetry_contract": {
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+    },
+    "context_egress_boundary_pack": {
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+    },
+    "mcp_authorization_conformance_pack": {
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+    },
+    "mcp_tool_risk_contract": {
+      "path": "data/evidence/mcp-tool-risk-contract.json",
+      "sha256": "db3a0be61433b2a193ccc5c80bd854ce626f06376c2f93057ae4c128ef03002a"
+    },
+    "secure_context_eval_pack": {
+      "path": "data/evidence/secure-context-eval-pack.json",
+      "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Agent goal hijacking, tool misuse, identity and privilege abuse, agentic supply-chain compromise, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue agents.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Skill governance, publisher verification, scanning, isolation, permission review, update drift, audit logging, and incident response for behavior packages used by agent hosts.",
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "OAuth 2.1 protected-resource metadata, resource indicators, audience-bound tokens, PKCE, HTTPS, token validation, and token theft controls for HTTP MCP servers.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Confused-deputy prevention, token-passthrough denial, least-privilege scopes, SSRF controls, session safety, and audit trails for MCP implementations.",
+      "id": "mcp-security-best-practices",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+    },
+    {
+      "coverage": "Input, output, and tool guardrails, tripwires, blocking versus parallel execution, function-tool guardrails, and hosted-tool guardrail boundaries.",
+      "id": "openai-agents-guardrails",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-python/guardrails/"
+    },
+    {
+      "coverage": "Read-only defaults, explicit approvals, MCP server trust, network approval, isolated execution, fail-closed command matching, and secure credential handling.",
+      "id": "anthropic-claude-code-security",
+      "name": "Anthropic Claude Code Security",
+      "url": "https://docs.anthropic.com/en/docs/claude-code/security"
+    },
+    {
+      "coverage": "Agent posture, indirect prompt injection exposure, high-autonomy risk factors, sensitive-data grounding, attack-path visibility, and human-in-the-loop recommendations.",
+      "id": "microsoft-agent-posture-2026",
+      "name": "Microsoft Security - A new era of agents, a new era of posture",
+      "url": "https://www.microsoft.com/en-us/security/blog/2026/01/21/new-era-of-agents-new-era-of-posture/"
+    },
+    {
+      "coverage": "Data provenance, integrity, access control, monitoring, third-party data handling, incident evidence, and protection of sensitive AI lifecycle data.",
+      "id": "cisa-ai-data-security",
+      "name": "CISA AI Data Security Best Practices",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems"
+    },
+    {
+      "coverage": "Secure defaults, measurable customer security outcomes, transparency, logging, MFA, SSO, and executive ownership of security outcomes.",
+      "id": "cisa-secure-by-design",
+      "name": "CISA Secure by Design",
+      "url": "https://www.cisa.gov/securebydesign"
+    },
+    {
+      "coverage": "Govern, Map, Measure, and Manage functions for AI lifecycle risk, including the April 2026 critical-infrastructure profile concept note.",
+      "id": "nist-ai-rmf",
+      "name": "NIST AI Risk Management Framework",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "coverage": "Generative AI governance, data provenance, third-party dependencies, measurement, monitoring, cybersecurity, incident response, and operational risk management.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    }
+  ]
+}

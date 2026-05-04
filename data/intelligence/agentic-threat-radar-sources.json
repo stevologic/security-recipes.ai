@@ -100,6 +100,24 @@
       "why_it_matters": "NIST continues expanding AI RMF work, including a 2026 concept note for trustworthy AI in critical infrastructure, reinforcing governance, measurement, and lifecycle risk management."
     },
     {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "publisher": "NIST",
+      "published": "2026-02-17",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "source_class": "government_framework",
+      "why_it_matters": "NIST is explicitly prioritizing interoperable agent standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for multi-agent systems."
+    },
+    {
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "publisher": "NIST CAISI",
+      "published": "2026-01-12",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "source_class": "government_framework",
+      "why_it_matters": "CAISI highlights risks from model outputs combined with software functionality, including indirect prompt injection, data poisoning, misaligned actions, and the need to constrain and monitor deployment access."
+    },
+    {
       "id": "nist-ai-600-1",
       "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
       "publisher": "NIST",
@@ -152,6 +170,24 @@
       "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk",
       "source_class": "industry_guidance",
       "why_it_matters": "CSA's CBRA framing gives enterprises a consequence-driven way to measure autonomous AI risk through system criticality, AI autonomy, access permissions, and impact radius."
+    },
+    {
+      "id": "a2a-enterprise-ready-2026",
+      "name": "A2A Enterprise Implementation Guidance",
+      "publisher": "Agent2Agent Protocol",
+      "published": "2026",
+      "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/",
+      "source_class": "protocol_specification",
+      "why_it_matters": "A2A treats remote agents as opaque HTTP services and emphasizes TLS, HTTP-layer authentication, skill-based authorization, data minimization, tracing, auditing, and API management."
+    },
+    {
+      "id": "linux-foundation-a2a-production-2026",
+      "name": "A2A Protocol production-ready adoption milestone",
+      "publisher": "Linux Foundation",
+      "published": "2026-04-09",
+      "url": "https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year",
+      "source_class": "protocol_specification",
+      "why_it_matters": "A2A moved into production-ready use with signed Agent Cards, multi-tenant security flows, cloud integrations, and a complementary split with MCP between agent coordination and tool access."
     }
   ],
   "product_capabilities": [
@@ -244,6 +280,23 @@
         "recipes_evaluate_context_egress_decision"
       ],
       "buyer_value": "Turns data-class, destination, DPA, zero-data-retention, residency, and secret-egress requirements into deterministic MCP-readable decisions before context leaves a boundary."
+    },
+    {
+      "id": "agent-handoff-boundary-pack",
+      "title": "Agent Handoff Boundary Pack",
+      "status": "implemented",
+      "evidence_paths": [
+        "data/assurance/agent-handoff-boundary-model.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "scripts/generate_agent_handoff_boundary_pack.py",
+        "scripts/evaluate_agent_handoff_boundary_decision.py",
+        "content/security-remediation/agent-handoff-boundary/_index.md"
+      ],
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_evaluate_agent_handoff_decision"
+      ],
+      "buyer_value": "Governs MCP, A2A, provider-native, and approval-bridge handoffs before context, authority, or approval state crosses an agent boundary."
     },
     {
       "id": "mcp-gateway-policy",
@@ -501,6 +554,46 @@
         "mcp_monetization_fit": 5,
         "defensibility": 4,
         "ease_of_adoption": 3
+      }
+    },
+    {
+      "id": "agent-protocol-handoff-boundaries",
+      "title": "Agent handoffs are becoming a protocol trust boundary",
+      "priority": "critical",
+      "horizon": "now",
+      "confidence": "high",
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "a2a-enterprise-ready-2026",
+        "linux-foundation-a2a-production-2026",
+        "mcp-authorization-2025-11-25",
+        "owasp-agentic-top-10-2026"
+      ],
+      "trend": "MCP and A2A are settling into complementary layers: MCP governs agent access to tools and data, while A2A governs agent-to-agent coordination. Enterprise buyers need one boundary model that prevents context, identity, approval state, and delegated authority from crossing protocols informally.",
+      "enterprise_risk": "A remote or provider-native agent may receive internal memory, hidden prompts, raw tool traces, tenant ticket bodies, credentials, or high-impact authority without the MCP gateway seeing the full downstream chain.",
+      "control_objectives": [
+        "Treat every agent handoff as a context egress event with a default-deny decision.",
+        "Require metadata-only payloads unless cited evidence, redaction, and egress decisions are present.",
+        "Bind A2A and provider-native handoffs to authentication, signed agent identity, trace correlation, and approval evidence.",
+        "Kill sessions when credential material, hidden system prompts, unrestricted customer logs, or raw tool traces appear in a handoff."
+      ],
+      "mapped_capability_ids": [
+        "agent-handoff-boundary-pack",
+        "agent-identity-ledger",
+        "context-egress-boundary",
+        "secure-context-trust-pack",
+        "mcp-authorization-conformance",
+        "agentic-assurance-pack"
+      ],
+      "buyer_trigger": "The buyer is piloting MCP plus A2A, provider-native subagents, or remote agents that coordinate across teams, vendors, and tenant boundaries.",
+      "roadmap_action": "Add a generated agent handoff boundary pack and runtime evaluator, then sell hosted signed Agent Card trust, handoff replay, and approval receipt enforcement.",
+      "scores": {
+        "market_urgency": 5,
+        "enterprise_control_value": 5,
+        "mcp_monetization_fit": 5,
+        "defensibility": 5,
+        "ease_of_adoption": 4
       }
     },
     {
@@ -855,6 +948,17 @@
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
         "audit-telemetry-and-evidence-chain"
+      ]
+    },
+    {
+      "id": "agent-handoff-boundary-pack",
+      "title": "Agent handoff boundary pack",
+      "status": "implemented",
+      "why": "MCP and A2A adoption makes inter-agent context movement a near-term enterprise control question; this run implemented protocol handoff profiles, generated evidence, a runtime evaluator, and MCP tools.",
+      "related_signal_ids": [
+        "agent-protocol-handoff-boundaries",
+        "agent-identity-explosion",
+        "context-over-sharing-and-memory-poisoning"
       ]
     },
     {

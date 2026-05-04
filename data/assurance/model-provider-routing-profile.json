@@ -1,0 +1,532 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define the SecurityRecipes model-provider routing gate: a deterministic policy layer that decides which model provider and model class may receive secure context for a governed agentic workflow, with explicit proof for data retention, residency, training exclusion, guardrails, telemetry, run receipts, and human approval before context crosses a frontier, local, or unsanctioned model boundary.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, GRC, privacy, procurement security, model risk, and acquisition diligence teams",
+    "category": "Secure model-provider routing and context boundary governance for agentic AI",
+    "enterprise_promise": "SecurityRecipes makes model choice easy to approve: a team can ask for the best model for an agentic workflow while the routing gate proves whether the provider, model, data class, autonomy level, and evidence state are acceptable.",
+    "why_now": "Enterprises are moving from single-model pilots to multi-provider agent fleets that combine MCP tools, private code, ticket data, browser activity, remote agents, and frontier-model reasoning. A secure context layer needs a provider-neutral routing decision before sensitive context reaches any model boundary."
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Routes account for goal hijack, tool misuse, privilege abuse, context poisoning, insecure inter-agent communication, cascading failures, excessive autonomy, and rogue-agent containment before a model receives context or authority."
+    },
+    {
+      "id": "owasp-mcp-top-10",
+      "name": "OWASP MCP Top 10",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "coverage": "Model routing is treated as a context and tool boundary where model misbinding, context spoofing, prompt-state manipulation, insecure memory references, and covert channel risks must be reviewed."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "coverage": "The routing gate links model choice to skill governance, publisher verification, permission review, isolation, update drift, and runtime audit before behavior packages execute under agent authority."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Model routes require MCP resource binding, least-privilege scope selection, audience validation, HTTPS, PKCE, token validation, and no token passthrough before tool-backed context crosses the provider boundary."
+    },
+    {
+      "id": "mcp-security-best-practices",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Routing evidence requires confused-deputy prevention, scope minimization, SSRF controls, session safety, audit trails, and explicit treatment of local and remote MCP server risk."
+    },
+    {
+      "id": "openai-prompt-injection-2026",
+      "name": "OpenAI: Designing AI agents to resist prompt injection",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/",
+      "coverage": "Routes require source-sink thinking, constrained impact, user confirmation for sensitive transmissions, and layered controls because social-engineering-style prompt injection cannot be solved by input filtering alone."
+    },
+    {
+      "id": "openai-agents-guardrails",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-python/guardrails/",
+      "coverage": "Routing evidence requires input, output, and tool guardrails at the right workflow boundaries, including blocking mode where tool execution or token spend should not begin before a tripwire clears."
+    },
+    {
+      "id": "openai-agents-tracing",
+      "name": "OpenAI Agents SDK Tracing",
+      "url": "https://openai.github.io/openai-agents-python/tracing/",
+      "coverage": "Provider decisions bind model calls, tool calls, handoffs, guardrails, and custom events to trace evidence without storing raw prompts, outputs, or tool payloads by default."
+    },
+    {
+      "id": "anthropic-claude-code-security",
+      "name": "Anthropic Claude Code Security",
+      "url": "https://code.claude.com/docs/en/security",
+      "coverage": "Routes preserve read-only defaults, explicit approvals, trusted MCP server configuration, isolated execution, command review, and secure credential handling for coding-agent workflows."
+    },
+    {
+      "id": "cisa-ai-data-security",
+      "name": "CISA AI Data Security Best Practices",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "coverage": "Provider routing requires data provenance, integrity, access control, monitoring, third-party handling, incident evidence, and protections for sensitive operational AI data."
+    },
+    {
+      "id": "nist-ai-rmf",
+      "name": "NIST AI Risk Management Framework",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "coverage": "The gate maps provider routing into governed, mapped, measured, and managed AI risk, including critical-infrastructure trust expectations emerging in 2026."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Routes require generative-AI governance, data provenance, third-party dependency review, monitoring, cybersecurity, incident response, and operational risk management."
+    }
+  ],
+  "decision_contract": {
+    "default_decision": "hold_for_model_provider_review",
+    "hash_algorithm": "sha256",
+    "valid_decisions": [
+      "allow_approved_route",
+      "allow_guarded_route",
+      "hold_for_model_provider_review",
+      "deny_unapproved_route",
+      "kill_session_on_provider_signal"
+    ],
+    "required_runtime_attributes": [
+      "workflow_id",
+      "provider_id",
+      "model_id",
+      "route_class",
+      "data_classes",
+      "autonomy_level",
+      "tenant_id",
+      "tenant_region",
+      "provider_region",
+      "zero_data_retention",
+      "training_opt_out",
+      "dpa_in_place",
+      "enterprise_contract",
+      "mcp_gateway_enforced",
+      "tool_guardrails_enforced",
+      "output_guardrails_enforced",
+      "telemetry_redacted",
+      "run_receipt_attached",
+      "egress_decision",
+      "human_approval_record"
+    ],
+    "required_controls": [
+      "approved_provider_profile",
+      "approved_model_route",
+      "data_class_allowed",
+      "autonomy_within_route_limit",
+      "zdr_or_private_runtime_for_sensitive_context",
+      "dpa_and_residency_for_external_processors",
+      "training_exclusion_for_tenant_context",
+      "mcp_gateway_enforcement",
+      "tool_and_output_guardrails",
+      "redacted_trace_contract",
+      "run_receipt_binding",
+      "context_egress_decision"
+    ],
+    "runtime_kill_signals": [
+      "raw_token_or_private_key_in_prompt",
+      "secret_or_signer_material_to_external_model",
+      "unsanctioned_provider_detected",
+      "provider_contract_revoked",
+      "model_route_changed_after_approval",
+      "cross_tenant_context_in_model_request",
+      "unredacted_pii_without_approval",
+      "provider_endpoint_not_https",
+      "tool_call_started_before_blocking_guardrail",
+      "egress_decision_denied_or_killed"
+    ],
+    "prohibited_without_two_key_review": [
+      "regulated_customer_data",
+      "customer_source_code",
+      "persistent_memory_replay",
+      "identity_or_policy_admin",
+      "production_write",
+      "external_customer_communication",
+      "high_impact_action",
+      "browser_logged_in_session"
+    ]
+  },
+  "scoring_model": {
+    "autonomy_rank": {
+      "assisted": 1,
+      "bounded_agent": 2,
+      "autonomous": 3,
+      "multi_agent_coordinator": 4
+    },
+    "risk_weights": {
+      "unknown_provider": 45,
+      "unknown_model": 35,
+      "shadow_ai_provider": 60,
+      "external_processor": 16,
+      "tenant_sensitive_data": 16,
+      "regulated_data": 22,
+      "customer_source_code": 18,
+      "secret_or_signer_data": 50,
+      "untrusted_input": 10,
+      "browser_context": 14,
+      "autonomy_assisted": 4,
+      "autonomy_bounded_agent": 10,
+      "autonomy_autonomous": 20,
+      "autonomy_multi_agent_coordinator": 26,
+      "high_impact_action": 26,
+      "missing_zdr": 16,
+      "missing_dpa": 14,
+      "missing_training_opt_out": 12,
+      "missing_residency_match": 12,
+      "missing_mcp_gateway": 14,
+      "missing_tool_guardrails": 12,
+      "missing_output_guardrails": 8,
+      "missing_redacted_telemetry": 10,
+      "missing_run_receipt": 10,
+      "missing_egress_decision": 12,
+      "missing_human_approval": 16
+    },
+    "control_credits": {
+      "max_credit": 60,
+      "enterprise_contract": 10,
+      "zero_data_retention": 10,
+      "training_opt_out": 8,
+      "dpa_in_place": 8,
+      "residency_match": 8,
+      "mcp_gateway_enforced": 8,
+      "tool_guardrails_enforced": 8,
+      "output_guardrails_enforced": 6,
+      "telemetry_redacted": 8,
+      "run_receipt_attached": 8,
+      "egress_decision_allow": 8,
+      "human_approval_record": 8,
+      "private_runtime": 12
+    },
+    "decision_thresholds": {
+      "allow_approved_route_max": 24,
+      "allow_guarded_route_max": 44,
+      "hold_for_review_max": 99
+    }
+  },
+  "provider_profiles": [
+    {
+      "provider_id": "frontier-enterprise-provider",
+      "title": "Approved frontier model provider under enterprise contract",
+      "provider_type": "external_processor",
+      "status": "approved_with_contract",
+      "allowed_runtime_modes": [
+        "hosted_api",
+        "enterprise_workspace",
+        "hosted_mcp_model_call"
+      ],
+      "required_contract_terms": [
+        "enterprise_contract",
+        "dpa_in_place",
+        "training_opt_out",
+        "zero_data_retention_or_no_training_for_tenant_context",
+        "incident_notification",
+        "audit_log_export"
+      ],
+      "default_region_policy": "provider_region_must_match_tenant_or_approved_residency_exception",
+      "default_decision": "allow_guarded_route",
+      "risk_tier": "medium"
+    },
+    {
+      "provider_id": "private-cloud-or-self-hosted-model",
+      "title": "Tenant-controlled private model runtime",
+      "provider_type": "tenant_controlled_runtime",
+      "status": "approved_private_runtime",
+      "allowed_runtime_modes": [
+        "private_cloud",
+        "self_hosted",
+        "isolated_vpc_endpoint"
+      ],
+      "required_contract_terms": [
+        "tenant_key_control",
+        "no_external_training",
+        "private_network_policy",
+        "audit_log_export",
+        "egress_allowlist"
+      ],
+      "default_region_policy": "tenant_region_local",
+      "default_decision": "allow_approved_route",
+      "risk_tier": "low"
+    },
+    {
+      "provider_id": "local-developer-model",
+      "title": "Local developer model for public or synthetic context only",
+      "provider_type": "local_developer_runtime",
+      "status": "guarded_pilot",
+      "allowed_runtime_modes": [
+        "local_workstation",
+        "ephemeral_container"
+      ],
+      "required_contract_terms": [
+        "no_customer_context",
+        "no_secrets",
+        "no_persistent_memory",
+        "workspace_isolation",
+        "local_audit_log"
+      ],
+      "default_region_policy": "local_only",
+      "default_decision": "hold_for_model_provider_review",
+      "risk_tier": "medium"
+    },
+    {
+      "provider_id": "shadow-ai-or-personal-account",
+      "title": "Unsanctioned provider, personal account, or unmanaged agent host",
+      "provider_type": "unsanctioned_external_processor",
+      "status": "prohibited",
+      "allowed_runtime_modes": [],
+      "required_contract_terms": [],
+      "default_region_policy": "not_allowed",
+      "default_decision": "deny_unapproved_route",
+      "risk_tier": "critical"
+    }
+  ],
+  "model_route_profiles": [
+    {
+      "route_id": "public-context-frontier-route",
+      "provider_id": "frontier-enterprise-provider",
+      "model_id": "frontier-general-reasoning",
+      "title": "Public secure-context reasoning through approved frontier provider",
+      "route_class": "public_reference_reasoning",
+      "allowed_data_classes": [
+        "public_reference",
+        "curated_security_guidance",
+        "generated_policy_evidence",
+        "public_vulnerability_intelligence"
+      ],
+      "prohibited_data_classes": [
+        "secret_or_signer_material",
+        "raw_access_token",
+        "customer_source_code",
+        "regulated_customer_data"
+      ],
+      "max_autonomy_level": "bounded_agent",
+      "required_controls": [
+        "enterprise_contract",
+        "training_opt_out",
+        "source_hash_required",
+        "citation_required",
+        "tool_guardrails_enforced",
+        "telemetry_redacted"
+      ],
+      "zero_data_retention_required": false,
+      "dpa_required": false,
+      "residency_match_required": false,
+      "human_approval_required": false,
+      "default_decision": "allow_approved_route",
+      "risk_tier": "low"
+    },
+    {
+      "route_id": "tenant-remediation-frontier-route",
+      "provider_id": "frontier-enterprise-provider",
+      "model_id": "frontier-code-and-security-reasoning",
+      "title": "Tenant remediation route through approved frontier provider",
+      "route_class": "tenant_sensitive_remediation",
+      "allowed_data_classes": [
+        "customer_asset_metadata",
+        "customer_finding_metadata",
+        "customer_source_code",
+        "support_ticket_history",
+        "generated_policy_evidence"
+      ],
+      "prohibited_data_classes": [
+        "secret_or_signer_material",
+        "raw_access_token",
+        "private_key",
+        "seed_phrase"
+      ],
+      "max_autonomy_level": "bounded_agent",
+      "required_controls": [
+        "enterprise_contract",
+        "dpa_in_place",
+        "zero_data_retention",
+        "training_opt_out",
+        "residency_match",
+        "mcp_gateway_enforced",
+        "tool_guardrails_enforced",
+        "output_guardrails_enforced",
+        "telemetry_redacted",
+        "run_receipt_attached",
+        "egress_decision_allow"
+      ],
+      "zero_data_retention_required": true,
+      "dpa_required": true,
+      "residency_match_required": true,
+      "human_approval_required": true,
+      "default_decision": "allow_guarded_route",
+      "risk_tier": "medium"
+    },
+    {
+      "route_id": "private-runtime-restricted-route",
+      "provider_id": "private-cloud-or-self-hosted-model",
+      "model_id": "private-security-reasoning",
+      "title": "Private runtime for restricted tenant context",
+      "route_class": "restricted_private_analysis",
+      "allowed_data_classes": [
+        "customer_asset_metadata",
+        "customer_finding_metadata",
+        "customer_source_code",
+        "regulated_customer_data",
+        "support_ticket_history",
+        "tenant_private_data"
+      ],
+      "prohibited_data_classes": [
+        "secret_or_signer_material",
+        "raw_access_token",
+        "private_key",
+        "seed_phrase"
+      ],
+      "max_autonomy_level": "autonomous",
+      "required_controls": [
+        "private_runtime",
+        "tenant_key_control",
+        "mcp_gateway_enforced",
+        "tool_guardrails_enforced",
+        "output_guardrails_enforced",
+        "telemetry_redacted",
+        "run_receipt_attached",
+        "egress_decision_allow"
+      ],
+      "zero_data_retention_required": false,
+      "dpa_required": false,
+      "residency_match_required": true,
+      "human_approval_required": true,
+      "default_decision": "allow_guarded_route",
+      "risk_tier": "medium"
+    },
+    {
+      "route_id": "browser-and-untrusted-content-guardrail-route",
+      "provider_id": "frontier-enterprise-provider",
+      "model_id": "frontier-low-latency-guardrail",
+      "title": "Guardrail classifier for browser and untrusted-content routing",
+      "route_class": "untrusted_content_guardrail",
+      "allowed_data_classes": [
+        "public_reference",
+        "curated_security_guidance",
+        "untrusted_web_content",
+        "redacted_ticket_excerpt"
+      ],
+      "prohibited_data_classes": [
+        "secret_or_signer_material",
+        "raw_access_token",
+        "customer_source_code",
+        "regulated_customer_data",
+        "browser_password"
+      ],
+      "max_autonomy_level": "assisted",
+      "required_controls": [
+        "enterprise_contract",
+        "training_opt_out",
+        "blocking_input_guardrail",
+        "tool_call_not_started_before_guardrail",
+        "telemetry_redacted"
+      ],
+      "zero_data_retention_required": true,
+      "dpa_required": true,
+      "residency_match_required": false,
+      "human_approval_required": false,
+      "default_decision": "allow_guarded_route",
+      "risk_tier": "medium"
+    },
+    {
+      "route_id": "shadow-ai-deny-route",
+      "provider_id": "shadow-ai-or-personal-account",
+      "model_id": "unmanaged-model",
+      "title": "Shadow AI or personal-account model route",
+      "route_class": "unsanctioned_model_use",
+      "allowed_data_classes": [],
+      "prohibited_data_classes": [
+        "*"
+      ],
+      "max_autonomy_level": "assisted",
+      "required_controls": [],
+      "zero_data_retention_required": true,
+      "dpa_required": true,
+      "residency_match_required": true,
+      "human_approval_required": true,
+      "default_decision": "deny_unapproved_route",
+      "risk_tier": "critical"
+    }
+  ],
+  "workflow_route_overrides": [
+    {
+      "workflow_id": "sensitive-data-remediation",
+      "preferred_route_ids": [
+        "private-runtime-restricted-route",
+        "tenant-remediation-frontier-route"
+      ],
+      "minimum_controls": [
+        "zero_data_retention",
+        "dpa_in_place",
+        "mcp_gateway_enforced",
+        "run_receipt_attached",
+        "human_approval_record"
+      ],
+      "notes": "Sensitive-data runs should prefer private runtime and may use approved frontier routes only after data-class, redaction, and approval evidence are present."
+    },
+    {
+      "workflow_id": "vulnerable-dependency-remediation",
+      "preferred_route_ids": [
+        "tenant-remediation-frontier-route",
+        "public-context-frontier-route"
+      ],
+      "minimum_controls": [
+        "mcp_gateway_enforced",
+        "tool_guardrails_enforced",
+        "run_receipt_attached",
+        "egress_decision_allow"
+      ],
+      "notes": "Dependency remediation can use public vulnerability intelligence freely, but repository-specific context requires tenant-sensitive route evidence."
+    },
+    {
+      "workflow_id": "sast-finding-remediation",
+      "preferred_route_ids": [
+        "tenant-remediation-frontier-route",
+        "private-runtime-restricted-route"
+      ],
+      "minimum_controls": [
+        "dpa_in_place",
+        "zero_data_retention",
+        "mcp_gateway_enforced",
+        "tool_guardrails_enforced",
+        "run_receipt_attached"
+      ],
+      "notes": "SAST triage frequently contains source slices, traces, and exploitability reasoning; route as tenant sensitive by default."
+    }
+  ],
+  "commercialization_path": {
+    "open_layer": "Public provider-routing profile, deterministic generator, runtime evaluator, docs, and MCP tools for teams standardizing model selection evidence.",
+    "team_layer": "Customer-specific provider profiles, approved model registry, data-class maps, regional policies, model eval baselines, and route exceptions.",
+    "enterprise_layer": "Hosted model-routing PDP, provider contract inventory, policy-as-code adapters, route telemetry, procurement exports, and SIEM/SOAR alerts for unsanctioned model use.",
+    "acquirer_value": "A frontier lab, AI coding platform, cloud platform, or security vendor gets the missing enterprise approval layer between secure context, MCP tools, and multi-provider model execution."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can prove that agentic workflows send the right context to the right model provider under the right contract before autonomy expands.",
+    "default_questions_answered": [
+      "Which model providers are approved for public, tenant-sensitive, regulated, or browser-derived context?",
+      "Which data classes are prohibited for each provider or model route?",
+      "Which routes require zero data retention, training exclusion, DPA, residency, guardrails, telemetry, receipt, and human approval evidence?",
+      "Which workflows can use frontier hosted models versus private runtimes?",
+      "Which runtime signals force hold, deny, or kill decisions before a model call starts?"
+    ],
+    "recommended_first_use": "Attach the routing gate to AI platform model registries, secure-context retrieval, MCP gateway policy, context egress, procurement review, and enterprise trust-center exports.",
+    "sales_motion": "Lead with open model-route policy, then sell hosted route decisions, provider inventory, contract-state checks, tenant-specific policy packs, and acquisition diligence reports."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open profile cannot verify a customer's live provider contract or tenant data-processing terms.",
+      "treatment": "Bind provider profiles to procurement systems, legal contract metadata, provider trust-center evidence, and tenant-specific exception workflows."
+    },
+    {
+      "risk": "A model route can be safe at admission but become unsafe after a provider, model, region, retention, or tool policy change.",
+      "treatment": "Recompute route hashes, require approval for route drift, and connect this gate to telemetry, run receipts, and provider inventory change events."
+    },
+    {
+      "risk": "Provider-neutral model IDs are intentionally abstract in the open project.",
+      "treatment": "Fork the profile and map route IDs to approved OpenAI, Anthropic, xAI, private-cloud, or local model SKUs inside the enterprise layer."
+    }
+  ]
+}

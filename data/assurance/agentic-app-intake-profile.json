@@ -1,0 +1,381 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define a repeatable SecurityRecipes intake gate for new agentic applications, agent hosts, and enterprise MCP rollouts so AI platform, security architecture, GRC, procurement, and acquisition diligence teams can decide whether an agentic app can launch as open reference, guarded pilot, architecture review, or blocked high-impact autonomy.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, vendor-risk, and acquisition diligence teams",
+    "category": "Agentic application launch review and enterprise MCP intake",
+    "enterprise_promise": "SecurityRecipes can make AI easy by turning agentic app launch review into a deterministic evidence gate across autonomy, data, tools, MCP authorization, memory, A2A, guardrails, telemetry, incident response, and trust-center proof.",
+    "why_now": "Agentic AI is moving from pilots to production systems that can retrieve private context, call tools, persist memory, hand work to other agents, and act with real enterprise identities. Buyers need launch evidence before autonomy expands."
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Agent goal hijacking, tool misuse, identity and privilege abuse, agentic supply-chain compromise, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue agents."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "coverage": "Skill governance, publisher verification, scanning, isolation, permission review, update drift, audit logging, and incident response for behavior packages used by agent hosts."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "OAuth 2.1 protected-resource metadata, resource indicators, audience-bound tokens, PKCE, HTTPS, token validation, and token theft controls for HTTP MCP servers."
+    },
+    {
+      "id": "mcp-security-best-practices",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Confused-deputy prevention, token-passthrough denial, least-privilege scopes, SSRF controls, session safety, and audit trails for MCP implementations."
+    },
+    {
+      "id": "openai-agents-guardrails",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-python/guardrails/",
+      "coverage": "Input, output, and tool guardrails, tripwires, blocking versus parallel execution, function-tool guardrails, and hosted-tool guardrail boundaries."
+    },
+    {
+      "id": "anthropic-claude-code-security",
+      "name": "Anthropic Claude Code Security",
+      "url": "https://docs.anthropic.com/en/docs/claude-code/security",
+      "coverage": "Read-only defaults, explicit approvals, MCP server trust, network approval, isolated execution, fail-closed command matching, and secure credential handling."
+    },
+    {
+      "id": "microsoft-agent-posture-2026",
+      "name": "Microsoft Security - A new era of agents, a new era of posture",
+      "url": "https://www.microsoft.com/en-us/security/blog/2026/01/21/new-era-of-agents-new-era-of-posture/",
+      "coverage": "Agent posture, indirect prompt injection exposure, high-autonomy risk factors, sensitive-data grounding, attack-path visibility, and human-in-the-loop recommendations."
+    },
+    {
+      "id": "cisa-ai-data-security",
+      "name": "CISA AI Data Security Best Practices",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "coverage": "Data provenance, integrity, access control, monitoring, third-party data handling, incident evidence, and protection of sensitive AI lifecycle data."
+    },
+    {
+      "id": "cisa-secure-by-design",
+      "name": "CISA Secure by Design",
+      "url": "https://www.cisa.gov/securebydesign",
+      "coverage": "Secure defaults, measurable customer security outcomes, transparency, logging, MFA, SSO, and executive ownership of security outcomes."
+    },
+    {
+      "id": "nist-ai-rmf",
+      "name": "NIST AI Risk Management Framework",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "coverage": "Govern, Map, Measure, and Manage functions for AI lifecycle risk, including the April 2026 critical-infrastructure profile concept note."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Generative AI governance, data provenance, third-party dependencies, measurement, monitoring, cybersecurity, incident response, and operational risk management."
+    }
+  ],
+  "decision_contract": {
+    "default_decision": "hold_for_agentic_app_security_review",
+    "hash_algorithm": "sha256",
+    "valid_decisions": [
+      "approve_reference_launch",
+      "approve_guarded_pilot",
+      "hold_for_agentic_app_security_review",
+      "deny_until_controls_exist",
+      "kill_session_on_launch_signal"
+    ],
+    "score_thresholds": {
+      "approve_reference_launch_max": 19,
+      "approve_guarded_pilot_max": 39,
+      "hold_for_review_max": 129
+    },
+    "required_runtime_attributes": [
+      "app_id",
+      "owner",
+      "business_purpose",
+      "autonomy_level",
+      "deployment_environment",
+      "data_classes",
+      "mcp_namespaces",
+      "external_write",
+      "production_write",
+      "memory_persistence",
+      "a2a_or_remote_agent",
+      "indirect_prompt_injection_risk",
+      "control_evidence",
+      "human_approval_record",
+      "telemetry_decision",
+      "egress_decision",
+      "authorization_decision"
+    ],
+    "control_evidence_keys": [
+      "workflow_manifest",
+      "mcp_authorization_conformance",
+      "mcp_tool_risk_contract",
+      "context_egress_boundary",
+      "secure_context_eval_pack",
+      "agentic_telemetry_contract",
+      "agentic_run_receipt_pack",
+      "agent_skill_supply_chain_pack",
+      "incident_response_pack",
+      "human_approval_path"
+    ],
+    "runtime_kill_signals": [
+      "secret_or_signer_material_requested",
+      "raw_token_passthrough",
+      "private_network_or_metadata_ip_egress",
+      "autonomous_live_funds_or_production_deploy",
+      "unregistered_agent_host",
+      "tool_or_skill_changed_after_approval",
+      "approval_bypass_attempt"
+    ],
+    "prohibited_without_two_key_review": [
+      "live_funds_movement",
+      "production_deployment",
+      "identity_or_policy_admin",
+      "credential_or_secret_access",
+      "external_customer_communication",
+      "persistent_memory_write"
+    ]
+  },
+  "scoring_model": {
+    "risk_weights": {
+      "autonomy_assisted": 4,
+      "autonomy_bounded_agent": 12,
+      "autonomy_autonomous": 24,
+      "autonomy_multi_agent_coordinator": 28,
+      "data_internal": 8,
+      "data_confidential": 16,
+      "data_regulated": 22,
+      "data_secret_or_signer": 35,
+      "untrusted_input": 12,
+      "high_indirect_prompt_injection_risk": 16,
+      "mcp_read": 5,
+      "mcp_write": 12,
+      "mcp_approval_required": 18,
+      "remote_mcp": 8,
+      "external_write": 16,
+      "production_write": 20,
+      "destructive_or_irreversible": 25,
+      "persistent_memory": 14,
+      "a2a_or_remote_agent": 10,
+      "missing_guardrail_eval": 15,
+      "missing_telemetry": 12,
+      "missing_run_receipts": 10,
+      "missing_authz_binding": 10,
+      "missing_egress_boundary": 10,
+      "missing_human_approval_path": 16,
+      "startup_or_package_install": 10
+    },
+    "control_credits": {
+      "max_credit": 52,
+      "human_approval_path": 10,
+      "two_key_review": 8,
+      "mcp_authorization_conformance": 10,
+      "mcp_tool_risk_contract": 8,
+      "context_egress_boundary": 8,
+      "secure_context_eval_pack": 8,
+      "agentic_telemetry_contract": 8,
+      "agentic_run_receipt_pack": 8,
+      "agent_skill_supply_chain_pack": 6,
+      "isolated_runtime": 8,
+      "incident_response_pack": 6
+    }
+  },
+  "intake_profiles": [
+    {
+      "app_id": "security-recipes-reference-mcp-context-layer",
+      "title": "SecurityRecipes read-only MCP context layer",
+      "owner": "SecurityRecipes maintainers",
+      "business_purpose": "Expose open security guidance and generated evidence packs to agents through read-only MCP tools.",
+      "buyer_stage": "open_reference",
+      "deployment_environment": "open_reference",
+      "autonomy_level": "assisted",
+      "data_classes": [
+        "public_security_guidance",
+        "generated_open_evidence"
+      ],
+      "mcp_namespaces": [
+        "recipes.search",
+        "recipes.evidence"
+      ],
+      "mcp_access_modes": [
+        "read"
+      ],
+      "remote_mcp": true,
+      "untrusted_input": false,
+      "indirect_prompt_injection_risk": "low",
+      "external_write": false,
+      "production_write": false,
+      "destructive_or_irreversible": false,
+      "memory_persistence": "none",
+      "a2a_or_remote_agent": false,
+      "startup_or_package_install": false,
+      "control_evidence": [
+        "workflow_manifest",
+        "mcp_authorization_conformance",
+        "mcp_tool_risk_contract",
+        "context_egress_boundary",
+        "secure_context_eval_pack",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack",
+        "incident_response_pack"
+      ],
+      "recommended_controls": [
+        "Keep the MCP server read-only.",
+        "Keep generated packs fresh in CI before publication.",
+        "Require signed production context releases before enterprise hosting."
+      ]
+    },
+    {
+      "app_id": "repository-remediation-agent-host",
+      "title": "Repository remediation agent host",
+      "owner": "Product Security",
+      "business_purpose": "Run bounded vulnerable-dependency, SAST, base-image, and sensitive-data remediation workflows that produce PRs or triage notes.",
+      "buyer_stage": "guarded_enterprise_pilot",
+      "deployment_environment": "enterprise_pilot",
+      "autonomy_level": "bounded_agent",
+      "data_classes": [
+        "private_repository",
+        "security_findings",
+        "build_logs"
+      ],
+      "mcp_namespaces": [
+        "repo.contents",
+        "advisories.vulnerability",
+        "ci.runs",
+        "tickets.security"
+      ],
+      "mcp_access_modes": [
+        "read",
+        "write_branch",
+        "write_ticket"
+      ],
+      "remote_mcp": true,
+      "untrusted_input": true,
+      "indirect_prompt_injection_risk": "medium",
+      "external_write": true,
+      "production_write": false,
+      "destructive_or_irreversible": false,
+      "memory_persistence": "append_only_receipts",
+      "a2a_or_remote_agent": false,
+      "startup_or_package_install": false,
+      "control_evidence": [
+        "workflow_manifest",
+        "mcp_authorization_conformance",
+        "mcp_tool_risk_contract",
+        "context_egress_boundary",
+        "secure_context_eval_pack",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack",
+        "agent_skill_supply_chain_pack",
+        "incident_response_pack",
+        "human_approval_path"
+      ],
+      "recommended_controls": [
+        "Restrict writes to branch-only remediation paths.",
+        "Require human review before merge or ticket closure.",
+        "Block private-data plus untrusted-content plus external-write sessions without explicit approval."
+      ]
+    },
+    {
+      "app_id": "customer-support-autonomous-agent",
+      "title": "Customer support autonomous agent",
+      "owner": "Customer Operations",
+      "business_purpose": "Answer customer requests and update support tickets using private account context and public web or document inputs.",
+      "buyer_stage": "security_architecture_review",
+      "deployment_environment": "enterprise_pilot",
+      "autonomy_level": "autonomous",
+      "data_classes": [
+        "customer_pii",
+        "tenant_private_data",
+        "support_ticket_history"
+      ],
+      "mcp_namespaces": [
+        "tickets.customer",
+        "crm.accounts",
+        "knowledge.web"
+      ],
+      "mcp_access_modes": [
+        "read",
+        "write_ticket"
+      ],
+      "remote_mcp": true,
+      "untrusted_input": true,
+      "indirect_prompt_injection_risk": "high",
+      "external_write": true,
+      "production_write": false,
+      "destructive_or_irreversible": false,
+      "memory_persistence": "tenant_memory",
+      "a2a_or_remote_agent": true,
+      "startup_or_package_install": false,
+      "control_evidence": [
+        "mcp_authorization_conformance",
+        "mcp_tool_risk_contract",
+        "context_egress_boundary",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack"
+      ],
+      "recommended_controls": [
+        "Add blocking tool guardrails around every ticket or customer-communication write.",
+        "Require explicit human approval until XPIA evals, egress boundaries, and data-retention evidence are complete.",
+        "Separate public web retrieval sessions from private customer context sessions."
+      ]
+    },
+    {
+      "app_id": "financial-operations-agent",
+      "title": "Financial operations agent",
+      "owner": "Finance Platform",
+      "business_purpose": "Prepare finance operations and payment workflows that may touch production payment records, bank files, or signing controls.",
+      "buyer_stage": "blocked_high_impact_autonomy",
+      "deployment_environment": "production_candidate",
+      "autonomy_level": "autonomous",
+      "data_classes": [
+        "regulated_financial_data",
+        "production_credential",
+        "live_signing_material"
+      ],
+      "mcp_namespaces": [
+        "finance.records",
+        "payments.execution",
+        "identity.admin"
+      ],
+      "mcp_access_modes": [
+        "read",
+        "approval_required"
+      ],
+      "remote_mcp": true,
+      "untrusted_input": true,
+      "indirect_prompt_injection_risk": "high",
+      "external_write": true,
+      "production_write": true,
+      "destructive_or_irreversible": true,
+      "memory_persistence": "tenant_memory",
+      "a2a_or_remote_agent": true,
+      "startup_or_package_install": true,
+      "control_evidence": [
+        "mcp_authorization_conformance",
+        "agentic_telemetry_contract"
+      ],
+      "recommended_controls": [
+        "Keep agents read-only for finance and payment records until two-key approval, signer isolation, and transaction simulation evidence exist.",
+        "Deny live funds movement, production deploy, identity administration, and signer access to autonomous agents.",
+        "Use the catastrophic-risk annex and action runtime pack before any production pilot."
+      ]
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can gate new agentic apps before launch by turning autonomy, data, MCP authority, XPIA exposure, memory, guardrails, telemetry, and approval proof into generated evidence.",
+    "default_questions_answered": [
+      "Which agentic apps are reference-safe, pilot-ready, review-only, or blocked?",
+      "Which apps combine high autonomy, indirect prompt injection risk, private data, and external writes?",
+      "Which control evidence is missing before production launch?",
+      "Which MCP namespaces and data classes create material buyer diligence risk?",
+      "Where should paid production controls attach: app intake API, live MCP logs, private app inventory, launch approvals, and posture diffs?"
+    ],
+    "recommended_first_use": "Attach this gate to model-agent launch review, MCP server rollout, AI platform intake, vendor-risk review, procurement security, and quarterly agentic posture review.",
+    "sales_motion": "Lead with the open intake gate, then sell hosted private app inventory, live launch gates, posture diffs, policy-as-code exports, and trust-center API evidence for production agent fleets."
+  }
+}

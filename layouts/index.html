@@ -1,12 +1,3 @@
-{{/* ------------------------------------------------------------------
-     Deploy base URL — computed once, used by every link on this page.
-     On a GitHub Pages project deploy this resolves to:
-        https://<owner>.github.io/<repo>
-     On Docker / localhost root deploys, it resolves to the hostname
-     with no subpath. Every internal href below is prefixed with this
-     value so nothing breaks regardless of where the site is hosted.
-     ------------------------------------------------------------------ */}}
-{{ $base := site.BaseURL | strings.TrimRight "/" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.LanguageCode | default "en" }}">
 <head>
@@ -24,8 +15,11 @@
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="no">
 <meta name="mobile-web-app-capable" content="no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
-<link rel="icon" type="image/svg+xml" href="{{ $base }}/images/logo.svg">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
+<link rel="icon" type="image/svg+xml" href="{{ "/images/logo.svg" | relURL }}">
+{{ with resources.Get "css/ai-chatbot.css" | minify | fingerprint }}
+<link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+{{ end }}
 {{/*
   Self-contained font strategy: the site ships zero external asset
   dependencies so it works behind corporate proxies / air-gapped
@@ -784,6 +778,162 @@
   .chip[data-for="codex"]   { --chip-accent: #4ade80; }
   .chip[data-for="devin"]   { --chip-accent: #ff4ecb; }
 
+  /* ============ LATEST CVE RECIPES ============ */
+  .latest-cves-section {
+    position: relative;
+    z-index: 5;
+    padding: 40px 48px 72px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .latest-cves-kicker {
+    margin-bottom: 8px;
+    color: var(--accent-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .latest-cves-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .latest-cve-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 278px;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 22px 22px;
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    background:
+      radial-gradient(ellipse 90% 120% at 0% 0%, rgba(245, 158, 11, 0.13), transparent 58%),
+      radial-gradient(ellipse 90% 120% at 100% 100%, rgba(20, 184, 166, 0.12), transparent 58%),
+      rgba(255, 255, 255, 0.024);
+    color: inherit;
+    text-decoration: none;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    transition: transform .28s ease, border-color .28s ease, background .28s ease;
+  }
+  .latest-cve-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--card-hover-border);
+    background:
+      radial-gradient(ellipse 90% 120% at 0% 0%, rgba(245, 158, 11, 0.17), transparent 58%),
+      radial-gradient(ellipse 90% 120% at 100% 100%, rgba(20, 184, 166, 0.15), transparent 58%),
+      rgba(255, 255, 255, 0.034);
+  }
+  .latest-cve-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .latest-cve-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 5px;
+  }
+  .latest-cve-id,
+  .latest-cve-badge,
+  .latest-cve-meta span {
+    overflow-wrap: anywhere;
+  }
+  .latest-cve-id {
+    flex: none;
+    max-width: 62%;
+    padding: 4px 9px;
+    border: 1px solid rgba(20, 184, 166, 0.28);
+    border-radius: 999px;
+    background: rgba(20, 184, 166, 0.09);
+    color: #5eead4;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .latest-cve-badge {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .latest-cve-badge--severity-critical {
+    background: rgba(239, 68, 68, 0.13);
+    border: 1px solid rgba(239, 68, 68, 0.34);
+    color: #fca5a5;
+  }
+  .latest-cve-badge--severity-high {
+    background: rgba(249, 115, 22, 0.13);
+    border: 1px solid rgba(249, 115, 22, 0.34);
+    color: #fdba74;
+  }
+  .latest-cve-badge--severity-medium {
+    background: rgba(234, 179, 8, 0.13);
+    border: 1px solid rgba(234, 179, 8, 0.34);
+    color: #fde047;
+  }
+  .latest-cve-badge--severity-low {
+    background: rgba(34, 197, 94, 0.13);
+    border: 1px solid rgba(34, 197, 94, 0.34);
+    color: #86efac;
+  }
+  .latest-cve-badge--kev {
+    background: rgba(139, 92, 246, 0.14);
+    border: 1px solid rgba(139, 92, 246, 0.36);
+    color: #c4b5fd;
+  }
+  .latest-cve-card h3 {
+    margin-bottom: 10px;
+    color: var(--ink-0);
+    font-size: 18px;
+    font-weight: 650;
+    line-height: 1.24;
+  }
+  .latest-cve-card p {
+    color: var(--ink-2);
+    font-size: 13.5px;
+    line-height: 1.55;
+    flex: 1;
+  }
+  .latest-cve-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin-top: 18px;
+    color: var(--ink-2);
+    font-size: 12px;
+  }
+  .latest-cve-meta-label {
+    margin-right: 4px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .latest-cve-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    color: var(--accent-2);
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: gap .22s ease;
+  }
+  .latest-cve-card:hover .latest-cve-link {
+    gap: 12px;
+  }
+
   /* ============ DUAL CTA SECTION (Automation + MCP) ============ */
   .dual-cta-section {
     position: relative;
@@ -1013,6 +1163,9 @@
     .dual-cta-section {
       grid-template-columns: 1fr;
     }
+    .latest-cves-grid {
+      grid-template-columns: 1fr;
+    }
     .trust-grid {
       grid-template-columns: 1fr;
     }
@@ -1022,6 +1175,7 @@
       grid-template-columns: 1fr 1fr;
     }
     .proof-strip,
+    .latest-cves-grid,
     .trust-grid {
       grid-template-columns: 1fr 1fr;
     }
@@ -1030,6 +1184,7 @@
     .nav { padding: 20px 24px; }
     .hero { padding: 48px 24px 24px; }
     .tools-section { padding: 48px 24px 16px; }
+    .latest-cves-section { padding: 28px 24px 48px; }
     .promptlib-section { padding: 24px 24px 40px; }
     .proof-strip { grid-template-columns: 1fr; }
     .dual-cta-section { padding: 0 24px 72px; }
@@ -1084,20 +1239,20 @@
 
 <!-- Nav -->
 <nav class="nav reveal">
-  <a href="{{ $base }}/" class="brand">
+  <a href="{{ "/" | relURL }}" class="brand">
     <div class="brand-mark"></div>
     <span>{{ .Site.Title }}</span>
   </a>
   <div class="nav-pills">
-    <a class="pill" href="{{ $base }}/quickstart/">Quick Start</a>
-    <a class="pill" href="{{ $base }}/fundamentals/">Fundamentals</a>
-    <a class="pill" href="{{ $base }}/docs/">Docs</a>
-    <a class="pill" href="{{ $base }}/agents/">Agents</a>
-    <a class="pill" href="{{ $base }}/prompt-library/">Prompt Library</a>
-    <a class="pill" href="{{ $base }}/mcp-servers/">MCP Servers</a>
-    <a class="pill" href="{{ $base }}/security-remediation/">Security Remediation</a>
-    <a class="pill" href="{{ $base }}/automation/">Automation</a>
-    <a class="pill" href="{{ $base }}/contribute/">Contribute</a>
+    <a class="pill" href="{{ "/quickstart/" | relURL }}">Quick Start</a>
+    <a class="pill" href="{{ "/fundamentals/" | relURL }}">Fundamentals</a>
+    <a class="pill" href="{{ "/docs/" | relURL }}">Docs</a>
+    <a class="pill" href="{{ "/agents/" | relURL }}">Agents</a>
+    <a class="pill" href="{{ "/prompt-library/" | relURL }}">Prompt Library</a>
+    <a class="pill" href="{{ "/mcp-servers/" | relURL }}">MCP Servers</a>
+    <a class="pill" href="{{ "/security-remediation/" | relURL }}">Security Remediation</a>
+    <a class="pill" href="{{ "/automation/" | relURL }}">Automation</a>
+    <a class="pill" href="{{ "/contribute/" | relURL }}">Contribute</a>
   </div>
 </nav>
 
@@ -1112,15 +1267,15 @@
     for <span class="accent">Agentic AI</span>.
   </h1>
   <p class="subtitle reveal d3">
-    SecurityRecipes turns open remediation knowledge into trusted agent context: production-grade prompts, reviewer-gated workflows, generated assurance evidence, and a repo-shipped FastMCP server for policy-aware retrieval and egress.
+    Open remediation recipes, reviewer-gated prompts, and read-only MCP context for security teams running AI agents safely.
   </p>
   <div class="hero-cta-row reveal d3">
-    <a class="hero-cta-primary" href="{{ $base }}/quickstart/">
+    <a class="hero-cta-primary" href="{{ "/quickstart/" | relURL }}">
       <span>Start With Quick Start</span>
       <span class="hero-cta-kbd">Open</span>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
-    <a class="hero-cta-secondary" href="{{ $base }}/mcp-servers/">
+    <a class="hero-cta-secondary" href="{{ "/mcp-servers/" | relURL }}">
       <span>Explore the MCP Server</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
@@ -1166,6 +1321,48 @@
   </div>
 </section>
 
+<section class="trust-stack">
+  <div class="section-header reveal d2">
+    <h2>Browser Security Control Plane</h2>
+    <p>Inputs, recipes, scans, reports, and output routes now map to one contributed marketplace so the browser workbench feels like an actual product surface instead of an isolated prompt box.</p>
+  </div>
+  <div class="trust-grid">
+    <div class="trust-card reveal d1">
+      <h3>Input Channels</h3>
+      <p>GitHub, deps.dev, local page context, and upload/API templates define how findings and reference material enter a run. Native browser sources stay live; future connectors ship as explicit JSON contracts first.</p>
+      <div class="dual-cta-tags">
+        <span class="dual-cta-tag">repo context</span>
+        <span class="dual-cta-tag">scanner intake</span>
+      </div>
+    </div>
+    <div class="trust-card reveal d2">
+      <h3>Recipe Middle Layer</h3>
+      <p>Recipes remain the decision core. Workflow templates now bundle a recipe shape, context pack, report profile, approval gate, and output route into one reusable operating motion.</p>
+      <div class="dual-cta-tags">
+        <span class="dual-cta-tag">workflow packs</span>
+        <span class="dual-cta-tag">review gates</span>
+      </div>
+    </div>
+    <div class="trust-card reveal d3">
+      <h3>Scan + Report Packs</h3>
+      <p>The agent workbench can now turn imported SARIF and SBOM evidence into a normalized scan bundle, remediation packet, executive brief, connector-intake decision, or run receipt before the result ever leaves the browser.</p>
+      <div class="dual-cta-tags">
+        <span class="dual-cta-tag">report contracts</span>
+        <span class="dual-cta-tag">downloadable JSON</span>
+        <span class="dual-cta-tag">run receipts</span>
+      </div>
+    </div>
+    <div class="trust-card reveal d4">
+      <h3>Downstream Outputs</h3>
+      <p>Slack, Jira, GitHub, email, PR packets, SIEM payloads, and ticket templates are all represented as inspectable JSON configurations with honest runtime maturity states.</p>
+      <div class="dual-cta-tags">
+        <a class="dual-cta-tag" href="{{ "/docs/control-plane-marketplace/" | relURL }}">marketplace docs</a>
+        <span class="dual-cta-tag">BYO tokens</span>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Tools Grid -->
 <section class="tools-section">
   <div class="section-header reveal d4">
@@ -1176,7 +1373,7 @@
   <div class="tools-grid">
 
     <!-- GitHub Copilot -->
-    <a class="tool-card reveal d1" data-tool="copilot" href="{{ $base }}/github_copilot/">
+    <a class="tool-card reveal d1" data-tool="copilot" href="{{ "/github_copilot/" | relURL }}">
       <div>
         <div class="tool-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1196,7 +1393,7 @@
     </a>
 
     <!-- Devin -->
-    <a class="tool-card reveal d2" data-tool="devin" href="{{ $base }}/devin/">
+    <a class="tool-card reveal d2" data-tool="devin" href="{{ "/devin/" | relURL }}">
       <div>
         <div class="tool-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1215,7 +1412,7 @@
     </a>
 
     <!-- Cursor -->
-    <a class="tool-card reveal d3" data-tool="cursor" href="{{ $base }}/cursor/">
+    <a class="tool-card reveal d3" data-tool="cursor" href="{{ "/cursor/" | relURL }}">
       <div>
         <div class="tool-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1232,7 +1429,7 @@
     </a>
 
     <!-- Codex -->
-    <a class="tool-card reveal d4" data-tool="codex" href="{{ $base }}/codex/">
+    <a class="tool-card reveal d4" data-tool="codex" href="{{ "/codex/" | relURL }}">
       <div>
         <div class="tool-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1250,7 +1447,7 @@
     </a>
 
     <!-- Claude -->
-    <a class="tool-card reveal d5" data-tool="claude" href="{{ $base }}/claude/">
+    <a class="tool-card reveal d5" data-tool="claude" href="{{ "/claude/" | relURL }}">
       <div>
         <div class="tool-icon">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1269,6 +1466,65 @@
   </div>
 </section>
 
+{{- $allCveRecipes := slice -}}
+{{- with site.GetPage "/prompt-library/cve" -}}
+  {{- range $recipe := .Pages -}}
+    {{- if $recipe.Params.cve -}}
+      {{- $allCveRecipes = $allCveRecipes | append $recipe -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $latestCveRecipes := first 6 (sort $allCveRecipes "Date" "desc") -}}
+{{- if $latestCveRecipes }}
+<!-- Latest CVE recipes -->
+<section class="latest-cves-section" aria-labelledby="latest-cves-title">
+  <div class="section-header reveal d2">
+    <div>
+      <div class="latest-cves-kicker">New in the catalogue</div>
+      <h2 id="latest-cves-title">Latest CVE recipes published</h2>
+    </div>
+    <p>Fresh per-advisory prompts with scoped fixes, verification steps, and reviewer-ready boundaries.</p>
+  </div>
+
+  <div class="latest-cves-grid">
+    {{- range $latestCveRecipes }}
+      <a class="latest-cve-card reveal d2" href="{{ .RelPermalink }}">
+        <div class="latest-cve-card-top">
+          <span class="latest-cve-id">{{ .Params.cve }}</span>
+          <span class="latest-cve-badges">
+            {{- with .Params.severity }}
+              <span class="latest-cve-badge latest-cve-badge--severity-{{ . | lower }}">{{ . }}</span>
+            {{- end }}
+            {{- if .Params.kev }}
+              <span class="latest-cve-badge latest-cve-badge--kev" title="CISA Known Exploited Vulnerability">KEV</span>
+            {{- end }}
+          </span>
+        </div>
+
+        <h3>{{ .Title }}</h3>
+        {{- with .Description }}
+          <p>{{ . | plainify | truncate 155 }}</p>
+        {{- else }}
+          <p>{{ .Summary | plainify | truncate 155 }}</p>
+        {{- end }}
+
+        <div class="latest-cve-meta">
+          <span><span class="latest-cve-meta-label">published</span>{{ .Date.Format "Jan 2, 2006" }}</span>
+          {{- with .Params.ecosystem }}
+            <span><span class="latest-cve-meta-label">ecosystem</span>{{ . }}</span>
+          {{- end }}
+        </div>
+
+        <span class="latest-cve-link">
+          View recipe
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </a>
+    {{- end }}
+  </div>
+</section>
+{{- end }}
+
 <!-- Prompt Library CTA -->
 <section class="promptlib-section">
   <div class="promptlib-card reveal d2">
@@ -1282,11 +1538,11 @@
         Prompt Library collects the actual prompts, rules files, skills, and instruction snippets teams use to steer agents safely. Browse by tool, copy the entry that matches your agent, keep the guardrails and stop conditions intact, and adapt the house rules to your repo.
       </p>
       <div class="promptlib-ctas">
-        <a class="btn-primary" href="{{ $base }}/prompt-library/">
+        <a class="btn-primary" href="{{ "/prompt-library/" | relURL }}">
           Browse Prompt Library
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-        <a class="btn-secondary" href="{{ $base }}/contribute/#contributing-a-prompt">
+        <a class="btn-secondary" href="{{ "/contribute/" | relURL }}#contributing-a-prompt">
           Submit a community prompt
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
@@ -1307,7 +1563,7 @@
 <section class="dual-cta-section">
 
   <!-- Automation, not agentic -->
-  <a class="dual-cta-card automation reveal d2" href="{{ $base }}/automation/">
+  <a class="dual-cta-card automation reveal d2" href="{{ "/automation/" | relURL }}">
     <div class="dual-cta-eyebrow">
       <span class="dot"></span>
       <span>Automation · Deterministic</span>
@@ -1335,7 +1591,7 @@
   </a>
 
   <!-- Agentic workflows a security team operates -->
-  <a class="dual-cta-card secrem reveal d3" href="{{ $base }}/security-remediation/">
+  <a class="dual-cta-card secrem reveal d3" href="{{ "/security-remediation/" | relURL }}">
     <div class="dual-cta-eyebrow">
       <span class="dot"></span>
       <span>Security-operated · Reviewer-gated</span>
@@ -1359,7 +1615,7 @@
   </a>
 
   <!-- MCP Server access -->
-  <a class="dual-cta-card mcp reveal d4" href="{{ $base }}/mcp-servers/">
+  <a class="dual-cta-card mcp reveal d4" href="{{ "/mcp-servers/" | relURL }}">
     <div class="dual-cta-eyebrow">
       <span class="dot"></span>
       <span>MCP Native · Read-Only Context</span>
@@ -1402,7 +1658,7 @@
     </div>
     <div class="trust-card reveal d2">
       <h3>Secure Context Product</h3>
-      <p>The MCP server turns static knowledge into governed context retrieval, authorization checks, eval evidence, egress decisions, and run evidence.</p>
+      <p>The MCP server turns static knowledge into governed context retrieval, lineage decisions, app-intake decisions, model-provider routing, posture snapshots, authorization checks, elicitation boundary decisions, protocol conformance, tool-surface drift decisions, entitlement reviews, eval evidence, action-runtime decisions, browser-agent boundary decisions, egress decisions, run evidence, telemetry contracts, and trust-center exports.</p>
       <div class="dual-cta-tags">
         <span class="dual-cta-tag">FastMCP</span>
         <span class="dual-cta-tag">typed tools</span>
@@ -1410,7 +1666,7 @@
     </div>
     <div class="trust-card reveal d3">
       <h3>Trust Center Ready</h3>
-      <p>Generated JSON packs give procurement, platform, and security reviewers concrete artifacts instead of claims about agent safety.</p>
+      <p>Generated JSON packs give procurement, platform, security reviewers, and acquisition diligence teams concrete artifacts instead of claims about agent safety.</p>
       <div class="dual-cta-tags">
         <span class="dual-cta-tag">attestation</span>
         <span class="dual-cta-tag">provenance</span>
@@ -1422,49 +1678,6 @@
       <div class="dual-cta-tags">
         <span class="dual-cta-tag">open core</span>
         <span class="dual-cta-tag">enterprise MCP</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="tools-section">
-  <div class="section-header reveal d2">
-    <h2>What it provides</h2>
-    <p>The open site and repository are the product surface: docs, recipes, prompts, workflows, generated evidence, and a read-only MCP context layer.</p>
-  </div>
-  <div class="dual-cta-section">
-    <div class="dual-cta-card reveal d2">
-      <h3>Open Knowledge Base</h3>
-      <p>MIT-licensed fundamentals, per-agent recipes, prompt library entries, automation guidance, and contribution paths that teams can fork, adapt, and run through normal review.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">agent recipes</span>
-        <span class="dual-cta-tag">MIT licensed</span>
-        <span class="dual-cta-tag">prompt library</span>
-        <span class="dual-cta-tag">quick start</span>
-      </div>
-    </div>
-    <div class="dual-cta-card secrem reveal d3">
-      <h3>Security-Operated Workflows</h3>
-      <p>Reference remediation workflows for sensitive data, vulnerable dependencies, SAST findings, base images, artifact quarantine, and other bounded fix shapes where agents produce PRs or triage notes.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">reviewer-gated</span>
-        <span class="dual-cta-tag">bounded scope</span>
-        <span class="dual-cta-tag">clean stop modes</span>
-      </div>
-    </div>
-    <div class="dual-cta-card mcp reveal d4">
-      <h3>MCP Context + Evidence</h3>
-      <p>A read-only server and generated packs for the control plane blueprint, workflow control, gateway policy, connector intake, connector trust, MCP authorization conformance, identity, assurance, readiness, red-team drills, secure context trust, context attestations, secure context evals, skill supply-chain decisions, runtime retrieval, context egress decisions, and agentic run receipts.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">FastMCP</span>
-        <span class="dual-cta-tag">control plane blueprint</span>
-        <span class="dual-cta-tag">context attestation</span>
-        <span class="dual-cta-tag">context evals</span>
-        <span class="dual-cta-tag">JSON packs</span>
-        <span class="dual-cta-tag">default-deny decisions</span>
-        <span class="dual-cta-tag">run receipts</span>
-        <span class="dual-cta-tag">skill supply chain</span>
-        <span class="dual-cta-tag">data boundaries</span>
       </div>
     </div>
   </div>
@@ -1504,7 +1717,7 @@
 
     function ensureIndexLoaded() {
       if (loading) return loading;
-      loading = fetch('{{ $base }}/recipes-index.json', { credentials: 'same-origin' })
+      loading = fetch('{{ "/recipes-index.json" | relURL }}', { credentials: 'same-origin' })
         .then(r => r.ok ? r.json() : Promise.reject(new Error('index-unavailable')))
         .then(data => {
           docs = Array.isArray(data) ? data : [];
@@ -1581,10 +1794,22 @@
       renderResults(matched, q);
     }
 
+    function isTypingTarget(target) {
+      const node = target && target.nodeType === 1 ? target : document.activeElement;
+      if (!node) return false;
+      const tag = node.tagName ? node.tagName.toLowerCase() : '';
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+      if (node.isContentEditable) return true;
+      if (node.closest) {
+        return !!node.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]');
+      }
+      return false;
+    }
+
     input.addEventListener('input', runSearch);
     input.addEventListener('focus', () => { if (input.value.trim()) runSearch(); });
     document.addEventListener('keydown', (e) => {
-      if (e.key === '/' && document.activeElement !== input) {
+      if (e.key === '/' && document.activeElement !== input && !isTypingTarget(e.target) && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
         input.focus();
       }
@@ -1621,5 +1846,18 @@
     });
   });
 </script>
+<script>
+window.__SITE_BASE_PREFIX = {{ "/" | relURL | printf "%q" | safeJS }};
+window.__SECURITY_RECIPES_MARKETPLACE = {
+  catalog: {{ site.Data.marketplace.catalog | jsonify | safeJS }},
+  inputChannels: {{ site.Data.marketplace.input_channels | jsonify | safeJS }},
+  outputChannels: {{ site.Data.marketplace.output_channels | jsonify | safeJS }},
+  reportProfiles: {{ site.Data.marketplace.report_profiles | jsonify | safeJS }},
+  workflowTemplates: {{ site.Data.marketplace.workflow_templates | jsonify | safeJS }}
+};
+</script>
+{{ with resources.Get "js/ai-chatbot.js" | minify | fingerprint }}
+<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
 </body>
 </html>

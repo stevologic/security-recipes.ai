@@ -1,0 +1,198 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Aggregate SecurityRecipes secure-context, MCP, A2A, identity, telemetry, exposure, readiness, and evidence packs into a single enterprise posture snapshot that AI platform, security, procurement, and acquisition diligence teams can use to decide whether agentic AI systems are ready to operate, scale, or pause.",
+  "positioning": {
+    "buyer": "AI Platform, Security Architecture, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
+    "category": "Agentic AI posture management for secure context and MCP operations",
+    "enterprise_promise": "SecurityRecipes can show which agents exist, which identities and MCP namespaces they use, which context they retrieve, where XPIA and high-autonomy exposure concentrates, which workflows are scale-ready, and which evidence proves the current posture.",
+    "why_now": "Agentic AI has moved from assistant UX into tool-using and multi-agent systems. Enterprises need continuous posture evidence across context, tools, identity, handoffs, guardrails, and runtime traces before they can safely expand autonomous workflows."
+  },
+  "decision_contract": {
+    "default_decision": "hold_for_posture_review",
+    "decisions": [
+      {
+        "decision": "enterprise_foundation_ready",
+        "meaning": "The open reference posture has enough generated evidence, inventory, and runtime controls to support enterprise pilot and diligence conversations."
+      },
+      {
+        "decision": "guarded_enterprise_pilot",
+        "meaning": "The posture is credible, but high-exposure paths, pilot connectors, or actionable poisoning findings require bounded rollout and owner review."
+      },
+      {
+        "decision": "hold_for_posture_review",
+        "meaning": "Missing or stale posture evidence prevents expansion until the source pack is regenerated or remediated."
+      },
+      {
+        "decision": "kill_session_on_posture_signal",
+        "meaning": "A runtime event indicates secret exposure, prohibited egress, rogue authority, or an XPIA-sensitive high-autonomy path and the agent session should stop."
+      }
+    ],
+    "score_thresholds": {
+      "enterprise_foundation_ready": 88,
+      "guarded_enterprise_pilot": 74
+    },
+    "required_source_packs": [
+      "agentic-system-bom",
+      "agent-identity-delegation-ledger",
+      "mcp-connector-trust-pack",
+      "mcp-authorization-conformance-pack",
+      "mcp-tool-risk-contract",
+      "secure-context-trust-pack",
+      "context-poisoning-guard-pack",
+      "context-egress-boundary-pack",
+      "agent-handoff-boundary-pack",
+      "a2a-agent-card-trust-profile",
+      "agent-skill-supply-chain-pack",
+      "agentic-telemetry-contract",
+      "agentic-exposure-graph",
+      "agentic-readiness-scorecard",
+      "agentic-standards-crosswalk"
+    ],
+    "runtime_kill_signals": [
+      "secret_or_token_seen_in_context_or_telemetry",
+      "high_autonomy_plus_high_xpia_without_human_approval",
+      "unregistered_agent_or_workflow_attempts_tool_call",
+      "agent_card_requests_prohibited_secret_or_high_impact_skill",
+      "session_combines_private_data_untrusted_content_and_external_write"
+    ]
+  },
+  "posture_dimensions": [
+    {
+      "id": "asset_inventory",
+      "title": "Agent and Component Inventory",
+      "weight": 12,
+      "question": "Can the program enumerate workflows, agents, identities, MCP connectors, context sources, and evidence artifacts?"
+    },
+    {
+      "id": "identity_authority",
+      "title": "Identity and Delegated Authority",
+      "weight": 14,
+      "question": "Are non-human identities, explicit denies, token rules, and MCP authorization decisions visible before agents act?"
+    },
+    {
+      "id": "mcp_tool_surface",
+      "title": "MCP Tool Surface Control",
+      "weight": 14,
+      "question": "Are MCP namespaces registered, risk-tiered, authorization-bound, and checked for session-level exfiltration paths?"
+    },
+    {
+      "id": "context_integrity",
+      "title": "Context Integrity and Egress",
+      "weight": 14,
+      "question": "Is retrieved context owned, hashed, demoted from instruction to evidence, scanned for poisoning, and bounded before egress?"
+    },
+    {
+      "id": "inter_agent_boundary",
+      "title": "Inter-Agent and Skill Boundary",
+      "weight": 10,
+      "question": "Are A2A Agent Cards, handoffs, and agent skills treated as untrusted supply-chain inputs until controls are verified?"
+    },
+    {
+      "id": "runtime_guardrails",
+      "title": "Runtime Guardrails and Telemetry",
+      "weight": 14,
+      "question": "Can the program reconstruct agent runs with guardrail, tool-call, egress, approval, telemetry, and receipt evidence?"
+    },
+    {
+      "id": "exposure_management",
+      "title": "Exposure Path Management",
+      "weight": 12,
+      "question": "Does the program rank the paths where context, identities, MCP tools, autonomy, and external destinations combine into material exposure?"
+    },
+    {
+      "id": "standards_diligence",
+      "title": "Standards and Buyer Diligence",
+      "weight": 10,
+      "question": "Can SecurityRecipes answer current OWASP, NIST, MCP, OpenAI, A2A, and procurement questions with generated evidence?"
+    }
+  ],
+  "risk_factors": [
+    {
+      "id": "xpia_high_autonomy",
+      "title": "High Autonomy plus Indirect Prompt Injection",
+      "severity": "critical",
+      "control_goal": "Identify workflows where untrusted context can influence high-impact tool use, then require human approval, tool guardrails, and telemetry before action."
+    },
+    {
+      "id": "session_exfiltration_path",
+      "title": "Private Data, Untrusted Content, and External Write in One Session",
+      "severity": "critical",
+      "control_goal": "Block or split sessions where tool combinations create a path from sensitive context to ticket, webhook, registry, model, or public egress."
+    },
+    {
+      "id": "agentic_supply_chain_drift",
+      "title": "Agent Skill, Agent Card, or Tool Description Drift",
+      "severity": "high",
+      "control_goal": "Pin, hash, diff-review, and rescan skills, Agent Cards, tool schemas, and MCP server metadata before promotion."
+    },
+    {
+      "id": "identity_privilege_abuse",
+      "title": "Identity and Privilege Abuse",
+      "severity": "high",
+      "control_goal": "Require per-workflow non-human identities, short-lived tokens, audience binding, explicit denies, and runtime revocation."
+    },
+    {
+      "id": "context_poisoning_or_staleness",
+      "title": "Context Poisoning or Stale Secure Context",
+      "severity": "high",
+      "control_goal": "Fail closed when registered context has actionable poisoning findings, stale hashes, or missing owner recertification."
+    }
+  ],
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Agent goal hijack, tool misuse, identity and privilege abuse, agentic supply chain, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue agents."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "coverage": "Skill registry compromise, over-privileged skills, weak isolation, update drift, insecure metadata, missing governance, scanning gaps, and incident response for agent execution layers."
+    },
+    {
+      "id": "mcp-authorization-2025-06-18",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization",
+      "coverage": "OAuth 2.1 resource-server expectations for HTTP MCP transports, resource indicators, audience binding, PKCE, token handling, and confused-deputy controls."
+    },
+    {
+      "id": "openai-agents-guardrails-current",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-python/guardrails/",
+      "coverage": "Input, output, and tool guardrails, tripwires, workflow boundaries, hosted-tool limits, and tool-call validation before and after execution."
+    },
+    {
+      "id": "a2a-protocol-current",
+      "name": "Agent2Agent Protocol",
+      "url": "https://github.com/a2aproject/A2A",
+      "coverage": "Agent discovery, Agent Cards, JSON-RPC over HTTP(S), streaming, push notifications, authentication, observability, and secure interoperability between opaque agents."
+    },
+    {
+      "id": "microsoft-agent-posture-2026",
+      "name": "Microsoft Security - A new era of agents, a new era of posture",
+      "url": "https://www.microsoft.com/en-us/security/blog/2026/01/21/new-era-of-agents-new-era-of-posture/",
+      "coverage": "Agent posture, indirect prompt injection risk, high-autonomy risk factors, coordinator agents, attack-path analysis, and hardening guidance for reducing agent attack surface."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Generative AI governance, mapping, measurement, third-party dependencies, data provenance, monitoring, incident response, and lifecycle risk treatment."
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes now produces a posture snapshot for the secure context layer, showing whether agentic workflows have enough inventory, identity, MCP, context, handoff, telemetry, exposure, and standards evidence to expand.",
+    "default_questions_answered": [
+      "Which agentic workflows can scale, pilot, or pause?",
+      "Which agents and identities can reach which MCP namespaces?",
+      "Where do high-autonomy, XPIA-sensitive, or exfiltration-capable paths concentrate?",
+      "Which source packs prove the posture decision?",
+      "Which gaps should an enterprise buyer or acquirer prioritize first?"
+    ],
+    "recommended_first_use": "Attach the posture snapshot to AI platform quarterly posture review, procurement security review, MCP gateway promotion, model-agent launch review, and acquisition diligence.",
+    "sales_motion": "Lead with the open posture snapshot, then sell hosted posture diffs, customer runtime evidence ingestion, private MCP exposure graphs, executive risk dashboards, and trust-center APIs."
+  }
+}

@@ -1,0 +1,904 @@
+{
+  "boundary_contract": {
+    "default_state": "browser_authority_untrusted_until_isolated_scoped_user_confirmed_and_receipt_bound",
+    "kill_signal_indicators": [
+      "cross_origin_secret_egress",
+      "credential_visible_to_page",
+      "download_and_execute",
+      "hidden_instruction_observed",
+      "localhost_probe",
+      "payment_or_purchase_attempt",
+      "prompt_injection_detected_with_side_effect",
+      "raw_token_in_dom_or_storage",
+      "unapproved_admin_console_write",
+      "untrusted_content_requests_external_send"
+    ],
+    "minimum_task_profiles": 6,
+    "minimum_workspace_classes": 6,
+    "required_control_keys": [
+      "dedicated_agent_profile",
+      "ephemeral_or_scoped_storage",
+      "logged_out_by_default",
+      "origin_allowlist",
+      "no_raw_secret_capture",
+      "draft_first_delivery",
+      "human_confirmation_for_external_send",
+      "metadata_only_telemetry",
+      "download_quarantine",
+      "localhost_blocklist",
+      "run_receipt",
+      "kill_switch"
+    ],
+    "required_runtime_attributes": [
+      "workspace_class_id",
+      "task_profile_id",
+      "session_id",
+      "run_id",
+      "agent_id",
+      "tenant_id",
+      "user_intent",
+      "target_origin",
+      "content_trust_level",
+      "auth_state",
+      "isolation_mode",
+      "action_classes",
+      "data_classes",
+      "network_egress_policy",
+      "browser_storage_policy",
+      "approval_state",
+      "telemetry_event_id",
+      "receipt_id"
+    ],
+    "valid_decisions": [
+      "allow_isolated_browser_task",
+      "hold_for_user_confirmation",
+      "hold_for_browser_workspace_review",
+      "deny_ambient_browser_authority",
+      "kill_session_on_browser_agent_signal"
+    ]
+  },
+  "browser_agent_boundary_summary": {
+    "critical_or_high_workspace_count": 4,
+    "decision_counts": {
+      "allow_isolated_browser_task": 1,
+      "deny_ambient_browser_authority": 2,
+      "hold_for_browser_workspace_review": 1,
+      "hold_for_user_confirmation": 3
+    },
+    "failure_count": 0,
+    "source_summary_count": 7,
+    "status": "browser_boundary_ready",
+    "task_count": 6,
+    "task_decision_counts": {
+      "allow_isolated_browser_task": 1,
+      "deny_ambient_browser_authority": 1,
+      "hold_for_browser_workspace_review": 2,
+      "hold_for_user_confirmation": 2
+    },
+    "workspace_count": 7,
+    "workspace_risk_tier_counts": {
+      "critical": 3,
+      "high": 1,
+      "low": 1,
+      "medium": 2
+    }
+  },
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, AI browser vendor, security platform, or developer tooling company gets a ready-made boundary for the hardest agent adoption surface: logged-in browsers and untrusted web content.",
+    "enterprise_layer": "Hosted browser-agent policy API, dedicated agent workspace broker, browser isolation adapters, prompt-injection event ingestion, signed run receipts, and SIEM/SOAR export.",
+    "open_layer": "Public browser-agent boundary model, deterministic generator, runtime evaluator, generated JSON evidence pack, and docs that make browser-agent safety concrete.",
+    "team_layer": "Custom origin policies, delivery-route policy, browser storage policy, localhost allowlists, and customer-specific browser task manifests."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can decide whether a browser agent should proceed before untrusted content meets logged-in sessions, local storage, downloads, localhost, forms, or external delivery routes.",
+    "default_questions_answered": [
+      "Can this browser task run logged out?",
+      "Is this a dedicated agent profile or a user's normal browser?",
+      "Can untrusted content influence an external send or form submit?",
+      "Are provider, GitHub, session, or customer tokens visible to the page or model?",
+      "Is localhost, download, admin-console, or payment authority reachable?",
+      "Which telemetry and receipt fields prove what happened?"
+    ],
+    "recommended_first_use": "Attach this pack to browser-agent launches, AI browser procurement, desktop agent workspace design, beta planner approvals, and quarterly prompt-injection tabletop exercises.",
+    "sales_motion": "Lead with a readable browser-agent safety gate, then sell hosted policy, dedicated workspace brokering, origin enforcement, prompt-injection telemetry, and signed browser run receipts."
+  },
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "intent": "Define the SecurityRecipes browser-agent workspace boundary: a generated, machine-readable policy model for deciding when browser-based or desktop browser agents may inspect untrusted content, use logged-in sessions, hold credentials, navigate origins, fill forms, download files, call local services, or deliver outputs through external routes.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, Browser Platform, Security Engineering, SOC, GRC, procurement security, and agent-host teams",
+    "category": "Browser-agent workspace isolation and ambient-authority control for agentic AI",
+    "enterprise_promise": "SecurityRecipes can make browser agents easier to approve by turning prompt-injection exposure, logged-in session state, local credential storage, origin changes, file downloads, localhost access, and side effects into deterministic allow, hold, deny, or kill decisions.",
+    "why_now": "Agentic AI is moving from chat and code review into browsers, email, documents, web apps, and desktop workspaces. Browser agents combine untrusted content with ambient user sessions, DOM-visible data, local storage, downloads, forms, and external communication, so enterprises need a boundary that constrains impact even when prompt injection or social-engineering attacks are not perfectly detected."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open boundary models workspace and task classes, not a live browser isolation implementation.",
+      "treatment": "Hosted deployments should bind decisions to browser isolation logs, origin policy, agent workspace identity, approval receipts, and telemetry events."
+    },
+    {
+      "risk": "Prompt-injection detection is imperfect, especially when attacks look like ordinary social engineering.",
+      "treatment": "Constrain source-to-sink combinations: untrusted content plus external send, credential use, localhost access, downloads, admin writes, or payment actions should hold, deny, or kill."
+    },
+    {
+      "risk": "Browser profile state can drift when extensions, tokens, cookies, local storage, or saved credentials change.",
+      "treatment": "Prefer dedicated agent profiles, scoped storage, short-lived tokens, storage inspection, and recertification before recurring browser-agent schedules run."
+    }
+  ],
+  "runtime_risk_weights": {
+    "admin_console_write": 35,
+    "ambient_cookies_available": 25,
+    "contains_secret": 35,
+    "cross_origin_egress": 20,
+    "dom_credential_visible": 30,
+    "downloads_file": 14,
+    "executes_code": 35,
+    "external_side_effect": 20,
+    "local_storage_token": 20,
+    "localhost_access": 25,
+    "missing_approval_for_send": 18,
+    "missing_receipt": 12,
+    "missing_telemetry": 10,
+    "payment_or_purchase": 45,
+    "persistent_memory_write": 18,
+    "personal_profile": 25,
+    "untrusted_content": 15
+  },
+  "schema_version": "1.0",
+  "selected_feature": {
+    "id": "browser-agent-workspace-boundary",
+    "implementation": [
+      "Boundary profile under data/assurance.",
+      "Deterministic generator under scripts.",
+      "Runtime evaluator for browser-agent sessions.",
+      "Generated evidence pack under data/evidence.",
+      "Human-readable docs page and MCP tool exposure."
+    ],
+    "reason": "Browser agents are becoming the most sensitive agent surface because untrusted content, logged-in user sessions, local storage, downloads, localhost, and external actions collide in one workspace."
+  },
+  "source_artifacts": {
+    "agentic_action_runtime_pack": {
+      "available": true,
+      "path": "data/evidence/agentic-action-runtime-pack.json",
+      "sha256": "557b1c53c422fdd256a085160fc2fa65609fc63113b627ea06140f671819b3f3"
+    },
+    "agentic_app_intake_pack": {
+      "available": true,
+      "path": "data/evidence/agentic-app-intake-pack.json",
+      "sha256": "8fc8923faca76a09dd198e5974e35252deaf10b1f112667419a72a74630f2ede"
+    },
+    "agentic_incident_response_pack": {
+      "available": true,
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527"
+    },
+    "agentic_telemetry_contract": {
+      "available": true,
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+    },
+    "browser_agent_boundary_profile": {
+      "path": "data/assurance/browser-agent-boundary-profile.json",
+      "sha256": "68e6aeed732eafea9f65f565d2d2dc9dd7652444b5fe95a2ab51df050778db3a"
+    },
+    "browser_agent_readme": {
+      "available": true,
+      "path": "README.browser-agents.md",
+      "sha256": "675df83a8f06ba1b767640336512c0b8efb3cd5d09f08638c0c04e93a9e6cfda"
+    },
+    "context_egress_boundary_pack": {
+      "available": true,
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+    },
+    "secure_context_trust_pack": {
+      "available": true,
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085"
+    },
+    "threat_radar": {
+      "available": true,
+      "path": "data/evidence/agentic-threat-radar.json",
+      "sha256": "c36eb376ab0f1576116c8ade981106d4446aab6f9feebbea39a9b7cca6271eda"
+    }
+  },
+  "source_summaries": {
+    "agentic_action_runtime_pack": {
+      "key": "action_runtime_summary",
+      "source": "agentic_action_runtime_pack",
+      "value": {
+        "action_class_count": 10,
+        "critical_or_high_action_count": 8,
+        "decision_floor_counts": {
+          "deny_unapproved_high_impact_action": 4,
+          "hold_for_action_evidence": 3,
+          "hold_for_human_approval": 1
+        },
+        "failure_count": 0,
+        "registered_action_class_count": 5,
+        "required_evidence_source_count": 12,
+        "source_failure_count": 0,
+        "workflow_count": 8
+      }
+    },
+    "agentic_app_intake_pack": {
+      "key": "app_intake_summary",
+      "source": "agentic_app_intake_pack",
+      "value": {
+        "app_count": 4,
+        "critical_or_high_count": 2,
+        "decision_counts": {
+          "approve_guarded_pilot": 1,
+          "approve_reference_launch": 1,
+          "deny_until_controls_exist": 1,
+          "hold_for_agentic_app_security_review": 1
+        },
+        "failure_count": 0,
+        "lethal_secret_or_signer_path_count": 1,
+        "risk_tier_counts": {
+          "critical": 2,
+          "low": 1,
+          "medium": 1
+        },
+        "source_snapshot": {
+          "agentic_posture_decision": "guarded_enterprise_pilot",
+          "agentic_posture_score": 96,
+          "lethal_tool_combination_workflows": 2,
+          "registered_workflows": 8,
+          "telemetry_signal_classes": 9
+        }
+      }
+    },
+    "agentic_incident_response_pack": {
+      "key": "incident_response_summary",
+      "source": "agentic_incident_response_pack",
+      "value": {
+        "class_count": 8,
+        "decision_counts": {
+          "contain_and_open_war_room": 3,
+          "hold_for_forensics": 2,
+          "kill_session_and_escalate_board": 3
+        },
+        "failure_count": 0,
+        "required_evidence_source_count": 15,
+        "response_phase_count": 6,
+        "sev0_class_count": 2,
+        "sev1_class_count": 5,
+        "source_failure_count": 0,
+        "workflow_count": 8
+      }
+    },
+    "agentic_telemetry_contract": {
+      "key": "telemetry_summary",
+      "source": "agentic_telemetry_contract",
+      "value": {
+        "decision_counts": {
+          "telemetry_ready": 8
+        },
+        "default_state": "untrusted_until_required_trace_fields_present",
+        "failure_count": 0,
+        "prohibited_field_count": 8,
+        "redaction_tier_count": 4,
+        "required_attribute_count": 26,
+        "sensitive_opt_in_attribute_count": 7,
+        "signal_class_count": 9,
+        "telemetry_check_count": 8,
+        "workflow_count": 8
+      }
+    },
+    "context_egress_boundary_pack": {
+      "key": "egress_boundary_summary",
+      "source": "context_egress_boundary_pack",
+      "value": {
+        "data_class_counts": {
+          "curated_security_guidance": 2,
+          "generated_policy_evidence": 7
+        },
+        "decision_counts": {
+          "allow_public_egress_with_citation": 9
+        },
+        "destination_class_count": 7,
+        "failure_count": 0,
+        "namespace_policy_count": 24,
+        "prohibited_data_class_count": 2,
+        "source_count": 9,
+        "tenant_bound_data_class_count": 7,
+        "workflow_count": 8,
+        "workflow_namespace_data_class_counts": {
+          "curated_security_guidance": 1,
+          "customer_asset_metadata": 5,
+          "customer_case_context": 2,
+          "customer_finding_metadata": 5,
+          "customer_pipeline_metadata": 3,
+          "customer_source_code": 7,
+          "public_vulnerability_intelligence": 1
+        }
+      }
+    },
+    "secure_context_trust_pack": {
+      "key": "context_trust_summary",
+      "source": "secure_context_trust_pack",
+      "value": {
+        "context_source_count": 9,
+        "decision_counts": {
+          "allow_policy_context_with_citation": 7,
+          "allow_public_context": 2
+        },
+        "default_decision": "deny_unregistered_context",
+        "failure_count": 0,
+        "prohibited_data_class_count": 7,
+        "registered_byte_count": 3532254,
+        "registered_file_count": 181,
+        "risk_family_counts": {
+          "context_poisoning": 8,
+          "memory_poisoning": 3,
+          "over_retrieval": 7,
+          "policy_drift": 8,
+          "prompt_injection": 3,
+          "secret_exposure": 6,
+          "stale_context": 8,
+          "tool_result_injection": 7,
+          "untrusted_source_confusion": 3
+        },
+        "source_kind_counts": {
+          "generated_evidence": 1,
+          "markdown_corpus": 2,
+          "policy_json": 5,
+          "runtime_code": 1
+        },
+        "sources_requiring_citation": 9,
+        "trust_tier_counts": {
+          "tier_1_curated_guidance": 2,
+          "tier_2_policy_context": 7
+        },
+        "workflow_context_package_count": 8
+      }
+    },
+    "threat_radar": {
+      "key": "threat_radar_summary",
+      "source": "threat_radar",
+      "value": {
+        "confidence_counts": {
+          "high": 12
+        },
+        "critical_or_high_signal_count": 11,
+        "feature_backlog_count": 7,
+        "horizon_counts": {
+          "next": 2,
+          "now": 10
+        },
+        "implemented_capability_count": 17,
+        "priority_counts": {
+          "critical": 4,
+          "high": 7,
+          "medium": 1
+        },
+        "signal_count": 12,
+        "source_class_counts": {
+          "frontier_lab_guidance": 3,
+          "government_framework": 4,
+          "government_guidance": 2,
+          "industry_guidance": 3,
+          "industry_standard": 3,
+          "protocol_guidance": 1,
+          "protocol_specification": 3,
+          "vendor_architecture_guidance": 1
+        },
+        "source_reference_count": 20,
+        "top_signals": [
+          {
+            "id": "agent-protocol-handoff-boundaries",
+            "priority": "critical",
+            "strategic_score": 98,
+            "title": "Agent handoffs are becoming a protocol trust boundary"
+          },
+          {
+            "id": "indirect-prompt-injection-social-engineering",
+            "priority": "critical",
+            "strategic_score": 98,
+            "title": "Indirect prompt injection is now social engineering against agents"
+          },
+          {
+            "id": "mcp-token-passthrough-and-scope-creep",
+            "priority": "critical",
+            "strategic_score": 95,
+            "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
+          },
+          {
+            "id": "agent-identity-explosion",
+            "priority": "critical",
+            "strategic_score": 93,
+            "title": "Agent identities are becoming a new non-human identity class"
+          },
+          {
+            "id": "capability-based-agentic-risk-governance",
+            "priority": "high",
+            "strategic_score": 93,
+            "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
+          }
+        ]
+      }
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Treats prompt injection as a social-engineering style agent-security problem and emphasizes constraining dangerous sources-to-sinks combinations such as untrusted content plus external transmission or tool actions.",
+      "id": "openai-agent-prompt-injection-2026",
+      "name": "OpenAI: Designing AI agents to resist prompt injection",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/"
+    },
+    {
+      "coverage": "Frames browser agents as high-value targets because they view pages, click, type, and act in the same browser spaces, contexts, and data surfaces users rely on.",
+      "id": "openai-atlas-prompt-injection-2025",
+      "name": "OpenAI: Continuously hardening ChatGPT Atlas against prompt injection attacks",
+      "url": "https://openai.com/index/hardening-atlas-against-prompt-injection/"
+    },
+    {
+      "coverage": "Documents browser-specific prompt-injection risk from webpages, embedded documents, ads, dynamic scripts, forms, clicks, downloads, and email-like workflows that can expose confidential data.",
+      "id": "anthropic-browser-prompt-injection-2025",
+      "name": "Anthropic: Mitigating the risk of prompt injections in browser use",
+      "url": "https://www.anthropic.com/research/prompt-injection-defenses"
+    },
+    {
+      "coverage": "Supports dedicated agent accounts, contained workspaces, scoped authorization, runtime isolation, visibility, and user control for agentic desktop/browser-style automation.",
+      "id": "microsoft-agent-workspace-2025",
+      "name": "Microsoft: Experimental Agentic Features and Agent Workspace",
+      "url": "https://support.microsoft.com/en-us/windows/experimental-agentic-features-a25ede8a-e4c2-4841-85a8-44839191dfb3"
+    },
+    {
+      "coverage": "Calls out indirect prompt injection, data poisoning, misaligned actions, and deployment interventions that constrain and monitor agent access in real environments.",
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+    },
+    {
+      "coverage": "Aligns browser-agent boundaries to secure and interoperable agent adoption, agent identity, authorization, and evaluations for agents that operate across digital ecosystems.",
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+    },
+    {
+      "coverage": "Connects browser-agent tool handoffs to resource indicators, token audience binding, PKCE, short-lived tokens, secure token storage, and token-passthrough denial.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Maps browser-agent controls to goal hijacking, tool misuse, identity and privilege abuse, memory/context poisoning, cascading failures, and rogue-agent containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    }
+  ],
+  "task_profiles": [
+    {
+      "allowed_action_classes": [
+        "navigate",
+        "read_page",
+        "summarize",
+        "copy_draft"
+      ],
+      "allowed_workspace_class_ids": [
+        "public-research-browser",
+        "security-recipes-browser-planner"
+      ],
+      "default_decision": "allow_isolated_browser_task",
+      "description": "Read public standards, vendor advisories, public GitHub metadata, and public documentation for cited context.",
+      "effective_decision": "allow_isolated_browser_task",
+      "id": "public-security-research",
+      "max_workspace_residual_risk_score": 0,
+      "required_controls": [
+        "logged_out_by_default",
+        "origin_allowlist",
+        "metadata_only_telemetry",
+        "run_receipt"
+      ],
+      "title": "Public security research",
+      "workspace_decisions": {
+        "public-research-browser": "allow_isolated_browser_task",
+        "security-recipes-browser-planner": "hold_for_user_confirmation"
+      }
+    },
+    {
+      "allowed_action_classes": [
+        "read_page",
+        "copy_draft"
+      ],
+      "allowed_workspace_class_ids": [
+        "payment-admin-console-browser"
+      ],
+      "default_decision": "deny_ambient_browser_authority",
+      "description": "Read-only observation of high-impact consoles for drafting instructions, never autonomous submission.",
+      "effective_decision": "deny_ambient_browser_authority",
+      "id": "admin-or-payment-observation",
+      "max_workspace_residual_risk_score": 37,
+      "required_controls": [
+        "dedicated_agent_profile",
+        "origin_allowlist",
+        "draft_first_delivery",
+        "human_confirmation_for_external_send",
+        "run_receipt",
+        "kill_switch"
+      ],
+      "title": "Admin or payment observation",
+      "workspace_decisions": {
+        "payment-admin-console-browser": "deny_ambient_browser_authority"
+      }
+    },
+    {
+      "allowed_action_classes": [
+        "read_page",
+        "summarize",
+        "copy_draft",
+        "draft_reply"
+      ],
+      "allowed_workspace_class_ids": [
+        "email-document-browser-agent",
+        "enterprise-isolated-browser-workspace"
+      ],
+      "default_decision": "hold_for_browser_workspace_review",
+      "description": "Read and summarize messages, documents, or tickets while treating every embedded instruction as untrusted content.",
+      "effective_decision": "hold_for_browser_workspace_review",
+      "id": "email-document-triage",
+      "max_workspace_residual_risk_score": 8,
+      "required_controls": [
+        "dedicated_agent_profile",
+        "draft_first_delivery",
+        "human_confirmation_for_external_send",
+        "no_raw_secret_capture",
+        "run_receipt"
+      ],
+      "title": "Email and document triage",
+      "workspace_decisions": {
+        "email-document-browser-agent": "hold_for_user_confirmation",
+        "enterprise-isolated-browser-workspace": "hold_for_user_confirmation"
+      }
+    },
+    {
+      "allowed_action_classes": [
+        "navigate",
+        "read_page",
+        "copy_draft"
+      ],
+      "allowed_workspace_class_ids": [
+        "localhost-devtools-browser"
+      ],
+      "default_decision": "hold_for_browser_workspace_review",
+      "description": "Inspect local dev pages only when loopback routes are explicitly allowlisted and public web pages cannot initiate them.",
+      "effective_decision": "hold_for_browser_workspace_review",
+      "id": "localhost-devtool-review",
+      "max_workspace_residual_risk_score": 24,
+      "required_controls": [
+        "origin_allowlist",
+        "localhost_blocklist",
+        "download_quarantine",
+        "metadata_only_telemetry",
+        "run_receipt",
+        "kill_switch"
+      ],
+      "title": "Localhost developer tool review",
+      "workspace_decisions": {
+        "localhost-devtools-browser": "hold_for_browser_workspace_review"
+      }
+    },
+    {
+      "allowed_action_classes": [
+        "copy_draft",
+        "create_issue",
+        "post_handoff",
+        "create_ticket"
+      ],
+      "allowed_workspace_class_ids": [
+        "security-recipes-browser-planner",
+        "enterprise-isolated-browser-workspace"
+      ],
+      "default_decision": "hold_for_user_confirmation",
+      "description": "Generate a draft PR packet, issue body, email, Slack message, Jira ticket, or runbook receipt after user review.",
+      "effective_decision": "hold_for_user_confirmation",
+      "id": "draft-remediation-handoff",
+      "max_workspace_residual_risk_score": 0,
+      "required_controls": [
+        "draft_first_delivery",
+        "human_confirmation_for_external_send",
+        "run_receipt",
+        "metadata_only_telemetry"
+      ],
+      "title": "Draft remediation handoff",
+      "workspace_decisions": {
+        "enterprise-isolated-browser-workspace": "hold_for_user_confirmation",
+        "security-recipes-browser-planner": "hold_for_user_confirmation"
+      }
+    },
+    {
+      "allowed_action_classes": [
+        "navigate",
+        "read_page",
+        "fill_form",
+        "copy_draft"
+      ],
+      "allowed_workspace_class_ids": [
+        "enterprise-isolated-browser-workspace"
+      ],
+      "default_decision": "hold_for_user_confirmation",
+      "description": "Fill bounded forms in approved internal apps with explicit confirmation before submit.",
+      "effective_decision": "hold_for_user_confirmation",
+      "id": "internal-webapp-form-fill",
+      "max_workspace_residual_risk_score": 0,
+      "required_controls": [
+        "dedicated_agent_profile",
+        "origin_allowlist",
+        "human_confirmation_for_external_send",
+        "metadata_only_telemetry",
+        "run_receipt"
+      ],
+      "title": "Internal webapp form fill",
+      "workspace_decisions": {
+        "enterprise-isolated-browser-workspace": "hold_for_user_confirmation"
+      }
+    }
+  ],
+  "workspace_classes": [
+    {
+      "allowed_action_classes": [],
+      "allowed_content_trust_levels": [
+        "none"
+      ],
+      "base_risk_score": 88,
+      "commercial_value": "Clear denial of ambient user authority is a trust-builder for enterprise browser-agent adoption.",
+      "control_credit": 40,
+      "default_decision": "deny_ambient_browser_authority",
+      "description": "A user's normal browser profile with ambient cookies, password managers, extensions, synced tabs, and uncontrolled local storage.",
+      "effective_decision": "deny_ambient_browser_authority",
+      "id": "logged-in-personal-browser",
+      "prohibited_conditions": [
+        "ambient cookies",
+        "password manager access",
+        "personal mailbox or storage access",
+        "extension state exposure",
+        "external writes"
+      ],
+      "required_controls": [
+        "dedicated_agent_profile",
+        "ephemeral_or_scoped_storage",
+        "logged_out_by_default",
+        "kill_switch"
+      ],
+      "residual_risk_score": 48,
+      "risk_tier": "critical",
+      "title": "Logged-in personal browser"
+    },
+    {
+      "allowed_action_classes": [
+        "read_page",
+        "copy_draft"
+      ],
+      "allowed_content_trust_levels": [
+        "admin_console"
+      ],
+      "base_risk_score": 95,
+      "commercial_value": "Board-grade proof that the product does not silently automate irreversible browser actions.",
+      "control_credit": 58,
+      "default_decision": "deny_ambient_browser_authority",
+      "description": "Browser agent reaches money movement, account administration, production settings, IAM, customer data exports, or destructive consoles.",
+      "effective_decision": "deny_ambient_browser_authority",
+      "id": "payment-admin-console-browser",
+      "prohibited_conditions": [
+        "payment submission",
+        "purchase approval",
+        "IAM change",
+        "production configuration write",
+        "customer export",
+        "destructive action"
+      ],
+      "required_controls": [
+        "dedicated_agent_profile",
+        "origin_allowlist",
+        "draft_first_delivery",
+        "human_confirmation_for_external_send",
+        "metadata_only_telemetry",
+        "run_receipt",
+        "kill_switch"
+      ],
+      "residual_risk_score": 37,
+      "risk_tier": "critical",
+      "title": "Payment or admin console browser"
+    },
+    {
+      "allowed_action_classes": [
+        "navigate",
+        "read_page",
+        "copy_draft"
+      ],
+      "allowed_content_trust_levels": [
+        "local_dev"
+      ],
+      "base_risk_score": 82,
+      "commercial_value": "Prevents browser agents from becoming bridges into local MCP, notebooks, IDEs, and developer machines.",
+      "control_credit": 58,
+      "default_decision": "hold_for_browser_workspace_review",
+      "description": "Browser agent that can reach localhost, loopback services, dev servers, notebook workspaces, IDE bridges, or local agent control ports.",
+      "effective_decision": "hold_for_browser_workspace_review",
+      "id": "localhost-devtools-browser",
+      "prohibited_conditions": [
+        "untrusted web page can trigger localhost navigation",
+        "localhost service exposes tokens",
+        "devtools or notebook endpoint can execute code",
+        "browser can bridge public web content to loopback APIs"
+      ],
+      "required_controls": [
+        "dedicated_agent_profile",
+        "origin_allowlist",
+        "localhost_blocklist",
+        "download_quarantine",
+        "metadata_only_telemetry",
+        "run_receipt",
+        "kill_switch"
+      ],
+      "residual_risk_score": 24,
+      "risk_tier": "critical",
+      "title": "Localhost and developer tooling browser"
+    },
+    {
+      "allowed_action_classes": [
+        "read_page",
+        "summarize",
+        "copy_draft",
+        "draft_reply"
+      ],
+      "allowed_content_trust_levels": [
+        "email",
+        "document",
+        "support_ticket",
+        "shared_drive"
+      ],
+      "base_risk_score": 66,
+      "commercial_value": "Email and document agents are high-demand but high-risk; this pack gives buyers a concrete approval gate.",
+      "control_credit": 58,
+      "default_decision": "hold_for_browser_workspace_review",
+      "description": "Agent workflow that reads mail, documents, calendars, tickets, or shared-drive pages where attacker-controlled content may impersonate authority.",
+      "effective_decision": "hold_for_user_confirmation",
+      "id": "email-document-browser-agent",
+      "prohibited_conditions": [
+        "auto-forwarding messages",
+        "external send without confirmation",
+        "saving extracted PII to memory",
+        "following document-embedded instructions as authority"
+      ],
+      "required_controls": [
+        "dedicated_agent_profile",
+        "origin_allowlist",
+        "no_raw_secret_capture",
+        "draft_first_delivery",
+        "human_confirmation_for_external_send",
+        "metadata_only_telemetry",
+        "run_receipt",
+        "kill_switch"
+      ],
+      "residual_risk_score": 8,
+      "risk_tier": "high",
+      "title": "Email and document browser agent"
+    },
+    {
+      "allowed_action_classes": [
+        "navigate",
+        "read_page",
+        "fill_form",
+        "copy_draft",
+        "create_ticket",
+        "post_handoff"
+      ],
+      "allowed_content_trust_levels": [
+        "internal_app",
+        "tenant_private_data",
+        "support_ticket",
+        "vendor_docs"
+      ],
+      "base_risk_score": 42,
+      "commercial_value": "This is the enterprise default for browser agents: useful enough for workflows, bounded enough for procurement.",
+      "control_credit": 58,
+      "default_decision": "hold_for_user_confirmation",
+      "description": "Dedicated agent account and isolated browser or desktop session with scoped files, scoped apps, controlled origins, and auditable user approvals.",
+      "effective_decision": "hold_for_user_confirmation",
+      "id": "enterprise-isolated-browser-workspace",
+      "prohibited_conditions": [
+        "personal user cookies",
+        "raw secret entry",
+        "unapproved cross-origin sends",
+        "silent admin-console writes"
+      ],
+      "required_controls": [
+        "dedicated_agent_profile",
+        "ephemeral_or_scoped_storage",
+        "origin_allowlist",
+        "human_confirmation_for_external_send",
+        "metadata_only_telemetry",
+        "download_quarantine",
+        "run_receipt",
+        "kill_switch"
+      ],
+      "residual_risk_score": 0,
+      "risk_tier": "medium",
+      "title": "Enterprise isolated browser workspace"
+    },
+    {
+      "allowed_action_classes": [
+        "navigate",
+        "read_page",
+        "summarize",
+        "copy_draft"
+      ],
+      "allowed_content_trust_levels": [
+        "public_web",
+        "vendor_docs",
+        "standards_body"
+      ],
+      "base_risk_score": 18,
+      "commercial_value": "Safe public research is the low-friction entry point for hosted browser-agent context collection.",
+      "control_credit": 55,
+      "default_decision": "allow_isolated_browser_task",
+      "description": "Logged-out browser workspace for reading public web pages and collecting cited security references.",
+      "effective_decision": "allow_isolated_browser_task",
+      "id": "public-research-browser",
+      "prohibited_conditions": [
+        "ambient user cookies",
+        "downloads executed automatically",
+        "credential entry",
+        "external send without human confirmation"
+      ],
+      "required_controls": [
+        "dedicated_agent_profile",
+        "ephemeral_or_scoped_storage",
+        "logged_out_by_default",
+        "origin_allowlist",
+        "metadata_only_telemetry",
+        "run_receipt"
+      ],
+      "residual_risk_score": 0,
+      "risk_tier": "low",
+      "title": "Public research browser"
+    },
+    {
+      "allowed_action_classes": [
+        "read_page",
+        "read_repo_metadata",
+        "dependency_lookup",
+        "copy_draft",
+        "create_issue",
+        "post_handoff"
+      ],
+      "allowed_content_trust_levels": [
+        "site_index",
+        "public_web",
+        "github_public",
+        "github_private_with_user_token"
+      ],
+      "base_risk_score": 38,
+      "commercial_value": "Turns the existing beta planner into a governed front-end contract for a future hosted scheduler.",
+      "control_credit": 58,
+      "default_decision": "hold_for_user_confirmation",
+      "description": "Browser-side planner that gathers page, recipe, GitHub, and dependency context, then emits draft-first outputs through user-selected delivery routes.",
+      "effective_decision": "hold_for_user_confirmation",
+      "id": "security-recipes-browser-planner",
+      "prohibited_conditions": [
+        "unreviewed recurring background execution",
+        "provider or GitHub tokens copied into prompts",
+        "Slack, Jira, email, or GitHub writes without explicit route selection",
+        "execution against shared or untrusted browser profiles"
+      ],
+      "required_controls": [
+        "dedicated_agent_profile",
+        "ephemeral_or_scoped_storage",
+        "origin_allowlist",
+        "no_raw_secret_capture",
+        "draft_first_delivery",
+        "human_confirmation_for_external_send",
+        "metadata_only_telemetry",
+        "run_receipt",
+        "kill_switch"
+      ],
+      "residual_risk_score": 0,
+      "risk_tier": "medium",
+      "title": "SecurityRecipes browser planner"
+    }
+  ]
+}

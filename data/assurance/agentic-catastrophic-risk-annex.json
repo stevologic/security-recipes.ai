@@ -1,0 +1,411 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define a testable catastrophic-risk annex for SecurityRecipes so high-impact agentic workflows can be held, denied, or killed before autonomous behavior creates irreversible business, safety, financial, privacy, supply-chain, or critical-infrastructure consequences.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, GRC, model-risk, board risk, safety, procurement security, and acquisition diligence teams",
+    "category": "Catastrophic-risk control annex for agentic AI and MCP runtime decisions",
+    "enterprise_promise": "SecurityRecipes can show how high-impact autonomous actions are inventoried, evidence-bound, reviewed, stopped, replayed, and reported through generated JSON and MCP tools before agents act.",
+    "why_now": "Agentic AI is shifting from assistant output to delegated action across MCP servers, private context, identity providers, code hosts, deployment systems, and agent-to-agent handoffs. Enterprise buyers need a practical control annex for rare but severe failure modes, not only a list of prompt-injection mitigations."
+  },
+  "standards_alignment": [
+    {
+      "id": "csa-star-ai-catastrophic-risk-annex-2026",
+      "name": "CSA STAR for AI Catastrophic Risk Annex",
+      "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane",
+      "coverage": "Tracks CSAI's 2026 catastrophic-risk direction for testable controls around loss of human oversight, uncontrolled system behavior, large-scale irreversible impact, and assurance scaffolding for the agentic control plane."
+    },
+    {
+      "id": "csa-agentic-control-plane-2026",
+      "name": "CSA Securing the Agentic Control Plane",
+      "url": "https://labs.cloudsecurityalliance.org/agentic/",
+      "coverage": "Aligns catastrophic-risk controls to identity, authorization, orchestration, runtime behavior, risk intelligence, certification, and trust assurance layers for autonomous AI agent ecosystems."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "coverage": "Maps to NIST priorities for industry-led standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent interactions."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Covers agent goal hijack, tool misuse, identity abuse, supply-chain compromise, unexpected code execution, context poisoning, inter-agent failures, cascading failures, trust exploitation, and rogue-agent behavior."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Anchors high-impact MCP action controls in OAuth 2.1, resource indicators, token audience validation, PKCE, protected resource metadata, and token-passthrough denial."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Supports governance, measurement, provenance, monitoring, incident response, and lifecycle risk treatment for deployed generative AI systems."
+    }
+  ],
+  "annex_contract": {
+    "default_state": "blocked_until_high_impact_autonomy_has_explicit_evidence_and_review",
+    "minimum_scenarios": 6,
+    "minimum_controls": 8,
+    "minimum_source_packs": 12,
+    "board_level_success_criteria": [
+      "High-impact action classes are named before agents receive tool authority.",
+      "Any irreversible or broad-impact action has explicit human approval, identity, policy, and receipt evidence.",
+      "Runtime kill signals override prompt goals, planner state, memory state, and connector output.",
+      "Cross-agent, context, authorization, memory, and egress boundaries are checked before escalation.",
+      "Catastrophic-risk scenarios can be replayed after model, connector, prompt, policy, or context drift."
+    ],
+    "required_runtime_evidence": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "action_class",
+      "impact_domain",
+      "policy_pack_hash",
+      "authorization_decision",
+      "context_package_hash",
+      "egress_decision",
+      "handoff_decision",
+      "readiness_decision",
+      "human_approval_record",
+      "risk_acceptance_id",
+      "receipt_id",
+      "correlation_id"
+    ]
+  },
+  "runtime_decision_contract": {
+    "allow_decisions": [
+      "allow_bounded_agent_action",
+      "allow_reviewed_high_impact_action"
+    ],
+    "hold_decisions": [
+      "hold_for_catastrophic_risk_review"
+    ],
+    "deny_decisions": [
+      "deny_unbounded_autonomy"
+    ],
+    "kill_decisions": [
+      "kill_session_on_catastrophic_signal"
+    ],
+    "high_impact_action_classes": [
+      "funds_movement",
+      "production_deployment",
+      "production_write",
+      "identity_admin",
+      "secret_access",
+      "schema_migration",
+      "mass_delete",
+      "public_release",
+      "critical_infrastructure_control",
+      "connector_scope_escalation"
+    ],
+    "catastrophic_flags": [
+      "affects_prod",
+      "affects_many_tenants",
+      "can_move_funds",
+      "can_modify_identity",
+      "can_delete_data",
+      "can_deploy",
+      "writes_public_corpus",
+      "handles_secrets",
+      "handles_unredacted_pii",
+      "external_side_effect"
+    ],
+    "kill_signals": [
+      "agent attempts to bypass a human approval gate",
+      "agent requests a broader token, connector scope, or identity role than the workflow declares",
+      "agent loops across tools after a deny or hold decision",
+      "agent attempts to move secrets, private memory, or unredacted PII to an external destination",
+      "agent attempts funds movement, production deployment, identity administration, or mass deletion without a signed approval record"
+    ],
+    "required_high_impact_fields": [
+      "workflow_id",
+      "run_id",
+      "identity_id",
+      "policy_pack_hash",
+      "authorization_decision",
+      "human_approval_record",
+      "risk_acceptance_id",
+      "receipt_id"
+    ]
+  },
+  "source_pack_catalog": [
+    {
+      "id": "workflow-control-plane",
+      "title": "Workflow Control Plane",
+      "path": "data/control-plane/workflow-manifests.json",
+      "mcp_tools": ["recipes_workflow_control_plane"]
+    },
+    {
+      "id": "mcp-gateway-policy",
+      "title": "MCP Gateway Policy",
+      "path": "data/policy/mcp-gateway-policy.json",
+      "mcp_tools": ["recipes_mcp_gateway_policy", "recipes_evaluate_mcp_gateway_decision"]
+    },
+    {
+      "id": "mcp-authorization-conformance",
+      "title": "MCP Authorization Conformance",
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "mcp_tools": ["recipes_mcp_authorization_conformance_pack", "recipes_evaluate_mcp_authorization_decision"]
+    },
+    {
+      "id": "agent-identity-ledger",
+      "title": "Agent Identity and Delegation Ledger",
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "mcp_tools": ["recipes_agent_identity_ledger"]
+    },
+    {
+      "id": "agent-capability-risk-register",
+      "title": "Agent Capability Risk Register",
+      "path": "data/evidence/agent-capability-risk-register.json",
+      "mcp_tools": ["recipes_agent_capability_risk_register"]
+    },
+    {
+      "id": "agentic-readiness-scorecard",
+      "title": "Agentic Readiness Scorecard",
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "mcp_tools": ["recipes_agentic_readiness_scorecard"]
+    },
+    {
+      "id": "agentic-red-team-drill-pack",
+      "title": "Agentic Red-Team Drill Pack",
+      "path": "data/evidence/agentic-red-team-drill-pack.json",
+      "mcp_tools": ["recipes_agentic_red_team_drill_pack"]
+    },
+    {
+      "id": "agentic-measurement-probe-pack",
+      "title": "Agentic Measurement Probe Pack",
+      "path": "data/evidence/agentic-measurement-probe-pack.json",
+      "mcp_tools": ["recipes_agentic_measurement_probe_pack"]
+    },
+    {
+      "id": "agentic-run-receipt-pack",
+      "title": "Agentic Run Receipt Pack",
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "mcp_tools": ["recipes_agentic_run_receipt_pack"]
+    },
+    {
+      "id": "secure-context-trust-pack",
+      "title": "Secure Context Trust Pack",
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "mcp_tools": ["recipes_secure_context_trust_pack", "recipes_evaluate_context_retrieval_decision"]
+    },
+    {
+      "id": "context-egress-boundary-pack",
+      "title": "Context Egress Boundary Pack",
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "mcp_tools": ["recipes_context_egress_boundary_pack", "recipes_evaluate_context_egress_decision"]
+    },
+    {
+      "id": "agent-handoff-boundary-pack",
+      "title": "Agent Handoff Boundary Pack",
+      "path": "data/evidence/agent-handoff-boundary-pack.json",
+      "mcp_tools": ["recipes_agent_handoff_boundary_pack", "recipes_evaluate_agent_handoff_decision"]
+    },
+    {
+      "id": "agent-memory-boundary-pack",
+      "title": "Agent Memory Boundary Pack",
+      "path": "data/evidence/agent-memory-boundary-pack.json",
+      "mcp_tools": ["recipes_agent_memory_boundary_pack", "recipes_evaluate_agent_memory_decision"]
+    },
+    {
+      "id": "agent-skill-supply-chain-pack",
+      "title": "Agent Skill Supply-Chain Pack",
+      "path": "data/evidence/agent-skill-supply-chain-pack.json",
+      "mcp_tools": ["recipes_agent_skill_supply_chain_pack", "recipes_evaluate_agent_skill_decision"]
+    }
+  ],
+  "catastrophic_scenarios": [
+    {
+      "id": "loss-of-human-oversight",
+      "title": "Loss of human oversight over high-impact action",
+      "impact_domain": "governance",
+      "trigger_action_classes": ["production_deployment", "identity_admin", "connector_scope_escalation"],
+      "board_question": "Can the organization prove that high-impact agent actions stop when approval, identity, policy, or receipt evidence is missing?",
+      "required_pack_ids": ["workflow-control-plane", "mcp-gateway-policy", "agent-identity-ledger", "agentic-run-receipt-pack", "agentic-readiness-scorecard"],
+      "required_mcp_tools": ["recipes_workflow_control_plane", "recipes_mcp_gateway_policy", "recipes_agent_identity_ledger", "recipes_agentic_run_receipt_pack", "recipes_agentic_readiness_scorecard"],
+      "promotion_gate": "High-impact automation stays in hold mode until workflow ownership, approval records, identity scope, receipt evidence, and readiness decision are present.",
+      "default_decision": "hold_for_catastrophic_risk_review",
+      "buyer_value": "Turns board-level oversight into inspectable runtime evidence rather than a policy PDF."
+    },
+    {
+      "id": "uncontrolled-system-behavior",
+      "title": "Uncontrolled autonomous loop or tool cascade",
+      "impact_domain": "runtime",
+      "trigger_action_classes": ["production_write", "mass_delete", "public_release"],
+      "board_question": "Can the platform stop an agent that loops across tools, ignores deny decisions, or converts one task into a broader action chain?",
+      "required_pack_ids": ["mcp-gateway-policy", "agentic-red-team-drill-pack", "agentic-measurement-probe-pack", "agentic-run-receipt-pack"],
+      "required_mcp_tools": ["recipes_evaluate_mcp_gateway_decision", "recipes_agentic_red_team_drill_pack", "recipes_agentic_measurement_probe_pack", "recipes_agentic_run_receipt_pack"],
+      "promotion_gate": "Expansion requires loop detection, deny-after-deny kill signals, red-team replay, and receipt reconstruction for the full action chain.",
+      "default_decision": "kill_session_on_catastrophic_signal",
+      "buyer_value": "Gives platform teams a runtime stop story for autonomous behavior that is technically working but operationally unsafe."
+    },
+    {
+      "id": "credential-and-token-cascade",
+      "title": "Credential, token, or delegated-authority cascade",
+      "impact_domain": "identity",
+      "trigger_action_classes": ["secret_access", "identity_admin", "connector_scope_escalation"],
+      "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, request broader audience tokens, or silently inherit user authority?",
+      "required_pack_ids": ["mcp-authorization-conformance", "agent-identity-ledger", "mcp-gateway-policy", "agentic-run-receipt-pack"],
+      "required_mcp_tools": ["recipes_mcp_authorization_conformance_pack", "recipes_evaluate_mcp_authorization_decision", "recipes_agent_identity_ledger", "recipes_agentic_run_receipt_pack"],
+      "promotion_gate": "Any token, scope, audience, or identity escalation without conformance evidence and approval is denied or killed.",
+      "default_decision": "deny_unbounded_autonomy",
+      "buyer_value": "Directly addresses the MCP authorization and non-human identity concerns large AI platforms must solve."
+    },
+    {
+      "id": "cross-agent-cascading-failure",
+      "title": "Cross-agent cascading failure",
+      "impact_domain": "agent_protocols",
+      "trigger_action_classes": ["connector_scope_escalation", "production_write", "public_release"],
+      "board_question": "Can one compromised or confused agent avoid spreading hidden prompts, authority, memory, or tool traces into another agent?",
+      "required_pack_ids": ["agent-handoff-boundary-pack", "context-egress-boundary-pack", "agent-identity-ledger", "agentic-red-team-drill-pack"],
+      "required_mcp_tools": ["recipes_agent_handoff_boundary_pack", "recipes_evaluate_agent_handoff_decision", "recipes_context_egress_boundary_pack", "recipes_agentic_red_team_drill_pack"],
+      "promotion_gate": "Inter-agent handoffs require signed identity context, minimized payload fields, approved data classes, explicit authority state, and replayable red-team cases.",
+      "default_decision": "hold_for_catastrophic_risk_review",
+      "buyer_value": "Extends SecurityRecipes from MCP-safe retrieval into multi-agent safety and governance."
+    },
+    {
+      "id": "supply-chain-autonomy-blast-radius",
+      "title": "Supply-chain autonomy blast radius",
+      "impact_domain": "software_supply_chain",
+      "trigger_action_classes": ["production_deployment", "public_release", "schema_migration"],
+      "board_question": "Can an agent change dependencies, base images, build caches, release assets, or generated code without silently expanding fleet-wide exposure?",
+      "required_pack_ids": ["agent-capability-risk-register", "agent-skill-supply-chain-pack", "workflow-control-plane", "agentic-readiness-scorecard", "agentic-run-receipt-pack"],
+      "required_mcp_tools": ["recipes_agent_capability_risk_register", "recipes_agent_skill_supply_chain_pack", "recipes_workflow_control_plane", "recipes_agentic_readiness_scorecard", "recipes_agentic_run_receipt_pack"],
+      "promotion_gate": "Fleet-impacting changes require capability-risk review, scoped workflow manifests, skill provenance, readiness evidence, and receipt-linked verifier output.",
+      "default_decision": "hold_for_catastrophic_risk_review",
+      "buyer_value": "Makes security remediation agents credible for supply-chain work without hiding fleet-level risk."
+    },
+    {
+      "id": "private-context-exfiltration",
+      "title": "Private-context exfiltration or public-corpus leakage",
+      "impact_domain": "data_boundary",
+      "trigger_action_classes": ["secret_access", "public_release"],
+      "board_question": "Can approved context, private memory, secrets, PII, or customer evidence be prevented from leaving the tenant, model, telemetry, MCP, or public-corpus boundary?",
+      "required_pack_ids": ["secure-context-trust-pack", "context-egress-boundary-pack", "agent-memory-boundary-pack", "agentic-run-receipt-pack"],
+      "required_mcp_tools": ["recipes_secure_context_trust_pack", "recipes_context_egress_boundary_pack", "recipes_evaluate_context_egress_decision", "recipes_agent_memory_boundary_pack", "recipes_agentic_run_receipt_pack"],
+      "promotion_gate": "Any secret, unredacted PII, private memory, or trust-center evidence egress without data-class and destination policy is killed.",
+      "default_decision": "kill_session_on_catastrophic_signal",
+      "buyer_value": "Answers the privacy and data-governance concern that blocks enterprise agent adoption."
+    },
+    {
+      "id": "irreversible-financial-or-critical-action",
+      "title": "Irreversible financial or critical-infrastructure action",
+      "impact_domain": "irreversible_action",
+      "trigger_action_classes": ["funds_movement", "critical_infrastructure_control", "mass_delete"],
+      "board_question": "Can agents be kept out of irreversible actions unless a separate human-operated approval and risk acceptance path exists?",
+      "required_pack_ids": ["agent-capability-risk-register", "mcp-gateway-policy", "agent-identity-ledger", "agentic-run-receipt-pack", "agentic-readiness-scorecard"],
+      "required_mcp_tools": ["recipes_agent_capability_risk_register", "recipes_mcp_gateway_policy", "recipes_agent_identity_ledger", "recipes_agentic_run_receipt_pack", "recipes_agentic_readiness_scorecard"],
+      "promotion_gate": "Irreversible action remains denied unless a buyer-approved architecture accepts the residual risk, records approval, and keeps the agent outside direct execution.",
+      "default_decision": "deny_unbounded_autonomy",
+      "buyer_value": "Creates a credible answer for boards, insurers, regulated enterprises, and acquirers reviewing high-consequence autonomy."
+    }
+  ],
+  "annex_controls": [
+    {
+      "id": "high-impact-action-inventory",
+      "title": "High-impact action inventory",
+      "control_objective": "Name high-impact action classes, impacted domains, approved workflows, and forbidden action paths before any agent receives MCP authority.",
+      "scenario_ids": ["loss-of-human-oversight", "irreversible-financial-or-critical-action", "supply-chain-autonomy-blast-radius"],
+      "evidence_pack_ids": ["workflow-control-plane", "agent-capability-risk-register", "mcp-gateway-policy"],
+      "mcp_tools": ["recipes_workflow_control_plane", "recipes_agent_capability_risk_register", "recipes_mcp_gateway_policy"],
+      "diligence_question": "Which action classes are considered high impact, and where is the deny-by-default inventory?"
+    },
+    {
+      "id": "approval-and-risk-acceptance-gate",
+      "title": "Approval and risk-acceptance gate",
+      "control_objective": "Require explicit human approval, risk acceptance, and receipt linkage before high-impact action can proceed.",
+      "scenario_ids": ["loss-of-human-oversight", "irreversible-financial-or-critical-action"],
+      "evidence_pack_ids": ["agentic-run-receipt-pack", "agent-identity-ledger", "agentic-readiness-scorecard"],
+      "mcp_tools": ["recipes_agentic_run_receipt_pack", "recipes_agent_identity_ledger", "recipes_agentic_readiness_scorecard"],
+      "diligence_question": "Can a reviewer reconstruct who approved the high-impact action and which risk acceptance applied?"
+    },
+    {
+      "id": "runtime-kill-signal-override",
+      "title": "Runtime kill-signal override",
+      "control_objective": "Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.",
+      "scenario_ids": ["uncontrolled-system-behavior", "credential-and-token-cascade", "private-context-exfiltration"],
+      "evidence_pack_ids": ["mcp-gateway-policy", "agentic-measurement-probe-pack", "agentic-red-team-drill-pack"],
+      "mcp_tools": ["recipes_evaluate_mcp_gateway_decision", "recipes_agentic_measurement_probe_pack", "recipes_agentic_red_team_drill_pack"],
+      "diligence_question": "Which runtime attributes force a kill decision even if the agent says the task is still in scope?"
+    },
+    {
+      "id": "token-and-identity-containment",
+      "title": "Token and identity containment",
+      "control_objective": "Prevent token passthrough, wrong-audience tokens, scope drift, shadow connector authority, and implicit user-token inheritance.",
+      "scenario_ids": ["credential-and-token-cascade", "cross-agent-cascading-failure"],
+      "evidence_pack_ids": ["mcp-authorization-conformance", "agent-identity-ledger", "mcp-gateway-policy"],
+      "mcp_tools": ["recipes_mcp_authorization_conformance_pack", "recipes_evaluate_mcp_authorization_decision", "recipes_agent_identity_ledger"],
+      "diligence_question": "How does the platform prove an agent acted through a scoped non-human identity rather than a borrowed user token?"
+    },
+    {
+      "id": "cross-agent-containment",
+      "title": "Cross-agent containment",
+      "control_objective": "Minimize inter-agent payloads and block hidden prompts, private memory, raw traces, credentials, and authority state from crossing boundaries.",
+      "scenario_ids": ["cross-agent-cascading-failure"],
+      "evidence_pack_ids": ["agent-handoff-boundary-pack", "context-egress-boundary-pack", "agent-identity-ledger"],
+      "mcp_tools": ["recipes_agent_handoff_boundary_pack", "recipes_evaluate_agent_handoff_decision", "recipes_context_egress_boundary_pack"],
+      "diligence_question": "What stops a compromised agent from delegating poisoned context or excess authority to another agent?"
+    },
+    {
+      "id": "data-boundary-kill",
+      "title": "Data-boundary kill",
+      "control_objective": "Kill or hold any attempt to move secrets, unredacted PII, private memory, context evidence, or trust-center data outside approved destinations.",
+      "scenario_ids": ["private-context-exfiltration"],
+      "evidence_pack_ids": ["secure-context-trust-pack", "context-egress-boundary-pack", "agent-memory-boundary-pack"],
+      "mcp_tools": ["recipes_secure_context_trust_pack", "recipes_context_egress_boundary_pack", "recipes_agent_memory_boundary_pack"],
+      "diligence_question": "Can context egress policy stop leakage to model providers, telemetry, webhooks, other tenants, or public corpora?"
+    },
+    {
+      "id": "replayable-catastrophic-risk-evals",
+      "title": "Replayable catastrophic-risk evals",
+      "control_objective": "Tie severe scenarios to red-team drills, measurement probes, expected runtime decisions, and rerun triggers after model, connector, policy, or context drift.",
+      "scenario_ids": ["uncontrolled-system-behavior", "cross-agent-cascading-failure", "supply-chain-autonomy-blast-radius"],
+      "evidence_pack_ids": ["agentic-red-team-drill-pack", "agentic-measurement-probe-pack", "agentic-readiness-scorecard"],
+      "mcp_tools": ["recipes_agentic_red_team_drill_pack", "recipes_agentic_measurement_probe_pack", "recipes_agentic_readiness_scorecard"],
+      "diligence_question": "Which catastrophic-risk cases are replayed after drift, and what decision is expected?"
+    },
+    {
+      "id": "trust-center-reporting",
+      "title": "Trust-center reporting",
+      "control_objective": "Expose severe-risk controls as a buyer-readable trust-center packet with evidence paths, MCP tools, status, residual risk, and acquisition diligence answers.",
+      "scenario_ids": ["loss-of-human-oversight", "irreversible-financial-or-critical-action", "private-context-exfiltration"],
+      "evidence_pack_ids": ["agentic-run-receipt-pack", "agentic-readiness-scorecard", "agentic-measurement-probe-pack"],
+      "mcp_tools": ["recipes_agentic_run_receipt_pack", "recipes_agentic_readiness_scorecard", "recipes_agentic_measurement_probe_pack"],
+      "diligence_question": "Can a buyer or acquirer inspect catastrophic-risk readiness without reverse-engineering the repository?"
+    }
+  ],
+  "buyer_views": [
+    {
+      "id": "board-risk",
+      "title": "Board and executive risk",
+      "question": "Can the organization say yes to agentic AI without losing control of irreversible or large-scale consequences?",
+      "required_control_ids": ["high-impact-action-inventory", "approval-and-risk-acceptance-gate", "runtime-kill-signal-override", "trust-center-reporting"],
+      "answer_contract": "Return severe scenarios, default decisions, approval requirements, kill signals, residual evidence, and trust-center links in one generated packet."
+    },
+    {
+      "id": "platform-security",
+      "title": "AI platform security",
+      "question": "Can high-impact tool calls be stopped before they cross MCP, identity, data, memory, or inter-agent boundaries?",
+      "required_control_ids": ["token-and-identity-containment", "cross-agent-containment", "data-boundary-kill", "runtime-kill-signal-override"],
+      "answer_contract": "Return deterministic allow, hold, deny, and kill decisions with the evidence fields required for runtime gateway integration."
+    },
+    {
+      "id": "acquisition-diligence",
+      "title": "Acquisition diligence",
+      "question": "Does SecurityRecipes have a credible future enterprise assurance surface beyond open prompts and docs?",
+      "required_control_ids": ["trust-center-reporting", "replayable-catastrophic-risk-evals", "high-impact-action-inventory"],
+      "answer_contract": "Return the commercialization path, source pack coverage, MCP tool map, and buyer diligence matrix for severe-risk agent governance."
+    }
+  ],
+  "commercialization_path": {
+    "open_layer": "Publish the catastrophic-risk annex as generated open evidence so teams can inspect severe scenarios, default decisions, source packs, and MCP tools.",
+    "enterprise_layer": "Sell hosted high-impact action inventory, customer-specific risk acceptance, approval receipts, runtime kill policy, drift replay, and trust-center export APIs.",
+    "acquirer_value": "A frontier lab, AI coding platform, cloud provider, or security vendor gets an immediately legible severe-risk assurance layer for agentic tool use and MCP adoption."
+  }
+}

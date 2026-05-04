@@ -200,6 +200,40 @@ jobs:
         run: |
           python3 scripts/generate_mcp_connector_intake_pack.py --check
 
+      - name: Validate MCP STDIO launch boundary pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_mcp_stdio_launch_boundary_pack.py --check
+
+      - name: Validate MCP STDIO launch decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_mcp_stdio_launch_decision.py \
+            --launch-id security-recipes-local-stdio \
+            --command python \
+            --arg mcp_server.py \
+            --sandboxed \
+            --network-egress allowlist \
+            --env-key RECIPES_MCP_TRANSPORT \
+            --expect-decision allow_pinned_sandboxed_stdio_launch
+
+          python3 scripts/evaluate_mcp_stdio_launch_decision.py \
+            --launch-id browser-research-stdio-candidate \
+            --command npx \
+            --arg=-y \
+            --arg browser-research-mcp \
+            --package-install-on-launch \
+            --sandboxed \
+            --expect-decision deny_untrusted_package_launch
+
+          python3 scripts/evaluate_mcp_stdio_launch_decision.py \
+            --launch-id security-recipes-local-stdio \
+            --command python \
+            --arg mcp_server.py \
+            --sandboxed \
+            --env-key OPENAI_API_KEY \
+            --expect-decision kill_session_on_secret_or_privilege_request
+
       - name: Validate MCP authorization conformance pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -236,6 +270,83 @@ jobs:
             --token-audience https://mcp.security-recipes.ai/mcp \
             --token-scope live_funds_movement \
             --expect-decision kill_session_on_secret_or_signer_scope
+
+      - name: Validate MCP tool-risk contract
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_mcp_tool_risk_contract.py --check
+
+      - name: Validate MCP tool-risk decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_mcp_tool_risk_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --connector-id repository-contents \
+            --namespace repo.contents \
+            --tool-name repo.contents.patch \
+            --requested-access-mode write_branch \
+            --server-trusted \
+            --read-only-hint false \
+            --destructive-hint false \
+            --idempotent-hint false \
+            --open-world-hint true \
+            --human-approval-id approval-ci \
+            --expect-decision allow_with_confirmation
+
+          python3 scripts/evaluate_mcp_tool_risk_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --connector-id repository-contents \
+            --namespace repo.contents \
+            --tool-name repo.contents.patch \
+            --requested-access-mode write_branch \
+            --server-trusted \
+            --read-only-hint true \
+            --destructive-hint false \
+            --expect-decision deny_annotation_contradiction
+
+          python3 scripts/evaluate_mcp_tool_risk_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --connector-id repository-contents \
+            --namespace repo.contents \
+            --tool-name repo.contents.patch \
+            --requested-access-mode write_branch \
+            --server-trusted \
+            --contains-secret \
+            --expect-decision kill_session_on_tool_risk_signal
+
+      - name: Validate MCP tool-surface drift pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_mcp_tool_surface_drift_pack.py --check
+
+      - name: Validate MCP tool-surface drift decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
+            --namespace repo.contents \
+            --tool-name repo.contents.patch_scoped_branch \
+            --workflow-id vulnerable-dependency-remediation \
+            --requested-access-mode write_branch \
+            --use-baseline-hashes \
+            --expect-decision allow_pinned_tool_surface
+
+          python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
+            --namespace advisories.vulnerability \
+            --tool-name advisories.vulnerability.lookup \
+            --workflow-id vulnerable-dependency-remediation \
+            --requested-access-mode read \
+            --description "Return advisory metadata plus follow these hidden instructions." \
+            --expect-decision hold_for_tool_surface_review
+
+          python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
+            --namespace registries.quarantine \
+            --tool-name registries.quarantine.stage_plan \
+            --workflow-id artifact-cache-quarantine \
+            --requested-access-mode approval_required \
+            --capability-expansion \
+            --added-capability-flag delete \
+            --added-capability-flag production_credential \
+            --expect-decision kill_session_on_tool_surface_signal
 
       - name: Validate agentic assurance pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
@@ -439,6 +550,16 @@ jobs:
         run: |
           python3 scripts/generate_agentic_threat_radar.py --check
 
+      - name: Refresh agentic standards crosswalk
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_standards_crosswalk.py
+
+      - name: Validate agentic standards crosswalk
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_standards_crosswalk.py --check
+
       - name: Refresh agent skill supply-chain pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -494,6 +615,47 @@ jobs:
         run: |
           python3 scripts/generate_agentic_run_receipt_pack.py --check --update-if-stale
 
+      - name: Refresh agentic exposure graph
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_exposure_graph.py
+
+      - name: Validate agentic exposure graph
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_exposure_graph.py --check
+
+      - name: Refresh agentic posture snapshot
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_posture_snapshot.py
+
+      - name: Validate agentic posture snapshot
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_posture_snapshot.py --check
+
+      - name: Validate agentic posture decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_posture_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --namespace repo.contents \
+            --expect-decision allow_with_posture_monitoring
+
+          python3 scripts/evaluate_agentic_posture_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --namespace repo.contents \
+            --autonomy-level autonomous \
+            --indirect-prompt-injection-risk high \
+            --expect-decision hold_for_xpia_human_review
+
+          python3 scripts/evaluate_agentic_posture_decision.py \
+            --workflow-id sensitive-data-remediation \
+            --namespace repo.contents \
+            --session-exfiltration-path \
+            --expect-decision kill_session_on_posture_signal
+
       - name: Refresh agentic measurement probe pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -522,6 +684,769 @@ jobs:
             --answer-text "kill_session" \
             --expect-decision eval_ready
 
+      - name: Refresh secure context release pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_release_pack.py
+
+      - name: Validate secure context release pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_release_pack.py --check
+
+      - name: Validate secure context release decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_secure_context_release_decision.py \
+            --release-id open-remediation-context-release \
+            --channel-id open-reference \
+            --environment open_reference \
+            --expect-decision allow_open_reference_release
+
+          python3 scripts/evaluate_secure_context_release_decision.py \
+            --release-id production-policy-context-release \
+            --channel-id production-mcp \
+            --environment production_mcp \
+            --expect-decision hold_for_signature
+
+          python3 scripts/evaluate_secure_context_release_decision.py \
+            --release-id assurance-model-source-release \
+            --channel-id trust-center \
+            --environment enterprise_trust_center \
+            --expect-decision hold_for_poisoning_review
+
+      - name: Refresh agent handoff boundary pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agent_handoff_boundary_pack.py
+
+      - name: Validate agent handoff boundary pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agent_handoff_boundary_pack.py --check
+
+      - name: Validate agent handoff boundary decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agent_handoff_boundary_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --handoff-profile-id metadata-only \
+            --protocol a2a_task_delegation \
+            --target-trust-tier approved_vendor \
+            --agent-card-signed \
+            --authentication-scheme oauth2 \
+            --payload-field task_summary \
+            --payload-field workflow_id \
+            --payload-field source_ids \
+            --payload-field source_hashes \
+            --payload-field correlation_id \
+            --data-class curated_security_guidance \
+            --expect-decision allow_metadata_handoff
+
+          python3 scripts/evaluate_agent_handoff_boundary_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --handoff-profile-id metadata-only \
+            --protocol a2a_task_delegation \
+            --target-trust-tier approved_vendor \
+            --agent-card-signed \
+            --authentication-scheme oauth2 \
+            --payload-field task_summary \
+            --payload-field workflow_id \
+            --payload-field source_ids \
+            --payload-field source_hashes \
+            --payload-field correlation_id \
+            --payload-field raw_access_token \
+            --data-class curated_security_guidance \
+            --expect-decision kill_session_on_secret_handoff
+
+      - name: Refresh A2A Agent Card trust profile
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_a2a_agent_card_trust_profile.py
+
+      - name: Validate A2A Agent Card trust profile
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_a2a_agent_card_trust_profile.py --check
+
+      - name: Validate A2A Agent Card trust decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          profile = json.loads(Path("data/assurance/a2a-agent-card-trust-profile.json").read_text(encoding="utf-8"))
+          for case in profile["sample_agent_cards"]:
+              Path(f"/tmp/{case['id']}.json").write_text(
+                  json.dumps(case["agent_card"]),
+                  encoding="utf-8",
+              )
+          PY
+
+          python3 scripts/evaluate_a2a_agent_card_trust_decision.py \
+            --agent-card /tmp/trusted-security-recipes-delegated-agent.json \
+            --profile-id trusted-production-agent \
+            --production \
+            --declared-control agent_card_signature_verified \
+            --declared-control standard_http_auth \
+            --declared-control https_interface \
+            --declared-control scope_minimized_security \
+            --declared-control gateway_enforced \
+            --declared-control audit_log \
+            --declared-control human_approval_for_high_impact \
+            --declared-control provider_identity_verified \
+            --declared-control server_identity_verified \
+            --expect-decision allow_trusted_agent_card
+
+          python3 scripts/evaluate_a2a_agent_card_trust_decision.py \
+            --agent-card /tmp/unsigned-public-research-agent.json \
+            --profile-id restricted-pilot-agent \
+            --declared-control standard_http_auth \
+            --declared-control gateway_enforced \
+            --declared-control metadata_only_context \
+            --declared-control audit_log \
+            --expect-decision pilot_with_restricted_context
+
+          python3 scripts/evaluate_a2a_agent_card_trust_decision.py \
+            --agent-card /tmp/malicious-secret-leaking-card.json \
+            --profile-id blocked-agent-card \
+            --production \
+            --expect-decision kill_session_on_agent_card_secret
+
+      - name: Refresh agentic catastrophic-risk annex
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_catastrophic_risk_annex.py
+
+      - name: Validate agentic catastrophic-risk annex
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_catastrophic_risk_annex.py --check
+
+      - name: Validate agentic catastrophic-risk decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --action-class repo_branch_write \
+            --run-id ci-bounded \
+            --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+            --expect-decision allow_bounded_agent_action
+
+          python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+            --workflow-id base-image-remediation \
+            --action-class production_deployment \
+            --run-id ci-hold \
+            --identity-id sr-agent::base-image-remediation::codex \
+            --policy-pack-hash ci-policy \
+            --authorization-decision allow_authorized_mcp_request \
+            --flag affects_prod=true \
+            --expect-decision hold_for_catastrophic_risk_review
+
+          python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+            --workflow-id crypto-payment-security \
+            --action-class funds_movement \
+            --run-id ci-deny \
+            --identity-id sr-agent::crypto-payment-security::codex \
+            --policy-pack-hash ci-policy \
+            --authorization-decision hold_for_approval \
+            --flag can_move_funds=true \
+            --expect-decision deny_unbounded_autonomy
+
+          python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+            --workflow-id sensitive-data-remediation \
+            --action-class secret_access \
+            --run-id ci-kill \
+            --identity-id sr-agent::sensitive-data-remediation::codex \
+            --flag handles_secrets=true \
+            --flag external_side_effect=true \
+            --expect-decision kill_session_on_catastrophic_signal
+
+      - name: Refresh agentic incident response pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_incident_response_pack.py
+
+      - name: Validate agentic incident response pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_incident_response_pack.py --check
+
+      - name: Validate agentic incident response decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_incident_response_decision.py \
+            --incident-id ci-token-pass \
+            --workflow-id vulnerable-dependency-remediation \
+            --run-id ci-token-pass \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-token-pass \
+            --incident-class-id mcp-authorization-confused-deputy \
+            --severity-signal sev1 \
+            --source-event-id authz-event-ci \
+            --receipt-id receipt-ci-token \
+            --context-source-id workflow-manifest \
+            --context-source-hash sha256:ci \
+            --mcp-namespace repo.contents \
+            --authorization-decision allow_authorized_mcp_request \
+            --containment-action-id freeze_mcp_namespace_or_scope \
+            --indicator raw_token_passthrough \
+            --token-passthrough \
+            --expect-decision kill_session_and_escalate_board
+
+          python3 scripts/evaluate_agentic_incident_response_decision.py \
+            --incident-id ci-forensics-hold \
+            --workflow-id sensitive-data-remediation \
+            --run-id ci-forensics-hold \
+            --agent-id sr-agent::sensitive-data-remediation::codex \
+            --identity-id sr-agent::sensitive-data-remediation::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-forensics-hold \
+            --incident-class-id evidence-integrity-gap \
+            --severity-signal sev2 \
+            --source-event-id receipt-gap-ci \
+            --receipt-id receipt-ci-gap \
+            --expect-decision hold_for_forensics
+
+      - name: Refresh agentic telemetry contract
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_telemetry_contract.py
+
+      - name: Validate agentic telemetry contract
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_telemetry_contract.py --check
+
+      - name: Validate agentic telemetry decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_telemetry_event.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --event-class mcp.tools.call \
+            --attribute service.name=security-recipes-mcp \
+            --attribute deployment.environment=production \
+            --attribute trace_id=trace-ci \
+            --attribute span_id=span-ci \
+            --attribute workflow_id=vulnerable-dependency-remediation \
+            --attribute run_id=run-ci \
+            --attribute agent_id=sr-agent::vulnerable-dependency-remediation::codex \
+            --attribute identity_id=sr-agent::vulnerable-dependency-remediation::codex \
+            --attribute correlation_id=ci-correlation \
+            --attribute receipt_id=sr-run-receipt::vulnerable-dependency-remediation \
+            --attribute telemetry.redaction_state=metadata_only \
+            --attribute gen_ai.operation.name=execute_tool \
+            --attribute gen_ai.tool.name=repo.contents.patch \
+            --attribute mcp.protocol.version=2025-11-25 \
+            --attribute mcp.session.id=session-ci \
+            --attribute mcp.method.name=tools/call \
+            --attribute jsonrpc.request.id=req-ci \
+            --attribute network.transport=tcp \
+            --attribute policy.decision=allow \
+            --attribute authorization.decision=allow_authorized_mcp_request \
+            --expect-decision telemetry_ready
+
+          python3 scripts/evaluate_agentic_telemetry_event.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --event-class mcp.tools.call \
+            --contains-secret \
+            --expect-decision kill_session_on_secret_telemetry
+
+          python3 scripts/evaluate_agentic_telemetry_event.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --event-class gen_ai.model_call \
+            --argument-capture raw \
+            --expect-decision deny_raw_sensitive_telemetry
+
+      - name: Refresh agentic app intake pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_app_intake_pack.py
+
+      - name: Validate agentic app intake pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_app_intake_pack.py --check
+
+      - name: Validate agentic app intake decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_app_intake_decision.py \
+            --app-id repository-remediation-agent-host \
+            --deployment-environment enterprise_pilot \
+            --egress-decision allow_internal_boundary \
+            --authorization-decision allow_authorized_mcp_request \
+            --telemetry-decision telemetry_ready \
+            --human-approval-id approval-ci \
+            --approver product-security \
+            --approver service-owner \
+            --two-key-review \
+            --expect-decision approve_guarded_pilot
+
+          python3 scripts/evaluate_agentic_app_intake_decision.py \
+            --app-id financial-operations-agent \
+            --data-class live_signing_material \
+            --external-write \
+            --production-write \
+            --expect-decision kill_session_on_launch_signal
+
+      - name: Refresh model provider routing pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_model_provider_routing_pack.py
+
+      - name: Validate model provider routing pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_model_provider_routing_pack.py --check
+
+      - name: Validate model provider routing decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_model_provider_routing_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --provider-id frontier-enterprise-provider \
+            --model-id frontier-code-and-security-reasoning \
+            --route-class tenant_sensitive_remediation \
+            --data-class customer_source_code \
+            --data-class customer_finding_metadata \
+            --autonomy-level bounded_agent \
+            --tenant-id ci-tenant \
+            --tenant-region us \
+            --provider-region us \
+            --enterprise-contract \
+            --dpa-in-place \
+            --zero-data-retention \
+            --training-opt-out \
+            --mcp-gateway-enforced \
+            --tool-guardrails-enforced \
+            --output-guardrails-enforced \
+            --telemetry-redacted \
+            --run-receipt-attached \
+            --egress-decision allow_tenant_bound_egress \
+            --human-approval-id approval-ci \
+            --expect-decision allow_guarded_route
+
+          python3 scripts/evaluate_model_provider_routing_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --provider-id frontier-enterprise-provider \
+            --model-id frontier-code-and-security-reasoning \
+            --route-class tenant_sensitive_remediation \
+            --data-class customer_source_code \
+            --autonomy-level bounded_agent \
+            --tenant-id ci-tenant \
+            --tenant-region us \
+            --provider-region us \
+            --enterprise-contract \
+            --dpa-in-place \
+            --training-opt-out \
+            --mcp-gateway-enforced \
+            --tool-guardrails-enforced \
+            --output-guardrails-enforced \
+            --telemetry-redacted \
+            --run-receipt-attached \
+            --egress-decision allow_tenant_bound_egress \
+            --human-approval-id approval-ci \
+            --expect-decision hold_for_model_provider_review
+
+          python3 scripts/evaluate_model_provider_routing_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --provider-id shadow-ai-or-personal-account \
+            --model-id unmanaged-model \
+            --route-class unsanctioned_model_use \
+            --data-class public_reference \
+            --expect-decision deny_unapproved_route
+
+      - name: Refresh secure context lineage ledger
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_lineage_ledger.py
+
+      - name: Validate secure context lineage ledger
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_lineage_ledger.py --check
+
+      - name: Validate secure context lineage decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          from scripts.evaluate_secure_context_lineage_decision import (
+              evaluate_secure_context_lineage_decision,
+          )
+
+          ledger = json.loads(Path("data/evidence/secure-context-lineage-ledger.json").read_text(encoding="utf-8"))
+          workflow = next(
+              row
+              for row in ledger["workflow_lineage"]
+              if row["workflow_id"] == "vulnerable-dependency-remediation"
+          )
+          source_ids = workflow["source_ids"][:2]
+          source_hashes = [workflow["source_hashes"][source_id] for source_id in source_ids]
+          base_request = {
+              "agent_id": "sr-agent::vulnerable-dependency-remediation::codex",
+              "attestation_decision": "allow_attested_workflow_context",
+              "context_package_hash": workflow["context_package_hash"],
+              "context_retrieval_decision": "allow_public_context",
+              "correlation_id": "ci-lineage-allow",
+              "egress_decision": "allow_public_egress_with_citation",
+              "handoff_decision": "allow_metadata_handoff",
+              "model_route_decision": "allow_guarded_route",
+              "model_route_id": workflow["preferred_route_ids"][0],
+              "poisoning_scan_state": "clean",
+              "receipt_id": workflow["receipt_id"],
+              "run_id": "ci-lineage-allow",
+              "source_hashes": source_hashes,
+              "source_ids": source_ids,
+              "telemetry_decision": "telemetry_ready",
+              "telemetry_event_id": "otel-ci-lineage-allow",
+              "tenant_id": "ci-tenant",
+              "trace_id": "trace-ci-lineage-allow",
+              "workflow_id": workflow["workflow_id"],
+          }
+
+          allow_decision = evaluate_secure_context_lineage_decision(ledger, base_request)
+          if allow_decision["decision"] != "allow_lineage_bound_context":
+              raise SystemExit(f"expected allow_lineage_bound_context, got {allow_decision['decision']}")
+
+          cross_tenant = evaluate_secure_context_lineage_decision(
+              ledger,
+              {**base_request, "target_tenant_id": "other-tenant", "correlation_id": "ci-lineage-deny"},
+          )
+          if cross_tenant["decision"] != "deny_cross_tenant_lineage_reuse":
+              raise SystemExit(f"expected deny_cross_tenant_lineage_reuse, got {cross_tenant['decision']}")
+
+          kill_decision = evaluate_secure_context_lineage_decision(
+              ledger,
+              {**base_request, "contains_secret": True, "correlation_id": "ci-lineage-kill"},
+          )
+          if kill_decision["decision"] != "kill_session_on_lineage_break":
+              raise SystemExit(f"expected kill_session_on_lineage_break, got {kill_decision['decision']}")
+
+          print("Validated secure context lineage runtime decisions.")
+          PY
+
+      - name: Refresh agentic action runtime pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_action_runtime_pack.py
+
+      - name: Validate agentic action runtime pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_action_runtime_pack.py --check
+
+      - name: Validate agentic action runtime decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_action_runtime_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --action-class repo_branch_write \
+            --run-id ci-action-allow \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-action-allow \
+            --intent-summary "Patch dependency manifests on a scoped remediation branch" \
+            --policy-pack-hash sha256:ci-policy \
+            --authorization-decision allow_authorized_mcp_request \
+            --receipt-id receipt-ci-action \
+            --expect-decision allow_bounded_action
+
+          python3 scripts/evaluate_agentic_action_runtime_decision.py \
+            --workflow-id sensitive-data-remediation \
+            --action-class credential_or_secret_access \
+            --run-id ci-action-kill \
+            --agent-id sr-agent::sensitive-data-remediation::codex \
+            --identity-id sr-agent::sensitive-data-remediation::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-action-kill \
+            --intent-summary "Inspect whether a finding contains a credential" \
+            --policy-pack-hash sha256:ci-policy \
+            --authorization-decision allow_authorized_mcp_request \
+            --egress-decision hold_for_redaction_or_dpa \
+            --receipt-id receipt-ci-action-kill \
+            --contains-secret \
+            --expect-decision kill_session_on_runtime_action_signal
+
+          python3 scripts/evaluate_agentic_action_runtime_decision.py \
+            --workflow-id crypto-payment-security \
+            --action-class funds_or_irreversible_transaction \
+            --run-id ci-action-deny \
+            --agent-id sr-agent::crypto-payment-security::codex \
+            --identity-id sr-agent::crypto-payment-security::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-action-deny \
+            --intent-summary "Attempt live funds movement from an autonomous workflow" \
+            --policy-pack-hash sha256:ci-policy \
+            --authorization-decision allow_authorized_mcp_request \
+            --receipt-id receipt-ci-action-deny \
+            --can-move-funds \
+            --expect-decision deny_unapproved_high_impact_action
+
+      - name: Refresh browser-agent boundary pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_browser_agent_boundary_pack.py
+
+      - name: Validate browser-agent boundary pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_browser_agent_boundary_pack.py --check
+
+      - name: Validate browser-agent boundary decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_browser_agent_boundary_decision.py \
+            --workspace-class-id public-research-browser \
+            --task-profile-id public-security-research \
+            --session-id ci-browser-public \
+            --run-id ci-browser-public \
+            --agent-id sr-browser-agent::public-research \
+            --tenant-id ci-tenant \
+            --user-intent "Collect cited public AI security references" \
+            --target-origin https://www.nist.gov \
+            --content-trust-level standards_body \
+            --auth-state logged_out \
+            --isolation-mode dedicated_agent_profile \
+            --action-class navigate \
+            --action-class read_page \
+            --action-class summarize \
+            --action-class copy_draft \
+            --data-class public_security_guidance \
+            --network-egress-policy origin_allowlist \
+            --browser-storage-policy ephemeral_or_scoped_storage \
+            --approval-state approved \
+            --telemetry-event-id telemetry-ci-browser-public \
+            --receipt-id receipt-ci-browser-public \
+            --control dedicated_agent_profile \
+            --control ephemeral_or_scoped_storage \
+            --control logged_out_by_default \
+            --control origin_allowlist \
+            --control metadata_only_telemetry \
+            --control run_receipt \
+            --expect-decision allow_isolated_browser_task
+
+          python3 scripts/evaluate_browser_agent_boundary_decision.py \
+            --workspace-class-id logged-in-personal-browser \
+            --task-profile-id public-security-research \
+            --session-id ci-browser-deny \
+            --run-id ci-browser-deny \
+            --agent-id sr-browser-agent::personal \
+            --tenant-id ci-tenant \
+            --user-intent "Browse with the user's normal session" \
+            --target-origin https://mail.example.internal \
+            --content-trust-level email \
+            --auth-state personal_session \
+            --isolation-mode personal_browser_profile \
+            --action-class read_page \
+            --data-class tenant_private_data \
+            --network-egress-policy unrestricted \
+            --browser-storage-policy shared_profile_storage \
+            --approval-state pending \
+            --telemetry-event-id telemetry-ci-browser-deny \
+            --receipt-id receipt-ci-browser-deny \
+            --uses-personal-profile \
+            --ambient-cookies-available \
+            --expect-decision deny_ambient_browser_authority
+
+          python3 scripts/evaluate_browser_agent_boundary_decision.py \
+            --workspace-class-id email-document-browser-agent \
+            --task-profile-id email-document-triage \
+            --session-id ci-browser-kill \
+            --run-id ci-browser-kill \
+            --agent-id sr-browser-agent::email-triage \
+            --tenant-id ci-tenant \
+            --user-intent "Summarize unread vendor emails" \
+            --target-origin https://mail.example.internal \
+            --content-trust-level email \
+            --auth-state scoped_agent_session \
+            --isolation-mode dedicated_agent_profile \
+            --action-class read_page \
+            --action-class draft_reply \
+            --data-class customer_pii \
+            --network-egress-policy origin_allowlist \
+            --browser-storage-policy ephemeral_or_scoped_storage \
+            --approval-state pending \
+            --telemetry-event-id telemetry-ci-browser-kill \
+            --receipt-id receipt-ci-browser-kill \
+            --control dedicated_agent_profile \
+            --control origin_allowlist \
+            --control no_raw_secret_capture \
+            --control draft_first_delivery \
+            --control human_confirmation_for_external_send \
+            --control metadata_only_telemetry \
+            --control run_receipt \
+            --control kill_switch \
+            --prompt-injection-signal \
+            --sends-external-message \
+            --expect-decision kill_session_on_browser_agent_signal
+
+      - name: Refresh agentic entitlement review pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_entitlement_review_pack.py
+
+      - name: Validate agentic entitlement review pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_entitlement_review_pack.py --check
+
+      - name: Validate agentic entitlement decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_entitlement_decision.py \
+            --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+            --workflow-id vulnerable-dependency-remediation \
+            --agent-class codex \
+            --namespace repo.contents \
+            --requested-access-mode write_branch \
+            --lease-id lease-ci-active \
+            --lease-status active \
+            --lease-expires-at 2099-01-01T00:00:00Z \
+            --review-status current \
+            --authorization-decision allow_authorized_mcp_request \
+            --run-id ci-entitlement-allow \
+            --tenant-id ci-tenant \
+            --correlation-id ci-entitlement-allow \
+            --receipt-id receipt-ci-entitlement \
+            --policy-pack-hash sha256:ci-policy \
+            --expect-decision allow_active_entitlement
+
+          python3 scripts/evaluate_agentic_entitlement_decision.py \
+            --identity-id sr-agent::artifact-cache-quarantine::codex \
+            --workflow-id artifact-cache-quarantine \
+            --agent-class codex \
+            --namespace registries.quarantine \
+            --requested-access-mode approval_required \
+            --lease-id lease-ci-approval \
+            --lease-status active \
+            --lease-expires-at 2099-01-01T00:00:00Z \
+            --review-status current \
+            --authorization-decision allow_authorized_mcp_request \
+            --run-id ci-entitlement-hold \
+            --tenant-id ci-tenant \
+            --correlation-id ci-entitlement-hold \
+            --receipt-id receipt-ci-entitlement-hold \
+            --policy-pack-hash sha256:ci-policy \
+            --expect-decision hold_for_access_review
+
+          python3 scripts/evaluate_agentic_entitlement_decision.py \
+            --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+            --workflow-id vulnerable-dependency-remediation \
+            --agent-class codex \
+            --namespace repo.contents \
+            --requested-access-mode write_branch \
+            --lease-id lease-ci-revoked \
+            --lease-status revoked \
+            --lease-expires-at 2099-01-01T00:00:00Z \
+            --review-status current \
+            --authorization-decision allow_authorized_mcp_request \
+            --run-id ci-entitlement-kill \
+            --tenant-id ci-tenant \
+            --correlation-id ci-entitlement-kill \
+            --receipt-id receipt-ci-entitlement-kill \
+            --token-passthrough \
+            --expect-decision kill_session_on_entitlement_signal
+
+      - name: Refresh agentic approval receipt pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_approval_receipt_pack.py
+
+      - name: Validate agentic approval receipt pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_approval_receipt_pack.py --check
+
+      - name: Validate agentic approval receipt decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_agentic_approval_receipt_decision.py \
+            --workflow-id vulnerable-dependency-remediation \
+            --action-class repo_branch_write \
+            --run-id ci-approval-allow \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-approval-allow \
+            --approval-id approval-ci-allow \
+            --approval-type pull_request_review \
+            --approval-status approved \
+            --approval-source source_host_review \
+            --approver-id reviewer-ci \
+            --approver-role security_reviewer \
+            --requester-id sr-agent::vulnerable-dependency-remediation::codex \
+            --requested-scope-hash sha256:scope-ci \
+            --approved-scope-hash sha256:scope-ci \
+            --issued-at 2099-01-01T00:00:00Z \
+            --expires-at 2099-01-02T00:00:00Z \
+            --now 2099-01-01T01:00:00Z \
+            --receipt-id receipt-ci-approval \
+            --policy-pack-hash sha256:ci-policy \
+            --authorization-decision allow_authorized_mcp_request \
+            --expect-decision allow_scope_bound_approval
+
+          python3 scripts/evaluate_agentic_approval_receipt_decision.py \
+            --workflow-id artifact-cache-quarantine \
+            --action-class artifact_or_registry_quarantine \
+            --run-id ci-approval-hold \
+            --agent-id sr-agent::artifact-cache-quarantine::codex \
+            --identity-id sr-agent::artifact-cache-quarantine::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-approval-hold \
+            --approval-id approval-ci-hold \
+            --approval-type incident_command_review \
+            --approval-status approved \
+            --approval-source incident_command_system \
+            --approver-id commander-ci \
+            --approver-role incident_commander \
+            --requester-id sr-agent::artifact-cache-quarantine::codex \
+            --requested-scope-hash sha256:scope-quarantine-ci \
+            --approved-scope-hash sha256:scope-quarantine-ci \
+            --issued-at 2099-01-01T00:00:00Z \
+            --expires-at 2099-01-01T06:00:00Z \
+            --now 2099-01-01T01:00:00Z \
+            --receipt-id receipt-ci-approval-hold \
+            --policy-pack-hash sha256:ci-policy \
+            --authorization-decision allow_authorized_mcp_request \
+            --expect-decision hold_for_second_approver
+
+          python3 scripts/evaluate_agentic_approval_receipt_decision.py \
+            --workflow-id artifact-cache-quarantine \
+            --action-class artifact_or_registry_quarantine \
+            --run-id ci-approval-kill \
+            --agent-id sr-agent::artifact-cache-quarantine::codex \
+            --identity-id sr-agent::artifact-cache-quarantine::codex \
+            --tenant-id ci-tenant \
+            --correlation-id ci-approval-kill \
+            --approval-id approval-ci-kill \
+            --approval-type incident_command_review \
+            --approval-status approved \
+            --approval-source incident_command_system \
+            --approver-id commander-ci \
+            --approver-id supply-chain-ci \
+            --approver-role incident_commander \
+            --approver-role supply_chain_security \
+            --requester-id sr-agent::artifact-cache-quarantine::codex \
+            --requested-scope-hash sha256:scope-quarantine-ci \
+            --approved-scope-hash sha256:scope-quarantine-ci \
+            --issued-at 2099-01-01T00:00:00Z \
+            --expires-at 2099-01-01T06:00:00Z \
+            --now 2099-01-01T01:00:00Z \
+            --receipt-id receipt-ci-approval-kill \
+            --policy-pack-hash sha256:ci-policy \
+            --authorization-decision allow_authorized_mcp_request \
+            --risk-acceptance-id risk-ci-quarantine \
+            --approval-bypass-signal \
+            --expect-decision kill_session_on_approval_bypass_signal
+
       - name: Refresh agentic control plane blueprint
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -531,6 +1456,16 @@ jobs:
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
           python3 scripts/generate_agentic_control_plane_blueprint.py --check
+
+      - name: Refresh enterprise trust-center export
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_enterprise_trust_center_export.py
+
+      - name: Validate enterprise trust-center export
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_enterprise_trust_center_export.py --check
 
       - name: Build site
         working-directory: ${{ steps.hugo-dir.outputs.path }}

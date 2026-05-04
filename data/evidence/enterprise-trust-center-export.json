@@ -1,0 +1,4222 @@
+{
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, cloud platform, or security vendor gets an already-shaped secure context control plane that can make agentic AI easier to approve, monitor, and sell into enterprises.",
+    "enterprise_layer": "Hosted MCP enforcement, trace and run-receipt retention, incident evidence vaulting, keyless signing, continuous connector drift monitoring, eval replay, trust-center export APIs, and procurement-ready reports.",
+    "open_layer": "Public recipes, prompt library entries, generated evidence packs, runtime evaluators, and a read-only MCP server that make the project useful without a sales motion.",
+    "team_layer": "Private context registries, customer-specific workflow manifests, connector intake evidence, policy packs, signed context releases, and approval receipt exports."
+  },
+  "diligence_questions": [
+    {
+      "answer": "The A2A Agent Card trust profile evaluates required card fields, HTTPS interfaces, provider identity, security schemes, security requirements, signatures, extended-card behavior, high-impact skills, and prohibited secret or prompt-injection markers.",
+      "evidence_pack_ids": [
+        "a2a-agent-card-trust-profile",
+        "agent-handoff-boundary-pack",
+        "agent-identity-ledger",
+        "context-egress-boundary-pack",
+        "mcp-authorization-conformance"
+      ],
+      "evidence_paths": [
+        "data/evidence/a2a-agent-card-trust-profile.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "id": "agent-card-trust",
+      "mcp_tools": [
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_a2a_agent_card_trust_decision",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "Can a newly discovered A2A agent be reviewed before it receives context or delegated authority?",
+      "section_id": "agent-protocol-handoffs"
+    },
+    {
+      "answer": "The entitlement review pack lists each identity, workflow, namespace, access mode, lease TTL, review cadence, owner, reviewer pool, required evidence, and deterministic allow, hold, deny, or kill decision for runtime access.",
+      "evidence_pack_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agent-capability-risk-register",
+        "agentic-run-receipt-pack",
+        "agent-memory-boundary-pack",
+        "agent-skill-supply-chain-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json"
+      ],
+      "id": "agent-entitlement-review",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_identity_ledger",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_entitlement_decision"
+      ],
+      "question": "Can the buyer prove an agent still has permission to use a scope right now?",
+      "section_id": "agent-identity-and-authority"
+    },
+    {
+      "answer": "The identity ledger defines one contract per workflow and agent class, while the entitlement review pack turns those scopes into expiring permission leases with review cadence, step-up authorization, approval evidence, and revocation decisions.",
+      "evidence_pack_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agent-capability-risk-register",
+        "agentic-run-receipt-pack",
+        "agent-memory-boundary-pack",
+        "agent-skill-supply-chain-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json"
+      ],
+      "id": "agent-identity-scope",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_identity_ledger",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_entitlement_decision"
+      ],
+      "question": "Which identity acts for each workflow and what authority is delegated?",
+      "section_id": "agent-identity-and-authority"
+    },
+    {
+      "answer": "Memory and skill supply-chain packs define TTLs, provenance, sandboxing, publisher trust, permission boundaries, package hashes, signatures, and runtime decisions before agent state or skills inherit authority.",
+      "evidence_pack_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agent-capability-risk-register",
+        "agentic-run-receipt-pack",
+        "agent-memory-boundary-pack",
+        "agent-skill-supply-chain-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json"
+      ],
+      "id": "agent-memory-skills",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_identity_ledger",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_entitlement_decision"
+      ],
+      "question": "How are persistent memory, skills, rules, hooks, and behavior packages controlled?",
+      "section_id": "agent-identity-and-authority"
+    },
+    {
+      "answer": "The capability risk register scores workflows by system criticality, AI autonomy, MCP permissions, impact radius, and compensating control credits before recommending scale, gate, or architecture review.",
+      "evidence_pack_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agent-capability-risk-register",
+        "agentic-run-receipt-pack",
+        "agent-memory-boundary-pack",
+        "agent-skill-supply-chain-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json"
+      ],
+      "id": "agent-risk-tiering",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_identity_ledger",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_entitlement_decision"
+      ],
+      "question": "Can high-impact workflows be separated from low-risk workflows before scale?",
+      "section_id": "agent-identity-and-authority"
+    },
+    {
+      "answer": "The Agentic System BOM inventories workflows, agent classes, identities, MCP connectors, policies, evidence artifacts, knowledge sources, eval drills, and drift triggers.",
+      "evidence_pack_ids": [
+        "agentic-assurance-pack",
+        "agentic-readiness-scorecard",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack",
+        "secure-context-eval-pack",
+        "agentic-system-bom"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/agentic-system-bom.json"
+      ],
+      "id": "bom-inventory",
+      "mcp_tools": [
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_eval_pack"
+      ],
+      "question": "Can the buyer inspect the system as an inventory rather than a set of prompts?",
+      "section_id": "assurance-readiness-evals"
+    },
+    {
+      "answer": "The annex ties severe scenarios to red-team drills, measurement probes, readiness decisions, run receipts, and expected runtime decisions so drift can trigger replay before expansion.",
+      "evidence_pack_ids": [
+        "agentic-catastrophic-risk-annex",
+        "agent-capability-risk-register",
+        "agentic-readiness-scorecard",
+        "agentic-run-receipt-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "catastrophic-risk-replay",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision"
+      ],
+      "question": "Can severe-risk scenarios be replayed after model, connector, prompt, policy, or context drift?",
+      "section_id": "catastrophic-risk-governance"
+    },
+    {
+      "answer": "The natural paid layer is hosted MCP policy, context signing, customer-private context packs, connector discovery and diffing, run evidence retention, incident response evidence vaulting, eval replay, trust-center exports, and enterprise approval receipts.",
+      "evidence_pack_ids": [
+        "agentic-threat-radar",
+        "agentic-standards-crosswalk",
+        "agentic-control-plane-blueprint",
+        "agentic-catastrophic-risk-annex",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-threat-radar.json",
+        "data/evidence/agentic-standards-crosswalk.json",
+        "data/evidence/agentic-control-plane-blueprint.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "commercial-path",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_control_plane_blueprint",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_standards_crosswalk",
+        "recipes_agentic_threat_radar",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision"
+      ],
+      "question": "What can be monetized without closing the open knowledge base?",
+      "section_id": "market-strategy"
+    },
+    {
+      "answer": "The egress boundary pack maps data classes, destinations, DPA, zero-data-retention, residency, approval, and secret indicators to deterministic allow, hold, deny, or kill-session decisions.",
+      "evidence_pack_ids": [
+        "secure-context-trust-pack",
+        "secure-context-attestation-pack",
+        "secure-context-eval-pack",
+        "context-poisoning-guard-pack",
+        "context-egress-boundary-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/context-egress-boundary-pack.json"
+      ],
+      "id": "context-egress",
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_attestation_pack",
+        "recipes_secure_context_eval_pack",
+        "recipes_secure_context_trust_pack"
+      ],
+      "question": "What stops approved context from leaving the tenant, model, MCP server, telemetry sink, or public corpus incorrectly?",
+      "section_id": "secure-context-layer"
+    },
+    {
+      "answer": "The poisoning guard scans registered context for prompt-injection, tool-poisoning, approval-bypass, hidden-instruction, encoded-payload, and exfiltration markers before retrieval.",
+      "evidence_pack_ids": [
+        "secure-context-trust-pack",
+        "secure-context-attestation-pack",
+        "secure-context-eval-pack",
+        "context-poisoning-guard-pack",
+        "context-egress-boundary-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/context-egress-boundary-pack.json"
+      ],
+      "id": "context-poisoning",
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_attestation_pack",
+        "recipes_secure_context_eval_pack",
+        "recipes_secure_context_trust_pack"
+      ],
+      "question": "What prevents an agent from consuming poisoned instructions hidden in retrieved context?",
+      "section_id": "secure-context-layer"
+    },
+    {
+      "answer": "The trust pack and attestation pack list approved sources, workflow context packages, source hashes, freshness state, citation requirements, recertification expectations, and production signature requirements.",
+      "evidence_pack_ids": [
+        "secure-context-trust-pack",
+        "secure-context-attestation-pack",
+        "secure-context-eval-pack",
+        "context-poisoning-guard-pack",
+        "context-egress-boundary-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/context-egress-boundary-pack.json"
+      ],
+      "id": "context-provenance",
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_attestation_pack",
+        "recipes_secure_context_eval_pack",
+        "recipes_secure_context_trust_pack"
+      ],
+      "question": "Which context sources may be returned to an agent, and how is current source state proven?",
+      "section_id": "secure-context-layer"
+    },
+    {
+      "answer": "The handoff evaluator returns kill-session decisions for credential material, hidden instructions, internal memory, raw tool traces, unrestricted customer data, and other prohibited payloads.",
+      "evidence_pack_ids": [
+        "a2a-agent-card-trust-profile",
+        "agent-handoff-boundary-pack",
+        "agent-identity-ledger",
+        "context-egress-boundary-pack",
+        "mcp-authorization-conformance"
+      ],
+      "evidence_paths": [
+        "data/evidence/a2a-agent-card-trust-profile.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "id": "handoff-kill",
+      "mcp_tools": [
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_a2a_agent_card_trust_decision",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "What happens if a handoff attempts to move secrets, hidden prompts, internal memory, or raw tool traces?",
+      "section_id": "agent-protocol-handoffs"
+    },
+    {
+      "answer": "The Agent Card trust profile first scores remote A2A discovery evidence, then the handoff boundary pack defines metadata-only, cited-evidence, approval-gated, and prohibited-context profiles with allowed payload fields, data classes, authentication evidence, trust tiers, and approval requirements.",
+      "evidence_pack_ids": [
+        "a2a-agent-card-trust-profile",
+        "agent-handoff-boundary-pack",
+        "agent-identity-ledger",
+        "context-egress-boundary-pack",
+        "mcp-authorization-conformance"
+      ],
+      "evidence_paths": [
+        "data/evidence/a2a-agent-card-trust-profile.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "id": "handoff-minimization",
+      "mcp_tools": [
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_a2a_agent_card_trust_decision",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "Can a remote or delegated agent receive only the minimum context needed for the task?",
+      "section_id": "agent-protocol-handoffs"
+    },
+    {
+      "answer": "The catastrophic-risk annex names action classes such as production deployment, production write, identity administration, secret access, mass deletion, public release, funds movement, and connector scope escalation.",
+      "evidence_pack_ids": [
+        "agentic-catastrophic-risk-annex",
+        "agent-capability-risk-register",
+        "agentic-readiness-scorecard",
+        "agentic-run-receipt-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "high-impact-action-classes",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision"
+      ],
+      "question": "Which agent actions are treated as high-impact before runtime authority is granted?",
+      "section_id": "catastrophic-risk-governance"
+    },
+    {
+      "answer": "The incident response pack defines registered incident classes, severity thresholds, required runtime fields, response phases, tabletop cases, and workflow-specific response matrices tied to generated evidence packs.",
+      "evidence_pack_ids": [
+        "agentic-incident-response-pack",
+        "agentic-run-receipt-pack",
+        "agentic-exposure-graph",
+        "context-poisoning-guard-pack",
+        "mcp-authorization-conformance",
+        "agent-handoff-boundary-pack",
+        "agentic-catastrophic-risk-annex",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-incident-response-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-exposure-graph.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "incident-classification",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_exposure_graph",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "Can the buyer classify agentic incidents by context, MCP, identity, handoff, memory, skill, high-impact action, and evidence-integrity failure modes?",
+      "section_id": "agentic-incident-response"
+    },
+    {
+      "answer": "The pack maps containment actions to run receipts, context hashes, MCP authorization decisions, egress decisions, handoff decisions, identity revocation, source-event ids, correlation ids, and replay case ids.",
+      "evidence_pack_ids": [
+        "agentic-incident-response-pack",
+        "agentic-run-receipt-pack",
+        "agentic-exposure-graph",
+        "context-poisoning-guard-pack",
+        "mcp-authorization-conformance",
+        "agent-handoff-boundary-pack",
+        "agentic-catastrophic-risk-annex",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-incident-response-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-exposure-graph.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "incident-containment-forensics",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_exposure_graph",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "How does the platform contain agent authority and preserve evidence when an agentic control fails?",
+      "section_id": "agentic-incident-response"
+    },
+    {
+      "answer": "Incident response requires replay cases that feed secure-context evals, red-team drills, measurement probes, readiness scoring, and catastrophic-risk review before holds are lifted or rollout continues.",
+      "evidence_pack_ids": [
+        "agentic-incident-response-pack",
+        "agentic-run-receipt-pack",
+        "agentic-exposure-graph",
+        "context-poisoning-guard-pack",
+        "mcp-authorization-conformance",
+        "agent-handoff-boundary-pack",
+        "agentic-catastrophic-risk-annex",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-incident-response-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-exposure-graph.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "incident-replay-recertification",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_exposure_graph",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "Can an incident become a replayable eval before the workflow is recertified or scaled again?",
+      "section_id": "agentic-incident-response"
+    },
+    {
+      "answer": "The threat radar and blueprint map current agentic AI, MCP, A2A, identity, context, eval, and evidence trends to concrete open artifacts, MCP tools, runtime evaluators, and hosted product expansion paths.",
+      "evidence_pack_ids": [
+        "agentic-threat-radar",
+        "agentic-standards-crosswalk",
+        "agentic-control-plane-blueprint",
+        "agentic-catastrophic-risk-annex",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-threat-radar.json",
+        "data/evidence/agentic-standards-crosswalk.json",
+        "data/evidence/agentic-control-plane-blueprint.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "market-why-now",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_control_plane_blueprint",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_standards_crosswalk",
+        "recipes_agentic_threat_radar",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision"
+      ],
+      "question": "Why is this a credible $10-20M acquisition target rather than a documentation site?",
+      "section_id": "market-strategy"
+    },
+    {
+      "answer": "The authorization conformance pack and evaluator verify resource indicators, token audience, token passthrough, session identifiers, scopes, and connector/workflow alignment before a tool call is forwarded.",
+      "evidence_pack_ids": [
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-authorization-conformance",
+        "mcp-connector-trust-pack",
+        "mcp-connector-intake-pack",
+        "mcp-stdio-launch-boundary"
+      ],
+      "evidence_paths": [
+        "data/control-plane/workflow-manifests.json",
+        "data/policy/mcp-gateway-policy.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "mcp-auth",
+      "mcp_tools": [
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_workflow_control_plane"
+      ],
+      "question": "Can protected MCP calls enforce audience binding, resource indicators, PKCE, session binding, and scope drift checks?",
+      "section_id": "mcp-control-plane"
+    },
+    {
+      "answer": "Connector trust, connector intake, and STDIO launch boundary packs produce admission decisions, trust tiers, command allowlists, sandbox requirements, schema drift controls, and promotion evidence.",
+      "evidence_pack_ids": [
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-authorization-conformance",
+        "mcp-connector-trust-pack",
+        "mcp-connector-intake-pack",
+        "mcp-stdio-launch-boundary"
+      ],
+      "evidence_paths": [
+        "data/control-plane/workflow-manifests.json",
+        "data/policy/mcp-gateway-policy.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "mcp-connector-drift",
+      "mcp_tools": [
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_workflow_control_plane"
+      ],
+      "question": "How are new, changed, local, or shadow MCP servers reviewed before agents can use them?",
+      "section_id": "mcp-control-plane"
+    },
+    {
+      "answer": "The workflow control plane and gateway policy encode approved namespaces, access modes, branch scopes, runtime attributes, approval holds, and kill signals with a deny-by-default contract.",
+      "evidence_pack_ids": [
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-authorization-conformance",
+        "mcp-connector-trust-pack",
+        "mcp-connector-intake-pack",
+        "mcp-stdio-launch-boundary"
+      ],
+      "evidence_paths": [
+        "data/control-plane/workflow-manifests.json",
+        "data/policy/mcp-gateway-policy.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "mcp-default-deny",
+      "mcp_tools": [
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_workflow_control_plane"
+      ],
+      "question": "Can the platform deny unknown MCP namespaces and over-broad tool calls by default?",
+      "section_id": "mcp-control-plane"
+    },
+    {
+      "answer": "The readiness scorecard combines workflow, MCP policy, connector trust, identity, assurance, red-team, and source-hash evidence into scale, pilot, gate, or block decisions.",
+      "evidence_pack_ids": [
+        "agentic-assurance-pack",
+        "agentic-readiness-scorecard",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack",
+        "secure-context-eval-pack",
+        "agentic-system-bom"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/agentic-system-bom.json"
+      ],
+      "id": "readiness-scale",
+      "mcp_tools": [
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_eval_pack"
+      ],
+      "question": "Which workflows are ready to scale, which are gated, and what evidence supports that decision?",
+      "section_id": "assurance-readiness-evals"
+    },
+    {
+      "answer": "Red-team drill, measurement probe, and eval packs define adversarial scenarios, expected policy decisions, pass criteria, and runtime answer contracts for continuous replay.",
+      "evidence_pack_ids": [
+        "agentic-assurance-pack",
+        "agentic-readiness-scorecard",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack",
+        "secure-context-eval-pack",
+        "agentic-system-bom"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/agentic-system-bom.json"
+      ],
+      "id": "red-team-replay",
+      "mcp_tools": [
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_eval_pack"
+      ],
+      "question": "Can the platform replay adversarial cases after model, prompt, connector, or context drift?",
+      "section_id": "assurance-readiness-evals"
+    },
+    {
+      "answer": "The catastrophic-risk evaluator returns hold, deny, or kill-session decisions until required runtime evidence is present and linked to an approved human decision record.",
+      "evidence_pack_ids": [
+        "agentic-catastrophic-risk-annex",
+        "agent-capability-risk-register",
+        "agentic-readiness-scorecard",
+        "agentic-run-receipt-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "severe-risk-decisions",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision"
+      ],
+      "question": "What happens when a high-impact action lacks approval, risk acceptance, policy, identity, or receipt evidence?",
+      "section_id": "catastrophic-risk-governance"
+    },
+    {
+      "answer": "The standards crosswalk maps OWASP Agentic Top 10, NIST AI agent and GenAI guidance, MCP authorization and security requirements, and OpenAI/Anthropic prompt-injection defenses to concrete SecurityRecipes capabilities, evidence paths, and MCP tools.",
+      "evidence_pack_ids": [
+        "agentic-threat-radar",
+        "agentic-standards-crosswalk",
+        "agentic-control-plane-blueprint",
+        "agentic-catastrophic-risk-annex",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-threat-radar.json",
+        "data/evidence/agentic-standards-crosswalk.json",
+        "data/evidence/agentic-control-plane-blueprint.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "standards-crosswalk",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_control_plane_blueprint",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_standards_crosswalk",
+        "recipes_agentic_threat_radar",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision"
+      ],
+      "question": "Which current standards and frontier-lab guidance does the product map to generated evidence?",
+      "section_id": "market-strategy"
+    },
+    {
+      "answer": "The contract separates public and internal metadata from sensitive content, makes raw prompt/output/tool payload capture opt-in only, and kills sessions when raw tokens, private keys, unredacted PII, customer secrets, or cross-tenant context appear in telemetry.",
+      "evidence_pack_ids": [
+        "agentic-telemetry-contract",
+        "agentic-run-receipt-pack",
+        "agentic-measurement-probe-pack",
+        "context-egress-boundary-pack",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "telemetry-redaction",
+      "mcp_tools": [
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision"
+      ],
+      "question": "How does the platform prevent observability from becoming a prompt, tool-argument, or secret leakage sink?",
+      "section_id": "runtime-telemetry-evidence"
+    },
+    {
+      "answer": "The telemetry contract defines required OpenTelemetry-shaped fields for agent sessions, model calls, MCP tool calls, context retrieval, policy decisions, egress decisions, approvals, verifier results, and incident signals.",
+      "evidence_pack_ids": [
+        "agentic-telemetry-contract",
+        "agentic-run-receipt-pack",
+        "agentic-measurement-probe-pack",
+        "context-egress-boundary-pack",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "telemetry-required-fields",
+      "mcp_tools": [
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision"
+      ],
+      "question": "Which trace fields must exist before a buyer can trust an agent or MCP run?",
+      "section_id": "runtime-telemetry-evidence"
+    },
+    {
+      "answer": "Workflow telemetry contracts require receipt ids, policy pack hashes, context package hashes, egress policy hashes, correlation ids, verifier artifacts, and incident replay references so trace records can support audit and response without transcript archaeology.",
+      "evidence_pack_ids": [
+        "agentic-telemetry-contract",
+        "agentic-run-receipt-pack",
+        "agentic-measurement-probe-pack",
+        "context-egress-boundary-pack",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "trace-to-receipt",
+      "mcp_tools": [
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision"
+      ],
+      "question": "Can runtime telemetry be tied back to run receipts, measurement probes, egress policy, and incident response evidence?",
+      "section_id": "runtime-telemetry-evidence"
+    }
+  ],
+  "enterprise_trust_center_export_id": "security-recipes-enterprise-trust-center-export",
+  "executive_readout": {
+    "board_level_claim": "The project can show what context agents receive, which tools they may call, who they act as, how handoffs are bounded, how evals prove behavior, and which artifacts a buyer should inspect first.",
+    "headline": "SecurityRecipes is now packaged as a trust-center-ready secure context layer, not only an open prompt library.",
+    "recommended_first_use": "Attach this export to AI platform intake, MCP server review, procurement security questionnaires, quarterly agent-access recertification, and acquisition diligence."
+  },
+  "export_summary": {
+    "agent_card_trust_summary": {
+      "default_state": "hold_for_agent_card_intake",
+      "failure_count": 0,
+      "intake_profile_count": 4,
+      "required_agent_card_field_count": 8,
+      "sample_decision_counts": {
+        "allow_trusted_agent_card": 1,
+        "kill_session_on_agent_card_secret": 1,
+        "pilot_with_restricted_context": 1
+      },
+      "sample_evaluation_count": 3,
+      "skill_risk_tier_counts": {
+        "blocked": 1,
+        "discovery": 1,
+        "pilot": 1,
+        "production": 1
+      },
+      "status": "agent_card_trust_profile_ready"
+    },
+    "bom_summary": {
+      "active_workflow_count": 8,
+      "agent_class_count": 5,
+      "agent_identity_count": 32,
+      "component_counts": {
+        "agent_classes": 5,
+        "agent_identities": 32,
+        "evaluation_drills": 56,
+        "evidence_artifacts": 9,
+        "knowledge_sources": 4,
+        "mcp_connectors": 16,
+        "policy_components": 4,
+        "workflows": 8
+      },
+      "connector_count": 16,
+      "drift_trigger_count": 12,
+      "evaluation_drill_count": 56,
+      "failure_count": 0,
+      "mcp_namespace_count": 16,
+      "missing_identity_workflow_count": 0,
+      "readiness_decision_counts": {
+        "pilot_guarded": 4,
+        "scale_ready": 4
+      },
+      "source_failure_count": 0,
+      "workflow_count": 8
+    },
+    "category_counts": {
+      "agent_protocols": 2,
+      "agent_runtime": 2,
+      "assurance": 2,
+      "authorization": 1,
+      "connector_trust": 3,
+      "evals": 2,
+      "identity": 2,
+      "incident_response": 1,
+      "inventory": 1,
+      "risk": 3,
+      "runtime_evidence": 2,
+      "runtime_policy": 2,
+      "secure_context": 5,
+      "strategy": 3
+    },
+    "control_plane_acquisition_readiness": {
+      "active_workflow_count": 8,
+      "blueprint_score": 90,
+      "distinct_mcp_tool_count": 36,
+      "ready_layer_count": 10,
+      "ready_source_pack_count": 25,
+      "scale_ready_workflow_count": 4,
+      "source_pack_count": 25,
+      "status": "acquisition_diligence_ready",
+      "total_layer_count": 10
+    },
+    "crosswalk_summary": {
+      "capability_count": 27,
+      "control_count": 29,
+      "control_status_counts": {
+        "ready": 29
+      },
+      "covered_capability_count": 26,
+      "distinct_mcp_tool_count": 37,
+      "failure_count": 0,
+      "source_class_counts": {
+        "frontier_lab_guidance": 3,
+        "government_framework": 4,
+        "incident_intelligence": 1,
+        "industry_standard": 4,
+        "protocol_guidance": 1,
+        "protocol_specification": 1
+      },
+      "source_reference_count": 14,
+      "standard_count": 5,
+      "standard_status_counts": {
+        "ready": 5
+      },
+      "status": "standards_crosswalk_ready"
+    },
+    "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
+    "distinct_mcp_tool_count": 46,
+    "entitlement_review_summary": {
+      "access_mode_counts": {
+        "approval_required": 3,
+        "read": 56,
+        "write_branch": 29,
+        "write_ticket": 8
+      },
+      "approval_required_entitlement_count": 12,
+      "distinct_identity_count": 32,
+      "entitlement_count": 96,
+      "failure_count": 0,
+      "high_or_critical_entitlement_count": 12,
+      "risk_counts": {
+        "high": 12,
+        "low": 56,
+        "medium": 28
+      },
+      "status": "entitlement_review_ready",
+      "tier_counts": {
+        "privileged_action": 12,
+        "read_context": 56,
+        "write_scoped": 28
+      },
+      "workflow_count": 8
+    },
+    "exposure_graph_summary": {
+      "decision_counts": {
+        "architecture_review": 24,
+        "guarded_rollout": 24,
+        "hold_for_owner_review": 3,
+        "standard_monitoring": 45
+      },
+      "distinct_agent_identity_count": 32,
+      "distinct_context_source_count": 9,
+      "distinct_mcp_namespace_count": 16,
+      "edge_counts": {
+        "delegates_mcp_scope": 96,
+        "requests_mcp_namespace": 24,
+        "requires_evidence_pack": 80,
+        "retrieves_context": 64,
+        "uses_identity": 32
+      },
+      "failure_count": 0,
+      "highest_exposure_paths": [
+        {
+          "access": "approval_required",
+          "agent_class": "claude",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::artifact-cache-quarantine::claude",
+          "mcp_namespace": "registries.quarantine",
+          "path_class_id": "approval_required_tool_path",
+          "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
+          "risk_tier": "high",
+          "score": 83,
+          "workflow_id": "artifact-cache-quarantine",
+          "workflow_title": "Artifact Cache and Mirror Quarantine"
+        },
+        {
+          "access": "approval_required",
+          "agent_class": "codex",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::artifact-cache-quarantine::codex",
+          "mcp_namespace": "registries.quarantine",
+          "path_class_id": "approval_required_tool_path",
+          "path_id": "exposure::artifact-cache-quarantine::codex::registries.quarantine",
+          "risk_tier": "high",
+          "score": 83,
+          "workflow_id": "artifact-cache-quarantine",
+          "workflow_title": "Artifact Cache and Mirror Quarantine"
+        },
+        {
+          "access": "approval_required",
+          "agent_class": "devin",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::artifact-cache-quarantine::devin",
+          "mcp_namespace": "registries.quarantine",
+          "path_class_id": "approval_required_tool_path",
+          "path_id": "exposure::artifact-cache-quarantine::devin::registries.quarantine",
+          "risk_tier": "high",
+          "score": 83,
+          "workflow_id": "artifact-cache-quarantine",
+          "workflow_title": "Artifact Cache and Mirror Quarantine"
+        },
+        {
+          "access": "write_branch",
+          "agent_class": "claude",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::crypto-payment-security::claude",
+          "mcp_namespace": "repo.contents",
+          "path_class_id": "high_impact_authority_path",
+          "path_id": "exposure::crypto-payment-security::claude::repo.contents",
+          "risk_tier": "high",
+          "score": 79,
+          "workflow_id": "crypto-payment-security",
+          "workflow_title": "Cryptocurrency and Crypto Payments Security"
+        },
+        {
+          "access": "write_branch",
+          "agent_class": "codex",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::crypto-payment-security::codex",
+          "mcp_namespace": "repo.contents",
+          "path_class_id": "high_impact_authority_path",
+          "path_id": "exposure::crypto-payment-security::codex::repo.contents",
+          "risk_tier": "high",
+          "score": 79,
+          "workflow_id": "crypto-payment-security",
+          "workflow_title": "Cryptocurrency and Crypto Payments Security"
+        },
+        {
+          "access": "write_branch",
+          "agent_class": "cursor",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::crypto-payment-security::cursor",
+          "mcp_namespace": "repo.contents",
+          "path_class_id": "high_impact_authority_path",
+          "path_id": "exposure::crypto-payment-security::cursor::repo.contents",
+          "risk_tier": "high",
+          "score": 79,
+          "workflow_id": "crypto-payment-security",
+          "workflow_title": "Cryptocurrency and Crypto Payments Security"
+        },
+        {
+          "access": "write_branch",
+          "agent_class": "claude",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::defi-blockchain-security::claude",
+          "mcp_namespace": "repo.contents",
+          "path_class_id": "high_impact_authority_path",
+          "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
+          "risk_tier": "high",
+          "score": 79,
+          "workflow_id": "defi-blockchain-security",
+          "workflow_title": "DeFi and Blockchain Protocol Security"
+        },
+        {
+          "access": "write_branch",
+          "agent_class": "codex",
+          "decision": "architecture_review",
+          "identity_id": "sr-agent::defi-blockchain-security::codex",
+          "mcp_namespace": "repo.contents",
+          "path_class_id": "high_impact_authority_path",
+          "path_id": "exposure::defi-blockchain-security::codex::repo.contents",
+          "risk_tier": "high",
+          "score": 79,
+          "workflow_id": "defi-blockchain-security",
+          "workflow_title": "DeFi and Blockchain Protocol Security"
+        }
+      ],
+      "node_counts": {
+        "agent_identity": 32,
+        "context_source": 9,
+        "evidence_pack": 10,
+        "mcp_namespace": 16,
+        "workflow": 8
+      },
+      "path_class_counts": {
+        "approval_required_tool_path": 3,
+        "context_to_read_tool": 9,
+        "context_to_write_tool": 23,
+        "high_impact_authority_path": 24,
+        "tenant_sensitive_context_path": 37
+      },
+      "total_edge_count": 296,
+      "total_node_count": 75,
+      "total_path_count": 96,
+      "workflow_count": 8
+    },
+    "failure_count": 0,
+    "incident_response_summary": {
+      "class_count": 8,
+      "decision_counts": {
+        "contain_and_open_war_room": 3,
+        "hold_for_forensics": 2,
+        "kill_session_and_escalate_board": 3
+      },
+      "failure_count": 0,
+      "required_evidence_source_count": 15,
+      "response_phase_count": 6,
+      "sev0_class_count": 2,
+      "sev1_class_count": 5,
+      "source_failure_count": 0,
+      "workflow_count": 8
+    },
+    "pack_count": 31,
+    "pack_status_counts": {
+      "ready": 31
+    },
+    "question_count": 28,
+    "readiness_summary": {
+      "active_workflow_count": 8,
+      "average_score": 95.75,
+      "blocked_workflow_count": 0,
+      "decision_counts": {
+        "pilot_guarded": 4,
+        "scale_ready": 4
+      },
+      "failure_count": 0,
+      "manual_gate_workflow_count": 0,
+      "pilot_connector_workflows": [
+        "artifact-cache-quarantine",
+        "crypto-payment-security",
+        "defi-blockchain-security"
+      ],
+      "pilot_guarded_workflow_count": 4,
+      "scale_ready_workflow_count": 4,
+      "source_failure_count": 0,
+      "workflow_count": 8
+    },
+    "section_count": 9,
+    "section_status_counts": {
+      "ready": 9
+    },
+    "status": "trust_center_ready",
+    "telemetry_summary": {
+      "decision_counts": {
+        "telemetry_ready": 8
+      },
+      "default_state": "untrusted_until_required_trace_fields_present",
+      "failure_count": 0,
+      "prohibited_field_count": 8,
+      "redaction_tier_count": 4,
+      "required_attribute_count": 26,
+      "sensitive_opt_in_attribute_count": 7,
+      "signal_class_count": 9,
+      "telemetry_check_count": 8,
+      "workflow_count": 8
+    },
+    "threat_radar_summary": {
+      "confidence_counts": {
+        "high": 12
+      },
+      "critical_or_high_signal_count": 11,
+      "feature_backlog_count": 7,
+      "horizon_counts": {
+        "next": 2,
+        "now": 10
+      },
+      "implemented_capability_count": 17,
+      "priority_counts": {
+        "critical": 4,
+        "high": 7,
+        "medium": 1
+      },
+      "signal_count": 12,
+      "source_class_counts": {
+        "frontier_lab_guidance": 3,
+        "government_framework": 4,
+        "government_guidance": 2,
+        "industry_guidance": 3,
+        "industry_standard": 3,
+        "protocol_guidance": 1,
+        "protocol_specification": 3,
+        "vendor_architecture_guidance": 1
+      },
+      "source_reference_count": 20,
+      "top_signals": [
+        {
+          "id": "agent-protocol-handoff-boundaries",
+          "priority": "critical",
+          "strategic_score": 98,
+          "title": "Agent handoffs are becoming a protocol trust boundary"
+        },
+        {
+          "id": "indirect-prompt-injection-social-engineering",
+          "priority": "critical",
+          "strategic_score": 98,
+          "title": "Indirect prompt injection is now social engineering against agents"
+        },
+        {
+          "id": "mcp-token-passthrough-and-scope-creep",
+          "priority": "critical",
+          "strategic_score": 95,
+          "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
+        },
+        {
+          "id": "agent-identity-explosion",
+          "priority": "critical",
+          "strategic_score": 93,
+          "title": "Agent identities are becoming a new non-human identity class"
+        },
+        {
+          "id": "capability-based-agentic-risk-governance",
+          "priority": "high",
+          "strategic_score": 93,
+          "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
+        }
+      ]
+    }
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define the SecurityRecipes enterprise trust-center export so the open knowledge base, generated evidence packs, and repo-shipped MCP server can be reviewed as one acquisition-grade control package for AI platform, security, GRC, procurement, and frontier-lab diligence teams.",
+  "pack_index": [
+    {
+      "available": true,
+      "category": "strategy",
+      "failure_count": 0,
+      "id": "agentic-threat-radar",
+      "mcp_tools": [
+        "recipes_agentic_threat_radar"
+      ],
+      "path": "data/evidence/agentic-threat-radar.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "c36eb376ab0f1576116c8ade981106d4446aab6f9feebbea39a9b7cca6271eda",
+      "status": "ready",
+      "summary": {
+        "key": "threat_radar_summary",
+        "value": {
+          "confidence_counts": {
+            "high": 12
+          },
+          "critical_or_high_signal_count": 11,
+          "feature_backlog_count": 7,
+          "horizon_counts": {
+            "next": 2,
+            "now": 10
+          },
+          "implemented_capability_count": 17,
+          "priority_counts": {
+            "critical": 4,
+            "high": 7,
+            "medium": 1
+          },
+          "signal_count": 12,
+          "source_class_counts": {
+            "frontier_lab_guidance": 3,
+            "government_framework": 4,
+            "government_guidance": 2,
+            "industry_guidance": 3,
+            "industry_standard": 3,
+            "protocol_guidance": 1,
+            "protocol_specification": 3,
+            "vendor_architecture_guidance": 1
+          },
+          "source_reference_count": 20,
+          "top_signals": [
+            {
+              "id": "agent-protocol-handoff-boundaries",
+              "priority": "critical",
+              "strategic_score": 98,
+              "title": "Agent handoffs are becoming a protocol trust boundary"
+            },
+            {
+              "id": "indirect-prompt-injection-social-engineering",
+              "priority": "critical",
+              "strategic_score": 98,
+              "title": "Indirect prompt injection is now social engineering against agents"
+            },
+            {
+              "id": "mcp-token-passthrough-and-scope-creep",
+              "priority": "critical",
+              "strategic_score": 95,
+              "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
+            },
+            {
+              "id": "agent-identity-explosion",
+              "priority": "critical",
+              "strategic_score": 93,
+              "title": "Agent identities are becoming a new non-human identity class"
+            },
+            {
+              "id": "capability-based-agentic-risk-governance",
+              "priority": "high",
+              "strategic_score": 93,
+              "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
+            }
+          ]
+        }
+      },
+      "title": "Agentic Threat Radar"
+    },
+    {
+      "available": true,
+      "category": "strategy",
+      "failure_count": 0,
+      "id": "agentic-standards-crosswalk",
+      "mcp_tools": [
+        "recipes_agentic_standards_crosswalk"
+      ],
+      "path": "data/evidence/agentic-standards-crosswalk.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df",
+      "status": "ready",
+      "summary": {
+        "key": "crosswalk_summary",
+        "value": {
+          "capability_count": 27,
+          "control_count": 29,
+          "control_status_counts": {
+            "ready": 29
+          },
+          "covered_capability_count": 26,
+          "distinct_mcp_tool_count": 37,
+          "failure_count": 0,
+          "source_class_counts": {
+            "frontier_lab_guidance": 3,
+            "government_framework": 4,
+            "incident_intelligence": 1,
+            "industry_standard": 4,
+            "protocol_guidance": 1,
+            "protocol_specification": 1
+          },
+          "source_reference_count": 14,
+          "standard_count": 5,
+          "standard_status_counts": {
+            "ready": 5
+          },
+          "status": "standards_crosswalk_ready"
+        }
+      },
+      "title": "Agentic Standards Crosswalk"
+    },
+    {
+      "available": true,
+      "category": "strategy",
+      "failure_count": 0,
+      "id": "agentic-control-plane-blueprint",
+      "mcp_tools": [
+        "recipes_agentic_control_plane_blueprint"
+      ],
+      "path": "data/evidence/agentic-control-plane-blueprint.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "65e0505f72a688a135ebc2fc241ae2a921dd1df12b689bb2a1190dc82c54c6e7",
+      "status": "ready",
+      "summary": {
+        "key": "acquisition_readiness",
+        "value": {
+          "active_workflow_count": 8,
+          "blueprint_score": 90,
+          "distinct_mcp_tool_count": 36,
+          "ready_layer_count": 10,
+          "ready_source_pack_count": 25,
+          "scale_ready_workflow_count": 4,
+          "source_pack_count": 25,
+          "status": "acquisition_diligence_ready",
+          "total_layer_count": 10
+        }
+      },
+      "title": "Agentic Control Plane Blueprint"
+    },
+    {
+      "available": true,
+      "category": "risk",
+      "failure_count": 0,
+      "id": "agentic-exposure-graph",
+      "mcp_tools": [
+        "recipes_agentic_exposure_graph"
+      ],
+      "path": "data/evidence/agentic-exposure-graph.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "467530248c4fe051cf942ff1f64e651b61731b7eeb9a5745c3b3777f5bf1eaba",
+      "status": "ready",
+      "summary": {
+        "key": "exposure_graph_summary",
+        "value": {
+          "decision_counts": {
+            "architecture_review": 24,
+            "guarded_rollout": 24,
+            "hold_for_owner_review": 3,
+            "standard_monitoring": 45
+          },
+          "distinct_agent_identity_count": 32,
+          "distinct_context_source_count": 9,
+          "distinct_mcp_namespace_count": 16,
+          "edge_counts": {
+            "delegates_mcp_scope": 96,
+            "requests_mcp_namespace": 24,
+            "requires_evidence_pack": 80,
+            "retrieves_context": 64,
+            "uses_identity": 32
+          },
+          "failure_count": 0,
+          "highest_exposure_paths": [
+            {
+              "access": "approval_required",
+              "agent_class": "claude",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::artifact-cache-quarantine::claude",
+              "mcp_namespace": "registries.quarantine",
+              "path_class_id": "approval_required_tool_path",
+              "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
+              "risk_tier": "high",
+              "score": 83,
+              "workflow_id": "artifact-cache-quarantine",
+              "workflow_title": "Artifact Cache and Mirror Quarantine"
+            },
+            {
+              "access": "approval_required",
+              "agent_class": "codex",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::artifact-cache-quarantine::codex",
+              "mcp_namespace": "registries.quarantine",
+              "path_class_id": "approval_required_tool_path",
+              "path_id": "exposure::artifact-cache-quarantine::codex::registries.quarantine",
+              "risk_tier": "high",
+              "score": 83,
+              "workflow_id": "artifact-cache-quarantine",
+              "workflow_title": "Artifact Cache and Mirror Quarantine"
+            },
+            {
+              "access": "approval_required",
+              "agent_class": "devin",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::artifact-cache-quarantine::devin",
+              "mcp_namespace": "registries.quarantine",
+              "path_class_id": "approval_required_tool_path",
+              "path_id": "exposure::artifact-cache-quarantine::devin::registries.quarantine",
+              "risk_tier": "high",
+              "score": 83,
+              "workflow_id": "artifact-cache-quarantine",
+              "workflow_title": "Artifact Cache and Mirror Quarantine"
+            },
+            {
+              "access": "write_branch",
+              "agent_class": "claude",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::crypto-payment-security::claude",
+              "mcp_namespace": "repo.contents",
+              "path_class_id": "high_impact_authority_path",
+              "path_id": "exposure::crypto-payment-security::claude::repo.contents",
+              "risk_tier": "high",
+              "score": 79,
+              "workflow_id": "crypto-payment-security",
+              "workflow_title": "Cryptocurrency and Crypto Payments Security"
+            },
+            {
+              "access": "write_branch",
+              "agent_class": "codex",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::crypto-payment-security::codex",
+              "mcp_namespace": "repo.contents",
+              "path_class_id": "high_impact_authority_path",
+              "path_id": "exposure::crypto-payment-security::codex::repo.contents",
+              "risk_tier": "high",
+              "score": 79,
+              "workflow_id": "crypto-payment-security",
+              "workflow_title": "Cryptocurrency and Crypto Payments Security"
+            },
+            {
+              "access": "write_branch",
+              "agent_class": "cursor",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::crypto-payment-security::cursor",
+              "mcp_namespace": "repo.contents",
+              "path_class_id": "high_impact_authority_path",
+              "path_id": "exposure::crypto-payment-security::cursor::repo.contents",
+              "risk_tier": "high",
+              "score": 79,
+              "workflow_id": "crypto-payment-security",
+              "workflow_title": "Cryptocurrency and Crypto Payments Security"
+            },
+            {
+              "access": "write_branch",
+              "agent_class": "claude",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::defi-blockchain-security::claude",
+              "mcp_namespace": "repo.contents",
+              "path_class_id": "high_impact_authority_path",
+              "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
+              "risk_tier": "high",
+              "score": 79,
+              "workflow_id": "defi-blockchain-security",
+              "workflow_title": "DeFi and Blockchain Protocol Security"
+            },
+            {
+              "access": "write_branch",
+              "agent_class": "codex",
+              "decision": "architecture_review",
+              "identity_id": "sr-agent::defi-blockchain-security::codex",
+              "mcp_namespace": "repo.contents",
+              "path_class_id": "high_impact_authority_path",
+              "path_id": "exposure::defi-blockchain-security::codex::repo.contents",
+              "risk_tier": "high",
+              "score": 79,
+              "workflow_id": "defi-blockchain-security",
+              "workflow_title": "DeFi and Blockchain Protocol Security"
+            }
+          ],
+          "node_counts": {
+            "agent_identity": 32,
+            "context_source": 9,
+            "evidence_pack": 10,
+            "mcp_namespace": 16,
+            "workflow": 8
+          },
+          "path_class_counts": {
+            "approval_required_tool_path": 3,
+            "context_to_read_tool": 9,
+            "context_to_write_tool": 23,
+            "high_impact_authority_path": 24,
+            "tenant_sensitive_context_path": 37
+          },
+          "total_edge_count": 296,
+          "total_node_count": 75,
+          "total_path_count": 96,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Exposure Graph"
+    },
+    {
+      "available": true,
+      "category": "risk",
+      "failure_count": 0,
+      "id": "agentic-catastrophic-risk-annex",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_evaluate_agentic_catastrophic_risk_decision"
+      ],
+      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "cf8b54686bbf25d87e9d371905faa31d5ee258d301a186a1601a57961cad50bb",
+      "status": "ready",
+      "summary": {
+        "key": "annex_summary",
+        "value": {
+          "control_count": 8,
+          "control_status_counts": {
+            "ready": 8
+          },
+          "default_decision_counts": {
+            "deny_unbounded_autonomy": 2,
+            "hold_for_catastrophic_risk_review": 3,
+            "kill_session_on_catastrophic_signal": 2
+          },
+          "distinct_mcp_tool_count": 21,
+          "failure_count": 0,
+          "high_impact_action_class_count": 10,
+          "ready_source_pack_count": 14,
+          "scenario_count": 7,
+          "scenario_status_counts": {
+            "ready": 7
+          },
+          "source_pack_count": 14,
+          "source_pack_status_counts": {
+            "ready": 14
+          },
+          "status": "catastrophic_risk_annex_ready"
+        }
+      },
+      "title": "Agentic Catastrophic Risk Annex"
+    },
+    {
+      "available": true,
+      "category": "incident_response",
+      "failure_count": 0,
+      "id": "agentic-incident-response-pack",
+      "mcp_tools": [
+        "recipes_agentic_incident_response_pack",
+        "recipes_evaluate_agentic_incident_response_decision"
+      ],
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527",
+      "status": "ready",
+      "summary": {
+        "key": "incident_response_summary",
+        "value": {
+          "class_count": 8,
+          "decision_counts": {
+            "contain_and_open_war_room": 3,
+            "hold_for_forensics": 2,
+            "kill_session_and_escalate_board": 3
+          },
+          "failure_count": 0,
+          "required_evidence_source_count": 15,
+          "response_phase_count": 6,
+          "sev0_class_count": 2,
+          "sev1_class_count": 5,
+          "source_failure_count": 0,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Incident Response Pack"
+    },
+    {
+      "available": true,
+      "category": "assurance",
+      "failure_count": 0,
+      "id": "agentic-assurance-pack",
+      "mcp_tools": [
+        "recipes_agentic_assurance_pack"
+      ],
+      "path": "data/evidence/agentic-assurance-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "c434995287e687217f279b878ac25ffeefbe81f86cc64e43b1547193c339c6f9",
+      "status": "ready",
+      "summary": {
+        "key": "assurance_summary",
+        "value": {
+          "active_workflow_count": 8,
+          "control_count": 10,
+          "external_evidence_artifact_count": 3,
+          "failure_count": 0,
+          "gateway_default_decision": "deny",
+          "standards_count": 9,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Assurance Pack"
+    },
+    {
+      "available": true,
+      "category": "assurance",
+      "failure_count": 0,
+      "id": "agentic-readiness-scorecard",
+      "mcp_tools": [
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c",
+      "status": "ready",
+      "summary": {
+        "key": "readiness_summary",
+        "value": {
+          "active_workflow_count": 8,
+          "average_score": 95.75,
+          "blocked_workflow_count": 0,
+          "decision_counts": {
+            "pilot_guarded": 4,
+            "scale_ready": 4
+          },
+          "failure_count": 0,
+          "manual_gate_workflow_count": 0,
+          "pilot_connector_workflows": [
+            "artifact-cache-quarantine",
+            "crypto-payment-security",
+            "defi-blockchain-security"
+          ],
+          "pilot_guarded_workflow_count": 4,
+          "scale_ready_workflow_count": 4,
+          "source_failure_count": 0,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Readiness Scorecard"
+    },
+    {
+      "available": true,
+      "category": "inventory",
+      "failure_count": 0,
+      "id": "agentic-system-bom",
+      "mcp_tools": [
+        "recipes_agentic_system_bom"
+      ],
+      "path": "data/evidence/agentic-system-bom.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "19d9de3f6cdc0003d61a75477cc5549d857fb6a9f3342884807ae079299e95cd",
+      "status": "ready",
+      "summary": {
+        "key": "bom_summary",
+        "value": {
+          "active_workflow_count": 8,
+          "agent_class_count": 5,
+          "agent_identity_count": 32,
+          "component_counts": {
+            "agent_classes": 5,
+            "agent_identities": 32,
+            "evaluation_drills": 56,
+            "evidence_artifacts": 9,
+            "knowledge_sources": 4,
+            "mcp_connectors": 16,
+            "policy_components": 4,
+            "workflows": 8
+          },
+          "connector_count": 16,
+          "drift_trigger_count": 12,
+          "evaluation_drill_count": 56,
+          "failure_count": 0,
+          "mcp_namespace_count": 16,
+          "missing_identity_workflow_count": 0,
+          "readiness_decision_counts": {
+            "pilot_guarded": 4,
+            "scale_ready": 4
+          },
+          "source_failure_count": 0,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic System BOM"
+    },
+    {
+      "available": true,
+      "category": "runtime_evidence",
+      "failure_count": 0,
+      "id": "agentic-run-receipt-pack",
+      "mcp_tools": [
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+      "status": "ready",
+      "summary": {
+        "key": "receipt_summary",
+        "value": {
+          "default_state": "untrusted_until_complete",
+          "failure_count": 0,
+          "readiness_decision_counts": {
+            "pilot_guarded": 4,
+            "scale_ready": 4
+          },
+          "required_event_class_count": 10,
+          "source_failure_count": 0,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Run Receipt Pack"
+    },
+    {
+      "available": true,
+      "category": "runtime_evidence",
+      "failure_count": 0,
+      "id": "agentic-telemetry-contract",
+      "mcp_tools": [
+        "recipes_agentic_telemetry_contract",
+        "recipes_evaluate_agentic_telemetry_event"
+      ],
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f",
+      "status": "ready",
+      "summary": {
+        "key": "telemetry_summary",
+        "value": {
+          "decision_counts": {
+            "telemetry_ready": 8
+          },
+          "default_state": "untrusted_until_required_trace_fields_present",
+          "failure_count": 0,
+          "prohibited_field_count": 8,
+          "redaction_tier_count": 4,
+          "required_attribute_count": 26,
+          "sensitive_opt_in_attribute_count": 7,
+          "signal_class_count": 9,
+          "telemetry_check_count": 8,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Telemetry Contract"
+    },
+    {
+      "available": true,
+      "category": "runtime_policy",
+      "failure_count": 0,
+      "id": "workflow-control-plane",
+      "mcp_tools": [
+        "recipes_workflow_control_plane"
+      ],
+      "path": "data/control-plane/workflow-manifests.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb",
+      "status": "ready",
+      "summary": null,
+      "title": "Workflow Control Plane"
+    },
+    {
+      "available": true,
+      "category": "runtime_policy",
+      "failure_count": 0,
+      "id": "mcp-gateway-policy",
+      "mcp_tools": [
+        "recipes_mcp_gateway_policy",
+        "recipes_evaluate_mcp_gateway_decision"
+      ],
+      "path": "data/policy/mcp-gateway-policy.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2",
+      "status": "ready",
+      "summary": {
+        "key": "policy_summary",
+        "value": {
+          "active_workflow_count": 8,
+          "mcp_namespace_count": 16,
+          "policy_decisions": [
+            "allow",
+            "allow_scoped_branch",
+            "allow_scoped_ticket",
+            "hold_for_approval",
+            "deny",
+            "kill_session"
+          ],
+          "workflow_count": 8
+        }
+      },
+      "title": "MCP Gateway Policy"
+    },
+    {
+      "available": true,
+      "category": "identity",
+      "failure_count": 0,
+      "id": "agent-identity-ledger",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger"
+      ],
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42",
+      "status": "ready",
+      "summary": {
+        "key": "identity_summary",
+        "value": {
+          "active_identity_count": 32,
+          "agent_classes": [
+            "claude",
+            "codex",
+            "cursor",
+            "devin",
+            "github_copilot"
+          ],
+          "approval_required_workflow_count": 1,
+          "approval_required_workflows": [
+            "artifact-cache-quarantine"
+          ],
+          "default_decision": "deny",
+          "high_control_identity_count": 9,
+          "human_review_required": true,
+          "identity_count": 32,
+          "mcp_namespace_count": 16,
+          "mcp_namespaces": [
+            "advisories.vulnerability",
+            "chain.simulation",
+            "ci.runs",
+            "findings.sast",
+            "findings.sde",
+            "images.golden",
+            "incidents.security",
+            "inventory.artifacts",
+            "payments.findings",
+            "payments.simulation",
+            "protocol.findings",
+            "recipes.defaults",
+            "registries.quarantine",
+            "repo.contents",
+            "sbom.inventory",
+            "tickets.security"
+          ],
+          "workflow_count": 8
+        }
+      },
+      "title": "Agent Identity and Delegation Ledger"
+    },
+    {
+      "available": true,
+      "category": "identity",
+      "failure_count": 0,
+      "id": "agentic-entitlement-review-pack",
+      "mcp_tools": [
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_evaluate_agentic_entitlement_decision"
+      ],
+      "path": "data/evidence/agentic-entitlement-review-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "993f2fc0377c9bb175de7758a3e12e25b02cf0b807c2c4bf0d62697be70e50cd",
+      "status": "ready",
+      "summary": {
+        "key": "entitlement_review_summary",
+        "value": {
+          "access_mode_counts": {
+            "approval_required": 3,
+            "read": 56,
+            "write_branch": 29,
+            "write_ticket": 8
+          },
+          "approval_required_entitlement_count": 12,
+          "distinct_identity_count": 32,
+          "entitlement_count": 96,
+          "failure_count": 0,
+          "high_or_critical_entitlement_count": 12,
+          "risk_counts": {
+            "high": 12,
+            "low": 56,
+            "medium": 28
+          },
+          "status": "entitlement_review_ready",
+          "tier_counts": {
+            "privileged_action": 12,
+            "read_context": 56,
+            "write_scoped": 28
+          },
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Entitlement Review Pack"
+    },
+    {
+      "available": true,
+      "category": "authorization",
+      "failure_count": 0,
+      "id": "mcp-authorization-conformance",
+      "mcp_tools": [
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision"
+      ],
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367",
+      "status": "ready",
+      "summary": {
+        "key": "authorization_summary",
+        "value": {
+          "candidate_count": 3,
+          "candidate_decision_counts": {
+            "approve_for_pilot": 1,
+            "deny_until_redesigned": 1,
+            "hold_for_authorization_evidence": 1
+          },
+          "connector_count": 16,
+          "failure_count": 0,
+          "metadata_evidence_required_count": 16,
+          "registered_decision_counts": {
+            "approve_public_context_no_auth": 1,
+            "approve_with_gateway_attestation": 15
+          },
+          "workflow_count": 8
+        }
+      },
+      "title": "MCP Authorization Conformance"
+    },
+    {
+      "available": true,
+      "category": "connector_trust",
+      "failure_count": 0,
+      "id": "mcp-connector-trust-pack",
+      "mcp_tools": [
+        "recipes_mcp_connector_trust_pack"
+      ],
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be",
+      "status": "ready",
+      "summary": {
+        "key": "connector_trust_summary",
+        "value": {
+          "access_mode_counts": {
+            "approval_required": 1,
+            "read": 12,
+            "write_branch": 1,
+            "write_ticket": 2
+          },
+          "approval_required_connector_count": 1,
+          "connector_count": 16,
+          "failure_count": 0,
+          "missing_workflow_namespaces": [],
+          "production_connector_count": 11,
+          "registry_namespace_count": 16,
+          "scoped_write_connector_count": 3,
+          "status_counts": {
+            "pilot": 5,
+            "production": 11
+          },
+          "tier_counts": {
+            "tier_0_public_context": 1,
+            "tier_1_internal_read": 11,
+            "tier_2_scoped_write": 3,
+            "tier_3_approval_required": 1
+          },
+          "workflow_namespace_count": 16,
+          "workflow_namespace_coverage_percent": 100
+        }
+      },
+      "title": "MCP Connector Trust Pack"
+    },
+    {
+      "available": true,
+      "category": "connector_trust",
+      "failure_count": 0,
+      "id": "mcp-connector-intake-pack",
+      "mcp_tools": [
+        "recipes_mcp_connector_intake_pack"
+      ],
+      "path": "data/evidence/mcp-connector-intake-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f",
+      "status": "ready",
+      "summary": null,
+      "title": "MCP Connector Intake Pack"
+    },
+    {
+      "available": true,
+      "category": "connector_trust",
+      "failure_count": 0,
+      "id": "mcp-stdio-launch-boundary",
+      "mcp_tools": [
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_evaluate_mcp_stdio_launch_decision"
+      ],
+      "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "f1de8897098089e18dc0c7472518ba26039b254f031d028221c60fff4caadd2d",
+      "status": "ready",
+      "summary": null,
+      "title": "MCP STDIO Launch Boundary"
+    },
+    {
+      "available": true,
+      "category": "secure_context",
+      "failure_count": 0,
+      "id": "secure-context-trust-pack",
+      "mcp_tools": [
+        "recipes_secure_context_trust_pack",
+        "recipes_evaluate_context_retrieval_decision"
+      ],
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085",
+      "status": "ready",
+      "summary": null,
+      "title": "Secure Context Trust Pack"
+    },
+    {
+      "available": true,
+      "category": "secure_context",
+      "failure_count": 0,
+      "id": "secure-context-attestation-pack",
+      "mcp_tools": [
+        "recipes_secure_context_attestation_pack",
+        "recipes_evaluate_context_attestation_decision"
+      ],
+      "path": "data/evidence/secure-context-attestation-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "3ed40d601397eec16a6d941187a62a5d5512584230c66f40e926cb99d1a3ee9d",
+      "status": "ready",
+      "summary": {
+        "key": "attestation_summary",
+        "value": {
+          "active_subject_count": 19,
+          "context_source_subject_count": 9,
+          "decision_counts": {
+            "allow_attested_context": 9,
+            "allow_attested_workflow_context": 8
+          },
+          "failure_count": 0,
+          "source_artifact_subject_count": 2,
+          "status": "ready_for_open_reference_use",
+          "status_counts": {
+            "active": 19
+          },
+          "total_subject_count": 19,
+          "workflow_package_subject_count": 8
+        }
+      },
+      "title": "Secure Context Attestation Pack"
+    },
+    {
+      "available": true,
+      "category": "secure_context",
+      "failure_count": 0,
+      "id": "secure-context-eval-pack",
+      "mcp_tools": [
+        "recipes_secure_context_eval_pack",
+        "recipes_evaluate_secure_context_eval_case"
+      ],
+      "path": "data/evidence/secure-context-eval-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995",
+      "status": "ready",
+      "summary": {
+        "key": "eval_summary",
+        "value": {
+          "average_score": 100,
+          "decision_counts": {
+            "eval_ready": 7
+          },
+          "failure_count": 0,
+          "ready_scenario_count": 7,
+          "scenario_count": 7,
+          "scenario_type_counts": {
+            "a2a_handoff_boundary": 1,
+            "answer_contract": 1,
+            "context_poisoning_resilience": 1,
+            "egress_safety": 2,
+            "retrieval_correctness": 1,
+            "source_attestation": 1
+          },
+          "total_failed_checks": 0
+        }
+      },
+      "title": "Secure Context Eval Pack"
+    },
+    {
+      "available": true,
+      "category": "secure_context",
+      "failure_count": 0,
+      "id": "context-poisoning-guard-pack",
+      "mcp_tools": [
+        "recipes_context_poisoning_guard_pack"
+      ],
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8",
+      "status": "ready",
+      "summary": {
+        "key": "guard_summary",
+        "value": {
+          "actionable_finding_count": 2,
+          "blocking_source_count": 1,
+          "blocking_sources": [
+            "agentic-assurance-models"
+          ],
+          "byte_count": 2967425,
+          "decision_counts": {
+            "allow_with_adversarial_examples": 4,
+            "block_until_removed": 1,
+            "pass": 4
+          },
+          "disposition_counts": {
+            "actionable_context_poisoning_risk": 2,
+            "defensive_control_language": 12,
+            "documented_adversarial_example": 23
+          },
+          "failure_count": 0,
+          "file_count": 168,
+          "finding_count": 37,
+          "held_source_count": 0,
+          "held_sources": [],
+          "risk_family_counts": {
+            "approval_bypass": 21,
+            "prompt_injection": 3,
+            "secret_exposure": 13
+          },
+          "severity_counts": {
+            "critical": 16,
+            "high": 21
+          },
+          "source_count": 9
+        }
+      },
+      "title": "Context Poisoning Guard Pack"
+    },
+    {
+      "available": true,
+      "category": "secure_context",
+      "failure_count": 0,
+      "id": "context-egress-boundary-pack",
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_context_egress_decision"
+      ],
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833",
+      "status": "ready",
+      "summary": {
+        "key": "egress_boundary_summary",
+        "value": {
+          "data_class_counts": {
+            "curated_security_guidance": 2,
+            "generated_policy_evidence": 7
+          },
+          "decision_counts": {
+            "allow_public_egress_with_citation": 9
+          },
+          "destination_class_count": 7,
+          "failure_count": 0,
+          "namespace_policy_count": 24,
+          "prohibited_data_class_count": 2,
+          "source_count": 9,
+          "tenant_bound_data_class_count": 7,
+          "workflow_count": 8,
+          "workflow_namespace_data_class_counts": {
+            "curated_security_guidance": 1,
+            "customer_asset_metadata": 5,
+            "customer_case_context": 2,
+            "customer_finding_metadata": 5,
+            "customer_pipeline_metadata": 3,
+            "customer_source_code": 7,
+            "public_vulnerability_intelligence": 1
+          }
+        }
+      },
+      "title": "Context Egress Boundary Pack"
+    },
+    {
+      "available": true,
+      "category": "agent_protocols",
+      "failure_count": 0,
+      "id": "agent-handoff-boundary-pack",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_evaluate_agent_handoff_decision"
+      ],
+      "path": "data/evidence/agent-handoff-boundary-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b",
+      "status": "ready",
+      "summary": {
+        "key": "handoff_boundary_summary",
+        "value": {
+          "default_state": "deny_unregistered_handoff",
+          "failure_count": 0,
+          "profile_count": 4,
+          "profile_decision_counts": {
+            "allow_approved_handoff": 1,
+            "allow_cited_evidence_handoff": 1,
+            "allow_metadata_handoff": 1,
+            "kill_session_on_secret_handoff": 1
+          },
+          "protocol_count": 4,
+          "risk_tier_counts": {
+            "high": 1,
+            "low": 1,
+            "medium": 1,
+            "prohibited": 1
+          },
+          "workflow_count": 8
+        }
+      },
+      "title": "Agent Handoff Boundary Pack"
+    },
+    {
+      "available": true,
+      "category": "agent_protocols",
+      "failure_count": 0,
+      "id": "a2a-agent-card-trust-profile",
+      "mcp_tools": [
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_evaluate_a2a_agent_card_trust_decision"
+      ],
+      "path": "data/evidence/a2a-agent-card-trust-profile.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "73774aeba0fd3934208e8a55c2a6fc3bdfbdff54f3632db8661a471c2fbe2ba9",
+      "status": "ready",
+      "summary": {
+        "key": "agent_card_trust_summary",
+        "value": {
+          "default_state": "hold_for_agent_card_intake",
+          "failure_count": 0,
+          "intake_profile_count": 4,
+          "required_agent_card_field_count": 8,
+          "sample_decision_counts": {
+            "allow_trusted_agent_card": 1,
+            "kill_session_on_agent_card_secret": 1,
+            "pilot_with_restricted_context": 1
+          },
+          "sample_evaluation_count": 3,
+          "skill_risk_tier_counts": {
+            "blocked": 1,
+            "discovery": 1,
+            "pilot": 1,
+            "production": 1
+          },
+          "status": "agent_card_trust_profile_ready"
+        }
+      },
+      "title": "A2A Agent Card Trust Profile"
+    },
+    {
+      "available": true,
+      "category": "agent_runtime",
+      "failure_count": 0,
+      "id": "agent-memory-boundary-pack",
+      "mcp_tools": [
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision"
+      ],
+      "path": "data/evidence/agent-memory-boundary-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed",
+      "status": "ready",
+      "summary": null,
+      "title": "Agent Memory Boundary Pack"
+    },
+    {
+      "available": true,
+      "category": "agent_runtime",
+      "failure_count": 0,
+      "id": "agent-skill-supply-chain-pack",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision"
+      ],
+      "path": "data/evidence/agent-skill-supply-chain-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450",
+      "status": "ready",
+      "summary": {
+        "key": "skill_supply_chain_summary",
+        "value": {
+          "decision_counts": {
+            "allow_guarded_skill": 3,
+            "allow_pinned_readonly_skill": 1,
+            "kill_session_on_malicious_skill_signal": 1
+          },
+          "failure_count": 0,
+          "lethal_trifecta_count": 1,
+          "platform_counts": {
+            "claude": 5,
+            "codex": 5,
+            "cursor": 3,
+            "devin": 2,
+            "github_copilot": 1,
+            "vscode": 1
+          },
+          "risk_tier_counts": {
+            "critical": 1,
+            "low": 4
+          },
+          "signed_skill_count": 4,
+          "skill_count": 5,
+          "top_risk_skills": [
+            {
+              "decision": "kill_session_on_malicious_skill_signal",
+              "residual_risk_score": 226,
+              "risk_tier": "critical",
+              "skill_id": "untrusted-marketplace-shell-skill",
+              "title": "Untrusted Marketplace Shell Skill"
+            },
+            {
+              "decision": "allow_guarded_skill",
+              "residual_risk_score": 4,
+              "risk_tier": "low",
+              "skill_id": "sr-artifact-quarantine-operator-skill",
+              "title": "SecurityRecipes Artifact Quarantine Operator Skill"
+            },
+            {
+              "decision": "allow_guarded_skill",
+              "residual_risk_score": 4,
+              "risk_tier": "low",
+              "skill_id": "sr-cve-remediation-skill",
+              "title": "SecurityRecipes CVE Remediation Skill"
+            },
+            {
+              "decision": "allow_guarded_skill",
+              "residual_risk_score": 0,
+              "risk_tier": "low",
+              "skill_id": "sr-agent-memory-operator-skill",
+              "title": "SecurityRecipes Agent Memory Operator Skill"
+            },
+            {
+              "decision": "allow_pinned_readonly_skill",
+              "residual_risk_score": 0,
+              "risk_tier": "low",
+              "skill_id": "sr-secure-context-retrieval-skill",
+              "title": "SecurityRecipes Secure Context Retrieval Skill"
+            }
+          ],
+          "verified_publisher_count": 4,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agent Skill Supply-Chain Pack"
+    },
+    {
+      "available": true,
+      "category": "evals",
+      "failure_count": 0,
+      "id": "agentic-red-team-drill-pack",
+      "mcp_tools": [
+        "recipes_agentic_red_team_drill_pack"
+      ],
+      "path": "data/evidence/agentic-red-team-drill-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b",
+      "status": "ready",
+      "summary": {
+        "key": "red_team_summary",
+        "value": {
+          "active_workflow_count": 8,
+          "attack_family_counts": {
+            "agent_goal_hijack": 7,
+            "agentic_supply_chain_drift": 8,
+            "approval_bypass": 1,
+            "cascading_failure_and_unbounded_consumption": 8,
+            "evidence_integrity_failure": 8,
+            "identity_and_privilege_abuse": 8,
+            "sensitive_data_exfiltration": 8,
+            "tool_result_prompt_injection": 8
+          },
+          "drill_count": 56,
+          "failure_count": 0,
+          "scenario_count": 8,
+          "severity_counts": {
+            "critical": 24,
+            "high": 32
+          },
+          "workflow_count": 8,
+          "workflow_coverage_percent": 100,
+          "workflows_with_drills": 8
+        }
+      },
+      "title": "Agentic Red-Team Drill Pack"
+    },
+    {
+      "available": true,
+      "category": "evals",
+      "failure_count": 0,
+      "id": "agentic-measurement-probe-pack",
+      "mcp_tools": [
+        "recipes_agentic_measurement_probe_pack"
+      ],
+      "path": "data/evidence/agentic-measurement-probe-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "77d8ccb3ff88747f0c2020f25c038ce5af3f74164d977a808c79352b925cb01b",
+      "status": "ready",
+      "summary": {
+        "key": "measurement_probe_summary",
+        "value": {
+          "average_score": 100,
+          "decision_counts": {
+            "measurement_ready": 8
+          },
+          "failure_count": 0,
+          "probe_class_status_counts": {
+            "context_integrity": {
+              "pass": 8
+            },
+            "egress_boundary": {
+              "pass": 8
+            },
+            "identity_delegation": {
+              "pass": 8
+            },
+            "memory_boundary": {
+              "pass": 8
+            },
+            "readiness_decision": {
+              "pass": 8
+            },
+            "red_team_replay": {
+              "pass": 8
+            },
+            "run_receipt_integrity": {
+              "pass": 8
+            },
+            "threat_radar_alignment": {
+              "pass": 8
+            },
+            "tool_authorization": {
+              "pass": 8
+            }
+          },
+          "probe_status_counts": {
+            "pass": 72
+          },
+          "total_probe_results": 72,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Measurement Probe Pack"
+    },
+    {
+      "available": true,
+      "category": "risk",
+      "failure_count": 0,
+      "id": "agent-capability-risk-register",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register"
+      ],
+      "path": "data/evidence/agent-capability-risk-register.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "53c25f92d26a7d3559499e24a97ab2ed4bfa8c541adfec3da3abeab404684d26",
+      "status": "ready",
+      "summary": {
+        "key": "capability_risk_summary",
+        "value": {
+          "active_workflow_count": 8,
+          "average_control_credit": 38.5,
+          "average_raw_capability_score": 68,
+          "average_residual_risk_score": 29.5,
+          "decision_counts": {
+            "guarded_rollout": 3,
+            "security_architecture_review": 3,
+            "standard_agentic_use": 2
+          },
+          "failure_count": 0,
+          "high_risk_workflow_count": 3,
+          "risk_tier_counts": {
+            "high": 3,
+            "low": 2,
+            "medium": 3
+          },
+          "source_failure_count": 0,
+          "top_risk_workflows": [
+            {
+              "decision": "security_architecture_review",
+              "residual_risk_score": 52,
+              "risk_tier": "high",
+              "title": "Cryptocurrency and Crypto Payments Security",
+              "workflow_id": "crypto-payment-security"
+            },
+            {
+              "decision": "security_architecture_review",
+              "residual_risk_score": 52,
+              "risk_tier": "high",
+              "title": "DeFi and Blockchain Protocol Security",
+              "workflow_id": "defi-blockchain-security"
+            },
+            {
+              "decision": "security_architecture_review",
+              "residual_risk_score": 42,
+              "risk_tier": "high",
+              "title": "Artifact Cache and Mirror Quarantine",
+              "workflow_id": "artifact-cache-quarantine"
+            },
+            {
+              "decision": "guarded_rollout",
+              "residual_risk_score": 26,
+              "risk_tier": "medium",
+              "title": "Sensitive Data Element Remediation",
+              "workflow_id": "sensitive-data-remediation"
+            },
+            {
+              "decision": "guarded_rollout",
+              "residual_risk_score": 22,
+              "risk_tier": "medium",
+              "title": "Base Image and Container Layer Remediation",
+              "workflow_id": "base-image-remediation"
+            }
+          ],
+          "workflow_count": 8
+        }
+      },
+      "title": "Agent Capability Risk Register"
+    }
+  ],
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, model-risk, and acquisition diligence teams",
+    "category": "Enterprise trust-center export for secure agent context and MCP governance",
+    "enterprise_promise": "SecurityRecipes can answer buyer diligence questions with one generated artifact that links source-backed standards, MCP tools, runtime decision evaluators, secure-context provenance, identity contracts, evals, readiness, and commercialization paths.",
+    "why_now": "Agentic AI adoption has shifted from isolated coding assistants to fleets of tool-using agents, MCP servers, A2A handoffs, non-human identities, and private context. Enterprise buyers need a compact, current, machine-readable trust packet before approving production use or acquiring the control plane."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open export proves the reference control package, not a live customer's runtime enforcement.",
+      "treatment": "Bind the same export shape to customer traces, gateway logs, identity-provider records, approval systems, and signed context releases."
+    },
+    {
+      "risk": "A generated trust-center packet can become stale after model, connector, policy, context, or workflow drift.",
+      "treatment": "Regenerate the export after every evidence-pack refresh and make hosted drift alerts part of the paid control plane."
+    },
+    {
+      "risk": "Some production guarantees require external evidence that this public repository cannot hold.",
+      "treatment": "Use customer-private evidence ingestion for tickets, logs, approvals, connector metadata, source-host reviews, and runtime receipts."
+    }
+  ],
+  "runtime_evidence_contract": [
+    "workflow_id",
+    "run_id",
+    "agent_id",
+    "identity_id",
+    "entitlement_id",
+    "entitlement_lease_id",
+    "entitlement_review_status",
+    "context_source_ids",
+    "context_source_hashes",
+    "mcp_tool_namespace",
+    "mcp_policy_decision",
+    "authorization_decision",
+    "agent_card_trust_decision",
+    "egress_decision",
+    "handoff_decision",
+    "poisoning_scan_state",
+    "guardrail_or_eval_result",
+    "human_approval_record",
+    "incident_id",
+    "incident_class_id",
+    "containment_action_ids",
+    "replay_case_ids",
+    "correlation_id",
+    "receipt_id",
+    "trace_id",
+    "span_id",
+    "parent_span_id",
+    "otel_signal_class",
+    "telemetry_redaction_state"
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "enterprise_trust_center_profile": {
+      "path": "data/assurance/enterprise-trust-center-profile.json",
+      "sha256": "10511cd559310254b11c4be4b4e61e10c1b2ca17d443c3d6a5f2b1acf9b88ff3"
+    },
+    "evidence_packs": [
+      {
+        "id": "agentic-threat-radar",
+        "path": "data/evidence/agentic-threat-radar.json",
+        "sha256": "c36eb376ab0f1576116c8ade981106d4446aab6f9feebbea39a9b7cca6271eda"
+      },
+      {
+        "id": "agentic-standards-crosswalk",
+        "path": "data/evidence/agentic-standards-crosswalk.json",
+        "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df"
+      },
+      {
+        "id": "agentic-control-plane-blueprint",
+        "path": "data/evidence/agentic-control-plane-blueprint.json",
+        "sha256": "65e0505f72a688a135ebc2fc241ae2a921dd1df12b689bb2a1190dc82c54c6e7"
+      },
+      {
+        "id": "agentic-exposure-graph",
+        "path": "data/evidence/agentic-exposure-graph.json",
+        "sha256": "467530248c4fe051cf942ff1f64e651b61731b7eeb9a5745c3b3777f5bf1eaba"
+      },
+      {
+        "id": "agentic-catastrophic-risk-annex",
+        "path": "data/evidence/agentic-catastrophic-risk-annex.json",
+        "sha256": "cf8b54686bbf25d87e9d371905faa31d5ee258d301a186a1601a57961cad50bb"
+      },
+      {
+        "id": "agentic-incident-response-pack",
+        "path": "data/evidence/agentic-incident-response-pack.json",
+        "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527"
+      },
+      {
+        "id": "agentic-assurance-pack",
+        "path": "data/evidence/agentic-assurance-pack.json",
+        "sha256": "c434995287e687217f279b878ac25ffeefbe81f86cc64e43b1547193c339c6f9"
+      },
+      {
+        "id": "agentic-readiness-scorecard",
+        "path": "data/evidence/agentic-readiness-scorecard.json",
+        "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c"
+      },
+      {
+        "id": "agentic-system-bom",
+        "path": "data/evidence/agentic-system-bom.json",
+        "sha256": "19d9de3f6cdc0003d61a75477cc5549d857fb6a9f3342884807ae079299e95cd"
+      },
+      {
+        "id": "agentic-run-receipt-pack",
+        "path": "data/evidence/agentic-run-receipt-pack.json",
+        "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+      },
+      {
+        "id": "agentic-telemetry-contract",
+        "path": "data/evidence/agentic-telemetry-contract.json",
+        "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+      },
+      {
+        "id": "workflow-control-plane",
+        "path": "data/control-plane/workflow-manifests.json",
+        "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+      },
+      {
+        "id": "mcp-gateway-policy",
+        "path": "data/policy/mcp-gateway-policy.json",
+        "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+      },
+      {
+        "id": "agent-identity-ledger",
+        "path": "data/evidence/agent-identity-delegation-ledger.json",
+        "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
+      },
+      {
+        "id": "agentic-entitlement-review-pack",
+        "path": "data/evidence/agentic-entitlement-review-pack.json",
+        "sha256": "993f2fc0377c9bb175de7758a3e12e25b02cf0b807c2c4bf0d62697be70e50cd"
+      },
+      {
+        "id": "mcp-authorization-conformance",
+        "path": "data/evidence/mcp-authorization-conformance-pack.json",
+        "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+      },
+      {
+        "id": "mcp-connector-trust-pack",
+        "path": "data/evidence/mcp-connector-trust-pack.json",
+        "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+      },
+      {
+        "id": "mcp-connector-intake-pack",
+        "path": "data/evidence/mcp-connector-intake-pack.json",
+        "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f"
+      },
+      {
+        "id": "mcp-stdio-launch-boundary",
+        "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
+        "sha256": "f1de8897098089e18dc0c7472518ba26039b254f031d028221c60fff4caadd2d"
+      },
+      {
+        "id": "secure-context-trust-pack",
+        "path": "data/evidence/secure-context-trust-pack.json",
+        "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085"
+      },
+      {
+        "id": "secure-context-attestation-pack",
+        "path": "data/evidence/secure-context-attestation-pack.json",
+        "sha256": "3ed40d601397eec16a6d941187a62a5d5512584230c66f40e926cb99d1a3ee9d"
+      },
+      {
+        "id": "secure-context-eval-pack",
+        "path": "data/evidence/secure-context-eval-pack.json",
+        "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995"
+      },
+      {
+        "id": "context-poisoning-guard-pack",
+        "path": "data/evidence/context-poisoning-guard-pack.json",
+        "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8"
+      },
+      {
+        "id": "context-egress-boundary-pack",
+        "path": "data/evidence/context-egress-boundary-pack.json",
+        "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+      },
+      {
+        "id": "agent-handoff-boundary-pack",
+        "path": "data/evidence/agent-handoff-boundary-pack.json",
+        "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b"
+      },
+      {
+        "id": "a2a-agent-card-trust-profile",
+        "path": "data/evidence/a2a-agent-card-trust-profile.json",
+        "sha256": "73774aeba0fd3934208e8a55c2a6fc3bdfbdff54f3632db8661a471c2fbe2ba9"
+      },
+      {
+        "id": "agent-memory-boundary-pack",
+        "path": "data/evidence/agent-memory-boundary-pack.json",
+        "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed"
+      },
+      {
+        "id": "agent-skill-supply-chain-pack",
+        "path": "data/evidence/agent-skill-supply-chain-pack.json",
+        "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450"
+      },
+      {
+        "id": "agentic-red-team-drill-pack",
+        "path": "data/evidence/agentic-red-team-drill-pack.json",
+        "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
+      },
+      {
+        "id": "agentic-measurement-probe-pack",
+        "path": "data/evidence/agentic-measurement-probe-pack.json",
+        "sha256": "77d8ccb3ff88747f0c2020f25c038ce5af3f74164d977a808c79352b925cb01b"
+      },
+      {
+        "id": "agent-capability-risk-register",
+        "path": "data/evidence/agent-capability-risk-register.json",
+        "sha256": "53c25f92d26a7d3559499e24a97ab2ed4bfa8c541adfec3da3abeab404684d26"
+      }
+    ]
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Industry-led agent standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent interactions.",
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+    },
+    {
+      "coverage": "Threats from indirect prompt injection, data poisoning, misaligned actions, and deployment controls that constrain and monitor agent access.",
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+    },
+    {
+      "coverage": "Agent behavior hijacking, tool misuse, identity and privilege abuse, agentic supply chain, insecure inter-agent communication, memory and context poisoning, cascading failures, and rogue behavior.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/"
+    },
+    {
+      "coverage": "High-impact agentic risk assurance for loss of human oversight, uncontrolled system behavior, large-scale irreversible consequences, and production-testable severe-risk controls.",
+      "id": "csa-star-ai-catastrophic-risk-annex-2026",
+      "name": "CSA STAR for AI Catastrophic Risk Annex",
+      "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane"
+    },
+    {
+      "coverage": "OAuth 2.1, protected resource metadata, resource indicators, token audience validation, PKCE, short-lived tokens, and token-passthrough denial for protected MCP servers.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Agent discovery, task exchange, HTTP-layer authentication, server identity verification, skill-based authorization, and secure agent-to-agent interoperability.",
+      "id": "a2a-protocol-latest",
+      "name": "Agent2Agent Protocol Specification",
+      "url": "https://a2a-protocol.org/latest/specification/"
+    },
+    {
+      "coverage": "Secure software development profile for generative AI and dual-use foundation model producers, integrators, and acquirers.",
+      "id": "nist-sp-800-218a",
+      "name": "NIST SP 800-218A Secure Software Development Practices for Generative AI",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/a/final"
+    },
+    {
+      "coverage": "Input, output, and tool guardrails that can block execution, trip errors, and validate tool inputs and outputs around agent workflows.",
+      "id": "openai-agents-guardrails",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-js/guides/guardrails/"
+    },
+    {
+      "coverage": "Trace and span records for agent runs, model generations, tool calls, handoffs, guardrails, and custom events used for production monitoring and evidence.",
+      "id": "openai-agents-tracing",
+      "name": "OpenAI Agents SDK Tracing",
+      "url": "https://openai.github.io/openai-agents-js/guides/tracing/"
+    },
+    {
+      "coverage": "Confidentiality, integrity, availability, known-vulnerability mitigation, detection, response, and operational controls for externally developed AI systems.",
+      "id": "cisa-deploying-ai-securely-2024",
+      "name": "Joint Guidance on Deploying AI Systems Securely",
+      "url": "https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely"
+    }
+  ],
+  "trust_center_contract": {
+    "buyer_success_criteria": [
+      "A buyer can find every agentic control artifact from one generated index.",
+      "Every major control claim links to generated JSON and MCP tools, not only prose.",
+      "Runtime decisions are deterministic and fail closed for missing, stale, over-privileged, or forbidden context.",
+      "The open layer demonstrates credible controls while leaving a clear hosted enterprise path.",
+      "Evidence is compact enough for procurement and precise enough for platform engineers."
+    ],
+    "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
+    "minimum_due_diligence_questions": 12,
+    "minimum_required_packs": 15,
+    "minimum_sections": 6,
+    "required_runtime_evidence": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "entitlement_id",
+      "entitlement_lease_id",
+      "entitlement_review_status",
+      "context_source_ids",
+      "context_source_hashes",
+      "mcp_tool_namespace",
+      "mcp_policy_decision",
+      "authorization_decision",
+      "agent_card_trust_decision",
+      "egress_decision",
+      "handoff_decision",
+      "poisoning_scan_state",
+      "guardrail_or_eval_result",
+      "human_approval_record",
+      "incident_id",
+      "incident_class_id",
+      "containment_action_ids",
+      "replay_case_ids",
+      "correlation_id",
+      "receipt_id",
+      "trace_id",
+      "span_id",
+      "parent_span_id",
+      "otel_signal_class",
+      "telemetry_redaction_state"
+    ]
+  },
+  "trust_center_sections": [
+    {
+      "claim": "Approved context is registered, hashed, attested, scanned for poisoning, evaluated, and policy-bound before an agent receives it.",
+      "evidence_pack_ids": [
+        "secure-context-trust-pack",
+        "secure-context-attestation-pack",
+        "secure-context-eval-pack",
+        "context-poisoning-guard-pack",
+        "context-egress-boundary-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/secure-context-attestation-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/context-egress-boundary-pack.json"
+      ],
+      "id": "secure-context-layer",
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_context_attestation_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_attestation_pack",
+        "recipes_secure_context_eval_pack",
+        "recipes_secure_context_trust_pack"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The trust pack and attestation pack list approved sources, workflow context packages, source hashes, freshness state, citation requirements, recertification expectations, and production signature requirements.",
+          "evidence_pack_ids": [
+            "secure-context-trust-pack",
+            "secure-context-attestation-pack",
+            "secure-context-eval-pack",
+            "context-poisoning-guard-pack",
+            "context-egress-boundary-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/secure-context-trust-pack.json",
+            "data/evidence/secure-context-attestation-pack.json",
+            "data/evidence/secure-context-eval-pack.json",
+            "data/evidence/context-poisoning-guard-pack.json",
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "id": "context-provenance",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_evaluate_context_attestation_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_context_retrieval_decision",
+            "recipes_evaluate_secure_context_eval_case",
+            "recipes_secure_context_attestation_pack",
+            "recipes_secure_context_eval_pack",
+            "recipes_secure_context_trust_pack"
+          ],
+          "question": "Which context sources may be returned to an agent, and how is current source state proven?",
+          "section_id": "secure-context-layer"
+        },
+        {
+          "answer": "The poisoning guard scans registered context for prompt-injection, tool-poisoning, approval-bypass, hidden-instruction, encoded-payload, and exfiltration markers before retrieval.",
+          "evidence_pack_ids": [
+            "secure-context-trust-pack",
+            "secure-context-attestation-pack",
+            "secure-context-eval-pack",
+            "context-poisoning-guard-pack",
+            "context-egress-boundary-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/secure-context-trust-pack.json",
+            "data/evidence/secure-context-attestation-pack.json",
+            "data/evidence/secure-context-eval-pack.json",
+            "data/evidence/context-poisoning-guard-pack.json",
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "id": "context-poisoning",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_evaluate_context_attestation_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_context_retrieval_decision",
+            "recipes_evaluate_secure_context_eval_case",
+            "recipes_secure_context_attestation_pack",
+            "recipes_secure_context_eval_pack",
+            "recipes_secure_context_trust_pack"
+          ],
+          "question": "What prevents an agent from consuming poisoned instructions hidden in retrieved context?",
+          "section_id": "secure-context-layer"
+        },
+        {
+          "answer": "The egress boundary pack maps data classes, destinations, DPA, zero-data-retention, residency, approval, and secret indicators to deterministic allow, hold, deny, or kill-session decisions.",
+          "evidence_pack_ids": [
+            "secure-context-trust-pack",
+            "secure-context-attestation-pack",
+            "secure-context-eval-pack",
+            "context-poisoning-guard-pack",
+            "context-egress-boundary-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/secure-context-trust-pack.json",
+            "data/evidence/secure-context-attestation-pack.json",
+            "data/evidence/secure-context-eval-pack.json",
+            "data/evidence/context-poisoning-guard-pack.json",
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "id": "context-egress",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_evaluate_context_attestation_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_context_retrieval_decision",
+            "recipes_evaluate_secure_context_eval_case",
+            "recipes_secure_context_attestation_pack",
+            "recipes_secure_context_eval_pack",
+            "recipes_secure_context_trust_pack"
+          ],
+          "question": "What stops approved context from leaving the tenant, model, MCP server, telemetry sink, or public corpus incorrectly?",
+          "section_id": "secure-context-layer"
+        }
+      ],
+      "ready_evidence_count": 5,
+      "status": "ready",
+      "title": "Secure context layer",
+      "total_evidence_count": 5
+    },
+    {
+      "claim": "MCP tool access, connector intake, connector trust, authorization conformance, and local STDIO launches are governed by generated default-deny policy.",
+      "evidence_pack_ids": [
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-authorization-conformance",
+        "mcp-connector-trust-pack",
+        "mcp-connector-intake-pack",
+        "mcp-stdio-launch-boundary"
+      ],
+      "evidence_paths": [
+        "data/control-plane/workflow-manifests.json",
+        "data/policy/mcp-gateway-policy.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "mcp-control-plane",
+      "mcp_tools": [
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_workflow_control_plane"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The workflow control plane and gateway policy encode approved namespaces, access modes, branch scopes, runtime attributes, approval holds, and kill signals with a deny-by-default contract.",
+          "evidence_pack_ids": [
+            "workflow-control-plane",
+            "mcp-gateway-policy",
+            "mcp-authorization-conformance",
+            "mcp-connector-trust-pack",
+            "mcp-connector-intake-pack",
+            "mcp-stdio-launch-boundary"
+          ],
+          "evidence_paths": [
+            "data/control-plane/workflow-manifests.json",
+            "data/policy/mcp-gateway-policy.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/mcp-connector-trust-pack.json",
+            "data/evidence/mcp-connector-intake-pack.json",
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-default-deny",
+          "mcp_tools": [
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_evaluate_mcp_gateway_decision",
+            "recipes_evaluate_mcp_stdio_launch_decision",
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_connector_trust_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_workflow_control_plane"
+          ],
+          "question": "Can the platform deny unknown MCP namespaces and over-broad tool calls by default?",
+          "section_id": "mcp-control-plane"
+        },
+        {
+          "answer": "The authorization conformance pack and evaluator verify resource indicators, token audience, token passthrough, session identifiers, scopes, and connector/workflow alignment before a tool call is forwarded.",
+          "evidence_pack_ids": [
+            "workflow-control-plane",
+            "mcp-gateway-policy",
+            "mcp-authorization-conformance",
+            "mcp-connector-trust-pack",
+            "mcp-connector-intake-pack",
+            "mcp-stdio-launch-boundary"
+          ],
+          "evidence_paths": [
+            "data/control-plane/workflow-manifests.json",
+            "data/policy/mcp-gateway-policy.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/mcp-connector-trust-pack.json",
+            "data/evidence/mcp-connector-intake-pack.json",
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-auth",
+          "mcp_tools": [
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_evaluate_mcp_gateway_decision",
+            "recipes_evaluate_mcp_stdio_launch_decision",
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_connector_trust_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_workflow_control_plane"
+          ],
+          "question": "Can protected MCP calls enforce audience binding, resource indicators, PKCE, session binding, and scope drift checks?",
+          "section_id": "mcp-control-plane"
+        },
+        {
+          "answer": "Connector trust, connector intake, and STDIO launch boundary packs produce admission decisions, trust tiers, command allowlists, sandbox requirements, schema drift controls, and promotion evidence.",
+          "evidence_pack_ids": [
+            "workflow-control-plane",
+            "mcp-gateway-policy",
+            "mcp-authorization-conformance",
+            "mcp-connector-trust-pack",
+            "mcp-connector-intake-pack",
+            "mcp-stdio-launch-boundary"
+          ],
+          "evidence_paths": [
+            "data/control-plane/workflow-manifests.json",
+            "data/policy/mcp-gateway-policy.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/mcp-connector-trust-pack.json",
+            "data/evidence/mcp-connector-intake-pack.json",
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-connector-drift",
+          "mcp_tools": [
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_evaluate_mcp_gateway_decision",
+            "recipes_evaluate_mcp_stdio_launch_decision",
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_connector_trust_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_workflow_control_plane"
+          ],
+          "question": "How are new, changed, local, or shadow MCP servers reviewed before agents can use them?",
+          "section_id": "mcp-control-plane"
+        }
+      ],
+      "ready_evidence_count": 6,
+      "status": "ready",
+      "title": "MCP control plane",
+      "total_evidence_count": 6
+    },
+    {
+      "claim": "Agents act through scoped, auditable, revocable non-human identities instead of implicit user tokens or prompt-inferred authority.",
+      "evidence_pack_ids": [
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agent-capability-risk-register",
+        "agentic-run-receipt-pack",
+        "agent-memory-boundary-pack",
+        "agent-skill-supply-chain-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json"
+      ],
+      "id": "agent-identity-and-authority",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agent_identity_ledger",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_entitlement_decision"
+      ],
+      "question_count": 4,
+      "questions": [
+        {
+          "answer": "The identity ledger defines one contract per workflow and agent class, while the entitlement review pack turns those scopes into expiring permission leases with review cadence, step-up authorization, approval evidence, and revocation decisions.",
+          "evidence_pack_ids": [
+            "agent-identity-ledger",
+            "agentic-entitlement-review-pack",
+            "agent-capability-risk-register",
+            "agentic-run-receipt-pack",
+            "agent-memory-boundary-pack",
+            "agent-skill-supply-chain-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "data/evidence/agentic-entitlement-review-pack.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agent-memory-boundary-pack.json",
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-identity-scope",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_memory_boundary_pack",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_evaluate_agent_memory_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "question": "Which identity acts for each workflow and what authority is delegated?",
+          "section_id": "agent-identity-and-authority"
+        },
+        {
+          "answer": "The entitlement review pack lists each identity, workflow, namespace, access mode, lease TTL, review cadence, owner, reviewer pool, required evidence, and deterministic allow, hold, deny, or kill decision for runtime access.",
+          "evidence_pack_ids": [
+            "agent-identity-ledger",
+            "agentic-entitlement-review-pack",
+            "agent-capability-risk-register",
+            "agentic-run-receipt-pack",
+            "agent-memory-boundary-pack",
+            "agent-skill-supply-chain-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "data/evidence/agentic-entitlement-review-pack.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agent-memory-boundary-pack.json",
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-entitlement-review",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_memory_boundary_pack",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_evaluate_agent_memory_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "question": "Can the buyer prove an agent still has permission to use a scope right now?",
+          "section_id": "agent-identity-and-authority"
+        },
+        {
+          "answer": "The capability risk register scores workflows by system criticality, AI autonomy, MCP permissions, impact radius, and compensating control credits before recommending scale, gate, or architecture review.",
+          "evidence_pack_ids": [
+            "agent-identity-ledger",
+            "agentic-entitlement-review-pack",
+            "agent-capability-risk-register",
+            "agentic-run-receipt-pack",
+            "agent-memory-boundary-pack",
+            "agent-skill-supply-chain-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "data/evidence/agentic-entitlement-review-pack.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agent-memory-boundary-pack.json",
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-risk-tiering",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_memory_boundary_pack",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_evaluate_agent_memory_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "question": "Can high-impact workflows be separated from low-risk workflows before scale?",
+          "section_id": "agent-identity-and-authority"
+        },
+        {
+          "answer": "Memory and skill supply-chain packs define TTLs, provenance, sandboxing, publisher trust, permission boundaries, package hashes, signatures, and runtime decisions before agent state or skills inherit authority.",
+          "evidence_pack_ids": [
+            "agent-identity-ledger",
+            "agentic-entitlement-review-pack",
+            "agent-capability-risk-register",
+            "agentic-run-receipt-pack",
+            "agent-memory-boundary-pack",
+            "agent-skill-supply-chain-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "data/evidence/agentic-entitlement-review-pack.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agent-memory-boundary-pack.json",
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-memory-skills",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_memory_boundary_pack",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_evaluate_agent_memory_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "question": "How are persistent memory, skills, rules, hooks, and behavior packages controlled?",
+          "section_id": "agent-identity-and-authority"
+        }
+      ],
+      "ready_evidence_count": 6,
+      "status": "ready",
+      "title": "Agent identity and authority",
+      "total_evidence_count": 6
+    },
+    {
+      "claim": "Agent, model, MCP, context, policy, egress, approval, verifier, and incident traces are complete enough to reconstruct a run while redacted enough for regulated observability pipelines.",
+      "evidence_pack_ids": [
+        "agentic-telemetry-contract",
+        "agentic-run-receipt-pack",
+        "agentic-measurement-probe-pack",
+        "context-egress-boundary-pack",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "runtime-telemetry-evidence",
+      "mcp_tools": [
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The telemetry contract defines required OpenTelemetry-shaped fields for agent sessions, model calls, MCP tool calls, context retrieval, policy decisions, egress decisions, approvals, verifier results, and incident signals.",
+          "evidence_pack_ids": [
+            "agentic-telemetry-contract",
+            "agentic-run-receipt-pack",
+            "agentic-measurement-probe-pack",
+            "context-egress-boundary-pack",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "telemetry-required-fields",
+          "mcp_tools": [
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "question": "Which trace fields must exist before a buyer can trust an agent or MCP run?",
+          "section_id": "runtime-telemetry-evidence"
+        },
+        {
+          "answer": "The contract separates public and internal metadata from sensitive content, makes raw prompt/output/tool payload capture opt-in only, and kills sessions when raw tokens, private keys, unredacted PII, customer secrets, or cross-tenant context appear in telemetry.",
+          "evidence_pack_ids": [
+            "agentic-telemetry-contract",
+            "agentic-run-receipt-pack",
+            "agentic-measurement-probe-pack",
+            "context-egress-boundary-pack",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "telemetry-redaction",
+          "mcp_tools": [
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "question": "How does the platform prevent observability from becoming a prompt, tool-argument, or secret leakage sink?",
+          "section_id": "runtime-telemetry-evidence"
+        },
+        {
+          "answer": "Workflow telemetry contracts require receipt ids, policy pack hashes, context package hashes, egress policy hashes, correlation ids, verifier artifacts, and incident replay references so trace records can support audit and response without transcript archaeology.",
+          "evidence_pack_ids": [
+            "agentic-telemetry-contract",
+            "agentic-run-receipt-pack",
+            "agentic-measurement-probe-pack",
+            "context-egress-boundary-pack",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "trace-to-receipt",
+          "mcp_tools": [
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "question": "Can runtime telemetry be tied back to run receipts, measurement probes, egress policy, and incident response evidence?",
+          "section_id": "runtime-telemetry-evidence"
+        }
+      ],
+      "ready_evidence_count": 5,
+      "status": "ready",
+      "title": "Runtime telemetry evidence",
+      "total_evidence_count": 5
+    },
+    {
+      "claim": "A2A Agent Cards, MCP, provider-native subagents, and approval bridges are treated as boundary decisions before context or authority crosses agents.",
+      "evidence_pack_ids": [
+        "a2a-agent-card-trust-profile",
+        "agent-handoff-boundary-pack",
+        "agent-identity-ledger",
+        "context-egress-boundary-pack",
+        "mcp-authorization-conformance"
+      ],
+      "evidence_paths": [
+        "data/evidence/a2a-agent-card-trust-profile.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "id": "agent-protocol-handoffs",
+      "mcp_tools": [
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_a2a_agent_card_trust_decision",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The Agent Card trust profile first scores remote A2A discovery evidence, then the handoff boundary pack defines metadata-only, cited-evidence, approval-gated, and prohibited-context profiles with allowed payload fields, data classes, authentication evidence, trust tiers, and approval requirements.",
+          "evidence_pack_ids": [
+            "a2a-agent-card-trust-profile",
+            "agent-handoff-boundary-pack",
+            "agent-identity-ledger",
+            "context-egress-boundary-pack",
+            "mcp-authorization-conformance"
+          ],
+          "evidence_paths": [
+            "data/evidence/a2a-agent-card-trust-profile.json",
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "handoff-minimization",
+          "mcp_tools": [
+            "recipes_a2a_agent_card_trust_profile",
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agent_identity_ledger",
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_a2a_agent_card_trust_decision",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "Can a remote or delegated agent receive only the minimum context needed for the task?",
+          "section_id": "agent-protocol-handoffs"
+        },
+        {
+          "answer": "The A2A Agent Card trust profile evaluates required card fields, HTTPS interfaces, provider identity, security schemes, security requirements, signatures, extended-card behavior, high-impact skills, and prohibited secret or prompt-injection markers.",
+          "evidence_pack_ids": [
+            "a2a-agent-card-trust-profile",
+            "agent-handoff-boundary-pack",
+            "agent-identity-ledger",
+            "context-egress-boundary-pack",
+            "mcp-authorization-conformance"
+          ],
+          "evidence_paths": [
+            "data/evidence/a2a-agent-card-trust-profile.json",
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "agent-card-trust",
+          "mcp_tools": [
+            "recipes_a2a_agent_card_trust_profile",
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agent_identity_ledger",
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_a2a_agent_card_trust_decision",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "Can a newly discovered A2A agent be reviewed before it receives context or delegated authority?",
+          "section_id": "agent-protocol-handoffs"
+        },
+        {
+          "answer": "The handoff evaluator returns kill-session decisions for credential material, hidden instructions, internal memory, raw tool traces, unrestricted customer data, and other prohibited payloads.",
+          "evidence_pack_ids": [
+            "a2a-agent-card-trust-profile",
+            "agent-handoff-boundary-pack",
+            "agent-identity-ledger",
+            "context-egress-boundary-pack",
+            "mcp-authorization-conformance"
+          ],
+          "evidence_paths": [
+            "data/evidence/a2a-agent-card-trust-profile.json",
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "handoff-kill",
+          "mcp_tools": [
+            "recipes_a2a_agent_card_trust_profile",
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agent_identity_ledger",
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_a2a_agent_card_trust_decision",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "What happens if a handoff attempts to move secrets, hidden prompts, internal memory, or raw tool traces?",
+          "section_id": "agent-protocol-handoffs"
+        }
+      ],
+      "ready_evidence_count": 5,
+      "status": "ready",
+      "title": "Agent protocol handoffs",
+      "total_evidence_count": 5
+    },
+    {
+      "claim": "High-impact autonomous actions are inventoried, evidence-bound, approval-gated, replayable, and killed when severe runtime signals appear.",
+      "evidence_pack_ids": [
+        "agentic-catastrophic-risk-annex",
+        "agent-capability-risk-register",
+        "agentic-readiness-scorecard",
+        "agentic-run-receipt-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "catastrophic-risk-governance",
+      "mcp_tools": [
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The catastrophic-risk annex names action classes such as production deployment, production write, identity administration, secret access, mass deletion, public release, funds movement, and connector scope escalation.",
+          "evidence_pack_ids": [
+            "agentic-catastrophic-risk-annex",
+            "agent-capability-risk-register",
+            "agentic-readiness-scorecard",
+            "agentic-run-receipt-pack",
+            "agentic-red-team-drill-pack",
+            "agentic-measurement-probe-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "data/evidence/agentic-readiness-scorecard.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-red-team-drill-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "high-impact-action-classes",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register",
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_readiness_scorecard",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_evaluate_agentic_catastrophic_risk_decision"
+          ],
+          "question": "Which agent actions are treated as high-impact before runtime authority is granted?",
+          "section_id": "catastrophic-risk-governance"
+        },
+        {
+          "answer": "The catastrophic-risk evaluator returns hold, deny, or kill-session decisions until required runtime evidence is present and linked to an approved human decision record.",
+          "evidence_pack_ids": [
+            "agentic-catastrophic-risk-annex",
+            "agent-capability-risk-register",
+            "agentic-readiness-scorecard",
+            "agentic-run-receipt-pack",
+            "agentic-red-team-drill-pack",
+            "agentic-measurement-probe-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "data/evidence/agentic-readiness-scorecard.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-red-team-drill-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "severe-risk-decisions",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register",
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_readiness_scorecard",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_evaluate_agentic_catastrophic_risk_decision"
+          ],
+          "question": "What happens when a high-impact action lacks approval, risk acceptance, policy, identity, or receipt evidence?",
+          "section_id": "catastrophic-risk-governance"
+        },
+        {
+          "answer": "The annex ties severe scenarios to red-team drills, measurement probes, readiness decisions, run receipts, and expected runtime decisions so drift can trigger replay before expansion.",
+          "evidence_pack_ids": [
+            "agentic-catastrophic-risk-annex",
+            "agent-capability-risk-register",
+            "agentic-readiness-scorecard",
+            "agentic-run-receipt-pack",
+            "agentic-red-team-drill-pack",
+            "agentic-measurement-probe-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agent-capability-risk-register.json",
+            "data/evidence/agentic-readiness-scorecard.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-red-team-drill-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "catastrophic-risk-replay",
+          "mcp_tools": [
+            "recipes_agent_capability_risk_register",
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_readiness_scorecard",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_evaluate_agentic_catastrophic_risk_decision"
+          ],
+          "question": "Can severe-risk scenarios be replayed after model, connector, prompt, policy, or context drift?",
+          "section_id": "catastrophic-risk-governance"
+        }
+      ],
+      "ready_evidence_count": 6,
+      "status": "ready",
+      "title": "Catastrophic-risk governance",
+      "total_evidence_count": 6
+    },
+    {
+      "claim": "Agentic incidents are classified, contained, forensically reconstructed, replayed, recertified, and disclosed through MCP-readable evidence instead of transcript archaeology.",
+      "evidence_pack_ids": [
+        "agentic-incident-response-pack",
+        "agentic-run-receipt-pack",
+        "agentic-exposure-graph",
+        "context-poisoning-guard-pack",
+        "mcp-authorization-conformance",
+        "agent-handoff-boundary-pack",
+        "agentic-catastrophic-risk-annex",
+        "agentic-measurement-probe-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-incident-response-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-exposure-graph.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-measurement-probe-pack.json"
+      ],
+      "id": "agentic-incident-response",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_exposure_graph",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The incident response pack defines registered incident classes, severity thresholds, required runtime fields, response phases, tabletop cases, and workflow-specific response matrices tied to generated evidence packs.",
+          "evidence_pack_ids": [
+            "agentic-incident-response-pack",
+            "agentic-run-receipt-pack",
+            "agentic-exposure-graph",
+            "context-poisoning-guard-pack",
+            "mcp-authorization-conformance",
+            "agent-handoff-boundary-pack",
+            "agentic-catastrophic-risk-annex",
+            "agentic-measurement-probe-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-incident-response-pack.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-exposure-graph.json",
+            "data/evidence/context-poisoning-guard-pack.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "incident-classification",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_exposure_graph",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "Can the buyer classify agentic incidents by context, MCP, identity, handoff, memory, skill, high-impact action, and evidence-integrity failure modes?",
+          "section_id": "agentic-incident-response"
+        },
+        {
+          "answer": "The pack maps containment actions to run receipts, context hashes, MCP authorization decisions, egress decisions, handoff decisions, identity revocation, source-event ids, correlation ids, and replay case ids.",
+          "evidence_pack_ids": [
+            "agentic-incident-response-pack",
+            "agentic-run-receipt-pack",
+            "agentic-exposure-graph",
+            "context-poisoning-guard-pack",
+            "mcp-authorization-conformance",
+            "agent-handoff-boundary-pack",
+            "agentic-catastrophic-risk-annex",
+            "agentic-measurement-probe-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-incident-response-pack.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-exposure-graph.json",
+            "data/evidence/context-poisoning-guard-pack.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "incident-containment-forensics",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_exposure_graph",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "How does the platform contain agent authority and preserve evidence when an agentic control fails?",
+          "section_id": "agentic-incident-response"
+        },
+        {
+          "answer": "Incident response requires replay cases that feed secure-context evals, red-team drills, measurement probes, readiness scoring, and catastrophic-risk review before holds are lifted or rollout continues.",
+          "evidence_pack_ids": [
+            "agentic-incident-response-pack",
+            "agentic-run-receipt-pack",
+            "agentic-exposure-graph",
+            "context-poisoning-guard-pack",
+            "mcp-authorization-conformance",
+            "agent-handoff-boundary-pack",
+            "agentic-catastrophic-risk-annex",
+            "agentic-measurement-probe-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-incident-response-pack.json",
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agentic-exposure-graph.json",
+            "data/evidence/context-poisoning-guard-pack.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "incident-replay-recertification",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_exposure_graph",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "Can an incident become a replayable eval before the workflow is recertified or scaled again?",
+          "section_id": "agentic-incident-response"
+        }
+      ],
+      "ready_evidence_count": 8,
+      "status": "ready",
+      "title": "Agentic incident response",
+      "total_evidence_count": 8
+    },
+    {
+      "claim": "Scale decisions are based on generated assurance, readiness scores, red-team drills, measurement probes, and secure-context evals instead of narrative confidence.",
+      "evidence_pack_ids": [
+        "agentic-assurance-pack",
+        "agentic-readiness-scorecard",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack",
+        "secure-context-eval-pack",
+        "agentic-system-bom"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-assurance-pack.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/agentic-system-bom.json"
+      ],
+      "id": "assurance-readiness-evals",
+      "mcp_tools": [
+        "recipes_agentic_assurance_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_secure_context_eval_case",
+        "recipes_secure_context_eval_pack"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The readiness scorecard combines workflow, MCP policy, connector trust, identity, assurance, red-team, and source-hash evidence into scale, pilot, gate, or block decisions.",
+          "evidence_pack_ids": [
+            "agentic-assurance-pack",
+            "agentic-readiness-scorecard",
+            "agentic-red-team-drill-pack",
+            "agentic-measurement-probe-pack",
+            "secure-context-eval-pack",
+            "agentic-system-bom"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-assurance-pack.json",
+            "data/evidence/agentic-readiness-scorecard.json",
+            "data/evidence/agentic-red-team-drill-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json",
+            "data/evidence/secure-context-eval-pack.json",
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "readiness-scale",
+          "mcp_tools": [
+            "recipes_agentic_assurance_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_readiness_scorecard",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_system_bom",
+            "recipes_evaluate_secure_context_eval_case",
+            "recipes_secure_context_eval_pack"
+          ],
+          "question": "Which workflows are ready to scale, which are gated, and what evidence supports that decision?",
+          "section_id": "assurance-readiness-evals"
+        },
+        {
+          "answer": "Red-team drill, measurement probe, and eval packs define adversarial scenarios, expected policy decisions, pass criteria, and runtime answer contracts for continuous replay.",
+          "evidence_pack_ids": [
+            "agentic-assurance-pack",
+            "agentic-readiness-scorecard",
+            "agentic-red-team-drill-pack",
+            "agentic-measurement-probe-pack",
+            "secure-context-eval-pack",
+            "agentic-system-bom"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-assurance-pack.json",
+            "data/evidence/agentic-readiness-scorecard.json",
+            "data/evidence/agentic-red-team-drill-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json",
+            "data/evidence/secure-context-eval-pack.json",
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "red-team-replay",
+          "mcp_tools": [
+            "recipes_agentic_assurance_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_readiness_scorecard",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_system_bom",
+            "recipes_evaluate_secure_context_eval_case",
+            "recipes_secure_context_eval_pack"
+          ],
+          "question": "Can the platform replay adversarial cases after model, prompt, connector, or context drift?",
+          "section_id": "assurance-readiness-evals"
+        },
+        {
+          "answer": "The Agentic System BOM inventories workflows, agent classes, identities, MCP connectors, policies, evidence artifacts, knowledge sources, eval drills, and drift triggers.",
+          "evidence_pack_ids": [
+            "agentic-assurance-pack",
+            "agentic-readiness-scorecard",
+            "agentic-red-team-drill-pack",
+            "agentic-measurement-probe-pack",
+            "secure-context-eval-pack",
+            "agentic-system-bom"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-assurance-pack.json",
+            "data/evidence/agentic-readiness-scorecard.json",
+            "data/evidence/agentic-red-team-drill-pack.json",
+            "data/evidence/agentic-measurement-probe-pack.json",
+            "data/evidence/secure-context-eval-pack.json",
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "bom-inventory",
+          "mcp_tools": [
+            "recipes_agentic_assurance_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_readiness_scorecard",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_system_bom",
+            "recipes_evaluate_secure_context_eval_case",
+            "recipes_secure_context_eval_pack"
+          ],
+          "question": "Can the buyer inspect the system as an inventory rather than a set of prompts?",
+          "section_id": "assurance-readiness-evals"
+        }
+      ],
+      "ready_evidence_count": 6,
+      "status": "ready",
+      "title": "Assurance, readiness, and evals",
+      "total_evidence_count": 6
+    },
+    {
+      "claim": "The open corpus creates distribution, while generated MCP-readable evidence creates a commercial control plane suitable for enterprise sale or acquisition.",
+      "evidence_pack_ids": [
+        "agentic-threat-radar",
+        "agentic-standards-crosswalk",
+        "agentic-control-plane-blueprint",
+        "agentic-catastrophic-risk-annex",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/agentic-threat-radar.json",
+        "data/evidence/agentic-standards-crosswalk.json",
+        "data/evidence/agentic-control-plane-blueprint.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "market-strategy",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_control_plane_blueprint",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_standards_crosswalk",
+        "recipes_agentic_threat_radar",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The threat radar and blueprint map current agentic AI, MCP, A2A, identity, context, eval, and evidence trends to concrete open artifacts, MCP tools, runtime evaluators, and hosted product expansion paths.",
+          "evidence_pack_ids": [
+            "agentic-threat-radar",
+            "agentic-standards-crosswalk",
+            "agentic-control-plane-blueprint",
+            "agentic-catastrophic-risk-annex",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-threat-radar.json",
+            "data/evidence/agentic-standards-crosswalk.json",
+            "data/evidence/agentic-control-plane-blueprint.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "market-why-now",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_control_plane_blueprint",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_standards_crosswalk",
+            "recipes_agentic_threat_radar",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision"
+          ],
+          "question": "Why is this a credible $10-20M acquisition target rather than a documentation site?",
+          "section_id": "market-strategy"
+        },
+        {
+          "answer": "The natural paid layer is hosted MCP policy, context signing, customer-private context packs, connector discovery and diffing, run evidence retention, incident response evidence vaulting, eval replay, trust-center exports, and enterprise approval receipts.",
+          "evidence_pack_ids": [
+            "agentic-threat-radar",
+            "agentic-standards-crosswalk",
+            "agentic-control-plane-blueprint",
+            "agentic-catastrophic-risk-annex",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-threat-radar.json",
+            "data/evidence/agentic-standards-crosswalk.json",
+            "data/evidence/agentic-control-plane-blueprint.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "commercial-path",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_control_plane_blueprint",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_standards_crosswalk",
+            "recipes_agentic_threat_radar",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision"
+          ],
+          "question": "What can be monetized without closing the open knowledge base?",
+          "section_id": "market-strategy"
+        },
+        {
+          "answer": "The standards crosswalk maps OWASP Agentic Top 10, NIST AI agent and GenAI guidance, MCP authorization and security requirements, and OpenAI/Anthropic prompt-injection defenses to concrete SecurityRecipes capabilities, evidence paths, and MCP tools.",
+          "evidence_pack_ids": [
+            "agentic-threat-radar",
+            "agentic-standards-crosswalk",
+            "agentic-control-plane-blueprint",
+            "agentic-catastrophic-risk-annex",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/agentic-threat-radar.json",
+            "data/evidence/agentic-standards-crosswalk.json",
+            "data/evidence/agentic-control-plane-blueprint.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "standards-crosswalk",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_control_plane_blueprint",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_standards_crosswalk",
+            "recipes_agentic_threat_radar",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision"
+          ],
+          "question": "Which current standards and frontier-lab guidance does the product map to generated evidence?",
+          "section_id": "market-strategy"
+        }
+      ],
+      "ready_evidence_count": 5,
+      "status": "ready",
+      "title": "Market strategy and acquisition story",
+      "total_evidence_count": 5
+    }
+  ]
+}

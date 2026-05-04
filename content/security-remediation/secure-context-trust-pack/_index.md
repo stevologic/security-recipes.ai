@@ -177,6 +177,10 @@ it.
 - [Secure Context Attestation]({{< relref "/security-remediation/secure-context-attestation" >}})
   - in-toto-shaped attestation seed, recertification queue, and
     signature-readiness policy for trusted context.
+- [Secure Context Lineage Ledger]({{< relref "/security-remediation/secure-context-lineage-ledger" >}})
+  - source-to-run lineage for context hashes, attestations, poisoning
+    scans, model routes, egress, handoffs, telemetry, receipts, and
+    reuse decisions.
 - [Secure Context Evals]({{< relref "/security-remediation/secure-context-evals" >}})
   - scenario-backed evals for retrieval correctness, attestation holds,
     poisoning resilience, egress safety, answer contracts, and handoffs.

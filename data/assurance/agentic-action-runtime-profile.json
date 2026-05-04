@@ -1,0 +1,504 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define the SecurityRecipes agentic action runtime pack: a machine-readable action-control model that evaluates context, policy, intent, behavior, identity, MCP authorization, egress, handoff, memory, skill, receipt, and approval evidence before an autonomous agent performs a side effect.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, SOC, GRC, model risk, procurement security, and agent-host platform teams",
+    "category": "Autonomous action runtime management for agentic AI and MCP-backed workflows",
+    "enterprise_promise": "SecurityRecipes can turn secure context and generated MCP evidence into pre-action runtime decisions that tell an agent host whether to allow, hold, deny, or kill an autonomous action before it reaches production systems.",
+    "why_now": "Enterprise agents are moving from retrieval and chat into tool use, remote delegation, persistent memory, code changes, connector scope changes, and high-impact operations. Buyers need a clear runtime action envelope that is easier to adopt than bespoke policy code and strong enough for platform diligence."
+  },
+  "standards_alignment": [
+    {
+      "id": "csa-aarm-agentic-control-plane-2026",
+      "name": "CSA Autonomous Action Runtime Management and Agentic Control Plane",
+      "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane",
+      "coverage": "Aligns the pack to the emerging runtime-action view of securing AI-driven actions across context, policy, intent, and behavior inside the broader agentic control plane."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Maps runtime action controls to tool misuse, goal hijacking, identity abuse, insecure inter-agent communication, memory poisoning, unexpected code execution, and rogue-agent containment."
+    },
+    {
+      "id": "mcp-security-best-practices-2025",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
+      "coverage": "Applies confused-deputy prevention, command review, sandboxing, least privilege, scope minimization, and local-server privilege boundaries to action-level decisions."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Requires OAuth 2.1, protected resource metadata, resource indicators, audience validation, PKCE, exact redirect handling, short-lived tokens, and forbidden token passthrough before protected MCP actions proceed."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Connects runtime action evidence to generative AI governance, measurement, monitoring, incident response, third-party component risk, and risk treatment across the AI lifecycle."
+    },
+    {
+      "id": "cisa-ai-data-security-2025",
+      "name": "CISA AI Data Security Best Practices",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "coverage": "Applies data protection, integrity, monitoring, threat detection, network defense, and lifecycle controls to context, prompts, retrieved data, telemetry, and model-operation data used by action-taking agents."
+    }
+  ],
+  "action_contract": {
+    "default_state": "action_untrusted_until_context_policy_intent_behavior_identity_and_receipt_evidence_are_bound",
+    "minimum_action_classes": 9,
+    "minimum_required_evidence_sources": 10,
+    "required_runtime_fields": [
+      "workflow_id",
+      "action_class",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "intent_summary",
+      "policy_pack_hash",
+      "context_package_hash",
+      "authorization_decision",
+      "egress_decision",
+      "handoff_decision",
+      "receipt_id",
+      "telemetry_event_id",
+      "approval_id",
+      "risk_acceptance_id",
+      "runtime_kill_signal"
+    ],
+    "required_evidence_sources": [
+      "workflow_manifest",
+      "mcp_gateway_policy",
+      "mcp_authorization_conformance",
+      "agent_identity_ledger",
+      "agentic_run_receipt_pack",
+      "context_egress_boundary_pack",
+      "agent_handoff_boundary_pack",
+      "agent_memory_boundary_pack",
+      "agent_skill_supply_chain_pack",
+      "agentic_catastrophic_risk_annex",
+      "agentic_incident_response_pack",
+      "agentic_telemetry_contract"
+    ],
+    "decision_ladder": [
+      {
+        "decision": "allow_bounded_action",
+        "meaning": "The action is registered for the workflow, low or bounded impact, policy-bound, receipt-backed, and has no runtime kill signal."
+      },
+      {
+        "decision": "hold_for_action_evidence",
+        "meaning": "The action shape is plausible but missing context, policy, identity, receipt, authorization, egress, telemetry, or risk evidence needed for a production decision."
+      },
+      {
+        "decision": "hold_for_human_approval",
+        "meaning": "The action can proceed only after a linked human approval or risk acceptance is attached to the run evidence."
+      },
+      {
+        "decision": "deny_unregistered_action",
+        "meaning": "The workflow has not registered this action class or requested capability."
+      },
+      {
+        "decision": "deny_unapproved_high_impact_action",
+        "meaning": "The action is high impact and lacks required approval, risk acceptance, or policy-bound evidence."
+      },
+      {
+        "decision": "kill_session_on_runtime_action_signal",
+        "meaning": "A kill signal indicates secret exposure, token passthrough, revoked identity use, cross-tenant movement, repeated denied calls, or irreversible side effects."
+      }
+    ]
+  },
+  "action_classes": [
+    {
+      "id": "repo_branch_write",
+      "title": "Repository branch write",
+      "risk_tier": "medium",
+      "default_decision": "allow_bounded_action",
+      "required_evidence": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "policy_pack_hash",
+        "authorization_decision",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "changed paths are outside the declared workflow allowlist",
+        "diff size exceeds workflow policy or reviewer threshold",
+        "branch name is not bound to the remediation workflow"
+      ],
+      "kill_signals": [
+        "attempted protected branch push",
+        "attempted release workflow modification",
+        "repeated denied repository writes"
+      ],
+      "linked_evidence": [
+        "workflow_manifest",
+        "mcp_gateway_policy",
+        "mcp_authorization_conformance",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_workflow_control_plane",
+        "recipes_mcp_gateway_policy",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_agentic_run_receipt_pack"
+      ]
+    },
+    {
+      "id": "production_deployment",
+      "title": "Production deployment or release",
+      "risk_tier": "high",
+      "default_decision": "hold_for_human_approval",
+      "required_evidence": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "policy_pack_hash",
+        "authorization_decision",
+        "approval_id",
+        "risk_acceptance_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "production impact is possible and approval is missing",
+        "catastrophic-risk decision has not returned an allow state",
+        "deployment target or tenant blast radius is not declared"
+      ],
+      "kill_signals": [
+        "production write without approval",
+        "deployment after policy denial",
+        "unbounded tenant blast radius"
+      ],
+      "linked_evidence": [
+        "agentic_catastrophic_risk_annex",
+        "mcp_gateway_policy",
+        "agent_identity_ledger",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_run_receipt_pack"
+      ]
+    },
+    {
+      "id": "identity_or_scope_change",
+      "title": "Identity administration or MCP scope change",
+      "risk_tier": "high",
+      "default_decision": "hold_for_human_approval",
+      "required_evidence": [
+        "workflow_id",
+        "identity_id",
+        "authorization_decision",
+        "approval_id",
+        "risk_acceptance_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "scope expansion is requested without owner approval",
+        "identity owner or revocation path is missing",
+        "resource indicator or token audience is unbound"
+      ],
+      "kill_signals": [
+        "identity used after revocation",
+        "wildcard or signer scope requested",
+        "token audience mismatch"
+      ],
+      "linked_evidence": [
+        "agent_identity_ledger",
+        "mcp_authorization_conformance",
+        "mcp_gateway_policy",
+        "agentic_incident_response_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_agentic_incident_response_pack"
+      ]
+    },
+    {
+      "id": "credential_or_secret_access",
+      "title": "Credential, token, or secret access",
+      "risk_tier": "critical",
+      "default_decision": "deny_unapproved_high_impact_action",
+      "required_evidence": [
+        "workflow_id",
+        "identity_id",
+        "authorization_decision",
+        "egress_decision",
+        "approval_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "secret access is declared but data class and purpose are incomplete",
+        "egress decision is absent",
+        "receipt is missing or not redaction-safe"
+      ],
+      "kill_signals": [
+        "raw token passthrough",
+        "secret in prompt, tool output, telemetry, memory, or handoff payload",
+        "secret leaves approved tenant or model boundary"
+      ],
+      "linked_evidence": [
+        "mcp_authorization_conformance",
+        "context_egress_boundary_pack",
+        "agentic_telemetry_contract",
+        "agentic_incident_response_pack"
+      ],
+      "mcp_tools": [
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_agentic_incident_response_decision"
+      ]
+    },
+    {
+      "id": "external_context_egress",
+      "title": "External context egress",
+      "risk_tier": "medium",
+      "default_decision": "hold_for_action_evidence",
+      "required_evidence": [
+        "workflow_id",
+        "context_package_hash",
+        "egress_decision",
+        "tenant_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "data class, destination class, residency, DPA, or zero-data-retention state is missing",
+        "retrieved context lacks source citation or source hash",
+        "telemetry capture policy is raw instead of metadata-only"
+      ],
+      "kill_signals": [
+        "secret or regulated data leaves approved boundary",
+        "egress decision is deny or kill",
+        "context is sent to public corpus or unapproved webhook"
+      ],
+      "linked_evidence": [
+        "context_egress_boundary_pack",
+        "secure_context_trust_pack",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_secure_context_trust_pack",
+        "recipes_agentic_telemetry_contract"
+      ]
+    },
+    {
+      "id": "remote_agent_delegation",
+      "title": "Remote agent delegation or handoff",
+      "risk_tier": "high",
+      "default_decision": "hold_for_human_approval",
+      "required_evidence": [
+        "workflow_id",
+        "identity_id",
+        "handoff_decision",
+        "egress_decision",
+        "approval_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "target agent trust tier, signed Agent Card, authentication scheme, or payload manifest is missing",
+        "handoff payload includes more than metadata and cited evidence",
+        "requested capability exceeds the handoff profile"
+      ],
+      "kill_signals": [
+        "raw token or secret handoff",
+        "unsigned or mismatched remote Agent Card",
+        "handoff decision is deny or kill"
+      ],
+      "linked_evidence": [
+        "agent_handoff_boundary_pack",
+        "a2a_agent_card_trust_profile",
+        "context_egress_boundary_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_context_egress_boundary_pack"
+      ]
+    },
+    {
+      "id": "persistent_memory_write",
+      "title": "Persistent memory write or replay",
+      "risk_tier": "high",
+      "default_decision": "hold_for_action_evidence",
+      "required_evidence": [
+        "workflow_id",
+        "identity_id",
+        "context_package_hash",
+        "receipt_id",
+        "telemetry_event_id"
+      ],
+      "hold_conditions": [
+        "memory class, TTL, tenant boundary, provenance hash, or rollback path is missing",
+        "memory write contains policy or prompt state without source evidence",
+        "replay request is not bound to the original source hashes"
+      ],
+      "kill_signals": [
+        "memory contains secrets or hidden instructions",
+        "cross-tenant memory write",
+        "persistent write to prohibited memory class"
+      ],
+      "linked_evidence": [
+        "agent_memory_boundary_pack",
+        "context_poisoning_guard_pack",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_agentic_run_receipt_pack"
+      ]
+    },
+    {
+      "id": "skill_or_tool_install",
+      "title": "Agent skill, hook, rules, or tool install",
+      "risk_tier": "high",
+      "default_decision": "hold_for_human_approval",
+      "required_evidence": [
+        "workflow_id",
+        "identity_id",
+        "policy_pack_hash",
+        "authorization_decision",
+        "approval_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "publisher, registry, pinned hash, signature, sandbox, or permission manifest is missing",
+        "install changes tool behavior without a recorded version transition",
+        "requested permissions exceed the approved workflow"
+      ],
+      "kill_signals": [
+        "unpinned package install on launch",
+        "skill requests filesystem, network, shell, or secret access outside manifest",
+        "publisher or registry is untrusted"
+      ],
+      "linked_evidence": [
+        "agent_skill_supply_chain_pack",
+        "mcp_stdio_launch_boundary_pack",
+        "mcp_connector_intake_pack",
+        "agentic_incident_response_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_mcp_connector_intake_pack"
+      ]
+    },
+    {
+      "id": "artifact_or_registry_quarantine",
+      "title": "Artifact, registry, or cache quarantine",
+      "risk_tier": "high",
+      "default_decision": "hold_for_human_approval",
+      "required_evidence": [
+        "workflow_id",
+        "identity_id",
+        "authorization_decision",
+        "approval_id",
+        "risk_acceptance_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "quarantine target, blast radius, rollback path, owner approval, or customer impact state is missing",
+        "registry namespace is not bound to the workflow",
+        "incident response correlation id is absent"
+      ],
+      "kill_signals": [
+        "agent attempts destructive registry action outside quarantine contract",
+        "artifact cache action crosses tenant or environment boundary",
+        "quarantine action follows denied policy decision"
+      ],
+      "linked_evidence": [
+        "workflow_manifest",
+        "mcp_gateway_policy",
+        "agentic_incident_response_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_workflow_control_plane",
+        "recipes_mcp_gateway_policy",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_run_receipt_pack"
+      ]
+    },
+    {
+      "id": "funds_or_irreversible_transaction",
+      "title": "Funds movement or irreversible transaction",
+      "risk_tier": "critical",
+      "default_decision": "deny_unapproved_high_impact_action",
+      "required_evidence": [
+        "workflow_id",
+        "identity_id",
+        "authorization_decision",
+        "approval_id",
+        "risk_acceptance_id",
+        "receipt_id"
+      ],
+      "hold_conditions": [
+        "simulation result, signer policy, approval chain, or risk acceptance is missing",
+        "transaction can move assets or modify irreversible on-chain state",
+        "wallet, signer, bridge, governance, or settlement authority is ambiguous"
+      ],
+      "kill_signals": [
+        "live funds movement requested by an autonomous agent",
+        "signer key, seed phrase, or raw transaction secret enters context",
+        "catastrophic-risk decision is deny or kill"
+      ],
+      "linked_evidence": [
+        "agentic_catastrophic_risk_annex",
+        "agent_capability_risk_register",
+        "context_egress_boundary_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agent_capability_risk_register",
+        "recipes_context_egress_boundary_pack",
+        "recipes_agentic_run_receipt_pack"
+      ]
+    }
+  ],
+  "runtime_policy": {
+    "approval_required_for_risk_tiers": [
+      "high",
+      "critical"
+    ],
+    "kill_signal_indicators": [
+      "raw_token_passthrough",
+      "secret_in_action_payload",
+      "identity_used_after_revocation",
+      "cross_tenant_context",
+      "policy_decision_kill",
+      "repeated_denied_action",
+      "live_funds_movement",
+      "production_write_without_approval"
+    ],
+    "evidence_gate": "Action evidence must bind the exact workflow, run, identity, context package, policy pack, authorization decision, egress decision, handoff decision, telemetry event, and receipt before the action is trusted."
+  },
+  "commercialization_path": {
+    "open_layer": "Public action classes, deterministic generator, runtime evaluator, generated JSON evidence pack, and docs that make action gating easy for adopters.",
+    "team_layer": "Private action envelopes, workflow-specific approval policy, custom action classes, source-host PR adapters, and customer policy-as-code exports.",
+    "enterprise_layer": "Hosted action firewall for MCP and agent hosts, signed action receipts, SIEM/SOAR export, approval evidence validation, drift detection, and hosted AARM-aligned policy APIs.",
+    "acquirer_value": "A frontier lab, AI coding platform, or cloud security vendor gets a vendor-neutral runtime action control surface layered directly on secure context, MCP authorization, non-human identity, telemetry, and run receipts."
+  },
+  "executive_readout": {
+    "headline": "SecurityRecipes now evaluates agent actions before they happen, not only the context and evidence around them.",
+    "board_level_claim": "The project can decide whether an autonomous action is bounded, evidence-backed, approved, policy-conformant, and safe enough to execute.",
+    "recommended_first_use": "Attach the pack to MCP gateway design, agent host runtime gates, platform production-readiness review, high-impact action inventory, and buyer diligence."
+  }
+}

@@ -1,0 +1,281 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define the SecurityRecipes approval receipt control for agentic AI: every human approval that unlocks a privileged agent action must be scope-bound, time-boxed, role-checked, separated from the requesting identity, linked to risk acceptance when needed, and sealed into a run receipt before the action is trusted.",
+  "positioning": {
+    "category": "Scope-bound approval receipts for agentic AI control planes",
+    "buyer": "AI Platform, Security Engineering, IAM, GRC, product security, procurement security, and acquisition diligence teams",
+    "enterprise_promise": "SecurityRecipes can prove that high-impact agent actions are not merely accompanied by a human approval string; they are backed by replayable approval receipts with approver roles, scope hashes, expiry, separation of duties, risk acceptance, and run evidence.",
+    "why_now": "Agentic AI systems now chain MCP tools, browser actions, remote agents, persistent memory, model-provider routes, and non-human identities. Enterprises need a receipt primitive that turns human approval into enforceable policy instead of a chat transcript or pull-request comment."
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Maps approval receipts to tool misuse, identity and privilege abuse, cascading failures, human-agent trust exploitation, rogue-agent behavior, and unsafe action chains."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10-2026",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "coverage": "Requires approval receipts for behavior packages that request privileged permissions, shell or network execution, update authority, persistent memory, or cross-platform skill reuse."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Binds approval to protected-resource metadata, resource indicators, token audience validation, PKCE, short-lived tokens, and forbidden token passthrough before MCP authority expands."
+    },
+    {
+      "id": "mcp-security-best-practices-2025",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Adds approval receipt checks to confused-deputy prevention, local MCP server command review, scope minimization, session binding, SSRF controls, and auditability."
+    },
+    {
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "coverage": "Uses elicitation as a receipt source only for non-sensitive approval rationale and requires URL-mode or external systems for sensitive authentication or payment flows."
+    },
+    {
+      "id": "openai-agents-guardrails",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-js/guides/guardrails/",
+      "coverage": "Aligns approval receipts with tool guardrails, tripwires, workflow boundaries, and safety-first execution modes before function tools perform side effects."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Connects approval receipts to AI lifecycle governance, measurement, monitoring, data provenance, third-party risk, incident response, and risk treatment."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "CSA AI Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "coverage": "Frames approval receipts as vendor-neutral control evidence that maps to AI accountability, lifecycle operations, access governance, monitoring, and enterprise assurance."
+    }
+  ],
+  "approval_contract": {
+    "default_state": "approval_untrusted_until_scope_authority_reviewer_separation_expiry_risk_acceptance_and_receipt_hash_are_bound",
+    "minimum_approval_profiles": 6,
+    "minimum_required_evidence_sources": 7,
+    "required_evidence_sources": [
+      "agentic_action_runtime_pack",
+      "agentic_run_receipt_pack",
+      "agentic_telemetry_contract",
+      "agentic_entitlement_review_pack",
+      "agentic_catastrophic_risk_annex",
+      "mcp_gateway_policy",
+      "agent_identity_ledger",
+      "mcp_elicitation_boundary_pack"
+    ],
+    "required_runtime_fields": [
+      "workflow_id",
+      "action_class",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "approval_id",
+      "approval_type",
+      "approval_status",
+      "approver_ids",
+      "approver_roles",
+      "requested_scope_hash",
+      "approved_scope_hash",
+      "issued_at",
+      "expires_at",
+      "receipt_id",
+      "policy_pack_hash"
+    ],
+    "decisions": [
+      {
+        "decision": "allow_scope_bound_approval",
+        "meaning": "The approval is registered for the workflow and action class, scope-bound, unexpired, role-complete, separated from the requester, and linked to receipt evidence."
+      },
+      {
+        "decision": "hold_for_second_approver",
+        "meaning": "The approval is plausible but lacks the required approver count, required role mix, or separation-of-duties evidence."
+      },
+      {
+        "decision": "hold_for_risk_acceptance",
+        "meaning": "The action profile requires explicit risk acceptance before execution."
+      },
+      {
+        "decision": "deny_scope_mismatch",
+        "meaning": "The approved scope does not match the requested action envelope, workflow, tenant, run, identity, namespaces, or changed-path hash."
+      },
+      {
+        "decision": "deny_expired_or_untrusted_approval",
+        "meaning": "The approval is missing, pending, expired, malformed, issued by an untrusted source, or reused outside its allowed window."
+      },
+      {
+        "decision": "deny_unregistered_approval_profile",
+        "meaning": "The workflow and action class do not map to a registered approval profile."
+      },
+      {
+        "decision": "kill_session_on_approval_bypass_signal",
+        "meaning": "The runtime observed approval bypass, post-execution approval, requester self-approval, secret transit, token passthrough, cross-tenant reuse, or a declared kill signal."
+      }
+    ]
+  },
+  "approval_profiles": [
+    {
+      "id": "bounded-remediation-review",
+      "title": "Bounded remediation review",
+      "action_class_ids": ["repo_branch_write", "external_context_egress"],
+      "risk_tier": "medium",
+      "minimum_approvers": 1,
+      "required_roles": ["security_reviewer", "service_owner"],
+      "role_policy": "at_least_one",
+      "max_ttl_minutes": 1440,
+      "requires_risk_acceptance": false,
+      "requires_separation_of_duties": true,
+      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "mcp_namespaces", "changed_paths"],
+      "default_decision": "allow_scope_bound_approval",
+      "commercial_value": "Makes normal remediation PR approval machine-readable without adding unnecessary friction."
+    },
+    {
+      "id": "privileged-tool-step-up",
+      "title": "Privileged tool or behavior-package step-up",
+      "action_class_ids": ["skill_or_tool_install", "persistent_memory_write", "remote_agent_delegation"],
+      "risk_tier": "high",
+      "minimum_approvers": 2,
+      "required_roles": ["security_owner", "platform_owner"],
+      "role_policy": "all_required",
+      "max_ttl_minutes": 480,
+      "requires_risk_acceptance": false,
+      "requires_separation_of_duties": true,
+      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "mcp_namespaces", "target_resource_id"],
+      "default_decision": "hold_for_second_approver",
+      "commercial_value": "Creates a hosted approval-check surface for new skills, remote agents, memory writes, and privileged MCP tools."
+    },
+    {
+      "id": "identity-and-scope-change",
+      "title": "Identity and MCP scope change",
+      "action_class_ids": ["identity_or_scope_change"],
+      "risk_tier": "high",
+      "minimum_approvers": 2,
+      "required_roles": ["identity_owner", "security_owner"],
+      "role_policy": "all_required",
+      "max_ttl_minutes": 240,
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "old_scope_hash", "new_scope_hash"],
+      "default_decision": "hold_for_risk_acceptance",
+      "commercial_value": "Turns non-human identity expansion into a reviewable, revocable, evidence-bound event."
+    },
+    {
+      "id": "production-or-release",
+      "title": "Production deployment or release approval",
+      "action_class_ids": ["production_deployment"],
+      "risk_tier": "high",
+      "minimum_approvers": 2,
+      "required_roles": ["service_owner", "security_owner"],
+      "role_policy": "all_required",
+      "max_ttl_minutes": 240,
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "environment", "release_artifact_hash"],
+      "default_decision": "hold_for_risk_acceptance",
+      "commercial_value": "Lets a production MCP gateway prove release authority before an agent changes live systems."
+    },
+    {
+      "id": "secret-and-data-boundary",
+      "title": "Secret, regulated data, and egress boundary approval",
+      "action_class_ids": ["credential_or_secret_access"],
+      "risk_tier": "critical",
+      "minimum_approvers": 2,
+      "required_roles": ["data_owner", "security_owner"],
+      "role_policy": "all_required",
+      "max_ttl_minutes": 120,
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "data_class", "destination_class"],
+      "default_decision": "hold_for_risk_acceptance",
+      "commercial_value": "Gives regulated buyers a deterministic hold point before context, secrets, or tenant data can cross a boundary."
+    },
+    {
+      "id": "irreversible-or-funds",
+      "title": "Irreversible transaction approval",
+      "action_class_ids": ["funds_or_irreversible_transaction"],
+      "risk_tier": "critical",
+      "minimum_approvers": 2,
+      "required_roles": ["business_owner", "security_owner"],
+      "role_policy": "all_required",
+      "max_ttl_minutes": 60,
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "simulation_hash", "transaction_policy_hash"],
+      "default_decision": "hold_for_risk_acceptance",
+      "commercial_value": "Keeps high-consequence financial, blockchain, and irreversible workflows read-only until explicit two-key approval exists."
+    },
+    {
+      "id": "quarantine-and-incident",
+      "title": "Artifact quarantine and incident response approval",
+      "action_class_ids": ["artifact_or_registry_quarantine"],
+      "risk_tier": "high",
+      "minimum_approvers": 2,
+      "required_roles": ["incident_commander", "supply_chain_security"],
+      "role_policy": "all_required",
+      "max_ttl_minutes": 360,
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "scope_binding_fields": ["workflow_id", "run_id", "identity_id", "action_class", "tenant_id", "artifact_hash", "rollback_plan_hash"],
+      "default_decision": "hold_for_risk_acceptance",
+      "commercial_value": "Makes destructive quarantine actions inspectable and replayable for incident response and insurance-grade evidence."
+    }
+  ],
+  "runtime_policy": {
+    "trusted_status_values": ["approved", "allow", "granted"],
+    "scope_hash_required": true,
+    "expiry_required": true,
+    "separation_of_duties_default": true,
+    "untrusted_sources": ["chat_transcript_only", "model_generated_claim", "unverified_comment", "unsigned_webhook"],
+    "trusted_sources": ["source_host_review", "change_management", "identity_governance", "mcp_elicitation_log", "incident_commander_record"],
+    "kill_signal_indicators": [
+      "approval_bypass_attempt",
+      "approval_after_execution",
+      "requester_self_approved",
+      "approval_reused_across_run",
+      "approved_scope_hash_mismatch",
+      "raw_token_or_secret_in_approval",
+      "cross_tenant_approval_reuse"
+    ]
+  },
+  "buyer_views": [
+    {
+      "id": "ai-platform-runtime-gate",
+      "title": "AI Platform Runtime Gate",
+      "question": "Can the gateway verify that a privileged agent action has a valid approval before execution?",
+      "answer_contract": "Return approval profile, approver requirements, TTL, scope hash requirements, risk acceptance state, source artifacts, and the runtime decision."
+    },
+    {
+      "id": "iam-and-grc-review",
+      "title": "IAM and GRC Review",
+      "question": "Do non-human identities have separation-of-duties and access-review evidence before authority expands?",
+      "answer_contract": "Return identity, workflow, action class, required roles, actual approver roles, risk acceptance, receipt id, and reviewer separation state."
+    },
+    {
+      "id": "acquisition-diligence",
+      "title": "Acquisition Diligence",
+      "question": "Does SecurityRecipes have a credible hosted approval receipt product path?",
+      "answer_contract": "Return open pack evidence, hosted validation path, integration surfaces, premium buyer value, and residual risk language."
+    }
+  ],
+  "executive_readout": {
+    "board_level_claim": "SecurityRecipes can convert human approval from a loose comment into a replayable control artifact that agent hosts can enforce before high-impact actions execute.",
+    "recommended_first_use": "Attach approval receipt validation to action runtime gates, MCP gateway step-up prompts, entitlement review, and trust-center exports.",
+    "sales_motion": "Lead with open approval receipt policy, then sell hosted receipt validation, approval-system connectors, two-key enforcement, risk acceptance workflows, and trust-center exports."
+  },
+  "commercialization_path": {
+    "open_layer": "Public approval profiles, deterministic generator, runtime evaluator, generated JSON evidence pack, and docs for local MCP use.",
+    "team_layer": "Customer-specific approval profiles, source-host review adapters, change-management integration, and risk acceptance templates.",
+    "enterprise_layer": "Hosted approval receipt validation, SSO and ITSM connectors, two-key approval enforcement, receipt signing, SIEM export, and audit retention APIs.",
+    "acquirer_value": "A frontier lab, agent platform, or security vendor gets a missing control-plane primitive for making human authorization enforceable across MCP, A2A, browser agents, and autonomous action runtimes."
+  }
+}

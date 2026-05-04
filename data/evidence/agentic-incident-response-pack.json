@@ -1,0 +1,1172 @@
+{
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab or security vendor gets an agentic incident operating model tied directly to secure context, MCP authorization, non-human identity, run receipts, and eval replay.",
+    "enterprise_layer": "Hosted incident evidence ingestion, signed receipt vault, SIEM/SOAR export, customer trust-center incident readouts, replay orchestration, and MCP kill-switch automation.",
+    "open_layer": "Public incident classes, response phases, generated evidence pack, deterministic evaluator, and docs that make agentic incidents less mysterious for adopters.",
+    "team_layer": "Private incident class extensions, customer-specific containment runbooks, source-host ticket exports, and security-review templates."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "The project can classify agentic incidents, prove blast radius, contain delegated authority, preserve secure-context evidence, replay the failure, and produce buyer-ready disclosure artifacts.",
+    "default_questions_answered": [
+      "Which class of agentic incident occurred?",
+      "Which run, identity, context package, MCP namespace, and handoff were affected?",
+      "Should the platform monitor, hold for forensics, contain, or kill the session?",
+      "Which evidence packs prove blast radius and containment?",
+      "Which replay cases must pass before the workflow can be recertified?"
+    ],
+    "recommended_first_use": "Attach the pack to AI platform incident response, SOC runbooks, agent production-readiness reviews, MCP server approval, tabletop exercises, and acquisition diligence.",
+    "sales_motion": "Lead with the open incident model, then sell hosted receipt vaulting, SIEM/SOAR export, replay orchestration, customer incident readouts, and MCP kill-switch automation."
+  },
+  "executive_readout": {
+    "board_level_claim": "The project can classify agentic incidents, prove blast radius, contain delegated authority, preserve secure-context evidence, replay the failure, and produce buyer-ready disclosure artifacts.",
+    "headline": "SecurityRecipes now covers the moment after an agentic control fails, not only the moment before an agent acts.",
+    "recommended_first_use": "Attach the pack to AI platform incident response, SOC runbooks, agent production-readiness reviews, MCP server approval, tabletop exercises, and acquisition diligence."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "incident_classes": [
+    {
+      "default_decision": "contain_and_open_war_room",
+      "default_severity": "sev1",
+      "evidence_paths": [
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/secure-context-eval-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json"
+      ],
+      "id": "context-poisoning",
+      "kill_signals": [
+        "critical poisoning finding outside approved adversarial-example roots",
+        "retrieved context contains hidden instructions, tool override text, encoded exfiltration payload, or approval bypass instructions"
+      ],
+      "linked_evidence": [
+        "secure_context_trust_pack",
+        "context_poisoning_guard_pack",
+        "secure_context_eval_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_secure_context_trust_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_secure_context_eval_pack",
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "title": "Context poisoning or prompt-injection intake"
+    },
+    {
+      "default_decision": "contain_and_open_war_room",
+      "default_severity": "sev1",
+      "evidence_paths": [
+        "data/policy/mcp-gateway-policy.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-exposure-graph.json"
+      ],
+      "id": "mcp-tool-misuse",
+      "kill_signals": [
+        "tool call attempts a namespace, access mode, path, branch, tenant, or side effect outside generated policy",
+        "agent repeats denied or held tool calls after policy response"
+      ],
+      "linked_evidence": [
+        "mcp_gateway_policy",
+        "mcp_authorization_conformance",
+        "agentic_run_receipt_pack",
+        "agentic_exposure_graph"
+      ],
+      "mcp_tools": [
+        "recipes_mcp_gateway_policy",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_agentic_exposure_graph"
+      ],
+      "title": "MCP tool misuse or unsafe side effect"
+    },
+    {
+      "default_decision": "contain_and_open_war_room",
+      "default_severity": "sev1",
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agent-capability-risk-register.json"
+      ],
+      "id": "identity-scope-abuse",
+      "kill_signals": [
+        "identity is missing, expired, over-scoped, used after revocation, or acting outside workflow contract",
+        "implicit user token is used where a scoped non-human identity is required"
+      ],
+      "linked_evidence": [
+        "agent_identity_ledger",
+        "agentic_run_receipt_pack",
+        "agent_capability_risk_register"
+      ],
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agent_capability_risk_register"
+      ],
+      "title": "Agent identity or delegated authority abuse"
+    },
+    {
+      "default_decision": "kill_session_and_escalate_board",
+      "default_severity": "sev0",
+      "evidence_paths": [
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json"
+      ],
+      "id": "mcp-authorization-confused-deputy",
+      "kill_signals": [
+        "token audience, resource indicator, issuer, session binding, or scope does not match the protected MCP server",
+        "raw access token is forwarded to an upstream MCP server or remote agent"
+      ],
+      "linked_evidence": [
+        "mcp_authorization_conformance",
+        "mcp_connector_trust_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "title": "MCP authorization confused deputy or token passthrough"
+    },
+    {
+      "default_decision": "contain_and_open_war_room",
+      "default_severity": "sev1",
+      "evidence_paths": [
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/a2a-agent-card-trust-profile.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json"
+      ],
+      "id": "agent-handoff-leakage",
+      "kill_signals": [
+        "handoff carries secrets, hidden prompts, raw tool traces, internal memory, unrestricted customer data, or unapproved high-impact capability",
+        "remote Agent Card is unsigned, untrusted, missing authentication, or mismatched to the requested skill"
+      ],
+      "linked_evidence": [
+        "agent_handoff_boundary_pack",
+        "a2a_agent_card_trust_profile",
+        "context_egress_boundary_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_evaluate_a2a_agent_card_trust_decision"
+      ],
+      "title": "Agent handoff or A2A context leakage"
+    },
+    {
+      "default_decision": "contain_and_open_war_room",
+      "default_severity": "sev1",
+      "evidence_paths": [
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-run-receipt-pack.json"
+      ],
+      "id": "memory-or-skill-compromise",
+      "kill_signals": [
+        "persistent memory writes contain secrets, unredacted regulated data, hidden instructions, stale provenance, or tenant mismatch",
+        "skill or hook lacks verified publisher, registry evidence, sandboxing, pinned hash, or least-privilege manifest"
+      ],
+      "linked_evidence": [
+        "agent_memory_boundary_pack",
+        "agent_skill_supply_chain_pack",
+        "agent_identity_ledger",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_memory_boundary_pack",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_evaluate_agent_skill_decision"
+      ],
+      "title": "Agent memory, skill, hook, or rules package compromise"
+    },
+    {
+      "default_decision": "kill_session_and_escalate_board",
+      "default_severity": "sev0",
+      "evidence_paths": [
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/agent-capability-risk-register.json",
+        "data/evidence/agentic-readiness-scorecard.json",
+        "data/evidence/agentic-run-receipt-pack.json"
+      ],
+      "id": "high-impact-autonomy-near-miss",
+      "kill_signals": [
+        "production deployment, production write, secret access, mass deletion, identity administration, public release, funds movement, or connector scope escalation occurs without linked approval",
+        "catastrophic-risk evaluator returns hold, deny, or kill for a requested action"
+      ],
+      "linked_evidence": [
+        "agentic_catastrophic_risk_annex",
+        "agent_capability_risk_register",
+        "agentic_readiness_scorecard",
+        "agentic_run_receipt_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "title": "High-impact autonomous action near miss"
+    },
+    {
+      "default_decision": "hold_for_forensics",
+      "default_severity": "sev2",
+      "evidence_paths": [
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/secure-context-eval-pack.json"
+      ],
+      "id": "evidence-integrity-gap",
+      "kill_signals": [
+        "run receipt is missing, unsigned, stale, inconsistent with source hashes, or missing required event classes",
+        "incident cannot be replayed as an eval, red-team drill, or measurement probe before workflow recertification"
+      ],
+      "linked_evidence": [
+        "agentic_run_receipt_pack",
+        "agentic_measurement_probe_pack",
+        "agentic_red_team_drill_pack",
+        "secure_context_eval_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_secure_context_eval_pack"
+      ],
+      "title": "Evidence integrity, receipt, or replay gap"
+    }
+  ],
+  "incident_contract": {
+    "default_state": "incident_untrusted_until_receipt_context_identity_and_tool_evidence_are_correlated",
+    "minimum_incident_classes": 8,
+    "minimum_required_evidence_sources": 10,
+    "minimum_response_phases": 6,
+    "required_evidence_sources": [
+      "agentic_run_receipt_pack",
+      "secure_context_trust_pack",
+      "context_poisoning_guard_pack",
+      "context_egress_boundary_pack",
+      "mcp_authorization_conformance",
+      "mcp_gateway_policy",
+      "agent_identity_ledger",
+      "agent_handoff_boundary_pack",
+      "a2a_agent_card_trust_profile",
+      "agent_memory_boundary_pack",
+      "agent_skill_supply_chain_pack",
+      "agentic_catastrophic_risk_annex",
+      "agentic_exposure_graph",
+      "agentic_readiness_scorecard",
+      "agentic_measurement_probe_pack"
+    ],
+    "required_runtime_fields": [
+      "incident_id",
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "incident_class_id",
+      "severity_signal",
+      "detected_at",
+      "source_event_ids",
+      "receipt_id",
+      "context_source_ids",
+      "context_source_hashes",
+      "mcp_namespaces",
+      "authorization_decisions",
+      "egress_decisions",
+      "handoff_decisions",
+      "kill_signal",
+      "containment_action_ids",
+      "replay_case_ids",
+      "customer_impact_state"
+    ],
+    "severity_thresholds": [
+      {
+        "conditions": [
+          "confirmed secret, credential, regulated data, customer data, or payment/production control-plane exposure outside the approved boundary",
+          "high-impact autonomous action executed without linked approval or risk acceptance",
+          "agent identity, MCP token, or remote-agent handoff used after revocation"
+        ],
+        "decision": "kill_session_and_escalate_board",
+        "severity": "sev0"
+      },
+      {
+        "conditions": [
+          "probable context poisoning, token passthrough, authorization confused deputy, tool misuse, or cross-tenant context movement with incomplete exposure proof",
+          "customer impact is possible or unbounded while forensic evidence is still being correlated"
+        ],
+        "decision": "contain_and_open_war_room",
+        "severity": "sev1"
+      },
+      {
+        "conditions": [
+          "agent behavior, MCP decision, memory replay, skill update, or handoff outcome cannot be explained by current receipts and source hashes",
+          "evidence exists but is incomplete, stale, unsigned, or missing a correlation id"
+        ],
+        "decision": "hold_for_forensics",
+        "severity": "sev2"
+      },
+      {
+        "conditions": [
+          "single suspicious signal with no external side effect, no sensitive data movement, and complete run evidence"
+        ],
+        "decision": "triage_and_monitor",
+        "severity": "sev3"
+      }
+    ]
+  },
+  "incident_response_pack_id": "security-recipes.agentic-incident-response.v1",
+  "incident_response_summary": {
+    "class_count": 8,
+    "decision_counts": {
+      "contain_and_open_war_room": 3,
+      "hold_for_forensics": 2,
+      "kill_session_and_escalate_board": 3
+    },
+    "failure_count": 0,
+    "required_evidence_source_count": 15,
+    "response_phase_count": 6,
+    "sev0_class_count": 2,
+    "sev1_class_count": 5,
+    "source_failure_count": 0,
+    "workflow_count": 8
+  },
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, SOC, Product Security, GRC, trust and safety, procurement security, and acquisition diligence teams",
+    "category": "Agentic AI incident response and forensics for the secure context layer",
+    "enterprise_promise": "SecurityRecipes can help an enterprise detect, contain, reconstruct, replay, and disclose agentic incidents using the same MCP-readable evidence packs that authorize production agent work.",
+    "why_now": "Agentic AI programs are moving from pilots into production tool use. Buyers need response evidence for prompt injection, context poisoning, tool misuse, over-broad MCP authorization, token passthrough, agent handoff leakage, persistent memory drift, skill supply-chain compromise, and high-impact autonomy before approving broad rollout."
+  },
+  "residual_risks": [
+    {
+      "risk": "The generated pack proves the response model and source evidence shape, not live customer telemetry collection.",
+      "treatment": "Bind the pack to hosted MCP logs, SIEM events, identity provider revocation logs, source-host review events, and signed receipt storage before production incident automation."
+    },
+    {
+      "risk": "Incident class coverage can lag behind new agent host, MCP, A2A, memory, or skill behaviors.",
+      "treatment": "Review incident classes during model upgrades, connector promotions, prompt-library changes, and quarterly threat radar updates."
+    },
+    {
+      "risk": "Replay evidence can prove recurrence controls only when the failing context, prompt, tool result, and policy decision are preserved.",
+      "treatment": "Treat missing receipt, correlation id, context hash, or authorization decision as a hold_for_forensics condition."
+    }
+  ],
+  "response_phases": [
+    {
+      "id": "detect-and-classify",
+      "mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_exposure_graph",
+        "recipes_agentic_incident_response_pack"
+      ],
+      "minimum_evidence": [
+        "incident_id",
+        "workflow_id",
+        "run_id",
+        "correlation_id",
+        "incident_class_id",
+        "severity_signal"
+      ],
+      "objective": "Normalize raw telemetry into an agentic incident class, severity signal, affected workflow, run receipt, identity, context package, MCP namespace, and correlation id.",
+      "title": "Detect and classify"
+    },
+    {
+      "id": "contain-and-revoke",
+      "mcp_tools": [
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_agent_identity_ledger",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "minimum_evidence": [
+        "identity_id",
+        "mcp_namespaces",
+        "kill_signal",
+        "containment_action_ids"
+      ],
+      "objective": "Pause the run, kill the session when required, revoke delegated identity, freeze MCP scopes, block unsafe context, and quarantine remote-agent or skill surfaces.",
+      "title": "Contain and revoke"
+    },
+    {
+      "id": "preserve-forensics",
+      "mcp_tools": [
+        "recipes_secure_context_trust_pack",
+        "recipes_context_egress_boundary_pack",
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "minimum_evidence": [
+        "receipt_id",
+        "context_source_hashes",
+        "authorization_decisions",
+        "egress_decisions",
+        "handoff_decisions"
+      ],
+      "objective": "Snapshot source hashes, context package hashes, prompts, tool decisions, authorization claims, egress decisions, handoff decisions, receipts, eval outcomes, and reviewer approvals without mutating evidence.",
+      "title": "Preserve forensics"
+    },
+    {
+      "id": "eradicate-and-patch",
+      "mcp_tools": [
+        "recipes_context_poisoning_guard_pack",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_secure_context_eval_pack"
+      ],
+      "minimum_evidence": [
+        "containment_action_ids",
+        "replay_case_ids",
+        "policy_patch_reference",
+        "context_patch_reference"
+      ],
+      "objective": "Remove poisoned context, tighten MCP authorization, disable unsafe skills or memory entries, update evals, and add deterministic regression cases before restoring autonomy.",
+      "title": "Eradicate and patch"
+    },
+    {
+      "id": "replay-and-recertify",
+      "mcp_tools": [
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_catastrophic_risk_annex"
+      ],
+      "minimum_evidence": [
+        "replay_case_ids",
+        "guardrail_or_eval_result",
+        "readiness_decision",
+        "risk_acceptance_id"
+      ],
+      "objective": "Replay the incident as an eval, measurement probe, red-team drill, and catastrophic-risk scenario when applicable before lifting holds or promoting workflow readiness.",
+      "title": "Replay and recertify"
+    },
+    {
+      "id": "disclose-and-learn",
+      "mcp_tools": [
+        "recipes_enterprise_trust_center_export",
+        "recipes_agentic_incident_response_pack"
+      ],
+      "minimum_evidence": [
+        "customer_impact_state",
+        "incident_readout_id",
+        "evidence_export_id",
+        "lessons_learned_owner"
+      ],
+      "objective": "Produce customer, executive, GRC, and trust-center readouts with exact evidence paths, blast-radius decisions, timeline, containment proof, and recurrence controls.",
+      "title": "Disclose and learn"
+    }
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "a2a_agent_card_trust_profile": {
+      "failure_count": 0,
+      "path": "data/evidence/a2a-agent-card-trust-profile.json",
+      "schema_version": "1.0",
+      "sha256": "73774aeba0fd3934208e8a55c2a6fc3bdfbdff54f3632db8661a471c2fbe2ba9",
+      "summary_keys": [
+        "agent_card_trust_summary"
+      ]
+    },
+    "agent_capability_risk_register": {
+      "failure_count": 0,
+      "path": "data/evidence/agent-capability-risk-register.json",
+      "schema_version": "1.0",
+      "sha256": "53c25f92d26a7d3559499e24a97ab2ed4bfa8c541adfec3da3abeab404684d26",
+      "summary_keys": [
+        "capability_risk_summary"
+      ]
+    },
+    "agent_handoff_boundary_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agent-handoff-boundary-pack.json",
+      "schema_version": "1.0",
+      "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b",
+      "summary_keys": [
+        "handoff_boundary_summary"
+      ]
+    },
+    "agent_identity_ledger": {
+      "failure_count": 0,
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "schema_version": "1.0",
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42",
+      "summary_keys": [
+        "identity_summary"
+      ]
+    },
+    "agent_memory_boundary_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agent-memory-boundary-pack.json",
+      "schema_version": "1.0",
+      "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed",
+      "summary_keys": [
+        "agent_memory_boundary_summary"
+      ]
+    },
+    "agent_skill_supply_chain_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agent-skill-supply-chain-pack.json",
+      "schema_version": "1.0",
+      "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450",
+      "summary_keys": [
+        "skill_supply_chain_summary"
+      ]
+    },
+    "agentic_catastrophic_risk_annex": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
+      "schema_version": "1.0",
+      "sha256": "cf8b54686bbf25d87e9d371905faa31d5ee258d301a186a1601a57961cad50bb",
+      "summary_keys": [
+        "annex_summary"
+      ]
+    },
+    "agentic_exposure_graph": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-exposure-graph.json",
+      "schema_version": "1.0",
+      "sha256": "467530248c4fe051cf942ff1f64e651b61731b7eeb9a5745c3b3777f5bf1eaba",
+      "summary_keys": [
+        "exposure_graph_summary"
+      ]
+    },
+    "agentic_measurement_probe_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-measurement-probe-pack.json",
+      "schema_version": "1.0",
+      "sha256": "77d8ccb3ff88747f0c2020f25c038ce5af3f74164d977a808c79352b925cb01b",
+      "summary_keys": [
+        "measurement_probe_summary"
+      ]
+    },
+    "agentic_readiness_scorecard": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "schema_version": "1.0",
+      "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c",
+      "summary_keys": [
+        "readiness_summary"
+      ]
+    },
+    "agentic_red_team_drill_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-red-team-drill-pack.json",
+      "schema_version": "1.0",
+      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b",
+      "summary_keys": [
+        "red_team_summary"
+      ]
+    },
+    "agentic_run_receipt_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "schema_version": "1.0",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+      "summary_keys": [
+        "receipt_summary"
+      ]
+    },
+    "context_egress_boundary_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "schema_version": "1.0",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833",
+      "summary_keys": [
+        "egress_boundary_summary"
+      ]
+    },
+    "context_poisoning_guard_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "schema_version": "1.0",
+      "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8",
+      "summary_keys": [
+        "guard_summary"
+      ]
+    },
+    "mcp_authorization_conformance": {
+      "failure_count": 0,
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "schema_version": "1.0",
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367",
+      "summary_keys": [
+        "authorization_summary"
+      ]
+    },
+    "mcp_connector_trust_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "schema_version": "1.0",
+      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be",
+      "summary_keys": [
+        "connector_trust_summary"
+      ]
+    },
+    "mcp_gateway_policy": {
+      "failure_count": 0,
+      "path": "data/policy/mcp-gateway-policy.json",
+      "schema_version": "1.0",
+      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2",
+      "summary_keys": [
+        "policy_summary"
+      ]
+    },
+    "secure_context_eval_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/secure-context-eval-pack.json",
+      "schema_version": "1.0",
+      "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995",
+      "summary_keys": [
+        "eval_summary"
+      ]
+    },
+    "secure_context_trust_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "schema_version": "1.0",
+      "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085",
+      "summary_keys": [
+        "context_trust_summary"
+      ]
+    },
+    "workflow_manifest": {
+      "failure_count": 0,
+      "path": "data/control-plane/workflow-manifests.json",
+      "schema_version": "1.0",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb",
+      "summary_keys": []
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Incident response as a CSF 2.0 profile covering preparation, detection, response, recovery, lessons learned, and cybersecurity risk management integration.",
+      "id": "nist-sp-800-61r3",
+      "name": "NIST SP 800-61 Rev. 3 Incident Response Recommendations",
+      "url": "https://csrc.nist.gov/pubs/sp/800/61/r3/final"
+    },
+    {
+      "coverage": "Agent authentication, identity infrastructure, secure multi-agent interaction, open protocols, and security evaluations for trusted interoperable agents.",
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+    },
+    {
+      "coverage": "Indirect prompt injection, data poisoning, misaligned actions, measurement, and deployment interventions that constrain and monitor agent access.",
+      "id": "nist-caisi-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+    },
+    {
+      "coverage": "Critical risks for autonomous and agentic AI systems that plan, act, make decisions, use tools, communicate with other agents, and consume mutable context.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Protected resource metadata, OAuth 2.1, resource indicators, token audience validation, PKCE, scope handling, token theft, confused deputy prevention, and token privilege restriction.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Operational controls to protect, detect, and respond to malicious activity against AI systems, related data, and services.",
+      "id": "cisa-deploying-ai-securely-2024",
+      "name": "Joint Guidance on Deploying AI Systems Securely",
+      "url": "https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely"
+    }
+  ],
+  "tabletop_cases": [
+    {
+      "expected_decision": "contain_and_open_war_room",
+      "id": "poisoned-context-returned-to-agent",
+      "incident_class_id": "context-poisoning",
+      "minimum_mcp_tools": [
+        "recipes_secure_context_trust_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_secure_context_eval_pack",
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "trigger": "A retrieved source contains hidden tool override text and the poisoning guard produces an actionable critical finding."
+    },
+    {
+      "expected_decision": "kill_session_and_escalate_board",
+      "id": "mcp-token-forwarded-to-remote-agent",
+      "incident_class_id": "mcp-authorization-confused-deputy",
+      "minimum_mcp_tools": [
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "trigger": "A tool result attempts to pass an MCP access token into a remote A2A agent handoff."
+    },
+    {
+      "expected_decision": "kill_session_and_escalate_board",
+      "id": "production-write-without-approval",
+      "incident_class_id": "high-impact-autonomy-near-miss",
+      "minimum_mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "trigger": "An agent requests a production write path with no linked approval, risk acceptance, or receipt evidence."
+    },
+    {
+      "expected_decision": "hold_for_forensics",
+      "id": "missing-receipt-after-agent-drift",
+      "incident_class_id": "evidence-integrity-gap",
+      "minimum_mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_secure_context_eval_pack"
+      ],
+      "trigger": "A model or connector changed and the run cannot be replayed from current receipt and source hashes."
+    }
+  ],
+  "workflow_response_matrix": [
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "contain_and_open_war_room",
+      "high_score_exposure_path_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "findings.sde"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "tickets.security"
+        }
+      ],
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "guarded_rollout",
+      "risk_tier": "medium",
+      "severity_floor": "sev1",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "contain_and_open_war_room",
+      "high_score_exposure_path_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "advisories.vulnerability"
+        },
+        {
+          "access": "read",
+          "namespace": "sbom.inventory"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        }
+      ],
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "guarded_rollout",
+      "risk_tier": "medium",
+      "severity_floor": "sev1",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    },
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "hold_for_forensics",
+      "high_score_exposure_path_count": 0,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "findings.sast"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 95,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "standard_agentic_use",
+      "risk_tier": "low",
+      "severity_floor": "sev2",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "contain_and_open_war_room",
+      "high_score_exposure_path_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "images.golden"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "guarded_rollout",
+      "risk_tier": "medium",
+      "severity_floor": "sev1",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "kill_session_and_escalate_board",
+      "high_score_exposure_path_count": 6,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "inventory.artifacts"
+        },
+        {
+          "access": "approval_required",
+          "namespace": "registries.quarantine"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "incidents.security"
+        }
+      ],
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "security_architecture_review",
+      "risk_tier": "high",
+      "severity_floor": "sev0",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "hold_for_forensics",
+      "high_score_exposure_path_count": 0,
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "recipes.defaults"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "standard_agentic_use",
+      "risk_tier": "low",
+      "severity_floor": "sev2",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "kill_session_and_escalate_board",
+      "high_score_exposure_path_count": 9,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "payments.findings"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "payments.simulation"
+        }
+      ],
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "security_architecture_review",
+      "risk_tier": "high",
+      "severity_floor": "sev0",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "assigned_incident_class_ids": [
+        "agent-handoff-leakage",
+        "context-poisoning",
+        "evidence-integrity-gap",
+        "high-impact-autonomy-near-miss",
+        "identity-scope-abuse",
+        "mcp-authorization-confused-deputy",
+        "mcp-tool-misuse",
+        "memory-or-skill-compromise"
+      ],
+      "containment_actions": [
+        "pause_agent_run",
+        "preserve_run_receipt",
+        "snapshot_context_source_hashes",
+        "attach_correlation_id_to_incident",
+        "revoke_or_rotate_delegated_identity",
+        "freeze_mcp_namespace_or_scope",
+        "hold_context_source_promotion",
+        "disable_remote_agent_or_handoff_profile",
+        "quarantine_memory_or_skill_artifact",
+        "require_incident_commander_and_risk_owner_review",
+        "review_3_workflow_mcp_namespaces"
+      ],
+      "default_response_decision": "kill_session_and_escalate_board",
+      "high_score_exposure_path_count": 9,
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "protocol.findings"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "chain.simulation"
+        }
+      ],
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "replay_requirements": [
+        "convert incident timeline into secure-context eval case",
+        "add red-team drill or measurement probe before workflow recertification",
+        "re-run readiness scorecard after containment and policy patch"
+      ],
+      "risk_decision": "security_architecture_review",
+      "risk_tier": "high",
+      "severity_floor": "sev0",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    }
+  ]
+}

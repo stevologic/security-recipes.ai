@@ -1,0 +1,1242 @@
+{
+  "approval_contract": {
+    "decisions": [
+      {
+        "decision": "allow_scope_bound_approval",
+        "meaning": "The approval is registered for the workflow and action class, scope-bound, unexpired, role-complete, separated from the requester, and linked to receipt evidence."
+      },
+      {
+        "decision": "hold_for_second_approver",
+        "meaning": "The approval is plausible but lacks the required approver count, required role mix, or separation-of-duties evidence."
+      },
+      {
+        "decision": "hold_for_risk_acceptance",
+        "meaning": "The action profile requires explicit risk acceptance before execution."
+      },
+      {
+        "decision": "deny_scope_mismatch",
+        "meaning": "The approved scope does not match the requested action envelope, workflow, tenant, run, identity, namespaces, or changed-path hash."
+      },
+      {
+        "decision": "deny_expired_or_untrusted_approval",
+        "meaning": "The approval is missing, pending, expired, malformed, issued by an untrusted source, or reused outside its allowed window."
+      },
+      {
+        "decision": "deny_unregistered_approval_profile",
+        "meaning": "The workflow and action class do not map to a registered approval profile."
+      },
+      {
+        "decision": "kill_session_on_approval_bypass_signal",
+        "meaning": "The runtime observed approval bypass, post-execution approval, requester self-approval, secret transit, token passthrough, cross-tenant reuse, or a declared kill signal."
+      }
+    ],
+    "default_state": "approval_untrusted_until_scope_authority_reviewer_separation_expiry_risk_acceptance_and_receipt_hash_are_bound",
+    "minimum_approval_profiles": 6,
+    "minimum_required_evidence_sources": 7,
+    "required_evidence_sources": [
+      "agentic_action_runtime_pack",
+      "agentic_run_receipt_pack",
+      "agentic_telemetry_contract",
+      "agentic_entitlement_review_pack",
+      "agentic_catastrophic_risk_annex",
+      "mcp_gateway_policy",
+      "agent_identity_ledger",
+      "mcp_elicitation_boundary_pack"
+    ],
+    "required_runtime_fields": [
+      "workflow_id",
+      "action_class",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "approval_id",
+      "approval_type",
+      "approval_status",
+      "approver_ids",
+      "approver_roles",
+      "requested_scope_hash",
+      "approved_scope_hash",
+      "issued_at",
+      "expires_at",
+      "receipt_id",
+      "policy_pack_hash"
+    ]
+  },
+  "approval_profiles": [
+    {
+      "action_class_ids": [
+        "repo_branch_write",
+        "external_context_egress"
+      ],
+      "action_classes": [
+        {
+          "action_class_id": "repo_branch_write",
+          "action_default_decision": "allow_bounded_action",
+          "action_risk_tier": "medium",
+          "action_title": "Repository branch write"
+        },
+        {
+          "action_class_id": "external_context_egress",
+          "action_default_decision": "hold_for_action_evidence",
+          "action_risk_tier": "medium",
+          "action_title": "External context egress"
+        }
+      ],
+      "approval_profile_hash": "711ed8bad0c34e2c44b23f0cbf1783ef328e3f04d9670a7e81c0950651830d30",
+      "commercial_value": "Makes normal remediation PR approval machine-readable without adding unnecessary friction.",
+      "default_decision": "allow_scope_bound_approval",
+      "id": "bounded-remediation-review",
+      "max_ttl_minutes": 1440,
+      "minimum_approvers": 1,
+      "required_roles": [
+        "security_reviewer",
+        "service_owner"
+      ],
+      "requires_risk_acceptance": false,
+      "requires_separation_of_duties": true,
+      "risk_tier": "medium",
+      "role_policy": "at_least_one",
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "mcp_namespaces",
+        "changed_paths"
+      ],
+      "title": "Bounded remediation review"
+    },
+    {
+      "action_class_ids": [
+        "skill_or_tool_install",
+        "persistent_memory_write",
+        "remote_agent_delegation"
+      ],
+      "action_classes": [
+        {
+          "action_class_id": "skill_or_tool_install",
+          "action_default_decision": "hold_for_human_approval",
+          "action_risk_tier": "high",
+          "action_title": "Agent skill, hook, rules, or tool install"
+        },
+        {
+          "action_class_id": "persistent_memory_write",
+          "action_default_decision": "hold_for_action_evidence",
+          "action_risk_tier": "high",
+          "action_title": "Persistent memory write or replay"
+        },
+        {
+          "action_class_id": "remote_agent_delegation",
+          "action_default_decision": "hold_for_human_approval",
+          "action_risk_tier": "high",
+          "action_title": "Remote agent delegation or handoff"
+        }
+      ],
+      "approval_profile_hash": "4571bb08ede9ec46ce6b7dd1e9d4e28b305837dd0692ecbaa184787b5eb55463",
+      "commercial_value": "Creates a hosted approval-check surface for new skills, remote agents, memory writes, and privileged MCP tools.",
+      "default_decision": "hold_for_second_approver",
+      "id": "privileged-tool-step-up",
+      "max_ttl_minutes": 480,
+      "minimum_approvers": 2,
+      "required_roles": [
+        "security_owner",
+        "platform_owner"
+      ],
+      "requires_risk_acceptance": false,
+      "requires_separation_of_duties": true,
+      "risk_tier": "high",
+      "role_policy": "all_required",
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "mcp_namespaces",
+        "target_resource_id"
+      ],
+      "title": "Privileged tool or behavior-package step-up"
+    },
+    {
+      "action_class_ids": [
+        "identity_or_scope_change"
+      ],
+      "action_classes": [
+        {
+          "action_class_id": "identity_or_scope_change",
+          "action_default_decision": "hold_for_human_approval",
+          "action_risk_tier": "high",
+          "action_title": "Identity administration or MCP scope change"
+        }
+      ],
+      "approval_profile_hash": "499048a7b85c8832e3ab6ee8999835f0929ce8aab454df721747ef9f78d6b828",
+      "commercial_value": "Turns non-human identity expansion into a reviewable, revocable, evidence-bound event.",
+      "default_decision": "hold_for_risk_acceptance",
+      "id": "identity-and-scope-change",
+      "max_ttl_minutes": 240,
+      "minimum_approvers": 2,
+      "required_roles": [
+        "identity_owner",
+        "security_owner"
+      ],
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "risk_tier": "high",
+      "role_policy": "all_required",
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "old_scope_hash",
+        "new_scope_hash"
+      ],
+      "title": "Identity and MCP scope change"
+    },
+    {
+      "action_class_ids": [
+        "production_deployment"
+      ],
+      "action_classes": [
+        {
+          "action_class_id": "production_deployment",
+          "action_default_decision": "hold_for_human_approval",
+          "action_risk_tier": "high",
+          "action_title": "Production deployment or release"
+        }
+      ],
+      "approval_profile_hash": "8ec5d261a43e1a9b29cc2f71ff9e079ad29ee74e923281ee7aa961c7893ec78f",
+      "commercial_value": "Lets a production MCP gateway prove release authority before an agent changes live systems.",
+      "default_decision": "hold_for_risk_acceptance",
+      "id": "production-or-release",
+      "max_ttl_minutes": 240,
+      "minimum_approvers": 2,
+      "required_roles": [
+        "service_owner",
+        "security_owner"
+      ],
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "risk_tier": "high",
+      "role_policy": "all_required",
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "environment",
+        "release_artifact_hash"
+      ],
+      "title": "Production deployment or release approval"
+    },
+    {
+      "action_class_ids": [
+        "credential_or_secret_access"
+      ],
+      "action_classes": [
+        {
+          "action_class_id": "credential_or_secret_access",
+          "action_default_decision": "deny_unapproved_high_impact_action",
+          "action_risk_tier": "critical",
+          "action_title": "Credential, token, or secret access"
+        }
+      ],
+      "approval_profile_hash": "edbd0b95c116ef687347ecca0853b93f13efd99fe4c942572259509c62bbe848",
+      "commercial_value": "Gives regulated buyers a deterministic hold point before context, secrets, or tenant data can cross a boundary.",
+      "default_decision": "hold_for_risk_acceptance",
+      "id": "secret-and-data-boundary",
+      "max_ttl_minutes": 120,
+      "minimum_approvers": 2,
+      "required_roles": [
+        "data_owner",
+        "security_owner"
+      ],
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "risk_tier": "critical",
+      "role_policy": "all_required",
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "data_class",
+        "destination_class"
+      ],
+      "title": "Secret, regulated data, and egress boundary approval"
+    },
+    {
+      "action_class_ids": [
+        "funds_or_irreversible_transaction"
+      ],
+      "action_classes": [
+        {
+          "action_class_id": "funds_or_irreversible_transaction",
+          "action_default_decision": "deny_unapproved_high_impact_action",
+          "action_risk_tier": "critical",
+          "action_title": "Funds movement or irreversible transaction"
+        }
+      ],
+      "approval_profile_hash": "86c0cf4b4dc22b2753d1ed125fdf0d14bc252d2fcbbab907601b1807447de423",
+      "commercial_value": "Keeps high-consequence financial, blockchain, and irreversible workflows read-only until explicit two-key approval exists.",
+      "default_decision": "hold_for_risk_acceptance",
+      "id": "irreversible-or-funds",
+      "max_ttl_minutes": 60,
+      "minimum_approvers": 2,
+      "required_roles": [
+        "business_owner",
+        "security_owner"
+      ],
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "risk_tier": "critical",
+      "role_policy": "all_required",
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "simulation_hash",
+        "transaction_policy_hash"
+      ],
+      "title": "Irreversible transaction approval"
+    },
+    {
+      "action_class_ids": [
+        "artifact_or_registry_quarantine"
+      ],
+      "action_classes": [
+        {
+          "action_class_id": "artifact_or_registry_quarantine",
+          "action_default_decision": "hold_for_human_approval",
+          "action_risk_tier": "high",
+          "action_title": "Artifact, registry, or cache quarantine"
+        }
+      ],
+      "approval_profile_hash": "8683387044dc627680305770f1ee0e40329d4baf89a54885a59c4919d2df04ef",
+      "commercial_value": "Makes destructive quarantine actions inspectable and replayable for incident response and insurance-grade evidence.",
+      "default_decision": "hold_for_risk_acceptance",
+      "id": "quarantine-and-incident",
+      "max_ttl_minutes": 360,
+      "minimum_approvers": 2,
+      "required_roles": [
+        "incident_commander",
+        "supply_chain_security"
+      ],
+      "requires_risk_acceptance": true,
+      "requires_separation_of_duties": true,
+      "risk_tier": "high",
+      "role_policy": "all_required",
+      "scope_binding_fields": [
+        "workflow_id",
+        "run_id",
+        "identity_id",
+        "action_class",
+        "tenant_id",
+        "artifact_hash",
+        "rollback_plan_hash"
+      ],
+      "title": "Artifact quarantine and incident response approval"
+    }
+  ],
+  "approval_receipt_pack_id": "security-recipes.agentic-approval-receipts.v1",
+  "approval_receipt_summary": {
+    "approval_profile_count": 7,
+    "approval_required_workflow_count": 8,
+    "decision_counts": {
+      "allow_scope_bound_approval": 1,
+      "hold_for_risk_acceptance": 5,
+      "hold_for_second_approver": 1
+    },
+    "distinct_action_class_count": 10,
+    "failure_count": 0,
+    "high_or_critical_profile_count": 6,
+    "profile_risk_counts": {
+      "critical": 2,
+      "high": 4,
+      "medium": 1
+    },
+    "status": "approval_receipt_ready",
+    "workflow_count": 8
+  },
+  "buyer_views": [
+    {
+      "answer_contract": "Return approval profile, approver requirements, TTL, scope hash requirements, risk acceptance state, source artifacts, and the runtime decision.",
+      "id": "ai-platform-runtime-gate",
+      "question": "Can the gateway verify that a privileged agent action has a valid approval before execution?",
+      "title": "AI Platform Runtime Gate"
+    },
+    {
+      "answer_contract": "Return identity, workflow, action class, required roles, actual approver roles, risk acceptance, receipt id, and reviewer separation state.",
+      "id": "iam-and-grc-review",
+      "question": "Do non-human identities have separation-of-duties and access-review evidence before authority expands?",
+      "title": "IAM and GRC Review"
+    },
+    {
+      "answer_contract": "Return open pack evidence, hosted validation path, integration surfaces, premium buyer value, and residual risk language.",
+      "id": "acquisition-diligence",
+      "question": "Does SecurityRecipes have a credible hosted approval receipt product path?",
+      "title": "Acquisition Diligence"
+    }
+  ],
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, agent platform, or security vendor gets a missing control-plane primitive for making human authorization enforceable across MCP, A2A, browser agents, and autonomous action runtimes.",
+    "enterprise_layer": "Hosted approval receipt validation, SSO and ITSM connectors, two-key approval enforcement, receipt signing, SIEM export, and audit retention APIs.",
+    "open_layer": "Public approval profiles, deterministic generator, runtime evaluator, generated JSON evidence pack, and docs for local MCP use.",
+    "team_layer": "Customer-specific approval profiles, source-host review adapters, change-management integration, and risk acceptance templates."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can convert human approval from a loose comment into a replayable control artifact that agent hosts can enforce before high-impact actions execute.",
+    "default_questions_answered": [
+      "Which approval profile governs this action class?",
+      "How many approvers and which roles are required?",
+      "Is the approval scope-bound to this workflow, run, tenant, identity, and action?",
+      "Does the approval expire before execution?",
+      "Is risk acceptance required before the agent proceeds?"
+    ],
+    "recommended_first_use": "Attach approval receipt validation to action runtime gates, MCP gateway step-up prompts, entitlement review, and trust-center exports.",
+    "sales_motion": "Lead with open approval receipt policy, then sell hosted receipt validation, approval-system connectors, two-key enforcement, risk acceptance workflows, and trust-center exports."
+  },
+  "executive_readout": {
+    "board_level_claim": "SecurityRecipes can convert human approval from a loose comment into a replayable control artifact that agent hosts can enforce before high-impact actions execute.",
+    "recommended_first_use": "Attach approval receipt validation to action runtime gates, MCP gateway step-up prompts, entitlement review, and trust-center exports.",
+    "sales_motion": "Lead with open approval receipt policy, then sell hosted receipt validation, approval-system connectors, two-key enforcement, risk acceptance workflows, and trust-center exports."
+  },
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "intent": "Define the SecurityRecipes approval receipt control for agentic AI: every human approval that unlocks a privileged agent action must be scope-bound, time-boxed, role-checked, separated from the requesting identity, linked to risk acceptance when needed, and sealed into a run receipt before the action is trusted.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, IAM, GRC, product security, procurement security, and acquisition diligence teams",
+    "category": "Scope-bound approval receipts for agentic AI control planes",
+    "enterprise_promise": "SecurityRecipes can prove that high-impact agent actions are not merely accompanied by a human approval string; they are backed by replayable approval receipts with approver roles, scope hashes, expiry, separation of duties, risk acceptance, and run evidence.",
+    "why_now": "Agentic AI systems now chain MCP tools, browser actions, remote agents, persistent memory, model-provider routes, and non-human identities. Enterprises need a receipt primitive that turns human approval into enforceable policy instead of a chat transcript or pull-request comment."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open pack validates approval receipt shape, but production enforcement still needs source-host, ITSM, IAM, and MCP gateway integration.",
+      "treatment": "Hosted deployments should verify approval source signatures, actor identities, tenant boundaries, and receipt hashes before forwarding privileged tool calls."
+    },
+    {
+      "risk": "A valid approval can still be unsafe if the approved scope is broader than the actual business intent.",
+      "treatment": "Bind approvals to stable scope hashes and regenerate them after changed paths, data classes, namespaces, release artifacts, or target resources drift."
+    },
+    {
+      "risk": "Approval fatigue can normalize high-risk agent actions.",
+      "treatment": "Use profile TTLs, two-key review, risk acceptance, and red-team replay to keep approval volume and bypass attempts visible."
+    }
+  ],
+  "runtime_policy": {
+    "expiry_required": true,
+    "kill_signal_indicators": [
+      "approval_bypass_attempt",
+      "approval_after_execution",
+      "requester_self_approved",
+      "approval_reused_across_run",
+      "approved_scope_hash_mismatch",
+      "raw_token_or_secret_in_approval",
+      "cross_tenant_approval_reuse"
+    ],
+    "scope_hash_required": true,
+    "separation_of_duties_default": true,
+    "trusted_sources": [
+      "source_host_review",
+      "change_management",
+      "identity_governance",
+      "mcp_elicitation_log",
+      "incident_commander_record"
+    ],
+    "trusted_status_values": [
+      "approved",
+      "allow",
+      "granted"
+    ],
+    "untrusted_sources": [
+      "chat_transcript_only",
+      "model_generated_claim",
+      "unverified_comment",
+      "unsigned_webhook"
+    ]
+  },
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "agent_identity_ledger": {
+      "failure_count": 0,
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "schema_version": "1.0",
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42",
+      "summary_keys": [
+        "identity_summary"
+      ]
+    },
+    "agentic_action_runtime_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-action-runtime-pack.json",
+      "schema_version": "1.0",
+      "sha256": "557b1c53c422fdd256a085160fc2fa65609fc63113b627ea06140f671819b3f3",
+      "summary_keys": [
+        "action_runtime_summary"
+      ]
+    },
+    "agentic_catastrophic_risk_annex": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
+      "schema_version": "1.0",
+      "sha256": "cf8b54686bbf25d87e9d371905faa31d5ee258d301a186a1601a57961cad50bb",
+      "summary_keys": [
+        "annex_summary"
+      ]
+    },
+    "agentic_entitlement_review_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-entitlement-review-pack.json",
+      "schema_version": "1.0",
+      "sha256": "993f2fc0377c9bb175de7758a3e12e25b02cf0b807c2c4bf0d62697be70e50cd",
+      "summary_keys": [
+        "entitlement_review_summary"
+      ]
+    },
+    "agentic_run_receipt_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "schema_version": "1.0",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+      "summary_keys": [
+        "receipt_summary"
+      ]
+    },
+    "agentic_telemetry_contract": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "schema_version": "1.0",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f",
+      "summary_keys": [
+        "telemetry_summary"
+      ]
+    },
+    "mcp_elicitation_boundary_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/mcp-elicitation-boundary-pack.json",
+      "schema_version": "1.0",
+      "sha256": "1d23dc36d690bdd499686977d9a853ee6e524ac10ffd1a745ab9156129c92823",
+      "summary_keys": [
+        "elicitation_boundary_summary"
+      ]
+    },
+    "mcp_gateway_policy": {
+      "failure_count": 0,
+      "path": "data/policy/mcp-gateway-policy.json",
+      "schema_version": "1.0",
+      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2",
+      "summary_keys": [
+        "policy_summary"
+      ]
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Maps approval receipts to tool misuse, identity and privilege abuse, cascading failures, human-agent trust exploitation, rogue-agent behavior, and unsafe action chains.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Requires approval receipts for behavior packages that request privileged permissions, shell or network execution, update authority, persistent memory, or cross-platform skill reuse.",
+      "id": "owasp-agentic-skills-top-10-2026",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "Binds approval to protected-resource metadata, resource indicators, token audience validation, PKCE, short-lived tokens, and forbidden token passthrough before MCP authority expands.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Adds approval receipt checks to confused-deputy prevention, local MCP server command review, scope minimization, session binding, SSRF controls, and auditability.",
+      "id": "mcp-security-best-practices-2025",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+    },
+    {
+      "coverage": "Uses elicitation as a receipt source only for non-sensitive approval rationale and requires URL-mode or external systems for sensitive authentication or payment flows.",
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation"
+    },
+    {
+      "coverage": "Aligns approval receipts with tool guardrails, tripwires, workflow boundaries, and safety-first execution modes before function tools perform side effects.",
+      "id": "openai-agents-guardrails",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-js/guides/guardrails/"
+    },
+    {
+      "coverage": "Connects approval receipts to AI lifecycle governance, measurement, monitoring, data provenance, third-party risk, incident response, and risk treatment.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Frames approval receipts as vendor-neutral control evidence that maps to AI accountability, lifecycle operations, access governance, monitoring, and enterprise assurance.",
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "CSA AI Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+    }
+  ],
+  "workflow_approval_matrix": [
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "artifact_or_registry_quarantine",
+          "approval_profile_id": "quarantine-and-incident",
+          "default_decision": "hold_for_risk_acceptance",
+          "max_ttl_minutes": 360,
+          "minimum_approvers": 2,
+          "required_roles": [
+            "incident_commander",
+            "supply_chain_security"
+          ],
+          "requires_risk_acceptance": true,
+          "risk_tier": "high",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "artifact_hash",
+            "rollback_plan_hash"
+          ]
+        },
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 2,
+      "context_package_hash": "57f645643f721b9cdfd41f432712908970674651a63bbff5d106b63c7c0ec2a0",
+      "decision_floor": "hold_for_human_approval",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "inventory.artifacts"
+        },
+        {
+          "access": "approval_required",
+          "namespace": "registries.quarantine"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "incidents.security"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::artifact-cache-quarantine",
+      "receipt_status": "receipt_required_for_guarded_pilot",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        },
+        {
+          "action_class_id": "repo_branch_write",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 2,
+      "context_package_hash": "a4a1912b833508945c0fc53ebdc02c3ffd46a83602a6e81e6f995de7acefd485",
+      "decision_floor": "hold_for_action_evidence",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "images.golden"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::base-image-remediation",
+      "receipt_status": "receipt_ready",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        },
+        {
+          "action_class_id": "repo_branch_write",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 2,
+      "context_package_hash": "259063db40ffa7014da193875e569323913da7a0d05657d510ba42a5b1b36887",
+      "decision_floor": "hold_for_action_evidence",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "recipes.defaults"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::classic-vulnerable-defaults",
+      "receipt_status": "receipt_ready",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        },
+        {
+          "action_class_id": "funds_or_irreversible_transaction",
+          "approval_profile_id": "irreversible-or-funds",
+          "default_decision": "hold_for_risk_acceptance",
+          "max_ttl_minutes": 60,
+          "minimum_approvers": 2,
+          "required_roles": [
+            "business_owner",
+            "security_owner"
+          ],
+          "requires_risk_acceptance": true,
+          "risk_tier": "critical",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "simulation_hash",
+            "transaction_policy_hash"
+          ]
+        },
+        {
+          "action_class_id": "repo_branch_write",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 3,
+      "context_package_hash": "99b3a9595e30bfdc5d0ed1df53e4de38f806907f21d5ec99af47e01d3f37e527",
+      "decision_floor": "deny_unapproved_high_impact_action",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "payments.findings"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "payments.simulation"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::crypto-payment-security",
+      "receipt_status": "receipt_required_for_guarded_pilot",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        },
+        {
+          "action_class_id": "funds_or_irreversible_transaction",
+          "approval_profile_id": "irreversible-or-funds",
+          "default_decision": "hold_for_risk_acceptance",
+          "max_ttl_minutes": 60,
+          "minimum_approvers": 2,
+          "required_roles": [
+            "business_owner",
+            "security_owner"
+          ],
+          "requires_risk_acceptance": true,
+          "risk_tier": "critical",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "simulation_hash",
+            "transaction_policy_hash"
+          ]
+        },
+        {
+          "action_class_id": "repo_branch_write",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 3,
+      "context_package_hash": "5b29dbba6de1cb416c5c6719363197cb2a949ffd56ed79d7515a6581d50b57d1",
+      "decision_floor": "deny_unapproved_high_impact_action",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "protocol.findings"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "chain.simulation"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::defi-blockchain-security",
+      "receipt_status": "receipt_required_for_guarded_pilot",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    },
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        },
+        {
+          "action_class_id": "funds_or_irreversible_transaction",
+          "approval_profile_id": "irreversible-or-funds",
+          "default_decision": "hold_for_risk_acceptance",
+          "max_ttl_minutes": 60,
+          "minimum_approvers": 2,
+          "required_roles": [
+            "business_owner",
+            "security_owner"
+          ],
+          "requires_risk_acceptance": true,
+          "risk_tier": "critical",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "simulation_hash",
+            "transaction_policy_hash"
+          ]
+        },
+        {
+          "action_class_id": "repo_branch_write",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 3,
+      "context_package_hash": "354528a16e2271a68e57b8171e5646e86bf61910780730ad369bba6ea2e11070",
+      "decision_floor": "deny_unapproved_high_impact_action",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "findings.sast"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::sast-finding-remediation",
+      "receipt_status": "receipt_required_for_guarded_pilot",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "credential_or_secret_access",
+          "approval_profile_id": "secret-and-data-boundary",
+          "default_decision": "hold_for_risk_acceptance",
+          "max_ttl_minutes": 120,
+          "minimum_approvers": 2,
+          "required_roles": [
+            "data_owner",
+            "security_owner"
+          ],
+          "requires_risk_acceptance": true,
+          "risk_tier": "critical",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "data_class",
+            "destination_class"
+          ]
+        },
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        },
+        {
+          "action_class_id": "repo_branch_write",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 3,
+      "context_package_hash": "d65ba4419af71adb16c60ceef959e603f7441c987e768acbc026cce7cab72f6e",
+      "decision_floor": "deny_unapproved_high_impact_action",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "findings.sde"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "tickets.security"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::sensitive-data-remediation",
+      "receipt_status": "receipt_ready",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "action_approval_requirements": [
+        {
+          "action_class_id": "external_context_egress",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        },
+        {
+          "action_class_id": "repo_branch_write",
+          "approval_profile_id": "bounded-remediation-review",
+          "default_decision": "allow_scope_bound_approval",
+          "max_ttl_minutes": 1440,
+          "minimum_approvers": 1,
+          "required_roles": [
+            "security_reviewer",
+            "service_owner"
+          ],
+          "requires_risk_acceptance": false,
+          "risk_tier": "medium",
+          "scope_binding_fields": [
+            "workflow_id",
+            "run_id",
+            "identity_id",
+            "action_class",
+            "tenant_id",
+            "mcp_namespaces",
+            "changed_paths"
+          ]
+        }
+      ],
+      "approval_required_action_count": 2,
+      "context_package_hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
+      "decision_floor": "hold_for_action_evidence",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "advisories.vulnerability"
+        },
+        {
+          "access": "read",
+          "namespace": "sbom.inventory"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        }
+      ],
+      "receipt_id": "sr-run-receipt::vulnerable-dependency-remediation",
+      "receipt_status": "receipt_ready",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+{
+  "channels": [
+    {
+      "id": "draft-pr-packet",
+      "label": "Draft PR packet",
+      "driver": "draft-pr",
+      "category": "Code handoff",
+      "status": "native",
+      "runtime_support": "copy_only",
+      "browser_delivery": true,
+      "requirement": "No GitHub write required. Produces branch name, PR body, tests, rollback, and reviewer checklist.",
+      "description": "Reviewer-ready markdown and metadata for a pull request without writing to the source host.",
+      "config": {
+        "type": "draft_pr_packet",
+        "labels": ["security-remediation", "ai-agent-draft"],
+        "required_sections": ["branch_name", "pr_title", "pr_body", "test_plan", "rollback", "reviewer_checklist"]
+      }
+    },
+    {
+      "id": "github-issue",
+      "label": "GitHub issue",
+      "driver": "github-issue",
+      "category": "Ticketing",
+      "status": "native",
+      "runtime_support": "live",
+      "browser_delivery": true,
+      "requirement": "Requires GitHub PAT or OAuth token with issues write access.",
+      "description": "Creates a GitHub issue with a normalized remediation or scan handoff body.",
+      "config": {
+        "type": "github_issue",
+        "repository": "owner/repo",
+        "labels": ["security-remediation", "ai-agent-draft"],
+        "issue_type": "Task"
+      }
+    },
+    {
+      "id": "slack-webhook",
+      "label": "Slack webhook",
+      "driver": "slack",
+      "category": "Collaboration",
+      "status": "native",
+      "runtime_support": "live",
+      "browser_delivery": true,
+      "requirement": "Requires an incoming Slack webhook URL.",
+      "description": "Posts the report or remediation handoff into a Slack channel using an incoming webhook.",
+      "config": {
+        "type": "slack_webhook",
+        "webhook_url": "https://hooks.slack.com/services/...",
+        "message_format": "mrkdwn",
+        "include_fields": ["title", "severity", "scope", "next_steps"]
+      }
+    },
+    {
+      "id": "email-handoff",
+      "label": "Email handoff",
+      "driver": "email",
+      "category": "Collaboration",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Uses a local mailto draft, or a configured CORS-enabled email relay URL.",
+      "description": "Generates a browser mail draft or sends through a configured relay endpoint.",
+      "config": {
+        "type": "email_handoff",
+        "to": ["security@example.com"],
+        "subject_prefix": "[SecurityRecipes]",
+        "relay_url": ""
+      }
+    },
+    {
+      "id": "jira-ticket",
+      "label": "Jira ticket",
+      "driver": "jira",
+      "category": "Ticketing",
+      "status": "native",
+      "runtime_support": "live",
+      "browser_delivery": true,
+      "requirement": "Requires Jira base URL, account email, API token, and project key.",
+      "description": "Creates a Jira task with a structured remediation or scan summary.",
+      "config": {
+        "type": "jira_issue",
+        "base_url": "https://example.atlassian.net",
+        "project_key": "SEC",
+        "issue_type": "Task"
+      }
+    },
+    {
+      "id": "runbook-receipt",
+      "label": "Runbook receipt",
+      "driver": "runbook",
+      "category": "Reports and evidence",
+      "status": "native",
+      "runtime_support": "copy_only",
+      "browser_delivery": true,
+      "requirement": "No external auth required. Produces copyable steps and evidence.",
+      "description": "Clipboard-friendly markdown for human execution with stop conditions and rollback.",
+      "config": {
+        "type": "runbook_receipt",
+        "required_sections": ["scope", "steps", "evidence", "stop_conditions", "rollback"]
+      }
+    },
+    {
+      "id": "server-runbook",
+      "label": "Server runbook",
+      "driver": "server-runbook",
+      "category": "Reports and evidence",
+      "status": "native",
+      "runtime_support": "copy_only",
+      "browser_delivery": true,
+      "requirement": "No automatic server changes. Produces commands for a human-run maintenance window.",
+      "description": "Operations-focused handoff for patching or validation during a maintenance window.",
+      "config": {
+        "type": "server_runbook",
+        "required_sections": ["change_window", "commands", "verification", "rollback"]
+      }
+    },
+    {
+      "id": "teams-webhook",
+      "label": "Microsoft Teams webhook",
+      "driver": "clipboard",
+      "category": "Collaboration",
+      "status": "template",
+      "runtime_support": "config_only",
+      "browser_delivery": false,
+      "requirement": "Template only in this release. Copy the generated card body into your Teams connector or relay.",
+      "description": "Adaptive card-style handoff profile for Teams channels.",
+      "config": {
+        "type": "teams_webhook",
+        "webhook_url": "https://outlook.office.com/webhook/...",
+        "card_style": "adaptive-card",
+        "include_fields": ["title", "severity", "scope", "recommendation", "links"]
+      }
+    },
+    {
+      "id": "servicenow-incident",
+      "label": "ServiceNow incident",
+      "driver": "clipboard",
+      "category": "Ticketing",
+      "status": "template",
+      "runtime_support": "config_only",
+      "browser_delivery": false,
+      "requirement": "Template only in this release. Use the exported JSON with your ServiceNow relay or MCP connector.",
+      "description": "Pre-populated incident payload for SecOps or vulnerability response queues.",
+      "config": {
+        "type": "servicenow_incident",
+        "instance_url": "https://example.service-now.com",
+        "table": "incident",
+        "priority_map": {
+          "critical": "1",
+          "high": "2",
+          "medium": "3"
+        }
+      }
+    },
+    {
+      "id": "linear-issue",
+      "label": "Linear issue",
+      "driver": "clipboard",
+      "category": "Ticketing",
+      "status": "template",
+      "runtime_support": "config_only",
+      "browser_delivery": false,
+      "requirement": "Template only in this release. Use the exported JSON with a Linear API relay or MCP connector.",
+      "description": "Issue profile for security engineering or platform backlog handoff into Linear.",
+      "config": {
+        "type": "linear_issue",
+        "team": "SEC",
+        "labels": ["security-remediation", "ai-agent"],
+        "state": "Backlog"
+      }
+    },
+    {
+      "id": "splunk-hec",
+      "label": "Splunk HEC event",
+      "driver": "clipboard",
+      "category": "SIEM and analytics",
+      "status": "template",
+      "runtime_support": "config_only",
+      "browser_delivery": false,
+      "requirement": "Template only in this release. Export the event payload to your HEC relay or browser-approved proxy.",
+      "description": "Normalized report event for SIEM, detection engineering, or trend analytics.",
+      "config": {
+        "type": "splunk_hec",
+        "hec_url": "https://splunk.example.com:8088/services/collector",
+        "sourcetype": "securityrecipes:report",
+        "index": "secops"
+      }
+    },
+    {
+      "id": "elastic-security-case",
+      "label": "Elastic Security case",
+      "driver": "clipboard",
+      "category": "SIEM and analytics",
+      "status": "template",
+      "runtime_support": "config_only",
+      "browser_delivery": false,
+      "requirement": "Template only in this release. Export the case JSON to your Elastic workflow connector.",
+      "description": "Case payload for Elastic Security investigations and timelines.",
+      "config": {
+        "type": "elastic_security_case",
+        "space_id": "default",
+        "tags": ["security-remediation", "browser-agent"],
+        "owner": "securitySolution"
+      }
+    },
+    {
+      "id": "generic-webhook",
+      "label": "Generic webhook",
+      "driver": "clipboard",
+      "category": "Custom integrations",
+      "status": "template",
+      "runtime_support": "config_only",
+      "browser_delivery": false,
+      "requirement": "Template only in this release. Export the JSON envelope and send it through your approved relay.",
+      "description": "Fallback output envelope for custom SOAR, queue, or integration middleware.",
+      "config": {
+        "type": "generic_webhook",
+        "url": "https://example.internal/hooks/security-recipes",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

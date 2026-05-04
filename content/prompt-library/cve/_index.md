@@ -88,7 +88,7 @@ The same pattern as any other prompt on this site:
 - A CVE that's actually a malicious-package compromise — use
   the [cache-quarantine workflow]({{< relref "/security-remediation/artifact-cache-purge" >}}).
 
-## Catalogue
+## CVE Recipes
 
 The catalogue below is **auto-generated** from the recipe
 files in this section, grouped by ecosystem and sorted by

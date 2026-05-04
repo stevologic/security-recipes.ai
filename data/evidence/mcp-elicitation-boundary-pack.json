@@ -1,0 +1,1150 @@
+{
+  "boundary_contract": {
+    "default_decision": "hold_for_elicitation_evidence",
+    "form_mode_denied_fields": [
+      "password",
+      "secret",
+      "token",
+      "api_key",
+      "private_key",
+      "seed_phrase",
+      "card_number",
+      "cvv",
+      "session_cookie"
+    ],
+    "hash_algorithm": "sha256",
+    "implemented_controls": [
+      "client_capability_check",
+      "server_identity_display",
+      "decline_and_cancel_available",
+      "form_response_review",
+      "form_sensitive_field_blocklist",
+      "url_mode_for_sensitive_flows",
+      "https_url_requirement",
+      "domain_allowlist",
+      "no_preauthenticated_url",
+      "no_sensitive_data_in_url",
+      "explicit_user_consent",
+      "no_url_prefetch",
+      "external_token_boundary",
+      "mcp_authorization_separation",
+      "user_identity_binding",
+      "elicitation_id_correlation",
+      "completion_notification_binding",
+      "rate_limit_repeated_prompts",
+      "run_receipt_logging",
+      "gateway_policy_hash_binding"
+    ],
+    "required_receipt_fields": [
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "server_id",
+      "connector_id",
+      "elicitation_profile_id",
+      "elicitation_id",
+      "mode",
+      "requested_data_classes",
+      "url_domain",
+      "user_consent_recorded",
+      "response_action",
+      "decision",
+      "decision_reason",
+      "correlation_id"
+    ],
+    "required_runtime_attributes": [
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "connector_id",
+      "namespace",
+      "server_id",
+      "elicitation_profile_id",
+      "elicitation_id",
+      "mode",
+      "client_capabilities",
+      "server_identity_displayed",
+      "requested_data_classes",
+      "response_schema_fields",
+      "url",
+      "user_id",
+      "session_id",
+      "correlation_id",
+      "gateway_policy_hash",
+      "authorization_pack_hash"
+    ],
+    "safe_url_requirements": [
+      "https_non_development",
+      "explicit_user_consent_before_navigation",
+      "full_url_displayed_before_consent",
+      "domain_highlighted_for_spoofing_review",
+      "no_prefetch",
+      "no_preauthenticated_url",
+      "no_sensitive_data_in_url",
+      "external_credentials_never_transit_mcp_client",
+      "completion_notification_bound_to_elicitation_id",
+      "state_bound_to_user_identity_not_session_only"
+    ],
+    "sensitive_data_classes": [
+      "password",
+      "api_key",
+      "access_token",
+      "refresh_token",
+      "private_key",
+      "seed_phrase",
+      "payment_credential",
+      "bank_account",
+      "raw_session_cookie",
+      "production_credential",
+      "signing_material"
+    ],
+    "url_mode_required_for": [
+      "api_key",
+      "access_token",
+      "payment_credential",
+      "external_oauth_grant",
+      "third_party_authorization",
+      "credential_rotation"
+    ],
+    "valid_runtime_decisions": [
+      "allow_elicitation_with_receipt",
+      "hold_for_elicitation_evidence",
+      "deny_sensitive_form_elicitation",
+      "deny_untrusted_elicitation_url",
+      "deny_token_or_secret_transit",
+      "kill_session_on_elicitation_abuse"
+    ]
+  },
+  "buyer_due_diligence_questions": [
+    {
+      "answer_contract": "Return form-mode deny rules, sensitive data classes, profile decisions, source references, and runtime evaluator outcomes.",
+      "id": "elicitation-sensitive-data",
+      "question": "Can MCP servers request secrets, payment data, or tokens through ordinary form prompts?"
+    },
+    {
+      "answer_contract": "Return URL-mode safe handling rules, allowlisted domains, no-prefetch controls, consent requirements, and deny decisions for untrusted URLs.",
+      "id": "elicitation-url-safety",
+      "question": "What prevents an MCP server or prompt-injection-controlled tool result from sending users to a malicious URL?"
+    },
+    {
+      "answer_contract": "Return the authorization separation controls, source references, required hashes, and token-passthrough deny behavior.",
+      "id": "elicitation-auth-separation",
+      "question": "How does external OAuth through URL mode differ from MCP authorization?"
+    },
+    {
+      "answer_contract": "Return required receipt fields, workflow mappings, generated pack hashes, and the correlation fields needed for enterprise review.",
+      "id": "elicitation-receipts",
+      "question": "Can a buyer review who asked the user for information, why, and what decision was made?"
+    }
+  ],
+  "commercialization_path": {
+    "acquirer_value": "A strategic acquirer gets a production MCP safety primitive for the point where agents ask humans for data or route them to external authorization flows.",
+    "enterprise_layer": "Sell hosted domain allowlists, consent receipt storage, connector setup flows, phishing telemetry, policy APIs, and customer-specific elicitation replay.",
+    "open_layer": "Publish form-mode and URL-mode elicitation rules as open evidence so MCP clients can adopt a clear safe-by-default pattern."
+  },
+  "control_checks": [
+    {
+      "applies_to": "all_elicitation",
+      "control_reason": "Servers must not send elicitation requests for modes the client did not declare.",
+      "evidence_key": "client_capabilities",
+      "id": "client_capability_check",
+      "severity": "high"
+    },
+    {
+      "applies_to": "all_elicitation",
+      "control_reason": "The user must know which MCP server is requesting information before accepting, declining, or canceling.",
+      "evidence_key": "server_identity_displayed",
+      "id": "server_identity_display",
+      "severity": "high"
+    },
+    {
+      "applies_to": "all_elicitation",
+      "control_reason": "Elicitation is safe only when users can decline or cancel without the agent silently treating non-response as consent.",
+      "evidence_key": "user_can_decline",
+      "id": "decline_and_cancel_available",
+      "severity": "medium"
+    },
+    {
+      "applies_to": "form_mode",
+      "control_reason": "Form-mode submissions should be reviewable and editable before user-provided data returns to the MCP server.",
+      "evidence_key": "user_can_review",
+      "id": "form_response_review",
+      "severity": "medium"
+    },
+    {
+      "applies_to": "form_mode",
+      "control_reason": "Passwords, API keys, tokens, private keys, payment credentials, and session cookies must not be requested through form mode.",
+      "evidence_key": "response_schema_fields",
+      "id": "form_sensitive_field_blocklist",
+      "severity": "critical"
+    },
+    {
+      "applies_to": "sensitive_interaction",
+      "control_reason": "Sensitive interactions belong in URL mode so credentials and payments never pass through the LLM context or MCP client.",
+      "evidence_key": "mode",
+      "id": "url_mode_for_sensitive_flows",
+      "severity": "critical"
+    },
+    {
+      "applies_to": "url_mode",
+      "control_reason": "Non-development URL-mode interactions should use HTTPS so user inputs are not exposed in transit.",
+      "evidence_key": "https_url",
+      "id": "https_url_requirement",
+      "severity": "high"
+    },
+    {
+      "applies_to": "url_mode",
+      "control_reason": "URL-mode requests need domain review to reduce phishing, subdomain spoofing, and malicious redirect risk.",
+      "evidence_key": "url_allowlisted",
+      "id": "domain_allowlist",
+      "severity": "high"
+    },
+    {
+      "applies_to": "url_mode",
+      "control_reason": "Pre-authenticated URLs can impersonate users if exposed to a malicious client or logged in the wrong place.",
+      "evidence_key": "preauthenticated_url",
+      "id": "no_preauthenticated_url",
+      "severity": "critical"
+    },
+    {
+      "applies_to": "url_mode",
+      "control_reason": "URLs sent through MCP must not embed credentials, tokens, PII, payment data, or other sensitive values.",
+      "evidence_key": "url_contains_sensitive_data",
+      "id": "no_sensitive_data_in_url",
+      "severity": "critical"
+    },
+    {
+      "applies_to": "url_mode",
+      "control_reason": "Clients must not open URL-mode interactions without explicit consent after presenting the target URL.",
+      "evidence_key": "user_consent_recorded",
+      "id": "explicit_user_consent",
+      "severity": "high"
+    },
+    {
+      "applies_to": "url_mode",
+      "control_reason": "URL previews and metadata fetches can leak tokens, identifiers, or intent to an untrusted destination.",
+      "evidence_key": "url_prefetched",
+      "id": "no_url_prefetch",
+      "severity": "medium"
+    },
+    {
+      "applies_to": "third_party_authorization",
+      "control_reason": "Third-party credentials obtained through URL mode must never transit the MCP client or be forwarded as token passthrough.",
+      "evidence_key": "token_or_secret_transit",
+      "id": "external_token_boundary",
+      "severity": "critical"
+    },
+    {
+      "applies_to": "third_party_authorization",
+      "control_reason": "External OAuth via URL mode is separate from MCP authorization and must not be treated as permission for the MCP client itself.",
+      "evidence_key": "authorization_pack_hash",
+      "id": "mcp_authorization_separation",
+      "severity": "critical"
+    },
+    {
+      "applies_to": "stateful_elicitation",
+      "control_reason": "Elicitation state should be bound to the user identity, not only an MCP session identifier.",
+      "evidence_key": "user_id",
+      "id": "user_identity_binding",
+      "severity": "high"
+    },
+    {
+      "applies_to": "all_elicitation",
+      "control_reason": "Each prompt needs a stable ID so completion notifications, retries, receipts, and incident review bind to the original request.",
+      "evidence_key": "elicitation_id",
+      "id": "elicitation_id_correlation",
+      "severity": "medium"
+    },
+    {
+      "applies_to": "url_mode",
+      "control_reason": "URL completion notifications must only satisfy the original client and elicitation ID.",
+      "evidence_key": "completion_notification_bound",
+      "id": "completion_notification_binding",
+      "severity": "medium"
+    },
+    {
+      "applies_to": "all_elicitation",
+      "control_reason": "Repeated prompts can become social engineering pressure, especially when an agent sees untrusted content.",
+      "evidence_key": "prompt_rate_limited",
+      "id": "rate_limit_repeated_prompts",
+      "severity": "medium"
+    },
+    {
+      "applies_to": "all_elicitation",
+      "control_reason": "Elicitation requests need receipt evidence for buyer review, incident response, and user trust investigations.",
+      "evidence_key": "correlation_id",
+      "id": "run_receipt_logging",
+      "severity": "high"
+    }
+  ],
+  "elicitation_boundary_pack_id": "security-recipes-mcp-elicitation-boundary",
+  "elicitation_boundary_summary": {
+    "allowed_profile_count": 4,
+    "critical_or_high_profile_count": 5,
+    "decision_counts": {
+      "allow_elicitation_with_receipt": 4,
+      "deny_sensitive_form_elicitation": 1,
+      "deny_untrusted_elicitation_url": 1,
+      "hold_for_elicitation_evidence": 1
+    },
+    "failure_count": 0,
+    "mode_counts": {
+      "form": 3,
+      "url": 4
+    },
+    "profile_count": 7,
+    "risk_tier_counts": {
+      "critical": 3,
+      "high": 2,
+      "low": 1,
+      "medium": 1
+    },
+    "status": "elicitation_boundary_ready",
+    "workflow_rule_count": 4
+  },
+  "elicitation_profiles": [
+    {
+      "allowed_data_classes": [],
+      "allowed_url_domains": [],
+      "buyer_value": "Creates a crisp fail-closed rule: if a form asks for secrets, the client blocks it and records why.",
+      "computed_decision": "deny_sensitive_form_elicitation",
+      "control_gaps": [],
+      "default_decision": "deny_sensitive_form_elicitation",
+      "id": "profile-credential-form-prohibited",
+      "mode": "form",
+      "prohibited_data_classes": [
+        "password",
+        "api_key",
+        "access_token",
+        "refresh_token",
+        "private_key",
+        "seed_phrase",
+        "payment_credential",
+        "raw_session_cookie",
+        "production_credential",
+        "signing_material"
+      ],
+      "request_class": "secret_request_block",
+      "required_controls": [
+        "client_capability_check",
+        "server_identity_display",
+        "form_sensitive_field_blocklist",
+        "url_mode_for_sensitive_flows",
+        "run_receipt_logging"
+      ],
+      "required_runtime_attributes": [
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "server_id",
+        "elicitation_id",
+        "mode",
+        "requested_data_classes",
+        "response_schema_fields",
+        "session_id",
+        "correlation_id"
+      ],
+      "risk_score": 100,
+      "risk_tier": "critical",
+      "source_ids": [
+        "mcp-elicitation-2025-11-25",
+        "mcp-security-best-practices-2025-11-25",
+        "cisa-ai-data-security-2025"
+      ],
+      "title": "Credential Form Mode Prohibited",
+      "workflow_ids": [
+        "mcp-gateway-policy",
+        "context-egress-boundary",
+        "secure-context-trust-pack"
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "payment_credential",
+        "billing_account_reference",
+        "subscription_authorization"
+      ],
+      "allowed_url_domains": [
+        "billing.security-recipes.ai",
+        "mcp.security-recipes.ai"
+      ],
+      "buyer_value": "Shows investors and acquirers that commerce or billing interactions are possible without making agents silent payment collectors.",
+      "computed_decision": "hold_for_elicitation_evidence",
+      "control_gaps": [],
+      "default_decision": "hold_for_elicitation_evidence",
+      "id": "profile-payment-billing-url",
+      "mode": "url",
+      "prohibited_data_classes": [
+        "payment_credential_in_mcp",
+        "card_number_in_form",
+        "cvv_in_form",
+        "raw_bank_credentials"
+      ],
+      "request_class": "payment_or_billing_interaction",
+      "required_controls": [
+        "client_capability_check",
+        "server_identity_display",
+        "url_mode_for_sensitive_flows",
+        "https_url_requirement",
+        "domain_allowlist",
+        "no_preauthenticated_url",
+        "no_sensitive_data_in_url",
+        "explicit_user_consent",
+        "external_token_boundary",
+        "user_identity_binding",
+        "run_receipt_logging",
+        "rate_limit_repeated_prompts"
+      ],
+      "required_runtime_attributes": [
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "connector_id",
+        "namespace",
+        "server_id",
+        "elicitation_id",
+        "mode",
+        "url",
+        "user_id",
+        "session_id",
+        "correlation_id",
+        "human_approval_record"
+      ],
+      "risk_score": 100,
+      "risk_tier": "critical",
+      "source_ids": [
+        "mcp-elicitation-2025-11-25",
+        "owasp-agentic-top-10-2026",
+        "openai-agent-prompt-injection-2026"
+      ],
+      "title": "Payment or Billing URL Mode",
+      "workflow_ids": [
+        "agentic-catastrophic-risk-annex",
+        "enterprise-trust-center-export"
+      ]
+    },
+    {
+      "allowed_data_classes": [],
+      "allowed_url_domains": [],
+      "buyer_value": "Prevents prompt-injection-controlled content from turning MCP URL elicitation into an enterprise phishing primitive.",
+      "computed_decision": "deny_untrusted_elicitation_url",
+      "control_gaps": [],
+      "default_decision": "deny_untrusted_elicitation_url",
+      "id": "profile-untrusted-url-prohibited",
+      "mode": "url",
+      "prohibited_data_classes": [
+        "url_with_sensitive_data",
+        "preauthenticated_url",
+        "ambiguous_uri",
+        "untrusted_redirect",
+        "punycode_spoofing_signal"
+      ],
+      "request_class": "phishing_or_redirect_block",
+      "required_controls": [
+        "client_capability_check",
+        "server_identity_display",
+        "https_url_requirement",
+        "domain_allowlist",
+        "no_preauthenticated_url",
+        "no_sensitive_data_in_url",
+        "explicit_user_consent",
+        "no_url_prefetch",
+        "run_receipt_logging"
+      ],
+      "required_runtime_attributes": [
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "server_id",
+        "elicitation_id",
+        "mode",
+        "url",
+        "session_id",
+        "correlation_id"
+      ],
+      "risk_score": 100,
+      "risk_tier": "critical",
+      "source_ids": [
+        "mcp-elicitation-2025-11-25",
+        "openai-agent-prompt-injection-2026",
+        "anthropic-browser-prompt-injection-2025"
+      ],
+      "title": "Untrusted URL Mode Prohibited",
+      "workflow_ids": [
+        "browser-agent-boundary",
+        "context-egress-boundary",
+        "mcp-tool-risk-contract"
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "api_key",
+        "credential_rotation",
+        "connector_secret_reference"
+      ],
+      "allowed_url_domains": [
+        "mcp.security-recipes.ai",
+        "security-recipes.ai"
+      ],
+      "buyer_value": "Lets the future hosted MCP product collect connector secrets through branded, out-of-band flows without ever exposing raw secrets to the client or model.",
+      "computed_decision": "allow_elicitation_with_receipt",
+      "control_gaps": [],
+      "default_decision": "allow_elicitation_with_receipt",
+      "id": "profile-connector-api-key-url",
+      "mode": "url",
+      "prohibited_data_classes": [
+        "raw_access_token_in_mcp",
+        "private_key_in_form",
+        "seed_phrase",
+        "payment_credential"
+      ],
+      "request_class": "credential_capture_out_of_band",
+      "required_controls": [
+        "client_capability_check",
+        "server_identity_display",
+        "url_mode_for_sensitive_flows",
+        "https_url_requirement",
+        "domain_allowlist",
+        "no_preauthenticated_url",
+        "no_sensitive_data_in_url",
+        "explicit_user_consent",
+        "external_token_boundary",
+        "user_identity_binding",
+        "run_receipt_logging"
+      ],
+      "required_runtime_attributes": [
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "connector_id",
+        "namespace",
+        "server_id",
+        "elicitation_id",
+        "mode",
+        "url",
+        "user_id",
+        "session_id",
+        "correlation_id",
+        "authorization_pack_hash"
+      ],
+      "risk_score": 75,
+      "risk_tier": "high",
+      "source_ids": [
+        "mcp-elicitation-2025-11-25",
+        "mcp-security-best-practices-2025-11-25",
+        "cisa-ai-data-security-2025"
+      ],
+      "title": "Connector API Key URL Mode",
+      "workflow_ids": [
+        "mcp-connector-intake-scanner",
+        "mcp-connector-trust-registry",
+        "enterprise-trust-center-export"
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "external_oauth_grant",
+        "third_party_authorization",
+        "connector_account_link"
+      ],
+      "allowed_url_domains": [
+        "github.com",
+        "accounts.google.com",
+        "login.microsoftonline.com",
+        "mcp.security-recipes.ai"
+      ],
+      "buyer_value": "Supports real enterprise connector onboarding while proving external OAuth never becomes MCP token passthrough or invisible user delegation.",
+      "computed_decision": "allow_elicitation_with_receipt",
+      "control_gaps": [],
+      "default_decision": "allow_elicitation_with_receipt",
+      "id": "profile-third-party-oauth-url",
+      "mode": "url",
+      "prohibited_data_classes": [
+        "raw_access_token",
+        "refresh_token",
+        "password",
+        "private_key",
+        "seed_phrase"
+      ],
+      "request_class": "external_oauth_authorization",
+      "required_controls": [
+        "client_capability_check",
+        "server_identity_display",
+        "url_mode_for_sensitive_flows",
+        "https_url_requirement",
+        "domain_allowlist",
+        "explicit_user_consent",
+        "external_token_boundary",
+        "mcp_authorization_separation",
+        "user_identity_binding",
+        "run_receipt_logging"
+      ],
+      "required_runtime_attributes": [
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "connector_id",
+        "namespace",
+        "server_id",
+        "elicitation_id",
+        "mode",
+        "url",
+        "user_id",
+        "session_id",
+        "correlation_id",
+        "authorization_pack_hash"
+      ],
+      "risk_score": 75,
+      "risk_tier": "high",
+      "source_ids": [
+        "mcp-elicitation-2025-11-25",
+        "mcp-authorization-2025-11-25",
+        "mcp-security-best-practices-2025-11-25"
+      ],
+      "title": "Third-Party OAuth URL Mode",
+      "workflow_ids": [
+        "mcp-connector-intake-scanner",
+        "mcp-authorization-conformance",
+        "agentic-app-intake-gate"
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "approval_rationale",
+        "ticket_reference",
+        "risk_acceptance_note",
+        "reviewer_identity"
+      ],
+      "allowed_url_domains": [],
+      "buyer_value": "Turns approvals into typed, reviewable receipt evidence instead of vague chat consent that a prompt injection can socially engineer.",
+      "computed_decision": "allow_elicitation_with_receipt",
+      "control_gaps": [],
+      "default_decision": "allow_elicitation_with_receipt",
+      "id": "profile-approval-rationale-form",
+      "mode": "form",
+      "prohibited_data_classes": [
+        "password",
+        "api_key",
+        "access_token",
+        "payment_credential",
+        "private_key",
+        "seed_phrase"
+      ],
+      "request_class": "review_and_approval_context",
+      "required_controls": [
+        "client_capability_check",
+        "server_identity_display",
+        "decline_and_cancel_available",
+        "form_response_review",
+        "elicitation_id_correlation",
+        "run_receipt_logging"
+      ],
+      "required_runtime_attributes": [
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "server_id",
+        "elicitation_id",
+        "mode",
+        "user_id",
+        "session_id",
+        "correlation_id",
+        "gateway_policy_hash"
+      ],
+      "risk_score": 45,
+      "risk_tier": "medium",
+      "source_ids": [
+        "mcp-elicitation-2025-11-25",
+        "owasp-agentic-top-10-2026",
+        "openai-agent-prompt-injection-2026"
+      ],
+      "title": "Human Approval Rationale Form",
+      "workflow_ids": [
+        "agentic-action-runtime",
+        "agentic-catastrophic-risk-annex",
+        "mcp-gateway-policy"
+      ]
+    },
+    {
+      "allowed_data_classes": [
+        "profile_metadata",
+        "display_name",
+        "email_address",
+        "user_preference"
+      ],
+      "allowed_url_domains": [],
+      "buyer_value": "Lets MCP servers collect low-risk user preferences without teaching teams to put credentials or sensitive data into ordinary agent forms.",
+      "computed_decision": "allow_elicitation_with_receipt",
+      "control_gaps": [],
+      "default_decision": "allow_elicitation_with_receipt",
+      "id": "profile-display-name-form",
+      "mode": "form",
+      "prohibited_data_classes": [
+        "password",
+        "api_key",
+        "access_token",
+        "payment_credential",
+        "private_key",
+        "seed_phrase"
+      ],
+      "request_class": "low_risk_profile_metadata",
+      "required_controls": [
+        "client_capability_check",
+        "server_identity_display",
+        "decline_and_cancel_available",
+        "form_response_review",
+        "run_receipt_logging"
+      ],
+      "required_runtime_attributes": [
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "server_id",
+        "elicitation_id",
+        "mode",
+        "user_id",
+        "session_id",
+        "correlation_id"
+      ],
+      "risk_score": 25,
+      "risk_tier": "low",
+      "source_ids": [
+        "mcp-elicitation-2025-11-25",
+        "cisa-ai-data-security-2025",
+        "nist-ai-600-1"
+      ],
+      "title": "Display Name and Preferences Form",
+      "workflow_ids": [
+        "agentic-app-intake-gate",
+        "secure-context-release",
+        "vulnerable-dependency-remediation"
+      ]
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can make MCP user prompts safe enough for production by distinguishing low-risk forms from sensitive URL-mode flows and by denying secret collection through the LLM or MCP client.",
+    "default_questions_answered": [
+      "Which MCP elicitation modes are allowed by workflow?",
+      "Which data classes must use URL mode instead of form mode?",
+      "Which URL checks happen before a user is sent out of band?",
+      "Which external authorization flows are separate from MCP authorization?",
+      "Which receipt fields prove consent, identity, URL, and decision evidence?"
+    ],
+    "recommended_first_use": "Apply this pack during remote MCP rollout, connector intake, AI app launch review, browser-agent deployment, and procurement review for any MCP server that can ask users for information.",
+    "sales_motion": "Lead with open elicitation rules, then sell hosted MCP prompt and URL safety enforcement, customer domain allowlists, consent receipts, phishing telemetry, and connector setup flows."
+  },
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "intent": "Define the SecurityRecipes MCP elicitation boundary so agent hosts, MCP clients, gateways, and enterprise buyers can decide when a server may ask a user for form input or direct the user to an external URL without leaking credentials, tokens, payment data, or prompt-injection-controlled context through the LLM, client, or intermediate MCP servers.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, IAM, Privacy, GRC, procurement security, and enterprise architecture teams",
+    "category": "MCP elicitation, URL-mode consent, and sensitive interaction boundary",
+    "enterprise_promise": "SecurityRecipes can prove that human input requests from MCP servers are identity-bound, mode-aware, consented, URL-safe, and logged before user data or third-party authorization enters the agentic workflow.",
+    "why_now": "MCP 2025-11-25 introduced URL-mode elicitation for sensitive flows that must not pass through the MCP client. That is an enterprise-grade feature, but it creates a new trust boundary: users can be phished, forms can request secrets, URLs can carry sensitive data, and servers can confuse external authorization with MCP authorization unless clients enforce a structured policy."
+  },
+  "runtime_evidence_contract": {
+    "required_receipt_fields": [
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "server_id",
+      "connector_id",
+      "elicitation_profile_id",
+      "elicitation_id",
+      "mode",
+      "requested_data_classes",
+      "url_domain",
+      "user_consent_recorded",
+      "response_action",
+      "decision",
+      "decision_reason",
+      "correlation_id"
+    ],
+    "safe_url_requirements": [
+      "https_non_development",
+      "explicit_user_consent_before_navigation",
+      "full_url_displayed_before_consent",
+      "domain_highlighted_for_spoofing_review",
+      "no_prefetch",
+      "no_preauthenticated_url",
+      "no_sensitive_data_in_url",
+      "external_credentials_never_transit_mcp_client",
+      "completion_notification_bound_to_elicitation_id",
+      "state_bound_to_user_identity_not_session_only"
+    ],
+    "sensitive_data_classes": [
+      "password",
+      "api_key",
+      "access_token",
+      "refresh_token",
+      "private_key",
+      "seed_phrase",
+      "payment_credential",
+      "bank_account",
+      "raw_session_cookie",
+      "production_credential",
+      "signing_material"
+    ],
+    "valid_runtime_decisions": [
+      "allow_elicitation_with_receipt",
+      "hold_for_elicitation_evidence",
+      "deny_sensitive_form_elicitation",
+      "deny_untrusted_elicitation_url",
+      "deny_token_or_secret_transit",
+      "kill_session_on_elicitation_abuse"
+    ]
+  },
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "agentic_run_receipt_pack": {
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+    },
+    "context_egress_boundary_pack": {
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+    },
+    "mcp_authorization_conformance_pack": {
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+    },
+    "mcp_elicitation_boundary_profile": {
+      "path": "data/assurance/mcp-elicitation-boundary-profile.json",
+      "sha256": "423f1c151ed73300188faa283f3b8235ec90f8fac81209a18c6e2d2142a1daed"
+    },
+    "mcp_gateway_policy": {
+      "path": "data/policy/mcp-gateway-policy.json",
+      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+    },
+    "mcp_tool_risk_contract": {
+      "path": "data/evidence/mcp-tool-risk-contract.json",
+      "sha256": "db3a0be61433b2a193ccc5c80bd854ce626f06376c2f93057ae4c128ef03002a"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "source_pack_summaries": {
+    "context_egress_boundary_pack": {
+      "data_class_counts": {
+        "curated_security_guidance": 2,
+        "generated_policy_evidence": 7
+      },
+      "decision_counts": {
+        "allow_public_egress_with_citation": 9
+      },
+      "destination_class_count": 7,
+      "failure_count": 0,
+      "namespace_policy_count": 24,
+      "prohibited_data_class_count": 2,
+      "source_count": 9,
+      "tenant_bound_data_class_count": 7,
+      "workflow_count": 8,
+      "workflow_namespace_data_class_counts": {
+        "curated_security_guidance": 1,
+        "customer_asset_metadata": 5,
+        "customer_case_context": 2,
+        "customer_finding_metadata": 5,
+        "customer_pipeline_metadata": 3,
+        "customer_source_code": 7,
+        "public_vulnerability_intelligence": 1
+      }
+    },
+    "mcp_authorization_conformance_pack": {
+      "candidate_count": 3,
+      "candidate_decision_counts": {
+        "approve_for_pilot": 1,
+        "deny_until_redesigned": 1,
+        "hold_for_authorization_evidence": 1
+      },
+      "connector_count": 16,
+      "failure_count": 0,
+      "metadata_evidence_required_count": 16,
+      "registered_decision_counts": {
+        "approve_public_context_no_auth": 1,
+        "approve_with_gateway_attestation": 15
+      },
+      "workflow_count": 8
+    },
+    "mcp_gateway_policy": {
+      "active_workflow_count": 8,
+      "mcp_namespace_count": 16,
+      "policy_decisions": [
+        "allow",
+        "allow_scoped_branch",
+        "allow_scoped_ticket",
+        "hold_for_approval",
+        "deny",
+        "kill_session"
+      ],
+      "workflow_count": 8
+    },
+    "mcp_tool_risk_contract": {
+      "annotation_trust_counts": {
+        "trusted_enterprise_gateway": 11,
+        "untrusted_or_unverified_server": 5
+      },
+      "default_decision_counts": {
+        "allow_with_confirmation": 2,
+        "hold_for_tool_risk_review": 14
+      },
+      "failure_count": 0,
+      "lethal_combination_workflow_count": 2,
+      "risk_tier_counts": {
+        "tier_1_read_untrusted": 1,
+        "tier_2_private_context": 11,
+        "tier_3_state_changing": 1,
+        "tier_4_destructive_or_exfiltration": 3
+      },
+      "tool_profile_count": 16,
+      "trusted_server_count": 11,
+      "workflow_count": 8
+    },
+    "workflow_manifest": {
+      "schema_version": "1.0",
+      "workflow_count": 8
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Form-mode and URL-mode elicitation, sensitive data handling, user consent, decline/cancel actions, URL safe handling, user identity binding, statefulness, and external OAuth/payment/API-key flow separation.",
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation"
+    },
+    {
+      "coverage": "OAuth 2.1 alignment, protected resource metadata, resource indicators, audience-bound tokens, client identity metadata, scope challenges, and token-passthrough denial for protected MCP servers.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Confused-deputy prevention, token passthrough avoidance, session safety, user consent, URL and SSRF controls, auditability, and least-privilege tool access.",
+      "id": "mcp-security-best-practices-2025-11-25",
+      "name": "MCP Security Best Practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "MCP enterprise readiness priorities including audit trails, SSO-integrated authorization, gateway behavior, configuration portability, stateful sessions, and production deployment gaps.",
+      "id": "mcp-roadmap-enterprise-readiness-2026",
+      "name": "The 2026 MCP Roadmap",
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/"
+    },
+    {
+      "coverage": "Risk vocabulary for MCP tools, untrusted annotations, open-world external interaction, and session-combination risk that informs elicitation preflight and URL-mode controls.",
+      "id": "mcp-tool-annotations-risk-vocabulary-2026",
+      "name": "Tool Annotations as Risk Vocabulary",
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
+    },
+    {
+      "coverage": "Agent goal hijack, tool misuse, identity and privilege abuse, context poisoning, insecure inter-agent communication, human-agent trust exploitation, cascading failures, and rogue agent containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Prompt injection as social engineering, source-to-sink analysis, dangerous actions, sensitive data transmission, URL confirmation, and constraining impact even when manipulation succeeds.",
+      "id": "openai-agent-prompt-injection-2026",
+      "name": "Designing AI agents to resist prompt injection",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/"
+    },
+    {
+      "coverage": "Untrusted web content, browser-agent prompt injection, adversarial context, red teaming, classifier guardrails, and safeguards around agents that browse and act for users.",
+      "id": "anthropic-browser-prompt-injection-2025",
+      "name": "Mitigating the risk of prompt injections in browser use",
+      "url": "https://www.anthropic.com/research/prompt-injection-defenses"
+    },
+    {
+      "coverage": "Governance, data provenance, third-party component risk, monitoring, measurement, lifecycle risk treatment, and operational controls for deployed generative AI systems.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Data confidentiality, integrity, provenance, access control, monitoring, third-party risk, and protection of sensitive and mission-critical data used by AI-enabled systems.",
+      "id": "cisa-ai-data-security-2025",
+      "name": "AI Data Security: Best Practices for Securing Data Used to Train and Operate AI Systems",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems"
+    }
+  ],
+  "workflow_elicitation_map": [
+    {
+      "allowed_profile_ids": [
+        "profile-third-party-oauth-url",
+        "profile-connector-api-key-url",
+        "profile-credential-form-prohibited",
+        "profile-untrusted-url-prohibited"
+      ],
+      "allowed_profiles": [
+        {
+          "computed_decision": "allow_elicitation_with_receipt",
+          "id": "profile-third-party-oauth-url",
+          "mode": "url",
+          "risk_tier": "high",
+          "title": "Third-Party OAuth URL Mode"
+        },
+        {
+          "computed_decision": "allow_elicitation_with_receipt",
+          "id": "profile-connector-api-key-url",
+          "mode": "url",
+          "risk_tier": "high",
+          "title": "Connector API Key URL Mode"
+        },
+        {
+          "computed_decision": "deny_sensitive_form_elicitation",
+          "id": "profile-credential-form-prohibited",
+          "mode": "form",
+          "risk_tier": "critical",
+          "title": "Credential Form Mode Prohibited"
+        },
+        {
+          "computed_decision": "deny_untrusted_elicitation_url",
+          "id": "profile-untrusted-url-prohibited",
+          "mode": "url",
+          "risk_tier": "critical",
+          "title": "Untrusted URL Mode Prohibited"
+        }
+      ],
+      "approval_required_for": [
+        "profile-connector-api-key-url"
+      ],
+      "evidence_expectation": "Connector intake can request out-of-band OAuth or secret setup only through URL mode with domain, identity, and receipt evidence.",
+      "title": "MCP Connector Intake Scanner",
+      "workflow_id": "mcp-connector-intake-scanner"
+    },
+    {
+      "allowed_profile_ids": [
+        "profile-approval-rationale-form",
+        "profile-payment-billing-url",
+        "profile-credential-form-prohibited",
+        "profile-untrusted-url-prohibited"
+      ],
+      "allowed_profiles": [
+        {
+          "computed_decision": "allow_elicitation_with_receipt",
+          "id": "profile-approval-rationale-form",
+          "mode": "form",
+          "risk_tier": "medium",
+          "title": "Human Approval Rationale Form"
+        },
+        {
+          "computed_decision": "hold_for_elicitation_evidence",
+          "id": "profile-payment-billing-url",
+          "mode": "url",
+          "risk_tier": "critical",
+          "title": "Payment or Billing URL Mode"
+        },
+        {
+          "computed_decision": "deny_sensitive_form_elicitation",
+          "id": "profile-credential-form-prohibited",
+          "mode": "form",
+          "risk_tier": "critical",
+          "title": "Credential Form Mode Prohibited"
+        },
+        {
+          "computed_decision": "deny_untrusted_elicitation_url",
+          "id": "profile-untrusted-url-prohibited",
+          "mode": "url",
+          "risk_tier": "critical",
+          "title": "Untrusted URL Mode Prohibited"
+        }
+      ],
+      "approval_required_for": [
+        "profile-approval-rationale-form",
+        "profile-payment-billing-url"
+      ],
+      "evidence_expectation": "High-impact action approval must be typed, reviewable, and correlated to the exact run and action envelope.",
+      "title": "Agentic Action Runtime",
+      "workflow_id": "agentic-action-runtime"
+    },
+    {
+      "allowed_profile_ids": [
+        "profile-display-name-form",
+        "profile-third-party-oauth-url",
+        "profile-approval-rationale-form",
+        "profile-credential-form-prohibited",
+        "profile-untrusted-url-prohibited"
+      ],
+      "allowed_profiles": [
+        {
+          "computed_decision": "allow_elicitation_with_receipt",
+          "id": "profile-display-name-form",
+          "mode": "form",
+          "risk_tier": "low",
+          "title": "Display Name and Preferences Form"
+        },
+        {
+          "computed_decision": "allow_elicitation_with_receipt",
+          "id": "profile-third-party-oauth-url",
+          "mode": "url",
+          "risk_tier": "high",
+          "title": "Third-Party OAuth URL Mode"
+        },
+        {
+          "computed_decision": "allow_elicitation_with_receipt",
+          "id": "profile-approval-rationale-form",
+          "mode": "form",
+          "risk_tier": "medium",
+          "title": "Human Approval Rationale Form"
+        },
+        {
+          "computed_decision": "deny_sensitive_form_elicitation",
+          "id": "profile-credential-form-prohibited",
+          "mode": "form",
+          "risk_tier": "critical",
+          "title": "Credential Form Mode Prohibited"
+        },
+        {
+          "computed_decision": "deny_untrusted_elicitation_url",
+          "id": "profile-untrusted-url-prohibited",
+          "mode": "url",
+          "risk_tier": "critical",
+          "title": "Untrusted URL Mode Prohibited"
+        }
+      ],
+      "approval_required_for": [
+        "profile-third-party-oauth-url"
+      ],
+      "evidence_expectation": "New agentic apps must prove which elicitation modes they use, what data classes they request, and which URLs users may be sent to.",
+      "title": "Agentic App Intake Gate",
+      "workflow_id": "agentic-app-intake-gate"
+    },
+    {
+      "allowed_profile_ids": [
+        "profile-approval-rationale-form",
+        "profile-untrusted-url-prohibited",
+        "profile-credential-form-prohibited"
+      ],
+      "allowed_profiles": [
+        {
+          "computed_decision": "allow_elicitation_with_receipt",
+          "id": "profile-approval-rationale-form",
+          "mode": "form",
+          "risk_tier": "medium",
+          "title": "Human Approval Rationale Form"
+        },
+        {
+          "computed_decision": "deny_untrusted_elicitation_url",
+          "id": "profile-untrusted-url-prohibited",
+          "mode": "url",
+          "risk_tier": "critical",
+          "title": "Untrusted URL Mode Prohibited"
+        },
+        {
+          "computed_decision": "deny_sensitive_form_elicitation",
+          "id": "profile-credential-form-prohibited",
+          "mode": "form",
+          "risk_tier": "critical",
+          "title": "Credential Form Mode Prohibited"
+        }
+      ],
+      "approval_required_for": [
+        "profile-approval-rationale-form"
+      ],
+      "evidence_expectation": "Browser-agent sessions must block untrusted URL prompts and form-secret requests because the page itself may be adversarial.",
+      "title": "Browser Agent Workspace Boundary",
+      "workflow_id": "browser-agent-boundary"
+    }
+  ]
+}

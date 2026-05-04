@@ -159,6 +159,9 @@ layer for the context agents depend on.
 - [Secure Context Trust Pack]({{< relref "/security-remediation/secure-context-trust-pack" >}})
   - the source registry and workflow context package hashes this pack
   attests.
+- [Secure Context Lineage Ledger]({{< relref "/security-remediation/secure-context-lineage-ledger" >}})
+  - runtime lineage and reuse decisions from source hash through
+    attestation, scan, route, egress, handoff, telemetry, and receipt.
 - [Secure Context Evals]({{< relref "/security-remediation/secure-context-evals" >}})
   - scenario-backed checks that prove attestation holds, retrieval
     decisions, citations, egress, and handoff boundaries.

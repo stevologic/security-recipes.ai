@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define the SecurityRecipes agentic exposure graph: a machine-readable relationship map that joins workflows, secure-context sources, non-human identities, MCP namespaces, connector trust, authorization decisions, egress boundaries, readiness, capability risk, and run receipts into risk-ranked paths before agents act.",
+  "positioning": {
+    "buyer": "AI Platform, Security Architecture, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
+    "category": "Agentic exposure management for secure context and MCP tool use",
+    "enterprise_promise": "SecurityRecipes can answer which agent, acting through which identity, may retrieve which context, call which MCP namespace, cross which data boundary, and produce which evidence before an enterprise approves scale.",
+    "why_now": "Agentic AI systems are shifting from chat assistants into autonomous actors that combine retrieved context, MCP tools, A2A handoffs, non-human identities, and long-running workflows. Buyers need exposure visibility across the action graph, not isolated prompt guidance."
+  },
+  "standards_alignment": [
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "coverage": "Agent interoperability, community protocols, authentication, identity infrastructure, and security evaluations for human-agent and multi-agent interactions."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Agent goal hijack, tool misuse, identity abuse, supply-chain risk, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent behavior."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "OAuth 2.1, protected resource metadata, resource indicators, audience binding, PKCE, short-lived tokens, refresh-token rotation, HTTPS, and secure token storage for protected MCP servers."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "coverage": "Token exposure, scope creep, tool poisoning, command execution, intent-flow subversion, authorization gaps, audit gaps, shadow MCP servers, and context over-sharing."
+    },
+    {
+      "id": "csa-agentic-control-plane-2026",
+      "name": "CSA Securing the Agentic Control Plane",
+      "url": "https://cloudsecurityalliance.org/blog/2026/03/20/2026-securing-the-agentic-control-plane",
+      "coverage": "Identity, authorization, orchestration, runtime behavior, visibility, accountability, and trust for autonomous agents operating across digital environments."
+    },
+    {
+      "id": "a2a-protocol-latest",
+      "name": "Agent2Agent Protocol Specification",
+      "url": "https://a2a-protocol.org/latest/specification/",
+      "coverage": "Agent discovery, Agent Card security, server identity, authentication, authorization, and task exchange for secure agent interoperability."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Generative AI provenance, third-party dependency management, monitoring, measurement, data boundary, and incident-response risk actions."
+    }
+  ],
+  "graph_contract": {
+    "default_state": "untrusted_until_exposure_path_is_graph_bound_and_policy_checked",
+    "minimum_source_packs": 10,
+    "minimum_path_classes": 4,
+    "minimum_runtime_fields": 12,
+    "required_source_packs": [
+      "workflow_manifest",
+      "gateway_policy",
+      "secure_context_trust_pack",
+      "mcp_authorization_conformance",
+      "mcp_connector_trust_pack",
+      "agent_identity_ledger",
+      "context_egress_boundary_pack",
+      "agentic_readiness_scorecard",
+      "agent_capability_risk_register",
+      "agentic_run_receipt_pack"
+    ],
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "agent_class",
+      "identity_id",
+      "tenant_id",
+      "source_ids",
+      "context_package_hash",
+      "mcp_namespace",
+      "tool_access_mode",
+      "authorization_decision",
+      "egress_decision",
+      "policy_pack_hash",
+      "receipt_id",
+      "correlation_id"
+    ],
+    "risk_score_thresholds": [
+      {
+        "decision": "standard_monitoring",
+        "max_score": 34,
+        "meaning": "Path may run under normal gateway audit, run receipts, and drift checks."
+      },
+      {
+        "decision": "guarded_rollout",
+        "max_score": 54,
+        "meaning": "Path may run inside a bounded rollout with workflow-owner review and current evidence."
+      },
+      {
+        "decision": "hold_for_owner_review",
+        "max_score": 69,
+        "meaning": "Path needs workflow owner or security architecture review before expansion."
+      },
+      {
+        "decision": "architecture_review",
+        "max_score": 100,
+        "meaning": "Path has high-impact or approval-required exposure and needs explicit architecture review before scale."
+      }
+    ],
+    "global_rules": [
+      "Every exposure path must bind workflow, identity, context package, MCP namespace, authorization decision, egress policy, and receipt evidence.",
+      "Unknown MCP namespaces, unregistered context, missing identity, missing authorization, and missing egress policy are treated as graph gaps.",
+      "Write, approval-required, pilot, tenant-sensitive, and high residual-risk paths receive higher exposure scores.",
+      "Generated exposure scores are planning and diligence evidence; runtime enforcement still belongs in the MCP gateway, IAM layer, and approval system."
+    ]
+  },
+  "path_classes": [
+    {
+      "id": "context_to_read_tool",
+      "title": "Context to Read Tool",
+      "question": "Which agents can combine approved secure context with read-only MCP namespaces?",
+      "risk_drivers": [
+        "stale context",
+        "tool-result poisoning",
+        "over-retrieval",
+        "insufficient audit evidence"
+      ]
+    },
+    {
+      "id": "context_to_write_tool",
+      "title": "Context to Write Tool",
+      "question": "Which agents can convert retrieved context into scoped branch, ticket, or evidence writes?",
+      "risk_drivers": [
+        "tool misuse",
+        "scope creep",
+        "identity abuse",
+        "review bypass"
+      ]
+    },
+    {
+      "id": "approval_required_tool_path",
+      "title": "Approval-Required Tool Path",
+      "question": "Which paths stage or request high-impact MCP operations before a human approval point?",
+      "risk_drivers": [
+        "approval bypass",
+        "irreversible operation",
+        "blast-radius ambiguity",
+        "missing approval receipt"
+      ]
+    },
+    {
+      "id": "tenant_sensitive_context_path",
+      "title": "Tenant-Sensitive Context Path",
+      "question": "Which paths can mix customer-sensitive context with model, MCP, telemetry, or external destination boundaries?",
+      "risk_drivers": [
+        "secret egress",
+        "unredacted customer data",
+        "wrong tenant",
+        "DPA or residency gap"
+      ]
+    },
+    {
+      "id": "high_impact_authority_path",
+      "title": "High-Impact Authority Path",
+      "question": "Which paths join high residual-risk workflows with write, approval, financial, chain, identity, or production-impact namespaces?",
+      "risk_drivers": [
+        "loss of human oversight",
+        "funds or asset movement",
+        "production mutation",
+        "cascading failure"
+      ]
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can show the action graph behind agentic AI: context, identities, tools, data boundaries, risk, and evidence are inspectable before scale.",
+    "default_questions_answered": [
+      "Which agent identities create the most exposure?",
+      "Which workflows combine high residual risk with write or approval-required MCP namespaces?",
+      "Which MCP namespaces are pilot, tenant-sensitive, or missing production controls?",
+      "Which context sources and hashes are attached to each path?",
+      "Which evidence pack proves a path can be reconstructed after an incident?"
+    ],
+    "recommended_first_use": "Use the graph during AI platform intake, MCP connector approval, quarterly agent-access review, trust-center export, and acquisition diligence.",
+    "sales_motion": "Lead with open graph evidence, then sell hosted graph ingestion from live MCP gateway logs, IAM events, source-host reviews, approval records, and customer-private context registries."
+  },
+  "commercialization_path": {
+    "open_layer": "Generated exposure graph from public SecurityRecipes evidence packs, workflow manifests, policy, identity, and context artifacts.",
+    "team_layer": "Private graph overlays for tenant workflows, customer MCP servers, source-host permissions, approval systems, connector drift, and incident evidence.",
+    "enterprise_layer": "Hosted exposure graph with runtime event ingestion, path diffing, per-agent access review, policy recommendations, and trust-center API exports.",
+    "acquirer_value": "A frontier lab, AI coding platform, cloud provider, or security vendor gets a clear exposure-management wedge for MCP and agentic AI that complements secure context retrieval."
+  }
+}

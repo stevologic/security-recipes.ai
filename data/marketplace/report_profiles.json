@@ -1,0 +1,87 @@
+{
+  "profiles": [
+    {
+      "id": "remediation-pr-packet",
+      "label": "Remediation PR packet",
+      "category": "Remediation",
+      "format": "markdown+json",
+      "description": "Reviewer-ready packet for a code or configuration fix that stops at draft stage.",
+      "sections": ["executive_summary", "scope", "root_cause", "proposed_change", "validation", "rollback", "approvals"],
+      "example_output": {
+        "report_type": "remediation_pr_packet",
+        "risk_level": "high",
+        "status": "draft",
+        "evidence": ["scanner_before", "scanner_after", "tests", "reviewers"]
+      }
+    },
+    {
+      "id": "scan-findings-bundle",
+      "label": "Scan findings bundle",
+      "category": "Scanning",
+      "format": "json",
+      "description": "Normalized browser-side report for imported SARIF, SBOM, and scanner context that can be copied or exported downstream as JSON.",
+      "sections": ["metadata", "source", "summary", "findings", "severity_counts", "recommended_workflows", "artifacts"],
+      "example_output": {
+        "report_type": "scan_findings_bundle",
+        "finding_count": 12,
+        "critical": 2,
+        "high": 5,
+        "recommended_workflows": ["dependency", "sast", "sensitive-data"],
+        "scanner_artifacts": ["findings.sarif.json", "bom.cdx.json"]
+      }
+    },
+    {
+      "id": "ticket-ready-brief",
+      "label": "Ticket-ready brief",
+      "category": "Operational handoff",
+      "format": "markdown",
+      "description": "Compact summary optimized for Jira, GitHub Issues, ServiceNow, or Linear.",
+      "sections": ["title", "impact", "scope", "actions", "owner_notes", "links"],
+      "example_output": {
+        "report_type": "ticket_ready_brief",
+        "destination": "jira",
+        "priority": "high"
+      }
+    },
+    {
+      "id": "exec-risk-brief",
+      "label": "Executive risk brief",
+      "category": "Reporting",
+      "format": "markdown+json",
+      "description": "Short-form leadership update for weekly risk review or board prep.",
+      "sections": ["risk_statement", "trend", "top_findings", "business_impact", "next_actions"],
+      "example_output": {
+        "report_type": "exec_risk_brief",
+        "top_risk_theme": "agentic_api_exposure",
+        "decision_needed": "approve_connector_review"
+      }
+    },
+    {
+      "id": "run-receipt",
+      "label": "Run receipt",
+      "category": "Evidence",
+      "format": "json",
+      "description": "Evidence-oriented receipt for a browser-run investigation or remediation planning session.",
+      "sections": ["run_metadata", "inputs", "decisions", "outputs", "operator_notes"],
+      "example_output": {
+        "report_type": "run_receipt",
+        "runtime": "browser",
+        "byo_tokens": true,
+        "human_review_required": true
+      }
+    },
+    {
+      "id": "connector-intake-decision",
+      "label": "Connector intake decision",
+      "category": "Governance",
+      "format": "json",
+      "description": "Structured approval, hold, or deny pack for new MCP or API integration candidates.",
+      "sections": ["candidate", "auth", "egress", "tool_surface", "decision", "required_controls"],
+      "example_output": {
+        "report_type": "connector_intake_decision",
+        "decision": "hold_for_review",
+        "required_controls": ["token_audience_validation", "audit_every_tool_call"]
+      }
+    }
+  ]
+}

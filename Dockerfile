@@ -139,6 +139,7 @@ server {
     listen       80;
     listen  [::]:80;
     server_name  _;
+    large_client_header_buffers 8 64k;
 
     root   /usr/share/nginx/html;
     index  index.html;
@@ -147,6 +148,61 @@ server {
     # Try the literal path, then with trailing slash, then 404.
     location / {
         try_files $uri $uri/ $uri.html =404;
+    }
+
+    # Same-origin GitHub API relay for optional repository context.
+    # Browser-supplied GitHub Authorization is forwarded only for this request.
+    location /github-api/ {
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 120s;
+        proxy_ssl_server_name on;
+        proxy_set_header Host api.github.com;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header Accept $http_accept;
+        proxy_set_header X-GitHub-Api-Version $http_x_github_api_version;
+        proxy_pass https://api.github.com/;
+    }
+
+    # Same-origin AI provider relay for the browser chatbot.
+    # API tokens are supplied by the browser per request and are not logged or stored.
+    location /ai-provider-proxy/openai/ {
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 300s;
+        proxy_ssl_server_name on;
+        proxy_set_header Host api.openai.com;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header Content-Type $content_type;
+        proxy_pass https://api.openai.com/;
+    }
+
+    location /ai-provider-proxy/xai/ {
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 300s;
+        proxy_ssl_server_name on;
+        proxy_set_header Host api.x.ai;
+        proxy_set_header Authorization $http_authorization;
+        proxy_set_header Content-Type $content_type;
+        proxy_pass https://api.x.ai/;
+    }
+
+    location /ai-provider-proxy/anthropic/ {
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 300s;
+        proxy_ssl_server_name on;
+        proxy_set_header Host api.anthropic.com;
+        proxy_set_header x-api-key $http_x_api_key;
+        proxy_set_header anthropic-version $http_anthropic_version;
+        proxy_set_header anthropic-dangerous-direct-browser-access $http_anthropic_dangerous_direct_browser_access;
+        proxy_set_header Content-Type $content_type;
+        proxy_pass https://api.anthropic.com/;
     }
 
     # Long-cache fingerprinted assets; short-cache HTML.

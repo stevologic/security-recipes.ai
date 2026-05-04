@@ -1,0 +1,1849 @@
+{
+  "control_checks": [
+    {
+      "control_reason": "MCP tools should declare standard annotations so clients can present better approval UI and feed policy engines with consistent risk hints.",
+      "evidence_key": "tool_annotations",
+      "id": "annotation_presence",
+      "severity": "medium"
+    },
+    {
+      "control_reason": "Annotations from untrusted servers must not reduce friction for sensitive, state-changing, or external tools.",
+      "evidence_key": "trusted_server_registry_entry",
+      "id": "annotation_source_trust",
+      "severity": "critical"
+    },
+    {
+      "control_reason": "Tool descriptions and schemas can become an agent supply-chain path; drift after approval must force re-review.",
+      "evidence_key": "pinned_tool_description_hash",
+      "id": "tool_description_pin",
+      "severity": "high"
+    },
+    {
+      "control_reason": "Structured output validation limits accidental or malicious content from reaching the model without inspection.",
+      "evidence_key": "output_schema_validation",
+      "id": "output_schema_validation",
+      "severity": "high"
+    },
+    {
+      "control_reason": "Open-world tools can return attacker-controlled content and should taint the session before later tools run.",
+      "evidence_key": "openWorldHint",
+      "id": "open_world_taint",
+      "severity": "high"
+    },
+    {
+      "control_reason": "Sessions that combine private data, untrusted content, and external communication create a realistic data-theft path.",
+      "evidence_key": "session_combination_rule",
+      "id": "private_untrusted_exfiltration_triangle",
+      "severity": "critical"
+    },
+    {
+      "control_reason": "Destructive or non-idempotent tools need explicit user or reviewer confirmation with a durable approval record.",
+      "evidence_key": "human_approval_record",
+      "id": "destructive_confirmation",
+      "severity": "critical"
+    },
+    {
+      "control_reason": "Runtime tool calls must remain inside the workflow's declared namespace and access mode.",
+      "evidence_key": "requested_access_mode",
+      "id": "scope_drift_check",
+      "severity": "high"
+    },
+    {
+      "control_reason": "Tool list changes after approval can invalidate a previous trust decision and should force a re-review or session reset.",
+      "evidence_key": "notifications/tools/list_changed",
+      "id": "tool_list_change_audit",
+      "severity": "medium"
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can prevent tool-combination risk from becoming unmanaged agentic exfiltration risk.",
+    "default_questions_answered": [
+      "Which MCP namespaces expose private context, untrusted content, state changes, or external communication?",
+      "Which tools can rely on annotations because the server is trusted, and which annotations are only UI hints?",
+      "Which workflows can form a private-data plus untrusted-content plus external-communication path?",
+      "What runtime fields must appear before a tool-risk decision is trusted?",
+      "Where should premium hosted controls live: live tool-list monitoring, annotation drift detection, tool schema signing, and fleet-wide session-combination blocking?"
+    ],
+    "recommended_first_use": "Run this pack during MCP server intake, agent-host design, gateway policy review, tool approval UI design, and enterprise buyer diligence.",
+    "sales_motion": "Lead with the open risk contract, then sell hosted tool-risk monitoring, signed annotation inventory, tool-list drift alerts, and session-level exfiltration-path blocking for production MCP fleets."
+  },
+  "evaluator_contract": {
+    "annotation_defaults": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": false
+    },
+    "decision_order": [
+      "kill_session_on_tool_risk_signal",
+      "deny_scope_drift",
+      "deny_annotation_contradiction",
+      "deny_session_exfiltration_path",
+      "hold_for_tool_risk_review",
+      "allow_with_confirmation",
+      "allow_tool_call"
+    ],
+    "default_decision_for_missing_profile": "hold_for_tool_risk_review",
+    "session_combination_rule": {
+      "approved_with_human_record": "allow_with_confirmation",
+      "default_without_approval": "deny_session_exfiltration_path",
+      "description": "A session must not simultaneously have private-data access, untrusted-content exposure, and external communication without an explicit approved control path.",
+      "external_communication_factor": "can_exfiltrate",
+      "id": "no_private_untrusted_exfiltration_triangle",
+      "private_data_factor": "reads_private_data",
+      "untrusted_content_factor": "sees_untrusted_content"
+    }
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Define a SecurityRecipes MCP tool-risk contract that turns MCP tool annotations, connector trust, authorization conformance, workflow scope, and runtime session context into deterministic allow, hold, deny, or kill decisions before an agent invokes a tool.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, MCP platform, AppSec, IAM, observability, procurement security, and enterprise architecture teams",
+    "category": "MCP tool-risk governance and session-level exfiltration prevention",
+    "enterprise_promise": "SecurityRecipes can explain whether an MCP tool call is safe enough for a governed agent session using trusted tool metadata, connector evidence, workflow scope, and combination-risk checks instead of relying on model judgment.",
+    "why_now": "MCP servers now expose tool annotations and richer tool schemas, but the protocol is explicit that annotations are untrusted hints unless the server is trusted. Enterprises need a policy layer that consumes those hints without confusing them for enforcement, especially when sessions combine private data access, untrusted content, and external communication."
+  },
+  "residual_risks": [
+    {
+      "risk": "Tool annotations are not enforcement and can be false on untrusted servers.",
+      "treatment": "Use this contract as a policy input, then enforce hard guarantees through gateway scope, sandboxing, authorization, network controls, and output validation."
+    },
+    {
+      "risk": "The risk of a tool depends on the rest of the session, not only on that tool's declaration.",
+      "treatment": "Evaluate private-data, untrusted-content, and external-communication factors before each tool call and after tool-list changes."
+    },
+    {
+      "risk": "MCP annotation proposals are still evolving.",
+      "treatment": "Version the profile, keep standard annotations conservative, and use namespaced metadata only as deployment-specific evidence until ecosystem-wide annotations stabilize."
+    }
+  ],
+  "risk_tiers": [
+    {
+      "default_decision": "allow_tool_call",
+      "description": "Read-only public or open-reference context with no private data, state change, or external communication path.",
+      "id": "tier_0_context_only",
+      "title": "Context Only"
+    },
+    {
+      "default_decision": "allow_with_confirmation",
+      "description": "Read-only sources that may carry untrusted content and must taint the session before later tools are called.",
+      "id": "tier_1_read_untrusted",
+      "title": "Read Untrusted Content"
+    },
+    {
+      "default_decision": "hold_for_tool_risk_review",
+      "description": "Internal findings, repos, tickets, logs, SBOMs, or identity context that can become sensitive when combined with output or external tools.",
+      "id": "tier_2_private_context",
+      "title": "Private Context"
+    },
+    {
+      "default_decision": "allow_with_confirmation",
+      "description": "Scoped branch, ticket, or workflow state changes that are allowed only inside declared workflow boundaries and reviewer-gated outputs.",
+      "id": "tier_3_state_changing",
+      "title": "State Changing"
+    },
+    {
+      "default_decision": "hold_for_tool_risk_review",
+      "description": "Approval-required, destructive, external-communication, or irreversible operations that need explicit control evidence before use.",
+      "id": "tier_4_destructive_or_exfiltration",
+      "title": "Destructive or Exfiltration Capable"
+    }
+  ],
+  "schema_version": "1.0",
+  "selected_feature": {
+    "id": "mcp-tool-risk-contract",
+    "implementation": [
+      "Tool-risk profile under data/assurance.",
+      "Deterministic generator under scripts.",
+      "Runtime evaluator for annotation, scope, and session-combination decisions.",
+      "Generated evidence pack under data/evidence.",
+      "Human-readable docs page and MCP tool exposure."
+    ],
+    "reason": "Enterprise MCP buyers need a way to use tool annotations as risk vocabulary without mistaking them for enforcement, while blocking session-level exfiltration paths before an agent acts."
+  },
+  "source_artifacts": {
+    "mcp_authorization_conformance_pack": {
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+    },
+    "mcp_connector_trust_pack": {
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+    },
+    "mcp_gateway_policy": {
+      "path": "data/policy/mcp-gateway-policy.json",
+      "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+    },
+    "mcp_tool_risk_contract_profile": {
+      "path": "data/assurance/mcp-tool-risk-contract-profile.json",
+      "sha256": "43a748b56f973ba07c537c8e8c399c74a9abfb850204342e9b2685bd77e9988a"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Tool discovery, invocation, input and output schemas, human confirmation expectations, tool result validation, logging, and the requirement that clients treat annotations as untrusted unless they come from trusted servers.",
+      "id": "mcp-tools-2025-11-25",
+      "name": "Model Context Protocol Tools specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools"
+    },
+    {
+      "coverage": "Current annotation semantics, cautious defaults, annotation limitations, trust requirements, session-combination risk, and the emerging interest-group direction for richer tool risk metadata.",
+      "id": "mcp-tool-annotations-2026-03-16",
+      "name": "MCP Tool Annotations as Risk Vocabulary",
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
+    },
+    {
+      "coverage": "OAuth 2.1 resource servers, protected-resource metadata, resource indicators, audience-bound tokens, token validation, HTTPS, PKCE, and token-passthrough denial.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Confused-deputy prevention, token passthrough, SSRF, session hijacking, local-server compromise, scope minimization, and auditability for MCP implementations.",
+      "id": "mcp-security-best-practices",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices"
+    },
+    {
+      "coverage": "Form and URL elicitation modes, user approval semantics, sensitive-information restrictions, URL-mode security, and explicit accept, decline, and cancel states.",
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation"
+    },
+    {
+      "coverage": "Agent behavior hijacking, tool misuse and exploitation, identity and privilege abuse, human trust manipulation, memory and context poisoning, and rogue-agent containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Threat-model-based agentic AI risks, mitigations, autonomous tool use, context manipulation, multi-agent boundaries, and operational safeguards.",
+      "id": "owasp-agentic-threats-2025",
+      "name": "OWASP Agentic AI Threats and Mitigations",
+      "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
+    },
+    {
+      "coverage": "Govern, Map, Measure, and Manage functions for AI lifecycle risk, including accountability, operational monitoring, and risk treatment.",
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+    },
+    {
+      "coverage": "Generative AI lifecycle, data provenance, third-party dependency, measurement, monitoring, cybersecurity, incident, and operational risk management.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Agent discovery, Agent Cards, authentication and authorization, secondary credentials, and secure context exchange between opaque agents.",
+      "id": "a2a-spec-0-2-2",
+      "name": "Agent2Agent Protocol specification",
+      "url": "https://google-a2a.github.io/A2A/specification/"
+    }
+  ],
+  "tool_profiles": [
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "vulnerability-advisory-feed",
+      "control_gaps": [],
+      "data_classes": [
+        "cve_metadata",
+        "advisory_ranges",
+        "severity",
+        "known_exploited_status"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "change advisory severity",
+        "suppress affected package evidence",
+        "read private customer impact notes unless explicitly allowed"
+      ],
+      "namespace": "advisories.vulnerability",
+      "owner": {
+        "accountable_team": "Product Security",
+        "escalation": "supply-chain-security"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Vulnerability Advisory Feed",
+      "tool_profile_id": "mcp-tool-risk::advisories.vulnerability",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "untrusted_or_unverified_server",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "chain-simulation-reader",
+      "control_gaps": [],
+      "data_classes": [
+        "fork_test_result",
+        "invariant_test_result",
+        "read_only_rpc_trace"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "submit transaction",
+        "access deployer wallet",
+        "broadcast governance action",
+        "change chain state"
+      ],
+      "namespace": "chain.simulation",
+      "owner": {
+        "accountable_team": "Protocol Security",
+        "escalation": "protocol-risk-council"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "pilot",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Chain Simulation Reader",
+      "tool_profile_id": "mcp-tool-risk::chain.simulation",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": false
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "ci-run-reader",
+      "control_gaps": [],
+      "data_classes": [
+        "build_status",
+        "test_artifacts",
+        "scanner_artifacts"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "rerun workflow with elevated permissions",
+        "edit workflow files",
+        "read unredacted secrets",
+        "deploy or release"
+      ],
+      "namespace": "ci.runs",
+      "owner": {
+        "accountable_team": "Engineering Platform",
+        "escalation": "build-platform"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "CI Run Reader",
+      "tool_profile_id": "mcp-tool-risk::ci.runs",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "sast-finding-intake",
+      "control_gaps": [],
+      "data_classes": [
+        "sarif_metadata",
+        "rule_trace",
+        "source_sink_path",
+        "severity"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "suppress findings without review",
+        "change scanner configuration",
+        "read unrelated repository findings"
+      ],
+      "namespace": "findings.sast",
+      "owner": {
+        "accountable_team": "Application Security",
+        "escalation": "secure-code-review"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "SAST Finding Intake",
+      "tool_profile_id": "mcp-tool-risk::findings.sast",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "sde-finding-intake",
+      "control_gaps": [],
+      "data_classes": [
+        "scanner_metadata",
+        "data_classification",
+        "sample_redacted_finding_context"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "read raw secret values",
+        "change scanner rules",
+        "suppress findings without reviewer approval"
+      ],
+      "namespace": "findings.sde",
+      "owner": {
+        "accountable_team": "Security Engineering",
+        "escalation": "privacy-security"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Sensitive Data Finding Intake",
+      "tool_profile_id": "mcp-tool-risk::findings.sde",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "golden-image-catalog",
+      "control_gaps": [],
+      "data_classes": [
+        "image_digest",
+        "image_signature",
+        "image_sbom",
+        "deprecation_window"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "push image",
+        "sign image",
+        "change approved catalog",
+        "read registry write credentials"
+      ],
+      "namespace": "images.golden",
+      "owner": {
+        "accountable_team": "Platform Security",
+        "escalation": "container-platform"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Golden Image Catalog",
+      "tool_profile_id": "mcp-tool-risk::images.golden",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "write_ticket"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "security-incident-workspace",
+      "control_gaps": [],
+      "data_classes": [
+        "incident_metadata",
+        "quarantine_evidence",
+        "remediation_links"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "change incident severity",
+        "close incident",
+        "page responders",
+        "change incident ownership"
+      ],
+      "namespace": "incidents.security",
+      "owner": {
+        "accountable_team": "Security Incident Response",
+        "escalation": "security-incident-commander"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "human_review_before_merge",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity",
+        "write_scope_enforcement"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": true,
+        "destructive_action_potential": true,
+        "reads_private_data": true,
+        "requires_human_approval": true,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "risk_tier": "tier_4_destructive_or_exfiltration",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "title": "Security Incident Workspace",
+      "tool_profile_id": "mcp-tool-risk::incidents.security",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_2_scoped_write",
+        "title": "Scoped Write"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "artifact-inventory",
+      "control_gaps": [],
+      "data_classes": [
+        "artifact_hash",
+        "package_version",
+        "image_digest",
+        "consumer_inventory"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "purge cache",
+        "quarantine artifact",
+        "publish replacement artifact",
+        "read registry write credentials"
+      ],
+      "namespace": "inventory.artifacts",
+      "owner": {
+        "accountable_team": "Supply Chain Security",
+        "escalation": "security-incident-commander"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Artifact Inventory",
+      "tool_profile_id": "mcp-tool-risk::inventory.artifacts",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "untrusted_or_unverified_server",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "payment-security-findings",
+      "control_gaps": [],
+      "data_classes": [
+        "payment_finding_metadata",
+        "asset_class",
+        "chain_or_network",
+        "test_vector"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "read private keys",
+        "read seed phrases",
+        "initiate payment",
+        "change settlement policy"
+      ],
+      "namespace": "payments.findings",
+      "owner": {
+        "accountable_team": "Fintech Security",
+        "escalation": "financial-risk"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "pilot",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Payment Security Findings",
+      "tool_profile_id": "mcp-tool-risk::payments.findings",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": false
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "untrusted_or_unverified_server",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "payment-simulation-reader",
+      "control_gaps": [],
+      "data_classes": [
+        "sandbox_transaction_result",
+        "policy_simulation",
+        "failure_trace"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "execute live payment",
+        "access signer",
+        "change sandbox balances",
+        "read production wallet metadata"
+      ],
+      "namespace": "payments.simulation",
+      "owner": {
+        "accountable_team": "Fintech Security",
+        "escalation": "financial-risk"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "pilot",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Payment Simulation Reader",
+      "tool_profile_id": "mcp-tool-risk::payments.simulation",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": false
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "untrusted_or_unverified_server",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "protocol-security-findings",
+      "control_gaps": [],
+      "data_classes": [
+        "smart_contract_finding",
+        "oracle_or_bridge_context",
+        "asset_exposure",
+        "reproduction_steps"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "read deployer keys",
+        "submit governance proposal",
+        "execute bridge or multisig action",
+        "change audit status"
+      ],
+      "namespace": "protocol.findings",
+      "owner": {
+        "accountable_team": "Protocol Security",
+        "escalation": "protocol-risk-council"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "pilot",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Protocol Security Findings",
+      "tool_profile_id": "mcp-tool-risk::protocol.findings",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": false
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_public_context_no_auth",
+      "connector_id": "approved-defaults-recipes",
+      "control_gaps": [],
+      "data_classes": [
+        "public_recipe_context",
+        "approved_migration_pattern",
+        "prompt_instruction"
+      ],
+      "default_runtime_decision": "allow_with_confirmation",
+      "deployment_model": "hosted_security_recipes",
+      "forbidden_operations": [
+        "write recipes",
+        "load unreviewed prompt snippets",
+        "bypass pinned content hash"
+      ],
+      "namespace": "recipes.defaults",
+      "owner": {
+        "accountable_team": "SecurityRecipes Maintainers",
+        "escalation": "content-maintainers"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "inspect_tool_results",
+        "pin_tool_descriptions"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": false,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_1_read_untrusted",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "Approved Vulnerable-Defaults Recipes",
+      "tool_profile_id": "mcp-tool-risk::recipes.defaults",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_0_public_context",
+        "title": "Public Context"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "approval_required"
+      ],
+      "annotation_source": "untrusted_or_unverified_server",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "registry-quarantine",
+      "control_gaps": [],
+      "data_classes": [
+        "artifact_hash",
+        "quarantine_plan",
+        "approval_record",
+        "registry_target"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "execute purge without two-key approval",
+        "delete artifact without incident owner approval",
+        "publish replacement artifact",
+        "change registry policy outside incident scope"
+      ],
+      "namespace": "registries.quarantine",
+      "owner": {
+        "accountable_team": "Supply Chain Security",
+        "escalation": "security-incident-commander"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "kill_session_on_approval_bypass",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity",
+        "two_key_review",
+        "typed_human_approval",
+        "write_scope_enforcement"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": true,
+        "destructive_action_potential": true,
+        "reads_private_data": true,
+        "requires_human_approval": true,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "risk_tier": "tier_4_destructive_or_exfiltration",
+      "status": "pilot",
+      "suggested_annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "title": "Registry Quarantine Controller",
+      "tool_profile_id": "mcp-tool-risk::registries.quarantine",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_3_approval_required",
+        "title": "Approval Required"
+      },
+      "trusted_server": false
+    },
+    {
+      "access_modes": [
+        "write_branch"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "repository-contents",
+      "control_gaps": [],
+      "data_classes": [
+        "source_code",
+        "test_data",
+        "repository_metadata"
+      ],
+      "default_runtime_decision": "allow_with_confirmation",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "push to default branch",
+        "merge pull request",
+        "read repository secrets",
+        "change branch protection",
+        "change CI or deployment configuration unless explicitly allowed by workflow"
+      ],
+      "namespace": "repo.contents",
+      "owner": {
+        "accountable_team": "Engineering Platform",
+        "escalation": "source-control-platform"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "human_review_before_merge",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity",
+        "write_scope_enforcement"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "risk_tier": "tier_3_state_changing",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "title": "Repository Contents",
+      "tool_profile_id": "mcp-tool-risk::repo.contents",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_2_scoped_write",
+        "title": "Scoped Write"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "read"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "sbom-inventory",
+      "control_gaps": [],
+      "data_classes": [
+        "package_inventory",
+        "image_inventory",
+        "service_ownership",
+        "dependency_graph"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "publish or mutate SBOM records",
+        "read unrelated organization-wide inventory without workflow filter",
+        "read signing keys or registry credentials"
+      ],
+      "namespace": "sbom.inventory",
+      "owner": {
+        "accountable_team": "Supply Chain Security",
+        "escalation": "software-supply-chain"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": false
+      },
+      "risk_tier": "tier_2_private_context",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true
+      },
+      "title": "SBOM Inventory",
+      "tool_profile_id": "mcp-tool-risk::sbom.inventory",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_1_internal_read",
+        "title": "Internal Read"
+      },
+      "trusted_server": true
+    },
+    {
+      "access_modes": [
+        "write_ticket"
+      ],
+      "annotation_source": "trusted_enterprise_gateway",
+      "authorization_decision": "approve_with_gateway_attestation",
+      "connector_id": "security-ticket-workspace",
+      "control_gaps": [],
+      "data_classes": [
+        "finding_metadata",
+        "triage_notes",
+        "owner_routing"
+      ],
+      "default_runtime_decision": "hold_for_tool_risk_review",
+      "deployment_model": "enterprise_gateway",
+      "forbidden_operations": [
+        "bulk close tickets",
+        "change severity without reviewer approval",
+        "write outside security remediation projects"
+      ],
+      "namespace": "tickets.security",
+      "owner": {
+        "accountable_team": "Security Operations",
+        "escalation": "security-triage"
+      },
+      "required_controls": [
+        "audit_every_tool_call",
+        "deny_private_network_egress",
+        "deny_token_passthrough",
+        "human_review_before_merge",
+        "inspect_tool_results",
+        "per_client_consent",
+        "pin_tool_descriptions",
+        "session_binding",
+        "short_lived_workload_identity",
+        "write_scope_enforcement"
+      ],
+      "risk_factors": {
+        "can_exfiltrate": true,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "risk_tier": "tier_4_destructive_or_exfiltration",
+      "status": "production",
+      "suggested_annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "title": "Security Ticket Workspace",
+      "tool_profile_id": "mcp-tool-risk::tickets.security",
+      "transport": "streamable-http",
+      "trust_tier": {
+        "id": "tier_2_scoped_write",
+        "title": "Scoped Write"
+      },
+      "trusted_server": true
+    }
+  ],
+  "tool_risk_contract": {
+    "annotation_trust_model": "annotations_are_hints_until_bound_to_trusted_server_evidence",
+    "contradiction_rules": [
+      {
+        "condition": "readOnlyHint=true while requested_access_mode is not read",
+        "decision": "deny_annotation_contradiction",
+        "id": "readonly_write_scope"
+      },
+      {
+        "condition": "readOnlyHint=true and destructiveHint=true",
+        "decision": "deny_annotation_contradiction",
+        "id": "readonly_destructive"
+      },
+      {
+        "condition": "trusted_server=false and tool reads private data, changes state, or can exfiltrate",
+        "decision": "hold_for_tool_risk_review",
+        "id": "untrusted_annotation_for_sensitive_tool"
+      }
+    ],
+    "default_decision": "hold_for_tool_risk_review",
+    "extended_runtime_factors": [
+      "reads_private_data",
+      "sees_untrusted_content",
+      "can_exfiltrate",
+      "writes_state",
+      "destructive_action_potential",
+      "requires_human_approval",
+      "trusted_server",
+      "annotation_source"
+    ],
+    "hash_algorithm": "sha256",
+    "kill_signal_markers": [
+      "raw_secret_in_tool_argument",
+      "raw_secret_in_tool_result",
+      "credential_or_signer_scope_requested",
+      "tool_list_changed_after_approval",
+      "unapproved_external_destination",
+      "private_network_or_metadata_ip_destination",
+      "approval_bypass_attempt"
+    ],
+    "required_runtime_attributes": [
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "connector_id",
+      "namespace",
+      "tool_name",
+      "requested_access_mode",
+      "gate_phase",
+      "server_trusted",
+      "annotation_source",
+      "session_id",
+      "correlation_id",
+      "policy_pack_hash",
+      "authorization_pack_hash"
+    ],
+    "session_combination_rule": {
+      "approved_with_human_record": "allow_with_confirmation",
+      "default_without_approval": "deny_session_exfiltration_path",
+      "description": "A session must not simultaneously have private-data access, untrusted-content exposure, and external communication without an explicit approved control path.",
+      "external_communication_factor": "can_exfiltrate",
+      "id": "no_private_untrusted_exfiltration_triangle",
+      "private_data_factor": "reads_private_data",
+      "untrusted_content_factor": "sees_untrusted_content"
+    },
+    "standard_annotation_defaults": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": false
+    },
+    "standard_tool_annotations": [
+      "readOnlyHint",
+      "destructiveHint",
+      "idempotentHint",
+      "openWorldHint"
+    ],
+    "trusted_annotation_controls": [
+      "trusted_server_registry_entry",
+      "pinned_tool_description_hash",
+      "connector_trust_tier",
+      "authorization_conformance_profile",
+      "gateway_policy_hash",
+      "tool_list_changed_audit",
+      "runtime_output_validation"
+    ],
+    "valid_runtime_decisions": [
+      "allow_tool_call",
+      "allow_with_confirmation",
+      "hold_for_tool_risk_review",
+      "deny_annotation_contradiction",
+      "deny_session_exfiltration_path",
+      "deny_scope_drift",
+      "kill_session_on_tool_risk_signal"
+    ]
+  },
+  "tool_risk_summary": {
+    "annotation_trust_counts": {
+      "trusted_enterprise_gateway": 11,
+      "untrusted_or_unverified_server": 5
+    },
+    "default_decision_counts": {
+      "allow_with_confirmation": 2,
+      "hold_for_tool_risk_review": 14
+    },
+    "failure_count": 0,
+    "lethal_combination_workflow_count": 2,
+    "risk_tier_counts": {
+      "tier_1_read_untrusted": 1,
+      "tier_2_private_context": 11,
+      "tier_3_state_changing": 1,
+      "tier_4_destructive_or_exfiltration": 3
+    },
+    "tool_profile_count": 16,
+    "trusted_server_count": 11,
+    "workflow_count": 8
+  },
+  "workflow_tool_risk": [
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": true,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "9ef61cdf1c839d291886fc4a95a46f7b561be6500dbe2775be8e1d8ecb83de97",
+      "lethal_combination_possible": true,
+      "maturity_stage": "walk",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "findings.sde",
+          "purpose": "Read scanner finding metadata and data classification.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "write_branch",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "repo.contents",
+          "purpose": "Patch scoped files on a remediation branch only.",
+          "risk_tier": "tier_3_state_changing",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "write_ticket",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "tickets.security",
+          "purpose": "Open triage tickets when data ownership or redaction rules are unclear.",
+          "risk_tier": "tier_4_destructive_or_exfiltration",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        }
+      ],
+      "public_path": "/security-remediation/sensitive-data/",
+      "recommended_session_default": "deny_session_exfiltration_path",
+      "status": "active",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "1bb48c4dcfc00b8a67cef524dd1ed88641aac925e201c01c2814242d08eb486b",
+      "lethal_combination_possible": false,
+      "maturity_stage": "walk",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "advisories.vulnerability",
+          "purpose": "Read advisory ranges, severity, EPSS, and known-exploited status.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "sbom.inventory",
+          "purpose": "Locate affected manifests, images, packages, and owners.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "write_branch",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "repo.contents",
+          "purpose": "Patch manifests and lockfiles on remediation branch only.",
+          "risk_tier": "tier_3_state_changing",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        }
+      ],
+      "public_path": "/security-remediation/vulnerable-dependencies/",
+      "recommended_session_default": "allow_with_confirmation",
+      "status": "active",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    },
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "6049c1c6645bb8ee3be03d2f5fa88d0ce4e5fe6780a95bfda4e03fbb150b567b",
+      "lethal_combination_possible": false,
+      "maturity_stage": "crawl",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "findings.sast",
+          "purpose": "Read rule metadata, evidence path, sink/source trace, and severity.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "write_branch",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "repo.contents",
+          "purpose": "Patch localized source and tests on remediation branch only.",
+          "risk_tier": "tier_3_state_changing",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "ci.runs",
+          "purpose": "Read test and scanner re-run outcomes.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        }
+      ],
+      "public_path": "/security-remediation/sast-findings/",
+      "recommended_session_default": "allow_with_confirmation",
+      "status": "active",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "0f5377b2127c5c70a93093dd5d81843ee85c04033f7744ac691d55ee0d4c4053",
+      "lethal_combination_possible": false,
+      "maturity_stage": "walk",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "images.golden",
+          "purpose": "Read approved base-image catalog, signatures, SBOMs, and deprecation windows.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "write_branch",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "repo.contents",
+          "purpose": "Patch Dockerfiles or image pin files on remediation branch only.",
+          "risk_tier": "tier_3_state_changing",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "ci.runs",
+          "purpose": "Read build, scan, and signing verification results.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        }
+      ],
+      "public_path": "/security-remediation/base-images/",
+      "recommended_session_default": "allow_with_confirmation",
+      "status": "active",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": true,
+        "destructive_action_potential": true,
+        "reads_private_data": true,
+        "requires_human_approval": true,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "5502fa113292dc7ea35d349973c36277f60abe0de4fe4fca22269f8fc69c4045",
+      "lethal_combination_possible": true,
+      "maturity_stage": "crawl",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "inventory.artifacts",
+          "purpose": "Locate affected packages, images, hashes, mirrors, and consumers.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "approval_required",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "registries.quarantine",
+          "purpose": "Stage quarantine or purge operations for human approval.",
+          "risk_tier": "tier_4_destructive_or_exfiltration",
+          "suggested_annotations": {
+            "destructiveHint": true,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": false
+        },
+        {
+          "access": "write_ticket",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "incidents.security",
+          "purpose": "Attach evidence and remediation links to incident record.",
+          "risk_tier": "tier_4_destructive_or_exfiltration",
+          "suggested_annotations": {
+            "destructiveHint": true,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        }
+      ],
+      "public_path": "/security-remediation/artifact-cache-purge/",
+      "recommended_session_default": "deny_session_exfiltration_path",
+      "status": "active",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "4aa2afc4455b1dc82226b979ed70141e6a14e98ed982ee088c0a52d6947e1056",
+      "lethal_combination_possible": false,
+      "maturity_stage": "walk",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "recipes.defaults",
+          "purpose": "Retrieve approved migration pattern for the vulnerable default.",
+          "risk_tier": "tier_1_read_untrusted",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "write_branch",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "repo.contents",
+          "purpose": "Patch localized source and tests on remediation branch only.",
+          "risk_tier": "tier_3_state_changing",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "ci.runs",
+          "purpose": "Read test and scanner outcomes.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": true
+        }
+      ],
+      "public_path": "/security-remediation/classic-vulnerable-defaults/",
+      "recommended_session_default": "allow_with_confirmation",
+      "status": "active",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "1a011f70e2e0be1b4efac650873bff7ef3d73b08d9dae0e7aa926d93d6eb7cb5",
+      "lethal_combination_possible": false,
+      "maturity_stage": "crawl",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "payments.findings",
+          "purpose": "Read payment-security finding details and affected service metadata.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": false
+        },
+        {
+          "access": "write_branch",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "repo.contents",
+          "purpose": "Patch validation, policy, and test files on remediation branch only.",
+          "risk_tier": "tier_3_state_changing",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "payments.simulation",
+          "purpose": "Run or read dry-run transaction simulation output.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": false
+        }
+      ],
+      "public_path": "/security-remediation/crypto-payments/",
+      "recommended_session_default": "allow_with_confirmation",
+      "status": "active",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "aggregate_risk_factors": {
+        "can_exfiltrate": false,
+        "destructive_action_potential": false,
+        "reads_private_data": true,
+        "requires_human_approval": false,
+        "sees_untrusted_content": true,
+        "writes_state": true
+      },
+      "gateway_policy_hash": "7c90a08d9acea79ba2d8e20206d286fb25e04f2a07296edf53f5cf4b3e2a8920",
+      "lethal_combination_possible": false,
+      "maturity_stage": "crawl",
+      "namespaces": [
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "protocol.findings",
+          "purpose": "Read protocol-security finding details, affected contract, and severity.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": false
+        },
+        {
+          "access": "write_branch",
+          "default_runtime_decision": "allow_with_confirmation",
+          "namespace": "repo.contents",
+          "purpose": "Patch contracts, policy docs, or tests on remediation branch only.",
+          "risk_tier": "tier_3_state_changing",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": false,
+            "openWorldHint": true,
+            "readOnlyHint": false
+          },
+          "trusted_server": true
+        },
+        {
+          "access": "read",
+          "default_runtime_decision": "hold_for_tool_risk_review",
+          "namespace": "chain.simulation",
+          "purpose": "Run or read fork-test and invariant-test outputs.",
+          "risk_tier": "tier_2_private_context",
+          "suggested_annotations": {
+            "destructiveHint": false,
+            "idempotentHint": true,
+            "openWorldHint": true,
+            "readOnlyHint": true
+          },
+          "trusted_server": false
+        }
+      ],
+      "public_path": "/security-remediation/defi-blockchain/",
+      "recommended_session_default": "allow_with_confirmation",
+      "status": "active",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    }
+  ]
+}

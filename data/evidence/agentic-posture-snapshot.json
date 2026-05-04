@@ -1,0 +1,989 @@
+{
+  "buyer_views": [
+    {
+      "id": "ai-platform-quarterly-review",
+      "question": "Which agentic workflows can scale, which remain guarded, and which exposure paths need architecture review?",
+      "uses": [
+        "posture_summary",
+        "workflow_posture",
+        "risk_factor_summary",
+        "source_artifacts"
+      ]
+    },
+    {
+      "id": "procurement-security-review",
+      "question": "Which evidence proves SecurityRecipes has inventory, identity, MCP, context, telemetry, and standards controls?",
+      "uses": [
+        "posture_dimensions",
+        "standards_alignment",
+        "enterprise_adoption_packet",
+        "source_artifacts"
+      ]
+    },
+    {
+      "id": "acquisition-diligence-review",
+      "question": "What becomes the enterprise product surface beyond the open knowledge base?",
+      "uses": [
+        "commercialization_path",
+        "selected_feature",
+        "workflow_posture",
+        "risk_factor_summary"
+      ]
+    }
+  ],
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, AI coding platform, or security vendor gets a posture-management layer that can wrap MCP gateways, agent hosts, and secure-context retrieval with buyer-readable evidence.",
+    "enterprise_layer": "Hosted posture snapshots with live MCP gateway logs, IAM issuance events, A2A card diffs, private context registries, red-team replay, and trust-center API exports.",
+    "open_layer": "Open generated posture snapshot from SecurityRecipes reference controls and evidence packs.",
+    "team_layer": "Customer-private overlays for tenant agents, internal MCP servers, agent skills, source-host permissions, approvals, and telemetry retention."
+  },
+  "decision_contract": {
+    "decisions": [
+      {
+        "decision": "enterprise_foundation_ready",
+        "meaning": "The open reference posture has enough generated evidence, inventory, and runtime controls to support enterprise pilot and diligence conversations."
+      },
+      {
+        "decision": "guarded_enterprise_pilot",
+        "meaning": "The posture is credible, but high-exposure paths, pilot connectors, or actionable poisoning findings require bounded rollout and owner review."
+      },
+      {
+        "decision": "hold_for_posture_review",
+        "meaning": "Missing or stale posture evidence prevents expansion until the source pack is regenerated or remediated."
+      },
+      {
+        "decision": "kill_session_on_posture_signal",
+        "meaning": "A runtime event indicates secret exposure, prohibited egress, rogue authority, or an XPIA-sensitive high-autonomy path and the agent session should stop."
+      }
+    ],
+    "default_decision": "hold_for_posture_review",
+    "required_source_packs": [
+      "agentic-system-bom",
+      "agent-identity-delegation-ledger",
+      "mcp-connector-trust-pack",
+      "mcp-authorization-conformance-pack",
+      "mcp-tool-risk-contract",
+      "secure-context-trust-pack",
+      "context-poisoning-guard-pack",
+      "context-egress-boundary-pack",
+      "agent-handoff-boundary-pack",
+      "a2a-agent-card-trust-profile",
+      "agent-skill-supply-chain-pack",
+      "agentic-telemetry-contract",
+      "agentic-exposure-graph",
+      "agentic-readiness-scorecard",
+      "agentic-standards-crosswalk"
+    ],
+    "runtime_kill_signals": [
+      "secret_or_token_seen_in_context_or_telemetry",
+      "high_autonomy_plus_high_xpia_without_human_approval",
+      "unregistered_agent_or_workflow_attempts_tool_call",
+      "agent_card_requests_prohibited_secret_or_high_impact_skill",
+      "session_combines_private_data_untrusted_content_and_external_write"
+    ],
+    "score_thresholds": {
+      "enterprise_foundation_ready": 88,
+      "guarded_enterprise_pilot": 74
+    }
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes now produces a posture snapshot for the secure context layer, showing whether agentic workflows have enough inventory, identity, MCP, context, handoff, telemetry, exposure, and standards evidence to expand.",
+    "default_questions_answered": [
+      "Which agentic workflows can scale, pilot, or pause?",
+      "Which agents and identities can reach which MCP namespaces?",
+      "Where do high-autonomy, XPIA-sensitive, or exfiltration-capable paths concentrate?",
+      "Which source packs prove the posture decision?",
+      "Which gaps should an enterprise buyer or acquirer prioritize first?"
+    ],
+    "recommended_first_use": "Attach the posture snapshot to AI platform quarterly posture review, procurement security review, MCP gateway promotion, model-agent launch review, and acquisition diligence.",
+    "sales_motion": "Lead with the open posture snapshot, then sell hosted posture diffs, customer runtime evidence ingestion, private MCP exposure graphs, executive risk dashboards, and trust-center APIs."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "intent": "Aggregate SecurityRecipes secure-context, MCP, A2A, identity, telemetry, exposure, readiness, and evidence packs into a single enterprise posture snapshot that AI platform, security, procurement, and acquisition diligence teams can use to decide whether agentic AI systems are ready to operate, scale, or pause.",
+  "positioning": {
+    "buyer": "AI Platform, Security Architecture, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
+    "category": "Agentic AI posture management for secure context and MCP operations",
+    "enterprise_promise": "SecurityRecipes can show which agents exist, which identities and MCP namespaces they use, which context they retrieve, where XPIA and high-autonomy exposure concentrates, which workflows are scale-ready, and which evidence proves the current posture.",
+    "why_now": "Agentic AI has moved from assistant UX into tool-using and multi-agent systems. Enterprises need continuous posture evidence across context, tools, identity, handoffs, guardrails, and runtime traces before they can safely expand autonomous workflows."
+  },
+  "posture_dimensions": [
+    {
+      "dimension_id": "asset_inventory",
+      "earned": 12,
+      "findings": [
+        "8 workflows",
+        "32 agent identities",
+        "16 MCP connectors"
+      ],
+      "max": 12,
+      "percent": 100,
+      "title": "Agent and Component Inventory"
+    },
+    {
+      "dimension_id": "identity_authority",
+      "earned": 14,
+      "findings": [
+        "32 non-human identities",
+        "16 authorization profiles",
+        "short-lived identity and token-passthrough controls are represented"
+      ],
+      "max": 14,
+      "percent": 100,
+      "title": "Identity and Delegated Authority"
+    },
+    {
+      "dimension_id": "mcp_tool_surface",
+      "earned": 11.2,
+      "findings": [
+        "16 registered MCP connectors",
+        "2 lethal session-combination workflows",
+        "0 connector-trust failures"
+      ],
+      "max": 14,
+      "percent": 80,
+      "title": "MCP Tool Surface Control"
+    },
+    {
+      "dimension_id": "context_integrity",
+      "earned": 14,
+      "findings": [
+        "9 registered context sources",
+        "2 actionable poisoning findings currently routed for review",
+        "2 prohibited egress data classes"
+      ],
+      "max": 14,
+      "percent": 100,
+      "title": "Context Integrity and Egress"
+    },
+    {
+      "dimension_id": "inter_agent_boundary",
+      "earned": 10,
+      "findings": [
+        "4 handoff profiles",
+        "4 A2A intake profiles",
+        "5 skill profiles"
+      ],
+      "max": 10,
+      "percent": 100,
+      "title": "Inter-Agent and Skill Boundary"
+    },
+    {
+      "dimension_id": "runtime_guardrails",
+      "earned": 14,
+      "findings": [
+        "9 telemetry signal classes",
+        "4 scale-ready workflows",
+        "run receipts link identity, context, tools, egress, approval, and verifier evidence"
+      ],
+      "max": 14,
+      "percent": 100,
+      "title": "Runtime Guardrails and Telemetry"
+    },
+    {
+      "dimension_id": "exposure_management",
+      "earned": 10.56,
+      "findings": [
+        "96 exposure paths",
+        "24 paths score at or above 75",
+        "3 workflows combine high exposure with XPIA-sensitive path classes"
+      ],
+      "max": 12,
+      "percent": 88,
+      "title": "Exposure Path Management"
+    },
+    {
+      "dimension_id": "standards_diligence",
+      "earned": 10,
+      "findings": [
+        "5 mapped standards",
+        "29 mapped controls",
+        "trust-center export is available for buyer review"
+      ],
+      "max": 10,
+      "percent": 100,
+      "title": "Standards and Buyer Diligence"
+    }
+  ],
+  "posture_findings": [
+    {
+      "count": 24,
+      "detail": "High exposure paths should be reviewed before broad rollout because they combine agent identity, context, MCP namespace, and workflow maturity into material operating risk.",
+      "id": "review-high-exposure-paths",
+      "priority": "high",
+      "title": "Review high-scoring exposure paths"
+    },
+    {
+      "count": 5,
+      "detail": "Pilot MCP connectors should remain behind guarded rollout until promotion evidence and runtime audit behavior are stable.",
+      "id": "graduate-pilot-connectors",
+      "priority": "medium",
+      "title": "Graduate or constrain pilot MCP connectors"
+    },
+    {
+      "count": 2,
+      "detail": "Actionable findings should be dispositioned so retrieved context remains evidence rather than a hidden instruction channel.",
+      "id": "triage-context-poisoning-findings",
+      "priority": "medium",
+      "title": "Triage actionable context-poisoning findings"
+    },
+    {
+      "count": 5,
+      "detail": "Agent skills are part of the execution layer and should stay pinned, scanned, permissioned, and sandboxed before reuse.",
+      "id": "review-top-risk-skills",
+      "priority": "medium",
+      "title": "Review highest-risk agent skills"
+    }
+  ],
+  "posture_summary": {
+    "decision": "guarded_enterprise_pilot",
+    "dimension_count": 8,
+    "failure_count": 0,
+    "posture_score": 96,
+    "risk_factor_count": 5,
+    "workflow_count": 8,
+    "workflow_decision_counts": {
+      "architecture_review": 2,
+      "guarded_pilot": 3,
+      "scale_with_posture_monitoring": 3
+    }
+  },
+  "residual_risks": [
+    {
+      "risk": "The snapshot proves source-controlled reference posture, not live customer runtime enforcement.",
+      "treatment": "Bind hosted deployments to MCP gateway logs, IAM token issuance, A2A card fetches, agent host traces, approval records, and sealed run receipts."
+    },
+    {
+      "risk": "Posture can drift when model, tool, connector, skill, Agent Card, prompt, policy, or context sources change.",
+      "treatment": "Regenerate the snapshot in CI and alert on posture deltas for every control-plane or source-pack change."
+    },
+    {
+      "risk": "High posture scores do not remove the need for human review on high-impact actions.",
+      "treatment": "Keep approval-required namespaces, high-autonomy XPIA paths, and irreversible operations behind explicit typed approvals and kill signals."
+    }
+  ],
+  "risk_factor_summary": {
+    "actionable_context_poisoning_findings": 2,
+    "high_exposure_path_count": 24,
+    "lethal_combination_workflow_count": 2,
+    "pilot_connector_count": 5,
+    "pilot_connectors": [
+      "chain.simulation",
+      "payments.findings",
+      "payments.simulation",
+      "protocol.findings",
+      "registries.quarantine"
+    ],
+    "pilot_guarded_workflow_count": 4,
+    "scale_ready_workflow_count": 4,
+    "top_risk_skill_count": 5,
+    "top_risk_skills": [
+      {
+        "decision": "kill_session_on_malicious_skill_signal",
+        "residual_risk_score": 226,
+        "risk_tier": "critical",
+        "skill_id": "untrusted-marketplace-shell-skill",
+        "title": "Untrusted Marketplace Shell Skill"
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "residual_risk_score": 4,
+        "risk_tier": "low",
+        "skill_id": "sr-artifact-quarantine-operator-skill",
+        "title": "SecurityRecipes Artifact Quarantine Operator Skill"
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "residual_risk_score": 4,
+        "risk_tier": "low",
+        "skill_id": "sr-cve-remediation-skill",
+        "title": "SecurityRecipes CVE Remediation Skill"
+      },
+      {
+        "decision": "allow_guarded_skill",
+        "residual_risk_score": 0,
+        "risk_tier": "low",
+        "skill_id": "sr-agent-memory-operator-skill",
+        "title": "SecurityRecipes Agent Memory Operator Skill"
+      },
+      {
+        "decision": "allow_pinned_readonly_skill",
+        "residual_risk_score": 0,
+        "risk_tier": "low",
+        "skill_id": "sr-secure-context-retrieval-skill",
+        "title": "SecurityRecipes Secure Context Retrieval Skill"
+      }
+    ],
+    "xpia_sensitive_workflows": [
+      "artifact-cache-quarantine",
+      "crypto-payment-security",
+      "defi-blockchain-security"
+    ]
+  },
+  "risk_factors": [
+    {
+      "control_goal": "Identify workflows where untrusted context can influence high-impact tool use, then require human approval, tool guardrails, and telemetry before action.",
+      "id": "xpia_high_autonomy",
+      "severity": "critical",
+      "title": "High Autonomy plus Indirect Prompt Injection"
+    },
+    {
+      "control_goal": "Block or split sessions where tool combinations create a path from sensitive context to ticket, webhook, registry, model, or public egress.",
+      "id": "session_exfiltration_path",
+      "severity": "critical",
+      "title": "Private Data, Untrusted Content, and External Write in One Session"
+    },
+    {
+      "control_goal": "Pin, hash, diff-review, and rescan skills, Agent Cards, tool schemas, and MCP server metadata before promotion.",
+      "id": "agentic_supply_chain_drift",
+      "severity": "high",
+      "title": "Agent Skill, Agent Card, or Tool Description Drift"
+    },
+    {
+      "control_goal": "Require per-workflow non-human identities, short-lived tokens, audience binding, explicit denies, and runtime revocation.",
+      "id": "identity_privilege_abuse",
+      "severity": "high",
+      "title": "Identity and Privilege Abuse"
+    },
+    {
+      "control_goal": "Fail closed when registered context has actionable poisoning findings, stale hashes, or missing owner recertification.",
+      "id": "context_poisoning_or_staleness",
+      "severity": "high",
+      "title": "Context Poisoning or Stale Secure Context"
+    }
+  ],
+  "schema_version": "1.0",
+  "selected_feature": {
+    "id": "agentic-posture-snapshot",
+    "implementation": [
+      "Posture source model under data/assurance.",
+      "Deterministic generator under scripts.",
+      "Generated posture artifact under data/evidence.",
+      "Runtime posture evaluator for MCP tool exposure.",
+      "Human-readable docs page and MCP tool exposure."
+    ],
+    "reason": "Enterprise buyers are moving from agent pilots to posture management: they need one evidence surface for agent inventory, XPIA exposure, MCP/A2A trust, identity, context, guardrails, and runtime proof."
+  },
+  "source_artifacts": {
+    "a2a_agent_card_trust_profile": {
+      "path": "data/evidence/a2a-agent-card-trust-profile.json",
+      "sha256": "73774aeba0fd3934208e8a55c2a6fc3bdfbdff54f3632db8661a471c2fbe2ba9"
+    },
+    "agent_handoff_boundary_pack": {
+      "path": "data/evidence/agent-handoff-boundary-pack.json",
+      "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b"
+    },
+    "agent_identity_delegation_ledger": {
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
+    },
+    "agent_skill_supply_chain_pack": {
+      "path": "data/evidence/agent-skill-supply-chain-pack.json",
+      "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450"
+    },
+    "agentic_exposure_graph": {
+      "path": "data/evidence/agentic-exposure-graph.json",
+      "sha256": "467530248c4fe051cf942ff1f64e651b61731b7eeb9a5745c3b3777f5bf1eaba"
+    },
+    "agentic_posture_model": {
+      "path": "data/assurance/agentic-posture-model.json",
+      "sha256": "7e4bf4777b421477d7fc5a0bb413a13c2c940293147d6315726463d9aaa40a84"
+    },
+    "agentic_readiness_scorecard": {
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c"
+    },
+    "agentic_run_receipt_pack": {
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+    },
+    "agentic_standards_crosswalk": {
+      "path": "data/evidence/agentic-standards-crosswalk.json",
+      "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df"
+    },
+    "agentic_system_bom": {
+      "path": "data/evidence/agentic-system-bom.json",
+      "sha256": "19d9de3f6cdc0003d61a75477cc5549d857fb6a9f3342884807ae079299e95cd"
+    },
+    "agentic_telemetry_contract": {
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+    },
+    "context_egress_boundary_pack": {
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+    },
+    "context_poisoning_guard_pack": {
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8"
+    },
+    "enterprise_trust_center_export": {
+      "path": "data/evidence/enterprise-trust-center-export.json",
+      "sha256": "6e4ee3e22363a8228ca36e9eb63466212000d79611b6935ded6d69dcca32272a"
+    },
+    "mcp_authorization_conformance_pack": {
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+    },
+    "mcp_connector_trust_pack": {
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+    },
+    "mcp_tool_risk_contract": {
+      "path": "data/evidence/mcp-tool-risk-contract.json",
+      "sha256": "db3a0be61433b2a193ccc5c80bd854ce626f06376c2f93057ae4c128ef03002a"
+    },
+    "secure_context_trust_pack": {
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Agent goal hijack, tool misuse, identity and privilege abuse, agentic supply chain, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue agents.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    },
+    {
+      "coverage": "Skill registry compromise, over-privileged skills, weak isolation, update drift, insecure metadata, missing governance, scanning gaps, and incident response for agent execution layers.",
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+    },
+    {
+      "coverage": "OAuth 2.1 resource-server expectations for HTTP MCP transports, resource indicators, audience binding, PKCE, token handling, and confused-deputy controls.",
+      "id": "mcp-authorization-2025-06-18",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization"
+    },
+    {
+      "coverage": "Input, output, and tool guardrails, tripwires, workflow boundaries, hosted-tool limits, and tool-call validation before and after execution.",
+      "id": "openai-agents-guardrails-current",
+      "name": "OpenAI Agents SDK Guardrails",
+      "url": "https://openai.github.io/openai-agents-python/guardrails/"
+    },
+    {
+      "coverage": "Agent discovery, Agent Cards, JSON-RPC over HTTP(S), streaming, push notifications, authentication, observability, and secure interoperability between opaque agents.",
+      "id": "a2a-protocol-current",
+      "name": "Agent2Agent Protocol",
+      "url": "https://github.com/a2aproject/A2A"
+    },
+    {
+      "coverage": "Agent posture, indirect prompt injection risk, high-autonomy risk factors, coordinator agents, attack-path analysis, and hardening guidance for reducing agent attack surface.",
+      "id": "microsoft-agent-posture-2026",
+      "name": "Microsoft Security - A new era of agents, a new era of posture",
+      "url": "https://www.microsoft.com/en-us/security/blog/2026/01/21/new-era-of-agents-new-era-of-posture/"
+    },
+    {
+      "coverage": "Generative AI governance, mapping, measurement, third-party dependencies, data provenance, monitoring, incident response, and lifecycle risk treatment.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    }
+  ],
+  "workflow_posture": [
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "devin"
+      ],
+      "authorization_policy_hash": "5502fa113292dc7ea35d349973c36277f60abe0de4fe4fca22269f8fc69c4045",
+      "context_package_hash": "76c36841840424450260fae6e5f46b2cb49e5d0b9c445cbc76151bcf514a2711",
+      "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
+      "highest_exposure_path": {
+        "decision": "architecture_review",
+        "mcp_namespace": "registries.quarantine",
+        "path_class_id": "approval_required_tool_path",
+        "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
+        "risk_tier": "high",
+        "score": 83
+      },
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "inventory.artifacts",
+        "registries.quarantine",
+        "incidents.security"
+      ],
+      "next_actions": [
+        "Keep the workflow in a bounded pilot until pilot exit metrics justify walk-stage promotion.",
+        "Graduate pilot MCP connectors before broad rollout: registries.quarantine.",
+        "Run posture architecture review for the highest-scoring exposure path before broad rollout.",
+        "Split or block sessions that combine private data, untrusted content, and exfiltration-capable tools."
+      ],
+      "owner": {
+        "accountable_team": "Supply Chain Security",
+        "escalation": "security-incident-commander",
+        "reviewer_pools": [
+          "supply-chain-security",
+          "platform-owner"
+        ]
+      },
+      "posture_decision": "architecture_review",
+      "posture_score": 89,
+      "public_path": "/security-remediation/artifact-cache-purge/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::artifact-cache-quarantine",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": true,
+          "destructive_action_potential": true,
+          "reads_private_data": true,
+          "requires_human_approval": true,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": true,
+        "recommended_session_default": "deny_session_exfiltration_path"
+      },
+      "status": "active",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "authorization_policy_hash": "0f5377b2127c5c70a93093dd5d81843ee85c04033f7744ac691d55ee0d4c4053",
+      "context_package_hash": "aa805302bf2350ac3c2cd0b2ddd69c3e0307604861370fbceff547ba867d8731",
+      "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
+      "highest_exposure_path": {
+        "decision": "guarded_rollout",
+        "mcp_namespace": "repo.contents",
+        "path_class_id": "context_to_write_tool",
+        "path_id": "exposure::base-image-remediation::claude::repo.contents",
+        "risk_tier": "medium",
+        "score": 41
+      },
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "images.golden",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "next_actions": [
+        "Expand through the normal change-management cohort with MCP gateway audit enabled.",
+        "Track reviewer burden, regression rate, and red-team replay results during expansion."
+      ],
+      "owner": {
+        "accountable_team": "Platform Security",
+        "escalation": "container-platform",
+        "reviewer_pools": [
+          "platform-security",
+          "service-owner"
+        ]
+      },
+      "posture_decision": "scale_with_posture_monitoring",
+      "posture_score": 99,
+      "public_path": "/security-remediation/base-images/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::base-image-remediation",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": false,
+          "destructive_action_potential": false,
+          "reads_private_data": true,
+          "requires_human_approval": false,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": false,
+        "recommended_session_default": "allow_with_confirmation"
+      },
+      "status": "active",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot"
+      ],
+      "authorization_policy_hash": "4aa2afc4455b1dc82226b979ed70141e6a14e98ed982ee088c0a52d6947e1056",
+      "context_package_hash": "f3d8e297ea4073f526b23b413bc692282f23f2c3a54437b1de6e5a1a12b1cc22",
+      "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
+      "highest_exposure_path": {
+        "decision": "standard_monitoring",
+        "mcp_namespace": "repo.contents",
+        "path_class_id": "context_to_write_tool",
+        "path_id": "exposure::classic-vulnerable-defaults::claude::repo.contents",
+        "risk_tier": "low",
+        "score": 29
+      },
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "recipes.defaults",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "next_actions": [
+        "Expand through the normal change-management cohort with MCP gateway audit enabled.",
+        "Track reviewer burden, regression rate, and red-team replay results during expansion."
+      ],
+      "owner": {
+        "accountable_team": "Application Security",
+        "escalation": "secure-code-review",
+        "reviewer_pools": [
+          "appsec",
+          "service-owner"
+        ]
+      },
+      "posture_decision": "scale_with_posture_monitoring",
+      "posture_score": 99,
+      "public_path": "/security-remediation/classic-vulnerable-defaults/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::classic-vulnerable-defaults",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": false,
+          "destructive_action_potential": false,
+          "reads_private_data": true,
+          "requires_human_approval": false,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": false,
+        "recommended_session_default": "allow_with_confirmation"
+      },
+      "status": "active",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor"
+      ],
+      "authorization_policy_hash": "1a011f70e2e0be1b4efac650873bff7ef3d73b08d9dae0e7aa926d93d6eb7cb5",
+      "context_package_hash": "fc78c8ec4506b886331d4185e97fa5696723fd4c26441b3f4b8aa2afc198face",
+      "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
+      "highest_exposure_path": {
+        "decision": "architecture_review",
+        "mcp_namespace": "repo.contents",
+        "path_class_id": "high_impact_authority_path",
+        "path_id": "exposure::crypto-payment-security::claude::repo.contents",
+        "risk_tier": "high",
+        "score": 79
+      },
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "payments.findings",
+        "repo.contents",
+        "payments.simulation"
+      ],
+      "next_actions": [
+        "Keep the workflow in a bounded pilot until pilot exit metrics justify walk-stage promotion.",
+        "Graduate pilot MCP connectors before broad rollout: payments.findings, payments.simulation."
+      ],
+      "owner": {
+        "accountable_team": "Fintech Security",
+        "escalation": "financial-risk",
+        "reviewer_pools": [
+          "fintech-security",
+          "payments-owner"
+        ]
+      },
+      "posture_decision": "guarded_pilot",
+      "posture_score": 90,
+      "public_path": "/security-remediation/crypto-payments/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::crypto-payment-security",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": false,
+          "destructive_action_potential": false,
+          "reads_private_data": true,
+          "requires_human_approval": false,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": false,
+        "recommended_session_default": "allow_with_confirmation"
+      },
+      "status": "active",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor"
+      ],
+      "authorization_policy_hash": "7c90a08d9acea79ba2d8e20206d286fb25e04f2a07296edf53f5cf4b3e2a8920",
+      "context_package_hash": "812464dd63dfd63cec7348e643c600df130f61b89e08051d6b17ddc47c772075",
+      "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
+      "highest_exposure_path": {
+        "decision": "architecture_review",
+        "mcp_namespace": "repo.contents",
+        "path_class_id": "high_impact_authority_path",
+        "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
+        "risk_tier": "high",
+        "score": 79
+      },
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "protocol.findings",
+        "repo.contents",
+        "chain.simulation"
+      ],
+      "next_actions": [
+        "Keep the workflow in a bounded pilot until pilot exit metrics justify walk-stage promotion.",
+        "Graduate pilot MCP connectors before broad rollout: protocol.findings, chain.simulation."
+      ],
+      "owner": {
+        "accountable_team": "Protocol Security",
+        "escalation": "protocol-risk-council",
+        "reviewer_pools": [
+          "protocol-security",
+          "smart-contract-owner"
+        ]
+      },
+      "posture_decision": "guarded_pilot",
+      "posture_score": 90,
+      "public_path": "/security-remediation/defi-blockchain/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 93,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::defi-blockchain-security",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": false,
+          "destructive_action_potential": false,
+          "reads_private_data": true,
+          "requires_human_approval": false,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": false,
+        "recommended_session_default": "allow_with_confirmation"
+      },
+      "status": "active",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot"
+      ],
+      "authorization_policy_hash": "6049c1c6645bb8ee3be03d2f5fa88d0ce4e5fe6780a95bfda4e03fbb150b567b",
+      "context_package_hash": "b22a385a56802b52ab1e79bd1706dbd6a95dfa81d69b258465b960de22c83ab4",
+      "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
+      "highest_exposure_path": {
+        "decision": "guarded_rollout",
+        "mcp_namespace": "repo.contents",
+        "path_class_id": "context_to_write_tool",
+        "path_id": "exposure::sast-finding-remediation::claude::repo.contents",
+        "risk_tier": "low",
+        "score": 37
+      },
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "findings.sast",
+        "repo.contents",
+        "ci.runs"
+      ],
+      "next_actions": [
+        "Keep the workflow in a bounded pilot until pilot exit metrics justify walk-stage promotion."
+      ],
+      "owner": {
+        "accountable_team": "Application Security",
+        "escalation": "secure-code-review",
+        "reviewer_pools": [
+          "appsec",
+          "service-owner"
+        ]
+      },
+      "posture_decision": "guarded_pilot",
+      "posture_score": 98,
+      "public_path": "/security-remediation/sast-findings/",
+      "readiness_decision": "pilot_guarded",
+      "readiness_score": 95,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::sast-finding-remediation",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": false,
+          "destructive_action_potential": false,
+          "reads_private_data": true,
+          "requires_human_approval": false,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": false,
+        "recommended_session_default": "allow_with_confirmation"
+      },
+      "status": "active",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "authorization_policy_hash": "9ef61cdf1c839d291886fc4a95a46f7b561be6500dbe2775be8e1d8ecb83de97",
+      "context_package_hash": "d87fc8f8be2986fff175b2b2f1c487ea99a3531669daf3d1a875fecc5c4cadda",
+      "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
+      "highest_exposure_path": {
+        "decision": "guarded_rollout",
+        "mcp_namespace": "tickets.security",
+        "path_class_id": "tenant_sensitive_context_path",
+        "path_id": "exposure::sensitive-data-remediation::claude::tickets.security",
+        "risk_tier": "medium",
+        "score": 51
+      },
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "findings.sde",
+        "repo.contents",
+        "tickets.security"
+      ],
+      "next_actions": [
+        "Expand through the normal change-management cohort with MCP gateway audit enabled.",
+        "Track reviewer burden, regression rate, and red-team replay results during expansion.",
+        "Split or block sessions that combine private data, untrusted content, and exfiltration-capable tools."
+      ],
+      "owner": {
+        "accountable_team": "Security Engineering",
+        "escalation": "privacy-security",
+        "reviewer_pools": [
+          "security-remediation",
+          "service-owner"
+        ]
+      },
+      "posture_decision": "architecture_review",
+      "posture_score": 99,
+      "public_path": "/security-remediation/sensitive-data/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::sensitive-data-remediation",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": true,
+          "destructive_action_potential": false,
+          "reads_private_data": true,
+          "requires_human_approval": false,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": true,
+        "recommended_session_default": "deny_session_exfiltration_path"
+      },
+      "status": "active",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "authorization_policy_hash": "1bb48c4dcfc00b8a67cef524dd1ed88641aac925e201c01c2814242d08eb486b",
+      "context_package_hash": "c920246ac811d239927c9ba1beaa75345fcfaf09329563f8d0c92ab8fef8dc11",
+      "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",
+      "highest_exposure_path": {
+        "decision": "guarded_rollout",
+        "mcp_namespace": "repo.contents",
+        "path_class_id": "context_to_write_tool",
+        "path_id": "exposure::vulnerable-dependency-remediation::claude::repo.contents",
+        "risk_tier": "medium",
+        "score": 41
+      },
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "advisories.vulnerability",
+        "sbom.inventory",
+        "repo.contents"
+      ],
+      "next_actions": [
+        "Expand through the normal change-management cohort with MCP gateway audit enabled.",
+        "Track reviewer burden, regression rate, and red-team replay results during expansion."
+      ],
+      "owner": {
+        "accountable_team": "Product Security",
+        "escalation": "supply-chain-security",
+        "reviewer_pools": [
+          "dependency-remediation",
+          "service-owner"
+        ]
+      },
+      "posture_decision": "scale_with_posture_monitoring",
+      "posture_score": 99,
+      "public_path": "/security-remediation/vulnerable-dependencies/",
+      "readiness_decision": "scale_ready",
+      "readiness_score": 98,
+      "runtime_evidence": {
+        "handoff_default_decision": "deny_unregistered_handoff",
+        "receipt_id": "sr-run-receipt::vulnerable-dependency-remediation",
+        "telemetry_decision": "telemetry_ready"
+      },
+      "session_combination": {
+        "aggregate_risk_factors": {
+          "can_exfiltrate": false,
+          "destructive_action_potential": false,
+          "reads_private_data": true,
+          "requires_human_approval": false,
+          "sees_untrusted_content": true,
+          "writes_state": true
+        },
+        "lethal_combination_possible": false,
+        "recommended_session_default": "allow_with_confirmation"
+      },
+      "status": "active",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    }
+  ]
+}

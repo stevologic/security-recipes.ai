@@ -25,11 +25,21 @@
       ]
     },
     {
-      "capability_id": "agent-identity-ledger",
-      "critical_or_high_signal_count": 3,
-      "max_strategic_score": 95,
-      "signal_count": 3,
+      "capability_id": "agent-handoff-boundary-pack",
+      "critical_or_high_signal_count": 1,
+      "max_strategic_score": 98,
+      "signal_count": 1,
       "signal_ids": [
+        "agent-protocol-handoff-boundaries"
+      ]
+    },
+    {
+      "capability_id": "agent-identity-ledger",
+      "critical_or_high_signal_count": 4,
+      "max_strategic_score": 98,
+      "signal_count": 4,
+      "signal_ids": [
+        "agent-protocol-handoff-boundaries",
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
         "human-approval-and-tool-safeguards"
@@ -37,10 +47,11 @@
     },
     {
       "capability_id": "agentic-assurance-pack",
-      "critical_or_high_signal_count": 6,
-      "max_strategic_score": 95,
-      "signal_count": 7,
+      "critical_or_high_signal_count": 7,
+      "max_strategic_score": 98,
+      "signal_count": 8,
       "signal_ids": [
+        "agent-protocol-handoff-boundaries",
         "mcp-token-passthrough-and-scope-creep",
         "agent-identity-explosion",
         "capability-based-agentic-risk-governance",
@@ -105,10 +116,11 @@
     },
     {
       "capability_id": "context-egress-boundary",
-      "critical_or_high_signal_count": 2,
-      "max_strategic_score": 93,
-      "signal_count": 2,
+      "critical_or_high_signal_count": 3,
+      "max_strategic_score": 98,
+      "signal_count": 3,
       "signal_ids": [
+        "agent-protocol-handoff-boundaries",
         "context-over-sharing-and-memory-poisoning",
         "ai-data-security-and-provenance"
       ]
@@ -126,10 +138,11 @@
     },
     {
       "capability_id": "mcp-authorization-conformance",
-      "critical_or_high_signal_count": 1,
-      "max_strategic_score": 95,
-      "signal_count": 1,
+      "critical_or_high_signal_count": 2,
+      "max_strategic_score": 98,
+      "signal_count": 2,
       "signal_ids": [
+        "agent-protocol-handoff-boundaries",
         "mcp-token-passthrough-and-scope-creep"
       ]
     },
@@ -191,10 +204,11 @@
     },
     {
       "capability_id": "secure-context-trust-pack",
-      "critical_or_high_signal_count": 3,
+      "critical_or_high_signal_count": 4,
       "max_strategic_score": 98,
-      "signal_count": 3,
+      "signal_count": 4,
       "signal_ids": [
+        "agent-protocol-handoff-boundaries",
         "indirect-prompt-injection-social-engineering",
         "context-over-sharing-and-memory-poisoning",
         "ai-data-security-and-provenance"
@@ -215,6 +229,23 @@
   },
   "failures": [],
   "feature_backlog": [
+    {
+      "id": "agent-handoff-boundary-pack",
+      "related_signal_ids": [
+        "agent-protocol-handoff-boundaries",
+        "agent-identity-explosion",
+        "context-over-sharing-and-memory-poisoning"
+      ],
+      "status": "implemented",
+      "supporting_signal_count": 3,
+      "supporting_signal_max_score": 98,
+      "supporting_signal_priority_counts": {
+        "critical": 2,
+        "high": 1
+      },
+      "title": "Agent handoff boundary pack",
+      "why": "MCP and A2A adoption makes inter-agent context movement a near-term enterprise control question; this run implemented protocol handoff profiles, generated evidence, a runtime evaluator, and MCP tools."
+    },
     {
       "id": "context-poisoning-guard",
       "related_signal_ids": [
@@ -325,6 +356,10 @@
       "sha256": "a7489bde3cf6eeca2cf61739c48f3c76e29bdcf158acc05358773f533914579d"
     },
     {
+      "path": "content/security-remediation/agent-handoff-boundary/_index.md",
+      "sha256": "f0461a14bef0dc168166765c5aa64343f7c591ebbcab90c88b9d423eb96880b6"
+    },
+    {
       "path": "content/security-remediation/agentic-threat-radar/_index.md",
       "sha256": "fde7cbe09a8049d2c8e844bb38791b3ec9f879cd5935c97b1230b1dce8f010e5"
     },
@@ -355,6 +390,10 @@
     {
       "path": "data/assurance/agent-capability-risk-model.json",
       "sha256": "e7d5c3d9ebb17c20cabdfaf130052adc95b314b1e76ef84d82e36bebc35e5083"
+    },
+    {
+      "path": "data/assurance/agent-handoff-boundary-model.json",
+      "sha256": "b87dd9621a4bfed1440cde41448495d54b6e8cd387588f67471a3f3a25b7c63b"
     },
     {
       "path": "data/assurance/agentic-assurance-control-map.json",
@@ -390,11 +429,15 @@
     },
     {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "6ddb8c23507be42091be481c04f4d35756c3ec37db9e3616b43ad205c22145ba"
+      "sha256": "f7ed11ea8c088e38d2db1af7b84cbbe493f713d3dea120aaf7c66054098b8172"
     },
     {
       "path": "data/evidence/agent-capability-risk-register.json",
       "sha256": "53c25f92d26a7d3559499e24a97ab2ed4bfa8c541adfec3da3abeab404684d26"
+    },
+    {
+      "path": "data/evidence/agent-handoff-boundary-pack.json",
+      "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b"
     },
     {
       "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -402,19 +445,19 @@
     },
     {
       "path": "data/evidence/agentic-assurance-pack.json",
-      "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f"
+      "sha256": "c434995287e687217f279b878ac25ffeefbe81f86cc64e43b1547193c339c6f9"
     },
     {
       "path": "data/evidence/agentic-readiness-scorecard.json",
-      "sha256": "c175181e8a7afeba2c1c7d6483f69c7a635fcf8242d65a20fb76462499cc45ae"
+      "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c"
     },
     {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "sha256": "c28356c01555a2badaf678238aa525abeb343ff2ed60e58f27c4af8736d1188b"
+      "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
     },
     {
       "path": "data/evidence/agentic-system-bom.json",
-      "sha256": "63e54ee764128a717c0366087778b26109387bc6de3b04fc352e59fff8acd649"
+      "sha256": "19d9de3f6cdc0003d61a75477cc5549d857fb6a9f3342884807ae079299e95cd"
     },
     {
       "path": "data/evidence/context-egress-boundary-pack.json",
@@ -426,7 +469,7 @@
     },
     {
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
-      "sha256": "a4ebcb2e1f781c2893283937acbf5d34356c93de685aad730d1a0353f2412d26"
+      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
     },
     {
       "path": "data/evidence/mcp-connector-intake-pack.json",
@@ -446,7 +489,7 @@
     },
     {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "dd8655b863b0f91e1b758af899b68f9a3818ac339c42094743a53c7e17a0b057"
+      "sha256": "6efe9a839211cbcac7f0e9472ca65b11f08c94c9e6005c40b94ea34e0ea64ae4"
     },
     {
       "path": "data/mcp/connector-intake-candidates.json",
@@ -459,6 +502,10 @@
     {
       "path": "data/policy/mcp-gateway-policy.json",
       "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+    },
+    {
+      "path": "scripts/evaluate_agent_handoff_boundary_decision.py",
+      "sha256": "a4a37e7a7aa3012b5d75b94b3cbb0f2d95f0846bb2c4737716b5132267fee43a"
     },
     {
       "path": "scripts/evaluate_context_attestation_decision.py",
@@ -479,6 +526,10 @@
     {
       "path": "scripts/generate_agent_capability_risk_register.py",
       "sha256": "b2b1c4883ed980f2a63d87a81da7908acf5c0d8d0020d003e6007179222db167"
+    },
+    {
+      "path": "scripts/generate_agent_handoff_boundary_pack.py",
+      "sha256": "85c753f5c504bcfd93cd45fbe7dc444758529269b52ae5efb80a8b40f361965d"
     },
     {
       "path": "scripts/generate_agent_identity_ledger.py",
@@ -629,6 +680,23 @@
       ],
       "status": "implemented",
       "title": "Context Egress Boundary"
+    },
+    {
+      "buyer_value": "Governs MCP, A2A, provider-native, and approval-bridge handoffs before context, authority, or approval state crosses an agent boundary.",
+      "evidence_paths": [
+        "data/assurance/agent-handoff-boundary-model.json",
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "scripts/generate_agent_handoff_boundary_pack.py",
+        "scripts/evaluate_agent_handoff_boundary_decision.py",
+        "content/security-remediation/agent-handoff-boundary/_index.md"
+      ],
+      "id": "agent-handoff-boundary-pack",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_evaluate_agent_handoff_decision"
+      ],
+      "status": "implemented",
+      "title": "Agent Handoff Boundary Pack"
     },
     {
       "buyer_value": "Enforces default-deny tool access, approval holds, scoped branch writes, and runtime kill decisions.",
@@ -790,7 +858,7 @@
   "source_artifacts": {
     "agentic_threat_radar_sources": {
       "path": "data/intelligence/agentic-threat-radar-sources.json",
-      "sha256": "dd8655b863b0f91e1b758af899b68f9a3818ac339c42094743a53c7e17a0b057"
+      "sha256": "6efe9a839211cbcac7f0e9472ca65b11f08c94c9e6005c40b94ea34e0ea64ae4"
     }
   },
   "source_references": [
@@ -885,6 +953,24 @@
       "why_it_matters": "NIST continues expanding AI RMF work, including a 2026 concept note for trustworthy AI in critical infrastructure, reinforcing governance, measurement, and lifecycle risk management."
     },
     {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "published": "2026-02-17",
+      "publisher": "NIST",
+      "source_class": "government_framework",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "why_it_matters": "NIST is explicitly prioritizing interoperable agent standards, community-led protocols, agent authentication, identity infrastructure, and security evaluations for multi-agent systems."
+    },
+    {
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "published": "2026-01-12",
+      "publisher": "NIST CAISI",
+      "source_class": "government_framework",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "why_it_matters": "CAISI highlights risks from model outputs combined with software functionality, including indirect prompt injection, data poisoning, misaligned actions, and the need to constrain and monitor deployment access."
+    },
+    {
       "id": "nist-ai-600-1",
       "name": "Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile",
       "published": "2024-07-26",
@@ -937,37 +1023,61 @@
       "source_class": "industry_guidance",
       "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk",
       "why_it_matters": "CSA's CBRA framing gives enterprises a consequence-driven way to measure autonomous AI risk through system criticality, AI autonomy, access permissions, and impact radius."
+    },
+    {
+      "id": "a2a-enterprise-ready-2026",
+      "name": "A2A Enterprise Implementation Guidance",
+      "published": "2026",
+      "publisher": "Agent2Agent Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/",
+      "why_it_matters": "A2A treats remote agents as opaque HTTP services and emphasizes TLS, HTTP-layer authentication, skill-based authorization, data minimization, tracing, auditing, and API management."
+    },
+    {
+      "id": "linux-foundation-a2a-production-2026",
+      "name": "A2A Protocol production-ready adoption milestone",
+      "published": "2026-04-09",
+      "publisher": "Linux Foundation",
+      "source_class": "protocol_specification",
+      "url": "https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year",
+      "why_it_matters": "A2A moved into production-ready use with signed Agent Cards, multi-tenant security flows, cloud integrations, and a complementary split with MCP between agent coordination and tool access."
     }
   ],
   "threat_radar_summary": {
     "confidence_counts": {
-      "high": 11
+      "high": 12
     },
-    "critical_or_high_signal_count": 10,
-    "feature_backlog_count": 6,
+    "critical_or_high_signal_count": 11,
+    "feature_backlog_count": 7,
     "horizon_counts": {
       "next": 2,
-      "now": 9
+      "now": 10
     },
-    "implemented_capability_count": 16,
+    "implemented_capability_count": 17,
     "priority_counts": {
-      "critical": 3,
+      "critical": 4,
       "high": 7,
       "medium": 1
     },
-    "signal_count": 11,
+    "signal_count": 12,
     "source_class_counts": {
       "frontier_lab_guidance": 3,
-      "government_framework": 2,
+      "government_framework": 4,
       "government_guidance": 2,
       "industry_guidance": 3,
       "industry_standard": 3,
       "protocol_guidance": 1,
-      "protocol_specification": 1,
+      "protocol_specification": 3,
       "vendor_architecture_guidance": 1
     },
-    "source_reference_count": 16,
+    "source_reference_count": 20,
     "top_signals": [
+      {
+        "id": "agent-protocol-handoff-boundaries",
+        "priority": "critical",
+        "strategic_score": 98,
+        "title": "Agent handoffs are becoming a protocol trust boundary"
+      },
       {
         "id": "indirect-prompt-injection-social-engineering",
         "priority": "critical",
@@ -991,16 +1101,195 @@
         "priority": "high",
         "strategic_score": 93,
         "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
-      },
-      {
-        "id": "context-over-sharing-and-memory-poisoning",
-        "priority": "high",
-        "strategic_score": 93,
-        "title": "Context over-sharing and memory poisoning make retrieval policy a product category"
       }
     ]
   },
   "threat_signals": [
+    {
+      "buyer_trigger": "The buyer is piloting MCP plus A2A, provider-native subagents, or remote agents that coordinate across teams, vendors, and tenant boundaries.",
+      "capabilities": [
+        {
+          "buyer_value": "Governs MCP, A2A, provider-native, and approval-bridge handoffs before context, authority, or approval state crosses an agent boundary.",
+          "evidence_paths": [
+            "data/assurance/agent-handoff-boundary-model.json",
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "scripts/generate_agent_handoff_boundary_pack.py",
+            "scripts/evaluate_agent_handoff_boundary_decision.py",
+            "content/security-remediation/agent-handoff-boundary/_index.md"
+          ],
+          "id": "agent-handoff-boundary-pack",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_evaluate_agent_handoff_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Handoff Boundary Pack"
+        },
+        {
+          "buyer_value": "Defines non-human identity contracts, delegated authority, explicit denies, owner links, token rules, and revocation expectations.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json",
+            "scripts/generate_agent_identity_ledger.py"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity and Delegation Ledger"
+        },
+        {
+          "buyer_value": "Turns data-class, destination, DPA, zero-data-retention, residency, and secret-egress requirements into deterministic MCP-readable decisions before context leaves a boundary.",
+          "evidence_paths": [
+            "data/assurance/context-egress-boundary-model.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "scripts/generate_context_egress_boundary_pack.py",
+            "scripts/evaluate_context_egress_decision.py",
+            "content/security-remediation/context-egress-boundary/_index.md"
+          ],
+          "id": "context-egress-boundary",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "status": "implemented",
+          "title": "Context Egress Boundary"
+        },
+        {
+          "buyer_value": "Proves which context sources agents may retrieve, who owns them, and which hashes show current state.",
+          "evidence_paths": [
+            "data/context/secure-context-registry.json",
+            "data/evidence/secure-context-trust-pack.json",
+            "scripts/generate_secure_context_trust_pack.py"
+          ],
+          "id": "secure-context-trust-pack",
+          "mcp_tools": [
+            "recipes_secure_context_trust_pack"
+          ],
+          "status": "implemented",
+          "title": "Secure Context Trust Pack"
+        },
+        {
+          "buyer_value": "Verifies MCP resource binding, token audience, PKCE, token-passthrough denial, session binding, and scope drift before tool calls execute.",
+          "evidence_paths": [
+            "data/assurance/mcp-authorization-conformance-profile.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "scripts/generate_mcp_authorization_conformance_pack.py",
+            "scripts/evaluate_mcp_authorization_decision.py",
+            "content/security-remediation/mcp-authorization-conformance/_index.md"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_evaluate_mcp_authorization_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        },
+        {
+          "buyer_value": "Packages controls, workflow evidence, standards mapping, and adoption story for AI platform and GRC review.",
+          "evidence_paths": [
+            "data/assurance/agentic-assurance-control-map.json",
+            "data/evidence/agentic-assurance-pack.json",
+            "scripts/generate_agentic_assurance_pack.py"
+          ],
+          "id": "agentic-assurance-pack",
+          "mcp_tools": [
+            "recipes_agentic_assurance_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Assurance Pack"
+        }
+      ],
+      "confidence": "high",
+      "control_objectives": [
+        "Treat every agent handoff as a context egress event with a default-deny decision.",
+        "Require metadata-only payloads unless cited evidence, redaction, and egress decisions are present.",
+        "Bind A2A and provider-native handoffs to authentication, signed agent identity, trace correlation, and approval evidence.",
+        "Kill sessions when credential material, hidden system prompts, unrestricted customer logs, or raw tool traces appear in a handoff."
+      ],
+      "enterprise_risk": "A remote or provider-native agent may receive internal memory, hidden prompts, raw tool traces, tenant ticket bodies, credentials, or high-impact authority without the MCP gateway seeing the full downstream chain.",
+      "horizon": "now",
+      "id": "agent-protocol-handoff-boundaries",
+      "mapped_capability_ids": [
+        "agent-handoff-boundary-pack",
+        "agent-identity-ledger",
+        "context-egress-boundary",
+        "secure-context-trust-pack",
+        "mcp-authorization-conformance",
+        "agentic-assurance-pack"
+      ],
+      "priority": "critical",
+      "roadmap_action": "Add a generated agent handoff boundary pack and runtime evaluator, then sell hosted signed Agent Card trust, handoff replay, and approval receipt enforcement.",
+      "scores": {
+        "defensibility": 5,
+        "ease_of_adoption": 4,
+        "enterprise_control_value": 5,
+        "market_urgency": 5,
+        "mcp_monetization_fit": 5
+      },
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "a2a-enterprise-ready-2026",
+        "linux-foundation-a2a-production-2026",
+        "mcp-authorization-2025-11-25",
+        "owasp-agentic-top-10-2026"
+      ],
+      "sources": [
+        {
+          "id": "nist-ai-agent-standards-initiative-2026",
+          "name": "AI Agent Standards Initiative",
+          "published": "2026-02-17",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+        },
+        {
+          "id": "nist-caisi-ai-agent-security-rfi-2026",
+          "name": "CAISI Request for Information on Securing AI Agent Systems",
+          "published": "2026-01-12",
+          "publisher": "NIST CAISI",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+        },
+        {
+          "id": "a2a-enterprise-ready-2026",
+          "name": "A2A Enterprise Implementation Guidance",
+          "published": "2026",
+          "publisher": "Agent2Agent Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/"
+        },
+        {
+          "id": "linux-foundation-a2a-production-2026",
+          "name": "A2A Protocol production-ready adoption milestone",
+          "published": "2026-04-09",
+          "publisher": "Linux Foundation",
+          "source_class": "protocol_specification",
+          "url": "https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year"
+        },
+        {
+          "id": "mcp-authorization-2025-11-25",
+          "name": "Model Context Protocol Authorization Specification",
+          "published": "2025-11-25",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_specification",
+          "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+        },
+        {
+          "id": "owasp-agentic-top-10-2026",
+          "name": "OWASP Top 10 for Agentic Applications",
+          "published": "2025-12-09",
+          "publisher": "OWASP GenAI Security Project",
+          "source_class": "industry_standard",
+          "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/"
+        }
+      ],
+      "strategic_score": 98,
+      "title": "Agent handoffs are becoming a protocol trust boundary",
+      "trend": "MCP and A2A are settling into complementary layers: MCP governs agent access to tools and data, while A2A governs agent-to-agent coordination. Enterprise buyers need one boundary model that prevents context, identity, approval state, and delegated authority from crossing protocols informally."
+    },
     {
       "buyer_trigger": "The buyer is connecting agents to mail, tickets, browsers, repositories, logs, or document stores.",
       "capabilities": [

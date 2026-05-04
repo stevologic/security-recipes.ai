@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0",
   "last_reviewed": "2026-05-03",
-  "intent": "Define the SecurityRecipes agentic control plane blueprint: a board-, buyer-, and engineering-ready architecture that connects open knowledge, secure context provenance, MCP authorization, connector trust, non-human identity, memory boundaries, egress policy, run receipts, red-team replay, and measurement probes into one defensible product narrative.",
+  "intent": "Define the SecurityRecipes agentic control plane blueprint: a board-, buyer-, and engineering-ready architecture that connects open knowledge, secure context provenance, MCP authorization, connector trust, non-human identity, entitlement review, memory boundaries, agent handoff policy, egress policy, run receipts, red-team replay, and measurement probes into one defensible product narrative.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, model risk, procurement security, and acquisition diligence teams",
     "category": "Secure context and control plane for agentic AI",
-    "enterprise_promise": "SecurityRecipes turns agent context into an inspectable control plane: every workflow, source, connector, identity, tool decision, memory class, egress path, and run receipt can be queried as structured MCP evidence before agents act.",
-    "why_now": "Agentic AI adoption is shifting from isolated assistants to autonomous systems that call tools, persist memory, use MCP connectors, and operate through delegated authority. The durable product wedge is a vendor-neutral control layer that makes context, authorization, and evidence easy for security teams and agent hosts to consume."
+    "enterprise_promise": "SecurityRecipes turns agent context into an inspectable control plane: every workflow, source, connector, identity, entitlement lease, tool decision, handoff, memory class, egress path, and run receipt can be queried as structured MCP evidence before agents act.",
+    "why_now": "Agentic AI adoption is shifting from isolated assistants to autonomous systems that call tools, persist memory, use MCP connectors, delegate across A2A-style protocols, and operate through delegated authority. The durable product wedge is a vendor-neutral control layer that makes context, authorization, handoff boundaries, and evidence easy for security teams and agent hosts to consume."
   },
   "standards_alignment": [
     {
@@ -46,6 +46,12 @@
       "coverage": "Aligns the product thesis to identity, authorization, orchestration, runtime behavior, risk intelligence, certification, and trust assurance layers for autonomous AI agent ecosystems."
     },
     {
+      "id": "csa-star-ai-catastrophic-risk-annex-2026",
+      "name": "CSA STAR for AI Catastrophic Risk Annex",
+      "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane",
+      "coverage": "Extends the blueprint into high-impact autonomy, loss of human oversight, uncontrolled system behavior, and large-scale irreversible consequences that can be tested in production."
+    },
+    {
       "id": "csa-ai-agent-governance-gap-2026",
       "name": "CSA The AI Agent Governance Gap: What CISOs Need Now",
       "url": "https://labs.cloudsecurityalliance.org/research/csa-research-note-ai-agent-governance-framework-gap-20260403/",
@@ -60,8 +66,8 @@
   ],
   "control_plane_contract": {
     "default_state": "untrusted_until_registered_measured_and_policy_bound",
-    "minimum_layers": 8,
-    "minimum_source_packs": 14,
+    "minimum_layers": 10,
+    "minimum_source_packs": 16,
     "minimum_mcp_tools": 12,
     "board_level_success_criteria": [
       "Every agentic workflow has declared ownership, scope, gates, KPIs, and kill signals.",
@@ -82,6 +88,7 @@
       "context_package_hash",
       "context_attestation_hash",
       "authorization_policy_hash",
+      "handoff_policy_hash",
       "egress_policy_hash",
       "memory_policy_hash",
       "receipt_hash",
@@ -109,6 +116,11 @@
       "id": "agent_identity_ledger",
       "path": "data/evidence/agent-identity-delegation-ledger.json",
       "title": "Agent Identity Ledger"
+    },
+    {
+      "id": "agentic_entitlement_review_pack",
+      "path": "data/evidence/agentic-entitlement-review-pack.json",
+      "title": "Agentic Entitlement Review Pack"
     },
     {
       "id": "mcp_connector_trust_pack",
@@ -151,6 +163,16 @@
       "title": "Agent Skill Supply-Chain Pack"
     },
     {
+      "id": "agent_handoff_boundary_pack",
+      "path": "data/evidence/agent-handoff-boundary-pack.json",
+      "title": "Agent Handoff Boundary Pack"
+    },
+    {
+      "id": "a2a_agent_card_trust_profile",
+      "path": "data/evidence/a2a-agent-card-trust-profile.json",
+      "title": "A2A Agent Card Trust Profile"
+    },
+    {
       "id": "agentic_system_bom",
       "path": "data/evidence/agentic-system-bom.json",
       "title": "Agentic System BOM"
@@ -186,9 +208,19 @@
       "title": "Agentic Threat Radar"
     },
     {
+      "id": "agentic_standards_crosswalk",
+      "path": "data/evidence/agentic-standards-crosswalk.json",
+      "title": "Agentic Standards Crosswalk"
+    },
+    {
       "id": "agentic_measurement_probe_pack",
       "path": "data/evidence/agentic-measurement-probe-pack.json",
       "title": "Agentic Measurement Probe Pack"
+    },
+    {
+      "id": "agentic_catastrophic_risk_annex",
+      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
+      "title": "Agentic Catastrophic Risk Annex"
     }
   ],
   "layers": [
@@ -253,22 +285,48 @@
       "exit_value": "Directly maps to the MCP ecosystem problem large AI labs and platforms need solved."
     },
     {
+      "id": "agent_handoff_and_protocol_boundaries",
+      "title": "Agent Handoff and Protocol Boundaries",
+      "proof_question": "Can the buyer prove that MCP, A2A, provider-native, and approval-bridge handoffs move only approved metadata, cited evidence, and explicit authority state?",
+      "source_pack_ids": [
+        "agent_handoff_boundary_pack",
+        "a2a_agent_card_trust_profile",
+        "secure_context_trust_pack",
+        "context_egress_boundary_pack",
+        "agent_identity_ledger",
+        "mcp_authorization_conformance_pack"
+      ],
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_a2a_agent_card_trust_profile",
+        "recipes_evaluate_a2a_agent_card_trust_decision",
+        "recipes_context_egress_boundary_pack",
+        "recipes_agent_identity_ledger"
+      ],
+      "premium_path": "Hosted signed Agent Card trust, handoff replay, approval receipts, protocol gateway enforcement, and tenant evidence ingestion.",
+      "exit_value": "Expands SecurityRecipes from MCP-safe tool use into the broader multi-agent interoperability control layer."
+    },
+    {
       "id": "agent_identity_and_delegation",
       "title": "Agent Identity and Delegation",
-      "proof_question": "Can the buyer identify which non-human identity acted, which human owner delegated authority, which scopes were denied, and how unsafe sessions are revoked?",
+      "proof_question": "Can the buyer identify which non-human identity acted, which human owner delegated authority, which scopes were denied, which entitlement lease was active, and how unsafe sessions are revoked?",
       "source_pack_ids": [
         "agent_identity_ledger",
+        "agentic_entitlement_review_pack",
         "mcp_gateway_policy",
         "agentic_run_receipt_pack",
         "agent_capability_risk_register"
       ],
       "mcp_tools": [
         "recipes_agent_identity_ledger",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_evaluate_agentic_entitlement_decision",
         "recipes_agent_capability_risk_register",
         "recipes_agentic_run_receipt_pack",
         "recipes_evaluate_mcp_gateway_decision"
       ],
-      "premium_path": "OIDC, SPIFFE/SPIRE, source-host, and MCP gateway identity adapters for per-run authority.",
+      "premium_path": "OIDC, SPIFFE/SPIRE, source-host, MCP gateway identity adapters, hosted permission leases, and continuous agent-access review APIs.",
       "exit_value": "Turns non-human identity for agents into a governed security category."
     },
     {
@@ -334,18 +392,44 @@
       "proof_question": "Can the buyer show that current threat signals become probes, drills, readiness decisions, and roadmap actions instead of stale docs?",
       "source_pack_ids": [
         "agentic_threat_radar",
+        "agentic_standards_crosswalk",
         "agentic_measurement_probe_pack",
         "agentic_red_team_drill_pack",
         "agentic_readiness_scorecard"
       ],
       "mcp_tools": [
         "recipes_agentic_threat_radar",
+        "recipes_agentic_standards_crosswalk",
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_red_team_drill_pack",
         "recipes_agentic_readiness_scorecard"
       ],
       "premium_path": "Hosted replay runner, model and connector drift probes, executive threat posture reports, and risk trend dashboards.",
       "exit_value": "Shows a path from open knowledge to recurring enterprise control-plane revenue."
+    },
+    {
+      "id": "catastrophic_risk_and_high_impact_autonomy",
+      "title": "Catastrophic Risk and High-Impact Autonomy",
+      "proof_question": "Can the buyer prove that high-impact autonomous actions are held, denied, or killed when approval, identity, policy, risk acceptance, or receipt evidence is missing?",
+      "source_pack_ids": [
+        "agentic_catastrophic_risk_annex",
+        "agent_capability_risk_register",
+        "agentic_readiness_scorecard",
+        "agentic_red_team_drill_pack",
+        "agentic_run_receipt_pack",
+        "agent_identity_ledger",
+        "mcp_gateway_policy"
+      ],
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_agent_capability_risk_register",
+        "recipes_agentic_readiness_scorecard",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_mcp_gateway_policy"
+      ],
+      "premium_path": "Hosted high-impact action inventory, approval receipt validation, risk acceptance workflows, severe-risk replay, and runtime kill policy.",
+      "exit_value": "Creates the board-grade severe-risk assurance layer frontier labs, agent hosts, and enterprise buyers need before approving high-impact autonomy."
     }
   ],
   "buyer_due_diligence_questions": [
@@ -366,8 +450,17 @@
       ]
     },
     {
+      "id": "agent-handoff",
+      "question": "How does the product evaluate A2A Agent Cards and prevent internal memory, hidden prompts, raw tool traces, credentials, or high-impact authority from crossing an agent-to-agent boundary?",
+      "layer_ids": [
+        "agent_handoff_and_protocol_boundaries",
+        "context_egress_and_data_boundaries",
+        "agent_identity_and_delegation"
+      ]
+    },
+    {
       "id": "agent-identity",
-      "question": "Who owns an agent identity, what can it do, and how is one unsafe run revoked?",
+      "question": "Who owns an agent identity, what can it do, which entitlement lease proves current authority, and how is one unsafe run revoked?",
       "layer_ids": [
         "agent_identity_and_delegation",
         "evidence_receipts_and_system_bom"
@@ -388,6 +481,24 @@
         "workflow_scope_and_default_deny",
         "measurement_red_team_and_threat_alignment"
       ]
+    },
+    {
+      "id": "standards-crosswalk",
+      "question": "Which current agentic AI, MCP, NIST, and prompt-injection references map to generated evidence rather than prose-only claims?",
+      "layer_ids": [
+        "measurement_red_team_and_threat_alignment",
+        "evidence_receipts_and_system_bom"
+      ]
+    },
+    {
+      "id": "catastrophic-risk",
+      "question": "Which high-impact agent actions are held, denied, or killed before they create loss of human oversight, uncontrolled behavior, token cascades, private-context leakage, or irreversible consequences?",
+      "layer_ids": [
+        "catastrophic_risk_and_high_impact_autonomy",
+        "agent_identity_and_delegation",
+        "context_egress_and_data_boundaries",
+        "measurement_red_team_and_threat_alignment"
+      ]
     }
   ],
   "commercialization_path": {
@@ -401,7 +512,7 @@
       "Hosted secure-context retrieval",
       "Connector trust and authorization conformance APIs",
       "Context signing and recertification",
-      "Run receipt storage and trust-center export"
+      "Run receipt storage, severe-risk approval receipts, and trust-center export"
     ],
     "enterprise_expansion": [
       "Tenant evidence ingestion",

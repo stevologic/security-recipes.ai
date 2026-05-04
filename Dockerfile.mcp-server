@@ -14,6 +14,7 @@ COPY requirements-mcp-server.txt /app/requirements-mcp-server.txt
 RUN pip install --no-cache-dir -r /app/requirements-mcp-server.txt
 
 COPY mcp_server.py /app/mcp_server.py
+COPY scripts /app/scripts
 COPY mcp-server.toml.example /app/mcp-server.toml.example
 COPY data/control-plane /app/data/control-plane
 COPY data/policy /app/data/policy

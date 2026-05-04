@@ -1,0 +1,469 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define a vendor-neutral telemetry contract for SecurityRecipes so agentic AI and MCP runs can be reconstructed from OpenTelemetry-shaped traces without leaking secrets, raw tenant context, or unredacted tool payloads into observability systems.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Detection Engineering, GRC, model risk, procurement security, and acquisition diligence teams",
+    "category": "Agentic AI telemetry contract and secure trace evidence layer",
+    "enterprise_promise": "SecurityRecipes makes agent observability reviewable: every governed run must emit enough trace, policy, context, egress, approval, receipt, and redaction evidence for enterprise reviewers to trust the run without reading transcripts.",
+    "why_now": "MCP and agent frameworks are standardizing tool calls, handoffs, and GenAI traces at the same time enterprises are discovering that raw prompts, tool arguments, and model outputs can become a new sensitive-data sink. A secure context layer needs a trace contract that is useful to defenders and safe for regulated environments."
+  },
+  "standards_alignment": [
+    {
+      "id": "opentelemetry-genai-semconv-1-41",
+      "name": "OpenTelemetry Semantic Conventions for Generative AI Systems",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/",
+      "coverage": "Maps SecurityRecipes runtime evidence to GenAI operations such as invoke_agent, execute_tool, retrieval, generate_content, model client calls, and provider-neutral span attributes."
+    },
+    {
+      "id": "opentelemetry-mcp-semconv-1-41",
+      "name": "OpenTelemetry Semantic Conventions for Model Context Protocol",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/",
+      "coverage": "Anchors MCP spans, JSON-RPC request identifiers, method names, session ids, protocol versions, transport attributes, and trace-context propagation through params._meta."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Requires protected resource metadata, OAuth resource indicators, token audience validation, PKCE, scope challenges, short-lived tokens, and token-passthrough denial evidence."
+    },
+    {
+      "id": "mcp-transports-2025-11-25",
+      "name": "Model Context Protocol Transports",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
+      "coverage": "Covers stdio and Streamable HTTP transport requirements, Origin validation, localhost binding, authentication expectations, and session behavior that must appear in trace evidence."
+    },
+    {
+      "id": "mcp-security-best-practices",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
+      "coverage": "Supports SSRF-safe discovery, redirect validation, private IP blocking, session hijack resistance, local server hardening, and auditability for MCP client and server deployments."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Maps telemetry evidence to Govern, Map, Measure, and Manage expectations for GAI data provenance, monitoring, risk response, and lifecycle controls."
+    },
+    {
+      "id": "cisa-ai-data-security-2025",
+      "name": "CISA AI Data Security Best Practices",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "coverage": "Frames telemetry as an AI data-security boundary where confidentiality, integrity, monitoring, and defensive detection must be balanced against sensitive-data minimization."
+    },
+    {
+      "id": "owasp-llm-top-10-2025",
+      "name": "OWASP Top 10 for LLM Applications 2025",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/",
+      "coverage": "Covers prompt injection, sensitive information disclosure, excessive agency, insecure output handling, supply-chain risk, and overreliance signals that trace contracts need to expose safely."
+    },
+    {
+      "id": "cisa-secure-by-design",
+      "name": "CISA Secure by Design",
+      "url": "https://www.cisa.gov/securebydesign",
+      "coverage": "Connects the telemetry contract to secure-by-design product evidence: secure defaults, logging, SSO/MFA-compatible operations, transparency, and measurable customer security outcomes."
+    }
+  ],
+  "telemetry_contract": {
+    "default_state": "untrusted_until_required_trace_fields_present",
+    "minimum_signal_classes": 8,
+    "minimum_required_attributes": 18,
+    "minimum_retention_days": 400,
+    "redaction_required_by_default": true,
+    "required_signal_classes": [
+      "agent_session",
+      "model_call",
+      "mcp_tool_call",
+      "context_retrieval",
+      "policy_decision",
+      "egress_decision",
+      "human_approval",
+      "verifier_result",
+      "incident_signal"
+    ],
+    "required_trace_attributes": [
+      "service.name",
+      "deployment.environment",
+      "trace_id",
+      "span_id",
+      "parent_span_id",
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "agent_class",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "gen_ai.operation.name",
+      "gen_ai.system",
+      "gen_ai.request.model",
+      "mcp.protocol.version",
+      "mcp.session.id",
+      "mcp.method.name",
+      "jsonrpc.request.id",
+      "network.transport",
+      "policy.decision",
+      "policy.pack_hash",
+      "context.package_hash",
+      "egress.decision",
+      "receipt_id",
+      "telemetry.redaction_state"
+    ],
+    "sensitive_opt_in_attributes": [
+      "gen_ai.prompt",
+      "gen_ai.completion",
+      "gen_ai.tool.call.arguments",
+      "gen_ai.tool.call.result",
+      "mcp.resource.uri",
+      "http.request.body",
+      "http.response.body"
+    ],
+    "prohibited_telemetry_fields": [
+      "raw_access_token",
+      "authorization_header",
+      "api_key",
+      "private_key",
+      "seed_phrase",
+      "unredacted_pii",
+      "customer_secret",
+      "cross_tenant_context"
+    ],
+    "required_runtime_links": [
+      "agentic_run_receipt_pack",
+      "agentic_measurement_probe_pack",
+      "mcp_gateway_policy",
+      "mcp_authorization_conformance",
+      "secure_context_trust_pack",
+      "context_egress_boundary_pack",
+      "agentic_incident_response_pack"
+    ]
+  },
+  "signal_classes": [
+    {
+      "id": "agent_session",
+      "title": "Agent Session Span",
+      "event_class": "agent.session",
+      "otel_span_name": "invoke_agent <agent_class>",
+      "required_attributes": [
+        "workflow_id",
+        "run_id",
+        "agent_id",
+        "agent_class",
+        "identity_id",
+        "tenant_id",
+        "correlation_id",
+        "receipt_id"
+      ],
+      "minimum_evidence": "Session span links the run receipt, identity, tenant, and workflow before any model or tool child span is trusted.",
+      "default_failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "model_call",
+      "title": "Model Call Span",
+      "event_class": "gen_ai.model_call",
+      "otel_span_name": "chat <model>",
+      "required_attributes": [
+        "gen_ai.operation.name",
+        "gen_ai.system",
+        "gen_ai.request.model",
+        "telemetry.redaction_state",
+        "policy.pack_hash"
+      ],
+      "minimum_evidence": "Model spans identify provider, model, operation, redaction state, and governing policy without storing raw prompts by default.",
+      "default_failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "mcp_tool_call",
+      "title": "MCP Tool Call Span",
+      "event_class": "mcp.tools.call",
+      "otel_span_name": "tools/call <tool>",
+      "required_attributes": [
+        "gen_ai.operation.name",
+        "gen_ai.tool.name",
+        "mcp.protocol.version",
+        "mcp.session.id",
+        "mcp.method.name",
+        "jsonrpc.request.id",
+        "network.transport",
+        "policy.decision",
+        "authorization.decision"
+      ],
+      "minimum_evidence": "MCP spans include JSON-RPC, session, protocol, transport, tool, policy, and authorization evidence before a tool result is trusted.",
+      "default_failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "context_retrieval",
+      "title": "Secure Context Retrieval Span",
+      "event_class": "secure_context.retrieval",
+      "otel_span_name": "retrieval secure-context",
+      "required_attributes": [
+        "context.source_ids",
+        "context.source_hashes",
+        "context.package_hash",
+        "context.retrieval_decision",
+        "poisoning_scan_state",
+        "telemetry.redaction_state"
+      ],
+      "minimum_evidence": "Retrieval spans must prove source hashes, package hash, poisoning scan state, and retrieval decision before retrieved content influences an agent.",
+      "default_failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "policy_decision",
+      "title": "Runtime Policy Decision Event",
+      "event_class": "policy.decision",
+      "otel_span_name": "policy decision",
+      "required_attributes": [
+        "policy.decision",
+        "policy.pack_hash",
+        "policy.rule_id",
+        "gate_phase",
+        "mcp.tool_namespace",
+        "mcp.tool_access_mode"
+      ],
+      "minimum_evidence": "Every policy decision records the policy pack hash, rule, gate phase, namespace, requested access mode, and allow/hold/deny/kill result.",
+      "default_failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "egress_decision",
+      "title": "Context Egress Decision Event",
+      "event_class": "context.egress",
+      "otel_span_name": "context egress decision",
+      "required_attributes": [
+        "egress.decision",
+        "egress.policy_hash",
+        "egress.destination_class",
+        "context.data_class",
+        "tenant_id",
+        "telemetry.redaction_state"
+      ],
+      "minimum_evidence": "Egress events prove the destination, data class, policy hash, tenant, and decision before context reaches a model, MCP server, telemetry sink, or public corpus.",
+      "default_failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "human_approval",
+      "title": "Human Approval Event",
+      "event_class": "human.approval",
+      "otel_span_name": "human approval",
+      "required_attributes": [
+        "approval.id",
+        "approval.actor",
+        "approval.system",
+        "approval.decision",
+        "approval.expires_at",
+        "risk_acceptance_id"
+      ],
+      "minimum_evidence": "Approval events link high-impact or held actions to a named approval system, actor, expiry, and optional risk acceptance record.",
+      "default_failure_decision": "hold_for_approval_evidence"
+    },
+    {
+      "id": "verifier_result",
+      "title": "Verifier Result Event",
+      "event_class": "verifier.result",
+      "otel_span_name": "verifier result",
+      "required_attributes": [
+        "verifier.id",
+        "verifier.result",
+        "verifier.artifact_hash",
+        "scenario_id",
+        "receipt_id"
+      ],
+      "minimum_evidence": "Verifier events bind tests, evals, red-team replay, or scanners back to the run receipt and artifact hash.",
+      "default_failure_decision": "hold_for_verifier_evidence"
+    },
+    {
+      "id": "incident_signal",
+      "title": "Agentic Incident Signal",
+      "event_class": "incident.signal",
+      "otel_span_name": "agentic incident signal",
+      "required_attributes": [
+        "incident_id",
+        "incident_class_id",
+        "severity_signal",
+        "containment_action_ids",
+        "replay_case_ids",
+        "correlation_id"
+      ],
+      "minimum_evidence": "Incident signals carry classification, severity, containment, replay, and correlation evidence so incidents do not require transcript archaeology.",
+      "default_failure_decision": "hold_for_forensics"
+    }
+  ],
+  "redaction_tiers": [
+    {
+      "id": "public_metadata",
+      "description": "Safe operational metadata such as workflow id, tool namespace, decision, and hashed artifact references.",
+      "allowed_in_default_telemetry": true
+    },
+    {
+      "id": "internal_metadata",
+      "description": "Tenant, service, repository, source ids, and approval references that require internal access controls and retention policy.",
+      "allowed_in_default_telemetry": true
+    },
+    {
+      "id": "sensitive_content",
+      "description": "Prompt text, model output, tool arguments, tool results, and retrieved context snippets that require explicit opt-in, redaction, and access-controlled retention.",
+      "allowed_in_default_telemetry": false
+    },
+    {
+      "id": "prohibited_secret",
+      "description": "Credentials, raw tokens, private keys, seed phrases, unredacted PII, and cross-tenant context that must kill the session if emitted.",
+      "allowed_in_default_telemetry": false
+    }
+  ],
+  "telemetry_checks": [
+    {
+      "id": "trace-context-propagation",
+      "class_id": "agent_session",
+      "title": "Trace context propagates across agent, model, MCP, and verifier spans",
+      "required_attributes": [
+        "trace_id",
+        "span_id",
+        "parent_span_id",
+        "correlation_id"
+      ],
+      "pass_conditions": [
+        "trace id and span id exist",
+        "child spans preserve parent linkage",
+        "correlation id links runtime decision and receipt evidence"
+      ],
+      "failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "mcp-jsonrpc-span-contract",
+      "class_id": "mcp_tool_call",
+      "title": "MCP tool span includes JSON-RPC, session, transport, and policy attributes",
+      "required_attributes": [
+        "mcp.method.name",
+        "jsonrpc.request.id",
+        "mcp.session.id",
+        "mcp.protocol.version",
+        "network.transport",
+        "gen_ai.tool.name",
+        "policy.decision"
+      ],
+      "pass_conditions": [
+        "MCP method name is low-cardinality",
+        "session id is present but not used as authentication",
+        "policy decision is linked to the tool call"
+      ],
+      "failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "raw-content-redaction",
+      "class_id": "model_call",
+      "title": "Raw prompt, completion, tool arguments, and tool results are absent or redacted",
+      "required_attributes": [
+        "telemetry.redaction_state"
+      ],
+      "pass_conditions": [
+        "sensitive opt-in attributes are absent by default",
+        "captured prompts or tool payloads are redacted",
+        "redaction state is explicit"
+      ],
+      "failure_decision": "deny_raw_sensitive_telemetry"
+    },
+    {
+      "id": "context-package-linkage",
+      "class_id": "context_retrieval",
+      "title": "Context retrieval links source hashes, poisoning scan, and package hash",
+      "required_attributes": [
+        "context.source_ids",
+        "context.source_hashes",
+        "context.package_hash",
+        "poisoning_scan_state",
+        "context.retrieval_decision"
+      ],
+      "pass_conditions": [
+        "source ids and hashes are present",
+        "poisoning scan state is recorded",
+        "retrieval decision is explicit"
+      ],
+      "failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "egress-boundary-linkage",
+      "class_id": "egress_decision",
+      "title": "Egress telemetry proves destination, data class, policy hash, and decision",
+      "required_attributes": [
+        "egress.decision",
+        "egress.policy_hash",
+        "egress.destination_class",
+        "context.data_class"
+      ],
+      "pass_conditions": [
+        "destination class is not implicit",
+        "data class is recorded",
+        "egress decision links to a policy hash"
+      ],
+      "failure_decision": "hold_for_trace_completion"
+    },
+    {
+      "id": "receipt-reconstruction",
+      "class_id": "verifier_result",
+      "title": "Verifier output can be reconstructed from receipt and artifact hashes",
+      "required_attributes": [
+        "receipt_id",
+        "verifier.id",
+        "verifier.result",
+        "verifier.artifact_hash"
+      ],
+      "pass_conditions": [
+        "receipt id is present",
+        "verifier identity is present",
+        "verifier artifact hash is present"
+      ],
+      "failure_decision": "hold_for_verifier_evidence"
+    },
+    {
+      "id": "incident-correlation",
+      "class_id": "incident_signal",
+      "title": "Incident signal links severity, containment, replay, and correlation evidence",
+      "required_attributes": [
+        "incident_id",
+        "incident_class_id",
+        "severity_signal",
+        "containment_action_ids",
+        "replay_case_ids",
+        "correlation_id"
+      ],
+      "pass_conditions": [
+        "incident class is registered",
+        "containment and replay identifiers are present",
+        "correlation id links incident, run, and receipt evidence"
+      ],
+      "failure_decision": "hold_for_forensics"
+    },
+    {
+      "id": "secret-telemetry-kill",
+      "class_id": "policy_decision",
+      "title": "Secret or cross-tenant telemetry kills the session",
+      "required_attributes": [
+        "telemetry.redaction_state",
+        "policy.decision"
+      ],
+      "pass_conditions": [
+        "prohibited fields are absent",
+        "redaction state is explicit",
+        "kill decision is emitted when prohibited telemetry appears"
+      ],
+      "failure_decision": "kill_session_on_secret_telemetry"
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can make agentic telemetry useful for audit and detection without turning observability into a prompt, tool-argument, or secret exfiltration sink.",
+    "default_questions_answered": [
+      "Which trace fields must exist before an agent run is trusted?",
+      "Which OpenTelemetry and MCP attributes should an enterprise collector require?",
+      "Which prompt, output, tool argument, and tool result fields are opt-in only?",
+      "Which telemetry findings force hold, deny, or kill-session decisions?",
+      "Which runtime fields connect traces to run receipts, context packs, egress decisions, and incidents?"
+    ],
+    "recommended_first_use": "Attach the generated telemetry contract to AI platform logging standards, MCP gateway requirements, SIEM onboarding, procurement security reviews, and acquisition diligence.",
+    "sales_motion": "Lead with open trace contracts, then sell hosted collector policy, redaction verification, trace-to-receipt retention, SIEM export, and agentic incident evidence vaulting."
+  },
+  "commercialization_path": {
+    "open_layer": "Public telemetry contract, generated evidence pack, deterministic evaluator, docs, and MCP tools for teams standardizing agent and MCP traces.",
+    "team_layer": "Customer-specific collector config, private attribute allowlists, redaction tests, retention matrices, and SIEM field mappings.",
+    "enterprise_layer": "Hosted trace ingestion, policy enforcement, redaction verification, receipt vaulting, SIEM/SOAR export, incident reconstruction, and trust-center telemetry APIs.",
+    "acquirer_value": "A frontier lab, cloud platform, or security vendor gets a standards-aligned telemetry control plane that makes agentic AI easier to monitor, approve, and sell into regulated enterprises."
+  }
+}

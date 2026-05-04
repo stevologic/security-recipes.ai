@@ -1,0 +1,806 @@
+{
+  "decision_contract": {
+    "decisions": [
+      {
+        "decision": "allow_metadata_handoff",
+        "meaning": "Only task metadata, workflow IDs, source IDs, source hashes, and approval-required flags cross the boundary."
+      },
+      {
+        "decision": "allow_cited_evidence_handoff",
+        "meaning": "Redacted, cited evidence may cross the boundary with source IDs, hashes, and egress decision evidence."
+      },
+      {
+        "decision": "allow_approved_handoff",
+        "meaning": "A higher-risk handoff may proceed because explicit approval, trace correlation, and delegated authority evidence are present."
+      },
+      {
+        "decision": "hold_for_redaction_or_approval",
+        "meaning": "The handoff is potentially valid but requires redaction, DPA or residency checks, signed agent identity, or human approval."
+      },
+      {
+        "decision": "deny_untrusted_agent_handoff",
+        "meaning": "The target agent, protocol, authentication, or trust tier is not approved for the requested payload or capability."
+      },
+      {
+        "decision": "deny_unregistered_handoff",
+        "meaning": "The workflow, protocol, or handoff profile is not registered."
+      },
+      {
+        "decision": "kill_session_on_secret_handoff",
+        "meaning": "The handoff attempted to move credential material, raw tokens, private keys, signing material, internal memory, or hidden instructions."
+      }
+    ],
+    "default_state": "deny_unregistered_handoff",
+    "global_rules": [
+      "Agent-to-agent payloads must be treated as egress events, not chat messages.",
+      "A remote agent is opaque; do not assume its memory, tools, model, or downstream connectors are visible to SecurityRecipes.",
+      "Handoffs may carry cited conclusions, source IDs, source hashes, workflow IDs, approval state, and correlation IDs by default.",
+      "Handoffs must not carry internal memory, raw tool traces, hidden prompts, unrestricted customer logs, credentials, or live signing material.",
+      "High-impact capabilities require explicit human approval and a scoped identity or delegated authority record before handoff."
+    ],
+    "high_impact_capabilities": [
+      "write_branch",
+      "ticket_write",
+      "approval_decision",
+      "production_change",
+      "execute_code",
+      "funds_movement",
+      "identity_delegation",
+      "external_network_call"
+    ],
+    "minimum_handoff_profiles": 4,
+    "minimum_protocol_surfaces": 4,
+    "prohibited_data_classes": [
+      "private_key",
+      "seed_phrase",
+      "raw_access_token",
+      "production_credential",
+      "secret_or_token",
+      "unredacted_pii_bulk",
+      "live_signing_material"
+    ],
+    "prohibited_payload_fields": [
+      "private_key",
+      "seed_phrase",
+      "raw_access_token",
+      "production_credential",
+      "credential_material",
+      "internal_memory",
+      "raw_tool_trace",
+      "hidden_system_prompt",
+      "tenant_ticket_body",
+      "unredacted_log_excerpt",
+      "unrestricted_customer_log",
+      "live_signing_material"
+    ],
+    "runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "source_agent_id",
+      "target_agent_class",
+      "protocol",
+      "handoff_profile_id",
+      "payload_fields",
+      "data_classes",
+      "requested_capabilities",
+      "target_trust_tier",
+      "agent_card_signed",
+      "authentication_schemes",
+      "resource_indicator",
+      "token_audience",
+      "human_approval_record",
+      "correlation_id"
+    ],
+    "sensitive_data_classes": [
+      "tenant_runtime_context",
+      "customer_ticket_summary",
+      "redacted_log_excerpt",
+      "personal_data_minimized",
+      "approval_record"
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes governs agent-to-agent coordination as a boundary decision, not an informal prompt exchange.",
+    "default_questions_answered": [
+      "Which protocols may carry agent handoffs?",
+      "Which payload fields are allowed by profile?",
+      "Which data classes trigger redaction, approval, denial, or session termination?",
+      "Which high-impact delegated capabilities require approval?",
+      "Which evidence proves workflow, source, identity, and egress state before handoff?"
+    ],
+    "recommended_first_use": "Attach this pack to A2A pilot intake, MCP gateway review, provider-native subagent rollout, and multi-agent workflow architecture reviews.",
+    "sales_motion": "Lead with open handoff policies, then sell hosted agent-card trust, handoff replay, tenant evidence ingestion, signed approval receipts, and protocol gateway enforcement."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "handoff_boundary_summary": {
+    "default_state": "deny_unregistered_handoff",
+    "failure_count": 0,
+    "profile_count": 4,
+    "profile_decision_counts": {
+      "allow_approved_handoff": 1,
+      "allow_cited_evidence_handoff": 1,
+      "allow_metadata_handoff": 1,
+      "kill_session_on_secret_handoff": 1
+    },
+    "protocol_count": 4,
+    "risk_tier_counts": {
+      "high": 1,
+      "low": 1,
+      "medium": 1,
+      "prohibited": 1
+    },
+    "workflow_count": 8
+  },
+  "handoff_profiles": [
+    {
+      "allowed_data_classes": [
+        "curated_security_guidance",
+        "generated_policy_evidence",
+        "redacted_log_excerpt",
+        "customer_ticket_summary",
+        "approval_record"
+      ],
+      "allowed_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "run_id",
+        "source_ids",
+        "source_hashes",
+        "evidence_summary",
+        "policy_decisions",
+        "egress_decision",
+        "approval_record_id",
+        "delegated_authority",
+        "identity_id",
+        "receipt_template_id",
+        "correlation_id"
+      ],
+      "allowed_protocols": [
+        "mcp_tool_call",
+        "a2a_task_delegation",
+        "provider_native_subagent",
+        "human_approval_bridge"
+      ],
+      "default_decision": "allow_approved_handoff",
+      "description": "Allows a delegated agent to receive high-impact task context only after explicit approval, scoped identity, and run-receipt evidence are present.",
+      "profile_hash": "d79fb0b6393178d5b457f44db2842ab90b6e1866d67cabdeaa36dd4ed69c4bae",
+      "profile_id": "approval-gated",
+      "required_controls": [
+        "payload_minimized",
+        "source_hashes_present",
+        "human_approval_record",
+        "delegated_authority_record",
+        "run_receipt_required"
+      ],
+      "required_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "source_ids",
+        "source_hashes",
+        "approval_record_id",
+        "delegated_authority",
+        "correlation_id"
+      ],
+      "risk_tier": "high",
+      "title": "Approval-gated handoff"
+    },
+    {
+      "allowed_data_classes": [
+        "curated_security_guidance",
+        "generated_policy_evidence",
+        "redacted_log_excerpt",
+        "customer_ticket_summary",
+        "approval_record"
+      ],
+      "allowed_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "run_id",
+        "source_ids",
+        "source_hashes",
+        "evidence_summary",
+        "policy_decisions",
+        "egress_decision",
+        "redaction_state",
+        "poisoning_scan_state",
+        "approval_required",
+        "correlation_id"
+      ],
+      "allowed_protocols": [
+        "mcp_tool_call",
+        "a2a_task_delegation",
+        "provider_native_subagent"
+      ],
+      "default_decision": "allow_cited_evidence_handoff",
+      "description": "Allows redacted evidence snippets when source IDs, source hashes, egress policy, and context-poisoning status are preserved.",
+      "profile_hash": "5cc688621c37ba3d7aa974a4450110a4386b58e3f816419d2c9f8f1557a59e1a",
+      "profile_id": "cited-evidence",
+      "required_controls": [
+        "payload_minimized",
+        "source_hashes_present",
+        "egress_decision",
+        "redaction_state_declared",
+        "poisoning_scan_state_declared"
+      ],
+      "required_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "source_ids",
+        "source_hashes",
+        "evidence_summary",
+        "egress_decision",
+        "correlation_id"
+      ],
+      "risk_tier": "medium",
+      "title": "Cited evidence handoff"
+    },
+    {
+      "allowed_data_classes": [
+        "curated_security_guidance",
+        "generated_policy_evidence",
+        "public_reference",
+        "approval_record"
+      ],
+      "allowed_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "run_id",
+        "source_ids",
+        "source_hashes",
+        "policy_decisions",
+        "approval_required",
+        "correlation_id"
+      ],
+      "allowed_protocols": [
+        "mcp_tool_call",
+        "a2a_task_delegation",
+        "provider_native_subagent",
+        "human_approval_bridge"
+      ],
+      "default_decision": "allow_metadata_handoff",
+      "description": "Safe default for remote-agent coordination: task summary, workflow ID, source IDs, source hashes, correlation ID, and approval-required flag only.",
+      "profile_hash": "f903608272b849ef472f03412639906b79e97e5a3b1868166004b4b3e82d5bb8",
+      "profile_id": "metadata-only",
+      "required_controls": [
+        "payload_minimized",
+        "source_hashes_present",
+        "trace_context_propagated"
+      ],
+      "required_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "source_ids",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "risk_tier": "low",
+      "title": "Metadata-only handoff"
+    },
+    {
+      "allowed_data_classes": [],
+      "allowed_payload_fields": [],
+      "allowed_protocols": [],
+      "default_decision": "kill_session_on_secret_handoff",
+      "description": "Explicitly forbidden handoff for credential material, internal memory, hidden prompts, raw tool traces, or unrestricted customer data.",
+      "profile_hash": "b088c9fa0db6507392c0c208c80e0fec85005f35e86b6015d41bf245e36c5552",
+      "profile_id": "prohibited-context",
+      "required_controls": [
+        "deny_retrieval",
+        "kill_session_on_access_attempt",
+        "incident_evidence_required"
+      ],
+      "required_payload_fields": [],
+      "risk_tier": "prohibited",
+      "title": "Prohibited context handoff"
+    }
+  ],
+  "intent": "Define the SecurityRecipes agent handoff boundary for MCP, A2A, provider-native subagents, and human approval bridges so multi-agent workflows can exchange only approved context metadata, cited evidence, and explicit approval state while preserving least privilege and auditability.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, AppSec, GRC, procurement security, vendor-risk, model-risk, and acquisition diligence teams",
+    "category": "Agent-to-agent handoff boundary and protocol trust evidence",
+    "enterprise_promise": "SecurityRecipes can decide whether a proposed agent handoff is metadata-only, cited-evidence, approval-gated, denied, or session-ending before context crosses an agent, protocol, tenant, or organization boundary.",
+    "why_now": "Enterprises are standardizing on MCP for agent-to-tool access and A2A for agent-to-agent coordination. The scarce control surface is no longer only which tool an agent can call; it is whether delegated agents receive the minimum context, authority, identity, and evidence needed for a task."
+  },
+  "protocol_surfaces": [
+    {
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "approved_vendor",
+        "tenant_controlled"
+      ],
+      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange.",
+      "protocol_hash": "58754c8b58ea96f896179f88be4d02f023116eef0298ed544b3cc046e8cd1e73",
+      "protocol_id": "a2a_task_delegation",
+      "required_controls": [
+        "https_required",
+        "server_identity_verified",
+        "agent_card_reviewed",
+        "skill_scope_authorized",
+        "trace_context_propagated",
+        "payload_minimized"
+      ],
+      "title": "A2A task-delegation boundary"
+    },
+    {
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "tenant_controlled"
+      ],
+      "description": "An agent asks a human or review system to approve a high-impact handoff or delegated action.",
+      "protocol_hash": "e2be24cd4b40b5fbad7e59ae848221fbd619f05336befaf5cc03b88020866302",
+      "protocol_id": "human_approval_bridge",
+      "required_controls": [
+        "approval_record_id",
+        "separation_of_duties",
+        "structured_approval_prompt",
+        "reviewer_identity",
+        "receipt_attachment"
+      ],
+      "title": "Human approval bridge"
+    },
+    {
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "approved_vendor",
+        "tenant_controlled"
+      ],
+      "description": "An agent delegates work through an MCP server or connector namespace.",
+      "protocol_hash": "300a5f3ee486d9431746cf50eda936a0d7eb5ce75b070b7df97d659368aa59a7",
+      "protocol_id": "mcp_tool_call",
+      "required_controls": [
+        "resource_indicator",
+        "token_audience_validation",
+        "token_passthrough_denied",
+        "connector_trust_record",
+        "egress_decision"
+      ],
+      "title": "MCP tool-call boundary"
+    },
+    {
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "approved_vendor"
+      ],
+      "description": "A model or agent platform invokes a subagent, background task, computer-use worker, or tool-using helper through provider-native orchestration.",
+      "protocol_hash": "9de7cd36c5d930062c9051c356726f3eb93e753bcbaf0c76e3db30658508d123",
+      "protocol_id": "provider_native_subagent",
+      "required_controls": [
+        "provider_contract_reviewed",
+        "tool_scope_declared",
+        "memory_boundary_declared",
+        "egress_decision",
+        "run_receipt_required"
+      ],
+      "title": "Provider-native subagent boundary"
+    }
+  ],
+  "residual_risks": [
+    {
+      "risk": "The open pack cannot prove a customer remote agent actually enforces its advertised Agent Card.",
+      "treatment": "Production deployments should add signed Agent Cards, tenant-side allowlists, gateway telemetry, and replayable handoff receipts."
+    },
+    {
+      "risk": "A metadata-only handoff can still be misinterpreted by a capable remote agent.",
+      "treatment": "Keep handoff payloads structured, preserve source hashes, attach policy decisions, and run agent-specific eval replay before trust-tier promotion."
+    },
+    {
+      "risk": "A2A, MCP, and provider-native orchestration can compose into longer chains than one gateway can inspect.",
+      "treatment": "Propagate correlation IDs, require per-hop boundary decisions, and deny handoffs that omit prior hop evidence."
+    }
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "agent_handoff_boundary_model": {
+      "path": "data/assurance/agent-handoff-boundary-model.json",
+      "sha256": "b87dd9621a4bfed1440cde41448495d54b6e8cd387588f67471a3f3a25b7c63b"
+    },
+    "agent_identity_ledger": {
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
+    },
+    "agentic_threat_radar": {
+      "path": "data/evidence/agentic-threat-radar.json",
+      "sha256": "dc1dfb232add57428f9f531d9c1d6668810d0a614226787e4fcc99dfbd904113"
+    },
+    "context_egress_boundary_pack": {
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+    },
+    "secure_context_trust_pack": {
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "sha256": "76ffc626f8509b6426c785fb55958be02adfb15d1033a64d053e83646ba48790"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Interoperable agent protocols, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent interactions.",
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative"
+    },
+    {
+      "coverage": "Deployment controls that constrain and monitor agent access, indirect prompt injection, data poisoning, misaligned actions, and measurement of agent security.",
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+    },
+    {
+      "coverage": "OAuth 2.1, protected resource metadata, client ID metadata documents, resource indicators, token audience validation, PKCE, and token-passthrough denial.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "OpenID Connect discovery, incremental scope consent, Client ID Metadata Documents, tool naming, task support, and updated security best practices.",
+      "id": "mcp-key-changes-2025-11-25",
+      "name": "Model Context Protocol 2025-11-25 Key Changes",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog"
+    },
+    {
+      "coverage": "A2A TLS, HTTP-layer authentication, skill-based authorization, data minimization, tracing, auditing, API management, and opaque remote-agent execution.",
+      "id": "a2a-enterprise-ready-2026",
+      "name": "A2A Enterprise Implementation Guidance",
+      "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/"
+    },
+    {
+      "coverage": "A2A production adoption, signed Agent Cards, cloud integration, multi-tenant security flows, and complementary MCP/A2A architecture.",
+      "id": "linux-foundation-a2a-production-2026",
+      "name": "A2A Production-Ready Open Standard Milestone",
+      "url": "https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year"
+    },
+    {
+      "coverage": "Goal hijack, tool misuse, identity abuse, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, and containment.",
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+    }
+  ],
+  "threat_signal_coverage": [
+    {
+      "priority": "critical",
+      "signal_id": "agent-identity-explosion",
+      "strategic_score": 93,
+      "title": "Agent identities are becoming a new non-human identity class"
+    },
+    {
+      "priority": "critical",
+      "signal_id": "agent-protocol-handoff-boundaries",
+      "strategic_score": 98,
+      "title": "Agent handoffs are becoming a protocol trust boundary"
+    },
+    {
+      "priority": "high",
+      "signal_id": "ai-data-security-and-provenance",
+      "strategic_score": 88,
+      "title": "AI data security guidance is converging on provenance, integrity, and monitoring"
+    },
+    {
+      "priority": "high",
+      "signal_id": "context-over-sharing-and-memory-poisoning",
+      "strategic_score": 93,
+      "title": "Context over-sharing and memory poisoning make retrieval policy a product category"
+    },
+    {
+      "priority": "high",
+      "signal_id": "human-approval-and-tool-safeguards",
+      "strategic_score": 85,
+      "title": "Human approval is shifting from UX prompt to policy-enforced control"
+    },
+    {
+      "priority": "critical",
+      "signal_id": "indirect-prompt-injection-social-engineering",
+      "strategic_score": 98,
+      "title": "Indirect prompt injection is now social engineering against agents"
+    },
+    {
+      "priority": "critical",
+      "signal_id": "mcp-token-passthrough-and-scope-creep",
+      "strategic_score": 95,
+      "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
+    }
+  ],
+  "workflow_handoff_map": [
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "devin"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence",
+        "approval-gated"
+      ],
+      "context_package_hash": "57f645643f721b9cdfd41f432712908970674651a63bbff5d106b63c7c0ec2a0",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "dbe427420d1f3ed8cff135d727d159b5df57809913070fe447ae8f7540a4ffdd",
+      "identity_ids": [
+        "sr-agent::artifact-cache-quarantine::claude",
+        "sr-agent::artifact-cache-quarantine::codex",
+        "sr-agent::artifact-cache-quarantine::devin"
+      ],
+      "maturity_stage": "crawl",
+      "public_path": "/security-remediation/artifact-cache-purge/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "cursor",
+        "devin",
+        "github_copilot"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence"
+      ],
+      "context_package_hash": "a4a1912b833508945c0fc53ebdc02c3ffd46a83602a6e81e6f995de7acefd485",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "71b09e53adae52cc909d622313e883af2e43a85836d7c9b8e717b8fb39359249",
+      "identity_ids": [
+        "sr-agent::base-image-remediation::claude",
+        "sr-agent::base-image-remediation::codex",
+        "sr-agent::base-image-remediation::cursor",
+        "sr-agent::base-image-remediation::devin",
+        "sr-agent::base-image-remediation::github_copilot"
+      ],
+      "maturity_stage": "walk",
+      "public_path": "/security-remediation/base-images/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "cursor",
+        "github_copilot"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence"
+      ],
+      "context_package_hash": "259063db40ffa7014da193875e569323913da7a0d05657d510ba42a5b1b36887",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "d8adf24aa36b0c0bb4092a6262690c5217f74c6b5404a315621ef4b9e6bc7e00",
+      "identity_ids": [
+        "sr-agent::classic-vulnerable-defaults::claude",
+        "sr-agent::classic-vulnerable-defaults::codex",
+        "sr-agent::classic-vulnerable-defaults::cursor",
+        "sr-agent::classic-vulnerable-defaults::github_copilot"
+      ],
+      "maturity_stage": "walk",
+      "public_path": "/security-remediation/classic-vulnerable-defaults/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "cursor"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence"
+      ],
+      "context_package_hash": "99b3a9595e30bfdc5d0ed1df53e4de38f806907f21d5ec99af47e01d3f37e527",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "9017117d2b7a20d5c504bc081fafa6f97b79cf86a743f9e7642232f169b3ce62",
+      "identity_ids": [
+        "sr-agent::crypto-payment-security::claude",
+        "sr-agent::crypto-payment-security::codex",
+        "sr-agent::crypto-payment-security::cursor"
+      ],
+      "maturity_stage": "crawl",
+      "public_path": "/security-remediation/crypto-payments/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "cursor"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence"
+      ],
+      "context_package_hash": "5b29dbba6de1cb416c5c6719363197cb2a949ffd56ed79d7515a6581d50b57d1",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "8b243ba912cdd2a36f2cb9a6e5366a27abbdb83fb6cc897a2f17d142c67fbe30",
+      "identity_ids": [
+        "sr-agent::defi-blockchain-security::claude",
+        "sr-agent::defi-blockchain-security::codex",
+        "sr-agent::defi-blockchain-security::cursor"
+      ],
+      "maturity_stage": "crawl",
+      "public_path": "/security-remediation/defi-blockchain/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    },
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "cursor",
+        "github_copilot"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence"
+      ],
+      "context_package_hash": "354528a16e2271a68e57b8171e5646e86bf61910780730ad369bba6ea2e11070",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "9a65a7b7b045108b27bcf6d383ef58bbd69e4cad6c61a1b08be08ccc535e93cc",
+      "identity_ids": [
+        "sr-agent::sast-finding-remediation::claude",
+        "sr-agent::sast-finding-remediation::codex",
+        "sr-agent::sast-finding-remediation::cursor",
+        "sr-agent::sast-finding-remediation::github_copilot"
+      ],
+      "maturity_stage": "crawl",
+      "public_path": "/security-remediation/sast-findings/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "cursor",
+        "devin",
+        "github_copilot"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence"
+      ],
+      "context_package_hash": "d65ba4419af71adb16c60ceef959e603f7441c987e768acbc026cce7cab72f6e",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "50d90e47c9cf159117d6b78687263ef16c341d785a4915141ede2f9034b71ac0",
+      "identity_ids": [
+        "sr-agent::sensitive-data-remediation::claude",
+        "sr-agent::sensitive-data-remediation::codex",
+        "sr-agent::sensitive-data-remediation::cursor",
+        "sr-agent::sensitive-data-remediation::devin",
+        "sr-agent::sensitive-data-remediation::github_copilot"
+      ],
+      "maturity_stage": "walk",
+      "public_path": "/security-remediation/sensitive-data/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "agent_classes": [
+        "claude",
+        "codex",
+        "cursor",
+        "devin",
+        "github_copilot"
+      ],
+      "approved_profile_ids": [
+        "metadata-only",
+        "cited-evidence"
+      ],
+      "context_package_hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
+      "default_decision": "deny_unregistered_handoff",
+      "egress_policy_hash": "c0abb42357dfae407d9f5ba4d13b4b62ae5bd079aab02c82761b42733813c0ff",
+      "identity_ids": [
+        "sr-agent::vulnerable-dependency-remediation::claude",
+        "sr-agent::vulnerable-dependency-remediation::codex",
+        "sr-agent::vulnerable-dependency-remediation::cursor",
+        "sr-agent::vulnerable-dependency-remediation::devin",
+        "sr-agent::vulnerable-dependency-remediation::github_copilot"
+      ],
+      "maturity_stage": "walk",
+      "public_path": "/security-remediation/vulnerable-dependencies/",
+      "required_runtime_evidence": [
+        "workflow_id",
+        "run_id",
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "payload_fields",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "status": "active",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    }
+  ]
+}

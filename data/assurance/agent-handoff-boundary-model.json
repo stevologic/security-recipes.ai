@@ -1,0 +1,391 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define the SecurityRecipes agent handoff boundary for MCP, A2A, provider-native subagents, and human approval bridges so multi-agent workflows can exchange only approved context metadata, cited evidence, and explicit approval state while preserving least privilege and auditability.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, AppSec, GRC, procurement security, vendor-risk, model-risk, and acquisition diligence teams",
+    "category": "Agent-to-agent handoff boundary and protocol trust evidence",
+    "enterprise_promise": "SecurityRecipes can decide whether a proposed agent handoff is metadata-only, cited-evidence, approval-gated, denied, or session-ending before context crosses an agent, protocol, tenant, or organization boundary.",
+    "why_now": "Enterprises are standardizing on MCP for agent-to-tool access and A2A for agent-to-agent coordination. The scarce control surface is no longer only which tool an agent can call; it is whether delegated agents receive the minimum context, authority, identity, and evidence needed for a task."
+  },
+  "standards_alignment": [
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "NIST AI Agent Standards Initiative",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "coverage": "Interoperable agent protocols, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent interactions."
+    },
+    {
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "coverage": "Deployment controls that constrain and monitor agent access, indirect prompt injection, data poisoning, misaligned actions, and measurement of agent security."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "OAuth 2.1, protected resource metadata, client ID metadata documents, resource indicators, token audience validation, PKCE, and token-passthrough denial."
+    },
+    {
+      "id": "mcp-key-changes-2025-11-25",
+      "name": "Model Context Protocol 2025-11-25 Key Changes",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
+      "coverage": "OpenID Connect discovery, incremental scope consent, Client ID Metadata Documents, tool naming, task support, and updated security best practices."
+    },
+    {
+      "id": "a2a-enterprise-ready-2026",
+      "name": "A2A Enterprise Implementation Guidance",
+      "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/",
+      "coverage": "A2A TLS, HTTP-layer authentication, skill-based authorization, data minimization, tracing, auditing, API management, and opaque remote-agent execution."
+    },
+    {
+      "id": "linux-foundation-a2a-production-2026",
+      "name": "A2A Production-Ready Open Standard Milestone",
+      "url": "https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year",
+      "coverage": "A2A production adoption, signed Agent Cards, cloud integration, multi-tenant security flows, and complementary MCP/A2A architecture."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Goal hijack, tool misuse, identity abuse, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, and containment."
+    }
+  ],
+  "decision_contract": {
+    "default_state": "deny_unregistered_handoff",
+    "minimum_handoff_profiles": 4,
+    "minimum_protocol_surfaces": 4,
+    "runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "source_agent_id",
+      "target_agent_class",
+      "protocol",
+      "handoff_profile_id",
+      "payload_fields",
+      "data_classes",
+      "requested_capabilities",
+      "target_trust_tier",
+      "agent_card_signed",
+      "authentication_schemes",
+      "resource_indicator",
+      "token_audience",
+      "human_approval_record",
+      "correlation_id"
+    ],
+    "prohibited_payload_fields": [
+      "private_key",
+      "seed_phrase",
+      "raw_access_token",
+      "production_credential",
+      "credential_material",
+      "internal_memory",
+      "raw_tool_trace",
+      "hidden_system_prompt",
+      "tenant_ticket_body",
+      "unredacted_log_excerpt",
+      "unrestricted_customer_log",
+      "live_signing_material"
+    ],
+    "sensitive_data_classes": [
+      "tenant_runtime_context",
+      "customer_ticket_summary",
+      "redacted_log_excerpt",
+      "personal_data_minimized",
+      "approval_record"
+    ],
+    "prohibited_data_classes": [
+      "private_key",
+      "seed_phrase",
+      "raw_access_token",
+      "production_credential",
+      "secret_or_token",
+      "unredacted_pii_bulk",
+      "live_signing_material"
+    ],
+    "high_impact_capabilities": [
+      "write_branch",
+      "ticket_write",
+      "approval_decision",
+      "production_change",
+      "execute_code",
+      "funds_movement",
+      "identity_delegation",
+      "external_network_call"
+    ],
+    "decisions": [
+      {
+        "decision": "allow_metadata_handoff",
+        "meaning": "Only task metadata, workflow IDs, source IDs, source hashes, and approval-required flags cross the boundary."
+      },
+      {
+        "decision": "allow_cited_evidence_handoff",
+        "meaning": "Redacted, cited evidence may cross the boundary with source IDs, hashes, and egress decision evidence."
+      },
+      {
+        "decision": "allow_approved_handoff",
+        "meaning": "A higher-risk handoff may proceed because explicit approval, trace correlation, and delegated authority evidence are present."
+      },
+      {
+        "decision": "hold_for_redaction_or_approval",
+        "meaning": "The handoff is potentially valid but requires redaction, DPA or residency checks, signed agent identity, or human approval."
+      },
+      {
+        "decision": "deny_untrusted_agent_handoff",
+        "meaning": "The target agent, protocol, authentication, or trust tier is not approved for the requested payload or capability."
+      },
+      {
+        "decision": "deny_unregistered_handoff",
+        "meaning": "The workflow, protocol, or handoff profile is not registered."
+      },
+      {
+        "decision": "kill_session_on_secret_handoff",
+        "meaning": "The handoff attempted to move credential material, raw tokens, private keys, signing material, internal memory, or hidden instructions."
+      }
+    ],
+    "global_rules": [
+      "Agent-to-agent payloads must be treated as egress events, not chat messages.",
+      "A remote agent is opaque; do not assume its memory, tools, model, or downstream connectors are visible to SecurityRecipes.",
+      "Handoffs may carry cited conclusions, source IDs, source hashes, workflow IDs, approval state, and correlation IDs by default.",
+      "Handoffs must not carry internal memory, raw tool traces, hidden prompts, unrestricted customer logs, credentials, or live signing material.",
+      "High-impact capabilities require explicit human approval and a scoped identity or delegated authority record before handoff."
+    ]
+  },
+  "protocol_surfaces": [
+    {
+      "id": "mcp_tool_call",
+      "title": "MCP tool-call boundary",
+      "description": "An agent delegates work through an MCP server or connector namespace.",
+      "required_controls": [
+        "resource_indicator",
+        "token_audience_validation",
+        "token_passthrough_denied",
+        "connector_trust_record",
+        "egress_decision"
+      ],
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "approved_vendor",
+        "tenant_controlled"
+      ]
+    },
+    {
+      "id": "a2a_task_delegation",
+      "title": "A2A task-delegation boundary",
+      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange.",
+      "required_controls": [
+        "https_required",
+        "server_identity_verified",
+        "agent_card_reviewed",
+        "skill_scope_authorized",
+        "trace_context_propagated",
+        "payload_minimized"
+      ],
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "approved_vendor",
+        "tenant_controlled"
+      ]
+    },
+    {
+      "id": "provider_native_subagent",
+      "title": "Provider-native subagent boundary",
+      "description": "A model or agent platform invokes a subagent, background task, computer-use worker, or tool-using helper through provider-native orchestration.",
+      "required_controls": [
+        "provider_contract_reviewed",
+        "tool_scope_declared",
+        "memory_boundary_declared",
+        "egress_decision",
+        "run_receipt_required"
+      ],
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "approved_vendor"
+      ]
+    },
+    {
+      "id": "human_approval_bridge",
+      "title": "Human approval bridge",
+      "description": "An agent asks a human or review system to approve a high-impact handoff or delegated action.",
+      "required_controls": [
+        "approval_record_id",
+        "separation_of_duties",
+        "structured_approval_prompt",
+        "reviewer_identity",
+        "receipt_attachment"
+      ],
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "tenant_controlled"
+      ]
+    }
+  ],
+  "handoff_profiles": [
+    {
+      "id": "metadata-only",
+      "title": "Metadata-only handoff",
+      "risk_tier": "low",
+      "description": "Safe default for remote-agent coordination: task summary, workflow ID, source IDs, source hashes, correlation ID, and approval-required flag only.",
+      "allowed_protocols": [
+        "mcp_tool_call",
+        "a2a_task_delegation",
+        "provider_native_subagent",
+        "human_approval_bridge"
+      ],
+      "required_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "source_ids",
+        "source_hashes",
+        "correlation_id"
+      ],
+      "allowed_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "run_id",
+        "source_ids",
+        "source_hashes",
+        "policy_decisions",
+        "approval_required",
+        "correlation_id"
+      ],
+      "allowed_data_classes": [
+        "curated_security_guidance",
+        "generated_policy_evidence",
+        "public_reference",
+        "approval_record"
+      ],
+      "required_controls": [
+        "payload_minimized",
+        "source_hashes_present",
+        "trace_context_propagated"
+      ]
+    },
+    {
+      "id": "cited-evidence",
+      "title": "Cited evidence handoff",
+      "risk_tier": "medium",
+      "description": "Allows redacted evidence snippets when source IDs, source hashes, egress policy, and context-poisoning status are preserved.",
+      "allowed_protocols": [
+        "mcp_tool_call",
+        "a2a_task_delegation",
+        "provider_native_subagent"
+      ],
+      "required_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "source_ids",
+        "source_hashes",
+        "evidence_summary",
+        "egress_decision",
+        "correlation_id"
+      ],
+      "allowed_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "run_id",
+        "source_ids",
+        "source_hashes",
+        "evidence_summary",
+        "policy_decisions",
+        "egress_decision",
+        "redaction_state",
+        "poisoning_scan_state",
+        "approval_required",
+        "correlation_id"
+      ],
+      "allowed_data_classes": [
+        "curated_security_guidance",
+        "generated_policy_evidence",
+        "redacted_log_excerpt",
+        "customer_ticket_summary",
+        "approval_record"
+      ],
+      "required_controls": [
+        "payload_minimized",
+        "source_hashes_present",
+        "egress_decision",
+        "redaction_state_declared",
+        "poisoning_scan_state_declared"
+      ]
+    },
+    {
+      "id": "approval-gated",
+      "title": "Approval-gated handoff",
+      "risk_tier": "high",
+      "description": "Allows a delegated agent to receive high-impact task context only after explicit approval, scoped identity, and run-receipt evidence are present.",
+      "allowed_protocols": [
+        "mcp_tool_call",
+        "a2a_task_delegation",
+        "provider_native_subagent",
+        "human_approval_bridge"
+      ],
+      "required_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "source_ids",
+        "source_hashes",
+        "approval_record_id",
+        "delegated_authority",
+        "correlation_id"
+      ],
+      "allowed_payload_fields": [
+        "task_summary",
+        "workflow_id",
+        "run_id",
+        "source_ids",
+        "source_hashes",
+        "evidence_summary",
+        "policy_decisions",
+        "egress_decision",
+        "approval_record_id",
+        "delegated_authority",
+        "identity_id",
+        "receipt_template_id",
+        "correlation_id"
+      ],
+      "allowed_data_classes": [
+        "curated_security_guidance",
+        "generated_policy_evidence",
+        "redacted_log_excerpt",
+        "customer_ticket_summary",
+        "approval_record"
+      ],
+      "required_controls": [
+        "payload_minimized",
+        "source_hashes_present",
+        "human_approval_record",
+        "delegated_authority_record",
+        "run_receipt_required"
+      ]
+    },
+    {
+      "id": "prohibited-context",
+      "title": "Prohibited context handoff",
+      "risk_tier": "prohibited",
+      "description": "Explicitly forbidden handoff for credential material, internal memory, hidden prompts, raw tool traces, or unrestricted customer data.",
+      "allowed_protocols": [],
+      "required_payload_fields": [],
+      "allowed_payload_fields": [],
+      "allowed_data_classes": [],
+      "required_controls": [
+        "deny_retrieval",
+        "kill_session_on_access_attempt",
+        "incident_evidence_required"
+      ]
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes governs agent-to-agent coordination as a boundary decision, not an informal prompt exchange.",
+    "default_questions_answered": [
+      "Which protocols may carry agent handoffs?",
+      "Which payload fields are allowed by profile?",
+      "Which data classes trigger redaction, approval, denial, or session termination?",
+      "Which high-impact delegated capabilities require approval?",
+      "Which evidence proves workflow, source, identity, and egress state before handoff?"
+    ],
+    "recommended_first_use": "Attach this pack to A2A pilot intake, MCP gateway review, provider-native subagent rollout, and multi-agent workflow architecture reviews.",
+    "sales_motion": "Lead with open handoff policies, then sell hosted agent-card trust, handoff replay, tenant evidence ingestion, signed approval receipts, and protocol gateway enforcement."
+  }
+}

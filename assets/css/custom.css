@@ -41,6 +41,7 @@
   --arr-card-bg:     rgba(255, 255, 255, 0.025);
   --arr-card-border: rgba(255, 255, 255, 0.07);
   --arr-card-hover-border: rgba(255, 255, 255, 0.18);
+  --arr-noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 
   /* Hextra primary hue tweak (violet) */
   --primary-hue: 258;
@@ -82,8 +83,8 @@ code, pre, kbd, samp {
 
 /* ---------- 2. Ambient background on docs pages --------------------------- */
 /*
-   Hextra docs pages get a muted version of the landing-page ambient layer:
-   two drifting orbs + a faint grid overlay, behind everything. Kept subtle
+   Hextra docs pages get a darker version of the landing-page ambient layer:
+   near-black teal/amber depth, a faint grid, and subtle texture. Kept quiet
    so long-form reading stays comfortable.
 */
 
@@ -95,10 +96,10 @@ html.dark body::before,
   z-index: -2;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 90% 60% at 20% -5%,  rgba(124, 92, 255, 0.18), transparent 60%),
-    radial-gradient(ellipse 70% 50% at 110% 110%, rgba(0, 229, 255, 0.12), transparent 60%),
-    radial-gradient(ellipse 60% 40% at -10% 110%, rgba(255, 78, 203, 0.08), transparent 60%),
-    linear-gradient(180deg, var(--arr-bg-0) 0%, var(--arr-bg-1) 100%);
+    radial-gradient(ellipse 120% 70% at 50% -20%, rgba(20, 184, 166, 0.10), transparent 58%),
+    radial-gradient(ellipse 80% 60% at 92% 12%, rgba(245, 158, 11, 0.035), transparent 64%),
+    radial-gradient(ellipse 80% 65% at 8% 88%, rgba(139, 92, 246, 0.04), transparent 62%),
+    linear-gradient(135deg, #030407 0%, #050807 48%, #08070d 100%);
 }
 
 html.dark body::after,
@@ -109,51 +110,19 @@ html.dark body::after,
   z-index: -1;
   pointer-events: none;
   background-image:
-    linear-gradient(to right,  rgba(255,255,255,0.022) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.022) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    var(--arr-noise),
+    linear-gradient(to right,  rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 200px 200px, 64px 64px, 64px 64px;
+  opacity: 0.72;
+  mix-blend-mode: overlay;
+  mask-image: radial-gradient(ellipse at center, black 24%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 24%, transparent 78%);
 }
 
-/* Drifting orbs as a dedicated layer appended via CSS content on main */
-.dark main::before {
-  content: "";
-  position: fixed;
-  top: -12%;
-  left: -8%;
-  width: 520px;
-  height: 520px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--arr-accent-1), transparent 70%);
-  filter: blur(90px);
-  opacity: 0.45;
-  z-index: -1;
-  pointer-events: none;
-  animation: arr-drift 28s ease-in-out infinite alternate;
-}
+.dark main::before,
 .dark main::after {
-  content: "";
-  position: fixed;
-  bottom: -15%;
-  right: -10%;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--arr-accent-2), transparent 70%);
-  filter: blur(100px);
-  opacity: 0.4;
-  z-index: -1;
-  pointer-events: none;
-  animation: arr-drift2 34s ease-in-out infinite alternate;
-}
-@keyframes arr-drift {
-  0%   { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(180px, 120px) scale(1.15); }
-}
-@keyframes arr-drift2 {
-  0%   { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(-160px, -100px) scale(1.1); }
+  content: none;
 }
 
 /* ---------- 3. Navbar & sidebar (dark, translucent) ----------------------- */
@@ -187,6 +156,14 @@ html.dark body::after,
   color: var(--arr-accent-2) !important;
   background: rgba(0, 229, 255, 0.06) !important;
   border-radius: 8px;
+}
+
+.hextra-sidebar-container .hextra-sidebar-collapsible-button {
+  display: none !important;
+}
+
+.hextra-sidebar-container .hextra-sidebar-item a {
+  padding-right: 0.5rem !important;
 }
 
 /* ---------- 4. Typography in prose content -------------------------------- */
@@ -577,6 +554,79 @@ html.dark body::after,
    adds severity / KEV badges. Auto-rendered by the `cve-toc` shortcode;
    adding a CVE recipe = drop a markdown file with frontmatter and the grid
    updates without any hub-page or hugo.yaml edits. */
+
+.cve-hub-collapsible {
+  margin: 1rem 0;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.42);
+  overflow: hidden;
+}
+
+.cve-hub-collapsible > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 52px;
+  padding: 0.85rem 1rem;
+  color: var(--arr-ink-0);
+  font-weight: 650;
+}
+
+.cve-hub-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+.cve-hub-collapsible > summary::after {
+  content: "+";
+  flex: none;
+  width: 1.45rem;
+  height: 1.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  border-radius: 999px;
+  color: var(--arr-accent-2);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.cve-hub-collapsible[open] > summary::after {
+  content: "-";
+}
+
+.cve-hub-collapsible > summary:hover {
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.cve-hub-collapsible__heading {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: inherit !important;
+  font-size: 1.05rem !important;
+  line-height: 1.35 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+.cve-hub-collapsible__heading .subheading-anchor {
+  display: none;
+}
+
+.cve-hub-collapsible__body {
+  padding: 0.25rem 1rem 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.cve-hub-collapsible__body > :first-child {
+  margin-top: 0.75rem;
+}
 
 .cve-toc {
   margin: 1.25rem 0 1.5rem;

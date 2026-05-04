@@ -1,0 +1,177 @@
+{
+  "channels": [
+    {
+      "id": "page-context",
+      "label": "Current page context",
+      "category": "Local browser context",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Sends the current page title, headings, and bounded body text to the model.",
+      "auth_modes": ["none"],
+      "config": {
+        "type": "page_context",
+        "source": "active_document",
+        "max_chars": 4200,
+        "include_headings": true,
+        "include_matches": true
+      }
+    },
+    {
+      "id": "recipe-index",
+      "label": "SecurityRecipes search index",
+      "category": "Local browser context",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Searches the generated recipe index and attaches the most relevant docs, prompts, and remediation pages.",
+      "auth_modes": ["none"],
+      "config": {
+        "type": "recipes_index",
+        "source": "/recipes-index.json",
+        "top_k": 5,
+        "sections": ["prompt-library", "security-remediation", "automation", "docs"]
+      }
+    },
+    {
+      "id": "github-repository",
+      "label": "GitHub repository context",
+      "category": "Code and findings sources",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Pulls bounded public or authenticated GitHub repo metadata, manifest files, open issues, and pull requests.",
+      "auth_modes": ["public", "pat", "oauth"],
+      "config": {
+        "type": "github_repository",
+        "repository": "owner/repo",
+        "include": ["readme", "security", "contributing", "manifests", "issues", "pull_requests"],
+        "max_files": 18,
+        "max_chars_per_file": 1600
+      }
+    },
+    {
+      "id": "deps-dev-advisories",
+      "label": "deps.dev advisory context",
+      "category": "Code and findings sources",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Checks public GitHub Dependency Graph SBOM packages against deps.dev advisory metadata.",
+      "auth_modes": ["public", "pat", "oauth"],
+      "config": {
+        "type": "deps_dev_lookup",
+        "repository": "owner/repo",
+        "include": ["sbom_packages", "advisories", "cvss", "aliases"],
+        "max_packages": 40,
+        "max_advisories": 12
+      }
+    },
+    {
+      "id": "sarif-manual-import",
+      "label": "SARIF upload",
+      "category": "Scanner findings",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Uploads a local SARIF 2.1.0 file in the browser, normalizes the findings, and attaches a bounded summary to prompts and agent runs.",
+      "auth_modes": ["none"],
+      "config": {
+        "type": "sarif_bundle",
+        "source": "local_file",
+        "accepted_formats": ["sarif-2.1.0-json"],
+        "expected_files": ["findings.sarif.json"],
+        "required_fields": ["runs[].tool.driver.name", "runs[].results[].ruleId", "runs[].results[].level"],
+        "normalization": {
+          "severity_map": "sarif_default",
+          "max_results": 250
+        }
+      }
+    },
+    {
+      "id": "sbom-manual-import",
+      "label": "SBOM upload",
+      "category": "Scanner findings",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Uploads a local CycloneDX or SPDX JSON SBOM in the browser and attaches a bounded package, dependency, and vulnerability summary to prompts.",
+      "auth_modes": ["none"],
+      "config": {
+        "type": "sbom_bundle",
+        "source": "local_file",
+        "accepted_formats": ["cyclonedx-json", "spdx-json"],
+        "format_markers": ["bomFormat=CycloneDX", "spdxVersion"],
+        "normalization": {
+          "max_components": 5000,
+          "infer_ecosystem": true
+        }
+      }
+    },
+    {
+      "id": "wiz-findings-api",
+      "label": "Wiz findings API",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Pre-populated browser-side config for pulling cloud and workload findings from Wiz when a customer enables direct API access.",
+      "auth_modes": ["api_key", "oauth"],
+      "config": {
+        "type": "wiz_findings",
+        "base_url": "https://api.us1.app.wiz.io/graphql",
+        "scopes": ["issues:read"],
+        "filters": {
+          "status": ["OPEN"],
+          "severity": ["CRITICAL", "HIGH"]
+        },
+        "pagination": {
+          "page_size": 100
+        }
+      }
+    },
+    {
+      "id": "snyk-issues-api",
+      "label": "Snyk issues API",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Pre-populated config for importing code, open source, container, and IaC issues from Snyk.",
+      "auth_modes": ["api_token"],
+      "config": {
+        "type": "snyk_issues",
+        "base_url": "https://api.snyk.io/rest",
+        "version": "2024-10-15",
+        "filters": {
+          "status": ["open"],
+          "effective_severity_level": ["high", "critical"]
+        }
+      }
+    },
+    {
+      "id": "security-hub-api",
+      "label": "AWS Security Hub",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Config profile for pulling ASFF findings into remediation reports and downstream workflow packs.",
+      "auth_modes": ["aws_sigv4"],
+      "config": {
+        "type": "aws_security_hub",
+        "region": "us-east-1",
+        "filters": {
+          "RecordState": ["ACTIVE"],
+          "SeverityLabel": ["HIGH", "CRITICAL"]
+        }
+      }
+    },
+    {
+      "id": "confluence-knowledge",
+      "label": "Confluence runbook context",
+      "category": "Knowledge sources",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Template for bringing internal runbooks and exception notes into a scoped agent session.",
+      "auth_modes": ["api_token", "oauth"],
+      "config": {
+        "type": "confluence_search",
+        "base_url": "https://example.atlassian.net/wiki",
+        "spaces": ["SEC", "ENG"],
+        "max_pages": 10
+      }
+    }
+  ]
+}

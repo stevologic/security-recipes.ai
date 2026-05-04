@@ -1,0 +1,406 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define the Secure Context Lineage Ledger for SecurityRecipes so every context item used by an agent can be traced from registered source, hash, attestation, poisoning scan, retrieval decision, model route, egress boundary, handoff boundary, telemetry event, and sealed run receipt before it is reused or trusted.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, GRC, procurement security, incident response, and acquisition diligence teams",
+    "category": "Secure context lineage and reuse governance for agentic AI",
+    "enterprise_promise": "SecurityRecipes can prove not only which context exists, but how context moved through an agent run and whether it can be reused across runs, workflows, tenants, models, tools, or agents.",
+    "why_now": "Agentic systems now retrieve, transform, summarize, hand off, and persist context through MCP servers, browser agents, skills, memory stores, and model providers. Buyers need lineage because context poisoning, over-sharing, hidden instructions, weak telemetry, and cross-agent trust failures are becoming production risks."
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+      "coverage": "Maps lineage evidence to goal hijack, tool misuse, identity abuse, supply-chain poisoning, unexpected code execution, memory and context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP Top 10 for Model Context Protocol",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "coverage": "Covers token exposure, scope creep, tool poisoning, command execution, intent-flow subversion, authentication and authorization gaps, telemetry gaps, shadow MCP servers, and context injection or over-sharing."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Binds lineage to MCP authorization evidence including resource indicators, audience validation, HTTPS requirements, PKCE, protected resource metadata, and token-passthrough denial."
+    },
+    {
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "coverage": "Requires lineage for user-consent boundaries when MCP servers request additional data, especially URL-mode sensitive flows that must not expose credentials, payments, or third-party authorization secrets to the client."
+    },
+    {
+      "id": "mcp-security-best-practices-2025-06-18",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Anchors lineage decisions in confused-deputy prevention, token-passthrough denial, SSRF mitigation, session binding, scope minimization, and auditability."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "coverage": "Connects context lineage to the behavior layer between MCP tools and agents, including skill provenance, isolation, over-privilege, update drift, and reusable skill risk."
+    },
+    {
+      "id": "nist-ai-rmf-1-0",
+      "name": "NIST AI Risk Management Framework",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "coverage": "Supports AI lifecycle governance, measurement, monitoring, risk treatment, and critical-infrastructure profile readiness with traceable evidence rather than unmanaged context movement."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Maps generated context lineage to generative AI data provenance, third-party component risk, monitoring, incident response, and system lifecycle controls."
+    },
+    {
+      "id": "in-toto-attestation-framework",
+      "name": "in-toto Attestation Framework",
+      "url": "https://github.com/in-toto/attestation",
+      "coverage": "Provides the attestation-shaped mental model for verifiable claims about source, process, digest, and consumer policy."
+    },
+    {
+      "id": "slsa-1-2-provenance",
+      "name": "SLSA specification 1.2",
+      "url": "https://slsa.dev/spec/latest/",
+      "coverage": "Extends software supply-chain provenance expectations into secure context packages, generated evidence, and MCP-facing artifacts."
+    }
+  ],
+  "lineage_contract": {
+    "default_decision": "deny_unbound_context_lineage",
+    "hash_algorithm": "sha256",
+    "minimum_required_source_packs": 8,
+    "required_source_packs": [
+      "secure_context_trust_pack",
+      "secure_context_attestation_pack",
+      "context_poisoning_guard_pack",
+      "context_egress_boundary_pack",
+      "agent_handoff_boundary_pack",
+      "agentic_telemetry_contract",
+      "agentic_run_receipt_pack",
+      "model_provider_routing_pack"
+    ],
+    "required_lineage_stage_ids": [
+      "source_registration",
+      "source_attestation",
+      "retrieval_policy",
+      "poisoning_screen",
+      "model_route",
+      "egress_boundary",
+      "handoff_boundary",
+      "telemetry_binding",
+      "run_receipt"
+    ],
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "tenant_id",
+      "correlation_id",
+      "trace_id",
+      "source_ids",
+      "source_hashes",
+      "context_package_hash",
+      "context_retrieval_decision",
+      "attestation_decision",
+      "poisoning_scan_state",
+      "model_route_id",
+      "model_route_decision",
+      "egress_decision",
+      "handoff_decision",
+      "telemetry_event_id",
+      "telemetry_decision",
+      "receipt_id"
+    ],
+    "decisions": [
+      {
+        "decision": "allow_lineage_bound_context",
+        "meaning": "The requested context lineage is registered, hash-bound, attested, scanned, routed, egress-gated, telemetry-bound, and receipt-backed for the workflow."
+      },
+      {
+        "decision": "hold_for_lineage_evidence",
+        "meaning": "The workflow and context are known, but required runtime evidence is absent, stale, mismatched, or not yet sealed."
+      },
+      {
+        "decision": "hold_for_poisoning_review",
+        "meaning": "The source or runtime scan reports actionable prompt injection, hidden instruction, approval bypass, exfiltration, or secret-exposure markers that need review before reuse."
+      },
+      {
+        "decision": "hold_for_reuse_review",
+        "meaning": "The context is valid for the original run but the requested reuse class crosses a workflow, model, memory, handoff, or persistence boundary that needs approval."
+      },
+      {
+        "decision": "deny_unbound_context_lineage",
+        "meaning": "The request references an unknown workflow, source, hash, context package, or lineage stage."
+      },
+      {
+        "decision": "deny_cross_tenant_lineage_reuse",
+        "meaning": "The request attempts to reuse tenant-bound context across tenant, account, workspace, or public-corpus boundaries."
+      },
+      {
+        "decision": "kill_session_on_lineage_break",
+        "meaning": "The request contains a secret, token passthrough, prohibited data class, forged hash, forbidden egress, poisoned context, or runtime kill signal."
+      }
+    ]
+  },
+  "lineage_stages": [
+    {
+      "id": "source_registration",
+      "title": "Source registration",
+      "required_evidence": [
+        "source_id",
+        "owner",
+        "trust_tier",
+        "source_hash",
+        "allowed_file_globs",
+        "retrieval_modes"
+      ],
+      "hold_signals": [
+        "owner_missing",
+        "freshness_not_declared",
+        "unregistered_source_hash"
+      ],
+      "kill_signals": [
+        "prohibited_context_source",
+        "raw_secret_source"
+      ]
+    },
+    {
+      "id": "source_attestation",
+      "title": "Source attestation",
+      "required_evidence": [
+        "attestation_id",
+        "subject.digest.sha256",
+        "policy_decision",
+        "recertification.due_days"
+      ],
+      "hold_signals": [
+        "signature_required",
+        "recertification_due",
+        "missing_source_attestation"
+      ],
+      "kill_signals": [
+        "forbidden_attestation_data_class",
+        "attestation_hash_mismatch"
+      ]
+    },
+    {
+      "id": "retrieval_policy",
+      "title": "Retrieval policy",
+      "required_evidence": [
+        "workflow_id",
+        "retrieval_mode",
+        "requested_path",
+        "retrieval_decision",
+        "context_package_hash"
+      ],
+      "hold_signals": [
+        "customer_context_without_tenant_gateway",
+        "context_hash_missing"
+      ],
+      "kill_signals": [
+        "prohibited_data_class",
+        "unregistered_context"
+      ]
+    },
+    {
+      "id": "poisoning_screen",
+      "title": "Poisoning screen",
+      "required_evidence": [
+        "source_id",
+        "scan_decision",
+        "rule_ids",
+        "actionable_finding_count",
+        "source_hash"
+      ],
+      "hold_signals": [
+        "actionable_context_poisoning_risk",
+        "approval_bypass_marker",
+        "hidden_instruction_marker"
+      ],
+      "kill_signals": [
+        "secret_exfiltration_marker",
+        "credential_payload",
+        "runtime_instruction_override"
+      ]
+    },
+    {
+      "id": "model_route",
+      "title": "Model route",
+      "required_evidence": [
+        "route_id",
+        "provider_id",
+        "model_id",
+        "route_hash",
+        "model_route_decision"
+      ],
+      "hold_signals": [
+        "provider_contract_missing",
+        "route_requires_human_review",
+        "data_class_route_gap"
+      ],
+      "kill_signals": [
+        "unsanctioned_model",
+        "training_opt_out_missing_for_sensitive_context"
+      ]
+    },
+    {
+      "id": "egress_boundary",
+      "title": "Egress boundary",
+      "required_evidence": [
+        "data_class",
+        "destination_class",
+        "tenant_id",
+        "egress_decision",
+        "egress_policy_hash"
+      ],
+      "hold_signals": [
+        "redaction_required",
+        "dpa_missing",
+        "residency_mismatch"
+      ],
+      "kill_signals": [
+        "secret_egress",
+        "external_webhook",
+        "public_corpus_export"
+      ]
+    },
+    {
+      "id": "handoff_boundary",
+      "title": "Handoff boundary",
+      "required_evidence": [
+        "source_agent_id",
+        "target_agent_class",
+        "handoff_profile_id",
+        "protocol",
+        "source_hashes"
+      ],
+      "hold_signals": [
+        "unregistered_agent_card",
+        "payload_field_not_declared",
+        "approval_gated_handoff"
+      ],
+      "kill_signals": [
+        "secret_handoff",
+        "authority_escalation_handoff",
+        "opaque_remote_agent"
+      ]
+    },
+    {
+      "id": "telemetry_binding",
+      "title": "Telemetry binding",
+      "required_evidence": [
+        "trace_id",
+        "span_id",
+        "telemetry_event_id",
+        "telemetry_decision",
+        "redaction_state"
+      ],
+      "hold_signals": [
+        "required_attribute_missing",
+        "redaction_state_unknown",
+        "retention_not_declared"
+      ],
+      "kill_signals": [
+        "raw_secret_telemetry",
+        "token_in_trace",
+        "unredacted_sensitive_payload"
+      ]
+    },
+    {
+      "id": "run_receipt",
+      "title": "Run receipt",
+      "required_evidence": [
+        "receipt_id",
+        "receipt_hash",
+        "run_closed",
+        "identity_revoked",
+        "evidence_attached"
+      ],
+      "hold_signals": [
+        "receipt_not_sealed",
+        "identity_revocation_missing",
+        "verifier_result_missing"
+      ],
+      "kill_signals": [
+        "forged_receipt",
+        "receipt_hash_mismatch",
+        "identity_used_after_revocation"
+      ]
+    }
+  ],
+  "reuse_policy": {
+    "default_reuse_class": "same_run_context_replay",
+    "allowed_reuse_classes": [
+      {
+        "id": "same_run_context_replay",
+        "default_decision": "allow_lineage_bound_context",
+        "constraints": [
+          "same workflow_id",
+          "same run_id",
+          "same tenant_id",
+          "same context_package_hash",
+          "same source_hashes"
+        ]
+      },
+      {
+        "id": "same_tenant_followup",
+        "default_decision": "hold_for_reuse_review",
+        "constraints": [
+          "same tenant_id",
+          "same workflow_id or approved followup workflow",
+          "fresh attestation",
+          "new egress decision",
+          "sealed prior receipt"
+        ]
+      },
+      {
+        "id": "cross_workflow_policy_reuse",
+        "default_decision": "hold_for_reuse_review",
+        "constraints": [
+          "policy context only",
+          "citations required",
+          "workflow package hash must be recomputed",
+          "new telemetry and receipt ids required"
+        ]
+      },
+      {
+        "id": "cross_tenant_context_reuse",
+        "default_decision": "deny_cross_tenant_lineage_reuse",
+        "constraints": [
+          "tenant-bound context cannot cross tenant, account, workspace, or public-corpus boundaries"
+        ]
+      },
+      {
+        "id": "public_corpus_training_reuse",
+        "default_decision": "deny_cross_tenant_lineage_reuse",
+        "constraints": [
+          "public-corpus or training reuse requires a separate explicit release gate, license review, and opt-in policy"
+        ]
+      }
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can make context movement auditable and governable before agents act, remember, hand off, or reuse evidence.",
+    "default_questions_answered": [
+      "Which context sources entered this run?",
+      "Which hashes prove those sources?",
+      "Was the context attested and current?",
+      "Was prompt-injection or hidden instruction risk scanned?",
+      "Which model route, egress boundary, handoff boundary, telemetry event, and run receipt explain the context movement?",
+      "Can this context be reused in another run, workflow, model, tenant, or public corpus?"
+    ],
+    "recommended_first_use": "Use the ledger in MCP gateway middleware, AI platform review, production context release, run-receipt acceptance, trust-center export, incident replay, and acquisition diligence.",
+    "sales_motion": "Keep the open ledger profile and generator free, then sell hosted lineage APIs, live gateway enforcement, signed receipt verification, SIEM/SOAR export, tenant-private lineage overlays, and trust-center evidence exports."
+  },
+  "commercialization_path": {
+    "open_layer": "Generated lineage ledger from the public SecurityRecipes evidence packs.",
+    "team_layer": "Private lineage overlays for internal repos, tickets, logs, prompts, tools, memories, MCP servers, browser sessions, and A2A handoffs.",
+    "enterprise_layer": "Hosted lineage policy API, signed receipt verification, replayable context movement graph, cross-tenant reuse prevention, procurement exports, and incident forensics.",
+    "acquirer_value": "A frontier lab, AI coding platform, cloud provider, or security company gets a context lineage primitive that turns agent runs from opaque chains of prompts and tool calls into governed evidence."
+  }
+}

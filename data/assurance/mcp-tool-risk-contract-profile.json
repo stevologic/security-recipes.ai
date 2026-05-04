@@ -1,0 +1,269 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define a SecurityRecipes MCP tool-risk contract that turns MCP tool annotations, connector trust, authorization conformance, workflow scope, and runtime session context into deterministic allow, hold, deny, or kill decisions before an agent invokes a tool.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, MCP platform, AppSec, IAM, observability, procurement security, and enterprise architecture teams",
+    "category": "MCP tool-risk governance and session-level exfiltration prevention",
+    "enterprise_promise": "SecurityRecipes can explain whether an MCP tool call is safe enough for a governed agent session using trusted tool metadata, connector evidence, workflow scope, and combination-risk checks instead of relying on model judgment.",
+    "why_now": "MCP servers now expose tool annotations and richer tool schemas, but the protocol is explicit that annotations are untrusted hints unless the server is trusted. Enterprises need a policy layer that consumes those hints without confusing them for enforcement, especially when sessions combine private data access, untrusted content, and external communication."
+  },
+  "standards_alignment": [
+    {
+      "id": "mcp-tools-2025-11-25",
+      "name": "Model Context Protocol Tools specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "coverage": "Tool discovery, invocation, input and output schemas, human confirmation expectations, tool result validation, logging, and the requirement that clients treat annotations as untrusted unless they come from trusted servers."
+    },
+    {
+      "id": "mcp-tool-annotations-2026-03-16",
+      "name": "MCP Tool Annotations as Risk Vocabulary",
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
+      "coverage": "Current annotation semantics, cautious defaults, annotation limitations, trust requirements, session-combination risk, and the emerging interest-group direction for richer tool risk metadata."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "OAuth 2.1 resource servers, protected-resource metadata, resource indicators, audience-bound tokens, token validation, HTTPS, PKCE, and token-passthrough denial."
+    },
+    {
+      "id": "mcp-security-best-practices",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
+      "coverage": "Confused-deputy prevention, token passthrough, SSRF, session hijacking, local-server compromise, scope minimization, and auditability for MCP implementations."
+    },
+    {
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "coverage": "Form and URL elicitation modes, user approval semantics, sensitive-information restrictions, URL-mode security, and explicit accept, decline, and cancel states."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Agent behavior hijacking, tool misuse and exploitation, identity and privilege abuse, human trust manipulation, memory and context poisoning, and rogue-agent containment."
+    },
+    {
+      "id": "owasp-agentic-threats-2025",
+      "name": "OWASP Agentic AI Threats and Mitigations",
+      "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/",
+      "coverage": "Threat-model-based agentic AI risks, mitigations, autonomous tool use, context manipulation, multi-agent boundaries, and operational safeguards."
+    },
+    {
+      "id": "nist-ai-rmf-1.0",
+      "name": "NIST AI Risk Management Framework",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "coverage": "Govern, Map, Measure, and Manage functions for AI lifecycle risk, including accountability, operational monitoring, and risk treatment."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Generative AI lifecycle, data provenance, third-party dependency, measurement, monitoring, cybersecurity, incident, and operational risk management."
+    },
+    {
+      "id": "a2a-spec-0-2-2",
+      "name": "Agent2Agent Protocol specification",
+      "url": "https://google-a2a.github.io/A2A/specification/",
+      "coverage": "Agent discovery, Agent Cards, authentication and authorization, secondary credentials, and secure context exchange between opaque agents."
+    }
+  ],
+  "tool_risk_contract": {
+    "default_decision": "hold_for_tool_risk_review",
+    "hash_algorithm": "sha256",
+    "annotation_trust_model": "annotations_are_hints_until_bound_to_trusted_server_evidence",
+    "standard_tool_annotations": [
+      "readOnlyHint",
+      "destructiveHint",
+      "idempotentHint",
+      "openWorldHint"
+    ],
+    "standard_annotation_defaults": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "extended_runtime_factors": [
+      "reads_private_data",
+      "sees_untrusted_content",
+      "can_exfiltrate",
+      "writes_state",
+      "destructive_action_potential",
+      "requires_human_approval",
+      "trusted_server",
+      "annotation_source"
+    ],
+    "required_runtime_attributes": [
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "connector_id",
+      "namespace",
+      "tool_name",
+      "requested_access_mode",
+      "gate_phase",
+      "server_trusted",
+      "annotation_source",
+      "session_id",
+      "correlation_id",
+      "policy_pack_hash",
+      "authorization_pack_hash"
+    ],
+    "valid_runtime_decisions": [
+      "allow_tool_call",
+      "allow_with_confirmation",
+      "hold_for_tool_risk_review",
+      "deny_annotation_contradiction",
+      "deny_session_exfiltration_path",
+      "deny_scope_drift",
+      "kill_session_on_tool_risk_signal"
+    ],
+    "session_combination_rule": {
+      "id": "no_private_untrusted_exfiltration_triangle",
+      "description": "A session must not simultaneously have private-data access, untrusted-content exposure, and external communication without an explicit approved control path.",
+      "private_data_factor": "reads_private_data",
+      "untrusted_content_factor": "sees_untrusted_content",
+      "external_communication_factor": "can_exfiltrate",
+      "default_without_approval": "deny_session_exfiltration_path",
+      "approved_with_human_record": "allow_with_confirmation"
+    },
+    "trusted_annotation_controls": [
+      "trusted_server_registry_entry",
+      "pinned_tool_description_hash",
+      "connector_trust_tier",
+      "authorization_conformance_profile",
+      "gateway_policy_hash",
+      "tool_list_changed_audit",
+      "runtime_output_validation"
+    ],
+    "contradiction_rules": [
+      {
+        "id": "readonly_write_scope",
+        "condition": "readOnlyHint=true while requested_access_mode is not read",
+        "decision": "deny_annotation_contradiction"
+      },
+      {
+        "id": "readonly_destructive",
+        "condition": "readOnlyHint=true and destructiveHint=true",
+        "decision": "deny_annotation_contradiction"
+      },
+      {
+        "id": "untrusted_annotation_for_sensitive_tool",
+        "condition": "trusted_server=false and tool reads private data, changes state, or can exfiltrate",
+        "decision": "hold_for_tool_risk_review"
+      }
+    ],
+    "kill_signal_markers": [
+      "raw_secret_in_tool_argument",
+      "raw_secret_in_tool_result",
+      "credential_or_signer_scope_requested",
+      "tool_list_changed_after_approval",
+      "unapproved_external_destination",
+      "private_network_or_metadata_ip_destination",
+      "approval_bypass_attempt"
+    ]
+  },
+  "risk_tiers": [
+    {
+      "id": "tier_0_context_only",
+      "title": "Context Only",
+      "default_decision": "allow_tool_call",
+      "description": "Read-only public or open-reference context with no private data, state change, or external communication path."
+    },
+    {
+      "id": "tier_1_read_untrusted",
+      "title": "Read Untrusted Content",
+      "default_decision": "allow_with_confirmation",
+      "description": "Read-only sources that may carry untrusted content and must taint the session before later tools are called."
+    },
+    {
+      "id": "tier_2_private_context",
+      "title": "Private Context",
+      "default_decision": "hold_for_tool_risk_review",
+      "description": "Internal findings, repos, tickets, logs, SBOMs, or identity context that can become sensitive when combined with output or external tools."
+    },
+    {
+      "id": "tier_3_state_changing",
+      "title": "State Changing",
+      "default_decision": "allow_with_confirmation",
+      "description": "Scoped branch, ticket, or workflow state changes that are allowed only inside declared workflow boundaries and reviewer-gated outputs."
+    },
+    {
+      "id": "tier_4_destructive_or_exfiltration",
+      "title": "Destructive or Exfiltration Capable",
+      "default_decision": "hold_for_tool_risk_review",
+      "description": "Approval-required, destructive, external-communication, or irreversible operations that need explicit control evidence before use."
+    }
+  ],
+  "control_checks": [
+    {
+      "id": "annotation_presence",
+      "severity": "medium",
+      "evidence_key": "tool_annotations",
+      "control_reason": "MCP tools should declare standard annotations so clients can present better approval UI and feed policy engines with consistent risk hints."
+    },
+    {
+      "id": "annotation_source_trust",
+      "severity": "critical",
+      "evidence_key": "trusted_server_registry_entry",
+      "control_reason": "Annotations from untrusted servers must not reduce friction for sensitive, state-changing, or external tools."
+    },
+    {
+      "id": "tool_description_pin",
+      "severity": "high",
+      "evidence_key": "pinned_tool_description_hash",
+      "control_reason": "Tool descriptions and schemas can become an agent supply-chain path; drift after approval must force re-review."
+    },
+    {
+      "id": "output_schema_validation",
+      "severity": "high",
+      "evidence_key": "output_schema_validation",
+      "control_reason": "Structured output validation limits accidental or malicious content from reaching the model without inspection."
+    },
+    {
+      "id": "open_world_taint",
+      "severity": "high",
+      "evidence_key": "openWorldHint",
+      "control_reason": "Open-world tools can return attacker-controlled content and should taint the session before later tools run."
+    },
+    {
+      "id": "private_untrusted_exfiltration_triangle",
+      "severity": "critical",
+      "evidence_key": "session_combination_rule",
+      "control_reason": "Sessions that combine private data, untrusted content, and external communication create a realistic data-theft path."
+    },
+    {
+      "id": "destructive_confirmation",
+      "severity": "critical",
+      "evidence_key": "human_approval_record",
+      "control_reason": "Destructive or non-idempotent tools need explicit user or reviewer confirmation with a durable approval record."
+    },
+    {
+      "id": "scope_drift_check",
+      "severity": "high",
+      "evidence_key": "requested_access_mode",
+      "control_reason": "Runtime tool calls must remain inside the workflow's declared namespace and access mode."
+    },
+    {
+      "id": "tool_list_change_audit",
+      "severity": "medium",
+      "evidence_key": "notifications/tools/list_changed",
+      "control_reason": "Tool list changes after approval can invalidate a previous trust decision and should force a re-review or session reset."
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can prevent tool-combination risk from becoming unmanaged agentic exfiltration risk.",
+    "default_questions_answered": [
+      "Which MCP namespaces expose private context, untrusted content, state changes, or external communication?",
+      "Which tools can rely on annotations because the server is trusted, and which annotations are only UI hints?",
+      "Which workflows can form a private-data plus untrusted-content plus external-communication path?",
+      "What runtime fields must appear before a tool-risk decision is trusted?",
+      "Where should premium hosted controls live: live tool-list monitoring, annotation drift detection, tool schema signing, and fleet-wide session-combination blocking?"
+    ],
+    "recommended_first_use": "Run this pack during MCP server intake, agent-host design, gateway policy review, tool approval UI design, and enterprise buyer diligence.",
+    "sales_motion": "Lead with the open risk contract, then sell hosted tool-risk monitoring, signed annotation inventory, tool-list drift alerts, and session-level exfiltration-path blocking for production MCP fleets."
+  }
+}

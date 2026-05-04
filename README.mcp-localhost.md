@@ -69,10 +69,22 @@ After connecting, the server exposes these tools:
 - `recipes_evaluate_mcp_gateway_decision`
 - `recipes_agentic_assurance_pack`
 - `recipes_agent_identity_ledger`
+- `recipes_agentic_entitlement_review_pack`
+- `recipes_evaluate_agentic_entitlement_decision`
+- `recipes_agentic_approval_receipt_pack`
+- `recipes_evaluate_agentic_approval_receipt_decision`
 - `recipes_mcp_connector_trust_pack`
 - `recipes_mcp_connector_intake_pack`
+- `recipes_mcp_stdio_launch_boundary_pack`
+- `recipes_evaluate_mcp_stdio_launch_decision`
 - `recipes_mcp_authorization_conformance_pack`
 - `recipes_evaluate_mcp_authorization_decision`
+- `recipes_mcp_elicitation_boundary_pack`
+- `recipes_evaluate_mcp_elicitation_boundary_decision`
+- `recipes_mcp_tool_risk_contract`
+- `recipes_evaluate_mcp_tool_risk_decision`
+- `recipes_mcp_tool_surface_drift_pack`
+- `recipes_evaluate_mcp_tool_surface_drift_decision`
 - `recipes_agentic_red_team_drill_pack`
 - `recipes_agentic_readiness_scorecard`
 - `recipes_agent_capability_risk_register`
@@ -80,20 +92,47 @@ After connecting, the server exposes these tools:
 - `recipes_evaluate_agent_memory_decision`
 - `recipes_agent_skill_supply_chain_pack`
 - `recipes_evaluate_agent_skill_decision`
+- `recipes_agent_handoff_boundary_pack`
+- `recipes_evaluate_agent_handoff_decision`
+- `recipes_a2a_agent_card_trust_profile`
+- `recipes_evaluate_a2a_agent_card_trust_decision`
 - `recipes_agentic_system_bom`
 - `recipes_agentic_run_receipt_pack`
 - `recipes_secure_context_trust_pack`
 - `recipes_evaluate_context_retrieval_decision`
 - `recipes_secure_context_attestation_pack`
 - `recipes_evaluate_context_attestation_decision`
+- `recipes_secure_context_lineage_ledger`
+- `recipes_evaluate_secure_context_lineage_decision`
 - `recipes_secure_context_eval_pack`
 - `recipes_evaluate_secure_context_eval_case`
 - `recipes_context_poisoning_guard_pack`
 - `recipes_context_egress_boundary_pack`
 - `recipes_evaluate_context_egress_decision`
 - `recipes_agentic_threat_radar`
+- `recipes_agentic_standards_crosswalk`
+- `recipes_agentic_protocol_conformance_pack`
+- `recipes_evaluate_agentic_protocol_conformance_decision`
 - `recipes_agentic_control_plane_blueprint`
+- `recipes_agentic_exposure_graph`
+- `recipes_agentic_posture_snapshot`
+- `recipes_evaluate_agentic_posture_decision`
+- `recipes_agentic_app_intake_pack`
+- `recipes_evaluate_agentic_app_intake_decision`
+- `recipes_model_provider_routing_pack`
+- `recipes_evaluate_model_provider_routing_decision`
+- `recipes_agentic_catastrophic_risk_annex`
+- `recipes_evaluate_agentic_catastrophic_risk_decision`
+- `recipes_agentic_incident_response_pack`
+- `recipes_evaluate_agentic_incident_response_decision`
+- `recipes_agentic_action_runtime_pack`
+- `recipes_evaluate_agentic_action_runtime_decision`
+- `recipes_browser_agent_boundary_pack`
+- `recipes_evaluate_browser_agent_boundary_decision`
 - `recipes_agentic_measurement_probe_pack`
+- `recipes_agentic_telemetry_contract`
+- `recipes_evaluate_agentic_telemetry_event`
+- `recipes_enterprise_trust_center_export`
 - `recipes_match_finding`
 
 ## Use a custom config
@@ -114,14 +153,24 @@ docker run --rm -it -p 8123:80 `
 
 Edit `mcp-server.toml` when you need to point the MCP server at a forked
 or self-hosted `recipes-index.json`, workflow manifest, gateway policy,
-assurance pack, identity ledger, connector trust pack, connector intake
-pack, authorization conformance pack, red-team drill pack, readiness
-scorecard, Agentic System BOM, secure context trust pack, context
-attestation pack, secure context eval pack, context poisoning guard pack,
-context egress boundary pack, or agentic threat radar. The secure
-context retrieval, attestation, eval, authorization, and egress
-evaluators use those generated packs and do not require separate config
-paths.
+assurance pack, identity ledger, entitlement review pack, connector trust
+pack, approval receipt pack, connector intake pack, STDIO launch boundary pack, authorization conformance pack,
+MCP elicitation boundary pack, MCP tool-risk contract, red-team drill pack, readiness scorecard,
+tool-surface drift pack, agent handoff boundary pack, A2A Agent Card trust profile,
+Agentic System BOM, secure
+context trust pack, context attestation pack, secure context eval pack,
+context poisoning guard pack, context egress boundary pack, or agentic
+threat radar, agentic standards crosswalk, protocol conformance pack, control plane blueprint,
+exposure graph, catastrophic-risk annex, incident response pack,
+action runtime pack, measurement probe pack, telemetry contract, or
+trust-center export, browser-agent boundary pack, agentic app intake
+pack, model provider routing pack, or agentic posture snapshot.
+The secure context retrieval, attestation, eval, authorization, elicitation,
+MCP tool-risk, STDIO launch, handoff, A2A Agent Card trust,
+tool-surface drift, protocol-conformance, catastrophic-risk, incident-response, action-runtime,
+browser-agent boundary, entitlement-review, posture, model-provider
+routing, telemetry, approval-receipt, and egress evaluators use those generated packs and
+do not require separate config paths.
 
 ## Change the local port
 

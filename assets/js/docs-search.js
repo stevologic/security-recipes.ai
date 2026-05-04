@@ -110,6 +110,18 @@
     activeIndex = index;
   }
 
+  function isTypingTarget(target) {
+    var node = target && target.nodeType === 1 ? target : document.activeElement;
+    if (!node) return false;
+    var tag = node.tagName ? node.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+    if (node.isContentEditable) return true;
+    if (node.closest) {
+      return !!node.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]');
+    }
+    return false;
+  }
+
   function mount() {
     var shell = document.createElement('div');
     shell.className = 'docs-search-shell';
@@ -177,7 +189,7 @@
     input.addEventListener('input', runSearch);
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === '/' && document.activeElement !== input) {
+      if (e.key === '/' && document.activeElement !== input && !isTypingTarget(e.target) && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
         openModal();
         return;

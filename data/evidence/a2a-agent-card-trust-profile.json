@@ -1,0 +1,567 @@
+{
+  "agent_card_trust_summary": {
+    "default_state": "hold_for_agent_card_intake",
+    "failure_count": 0,
+    "intake_profile_count": 4,
+    "required_agent_card_field_count": 8,
+    "sample_decision_counts": {
+      "allow_trusted_agent_card": 1,
+      "kill_session_on_agent_card_secret": 1,
+      "pilot_with_restricted_context": 1
+    },
+    "sample_evaluation_count": 3,
+    "skill_risk_tier_counts": {
+      "blocked": 1,
+      "discovery": 1,
+      "pilot": 1,
+      "production": 1
+    },
+    "status": "agent_card_trust_profile_ready"
+  },
+  "commercialization_path": {
+    "acquirer_value": "A model lab, AI platform, or security vendor gets a control surface for remote-agent discovery before A2A delegation and MCP tool access become production defaults.",
+    "enterprise_layer": "Sell hosted Agent Card monitoring, signature verification, allowlist drift detection, procurement exports, A2A gateway policy, and tenant-specific remote-agent trust tiers.",
+    "open_layer": "Publish Agent Card trust evaluation as open evidence and a local CLI so A2A pilots can start with a shared security vocabulary."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes treats remote-agent discovery as a trust decision before context, authority, or workflow evidence moves across A2A.",
+    "default_questions_answered": [
+      "Is the Agent Card complete enough for enterprise review?",
+      "Does the card advertise HTTPS interfaces and provider identity?",
+      "Does the card require standard HTTP-layer authentication?",
+      "Is the card signed or restricted to metadata-only pilot use?",
+      "Do advertised skills require approval, gateway enforcement, or hard denial?"
+    ],
+    "recommended_first_use": "Run this profile during A2A pilot intake, remote-agent procurement review, inter-agent handoff design, and MCP gateway trust-tier promotion.",
+    "sales_motion": "Lead with open Agent Card evaluation, then sell hosted Agent Card monitoring, signature verification, allowlist drift detection, tenant policy exports, and A2A/MCP gateway enforcement."
+  },
+  "failures": [],
+  "generated_at": "2026-05-03",
+  "handoff_integration": {
+    "a2a_protocol_surface": {
+      "allowed_target_trust_tiers": [
+        "first_party",
+        "approved_vendor",
+        "tenant_controlled"
+      ],
+      "description": "An agent delegates a task to an opaque remote agent through HTTP and JSON-RPC style task exchange.",
+      "protocol_hash": "58754c8b58ea96f896179f88be4d02f023116eef0298ed544b3cc046e8cd1e73",
+      "protocol_id": "a2a_task_delegation",
+      "required_controls": [
+        "https_required",
+        "server_identity_verified",
+        "agent_card_reviewed",
+        "skill_scope_authorized",
+        "trace_context_propagated",
+        "payload_minimized"
+      ],
+      "title": "A2A task-delegation boundary"
+    },
+    "profile_handoff_map": [
+      {
+        "allowed_handoff_profiles": [
+          {
+            "default_decision": "allow_metadata_handoff",
+            "profile_id": "metadata-only",
+            "risk_tier": "low",
+            "title": "Metadata-only handoff"
+          },
+          {
+            "default_decision": "allow_cited_evidence_handoff",
+            "profile_id": "cited-evidence",
+            "risk_tier": "medium",
+            "title": "Cited evidence handoff"
+          },
+          {
+            "default_decision": "allow_approved_handoff",
+            "profile_id": "approval-gated",
+            "risk_tier": "high",
+            "title": "Approval-gated handoff"
+          }
+        ],
+        "intake_profile_id": "trusted-production-agent",
+        "risk_tier": "production"
+      },
+      {
+        "allowed_handoff_profiles": [
+          {
+            "default_decision": "allow_metadata_handoff",
+            "profile_id": "metadata-only",
+            "risk_tier": "low",
+            "title": "Metadata-only handoff"
+          }
+        ],
+        "intake_profile_id": "restricted-pilot-agent",
+        "risk_tier": "pilot"
+      },
+      {
+        "allowed_handoff_profiles": [],
+        "intake_profile_id": "public-discovery-only",
+        "risk_tier": "discovery"
+      },
+      {
+        "allowed_handoff_profiles": [],
+        "intake_profile_id": "blocked-agent-card",
+        "risk_tier": "blocked"
+      }
+    ]
+  },
+  "intake_profiles": [
+    {
+      "allowed_handoff_profiles": [
+        "metadata-only",
+        "cited-evidence",
+        "approval-gated"
+      ],
+      "default_decision": "allow_trusted_agent_card",
+      "description": "Use when a remote A2A agent can receive cited evidence or approval-gated context after signed-card validation, provider identity review, HTTP-layer auth, scope minimization, and gateway enforcement.",
+      "id": "trusted-production-agent",
+      "required_controls": [
+        "https_interface",
+        "provider_identity_verified",
+        "server_identity_verified",
+        "agent_card_signature_verified",
+        "standard_http_auth",
+        "scope_minimized_security",
+        "gateway_enforced",
+        "audit_log",
+        "human_approval_for_high_impact"
+      ],
+      "risk_tier": "production",
+      "title": "Trusted Production A2A Agent"
+    },
+    {
+      "allowed_handoff_profiles": [
+        "metadata-only"
+      ],
+      "default_decision": "pilot_with_restricted_context",
+      "description": "Use when the card is structurally valid and authenticated, but lacks full production evidence. The agent may receive metadata-only context while signatures, scopes, and ownership are completed.",
+      "id": "restricted-pilot-agent",
+      "required_controls": [
+        "https_interface",
+        "standard_http_auth",
+        "gateway_enforced",
+        "metadata_only_context",
+        "audit_log"
+      ],
+      "risk_tier": "pilot",
+      "title": "Restricted Pilot A2A Agent"
+    },
+    {
+      "allowed_handoff_profiles": [],
+      "default_decision": "hold_for_agent_card_intake",
+      "description": "Use for unauthenticated public Agent Cards that may be indexed or reviewed but must not receive tenant context, workflow evidence, or delegated authority.",
+      "id": "public-discovery-only",
+      "required_controls": [
+        "https_interface",
+        "no_tenant_context",
+        "manual_owner_review"
+      ],
+      "risk_tier": "discovery",
+      "title": "Public Discovery Only"
+    },
+    {
+      "allowed_handoff_profiles": [],
+      "default_decision": "deny_insecure_agent_card",
+      "description": "Use when a card leaks secrets, advertises insecure interfaces, requests dangerous skill authority without controls, or includes prompt-injection instructions.",
+      "id": "blocked-agent-card",
+      "required_controls": [
+        "hard_deny",
+        "audit_denied_attempt",
+        "kill_session_on_secret_or_injection"
+      ],
+      "risk_tier": "blocked",
+      "title": "Blocked or Malicious Agent Card"
+    }
+  ],
+  "intent": "Define the SecurityRecipes A2A Agent Card trust profile so remote agents can be discovered, scored, piloted, denied, or killed before they receive secure context or join an agent-to-agent workflow. The profile turns an A2A Agent Card into enterprise intake evidence for protocol identity, HTTPS interfaces, authentication, authorization scope, signing, skill risk, extended-card handling, and prompt-injection containment.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, procurement security, model-risk, and acquisition diligence teams",
+    "category": "A2A remote-agent discovery and Agent Card trust intake",
+    "enterprise_promise": "SecurityRecipes can evaluate an A2A Agent Card before trust is granted, return a deterministic allow, pilot, hold, deny, or kill decision, and expose the result through generated JSON, CLI, CI, and MCP tools.",
+    "why_now": "A2A makes remote agents discoverable through Agent Cards while MCP standardizes tool access. Enterprises need a trust layer between discovery and delegation so signed cards, HTTP-layer auth, skill scope, provider identity, and safe context release are validated before opaque agents collaborate."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open evaluator checks Agent Card evidence but does not cryptographically verify signatures.",
+      "treatment": "Production deployments should verify JWS signatures against tenant or vendor trust roots before promoting an agent to the trusted-production profile."
+    },
+    {
+      "risk": "An Agent Card can describe safe behavior while the remote opaque agent behaves differently at runtime.",
+      "treatment": "Bind Agent Card trust to gateway telemetry, handoff receipts, eval replay, output inspection, and per-skill allowlists."
+    },
+    {
+      "risk": "A2A and MCP adoption can compose into multi-hop chains where one trusted card delegates to another untrusted agent.",
+      "treatment": "Require a fresh Agent Card trust decision and handoff decision at every hop, with correlation IDs propagated across the chain."
+    }
+  ],
+  "sample_agent_card_evaluations": [
+    {
+      "agent_card_hash": "650761d2d2bc72093968c38fcb19647b1b3745eaf693f28e50f5a97467b99cd3",
+      "case_id": "trusted-security-recipes-delegated-agent",
+      "decision": "allow_trusted_agent_card",
+      "expected_decision": "allow_trusted_agent_card",
+      "expected_profile_id": "trusted-production-agent",
+      "production": true,
+      "reason": "Agent Card satisfies production profile requirements",
+      "violations": []
+    },
+    {
+      "agent_card_hash": "c4248a5d8edad5d1caf3dfa57a1a4e3232fdea3f17d83134ba59733fac44e212",
+      "case_id": "unsigned-public-research-agent",
+      "decision": "pilot_with_restricted_context",
+      "expected_decision": "pilot_with_restricted_context",
+      "expected_profile_id": "restricted-pilot-agent",
+      "production": false,
+      "reason": "Agent Card is eligible only for restricted metadata-context pilot use",
+      "violations": []
+    },
+    {
+      "agent_card_hash": "c80768652e25f1cc43a651bc3c4d4f3cd62f6b6df103ddc975d6a115f014055a",
+      "case_id": "malicious-secret-leaking-card",
+      "decision": "kill_session_on_agent_card_secret",
+      "expected_decision": "kill_session_on_agent_card_secret",
+      "expected_profile_id": "blocked-agent-card",
+      "production": true,
+      "reason": "Agent Card contains credential, hidden-instruction, or exfiltration markers",
+      "violations": [
+        "agent card contains prohibited marker: access_token=",
+        "agent card contains prohibited marker: bypass approval",
+        "agent card contains prohibited marker: exfiltrate",
+        "agent card contains prohibited marker: ignore previous instructions",
+        "agent card contains prohibited marker: sk-"
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "skill_risk_taxonomy": [
+    {
+      "examples": [
+        "search public recipes",
+        "summarize public documentation",
+        "return supported workflows"
+      ],
+      "id": "informational-read",
+      "required_controls": [
+        "metadata_only_context",
+        "audit_log"
+      ],
+      "risk_tier": "low",
+      "title": "Informational read"
+    },
+    {
+      "examples": [
+        "read redacted ticket summaries",
+        "retrieve internal evidence summaries",
+        "inspect scoped run receipts"
+      ],
+      "id": "tenant-data-read",
+      "required_controls": [
+        "tenant_boundary",
+        "redaction_state",
+        "dpa_or_private_context_policy",
+        "audit_log"
+      ],
+      "risk_tier": "medium",
+      "title": "Tenant data read"
+    },
+    {
+      "examples": [
+        "write ticket state",
+        "open pull request",
+        "publish a release",
+        "change production configuration"
+      ],
+      "id": "high-impact-write",
+      "required_controls": [
+        "gateway_enforced",
+        "human_approval_for_high_impact",
+        "run_receipt",
+        "rollback_plan"
+      ],
+      "risk_tier": "high",
+      "title": "High-impact write"
+    },
+    {
+      "examples": [
+        "move funds",
+        "read private keys",
+        "execute shell commands outside sandbox",
+        "escalate identity permissions"
+      ],
+      "id": "prohibited-authority",
+      "required_controls": [
+        "hard_deny",
+        "incident_evidence_required",
+        "kill_session_on_attempt"
+      ],
+      "risk_tier": "prohibited",
+      "title": "Prohibited authority"
+    }
+  ],
+  "source_artifacts": {
+    "a2a_agent_card_trust_profile": {
+      "path": "data/assurance/a2a-agent-card-trust-profile.json",
+      "sha256": "5bde86a0d05f49bf2cc985a58507073016629904d4a66b7673478d260a05c727"
+    },
+    "agent_handoff_boundary_pack": {
+      "path": "data/evidence/agent-handoff-boundary-pack.json",
+      "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b"
+    },
+    "agentic_threat_radar": {
+      "path": "data/evidence/agentic-threat-radar.json",
+      "sha256": "c36eb376ab0f1576116c8ade981106d4446aab6f9feebbea39a9b7cca6271eda"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Agent Card fields, supported interfaces, security schemes, security requirements, signatures, authenticated extended cards, and the .well-known/agent-card.json discovery surface.",
+      "id": "a2a-specification-latest",
+      "name": "Agent2Agent Protocol Specification",
+      "url": "https://a2a-protocol.org/latest/specification/"
+    },
+    {
+      "coverage": "HTTPS, TLS, server identity verification, HTTP-layer authentication, authorization, data privacy, tracing, monitoring, API management, and governance for remote opaque agents.",
+      "id": "a2a-enterprise-features",
+      "name": "A2A Enterprise Implementation Guidance",
+      "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/"
+    },
+    {
+      "coverage": "Enterprise A2A adoption signals including signed security cards, gRPC support, and developer tooling for building, deploying, evaluating, and selling A2A agents.",
+      "id": "google-cloud-a2a-toolkit-2025",
+      "name": "Google Cloud A2A Enterprise Toolkit",
+      "url": "https://cloud.google.com/blog/products/ai-machine-learning/agent2agent-protocol-is-getting-an-upgrade/"
+    },
+    {
+      "coverage": "Complements A2A by keeping tool access behind resource indicators, token audience validation, protected resource metadata, PKCE, and token-passthrough denial.",
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
+    },
+    {
+      "coverage": "Anchors the Agent Card trust model in source-sink analysis, constrained impact, user confirmation for sensitive transmissions, and defense against social-engineering style prompt injection.",
+      "id": "openai-prompt-injection-agents-2026",
+      "name": "OpenAI: Designing AI Agents to Resist Prompt Injection",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/"
+    },
+    {
+      "coverage": "Maps remote-agent intake to goal hijacking, tool misuse, identity abuse, insecure inter-agent communication, memory/context poisoning, and cascading failures.",
+      "id": "owasp-agentic-threats-2025",
+      "name": "OWASP Agentic AI Threats and Mitigations",
+      "url": "https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/"
+    },
+    {
+      "coverage": "Supports vendor-neutral AI control objectives, AI-CAIQ style evidence, role accountability, cloud AI governance, and third-party AI service assessment.",
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "CSA AI Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix"
+    }
+  ],
+  "threat_signal_coverage": [
+    {
+      "mapped_capability_ids": [
+        "agent-identity-ledger"
+      ],
+      "priority": "critical",
+      "signal_id": "agent-identity-explosion",
+      "strategic_score": 93,
+      "title": "Agent identities are becoming a new non-human identity class"
+    },
+    {
+      "mapped_capability_ids": [
+        "agent-handoff-boundary-pack",
+        "agent-identity-ledger",
+        "context-egress-boundary",
+        "mcp-authorization-conformance",
+        "secure-context-trust-pack"
+      ],
+      "priority": "critical",
+      "signal_id": "agent-protocol-handoff-boundaries",
+      "strategic_score": 98,
+      "title": "Agent handoffs are becoming a protocol trust boundary"
+    },
+    {
+      "mapped_capability_ids": [
+        "context-egress-boundary",
+        "secure-context-trust-pack"
+      ],
+      "priority": "high",
+      "signal_id": "ai-data-security-and-provenance",
+      "strategic_score": 88,
+      "title": "AI data security guidance is converging on provenance, integrity, and monitoring"
+    },
+    {
+      "mapped_capability_ids": [
+        "context-egress-boundary",
+        "secure-context-trust-pack"
+      ],
+      "priority": "high",
+      "signal_id": "context-over-sharing-and-memory-poisoning",
+      "strategic_score": 93,
+      "title": "Context over-sharing and memory poisoning make retrieval policy a product category"
+    },
+    {
+      "mapped_capability_ids": [
+        "agent-identity-ledger"
+      ],
+      "priority": "high",
+      "signal_id": "human-approval-and-tool-safeguards",
+      "strategic_score": 85,
+      "title": "Human approval is shifting from UX prompt to policy-enforced control"
+    },
+    {
+      "mapped_capability_ids": [
+        "secure-context-trust-pack"
+      ],
+      "priority": "critical",
+      "signal_id": "indirect-prompt-injection-social-engineering",
+      "strategic_score": 98,
+      "title": "Indirect prompt injection is now social engineering against agents"
+    },
+    {
+      "mapped_capability_ids": [
+        "agent-identity-ledger",
+        "mcp-authorization-conformance"
+      ],
+      "priority": "critical",
+      "signal_id": "mcp-token-passthrough-and-scope-creep",
+      "strategic_score": 95,
+      "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
+    }
+  ],
+  "trust_contract": {
+    "allowed_security_scheme_types": [
+      "oauth2SecurityScheme",
+      "openIdConnectSecurityScheme",
+      "mtlsSecurityScheme",
+      "httpAuthSecurityScheme",
+      "apiKeySecurityScheme"
+    ],
+    "decisions": [
+      {
+        "decision": "allow_trusted_agent_card",
+        "meaning": "The card satisfies production trust requirements for HTTPS interface URLs, provider identity, authentication, least-privilege scopes, signatures, safe skills, and required controls."
+      },
+      {
+        "decision": "pilot_with_restricted_context",
+        "meaning": "The card is structurally valid and authenticated but lacks full production evidence, so it may receive metadata-only or public context during a restricted pilot."
+      },
+      {
+        "decision": "hold_for_agent_card_intake",
+        "meaning": "The card is incomplete, unsigned, over-broad, or missing declared controls that a human owner or gateway policy must review before use."
+      },
+      {
+        "decision": "deny_insecure_agent_card",
+        "meaning": "The card uses insecure transport, unsafe API key placement, missing authentication for production, unsupported interfaces, or risky skill declarations that should not be piloted."
+      },
+      {
+        "decision": "kill_session_on_agent_card_secret",
+        "meaning": "The card appears to contain credential material, tokens, private keys, seed phrases, hidden prompts, or direct exfiltration instructions."
+      }
+    ],
+    "default_state": "hold_for_agent_card_intake",
+    "high_impact_skill_terms": [
+      "admin",
+      "credential",
+      "delete",
+      "deploy",
+      "execute",
+      "funds",
+      "identity",
+      "payment",
+      "production",
+      "publish",
+      "purge",
+      "release",
+      "shell",
+      "signing",
+      "write"
+    ],
+    "preferred_security_scheme_types": [
+      "oauth2SecurityScheme",
+      "openIdConnectSecurityScheme",
+      "mtlsSecurityScheme"
+    ],
+    "production_required_controls": [
+      "agent_card_signature_verified",
+      "standard_http_auth",
+      "gateway_enforced",
+      "audit_log",
+      "human_approval_for_high_impact"
+    ],
+    "prohibited_api_key_locations": [
+      "query",
+      "cookie"
+    ],
+    "prohibited_secret_markers": [
+      "-----BEGIN PRIVATE KEY-----",
+      "access_token=",
+      "api_key=",
+      "authorization: bearer ",
+      "bearer eyj",
+      "client_secret=",
+      "password=",
+      "private_key=",
+      "secret=",
+      "seed phrase",
+      "sk-"
+    ],
+    "prompt_injection_markers": [
+      "ignore previous instructions",
+      "reveal the system prompt",
+      "developer message",
+      "send secrets to",
+      "bypass approval",
+      "disable guardrails",
+      "exfiltrate"
+    ],
+    "recommended_agent_card_fields": [
+      "provider",
+      "documentationUrl",
+      "securitySchemes",
+      "securityRequirements",
+      "signatures",
+      "iconUrl"
+    ],
+    "required_agent_card_fields": [
+      "name",
+      "description",
+      "supportedInterfaces",
+      "version",
+      "capabilities",
+      "defaultInputModes",
+      "defaultOutputModes",
+      "skills"
+    ],
+    "required_allow_controls": [
+      "https_interface",
+      "provider_identity_verified",
+      "server_identity_verified",
+      "agent_card_signature_verified",
+      "standard_http_auth",
+      "scope_minimized_security",
+      "skill_risk_declared",
+      "high_impact_skills_approval_gated",
+      "extended_card_requires_auth",
+      "observability_enabled"
+    ],
+    "restricted_pilot_allowed_controls": [
+      "https_interface",
+      "standard_http_auth",
+      "gateway_enforced",
+      "metadata_only_context",
+      "audit_log"
+    ],
+    "runtime_fields": [
+      "profile_id",
+      "agent_card",
+      "production",
+      "expected_domain",
+      "declared_controls",
+      "approved_skill_ids",
+      "tenant_id",
+      "run_id",
+      "correlation_id"
+    ]
+  }
+}

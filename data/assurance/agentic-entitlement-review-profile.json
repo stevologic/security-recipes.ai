@@ -1,0 +1,238 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define the SecurityRecipes agentic entitlement review pack: a machine-readable access-review and permission-lease layer that proves every non-human agent identity, MCP namespace, access mode, A2A handoff, and high-impact action has an owner, expiry, review cadence, step-up authorization expectation, and deterministic revocation decision before enterprise agents scale.",
+  "positioning": {
+    "buyer": "AI Platform, IAM, Security Engineering, Product Security, GRC, SOC, procurement security, model-risk, and acquisition diligence teams",
+    "category": "Agentic AI entitlement review and permission lease governance",
+    "enterprise_promise": "SecurityRecipes can turn static agent identity contracts into expiring, reviewable, revocable entitlements so agent hosts and MCP gateways know whether a specific identity still has authority to use a scope right now.",
+    "why_now": "Agentic AI is becoming a fleet problem. Enterprises need the same lifecycle discipline they expect for privileged human and workload identities, but adapted for autonomous agents that use MCP tools, receive secure context, delegate across A2A-style protocols, persist memory, and trigger action-runtime gates."
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Maps entitlement review to identity and privilege abuse, tool misuse, insecure inter-agent communication, agentic supply-chain risk, cascading failures, and rogue-agent containment."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Applies protected resource metadata, OAuth 2.1, resource indicators, token audience binding, PKCE, scope challenges, and token-passthrough denial to each MCP entitlement."
+    },
+    {
+      "id": "a2a-protocol-1-0",
+      "name": "Agent2Agent Protocol Specification",
+      "url": "https://a2a-protocol.org/latest/specification/",
+      "coverage": "Aligns remote-agent entitlement checks to Agent Card discovery, Agent Card signing, server identity verification, authentication, authorization, and extended Agent Card access control."
+    },
+    {
+      "id": "microsoft-agent-365-control-plane-2026",
+      "name": "Microsoft Agent 365 Control Plane",
+      "url": "https://www.microsoft.com/en-us/microsoft-agent-365",
+      "coverage": "Mirrors the market direction toward centralized agent registry, access control, observability, governance, security, analytics, and role-specific oversight for enterprise agent fleets."
+    },
+    {
+      "id": "openai-agent-builder-safety",
+      "name": "OpenAI Safety in Building Agents",
+      "url": "https://platform.openai.com/docs/guides/agent-builder-safety",
+      "coverage": "Uses structured data flow, tool approvals, guardrails, trace grading, and eval evidence as prerequisites before an agent entitlement can stay active."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Connects entitlement lifecycle review to GAI governance, third-party component management, monitoring, measurement, incident response, and risk treatment."
+    }
+  ],
+  "review_contract": {
+    "default_state": "entitlement_inactive_until_identity_scope_lease_review_authorization_and_receipt_evidence_are_bound",
+    "minimum_entitlement_tiers": 4,
+    "minimum_required_evidence_sources": 8,
+    "required_runtime_fields": [
+      "identity_id",
+      "workflow_id",
+      "agent_class",
+      "namespace",
+      "requested_access_mode",
+      "entitlement_id",
+      "lease_id",
+      "lease_status",
+      "lease_expires_at",
+      "review_status",
+      "authorization_decision",
+      "run_id",
+      "tenant_id",
+      "correlation_id",
+      "receipt_id"
+    ],
+    "required_evidence_sources": [
+      "agent_identity_ledger",
+      "mcp_gateway_policy",
+      "mcp_authorization_conformance",
+      "mcp_connector_trust_pack",
+      "agentic_action_runtime_pack",
+      "agent_handoff_boundary_pack",
+      "a2a_agent_card_trust_profile",
+      "agentic_run_receipt_pack",
+      "agentic_telemetry_contract"
+    ],
+    "decisions": [
+      {
+        "decision": "allow_active_entitlement",
+        "meaning": "The requested namespace and access mode are registered, the lease is active and unexpired, review is current, linked authorization allows the request, and no kill signal is present."
+      },
+      {
+        "decision": "hold_for_access_review",
+        "meaning": "The entitlement exists, but review cadence, approval evidence, owner sponsorship, or privileged access confirmation is due before the agent can continue."
+      },
+      {
+        "decision": "hold_for_step_up_authorization",
+        "meaning": "The entitlement exists, but the requested access needs fresh MCP authorization, scope challenge handling, human approval, or elevated policy evidence."
+      },
+      {
+        "decision": "deny_unregistered_entitlement",
+        "meaning": "The identity, workflow, namespace, or requested access mode is not declared in the generated entitlement pack."
+      },
+      {
+        "decision": "deny_expired_or_missing_lease",
+        "meaning": "The entitlement lease is absent, expired, malformed, or not bound to the requested identity and namespace."
+      },
+      {
+        "decision": "kill_session_on_entitlement_signal",
+        "meaning": "A revocation, token passthrough, secret exposure, identity-after-revocation, cross-tenant scope, or repeated denied action requires immediate session shutdown."
+      }
+    ]
+  },
+  "entitlement_tiers": [
+    {
+      "id": "read_context",
+      "title": "Read context entitlement",
+      "risk_tier": "low",
+      "lease_ttl_days": 30,
+      "review_cadence_days": 30,
+      "requires_human_approval": false,
+      "applies_to_access_modes": ["read"],
+      "required_evidence": [
+        "identity_id",
+        "workflow_id",
+        "namespace",
+        "lease_id",
+        "lease_expires_at",
+        "authorization_decision",
+        "receipt_id"
+      ]
+    },
+    {
+      "id": "write_scoped",
+      "title": "Scoped write entitlement",
+      "risk_tier": "medium",
+      "lease_ttl_days": 14,
+      "review_cadence_days": 14,
+      "requires_human_approval": false,
+      "applies_to_access_modes": ["write_branch", "write_ticket"],
+      "required_evidence": [
+        "identity_id",
+        "workflow_id",
+        "namespace",
+        "lease_id",
+        "lease_expires_at",
+        "authorization_decision",
+        "policy_pack_hash",
+        "receipt_id"
+      ]
+    },
+    {
+      "id": "privileged_action",
+      "title": "Privileged or approval-required entitlement",
+      "risk_tier": "high",
+      "lease_ttl_days": 7,
+      "review_cadence_days": 7,
+      "requires_human_approval": true,
+      "applies_to_access_modes": ["approval_required"],
+      "required_evidence": [
+        "identity_id",
+        "workflow_id",
+        "namespace",
+        "lease_id",
+        "lease_expires_at",
+        "authorization_decision",
+        "human_approval_record",
+        "risk_acceptance_id",
+        "receipt_id"
+      ]
+    },
+    {
+      "id": "prohibited_or_revoked",
+      "title": "Prohibited or revoked entitlement",
+      "risk_tier": "critical",
+      "lease_ttl_days": 0,
+      "review_cadence_days": 1,
+      "requires_human_approval": true,
+      "applies_to_access_modes": ["secret_store", "signing_material", "raw_token", "live_funds_movement", "unregistered_namespace"],
+      "required_evidence": [
+        "identity_id",
+        "workflow_id",
+        "namespace",
+        "revocation_reason",
+        "incident_id",
+        "receipt_id"
+      ]
+    }
+  ],
+  "runtime_policy": {
+    "lease_binding": "Each runtime credential must bind identity_id, workflow_id, namespace, access mode, run_id, tenant_id, lease_id, expiry, and correlation_id.",
+    "review_status_values": ["current", "due", "overdue", "suspended"],
+    "lease_status_values": ["active", "missing", "expired", "revoked"],
+    "authorization_allow_prefixes": ["allow"],
+    "step_up_required_for": [
+      "approval_required namespace",
+      "high-control identity",
+      "A2A handoff to remote agent",
+      "scope expansion",
+      "production-affecting action",
+      "secret or regulated-data boundary"
+    ],
+    "kill_signal_indicators": [
+      "lease_revoked",
+      "identity_used_after_revocation",
+      "raw_token_passthrough",
+      "secret_in_entitlement_payload",
+      "scope_escalation_attempt",
+      "cross_tenant_entitlement",
+      "repeated_denied_entitlement"
+    ]
+  },
+  "buyer_views": [
+    {
+      "id": "iam-review",
+      "title": "IAM and non-human identity review",
+      "question": "Can IAM see every agent identity, scope, owner, lease, reviewer, and revocation path?",
+      "answer_contract": "Return entitlements by identity, namespace, access mode, risk tier, lease TTL, review cadence, owner, reviewer pool, source evidence, and MCP tools needed for enforcement."
+    },
+    {
+      "id": "mcp-gateway-review",
+      "title": "MCP gateway enforcement review",
+      "question": "Can an MCP gateway decide whether a specific tool call still has active authority?",
+      "answer_contract": "Evaluate identity_id, workflow_id, namespace, requested access mode, lease status, expiry, review status, authorization decision, approval evidence, and kill indicators before forwarding the call."
+    },
+    {
+      "id": "acquisition-diligence",
+      "title": "Acquisition diligence review",
+      "question": "Does the project show a credible enterprise control plane beyond static prompts?",
+      "answer_contract": "Show expiring entitlements, deterministic review decisions, standards alignment, source hashes, runtime evidence fields, and commercialization path for hosted access review APIs."
+    }
+  ],
+  "commercialization_path": {
+    "open_layer": "Publish the generated entitlement pack, deterministic evaluator, MCP tools, and docs so adopters can model agent access reviews without buying a platform first.",
+    "team_layer": "Support customer-private entitlement profiles, source-host reviewer adapters, IdP group mappings, MCP namespace approvals, and access-review exports.",
+    "enterprise_layer": "Sell hosted entitlement lease issuance, continuous access review, IdP and SIEM integrations, revocation webhooks, step-up approval receipts, and MCP gateway enforcement APIs.",
+    "acquirer_value": "A frontier lab, AI coding platform, or cloud security vendor gets the agent-access lifecycle surface required to govern fleets of autonomous non-human identities."
+  },
+  "executive_readout": {
+    "headline": "SecurityRecipes now treats agent authority as an expiring entitlement, not a static permission.",
+    "board_level_claim": "The project can prove which agent identity has which scope right now, when that authority expires, who must review it, and what kills the session.",
+    "recommended_first_use": "Attach the pack to quarterly agent-access reviews, MCP gateway design, AI platform intake, high-impact action approvals, and procurement or acquisition diligence."
+  }
+}

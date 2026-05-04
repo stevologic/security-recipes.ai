@@ -1,0 +1,365 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-03",
+  "intent": "Define a release gate for SecurityRecipes secure-context bundles so registered context, generated evidence, MCP policy, and trust-center packets are not distributed to agents or buyers until provenance, attestation, poisoning scans, eval readiness, egress posture, and signing requirements are checked together.",
+  "positioning": {
+    "buyer": "AI Platform, Security Engineering, Product Security, GRC, procurement security, model-risk, and acquisition diligence teams",
+    "category": "Secure context release governance for agentic AI",
+    "enterprise_promise": "SecurityRecipes can package agent context as versioned releases with source hashes, attestation state, poisoning scan evidence, eval coverage, rollback signals, and production signature requirements instead of handing agents an unversioned pile of docs.",
+    "why_now": "Agent hosts, MCP gateways, and A2A handoffs are becoming distribution channels for security context. Enterprises need an explicit release step between source-controlled knowledge and runtime agent consumption so context can be promoted, held, rolled back, or signed before it reaches production."
+  },
+  "standards_alignment": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Maps release gating to memory/context poisoning, insecure inter-agent communication, cascading failures, human-agent trust exploitation, and rogue-agent containment."
+    },
+    {
+      "id": "owasp-genai-exploit-roundup-q1-2026",
+      "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
+      "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/",
+      "coverage": "Anchors the release gate in current exploit patterns around agent identities, orchestration layers, supply chains, prompt injection, data exfiltration, and RCE in AI tooling."
+    },
+    {
+      "id": "mcp-security-best-practices-2025",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "coverage": "Connects secure context release to MCP confused-deputy prevention, token-passthrough avoidance, SSRF controls, session binding, local-server sandboxing, scope minimization, and auditability."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Requires production context release consumers to preserve protected resource metadata, token audience binding, resource indicators, HTTPS, PKCE, and token-use boundaries."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Supports provenance, third-party component risk, data governance, measurement, monitoring, and lifecycle risk treatment for released AI context."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "CSA AI Controls Matrix",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "coverage": "Aligns release evidence to vendor-agnostic AI control objectives, accountability, lifecycle relevance, threat categories, and enterprise assessment expectations."
+    },
+    {
+      "id": "cisa-ai-data-security-2025",
+      "name": "AI Data Security Best Practices",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "coverage": "Treats context release as an AI data security control for data integrity, confidentiality, monitoring, threat detection, and lifecycle operations."
+    }
+  ],
+  "release_contract": {
+    "default_state": "not_releasable_until_context_is_attested_scanned_evaluated_and_signed_when_required",
+    "minimum_release_channels": 3,
+    "minimum_release_bundles": 4,
+    "required_source_packs": [
+      "secure_context_trust_pack",
+      "secure_context_attestation_pack",
+      "context_poisoning_guard_pack",
+      "secure_context_eval_pack",
+      "context_egress_boundary_pack",
+      "agentic_threat_radar"
+    ],
+    "open_reference_environments": [
+      "open_reference",
+      "ci"
+    ],
+    "signed_environments": [
+      "production_mcp",
+      "enterprise_trust_center",
+      "acquisition_diligence"
+    ],
+    "required_release_fields": [
+      "release_id",
+      "channel_id",
+      "workflow_id",
+      "source_ids",
+      "source_hashes",
+      "context_package_hash",
+      "attestation_state",
+      "poisoning_scan_state",
+      "eval_state",
+      "egress_policy_state",
+      "release_decision",
+      "rollback_triggers"
+    ],
+    "decisions": [
+      {
+        "decision": "allow_open_reference_release",
+        "meaning": "Unsigned open-reference context can be used locally or in CI with source hashes and citations."
+      },
+      {
+        "decision": "allow_context_release",
+        "meaning": "The requested release is active, hash-matched, policy-bound, and signed when the channel requires production-grade signing."
+      },
+      {
+        "decision": "hold_for_signature",
+        "meaning": "The release is structurally ready but production, trust-center, or diligence use requires a signature bundle and transparency proof."
+      },
+      {
+        "decision": "hold_for_recertification",
+        "meaning": "At least one source or workflow context package is stale, inactive, or missing current attestation evidence."
+      },
+      {
+        "decision": "hold_for_poisoning_review",
+        "meaning": "A source in the release has actionable poisoning findings or a blocked poisoning decision."
+      },
+      {
+        "decision": "hold_for_eval_replay",
+        "meaning": "Required secure-context eval scenarios are missing or no longer eval-ready."
+      },
+      {
+        "decision": "deny_unregistered_release_source",
+        "meaning": "The release references context that is not registered in the secure-context trust pack."
+      },
+      {
+        "decision": "deny_release_hash_mismatch",
+        "meaning": "Runtime-supplied source hashes do not match the generated release manifest."
+      },
+      {
+        "decision": "deny_release_channel_mismatch",
+        "meaning": "The caller requested a release through a channel the release was not built for."
+      },
+      {
+        "decision": "kill_session_on_release_violation",
+        "meaning": "The release request includes prohibited context, runtime kill signals, secrets, private keys, raw tokens, or unrestricted customer logs."
+      }
+    ]
+  },
+  "release_channels": [
+    {
+      "id": "open-reference",
+      "title": "Open Reference Context",
+      "target_environment": "open_reference",
+      "requires_signature": false,
+      "allowed_audiences": [
+        "public_docs",
+        "local_mcp",
+        "ci"
+      ],
+      "release_use": "Public documentation, local MCP development, CI checks, and open-source buyer exploration.",
+      "minimum_controls": [
+        "source_hashes_present",
+        "citations_required",
+        "instruction_demoted",
+        "poisoning_scan_complete",
+        "eval_reference_present"
+      ]
+    },
+    {
+      "id": "production-mcp",
+      "title": "Production MCP Context",
+      "target_environment": "production_mcp",
+      "requires_signature": true,
+      "allowed_audiences": [
+        "hosted_mcp",
+        "enterprise_agent_host"
+      ],
+      "release_use": "Hosted or enterprise MCP gateways that distribute curated context to production agent runs.",
+      "minimum_controls": [
+        "source_hashes_present",
+        "attestation_active",
+        "poisoning_scan_complete",
+        "eval_reference_present",
+        "egress_policy_bound",
+        "signature_bundle_required",
+        "transparency_log_required"
+      ]
+    },
+    {
+      "id": "trust-center",
+      "title": "Trust Center and Diligence Context",
+      "target_environment": "enterprise_trust_center",
+      "requires_signature": true,
+      "allowed_audiences": [
+        "procurement_security",
+        "ai_platform_review",
+        "acquisition_diligence"
+      ],
+      "release_use": "Buyer-facing evidence packets, procurement exports, and acquirer diligence snapshots.",
+      "minimum_controls": [
+        "source_hashes_present",
+        "attestation_active",
+        "poisoning_scan_complete",
+        "eval_reference_present",
+        "trust_center_pack_linked",
+        "signature_bundle_required",
+        "rollback_triggers_declared"
+      ]
+    }
+  ],
+  "release_bundles": [
+    {
+      "id": "open-remediation-context-release",
+      "title": "Open remediation context release",
+      "workflow_id": "vulnerable-dependency-remediation",
+      "channel_id": "open-reference",
+      "source_ids": [
+        "prompt-library-recipes",
+        "security-remediation-workflows",
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-connector-trust",
+        "mcp-server-runtime",
+        "agentic-threat-intelligence",
+        "agentic-evidence-packs"
+      ],
+      "required_eval_scenario_ids": [
+        "ctx-eval-vuln-dep-prompt-context",
+        "ctx-eval-control-plane-policy-context"
+      ],
+      "allowed_audiences": [
+        "public_docs",
+        "local_mcp",
+        "ci"
+      ],
+      "rollback_triggers": [
+        "source_hash_change",
+        "poisoning_decision_blocked",
+        "eval_scenario_not_ready",
+        "workflow_scope_change"
+      ],
+      "commercial_value": "Gives open-source users a hash-bound context bundle they can consume without waiting for hosted infrastructure."
+    },
+    {
+      "id": "production-policy-context-release",
+      "title": "Production MCP policy context release",
+      "workflow_id": "sensitive-data-remediation",
+      "channel_id": "production-mcp",
+      "source_ids": [
+        "security-remediation-workflows",
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-connector-trust",
+        "mcp-server-runtime",
+        "agentic-threat-intelligence",
+        "agentic-evidence-packs"
+      ],
+      "required_eval_scenario_ids": [
+        "ctx-eval-control-plane-policy-context",
+        "ctx-eval-production-attestation-hold",
+        "ctx-eval-prohibited-data-kill"
+      ],
+      "allowed_audiences": [
+        "hosted_mcp",
+        "enterprise_agent_host"
+      ],
+      "rollback_triggers": [
+        "signature_bundle_missing",
+        "transparency_log_missing",
+        "source_hash_change",
+        "secret_or_pii_egress_signal"
+      ],
+      "commercial_value": "Creates the paid product path for signed production MCP context releases."
+    },
+    {
+      "id": "agent-handoff-context-release",
+      "title": "Agent handoff diligence context release",
+      "workflow_id": "artifact-cache-quarantine",
+      "channel_id": "trust-center",
+      "source_ids": [
+        "security-remediation-workflows",
+        "workflow-control-plane",
+        "mcp-gateway-policy",
+        "mcp-connector-trust",
+        "agentic-threat-intelligence",
+        "agentic-evidence-packs"
+      ],
+      "required_eval_scenario_ids": [
+        "ctx-eval-a2a-handoff-boundary"
+      ],
+      "allowed_audiences": [
+        "procurement_security",
+        "ai_platform_review",
+        "acquisition_diligence"
+      ],
+      "rollback_triggers": [
+        "agent_card_trust_drift",
+        "handoff_payload_expands",
+        "egress_policy_change",
+        "eval_scenario_not_ready"
+      ],
+      "commercial_value": "Packages multi-agent context boundaries in a buyer-readable release that can be signed and exported."
+    },
+    {
+      "id": "assurance-model-source-release",
+      "title": "Assurance model source release",
+      "workflow_id": "vulnerable-dependency-remediation",
+      "channel_id": "trust-center",
+      "source_ids": [
+        "agentic-assurance-models",
+        "agentic-evidence-packs",
+        "workflow-control-plane"
+      ],
+      "required_eval_scenario_ids": [
+        "ctx-eval-production-attestation-hold"
+      ],
+      "allowed_audiences": [
+        "ai_platform_review",
+        "acquisition_diligence"
+      ],
+      "rollback_triggers": [
+        "assurance_model_poisoning_finding",
+        "source_hash_change",
+        "standards_mapping_change",
+        "eval_scenario_not_ready"
+      ],
+      "commercial_value": "Shows that the release gate can hold context with actionable poisoning evidence instead of overstating production readiness."
+    }
+  ],
+  "buyer_views": [
+    {
+      "id": "ai-platform-release-review",
+      "title": "AI Platform Release Review",
+      "question": "Which context bundle can production agents consume, and what blocks promotion?",
+      "release_ids": [
+        "production-policy-context-release",
+        "agent-handoff-context-release"
+      ],
+      "answer_contract": "Return release decision, channel, source hashes, attestation state, poisoning blockers, eval blockers, egress evidence, and signature requirements."
+    },
+    {
+      "id": "procurement-trust-center",
+      "title": "Procurement Trust Center",
+      "question": "Can the buyer inspect a point-in-time context release without reading every source file?",
+      "release_ids": [
+        "agent-handoff-context-release",
+        "assurance-model-source-release"
+      ],
+      "answer_contract": "Return a compact source-hash manifest, release channel, generated evidence references, rollback triggers, and whether the release is signed or held."
+    },
+    {
+      "id": "acquirer-diligence",
+      "title": "Acquirer Diligence",
+      "question": "Does SecurityRecipes have a credible hosted signing and release-control path?",
+      "release_ids": [
+        "open-remediation-context-release",
+        "production-policy-context-release",
+        "agent-handoff-context-release"
+      ],
+      "answer_contract": "Return open, production, and trust-center release channels with the paid path for keyless signing, release promotion APIs, customer-private context, and rollback evidence."
+    }
+  ],
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can promote secure context through release gates instead of relying on unversioned prompt libraries.",
+    "default_questions_answered": [
+      "Which source hashes define this context release?",
+      "Which attestation, poisoning, eval, and egress checks support the release?",
+      "Which channels require signatures?",
+      "Which rollback triggers disable a release?",
+      "Which release is safe for open reference, production MCP, or trust-center diligence?"
+    ],
+    "recommended_first_use": "Attach this release pack to MCP gateway release review, context-source recertification, trust-center export, and acquisition diligence.",
+    "sales_motion": "Lead with open release manifests, then sell hosted signed context releases, customer-private release channels, promotion workflows, and rollback alerts."
+  },
+  "commercialization_path": {
+    "open_layer": "Publish unsigned open-reference release manifests with source hashes, eval evidence, poisoning state, and rollback triggers.",
+    "team_layer": "Let teams define private context releases for repositories, tickets, incidents, and workflow evidence without placing tenant data in the public corpus.",
+    "enterprise_layer": "Sell hosted keyless signing, transparency-log proof, release promotion APIs, source drift alerts, release rollback, and trust-center export automation.",
+    "acquirer_value": "A frontier lab, AI coding platform, cloud provider, or security vendor gets a secure context release primitive that helps enterprises trust agent inputs before production deployment."
+  }
+}

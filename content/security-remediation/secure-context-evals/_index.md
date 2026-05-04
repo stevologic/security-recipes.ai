@@ -156,6 +156,7 @@ Evaluate an observed answer:
 
 - [Secure Context Trust Pack]({{< relref "/security-remediation/secure-context-trust-pack" >}})
 - [Secure Context Attestation]({{< relref "/security-remediation/secure-context-attestation" >}})
+- [Secure Context Lineage Ledger]({{< relref "/security-remediation/secure-context-lineage-ledger" >}})
 - [Context Poisoning Guard]({{< relref "/security-remediation/context-poisoning-guard" >}})
 - [Context Egress Boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
 - [Agentic Measurement Probes]({{< relref "/security-remediation/agentic-measurement-probes" >}})

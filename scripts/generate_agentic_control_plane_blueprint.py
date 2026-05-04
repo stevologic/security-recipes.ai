@@ -226,9 +226,13 @@ def workflow_summary(manifest: dict[str, Any], readiness: dict[str, Any], bom: d
 
 def pack_summary(packs: dict[str, dict[str, Any]]) -> dict[str, Any]:
     return {
+        "a2a_agent_card_trust": packs.get("a2a_agent_card_trust_profile", {}).get("agent_card_trust_summary"),
         "agentic_assurance": packs.get("agentic_assurance_pack", {}).get("assurance_summary"),
+        "agentic_catastrophic_risk_annex": packs.get("agentic_catastrophic_risk_annex", {}).get("annex_summary"),
+        "agent_handoff_boundary": packs.get("agent_handoff_boundary_pack", {}).get("handoff_boundary_summary"),
         "agentic_measurement": packs.get("agentic_measurement_probe_pack", {}).get("measurement_probe_summary"),
         "agentic_system_bom": packs.get("agentic_system_bom", {}).get("bom_summary"),
+        "agentic_standards_crosswalk": packs.get("agentic_standards_crosswalk", {}).get("crosswalk_summary"),
         "agentic_threat_radar": packs.get("agentic_threat_radar", {}).get("threat_radar_summary"),
         "authorization_conformance": packs.get("mcp_authorization_conformance_pack", {}).get("authorization_summary"),
         "connector_trust": packs.get("mcp_connector_trust_pack", {}).get("connector_trust_summary"),

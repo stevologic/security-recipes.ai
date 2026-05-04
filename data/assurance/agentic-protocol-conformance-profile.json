@@ -1,0 +1,422 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Create a buyer-grade protocol conformance layer for SecurityRecipes so MCP, A2A, agent identity, prompt-injection, and standards drift are translated into generated evidence, deterministic runtime decisions, and MCP-readable diligence artifacts.",
+  "positioning": {
+    "buyer": "AI platform, product security, AppSec, GRC, procurement security, and acquisition diligence teams",
+    "category": "Agentic protocol conformance and drift evidence",
+    "enterprise_promise": "SecurityRecipes can prove that fast-moving agent protocols are tracked, mapped to controls, regenerated in CI, and enforced before context, authority, tools, or remote-agent delegation crosses a trust boundary.",
+    "why_now": "Agent systems are moving from single-agent pilots to protocol-mediated fleets. MCP and A2A make context, tools, and remote agents composable, but enterprise buyers need conformance gates for authorization metadata, resource binding, tool annotations, tool-surface drift, Agent Cards, authenticated extended cards, prompt-injection paths, and protocol-version drift."
+  },
+  "conformance_contract": {
+    "default_state": "hold_for_protocol_evidence",
+    "minimum_protocol_profiles": 4,
+    "minimum_control_checks": 14,
+    "required_protocol_ids": [
+      "mcp-authorization-2025-11-25",
+      "mcp-tooling-safety",
+      "a2a-agent-discovery",
+      "agentic-identity-and-handoff"
+    ],
+    "required_runtime_attributes": [
+      "protocol_id",
+      "workflow_id",
+      "agent_id",
+      "run_id",
+      "resource_indicator_present",
+      "token_audience_bound",
+      "pkce_verified",
+      "client_metadata_reviewed",
+      "tool_annotations_trusted",
+      "tool_surface_pinned",
+      "schema_drift_detected",
+      "agent_card_signed",
+      "extended_card_authenticated",
+      "protocol_version_observed",
+      "human_approval_record",
+      "correlation_id"
+    ],
+    "valid_runtime_decisions": [
+      "allow_with_protocol_receipt",
+      "hold_for_protocol_evidence",
+      "hold_for_protocol_drift_review",
+      "deny_unbound_protocol_authority",
+      "deny_untrusted_protocol_surface",
+      "kill_session_on_protocol_violation"
+    ],
+    "buyer_success_criteria": [
+      "Every protocol profile has current source references and generated evidence paths.",
+      "Every conformance check maps to at least one source pack that already exists in the repository.",
+      "Runtime evaluation is deterministic and fail-closed.",
+      "MCP and A2A are treated as complementary boundaries: MCP for tools and context, A2A for remote-agent delegation.",
+      "The open pack can be regenerated in CI and later extended into hosted protocol-drift monitoring."
+    ]
+  },
+  "source_references": [
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Protected MCP servers need OAuth 2.1 aligned authorization, protected-resource metadata, resource indicators, audience validation, PKCE, and token-passthrough denial before tools can safely receive agent authority."
+    },
+    {
+      "id": "mcp-client-id-metadata-2025-11-25",
+      "name": "MCP Authorization Client ID Metadata Document",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Client ID metadata gives MCP clients a scalable alternative to static registration, but enterprise gateways still need to review redirect policy, client identity, and authorization-server trust before approval."
+    },
+    {
+      "id": "mcp-tool-annotations-2026-03-16",
+      "name": "Tool annotations in the Model Context Protocol",
+      "publisher": "Model Context Protocol",
+      "published": "2026-03-16",
+      "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/",
+      "source_class": "protocol_guidance",
+      "why_it_matters": "MCP tool annotations can help clients present risk-aware approval UI, but annotations are hints until a trusted server, gateway policy, and drift baseline make them enforceable."
+    },
+    {
+      "id": "mcp-spec-changelog-2025-11-25",
+      "name": "MCP Specification Changelog",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
+      "source_class": "protocol_specification",
+      "why_it_matters": "MCP is still changing quickly, so buyers need explicit evidence that resource metadata, authorization expectations, client metadata, and tool behavior are reviewed after spec revisions."
+    },
+    {
+      "id": "a2a-protocol-latest",
+      "name": "Agent2Agent Protocol Specification",
+      "publisher": "A2A Project",
+      "published": "2026-04-17",
+      "url": "https://a2a-protocol.org/latest/specification/",
+      "source_class": "protocol_specification",
+      "why_it_matters": "A2A Agent Cards, authenticated extended cards, transport security, version headers, skills, and security schemes create a remote-agent trust surface that should be evaluated before context or delegation moves."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "publisher": "NIST",
+      "published": "2026-02-17",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "source_class": "government_framework",
+      "why_it_matters": "NIST is prioritizing interoperable agent standards, agent authentication, identity infrastructure, and security evaluations for human-agent and multi-agent systems."
+    },
+    {
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "publisher": "NIST CAISI",
+      "published": "2026-01-12",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "source_class": "government_framework",
+      "why_it_matters": "CAISI highlights indirect prompt injection, poisoning, misaligned actions, and deployment access control as distinct agent-system security concerns."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "source_class": "industry_standard",
+      "why_it_matters": "OWASP gives buyers a shared language for agentic risks including tool misuse, identity abuse, context poisoning, insecure inter-agent communication, cascading failure, and rogue-agent behavior."
+    },
+    {
+      "id": "openai-agent-prompt-injection-2026",
+      "name": "Designing AI agents to resist prompt injection",
+      "publisher": "OpenAI",
+      "published": "2026-03-11",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/",
+      "source_class": "frontier_lab_guidance",
+      "why_it_matters": "OpenAI frames prompt injection as a source-to-sink and social-engineering problem, which requires data controls, confirmations, egress checks, and layered safeguards beyond string filtering."
+    }
+  ],
+  "protocol_profiles": [
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "title": "MCP Authorization Conformance",
+      "current_versions": ["2025-11-25"],
+      "source_ids": [
+        "mcp-authorization-2025-11-25",
+        "mcp-client-id-metadata-2025-11-25",
+        "mcp-spec-changelog-2025-11-25"
+      ],
+      "commercial_value": "Turns MCP authorization drift into a premium gateway control: live metadata discovery, resource/audience checks, client metadata review, consent evidence, and signed runtime receipts.",
+      "conformance_checks": [
+        {
+          "id": "mcp-protected-resource-metadata",
+          "title": "Protected Resource Metadata",
+          "requirement": "Protected MCP servers must expose and verify resource metadata before authorization decisions are trusted.",
+          "source_pack_keys": ["mcp_authorization_conformance_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "scripts/evaluate_mcp_authorization_decision.py"
+          ],
+          "required_runtime_attributes": ["resource_indicator_present", "token_audience_bound", "correlation_id"],
+          "fail_closed_decision": "deny_unbound_protocol_authority",
+          "buyer_question": "Can SecurityRecipes prove which MCP resource a token was minted for before a tool call is allowed?"
+        },
+        {
+          "id": "mcp-token-passthrough-denial",
+          "title": "Token Passthrough Denial",
+          "requirement": "Raw user or upstream API tokens must not be passed through an agent/tool path.",
+          "source_pack_keys": ["mcp_authorization_conformance_pack", "context_egress_boundary_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "required_runtime_attributes": ["token_passthrough", "token_audience_bound"],
+          "fail_closed_decision": "kill_session_on_protocol_violation",
+          "buyer_question": "What stops a confused-deputy or token-forwarding path through MCP?"
+        },
+        {
+          "id": "mcp-client-metadata-review",
+          "title": "Client ID Metadata Review",
+          "requirement": "Client metadata documents must be reviewed for redirect policy, identity, and authorization-server trust before production use.",
+          "source_pack_keys": ["mcp_authorization_conformance_pack", "mcp_connector_intake_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/mcp-connector-intake-pack.json"
+          ],
+          "required_runtime_attributes": ["client_metadata_reviewed", "consent_record_id"],
+          "fail_closed_decision": "hold_for_protocol_evidence",
+          "buyer_question": "How are dynamically registered MCP clients reviewed before consent or tool access expands?"
+        },
+        {
+          "id": "mcp-incremental-scope-consent",
+          "title": "Incremental Scope and Consent",
+          "requirement": "Scope expansion must be explicit, auditable, and tied to workflow, agent identity, and session evidence.",
+          "source_pack_keys": ["mcp_authorization_conformance_pack", "agentic_run_receipt_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/agentic-run-receipt-pack.json"
+          ],
+          "required_runtime_attributes": ["human_approval_record", "consent_record_id", "session_id"],
+          "fail_closed_decision": "hold_for_protocol_evidence",
+          "buyer_question": "Can a buyer inspect who approved a new MCP scope and which workflow it served?"
+        }
+      ]
+    },
+    {
+      "id": "mcp-tooling-safety",
+      "title": "MCP Tool Annotation, Schema, and Drift Safety",
+      "current_versions": ["2025-11-25", "2026-03-16-tool-annotations"],
+      "source_ids": [
+        "mcp-tool-annotations-2026-03-16",
+        "mcp-spec-changelog-2025-11-25",
+        "openai-agent-prompt-injection-2026"
+      ],
+      "commercial_value": "Packages live tool-list monitoring, signed tool-surface baselines, annotation trust, and session-combination risk into a hosted MCP security control plane.",
+      "conformance_checks": [
+        {
+          "id": "mcp-trusted-tool-annotations",
+          "title": "Trusted Tool Annotations",
+          "requirement": "Tool annotations must be treated as policy inputs only when the server, namespace, and baseline are trusted.",
+          "source_pack_keys": ["mcp_tool_risk_contract", "mcp_tool_surface_drift_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json",
+            "data/evidence/mcp-tool-surface-drift-pack.json"
+          ],
+          "required_runtime_attributes": ["tool_annotations_trusted", "tool_surface_pinned"],
+          "fail_closed_decision": "hold_for_protocol_drift_review",
+          "buyer_question": "Are annotations enforceable policy evidence or only UI hints from an untrusted server?"
+        },
+        {
+          "id": "mcp-tool-surface-pinning",
+          "title": "Tool Surface Pinning",
+          "requirement": "Descriptions, input schemas, output schemas, annotations, and capability flags must be pinned and re-reviewed on drift.",
+          "source_pack_keys": ["mcp_tool_surface_drift_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json",
+            "scripts/evaluate_mcp_tool_surface_drift_decision.py"
+          ],
+          "required_runtime_attributes": ["tool_surface_pinned", "schema_drift_detected"],
+          "fail_closed_decision": "hold_for_protocol_drift_review",
+          "buyer_question": "What happens when a tool changes after a previous approval?"
+        },
+        {
+          "id": "mcp-private-untrusted-exfiltration-triangle",
+          "title": "Private Data, Untrusted Content, and External Send",
+          "requirement": "Sessions that combine private context, untrusted content, and external transmission must be held or killed before exfiltration.",
+          "source_pack_keys": ["mcp_tool_risk_contract", "context_egress_boundary_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json",
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "required_runtime_attributes": ["private_data_access", "open_world_tool", "external_egress"],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "Can SecurityRecipes block the realistic data-theft path created by composable tools?"
+        },
+        {
+          "id": "mcp-schema-output-validation",
+          "title": "Schema and Output Validation",
+          "requirement": "Tool outputs that return to the model should be schema-bound or tainted for downstream policy.",
+          "source_pack_keys": ["mcp_tool_risk_contract", "secure_context_eval_pack"],
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json",
+            "data/evidence/secure-context-eval-pack.json"
+          ],
+          "required_runtime_attributes": ["tool_output_schema_validated", "correlation_id"],
+          "fail_closed_decision": "hold_for_protocol_evidence",
+          "buyer_question": "How does a buyer know tool output cannot silently become untrusted prompt content?"
+        }
+      ]
+    },
+    {
+      "id": "a2a-agent-discovery",
+      "title": "A2A Agent Discovery and Delegation",
+      "current_versions": ["latest"],
+      "source_ids": ["a2a-protocol-latest", "nist-ai-agent-standards-initiative-2026", "owasp-agentic-top-10-2026"],
+      "commercial_value": "Creates a remote-agent trust moat: hosted Agent Card monitoring, signature verification, skill allowlists, version drift checks, and A2A gateway policy.",
+      "conformance_checks": [
+        {
+          "id": "a2a-public-agent-card-intake",
+          "title": "Public Agent Card Intake",
+          "requirement": "Public Agent Cards must expose enough identity, transport, security, skills, and capability metadata to support trust review.",
+          "source_pack_keys": ["a2a_agent_card_trust_profile"],
+          "evidence_paths": [
+            "data/evidence/a2a-agent-card-trust-profile.json",
+            "scripts/evaluate_a2a_agent_card_trust_decision.py"
+          ],
+          "required_runtime_attributes": ["agent_card_present", "provider_identity_verified"],
+          "fail_closed_decision": "hold_for_protocol_evidence",
+          "buyer_question": "Is a discovered remote agent complete enough to enter an enterprise trust workflow?"
+        },
+        {
+          "id": "a2a-authenticated-extended-card",
+          "title": "Authenticated Extended Agent Card",
+          "requirement": "Sensitive capabilities, detailed skills, and delegated authority should require authenticated extended-card evidence.",
+          "source_pack_keys": ["a2a_agent_card_trust_profile", "agent_handoff_boundary_pack"],
+          "evidence_paths": [
+            "data/evidence/a2a-agent-card-trust-profile.json",
+            "data/evidence/agent-handoff-boundary-pack.json"
+          ],
+          "required_runtime_attributes": ["extended_card_authenticated", "agent_card_signed"],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "Can a remote agent hide or change sensitive skills without an authenticated review?"
+        },
+        {
+          "id": "a2a-version-and-transport-proof",
+          "title": "A2A Version and Transport Proof",
+          "requirement": "A2A requests should carry version and transport evidence so gateways can detect protocol drift.",
+          "source_pack_keys": ["a2a_agent_card_trust_profile", "agent_handoff_boundary_pack"],
+          "evidence_paths": [
+            "data/evidence/a2a-agent-card-trust-profile.json",
+            "data/evidence/agent-handoff-boundary-pack.json"
+          ],
+          "required_runtime_attributes": ["protocol_version_observed", "a2a_version_header", "https_transport"],
+          "fail_closed_decision": "hold_for_protocol_drift_review",
+          "buyer_question": "What proves the remote agent is speaking the expected A2A protocol shape?"
+        },
+        {
+          "id": "a2a-handoff-minimization",
+          "title": "Agent Handoff Payload Minimization",
+          "requirement": "Remote-agent handoffs must treat payloads as egress and minimize to metadata, cited evidence, or explicitly approved context.",
+          "source_pack_keys": ["agent_handoff_boundary_pack", "context_egress_boundary_pack"],
+          "evidence_paths": [
+            "data/evidence/agent-handoff-boundary-pack.json",
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "required_runtime_attributes": ["handoff_profile_id", "data_classes", "human_approval_record"],
+          "fail_closed_decision": "hold_for_protocol_evidence",
+          "buyer_question": "Can the buyer prove that remote-agent payloads are governed as egress, not casual chat?"
+        }
+      ]
+    },
+    {
+      "id": "agentic-identity-and-handoff",
+      "title": "Agent Identity, Protocol Handoff, and Prompt-Injection Boundary",
+      "current_versions": ["nist-agent-standards-2026", "owasp-agentic-top-10-2026"],
+      "source_ids": [
+        "nist-ai-agent-standards-initiative-2026",
+        "nist-caisi-ai-agent-security-rfi-2026",
+        "owasp-agentic-top-10-2026",
+        "openai-agent-prompt-injection-2026"
+      ],
+      "commercial_value": "Elevates SecurityRecipes above static docs by tying protocol conformance to non-human identity, handoff receipts, egress policy, prompt-injection controls, and buyer-readable trust-center evidence.",
+      "conformance_checks": [
+        {
+          "id": "agent-identity-bound-to-protocol",
+          "title": "Agent Identity Bound to Protocol Use",
+          "requirement": "Every protocol-mediated action should carry agent identity, workflow, run, session, and revocation evidence.",
+          "source_pack_keys": ["agentic_run_receipt_pack", "agent_identity_ledger"],
+          "evidence_paths": [
+            "data/evidence/agentic-run-receipt-pack.json",
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "required_runtime_attributes": ["agent_id", "workflow_id", "run_id", "session_id"],
+          "fail_closed_decision": "hold_for_protocol_evidence",
+          "buyer_question": "Which non-human identity used a protocol boundary and who can revoke it?"
+        },
+        {
+          "id": "prompt-injection-source-sink-boundary",
+          "title": "Prompt-Injection Source to Sink Boundary",
+          "requirement": "Untrusted protocol inputs must be treated as sources and high-impact tools, egress, or remote delegation as sinks.",
+          "source_pack_keys": ["context_poisoning_guard_pack", "agentic_red_team_drill_pack", "context_egress_boundary_pack"],
+          "evidence_paths": [
+            "data/evidence/context-poisoning-guard-pack.json",
+            "data/evidence/agentic-red-team-drill-pack.json",
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "required_runtime_attributes": ["untrusted_content_seen", "external_egress", "human_approval_record"],
+          "fail_closed_decision": "deny_untrusted_protocol_surface",
+          "buyer_question": "How does SecurityRecipes stop malicious context from reaching an action or data-transmission sink?"
+        },
+        {
+          "id": "standards-drift-review",
+          "title": "Standards Drift Review",
+          "requirement": "Protocol controls should stay mapped to current standards, standards sources, and generated evidence.",
+          "source_pack_keys": ["standards_crosswalk"],
+          "evidence_paths": [
+            "data/evidence/agentic-standards-crosswalk.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "required_runtime_attributes": ["protocol_id", "protocol_version_observed"],
+          "fail_closed_decision": "hold_for_protocol_drift_review",
+          "buyer_question": "When MCP, A2A, OWASP, NIST, or frontier-lab guidance changes, what forces review?"
+        },
+        {
+          "id": "trust-center-protocol-export",
+          "title": "Trust-Center Protocol Export",
+          "requirement": "Protocol conformance evidence should be exportable for procurement, platform review, and acquisition diligence.",
+          "source_pack_keys": ["enterprise_trust_center_export", "agentic_control_plane_blueprint"],
+          "evidence_paths": [
+            "data/evidence/enterprise-trust-center-export.json",
+            "data/evidence/agentic-control-plane-blueprint.json",
+            "data/evidence/agentic-protocol-conformance-pack.json"
+          ],
+          "required_runtime_attributes": ["correlation_id", "gateway_policy_hash"],
+          "fail_closed_decision": "hold_for_protocol_evidence",
+          "buyer_question": "Can a platform team or buyer inspect protocol conformance without reading implementation code?"
+        }
+      ]
+    }
+  ],
+  "buyer_views": [
+    {
+      "id": "ai-platform-protocol-review",
+      "title": "AI Platform Protocol Review",
+      "question": "Can MCP and A2A be enabled without creating unmanaged context, tool, or remote-agent trust paths?",
+      "required_protocol_ids": ["mcp-authorization-2025-11-25", "mcp-tooling-safety", "a2a-agent-discovery"],
+      "answer_contract": "Return protocol profiles, current source references, conformance checks, generated evidence paths, and runtime decisions."
+    },
+    {
+      "id": "procurement-security",
+      "title": "Procurement Security Review",
+      "question": "Which current protocol and agent-security standards are tracked, and where is the evidence?",
+      "required_protocol_ids": ["mcp-authorization-2025-11-25", "a2a-agent-discovery", "agentic-identity-and-handoff"],
+      "answer_contract": "Return source references, profile status, evidence hashes, buyer questions, and residual risk language without customer-private data."
+    },
+    {
+      "id": "acquisition-diligence",
+      "title": "Acquisition Diligence",
+      "question": "Why is SecurityRecipes an acquirable secure context layer rather than a documentation library?",
+      "required_protocol_ids": ["mcp-authorization-2025-11-25", "mcp-tooling-safety", "a2a-agent-discovery", "agentic-identity-and-handoff"],
+      "answer_contract": "Return the open-core product path from public protocol conformance packs to hosted MCP/A2A drift monitoring, signed receipts, and enterprise trust-center exports."
+    }
+  ]
+}
