@@ -214,6 +214,10 @@ class ServerConfig:
         "RECIPES_MCP_STANDARDS_CROSSWALK_PATH",
         "./data/evidence/agentic-standards-crosswalk.json",
     )
+    mcp_risk_coverage_pack_path: str = os.environ.get(
+        "RECIPES_MCP_RISK_COVERAGE_PACK_PATH",
+        "./data/evidence/mcp-risk-coverage-pack.json",
+    )
     protocol_conformance_pack_path: str = os.environ.get(
         "RECIPES_MCP_PROTOCOL_CONFORMANCE_PACK_PATH",
         "./data/evidence/agentic-protocol-conformance-pack.json",
@@ -6909,6 +6913,228 @@ class AgenticStandardsCrosswalk:
         }
 
 
+class MCPRiskCoveragePack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._risk_by_id: dict[str, dict[str, Any]] = {}
+        self._standard_by_id: dict[str, dict[str, Any]] = {}
+        self._capability_by_id: dict[str, dict[str, Any]] = {}
+        self._source_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        risks = pack.get("risk_coverage") if isinstance(pack, dict) else []
+        standards = pack.get("standards") if isinstance(pack, dict) else []
+        coverage = pack.get("capability_coverage") if isinstance(pack, dict) else []
+        sources = pack.get("source_references") if isinstance(pack, dict) else []
+        self._risk_by_id = {
+            str(risk.get("id")): risk
+            for risk in risks
+            if isinstance(risk, dict) and risk.get("id")
+        }
+        self._standard_by_id = {
+            str(standard.get("id")): standard
+            for standard in standards
+            if isinstance(standard, dict) and standard.get("id")
+        }
+        self._capability_by_id = {
+            str(row.get("capability_id")): row
+            for row in coverage
+            if isinstance(row, dict) and row.get("capability_id")
+        }
+        self._source_by_id = {
+            str(source.get("id")): source
+            for source in sources
+            if isinstance(source, dict) and source.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _risk_preview(risk: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "coverage_status": risk.get("coverage_status"),
+            "evidence_paths": risk.get("evidence_paths", []),
+            "id": risk.get("id"),
+            "mcp_tools": risk.get("mcp_tools", []),
+            "required_capability_ids": risk.get("required_capability_ids", []),
+            "risk_tier": risk.get("risk_tier"),
+            "standard_id": risk.get("standard_id"),
+            "title": risk.get("title"),
+        }
+
+    @staticmethod
+    def _standard_preview(standard: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "capability_count": standard.get("capability_count"),
+            "coverage_score": standard.get("coverage_score"),
+            "id": standard.get("id"),
+            "mcp_tools": standard.get("mcp_tools", []),
+            "risk_count": standard.get("risk_count"),
+            "risk_ids": standard.get("risk_ids", []),
+            "source_ids": standard.get("source_ids", []),
+            "status": standard.get("status"),
+            "title": standard.get("title"),
+        }
+
+    @staticmethod
+    def _capability_preview(row: dict[str, Any]) -> dict[str, Any]:
+        capability = row.get("capability") if isinstance(row.get("capability"), dict) else {}
+        return {
+            "capability_id": row.get("capability_id"),
+            "mcp_tools": capability.get("mcp_tools", []),
+            "risk_count": row.get("risk_count"),
+            "risk_ids": row.get("risk_ids", []),
+            "standard_count": row.get("standard_count"),
+            "status": row.get("status"),
+            "title": capability.get("title"),
+        }
+
+    @staticmethod
+    def _source_preview(source: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": source.get("id"),
+            "name": source.get("name"),
+            "published": source.get("published"),
+            "publisher": source.get("publisher"),
+            "source_class": source.get("source_class"),
+            "url": source.get("url"),
+        }
+
+    def get(
+        self,
+        risk_id: str | None = None,
+        standard_id: str | None = None,
+        capability_id: str | None = None,
+        source_id: str | None = None,
+        risk_tier: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load MCP risk coverage pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "MCP risk coverage pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "MCP risk coverage pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if risk_id:
+            key = risk_id.strip()
+            risk = self._risk_by_id.get(key)
+            return {
+                "available": True,
+                "found": risk is not None,
+                "risk": risk,
+                "risk_id": key,
+            }
+
+        risks = list(self._risk_by_id.values())
+        if standard_id:
+            key = standard_id.strip()
+            standard = self._standard_by_id.get(key)
+            return {
+                "available": True,
+                "found": standard is not None,
+                "risks": [
+                    risk
+                    for risk in risks
+                    if str(risk.get("standard_id")) == key
+                ],
+                "standard": standard,
+                "standard_id": key,
+            }
+
+        if capability_id:
+            key = capability_id.strip()
+            capability = self._capability_by_id.get(key)
+            return {
+                "available": True,
+                "capability": capability,
+                "capability_id": key,
+                "found": capability is not None,
+                "risks": [
+                    risk
+                    for risk in risks
+                    if key in [str(item) for item in risk.get("required_capability_ids", [])]
+                ],
+            }
+
+        if source_id:
+            key = source_id.strip()
+            source = self._source_by_id.get(key)
+            return {
+                "available": True,
+                "found": source is not None,
+                "risks": [
+                    risk
+                    for risk in risks
+                    if key in [str(item) for item in risk.get("source_ids", [])]
+                ],
+                "source": source,
+                "source_id": key,
+            }
+
+        if risk_tier:
+            key = risk_tier.strip()
+            risks = [risk for risk in risks if str(risk.get("risk_tier")) == key]
+        if status:
+            key = status.strip()
+            risks = [risk for risk in risks if str(risk.get("coverage_status")) == key]
+
+        return {
+            "available": True,
+            "buyer_views": pack.get("buyer_views", []),
+            "capability_coverage": [
+                self._capability_preview(row)
+                for row in self._capability_by_id.values()
+            ],
+            "commercialization_path": pack.get("commercialization_path", {}),
+            "coverage_contract": pack.get("coverage_contract", {}),
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "generated_at": pack.get("generated_at"),
+            "risk_count": len(risks),
+            "risk_coverage": [self._risk_preview(risk) for risk in risks],
+            "risk_coverage_summary": pack.get("risk_coverage_summary"),
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "source_references": [
+                self._source_preview(source)
+                for source in self._source_by_id.values()
+            ],
+            "standard_count": len(self._standard_by_id),
+            "standards": [
+                self._standard_preview(standard)
+                for standard in self._standard_by_id.values()
+            ],
+            "status": status,
+        }
+
+
 class AgenticProtocolConformancePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -7399,6 +7625,10 @@ def load_config(config_path: str) -> ServerConfig:
         "standards_crosswalk_path",
         cfg.standards_crosswalk_path,
     )
+    cfg.mcp_risk_coverage_pack_path = data.get(
+        "mcp_risk_coverage_pack_path",
+        cfg.mcp_risk_coverage_pack_path,
+    )
     cfg.protocol_conformance_pack_path = data.get(
         "protocol_conformance_pack_path",
         cfg.protocol_conformance_pack_path,
@@ -7526,6 +7756,7 @@ context_poisoning_guard_pack = ContextPoisoningGuardPack(config.context_poisonin
 context_egress_boundary_pack = ContextEgressBoundaryPack(config.context_egress_boundary_pack_path)
 threat_radar = AgenticThreatRadar(config.threat_radar_path)
 standards_crosswalk = AgenticStandardsCrosswalk(config.standards_crosswalk_path)
+mcp_risk_coverage_pack = MCPRiskCoveragePack(config.mcp_risk_coverage_pack_path)
 protocol_conformance_pack = AgenticProtocolConformancePack(config.protocol_conformance_pack_path)
 control_plane_blueprint = AgenticControlPlaneBlueprint(config.control_plane_blueprint_path)
 exposure_graph = AgenticExposureGraph(config.exposure_graph_path)
@@ -7581,6 +7812,7 @@ async def recipes_server_info() -> dict[str, Any]:
         "context_egress_boundary_pack_path": config.context_egress_boundary_pack_path,
         "threat_radar_path": config.threat_radar_path,
         "standards_crosswalk_path": config.standards_crosswalk_path,
+        "mcp_risk_coverage_pack_path": config.mcp_risk_coverage_pack_path,
         "protocol_conformance_pack_path": config.protocol_conformance_pack_path,
         "control_plane_blueprint_path": config.control_plane_blueprint_path,
         "exposure_graph_path": config.exposure_graph_path,
@@ -8937,6 +9169,26 @@ async def recipes_agentic_standards_crosswalk(
         control_id=control_id,
         capability_id=capability_id,
         source_id=source_id,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_mcp_risk_coverage_pack(
+    risk_id: str | None = None,
+    standard_id: str | None = None,
+    capability_id: str | None = None,
+    source_id: str | None = None,
+    risk_tier: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return OWASP MCP and agentic-skill risk coverage mapped to generated evidence."""
+    return mcp_risk_coverage_pack.get(
+        risk_id=risk_id,
+        standard_id=standard_id,
+        capability_id=capability_id,
+        source_id=source_id,
+        risk_tier=risk_tier,
         status=status,
     )
 

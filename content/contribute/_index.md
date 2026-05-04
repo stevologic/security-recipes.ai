@@ -140,6 +140,28 @@ or repeatable for the next team:
 - **An issue** — file one if you spot something broken and don't
   have time to fix it yourself; the template asks for repro steps.
 
+## Contributing marketplace integrations and workflow packs
+
+The browser workbench marketplace is also contributed content.
+
+If you are adding a new connector pack, report contract, or workflow bundle:
+
+- edit the matching Hugo data file under `data/marketplace/`
+- keep the runtime state honest: `live`, `live_or_copy`, `copy_only`, `config_only`, or `planned`
+- document the auth shape, browser/CORS assumptions, and human-review expectation on a docs page
+- include an example target system and example scope so reviewers can validate the payload shape
+
+The marketplace files are split on purpose:
+
+- `data/marketplace/input_channels.json` - context and scanner intake
+- `data/marketplace/output_channels.json` - downstream delivery routes
+- `data/marketplace/report_profiles.json` - normalized output contracts
+- `data/marketplace/workflow_templates.json` - reusable bundles stitched from the above
+
+For public discoverability, update the
+[Marketplace and Workflow Gallery]({{< relref "/docs/marketplace-gallery" >}})
+when your PR changes how a pack should be explained to operators.
+
 ## Contributing a new agent recipe
 
 A "recipe" is a per-tool playbook. Every recipe follows the same

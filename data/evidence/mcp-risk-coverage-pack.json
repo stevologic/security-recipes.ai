@@ -1,0 +1,3859 @@
+{
+  "buyer_views": [
+    {
+      "answer_contract": "Return MCP risks with mapped evidence paths, MCP tools, commercial hooks, and any coverage gaps.",
+      "id": "ai-platform-mcp-risk-review",
+      "question": "Do the controls cover MCP-specific failures before agents call tools or receive context?",
+      "standard_ids": [
+        "owasp-mcp-top-10-2025"
+      ],
+      "standards": [
+        {
+          "capability_count": 23,
+          "coverage_score": 100,
+          "id": "owasp-mcp-top-10-2025",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_memory_boundary_pack",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_enterprise_trust_center_export",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_agent_memory_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_action_runtime_decision",
+            "recipes_evaluate_agentic_entitlement_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_context_retrieval_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_evaluate_mcp_gateway_decision",
+            "recipes_evaluate_mcp_stdio_launch_decision",
+            "recipes_evaluate_mcp_tool_risk_decision",
+            "recipes_evaluate_mcp_tool_surface_drift_decision",
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_connector_trust_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_mcp_tool_risk_contract",
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_secure_context_trust_pack"
+          ],
+          "risk_count": 10,
+          "risk_ids": [
+            "MCP01",
+            "MCP02",
+            "MCP03",
+            "MCP04",
+            "MCP05",
+            "MCP06",
+            "MCP07",
+            "MCP08",
+            "MCP09",
+            "MCP10"
+          ],
+          "source_ids": [
+            "owasp-mcp-top-10-2025",
+            "mcp-security-best-practices-2025"
+          ],
+          "sources": [
+            {
+              "id": "owasp-mcp-top-10-2025",
+              "name": "OWASP MCP Top 10",
+              "published": "2025-beta",
+              "publisher": "OWASP Foundation",
+              "source_class": "industry_standard",
+              "url": "https://owasp.org/www-project-mcp-top-10/"
+            },
+            {
+              "id": "mcp-security-best-practices-2025",
+              "name": "Model Context Protocol Security Best Practices",
+              "published": "2025-06-18",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_guidance",
+              "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+            }
+          ],
+          "status": "covered",
+          "title": "OWASP MCP Top 10 Coverage"
+        }
+      ],
+      "title": "AI Platform MCP Risk Review"
+    },
+    {
+      "answer_contract": "Return skill risks with registry, permissions, isolation, drift, scanning, governance, and cross-platform evidence.",
+      "id": "agent-skill-governance-review",
+      "question": "Do the controls cover the behavior-package layer that tells agents how to chain tools and workflows?",
+      "standard_ids": [
+        "owasp-agentic-skills-top-10-2026"
+      ],
+      "standards": [
+        {
+          "capability_count": 20,
+          "coverage_score": 100,
+          "id": "owasp-agentic-skills-top-10-2026",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
+            "recipes_browser_agent_boundary_pack",
+            "recipes_context_egress_boundary_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_enterprise_trust_center_export",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_action_runtime_decision",
+            "recipes_evaluate_agentic_entitlement_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_browser_agent_boundary_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_mcp_gateway_decision",
+            "recipes_evaluate_mcp_stdio_launch_decision",
+            "recipes_evaluate_mcp_tool_risk_decision",
+            "recipes_evaluate_mcp_tool_surface_drift_decision",
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_mcp_tool_risk_contract",
+            "recipes_mcp_tool_surface_drift_pack"
+          ],
+          "risk_count": 10,
+          "risk_ids": [
+            "AST01",
+            "AST02",
+            "AST03",
+            "AST04",
+            "AST05",
+            "AST06",
+            "AST07",
+            "AST08",
+            "AST09",
+            "AST10"
+          ],
+          "source_ids": [
+            "owasp-agentic-skills-top-10-2026",
+            "cisa-secure-by-design",
+            "nist-ai-600-1"
+          ],
+          "sources": [
+            {
+              "id": "owasp-agentic-skills-top-10-2026",
+              "name": "OWASP Agentic Skills Top 10",
+              "published": "2026",
+              "publisher": "OWASP Foundation",
+              "source_class": "industry_standard",
+              "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+            },
+            {
+              "id": "cisa-secure-by-design",
+              "name": "CISA Secure by Design",
+              "published": "2023",
+              "publisher": "CISA",
+              "source_class": "government_guidance",
+              "url": "https://www.cisa.gov/securebydesign"
+            },
+            {
+              "id": "nist-ai-600-1",
+              "name": "NIST AI RMF Generative AI Profile",
+              "published": "2024-07-26",
+              "publisher": "NIST",
+              "source_class": "government_framework",
+              "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+            }
+          ],
+          "status": "covered",
+          "title": "OWASP Agentic Skills Top 10 Coverage"
+        }
+      ],
+      "title": "Agent Skill Governance Review"
+    },
+    {
+      "answer_contract": "Return current risk coverage, generated evidence, MCP tool surfaces, and hosted product wedges for protocol, tool, context, and skill security.",
+      "id": "acquisition-diligence",
+      "question": "Why is SecurityRecipes a defensible secure-context control-plane asset rather than a documentation site?",
+      "standard_ids": [
+        "owasp-mcp-top-10-2025",
+        "owasp-agentic-skills-top-10-2026"
+      ],
+      "standards": [
+        {
+          "capability_count": 23,
+          "coverage_score": 100,
+          "id": "owasp-mcp-top-10-2025",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_memory_boundary_pack",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_enterprise_trust_center_export",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_agent_memory_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_action_runtime_decision",
+            "recipes_evaluate_agentic_entitlement_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_context_retrieval_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_evaluate_mcp_gateway_decision",
+            "recipes_evaluate_mcp_stdio_launch_decision",
+            "recipes_evaluate_mcp_tool_risk_decision",
+            "recipes_evaluate_mcp_tool_surface_drift_decision",
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_connector_trust_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_mcp_tool_risk_contract",
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_secure_context_trust_pack"
+          ],
+          "risk_count": 10,
+          "risk_ids": [
+            "MCP01",
+            "MCP02",
+            "MCP03",
+            "MCP04",
+            "MCP05",
+            "MCP06",
+            "MCP07",
+            "MCP08",
+            "MCP09",
+            "MCP10"
+          ],
+          "source_ids": [
+            "owasp-mcp-top-10-2025",
+            "mcp-security-best-practices-2025"
+          ],
+          "sources": [
+            {
+              "id": "owasp-mcp-top-10-2025",
+              "name": "OWASP MCP Top 10",
+              "published": "2025-beta",
+              "publisher": "OWASP Foundation",
+              "source_class": "industry_standard",
+              "url": "https://owasp.org/www-project-mcp-top-10/"
+            },
+            {
+              "id": "mcp-security-best-practices-2025",
+              "name": "Model Context Protocol Security Best Practices",
+              "published": "2025-06-18",
+              "publisher": "Model Context Protocol",
+              "source_class": "protocol_guidance",
+              "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+            }
+          ],
+          "status": "covered",
+          "title": "OWASP MCP Top 10 Coverage"
+        },
+        {
+          "capability_count": 20,
+          "coverage_score": 100,
+          "id": "owasp-agentic-skills-top-10-2026",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_agent_identity_ledger",
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_agentic_action_runtime_pack",
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_measurement_probe_pack",
+            "recipes_agentic_red_team_drill_pack",
+            "recipes_agentic_run_receipt_pack",
+            "recipes_agentic_system_bom",
+            "recipes_agentic_telemetry_contract",
+            "recipes_browser_agent_boundary_pack",
+            "recipes_context_egress_boundary_pack",
+            "recipes_context_poisoning_guard_pack",
+            "recipes_enterprise_trust_center_export",
+            "recipes_evaluate_agent_handoff_decision",
+            "recipes_evaluate_agent_skill_decision",
+            "recipes_evaluate_agentic_action_runtime_decision",
+            "recipes_evaluate_agentic_entitlement_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_browser_agent_boundary_decision",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_mcp_gateway_decision",
+            "recipes_evaluate_mcp_stdio_launch_decision",
+            "recipes_evaluate_mcp_tool_risk_decision",
+            "recipes_evaluate_mcp_tool_surface_drift_decision",
+            "recipes_mcp_connector_intake_pack",
+            "recipes_mcp_gateway_policy",
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_mcp_tool_risk_contract",
+            "recipes_mcp_tool_surface_drift_pack"
+          ],
+          "risk_count": 10,
+          "risk_ids": [
+            "AST01",
+            "AST02",
+            "AST03",
+            "AST04",
+            "AST05",
+            "AST06",
+            "AST07",
+            "AST08",
+            "AST09",
+            "AST10"
+          ],
+          "source_ids": [
+            "owasp-agentic-skills-top-10-2026",
+            "cisa-secure-by-design",
+            "nist-ai-600-1"
+          ],
+          "sources": [
+            {
+              "id": "owasp-agentic-skills-top-10-2026",
+              "name": "OWASP Agentic Skills Top 10",
+              "published": "2026",
+              "publisher": "OWASP Foundation",
+              "source_class": "industry_standard",
+              "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+            },
+            {
+              "id": "cisa-secure-by-design",
+              "name": "CISA Secure by Design",
+              "published": "2023",
+              "publisher": "CISA",
+              "source_class": "government_guidance",
+              "url": "https://www.cisa.gov/securebydesign"
+            },
+            {
+              "id": "nist-ai-600-1",
+              "name": "NIST AI RMF Generative AI Profile",
+              "published": "2024-07-26",
+              "publisher": "NIST",
+              "source_class": "government_framework",
+              "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+            }
+          ],
+          "status": "covered",
+          "title": "OWASP Agentic Skills Top 10 Coverage"
+        }
+      ],
+      "title": "Acquisition Diligence"
+    }
+  ],
+  "capability_coverage": [
+    {
+      "capability": {
+        "commercial_value": "Handoff policy extends SecurityRecipes beyond MCP into multi-agent and provider-native delegation.",
+        "evidence_paths": [
+          "data/evidence/agent-handoff-boundary-pack.json"
+        ],
+        "id": "agent-handoff-boundary-pack",
+        "mcp_tools": [
+          "recipes_agent_handoff_boundary_pack",
+          "recipes_evaluate_agent_handoff_decision"
+        ],
+        "status": "implemented",
+        "title": "Agent Handoff Boundary Pack"
+      },
+      "capability_id": "agent-handoff-boundary-pack",
+      "risk_count": 2,
+      "risk_ids": [
+        "MCP10",
+        "AST10"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Non-human identity contracts make agent authority reviewable, revocable, and ready for customer IAM integration.",
+        "evidence_paths": [
+          "data/evidence/agent-identity-delegation-ledger.json"
+        ],
+        "id": "agent-identity-ledger",
+        "mcp_tools": [
+          "recipes_agent_identity_ledger"
+        ],
+        "status": "implemented",
+        "title": "Agent Identity Ledger"
+      },
+      "capability_id": "agent-identity-ledger",
+      "risk_count": 3,
+      "risk_ids": [
+        "MCP02",
+        "MCP07",
+        "AST03"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Memory class policy prevents context and skills from quietly becoming persistent authority.",
+        "evidence_paths": [
+          "data/evidence/agent-memory-boundary-pack.json"
+        ],
+        "id": "agent-memory-boundary-pack",
+        "mcp_tools": [
+          "recipes_agent_memory_boundary_pack",
+          "recipes_evaluate_agent_memory_decision"
+        ],
+        "status": "implemented",
+        "title": "Agent Memory Boundary Pack"
+      },
+      "capability_id": "agent-memory-boundary-pack",
+      "risk_count": 1,
+      "risk_ids": [
+        "MCP10"
+      ],
+      "standard_count": 1,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+        "evidence_paths": [
+          "data/evidence/agent-skill-supply-chain-pack.json"
+        ],
+        "id": "agent-skill-supply-chain-pack",
+        "mcp_tools": [
+          "recipes_agent_skill_supply_chain_pack",
+          "recipes_evaluate_agent_skill_decision"
+        ],
+        "status": "implemented",
+        "title": "Agent Skill Supply-Chain Pack"
+      },
+      "capability_id": "agent-skill-supply-chain-pack",
+      "risk_count": 11,
+      "risk_ids": [
+        "MCP04",
+        "MCP05",
+        "AST01",
+        "AST02",
+        "AST03",
+        "AST04",
+        "AST05",
+        "AST06",
+        "AST07",
+        "AST08",
+        "AST10"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+        "evidence_paths": [
+          "data/evidence/agentic-action-runtime-pack.json"
+        ],
+        "id": "agentic-action-runtime-pack",
+        "mcp_tools": [
+          "recipes_agentic_action_runtime_pack",
+          "recipes_evaluate_agentic_action_runtime_decision"
+        ],
+        "status": "implemented",
+        "title": "Agentic Action Runtime Pack"
+      },
+      "capability_id": "agentic-action-runtime-pack",
+      "risk_count": 8,
+      "risk_ids": [
+        "MCP01",
+        "MCP02",
+        "MCP05",
+        "MCP06",
+        "AST01",
+        "AST03",
+        "AST05",
+        "AST06"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Expiring permission leases and step-up review are a direct enterprise control for scope creep and over-privileged agents.",
+        "evidence_paths": [
+          "data/evidence/agentic-entitlement-review-pack.json"
+        ],
+        "id": "agentic-entitlement-review-pack",
+        "mcp_tools": [
+          "recipes_agentic_entitlement_review_pack",
+          "recipes_evaluate_agentic_entitlement_decision"
+        ],
+        "status": "implemented",
+        "title": "Agentic Entitlement Review Pack"
+      },
+      "capability_id": "agentic-entitlement-review-pack",
+      "risk_count": 4,
+      "risk_ids": [
+        "MCP02",
+        "MCP07",
+        "AST03",
+        "AST09"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Agentic incident classes and replay gates create a post-incident evidence vault product surface.",
+        "evidence_paths": [
+          "data/evidence/agentic-incident-response-pack.json"
+        ],
+        "id": "agentic-incident-response-pack",
+        "mcp_tools": [
+          "recipes_agentic_incident_response_pack",
+          "recipes_evaluate_agentic_incident_response_decision"
+        ],
+        "status": "implemented",
+        "title": "Agentic Incident Response Pack"
+      },
+      "capability_id": "agentic-incident-response-pack",
+      "risk_count": 2,
+      "risk_ids": [
+        "MCP08",
+        "AST01"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+        "evidence_paths": [
+          "data/evidence/agentic-measurement-probe-pack.json"
+        ],
+        "id": "agentic-measurement-probe-pack",
+        "mcp_tools": [
+          "recipes_agentic_measurement_probe_pack"
+        ],
+        "status": "implemented",
+        "title": "Agentic Measurement Probe Pack"
+      },
+      "capability_id": "agentic-measurement-probe-pack",
+      "risk_count": 7,
+      "risk_ids": [
+        "MCP06",
+        "MCP08",
+        "MCP09",
+        "AST02",
+        "AST07",
+        "AST08",
+        "AST10"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Replayable attack drills let the hosted product prove control behavior after model, connector, prompt, skill, or context drift.",
+        "evidence_paths": [
+          "data/evidence/agentic-red-team-drill-pack.json"
+        ],
+        "id": "agentic-red-team-drill-pack",
+        "mcp_tools": [
+          "recipes_agentic_red_team_drill_pack"
+        ],
+        "status": "implemented",
+        "title": "Agentic Red-Team Drill Pack"
+      },
+      "capability_id": "agentic-red-team-drill-pack",
+      "risk_count": 5,
+      "risk_ids": [
+        "MCP03",
+        "MCP06",
+        "AST05",
+        "AST07",
+        "AST08"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Run receipts convert agent activity into portable evidence for auditors, incident response, and trust-center exports.",
+        "evidence_paths": [
+          "data/evidence/agentic-run-receipt-pack.json"
+        ],
+        "id": "agentic-run-receipt-pack",
+        "mcp_tools": [
+          "recipes_agentic_run_receipt_pack"
+        ],
+        "status": "implemented",
+        "title": "Agentic Run Receipt Pack"
+      },
+      "capability_id": "agentic-run-receipt-pack",
+      "risk_count": 3,
+      "risk_ids": [
+        "MCP07",
+        "MCP08",
+        "AST09"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "The Agentic System BOM inventories tools, skills, identities, contexts, and evidence for procurement and incident response.",
+        "evidence_paths": [
+          "data/evidence/agentic-system-bom.json"
+        ],
+        "id": "agentic-system-bom",
+        "mcp_tools": [
+          "recipes_agentic_system_bom"
+        ],
+        "status": "implemented",
+        "title": "Agentic System BOM"
+      },
+      "capability_id": "agentic-system-bom",
+      "risk_count": 5,
+      "risk_ids": [
+        "MCP04",
+        "MCP09",
+        "AST02",
+        "AST09",
+        "AST10"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "OpenTelemetry-shaped agent evidence with redaction controls is a credible SIEM and observability integration path.",
+        "evidence_paths": [
+          "data/evidence/agentic-telemetry-contract.json"
+        ],
+        "id": "agentic-telemetry-contract",
+        "mcp_tools": [
+          "recipes_agentic_telemetry_contract",
+          "recipes_evaluate_agentic_telemetry_event"
+        ],
+        "status": "implemented",
+        "title": "Agentic Telemetry Contract"
+      },
+      "capability_id": "agentic-telemetry-contract",
+      "risk_count": 3,
+      "risk_ids": [
+        "MCP01",
+        "MCP08",
+        "AST09"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Browser-agent isolation helps cover ambient authority and untrusted web content in the same control-plane story.",
+        "evidence_paths": [
+          "data/evidence/browser-agent-boundary-pack.json"
+        ],
+        "id": "browser-agent-boundary-pack",
+        "mcp_tools": [
+          "recipes_browser_agent_boundary_pack",
+          "recipes_evaluate_browser_agent_boundary_decision"
+        ],
+        "status": "implemented",
+        "title": "Browser Agent Boundary Pack"
+      },
+      "capability_id": "browser-agent-boundary-pack",
+      "risk_count": 1,
+      "risk_ids": [
+        "AST06"
+      ],
+      "standard_count": 1,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Data-boundary decisions are essential for enterprise approval of private context in model and MCP workflows.",
+        "evidence_paths": [
+          "data/evidence/context-egress-boundary-pack.json"
+        ],
+        "id": "context-egress-boundary-pack",
+        "mcp_tools": [
+          "recipes_context_egress_boundary_pack",
+          "recipes_evaluate_context_egress_decision"
+        ],
+        "status": "implemented",
+        "title": "Context Egress Boundary Pack"
+      },
+      "capability_id": "context-egress-boundary-pack",
+      "risk_count": 4,
+      "risk_ids": [
+        "MCP01",
+        "MCP10",
+        "AST01",
+        "AST06"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Pre-retrieval poisoning scans are the practical bridge between prompt-injection guidance and MCP context delivery.",
+        "evidence_paths": [
+          "data/evidence/context-poisoning-guard-pack.json"
+        ],
+        "id": "context-poisoning-guard-pack",
+        "mcp_tools": [
+          "recipes_context_poisoning_guard_pack"
+        ],
+        "status": "implemented",
+        "title": "Context Poisoning Guard Pack"
+      },
+      "capability_id": "context-poisoning-guard-pack",
+      "risk_count": 5,
+      "risk_ids": [
+        "MCP03",
+        "MCP06",
+        "MCP10",
+        "AST04",
+        "AST08"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "The trust-center export turns risk coverage into procurement and acquisition diligence collateral.",
+        "evidence_paths": [
+          "data/evidence/enterprise-trust-center-export.json"
+        ],
+        "id": "enterprise-trust-center-export",
+        "mcp_tools": [
+          "recipes_enterprise_trust_center_export"
+        ],
+        "status": "implemented",
+        "title": "Enterprise Trust Center Export"
+      },
+      "capability_id": "enterprise-trust-center-export",
+      "risk_count": 2,
+      "risk_ids": [
+        "MCP08",
+        "AST09"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Hosted conformance checks can become the MCP authorization guardrail for protected resources, audience binding, PKCE, token passthrough, and scope drift.",
+        "evidence_paths": [
+          "data/evidence/mcp-authorization-conformance-pack.json"
+        ],
+        "id": "mcp-authorization-conformance",
+        "mcp_tools": [
+          "recipes_mcp_authorization_conformance_pack",
+          "recipes_evaluate_mcp_authorization_decision"
+        ],
+        "status": "implemented",
+        "title": "MCP Authorization Conformance"
+      },
+      "capability_id": "mcp-authorization-conformance",
+      "risk_count": 3,
+      "risk_ids": [
+        "MCP01",
+        "MCP02",
+        "MCP07"
+      ],
+      "standard_count": 1,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Pre-promotion intake gives AI platform teams a repeatable admission gate for new, changed, local, or third-party MCP servers.",
+        "evidence_paths": [
+          "data/evidence/mcp-connector-intake-pack.json"
+        ],
+        "id": "mcp-connector-intake-pack",
+        "mcp_tools": [
+          "recipes_mcp_connector_intake_pack"
+        ],
+        "status": "implemented",
+        "title": "MCP Connector Intake Pack"
+      },
+      "capability_id": "mcp-connector-intake-pack",
+      "risk_count": 5,
+      "risk_ids": [
+        "MCP03",
+        "MCP04",
+        "MCP09",
+        "AST02",
+        "AST10"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Connector trust tiers and namespace coverage can become the customer-private registry behind production MCP access.",
+        "evidence_paths": [
+          "data/evidence/mcp-connector-trust-pack.json"
+        ],
+        "id": "mcp-connector-trust-pack",
+        "mcp_tools": [
+          "recipes_mcp_connector_trust_pack"
+        ],
+        "status": "implemented",
+        "title": "MCP Connector Trust Pack"
+      },
+      "capability_id": "mcp-connector-trust-pack",
+      "risk_count": 2,
+      "risk_ids": [
+        "MCP04",
+        "MCP09"
+      ],
+      "standard_count": 1,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Default-deny gateway decisions are the natural hosted enforcement point between agents and enterprise tools.",
+        "evidence_paths": [
+          "data/policy/mcp-gateway-policy.json"
+        ],
+        "id": "mcp-gateway-policy",
+        "mcp_tools": [
+          "recipes_mcp_gateway_policy",
+          "recipes_evaluate_mcp_gateway_decision"
+        ],
+        "status": "implemented",
+        "title": "MCP Gateway Policy"
+      },
+      "capability_id": "mcp-gateway-policy",
+      "risk_count": 4,
+      "risk_ids": [
+        "MCP02",
+        "MCP05",
+        "MCP07",
+        "AST03"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+        "evidence_paths": [
+          "data/evidence/mcp-stdio-launch-boundary-pack.json"
+        ],
+        "id": "mcp-stdio-launch-boundary-pack",
+        "mcp_tools": [
+          "recipes_mcp_stdio_launch_boundary_pack",
+          "recipes_evaluate_mcp_stdio_launch_decision"
+        ],
+        "status": "implemented",
+        "title": "MCP STDIO Launch Boundary Pack"
+      },
+      "capability_id": "mcp-stdio-launch-boundary-pack",
+      "risk_count": 6,
+      "risk_ids": [
+        "MCP04",
+        "MCP05",
+        "MCP09",
+        "AST01",
+        "AST05",
+        "AST06"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Tool annotation trust and session-combination checks help buyers decide which MCP tools require confirmation, hold, deny, or kill behavior.",
+        "evidence_paths": [
+          "data/evidence/mcp-tool-risk-contract.json"
+        ],
+        "id": "mcp-tool-risk-contract",
+        "mcp_tools": [
+          "recipes_mcp_tool_risk_contract",
+          "recipes_evaluate_mcp_tool_risk_decision"
+        ],
+        "status": "implemented",
+        "title": "MCP Tool Risk Contract"
+      },
+      "capability_id": "mcp-tool-risk-contract",
+      "risk_count": 3,
+      "risk_ids": [
+        "MCP03",
+        "MCP05",
+        "AST04"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Hosted schema and annotation drift monitoring is a clear enterprise add-on for MCP fleets.",
+        "evidence_paths": [
+          "data/evidence/mcp-tool-surface-drift-pack.json"
+        ],
+        "id": "mcp-tool-surface-drift-pack",
+        "mcp_tools": [
+          "recipes_mcp_tool_surface_drift_pack",
+          "recipes_evaluate_mcp_tool_surface_drift_decision"
+        ],
+        "status": "implemented",
+        "title": "MCP Tool Surface Drift Pack"
+      },
+      "capability_id": "mcp-tool-surface-drift-pack",
+      "risk_count": 4,
+      "risk_ids": [
+        "MCP03",
+        "AST02",
+        "AST04",
+        "AST07"
+      ],
+      "standard_count": 2,
+      "status": "mapped"
+    },
+    {
+      "capability": {
+        "commercial_value": "Source hashes, trust tiers, and retrieval contracts form the defensible data moat for SecurityRecipes.",
+        "evidence_paths": [
+          "data/evidence/secure-context-trust-pack.json"
+        ],
+        "id": "secure-context-trust-pack",
+        "mcp_tools": [
+          "recipes_secure_context_trust_pack",
+          "recipes_evaluate_context_retrieval_decision"
+        ],
+        "status": "implemented",
+        "title": "Secure Context Trust Pack"
+      },
+      "capability_id": "secure-context-trust-pack",
+      "risk_count": 2,
+      "risk_ids": [
+        "MCP06",
+        "MCP10"
+      ],
+      "standard_count": 1,
+      "status": "mapped"
+    }
+  ],
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, AI coding platform, cloud platform, or security vendor gets a current risk-to-evidence map for the two surfaces enterprises are adopting fastest: MCP tool integration and agent behavior packages.",
+    "enterprise_layer": "Hosted MCP authorization checks, tool-surface drift monitoring, skill registry scanning, endpoint launch policy, signed run receipts, telemetry redaction checks, and trust-center exports.",
+    "open_layer": "Publish MCP and skill risk coverage as open evidence so practitioners can compare SecurityRecipes to the current OWASP control language.",
+    "team_layer": "Private connector and skill inventories, customer workflow scopes, policy packs, red-team replay, and context release evidence."
+  },
+  "coverage_contract": {
+    "buyer_success_criteria": [
+      "Every OWASP MCP Top 10 beta risk maps to at least three implemented SecurityRecipes capabilities.",
+      "Every OWASP Agentic Skills Top 10 risk maps to generated evidence that covers registry, installation, permissions, isolation, runtime, and governance concerns.",
+      "Every mapped capability has a source-controlled evidence path and at least one MCP tool or deterministic evaluator.",
+      "The generated pack gives buyers direct evidence, not only standards prose.",
+      "The commercial path remains open-core: public evidence for trust, hosted MCP enforcement and drift monitoring for revenue."
+    ],
+    "default_state": "not_coverage_ready_until_each_mcp_and_skill_risk_maps_to_generated_evidence",
+    "minimum_capabilities": 18,
+    "minimum_risks": 20,
+    "minimum_source_references": 5,
+    "required_capability_ids": [
+      "mcp-authorization-conformance",
+      "mcp-gateway-policy",
+      "mcp-tool-risk-contract",
+      "mcp-tool-surface-drift-pack",
+      "mcp-connector-intake-pack",
+      "mcp-connector-trust-pack",
+      "mcp-stdio-launch-boundary-pack",
+      "agent-skill-supply-chain-pack",
+      "agent-identity-ledger",
+      "agentic-entitlement-review-pack",
+      "agentic-run-receipt-pack",
+      "agentic-telemetry-contract",
+      "agentic-incident-response-pack",
+      "context-poisoning-guard-pack",
+      "context-egress-boundary-pack",
+      "secure-context-trust-pack",
+      "agent-memory-boundary-pack",
+      "agentic-action-runtime-pack"
+    ]
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes maps current MCP and agentic-skill risks to generated evidence, MCP tools, and hosted enforcement paths.",
+    "default_questions_answered": [
+      "Which OWASP MCP risks are covered?",
+      "Which OWASP Agentic Skills risks are covered?",
+      "Which generated evidence paths prove each risk treatment?",
+      "Which MCP tools expose the evidence?",
+      "Which coverage areas create hosted enterprise product wedges?"
+    ],
+    "recommended_first_use": "Attach this pack to MCP server intake, agent-skill approval, AI platform architecture review, procurement security review, and acquisition diligence.",
+    "sales_motion": "Lead with open MCP and skill risk coverage, then sell hosted connector drift monitoring, skill scanning, policy enforcement, run receipts, and trust-center exports."
+  },
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "intent": "Define the SecurityRecipes MCP and agentic-skill risk coverage profile: a machine-readable map from the current OWASP MCP Top 10 beta and OWASP Agentic Skills Top 10 into SecurityRecipes secure-context, MCP authorization, connector trust, agent skill, telemetry, incident response, and runtime action evidence.",
+  "mcp_risk_coverage_pack_id": "security-recipes.mcp-and-agentic-skill-risk-coverage.v1",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, AppSec, Security Engineering, GRC, procurement security, model-risk, agent-host, and acquisition diligence teams",
+    "category": "MCP and agentic-skill risk coverage for the secure context layer",
+    "enterprise_promise": "SecurityRecipes can show, in one generated packet, how the most current MCP and agent-skill risk language maps to concrete controls, evidence paths, MCP tools, and hosted product wedges.",
+    "why_now": "MCP has become the default integration surface for tool-using agents, while skills, rules files, hooks, and agent extensions are becoming the execution layer that tells agents how to combine those tools. Buyers now need coverage across both layers: protocol/tool security and behavior-package security."
+  },
+  "residual_risks": [
+    {
+      "risk": "OWASP MCP Top 10 is still in beta and may change as community review completes.",
+      "treatment": "Regenerate the pack when OWASP publishes final or revised MCP guidance, and keep source URLs in the profile current."
+    },
+    {
+      "risk": "Generated evidence proves reference controls, not live customer enforcement.",
+      "treatment": "Bind the same risk map to customer MCP gateway logs, skill registries, identity-provider records, approval systems, and signed run receipts."
+    },
+    {
+      "risk": "Skill registries and agent hosts can introduce new behavior package formats faster than standards stabilize.",
+      "treatment": "Treat capability coverage as a minimum baseline and add platform-specific adapters in the hosted layer."
+    }
+  ],
+  "risk_coverage": [
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Hosted conformance checks can become the MCP authorization guardrail for protected resources, audience binding, PKCE, token passthrough, and scope drift.",
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_evaluate_mcp_authorization_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        },
+        {
+          "commercial_value": "Data-boundary decisions are essential for enterprise approval of private context in model and MCP workflows.",
+          "evidence_paths": [
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "id": "context-egress-boundary-pack",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "status": "implemented",
+          "title": "Context Egress Boundary Pack"
+        },
+        {
+          "commercial_value": "OpenTelemetry-shaped agent evidence with redaction controls is a credible SIEM and observability integration path.",
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json"
+          ],
+          "id": "agentic-telemetry-contract",
+          "mcp_tools": [
+            "recipes_agentic_telemetry_contract",
+            "recipes_evaluate_agentic_telemetry_event"
+          ],
+          "status": "implemented",
+          "title": "Agentic Telemetry Contract"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted token-passthrough detection, trace redaction validation, and signed action receipts.",
+      "coverage_status": "covered",
+      "diligence_question": "What prevents MCP tokens and secrets from being forwarded, logged, stored in memory, or returned to the model?",
+      "evidence_expectation": "Authorization, egress, telemetry, and action-runtime evidence shows token audience checks, token-passthrough denial, redaction, secret kill signals, and receipt linkage.",
+      "evidence_paths": [
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "id": "MCP01",
+      "mcp_tools": [
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "primary_attack_path": "Secrets, long-lived tokens, or credentials are exposed through prompts, tool outputs, memory, logs, or token passthrough.",
+      "required_capability_ids": [
+        "mcp-authorization-conformance",
+        "context-egress-boundary-pack",
+        "agentic-telemetry-contract",
+        "agentic-action-runtime-pack"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Token Mismanagement and Secret Exposure"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Default-deny gateway decisions are the natural hosted enforcement point between agents and enterprise tools.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy",
+            "recipes_evaluate_mcp_gateway_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Hosted conformance checks can become the MCP authorization guardrail for protected resources, audience binding, PKCE, token passthrough, and scope drift.",
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_evaluate_mcp_authorization_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        },
+        {
+          "commercial_value": "Non-human identity contracts make agent authority reviewable, revocable, and ready for customer IAM integration.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity Ledger"
+        },
+        {
+          "commercial_value": "Expiring permission leases and step-up review are a direct enterprise control for scope creep and over-privileged agents.",
+          "evidence_paths": [
+            "data/evidence/agentic-entitlement-review-pack.json"
+          ],
+          "id": "agentic-entitlement-review-pack",
+          "mcp_tools": [
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Entitlement Review Pack"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted MCP permission leases, scope drift alerts, and entitlement recertification.",
+      "coverage_status": "covered",
+      "diligence_question": "How are MCP scopes minimized, reviewed, and revoked before agents can expand authority?",
+      "evidence_expectation": "Gateway, authorization, identity, entitlement, and action evidence binds workflows to namespaces, access modes, leases, approval holds, and revocation criteria.",
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "MCP02",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_agentic_entitlement_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_gateway_policy"
+      ],
+      "primary_attack_path": "Temporary or loosely defined MCP scopes expand into excessive write, admin, or cross-system authority.",
+      "required_capability_ids": [
+        "mcp-gateway-policy",
+        "mcp-authorization-conformance",
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agentic-action-runtime-pack"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Privilege Escalation via Scope Creep"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Hosted schema and annotation drift monitoring is a clear enterprise add-on for MCP fleets.",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json"
+          ],
+          "id": "mcp-tool-surface-drift-pack",
+          "mcp_tools": [
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_evaluate_mcp_tool_surface_drift_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Tool Surface Drift Pack"
+        },
+        {
+          "commercial_value": "Tool annotation trust and session-combination checks help buyers decide which MCP tools require confirmation, hold, deny, or kill behavior.",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json"
+          ],
+          "id": "mcp-tool-risk-contract",
+          "mcp_tools": [
+            "recipes_mcp_tool_risk_contract",
+            "recipes_evaluate_mcp_tool_risk_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Tool Risk Contract"
+        },
+        {
+          "commercial_value": "Pre-promotion intake gives AI platform teams a repeatable admission gate for new, changed, local, or third-party MCP servers.",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json"
+          ],
+          "id": "mcp-connector-intake-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_intake_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Intake Pack"
+        },
+        {
+          "commercial_value": "Pre-retrieval poisoning scans are the practical bridge between prompt-injection guidance and MCP context delivery.",
+          "evidence_paths": [
+            "data/evidence/context-poisoning-guard-pack.json"
+          ],
+          "id": "context-poisoning-guard-pack",
+          "mcp_tools": [
+            "recipes_context_poisoning_guard_pack"
+          ],
+          "status": "implemented",
+          "title": "Context Poisoning Guard Pack"
+        },
+        {
+          "commercial_value": "Replayable attack drills let the hosted product prove control behavior after model, connector, prompt, skill, or context drift.",
+          "evidence_paths": [
+            "data/evidence/agentic-red-team-drill-pack.json"
+          ],
+          "id": "agentic-red-team-drill-pack",
+          "mcp_tools": [
+            "recipes_agentic_red_team_drill_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Red-Team Drill Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted live tool-list diffing and tool-surface signing for MCP fleets.",
+      "coverage_status": "covered",
+      "diligence_question": "What detects changed or malicious MCP tool surfaces before the model trusts them?",
+      "evidence_expectation": "Tool-surface hashes, annotation decisions, connector intake, poisoning scans, and red-team drills prove changed tool definitions are held before use.",
+      "evidence_paths": [
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-tool-risk-contract.json",
+        "data/evidence/mcp-tool-surface-drift-pack.json"
+      ],
+      "id": "MCP03",
+      "mcp_tools": [
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_mcp_tool_risk_decision",
+        "recipes_evaluate_mcp_tool_surface_drift_decision",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_tool_risk_contract",
+        "recipes_mcp_tool_surface_drift_pack"
+      ],
+      "primary_attack_path": "A tool description, schema, output, annotation, or duplicate tool steers the model toward attacker-controlled behavior.",
+      "required_capability_ids": [
+        "mcp-tool-surface-drift-pack",
+        "mcp-tool-risk-contract",
+        "mcp-connector-intake-pack",
+        "context-poisoning-guard-pack",
+        "agentic-red-team-drill-pack"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Tool Poisoning"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Pre-promotion intake gives AI platform teams a repeatable admission gate for new, changed, local, or third-party MCP servers.",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json"
+          ],
+          "id": "mcp-connector-intake-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_intake_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Intake Pack"
+        },
+        {
+          "commercial_value": "Connector trust tiers and namespace coverage can become the customer-private registry behind production MCP access.",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-trust-pack.json"
+          ],
+          "id": "mcp-connector-trust-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_trust_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Trust Pack"
+        },
+        {
+          "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+          "evidence_paths": [
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-stdio-launch-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_evaluate_mcp_stdio_launch_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP STDIO Launch Boundary Pack"
+        },
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "The Agentic System BOM inventories tools, skills, identities, contexts, and evidence for procurement and incident response.",
+          "evidence_paths": [
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "agentic-system-bom",
+          "mcp_tools": [
+            "recipes_agentic_system_bom"
+          ],
+          "status": "implemented",
+          "title": "Agentic System BOM"
+        }
+      ],
+      "commercialization_hook": "Hosted connector registry monitoring and skill/package provenance checks.",
+      "coverage_status": "covered",
+      "diligence_question": "How are MCP components inventoried, pinned, reviewed, and promoted before agents can use them?",
+      "evidence_expectation": "Connector intake, trust, launch, skill, and BOM evidence records source, publisher, command, package, sandbox, signature, and component drift signals.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "MCP04",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_stdio_launch_boundary_pack"
+      ],
+      "primary_attack_path": "A dependency, package, connector, plugin, or local MCP server changes behavior or introduces backdoor execution.",
+      "required_capability_ids": [
+        "mcp-connector-intake-pack",
+        "mcp-connector-trust-pack",
+        "mcp-stdio-launch-boundary-pack",
+        "agent-skill-supply-chain-pack",
+        "agentic-system-bom"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Software Supply Chain Attacks and Dependency Tampering"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+          "evidence_paths": [
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-stdio-launch-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_evaluate_mcp_stdio_launch_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP STDIO Launch Boundary Pack"
+        },
+        {
+          "commercial_value": "Tool annotation trust and session-combination checks help buyers decide which MCP tools require confirmation, hold, deny, or kill behavior.",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json"
+          ],
+          "id": "mcp-tool-risk-contract",
+          "mcp_tools": [
+            "recipes_mcp_tool_risk_contract",
+            "recipes_evaluate_mcp_tool_risk_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Tool Risk Contract"
+        },
+        {
+          "commercial_value": "Default-deny gateway decisions are the natural hosted enforcement point between agents and enterprise tools.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy",
+            "recipes_evaluate_mcp_gateway_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted action firewall and endpoint launch-policy enforcement for AI coding tools.",
+      "coverage_status": "covered",
+      "diligence_question": "Which policies stop an agent from turning untrusted context into shell, filesystem, or package execution?",
+      "evidence_expectation": "STDIO launch, tool-risk, gateway, skill, and action-runtime decisions define command allowlists, sandboxing, approval holds, and kill signals.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json",
+        "data/evidence/mcp-tool-risk-contract.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "MCP05",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_evaluate_mcp_tool_risk_decision",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_mcp_tool_risk_contract"
+      ],
+      "primary_attack_path": "Untrusted prompt, context, or tool output reaches command construction, shell execution, code execution, or package launch.",
+      "required_capability_ids": [
+        "mcp-stdio-launch-boundary-pack",
+        "mcp-tool-risk-contract",
+        "mcp-gateway-policy",
+        "agent-skill-supply-chain-pack",
+        "agentic-action-runtime-pack"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Command Injection and Execution"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Pre-retrieval poisoning scans are the practical bridge between prompt-injection guidance and MCP context delivery.",
+          "evidence_paths": [
+            "data/evidence/context-poisoning-guard-pack.json"
+          ],
+          "id": "context-poisoning-guard-pack",
+          "mcp_tools": [
+            "recipes_context_poisoning_guard_pack"
+          ],
+          "status": "implemented",
+          "title": "Context Poisoning Guard Pack"
+        },
+        {
+          "commercial_value": "Source hashes, trust tiers, and retrieval contracts form the defensible data moat for SecurityRecipes.",
+          "evidence_paths": [
+            "data/evidence/secure-context-trust-pack.json"
+          ],
+          "id": "secure-context-trust-pack",
+          "mcp_tools": [
+            "recipes_secure_context_trust_pack",
+            "recipes_evaluate_context_retrieval_decision"
+          ],
+          "status": "implemented",
+          "title": "Secure Context Trust Pack"
+        },
+        {
+          "commercial_value": "Replayable attack drills let the hosted product prove control behavior after model, connector, prompt, skill, or context drift.",
+          "evidence_paths": [
+            "data/evidence/agentic-red-team-drill-pack.json"
+          ],
+          "id": "agentic-red-team-drill-pack",
+          "mcp_tools": [
+            "recipes_agentic_red_team_drill_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Red-Team Drill Pack"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted prompt-injection regression service around signed context releases.",
+      "coverage_status": "covered",
+      "diligence_question": "How does retrieved context stay evidence instead of becoming model instruction?",
+      "evidence_expectation": "Trust, poisoning, drill, action, and measurement evidence shows registered context, instruction demotion, red-team coverage, and policy-bound action checks.",
+      "evidence_paths": [
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/secure-context-trust-pack.json"
+      ],
+      "id": "MCP06",
+      "mcp_tools": [
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_secure_context_trust_pack"
+      ],
+      "primary_attack_path": "Context or tool output becomes a secondary instruction channel that hijacks the user's intended workflow.",
+      "required_capability_ids": [
+        "context-poisoning-guard-pack",
+        "secure-context-trust-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-action-runtime-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Intent Flow Subversion"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Hosted conformance checks can become the MCP authorization guardrail for protected resources, audience binding, PKCE, token passthrough, and scope drift.",
+          "evidence_paths": [
+            "data/evidence/mcp-authorization-conformance-pack.json"
+          ],
+          "id": "mcp-authorization-conformance",
+          "mcp_tools": [
+            "recipes_mcp_authorization_conformance_pack",
+            "recipes_evaluate_mcp_authorization_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Authorization Conformance"
+        },
+        {
+          "commercial_value": "Default-deny gateway decisions are the natural hosted enforcement point between agents and enterprise tools.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy",
+            "recipes_evaluate_mcp_gateway_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Non-human identity contracts make agent authority reviewable, revocable, and ready for customer IAM integration.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity Ledger"
+        },
+        {
+          "commercial_value": "Expiring permission leases and step-up review are a direct enterprise control for scope creep and over-privileged agents.",
+          "evidence_paths": [
+            "data/evidence/agentic-entitlement-review-pack.json"
+          ],
+          "id": "agentic-entitlement-review-pack",
+          "mcp_tools": [
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Entitlement Review Pack"
+        },
+        {
+          "commercial_value": "Run receipts convert agent activity into portable evidence for auditors, incident response, and trust-center exports.",
+          "evidence_paths": [
+            "data/evidence/agentic-run-receipt-pack.json"
+          ],
+          "id": "agentic-run-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_run_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Run Receipt Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted MCP policy decision point with customer IAM and trace adapters.",
+      "coverage_status": "covered",
+      "diligence_question": "Can the platform prove every MCP call is bound to a resource, token audience, workflow, identity, and receipt?",
+      "evidence_expectation": "Authorization, gateway, identity, entitlement, and receipt evidence exposes resource indicators, audience validation, session binding, allowed scopes, and correlation IDs.",
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "MCP07",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_evaluate_agentic_entitlement_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_gateway_policy"
+      ],
+      "primary_attack_path": "MCP servers or tools fail to verify resource, audience, user, session, connector, or workflow authority.",
+      "required_capability_ids": [
+        "mcp-authorization-conformance",
+        "mcp-gateway-policy",
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agentic-run-receipt-pack"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Insufficient Authentication and Authorization"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "OpenTelemetry-shaped agent evidence with redaction controls is a credible SIEM and observability integration path.",
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json"
+          ],
+          "id": "agentic-telemetry-contract",
+          "mcp_tools": [
+            "recipes_agentic_telemetry_contract",
+            "recipes_evaluate_agentic_telemetry_event"
+          ],
+          "status": "implemented",
+          "title": "Agentic Telemetry Contract"
+        },
+        {
+          "commercial_value": "Run receipts convert agent activity into portable evidence for auditors, incident response, and trust-center exports.",
+          "evidence_paths": [
+            "data/evidence/agentic-run-receipt-pack.json"
+          ],
+          "id": "agentic-run-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_run_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Run Receipt Pack"
+        },
+        {
+          "commercial_value": "Agentic incident classes and replay gates create a post-incident evidence vault product surface.",
+          "evidence_paths": [
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "agentic-incident-response-pack",
+          "mcp_tools": [
+            "recipes_agentic_incident_response_pack",
+            "recipes_evaluate_agentic_incident_response_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Incident Response Pack"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        },
+        {
+          "commercial_value": "The trust-center export turns risk coverage into procurement and acquisition diligence collateral.",
+          "evidence_paths": [
+            "data/evidence/enterprise-trust-center-export.json"
+          ],
+          "id": "enterprise-trust-center-export",
+          "mcp_tools": [
+            "recipes_enterprise_trust_center_export"
+          ],
+          "status": "implemented",
+          "title": "Enterprise Trust Center Export"
+        }
+      ],
+      "commercialization_hook": "Hosted SIEM/SOAR export and agent run evidence retention.",
+      "coverage_status": "covered",
+      "diligence_question": "Which trace fields let a buyer reconstruct an agent, model, MCP, context, policy, egress, approval, and verifier path?",
+      "evidence_expectation": "Telemetry, receipt, incident, measurement, and trust-center evidence defines trace attributes, redaction state, incident classes, replay cases, and buyer export fields.",
+      "evidence_paths": [
+        "data/evidence/agentic-incident-response-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/enterprise-trust-center-export.json"
+      ],
+      "id": "MCP08",
+      "mcp_tools": [
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_enterprise_trust_center_export",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event"
+      ],
+      "primary_attack_path": "Tool invocations, context changes, agent decisions, and egress events are not logged with enough structure for detection or response.",
+      "required_capability_ids": [
+        "agentic-telemetry-contract",
+        "agentic-run-receipt-pack",
+        "agentic-incident-response-pack",
+        "agentic-measurement-probe-pack",
+        "enterprise-trust-center-export"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Lack of Audit and Telemetry"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Pre-promotion intake gives AI platform teams a repeatable admission gate for new, changed, local, or third-party MCP servers.",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json"
+          ],
+          "id": "mcp-connector-intake-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_intake_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Intake Pack"
+        },
+        {
+          "commercial_value": "Connector trust tiers and namespace coverage can become the customer-private registry behind production MCP access.",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-trust-pack.json"
+          ],
+          "id": "mcp-connector-trust-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_trust_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Trust Pack"
+        },
+        {
+          "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+          "evidence_paths": [
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-stdio-launch-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_evaluate_mcp_stdio_launch_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP STDIO Launch Boundary Pack"
+        },
+        {
+          "commercial_value": "The Agentic System BOM inventories tools, skills, identities, contexts, and evidence for procurement and incident response.",
+          "evidence_paths": [
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "agentic-system-bom",
+          "mcp_tools": [
+            "recipes_agentic_system_bom"
+          ],
+          "status": "implemented",
+          "title": "Agentic System BOM"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted shadow MCP discovery, promotion workflows, and fleet drift alerts.",
+      "coverage_status": "covered",
+      "diligence_question": "What prevents unknown MCP servers from becoming part of production agent workflows?",
+      "evidence_expectation": "Intake, trust, launch, BOM, and measurement evidence covers admission decisions, registry state, launch profiles, component inventory, and drift probes.",
+      "evidence_paths": [
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-connector-trust-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "MCP09",
+      "mcp_tools": [
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_stdio_launch_boundary_pack"
+      ],
+      "primary_attack_path": "Unapproved local, remote, or experimental MCP servers run outside inventory and governance.",
+      "required_capability_ids": [
+        "mcp-connector-intake-pack",
+        "mcp-connector-trust-pack",
+        "mcp-stdio-launch-boundary-pack",
+        "agentic-system-bom",
+        "agentic-measurement-probe-pack"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Shadow MCP Servers"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Source hashes, trust tiers, and retrieval contracts form the defensible data moat for SecurityRecipes.",
+          "evidence_paths": [
+            "data/evidence/secure-context-trust-pack.json"
+          ],
+          "id": "secure-context-trust-pack",
+          "mcp_tools": [
+            "recipes_secure_context_trust_pack",
+            "recipes_evaluate_context_retrieval_decision"
+          ],
+          "status": "implemented",
+          "title": "Secure Context Trust Pack"
+        },
+        {
+          "commercial_value": "Pre-retrieval poisoning scans are the practical bridge between prompt-injection guidance and MCP context delivery.",
+          "evidence_paths": [
+            "data/evidence/context-poisoning-guard-pack.json"
+          ],
+          "id": "context-poisoning-guard-pack",
+          "mcp_tools": [
+            "recipes_context_poisoning_guard_pack"
+          ],
+          "status": "implemented",
+          "title": "Context Poisoning Guard Pack"
+        },
+        {
+          "commercial_value": "Data-boundary decisions are essential for enterprise approval of private context in model and MCP workflows.",
+          "evidence_paths": [
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "id": "context-egress-boundary-pack",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "status": "implemented",
+          "title": "Context Egress Boundary Pack"
+        },
+        {
+          "commercial_value": "Memory class policy prevents context and skills from quietly becoming persistent authority.",
+          "evidence_paths": [
+            "data/evidence/agent-memory-boundary-pack.json"
+          ],
+          "id": "agent-memory-boundary-pack",
+          "mcp_tools": [
+            "recipes_agent_memory_boundary_pack",
+            "recipes_evaluate_agent_memory_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Memory Boundary Pack"
+        },
+        {
+          "commercial_value": "Handoff policy extends SecurityRecipes beyond MCP into multi-agent and provider-native delegation.",
+          "evidence_paths": [
+            "data/evidence/agent-handoff-boundary-pack.json"
+          ],
+          "id": "agent-handoff-boundary-pack",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_evaluate_agent_handoff_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Handoff Boundary Pack"
+        }
+      ],
+      "commercialization_hook": "Customer-private context registry with signed releases and handoff/egress policy enforcement.",
+      "coverage_status": "covered",
+      "diligence_question": "How is context scoped by source, workflow, tenant, memory class, handoff profile, and destination?",
+      "evidence_expectation": "Trust, poisoning, egress, memory, and handoff evidence binds context to source hashes, workflow packages, data classes, TTLs, and payload minimization.",
+      "evidence_paths": [
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agent-memory-boundary-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/secure-context-trust-pack.json"
+      ],
+      "id": "MCP10",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_secure_context_trust_pack"
+      ],
+      "primary_attack_path": "Context from one task, tenant, agent, memory, or source crosses into another context window or tool path.",
+      "required_capability_ids": [
+        "secure-context-trust-pack",
+        "context-poisoning-guard-pack",
+        "context-egress-boundary-pack",
+        "agent-memory-boundary-pack",
+        "agent-handoff-boundary-pack"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "standard_id": "owasp-mcp-top-10-2025",
+      "standard_title": "OWASP MCP Top 10 Coverage",
+      "title": "Context Injection and Over-Sharing"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+          "evidence_paths": [
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-stdio-launch-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_evaluate_mcp_stdio_launch_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP STDIO Launch Boundary Pack"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        },
+        {
+          "commercial_value": "Agentic incident classes and replay gates create a post-incident evidence vault product surface.",
+          "evidence_paths": [
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "agentic-incident-response-pack",
+          "mcp_tools": [
+            "recipes_agentic_incident_response_pack",
+            "recipes_evaluate_agentic_incident_response_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Incident Response Pack"
+        },
+        {
+          "commercial_value": "Data-boundary decisions are essential for enterprise approval of private context in model and MCP workflows.",
+          "evidence_paths": [
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "id": "context-egress-boundary-pack",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "status": "implemented",
+          "title": "Context Egress Boundary Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted skill registry scanning with permission and behavior-policy enforcement.",
+      "coverage_status": "covered",
+      "diligence_question": "How are malicious skills blocked before they inherit agent tools, filesystem access, network egress, or context?",
+      "evidence_expectation": "Skill, launch, action, incident, and egress evidence covers publisher trust, hashes, sandboxing, permission manifests, kill signals, and response classes.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-incident-response-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "AST01",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_incident_response_pack",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_stdio_launch_boundary_pack"
+      ],
+      "primary_attack_path": "A skill, rule, hook, or extension contains malicious behavior that manipulates the agent or steals data.",
+      "required_capability_ids": [
+        "agent-skill-supply-chain-pack",
+        "mcp-stdio-launch-boundary-pack",
+        "agentic-action-runtime-pack",
+        "agentic-incident-response-pack",
+        "context-egress-boundary-pack"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Malicious Skills"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "The Agentic System BOM inventories tools, skills, identities, contexts, and evidence for procurement and incident response.",
+          "evidence_paths": [
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "agentic-system-bom",
+          "mcp_tools": [
+            "recipes_agentic_system_bom"
+          ],
+          "status": "implemented",
+          "title": "Agentic System BOM"
+        },
+        {
+          "commercial_value": "Pre-promotion intake gives AI platform teams a repeatable admission gate for new, changed, local, or third-party MCP servers.",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json"
+          ],
+          "id": "mcp-connector-intake-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_intake_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Intake Pack"
+        },
+        {
+          "commercial_value": "Hosted schema and annotation drift monitoring is a clear enterprise add-on for MCP fleets.",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json"
+          ],
+          "id": "mcp-tool-surface-drift-pack",
+          "mcp_tools": [
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_evaluate_mcp_tool_surface_drift_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Tool Surface Drift Pack"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted Agent/AI BOM and package drift monitoring.",
+      "coverage_status": "covered",
+      "diligence_question": "Can the buyer inventory and revalidate the behavior packages that shape agent execution?",
+      "evidence_expectation": "Skill, BOM, connector, tool-surface, and measurement evidence captures package hashes, pinned versions, promotion state, drift, and replay triggers.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/mcp-connector-intake-pack.json",
+        "data/evidence/mcp-tool-surface-drift-pack.json"
+      ],
+      "id": "AST02",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_mcp_tool_surface_drift_decision",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_tool_surface_drift_pack"
+      ],
+      "primary_attack_path": "A registry, dependency, skill package, extension, or behavior file is compromised or replaced.",
+      "required_capability_ids": [
+        "agent-skill-supply-chain-pack",
+        "agentic-system-bom",
+        "mcp-connector-intake-pack",
+        "mcp-tool-surface-drift-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "risk_tier": "critical",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Supply Chain Compromise"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Default-deny gateway decisions are the natural hosted enforcement point between agents and enterprise tools.",
+          "evidence_paths": [
+            "data/policy/mcp-gateway-policy.json"
+          ],
+          "id": "mcp-gateway-policy",
+          "mcp_tools": [
+            "recipes_mcp_gateway_policy",
+            "recipes_evaluate_mcp_gateway_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Gateway Policy"
+        },
+        {
+          "commercial_value": "Non-human identity contracts make agent authority reviewable, revocable, and ready for customer IAM integration.",
+          "evidence_paths": [
+            "data/evidence/agent-identity-delegation-ledger.json"
+          ],
+          "id": "agent-identity-ledger",
+          "mcp_tools": [
+            "recipes_agent_identity_ledger"
+          ],
+          "status": "implemented",
+          "title": "Agent Identity Ledger"
+        },
+        {
+          "commercial_value": "Expiring permission leases and step-up review are a direct enterprise control for scope creep and over-privileged agents.",
+          "evidence_paths": [
+            "data/evidence/agentic-entitlement-review-pack.json"
+          ],
+          "id": "agentic-entitlement-review-pack",
+          "mcp_tools": [
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Entitlement Review Pack"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted least-privilege skill manifests and permission lease review.",
+      "coverage_status": "covered",
+      "diligence_question": "Which evidence proves that skill permissions match the workflow and expire over time?",
+      "evidence_expectation": "Skill, gateway, identity, entitlement, and action evidence binds permissions to workflow scope, access modes, agent identity, approval holds, and leases.",
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/policy/mcp-gateway-policy.json"
+      ],
+      "id": "AST03",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_agentic_entitlement_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_mcp_gateway_policy"
+      ],
+      "primary_attack_path": "A skill requests filesystem, shell, network, credential, model, memory, or MCP privileges beyond the workflow need.",
+      "required_capability_ids": [
+        "agent-skill-supply-chain-pack",
+        "mcp-gateway-policy",
+        "agent-identity-ledger",
+        "agentic-entitlement-review-pack",
+        "agentic-action-runtime-pack"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Over-Privileged Skills"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Tool annotation trust and session-combination checks help buyers decide which MCP tools require confirmation, hold, deny, or kill behavior.",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-risk-contract.json"
+          ],
+          "id": "mcp-tool-risk-contract",
+          "mcp_tools": [
+            "recipes_mcp_tool_risk_contract",
+            "recipes_evaluate_mcp_tool_risk_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Tool Risk Contract"
+        },
+        {
+          "commercial_value": "Hosted schema and annotation drift monitoring is a clear enterprise add-on for MCP fleets.",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json"
+          ],
+          "id": "mcp-tool-surface-drift-pack",
+          "mcp_tools": [
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_evaluate_mcp_tool_surface_drift_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Tool Surface Drift Pack"
+        },
+        {
+          "commercial_value": "Pre-retrieval poisoning scans are the practical bridge between prompt-injection guidance and MCP context delivery.",
+          "evidence_paths": [
+            "data/evidence/context-poisoning-guard-pack.json"
+          ],
+          "id": "context-poisoning-guard-pack",
+          "mcp_tools": [
+            "recipes_context_poisoning_guard_pack"
+          ],
+          "status": "implemented",
+          "title": "Context Poisoning Guard Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted manifest linting and semantic metadata review.",
+      "coverage_status": "covered",
+      "diligence_question": "How are manifests, metadata, descriptions, and tool annotations reviewed for deception and drift?",
+      "evidence_expectation": "Skill, tool-risk, tool-surface, and poisoning evidence records metadata checks, annotations, schema hashes, hidden instructions, and approval-bypass markers.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/mcp-tool-risk-contract.json",
+        "data/evidence/mcp-tool-surface-drift-pack.json"
+      ],
+      "id": "AST04",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_mcp_tool_risk_decision",
+        "recipes_evaluate_mcp_tool_surface_drift_decision",
+        "recipes_mcp_tool_risk_contract",
+        "recipes_mcp_tool_surface_drift_pack"
+      ],
+      "primary_attack_path": "Skill metadata hides unsafe instructions, ambiguous permissions, misleading publishers, or unexpected tool requirements.",
+      "required_capability_ids": [
+        "agent-skill-supply-chain-pack",
+        "mcp-tool-risk-contract",
+        "mcp-tool-surface-drift-pack",
+        "context-poisoning-guard-pack"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Insecure Metadata"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+          "evidence_paths": [
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-stdio-launch-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_evaluate_mcp_stdio_launch_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP STDIO Launch Boundary Pack"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        },
+        {
+          "commercial_value": "Replayable attack drills let the hosted product prove control behavior after model, connector, prompt, skill, or context drift.",
+          "evidence_paths": [
+            "data/evidence/agentic-red-team-drill-pack.json"
+          ],
+          "id": "agentic-red-team-drill-pack",
+          "mcp_tools": [
+            "recipes_agentic_red_team_drill_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Red-Team Drill Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted skill import sandbox and behavioral replay before enablement.",
+      "coverage_status": "covered",
+      "diligence_question": "What stops skill loading from becoming untrusted code execution?",
+      "evidence_expectation": "Skill, STDIO launch, action-runtime, and red-team evidence covers safe parser expectations, package launch holds, sandbox decisions, and attack replay.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "AST05",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_stdio_launch_boundary_pack"
+      ],
+      "primary_attack_path": "Skill manifests, YAML, JSON, scripts, or extension packages are parsed unsafely and trigger code execution or policy bypass.",
+      "required_capability_ids": [
+        "agent-skill-supply-chain-pack",
+        "mcp-stdio-launch-boundary-pack",
+        "agentic-action-runtime-pack",
+        "agentic-red-team-drill-pack"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Unsafe Deserialization"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Local server launch policy is a high-value endpoint and developer-workstation control for AI coding environments.",
+          "evidence_paths": [
+            "data/evidence/mcp-stdio-launch-boundary-pack.json"
+          ],
+          "id": "mcp-stdio-launch-boundary-pack",
+          "mcp_tools": [
+            "recipes_mcp_stdio_launch_boundary_pack",
+            "recipes_evaluate_mcp_stdio_launch_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP STDIO Launch Boundary Pack"
+        },
+        {
+          "commercial_value": "Browser-agent isolation helps cover ambient authority and untrusted web content in the same control-plane story.",
+          "evidence_paths": [
+            "data/evidence/browser-agent-boundary-pack.json"
+          ],
+          "id": "browser-agent-boundary-pack",
+          "mcp_tools": [
+            "recipes_browser_agent_boundary_pack",
+            "recipes_evaluate_browser_agent_boundary_decision"
+          ],
+          "status": "implemented",
+          "title": "Browser Agent Boundary Pack"
+        },
+        {
+          "commercial_value": "Action-runtime decisions are the commercial enforcement layer for high-impact agent side effects.",
+          "evidence_paths": [
+            "data/evidence/agentic-action-runtime-pack.json"
+          ],
+          "id": "agentic-action-runtime-pack",
+          "mcp_tools": [
+            "recipes_agentic_action_runtime_pack",
+            "recipes_evaluate_agentic_action_runtime_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Action Runtime Pack"
+        },
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Data-boundary decisions are essential for enterprise approval of private context in model and MCP workflows.",
+          "evidence_paths": [
+            "data/evidence/context-egress-boundary-pack.json"
+          ],
+          "id": "context-egress-boundary-pack",
+          "mcp_tools": [
+            "recipes_context_egress_boundary_pack",
+            "recipes_evaluate_context_egress_decision"
+          ],
+          "status": "implemented",
+          "title": "Context Egress Boundary Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted browser/workspace isolation policy for agent hosts.",
+      "coverage_status": "covered",
+      "diligence_question": "How does the product isolate skills from ambient workstation, browser, filesystem, and network authority?",
+      "evidence_expectation": "Launch, browser, action, skill, and egress evidence defines sandbox mode, origin policy, network rules, permission requirements, and kill signals.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/browser-agent-boundary-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/mcp-stdio-launch-boundary-pack.json"
+      ],
+      "id": "AST06",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_browser_agent_boundary_pack",
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_browser_agent_boundary_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_mcp_stdio_launch_boundary_pack"
+      ],
+      "primary_attack_path": "Agent skills run with workstation, browser, filesystem, shell, or network privileges that exceed the trust of their inputs.",
+      "required_capability_ids": [
+        "mcp-stdio-launch-boundary-pack",
+        "browser-agent-boundary-pack",
+        "agentic-action-runtime-pack",
+        "agent-skill-supply-chain-pack",
+        "context-egress-boundary-pack"
+      ],
+      "risk_tier": "high",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Weak Isolation"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Hosted schema and annotation drift monitoring is a clear enterprise add-on for MCP fleets.",
+          "evidence_paths": [
+            "data/evidence/mcp-tool-surface-drift-pack.json"
+          ],
+          "id": "mcp-tool-surface-drift-pack",
+          "mcp_tools": [
+            "recipes_mcp_tool_surface_drift_pack",
+            "recipes_evaluate_mcp_tool_surface_drift_decision"
+          ],
+          "status": "implemented",
+          "title": "MCP Tool Surface Drift Pack"
+        },
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        },
+        {
+          "commercial_value": "Replayable attack drills let the hosted product prove control behavior after model, connector, prompt, skill, or context drift.",
+          "evidence_paths": [
+            "data/evidence/agentic-red-team-drill-pack.json"
+          ],
+          "id": "agentic-red-team-drill-pack",
+          "mcp_tools": [
+            "recipes_agentic_red_team_drill_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Red-Team Drill Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted drift alerts and approval replay for skills and MCP tools.",
+      "coverage_status": "covered",
+      "diligence_question": "What forces re-review after a skill or tool surface changes?",
+      "evidence_expectation": "Tool-surface, skill, measurement, and red-team evidence records hashes, version transitions, drift checks, replay cases, and promotion gates.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/mcp-tool-surface-drift-pack.json"
+      ],
+      "id": "AST07",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_mcp_tool_surface_drift_decision",
+        "recipes_mcp_tool_surface_drift_pack"
+      ],
+      "primary_attack_path": "A previously approved skill, dependency, tool, or registry entry changes after approval.",
+      "required_capability_ids": [
+        "mcp-tool-surface-drift-pack",
+        "agent-skill-supply-chain-pack",
+        "agentic-measurement-probe-pack",
+        "agentic-red-team-drill-pack"
+      ],
+      "risk_tier": "medium",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Update Drift"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Pre-retrieval poisoning scans are the practical bridge between prompt-injection guidance and MCP context delivery.",
+          "evidence_paths": [
+            "data/evidence/context-poisoning-guard-pack.json"
+          ],
+          "id": "context-poisoning-guard-pack",
+          "mcp_tools": [
+            "recipes_context_poisoning_guard_pack"
+          ],
+          "status": "implemented",
+          "title": "Context Poisoning Guard Pack"
+        },
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Replayable attack drills let the hosted product prove control behavior after model, connector, prompt, skill, or context drift.",
+          "evidence_paths": [
+            "data/evidence/agentic-red-team-drill-pack.json"
+          ],
+          "id": "agentic-red-team-drill-pack",
+          "mcp_tools": [
+            "recipes_agentic_red_team_drill_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Red-Team Drill Pack"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted semantic skill review plus adversarial replay service.",
+      "coverage_status": "covered",
+      "diligence_question": "How does coverage go beyond static pattern matching?",
+      "evidence_expectation": "Poisoning, skill, drill, and measurement evidence combines rules, semantic indicators, adversarial replay, expected decisions, and trace probes.",
+      "evidence_paths": [
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-red-team-drill-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json"
+      ],
+      "id": "AST08",
+      "mcp_tools": [
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_evaluate_agent_skill_decision"
+      ],
+      "primary_attack_path": "Pattern-only scanners miss natural-language behavior manipulation, multi-step tool abuse, or deceptive metadata.",
+      "required_capability_ids": [
+        "context-poisoning-guard-pack",
+        "agent-skill-supply-chain-pack",
+        "agentic-red-team-drill-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "risk_tier": "medium",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Poor Scanning"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "The trust-center export turns risk coverage into procurement and acquisition diligence collateral.",
+          "evidence_paths": [
+            "data/evidence/enterprise-trust-center-export.json"
+          ],
+          "id": "enterprise-trust-center-export",
+          "mcp_tools": [
+            "recipes_enterprise_trust_center_export"
+          ],
+          "status": "implemented",
+          "title": "Enterprise Trust Center Export"
+        },
+        {
+          "commercial_value": "The Agentic System BOM inventories tools, skills, identities, contexts, and evidence for procurement and incident response.",
+          "evidence_paths": [
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "agentic-system-bom",
+          "mcp_tools": [
+            "recipes_agentic_system_bom"
+          ],
+          "status": "implemented",
+          "title": "Agentic System BOM"
+        },
+        {
+          "commercial_value": "Run receipts convert agent activity into portable evidence for auditors, incident response, and trust-center exports.",
+          "evidence_paths": [
+            "data/evidence/agentic-run-receipt-pack.json"
+          ],
+          "id": "agentic-run-receipt-pack",
+          "mcp_tools": [
+            "recipes_agentic_run_receipt_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Run Receipt Pack"
+        },
+        {
+          "commercial_value": "OpenTelemetry-shaped agent evidence with redaction controls is a credible SIEM and observability integration path.",
+          "evidence_paths": [
+            "data/evidence/agentic-telemetry-contract.json"
+          ],
+          "id": "agentic-telemetry-contract",
+          "mcp_tools": [
+            "recipes_agentic_telemetry_contract",
+            "recipes_evaluate_agentic_telemetry_event"
+          ],
+          "status": "implemented",
+          "title": "Agentic Telemetry Contract"
+        },
+        {
+          "commercial_value": "Expiring permission leases and step-up review are a direct enterprise control for scope creep and over-privileged agents.",
+          "evidence_paths": [
+            "data/evidence/agentic-entitlement-review-pack.json"
+          ],
+          "id": "agentic-entitlement-review-pack",
+          "mcp_tools": [
+            "recipes_agentic_entitlement_review_pack",
+            "recipes_evaluate_agentic_entitlement_decision"
+          ],
+          "status": "implemented",
+          "title": "Agentic Entitlement Review Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted trust-center and quarterly agent-skill recertification exports.",
+      "coverage_status": "covered",
+      "diligence_question": "Which artifact tells procurement, GRC, and platform teams which skills and agents are approved?",
+      "evidence_expectation": "Trust-center, BOM, receipt, telemetry, and entitlement evidence covers inventory, owners, runtime evidence, leases, and review cadence.",
+      "evidence_paths": [
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/enterprise-trust-center-export.json"
+      ],
+      "id": "AST09",
+      "mcp_tools": [
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_system_bom",
+        "recipes_agentic_telemetry_contract",
+        "recipes_enterprise_trust_center_export",
+        "recipes_evaluate_agentic_entitlement_decision",
+        "recipes_evaluate_agentic_telemetry_event"
+      ],
+      "primary_attack_path": "Organizations lack an inventory, owner, approval workflow, runtime logs, and response procedure for deployed skills.",
+      "required_capability_ids": [
+        "enterprise-trust-center-export",
+        "agentic-system-bom",
+        "agentic-run-receipt-pack",
+        "agentic-telemetry-contract",
+        "agentic-entitlement-review-pack"
+      ],
+      "risk_tier": "medium",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "No Governance"
+    },
+    {
+      "capabilities": [
+        {
+          "commercial_value": "Skill provenance, permissions, signatures, and sandbox decisions address a fast-emerging agent supply-chain category before it is standardized in most enterprises.",
+          "evidence_paths": [
+            "data/evidence/agent-skill-supply-chain-pack.json"
+          ],
+          "id": "agent-skill-supply-chain-pack",
+          "mcp_tools": [
+            "recipes_agent_skill_supply_chain_pack",
+            "recipes_evaluate_agent_skill_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Skill Supply-Chain Pack"
+        },
+        {
+          "commercial_value": "Handoff policy extends SecurityRecipes beyond MCP into multi-agent and provider-native delegation.",
+          "evidence_paths": [
+            "data/evidence/agent-handoff-boundary-pack.json"
+          ],
+          "id": "agent-handoff-boundary-pack",
+          "mcp_tools": [
+            "recipes_agent_handoff_boundary_pack",
+            "recipes_evaluate_agent_handoff_decision"
+          ],
+          "status": "implemented",
+          "title": "Agent Handoff Boundary Pack"
+        },
+        {
+          "commercial_value": "The Agentic System BOM inventories tools, skills, identities, contexts, and evidence for procurement and incident response.",
+          "evidence_paths": [
+            "data/evidence/agentic-system-bom.json"
+          ],
+          "id": "agentic-system-bom",
+          "mcp_tools": [
+            "recipes_agentic_system_bom"
+          ],
+          "status": "implemented",
+          "title": "Agentic System BOM"
+        },
+        {
+          "commercial_value": "Pre-promotion intake gives AI platform teams a repeatable admission gate for new, changed, local, or third-party MCP servers.",
+          "evidence_paths": [
+            "data/evidence/mcp-connector-intake-pack.json"
+          ],
+          "id": "mcp-connector-intake-pack",
+          "mcp_tools": [
+            "recipes_mcp_connector_intake_pack"
+          ],
+          "status": "implemented",
+          "title": "MCP Connector Intake Pack"
+        },
+        {
+          "commercial_value": "Measurement probes make risk coverage observable instead of static.",
+          "evidence_paths": [
+            "data/evidence/agentic-measurement-probe-pack.json"
+          ],
+          "id": "agentic-measurement-probe-pack",
+          "mcp_tools": [
+            "recipes_agentic_measurement_probe_pack"
+          ],
+          "status": "implemented",
+          "title": "Agentic Measurement Probe Pack"
+        }
+      ],
+      "commercialization_hook": "Hosted cross-platform skill registry and policy-normalization layer.",
+      "coverage_status": "covered",
+      "diligence_question": "How does SecurityRecipes preserve policy when the same behavior moves between agent platforms?",
+      "evidence_expectation": "Skill, handoff, BOM, connector intake, and measurement evidence records platform, publisher, permission, protocol, and replay controls across environments.",
+      "evidence_paths": [
+        "data/evidence/agent-handoff-boundary-pack.json",
+        "data/evidence/agent-skill-supply-chain-pack.json",
+        "data/evidence/agentic-measurement-probe-pack.json",
+        "data/evidence/agentic-system-bom.json",
+        "data/evidence/mcp-connector-intake-pack.json"
+      ],
+      "id": "AST10",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_system_bom",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_mcp_connector_intake_pack"
+      ],
+      "primary_attack_path": "A malicious or over-privileged behavior package is ported across agents, registries, IDEs, or provider-native skill systems.",
+      "required_capability_ids": [
+        "agent-skill-supply-chain-pack",
+        "agent-handoff-boundary-pack",
+        "agentic-system-bom",
+        "mcp-connector-intake-pack",
+        "agentic-measurement-probe-pack"
+      ],
+      "risk_tier": "medium",
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "standard_id": "owasp-agentic-skills-top-10-2026",
+      "standard_title": "OWASP Agentic Skills Top 10 Coverage",
+      "title": "Cross-Platform Reuse"
+    }
+  ],
+  "risk_coverage_summary": {
+    "capability_count": 24,
+    "covered_risk_count": 20,
+    "critical_or_high_risk_count": 16,
+    "distinct_mcp_tool_count": 39,
+    "failure_count": 0,
+    "mapped_capability_count": 24,
+    "risk_count": 20,
+    "risk_status_counts": {
+      "covered": 20
+    },
+    "risk_tier_counts": {
+      "critical": 8,
+      "high": 8,
+      "medium": 4
+    },
+    "source_class_counts": {
+      "government_framework": 1,
+      "government_guidance": 1,
+      "industry_standard": 2,
+      "protocol_guidance": 1
+    },
+    "source_reference_count": 5,
+    "standard_count": 2,
+    "standard_status_counts": {
+      "covered": 2
+    },
+    "status": "mcp_and_skill_risk_coverage_ready"
+  },
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "capability_evidence": [
+      {
+        "path": "data/evidence/agent-handoff-boundary-pack.json",
+        "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b"
+      },
+      {
+        "path": "data/evidence/agent-identity-delegation-ledger.json",
+        "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
+      },
+      {
+        "path": "data/evidence/agent-memory-boundary-pack.json",
+        "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed"
+      },
+      {
+        "path": "data/evidence/agent-skill-supply-chain-pack.json",
+        "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450"
+      },
+      {
+        "path": "data/evidence/agentic-action-runtime-pack.json",
+        "sha256": "557b1c53c422fdd256a085160fc2fa65609fc63113b627ea06140f671819b3f3"
+      },
+      {
+        "path": "data/evidence/agentic-entitlement-review-pack.json",
+        "sha256": "993f2fc0377c9bb175de7758a3e12e25b02cf0b807c2c4bf0d62697be70e50cd"
+      },
+      {
+        "path": "data/evidence/agentic-incident-response-pack.json",
+        "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527"
+      },
+      {
+        "path": "data/evidence/agentic-measurement-probe-pack.json",
+        "sha256": "77d8ccb3ff88747f0c2020f25c038ce5af3f74164d977a808c79352b925cb01b"
+      },
+      {
+        "path": "data/evidence/agentic-red-team-drill-pack.json",
+        "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
+      },
+      {
+        "path": "data/evidence/agentic-run-receipt-pack.json",
+        "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+      },
+      {
+        "path": "data/evidence/agentic-system-bom.json",
+        "sha256": "19d9de3f6cdc0003d61a75477cc5549d857fb6a9f3342884807ae079299e95cd"
+      },
+      {
+        "path": "data/evidence/agentic-telemetry-contract.json",
+        "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+      },
+      {
+        "path": "data/evidence/browser-agent-boundary-pack.json",
+        "sha256": "958080daef5b8a12352d0e4a2943515554aa41a68b37456dba1b5f63541e4ad6"
+      },
+      {
+        "path": "data/evidence/context-egress-boundary-pack.json",
+        "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+      },
+      {
+        "path": "data/evidence/context-poisoning-guard-pack.json",
+        "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8"
+      },
+      {
+        "path": "data/evidence/enterprise-trust-center-export.json",
+        "sha256": "53fd119b44425fb2971a4d0e5c21b2d8c73d48efebc43cc88d3a396c841494e2"
+      },
+      {
+        "path": "data/evidence/mcp-authorization-conformance-pack.json",
+        "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+      },
+      {
+        "path": "data/evidence/mcp-connector-intake-pack.json",
+        "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f"
+      },
+      {
+        "path": "data/evidence/mcp-connector-trust-pack.json",
+        "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+      },
+      {
+        "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
+        "sha256": "f1de8897098089e18dc0c7472518ba26039b254f031d028221c60fff4caadd2d"
+      },
+      {
+        "path": "data/evidence/mcp-tool-risk-contract.json",
+        "sha256": "db3a0be61433b2a193ccc5c80bd854ce626f06376c2f93057ae4c128ef03002a"
+      },
+      {
+        "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+        "sha256": "397800a9a935c162067c29772bce422f79f52bf99444f6b64639f2b6f9673210"
+      },
+      {
+        "path": "data/evidence/secure-context-trust-pack.json",
+        "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085"
+      },
+      {
+        "path": "data/policy/mcp-gateway-policy.json",
+        "sha256": "bb1dbf00ec5bee173a19dff65266f13d84501b94aca3239019a03d6e09546de2"
+      }
+    ],
+    "mcp_risk_coverage_profile": {
+      "path": "data/assurance/mcp-risk-coverage-profile.json",
+      "sha256": "3496e1c8641df099ae2a729de9c548b5ca7c85d45227b9ce385e4ceddc1ce3e9"
+    }
+  },
+  "source_references": [
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "published": "2025-beta",
+      "publisher": "OWASP Foundation",
+      "source_class": "industry_standard",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "why_it_matters": "The OWASP MCP Top 10 beta names MCP-specific risks such as token exposure, scope creep, tool poisoning, command execution, shadow servers, telemetry gaps, and context over-sharing."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10-2026",
+      "name": "OWASP Agentic Skills Top 10",
+      "published": "2026",
+      "publisher": "OWASP Foundation",
+      "source_class": "industry_standard",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "why_it_matters": "OWASP frames agentic skills as the behavior layer between models and tools: MCP describes how the model talks to tools, while skills define what those tools actually do across multi-step workflows."
+    },
+    {
+      "id": "mcp-security-best-practices-2025",
+      "name": "Model Context Protocol Security Best Practices",
+      "published": "2025-06-18",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_guidance",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices",
+      "why_it_matters": "MCP guidance anchors practical controls for confused deputy prevention, session safety, scope minimization, auditability, local server sandboxing, and least-privilege tool access."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "published": "2024-07-26",
+      "publisher": "NIST",
+      "source_class": "government_framework",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "why_it_matters": "The NIST GenAI profile supports governance, measurement, data provenance, third-party component risk, monitoring, and lifecycle risk treatment for deployed generative AI systems."
+    },
+    {
+      "id": "cisa-secure-by-design",
+      "name": "CISA Secure by Design",
+      "published": "2023",
+      "publisher": "CISA",
+      "source_class": "government_guidance",
+      "url": "https://www.cisa.gov/securebydesign",
+      "why_it_matters": "CISA's secure-by-design framing reinforces that producers should own security outcomes, ship safe defaults, and reduce the security burden on users and downstream customers."
+    }
+  ],
+  "standards": [
+    {
+      "capability_count": 23,
+      "coverage_score": 100,
+      "id": "owasp-mcp-top-10-2025",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_agent_memory_boundary_pack",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_system_bom",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_enterprise_trust_center_export",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agent_memory_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_agentic_entitlement_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_evaluate_mcp_tool_risk_decision",
+        "recipes_evaluate_mcp_tool_surface_drift_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_connector_trust_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_mcp_tool_risk_contract",
+        "recipes_mcp_tool_surface_drift_pack",
+        "recipes_secure_context_trust_pack"
+      ],
+      "risk_count": 10,
+      "risk_ids": [
+        "MCP01",
+        "MCP02",
+        "MCP03",
+        "MCP04",
+        "MCP05",
+        "MCP06",
+        "MCP07",
+        "MCP08",
+        "MCP09",
+        "MCP10"
+      ],
+      "source_ids": [
+        "owasp-mcp-top-10-2025",
+        "mcp-security-best-practices-2025"
+      ],
+      "sources": [
+        {
+          "id": "owasp-mcp-top-10-2025",
+          "name": "OWASP MCP Top 10",
+          "published": "2025-beta",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-mcp-top-10/"
+        },
+        {
+          "id": "mcp-security-best-practices-2025",
+          "name": "Model Context Protocol Security Best Practices",
+          "published": "2025-06-18",
+          "publisher": "Model Context Protocol",
+          "source_class": "protocol_guidance",
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+        }
+      ],
+      "status": "covered",
+      "title": "OWASP MCP Top 10 Coverage"
+    },
+    {
+      "capability_count": 20,
+      "coverage_score": 100,
+      "id": "owasp-agentic-skills-top-10-2026",
+      "mcp_tools": [
+        "recipes_agent_handoff_boundary_pack",
+        "recipes_agent_identity_ledger",
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_agentic_action_runtime_pack",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_measurement_probe_pack",
+        "recipes_agentic_red_team_drill_pack",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_system_bom",
+        "recipes_agentic_telemetry_contract",
+        "recipes_browser_agent_boundary_pack",
+        "recipes_context_egress_boundary_pack",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_enterprise_trust_center_export",
+        "recipes_evaluate_agent_handoff_decision",
+        "recipes_evaluate_agent_skill_decision",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_evaluate_agentic_entitlement_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_browser_agent_boundary_decision",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_mcp_gateway_decision",
+        "recipes_evaluate_mcp_stdio_launch_decision",
+        "recipes_evaluate_mcp_tool_risk_decision",
+        "recipes_evaluate_mcp_tool_surface_drift_decision",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_mcp_gateway_policy",
+        "recipes_mcp_stdio_launch_boundary_pack",
+        "recipes_mcp_tool_risk_contract",
+        "recipes_mcp_tool_surface_drift_pack"
+      ],
+      "risk_count": 10,
+      "risk_ids": [
+        "AST01",
+        "AST02",
+        "AST03",
+        "AST04",
+        "AST05",
+        "AST06",
+        "AST07",
+        "AST08",
+        "AST09",
+        "AST10"
+      ],
+      "source_ids": [
+        "owasp-agentic-skills-top-10-2026",
+        "cisa-secure-by-design",
+        "nist-ai-600-1"
+      ],
+      "sources": [
+        {
+          "id": "owasp-agentic-skills-top-10-2026",
+          "name": "OWASP Agentic Skills Top 10",
+          "published": "2026",
+          "publisher": "OWASP Foundation",
+          "source_class": "industry_standard",
+          "url": "https://owasp.org/www-project-agentic-skills-top-10/"
+        },
+        {
+          "id": "cisa-secure-by-design",
+          "name": "CISA Secure by Design",
+          "published": "2023",
+          "publisher": "CISA",
+          "source_class": "government_guidance",
+          "url": "https://www.cisa.gov/securebydesign"
+        },
+        {
+          "id": "nist-ai-600-1",
+          "name": "NIST AI RMF Generative AI Profile",
+          "published": "2024-07-26",
+          "publisher": "NIST",
+          "source_class": "government_framework",
+          "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+        }
+      ],
+      "status": "covered",
+      "title": "OWASP Agentic Skills Top 10 Coverage"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 title: "Control Plane Marketplace"
 description: "Input channels, output routes, report packs, and workflow templates for the client-side SecurityRecipes browser workbench."
 date: 2026-05-03
-lastmod: 2026-05-03
+lastmod: 2026-05-04
 tags:
   - marketplace
   - browser
@@ -102,6 +102,26 @@ That matters for the product shape:
 - the result becomes a reusable JSON artifact that can be copied, downloaded, or fed into downstream relays and integrations
 
 This is the path from "AI chatbot" to "actual security application": every run should leave behind a bounded contract that another system or reviewer can consume.
+
+## Live downstream delivery expanded
+
+The browser workbench now treats several major output routes as `live_or_copy` instead of template-only:
+
+- Microsoft Teams through a Workflows webhook
+- ServiceNow incident or task records through the Table API
+- Linear issues through the GraphQL API
+- Splunk HEC events for SIEM and analytics
+- Elastic Security cases through the Kibana Cases API
+- generic webhooks for customer-specific relays
+
+This keeps the product aligned with the BYO-token promise:
+
+- operator secrets stay in browser storage
+- delivery still happens only when the user explicitly configures the route
+- copy/download remains available when CORS, auth scope, or target policy blocks direct browser delivery
+
+If you want the public inventory instead of the narrative explanation, use the
+[Marketplace and Workflow Gallery]({{< relref "/docs/marketplace-gallery" >}}).
 
 ## Example output channel contract
 

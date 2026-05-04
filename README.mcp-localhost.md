@@ -111,6 +111,7 @@ After connecting, the server exposes these tools:
 - `recipes_evaluate_context_egress_decision`
 - `recipes_agentic_threat_radar`
 - `recipes_agentic_standards_crosswalk`
+- `recipes_mcp_risk_coverage_pack`
 - `recipes_agentic_protocol_conformance_pack`
 - `recipes_evaluate_agentic_protocol_conformance_decision`
 - `recipes_agentic_control_plane_blueprint`
@@ -160,7 +161,7 @@ tool-surface drift pack, agent handoff boundary pack, A2A Agent Card trust profi
 Agentic System BOM, secure
 context trust pack, context attestation pack, secure context eval pack,
 context poisoning guard pack, context egress boundary pack, or agentic
-threat radar, agentic standards crosswalk, protocol conformance pack, control plane blueprint,
+threat radar, agentic standards crosswalk, MCP risk coverage pack, protocol conformance pack, control plane blueprint,
 exposure graph, catastrophic-risk annex, incident response pack,
 action runtime pack, measurement probe pack, telemetry contract, or
 trust-center export, browser-agent boundary pack, agentic app intake

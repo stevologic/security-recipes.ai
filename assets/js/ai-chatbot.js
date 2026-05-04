@@ -5115,7 +5115,9 @@
     if (posted.data && Array.isArray(posted.data.errors) && posted.data.errors.length) {
       throw new Error('Linear issue creation failed: ' + (posted.data.errors[0].message || 'GraphQL error') + '.');
     }
-    var issue = posted.data && posted.data.data && posted.data.data.issueCreate && posted.data.data.issueCreate.issue;
+    var createResult = posted.data && posted.data.data && posted.data.data.issueCreate;
+    if (createResult && createResult.success === false) throw new Error('Linear issue creation failed.');
+    var issue = createResult && createResult.issue;
     return 'Linear issue created: ' + (issue && (issue.identifier || issue.id || issue.title) || 'created');
   }
 
@@ -5126,15 +5128,18 @@
       throw new Error('Splunk output needs an HEC URL and HEC token saved in Agent integrations.');
     }
     var envelope = deliveryEnvelopePayload(config, output);
+    var eventPayload = {
+      event: envelope
+    };
+    var sourceType = collapseText(getIntegrationField('splunkSourceType') || 'securityrecipes:report');
+    var index = collapseText(getIntegrationField('splunkIndex') || '');
+    if (sourceType) eventPayload.sourcetype = sourceType;
+    if (index) eventPayload.index = index;
     var posted = await postJson(hecUrl, {
       headers: {
         'Authorization': 'Splunk ' + token
       },
-      body: {
-        sourcetype: collapseText(getIntegrationField('splunkSourceType') || 'securityrecipes:report'),
-        index: collapseText(getIntegrationField('splunkIndex') || ''),
-        event: envelope
-      }
+      body: eventPayload
     });
     if (!posted.response.ok) {
       throw new Error('Splunk HEC returned ' + statusLine(posted.response.status, posted.response.statusText) + '. Browser CORS or HEC settings may require a relay.');

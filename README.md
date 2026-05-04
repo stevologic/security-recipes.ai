@@ -149,6 +149,9 @@ and ships with:
 - **Agentic Standards Crosswalk** - generated OWASP, NIST, MCP,
   OpenAI, and Anthropic standards-to-evidence map for buyer diligence,
   AI platform architecture review, and MCP-native control review.
+- **MCP and Agentic Skills Risk Coverage** - generated OWASP MCP Top 10
+  and OWASP Agentic Skills Top 10 coverage map across evidence packs,
+  MCP tools, and hosted product wedges.
 - **Agentic Protocol Conformance Pack** - generated MCP and A2A protocol
   conformance evidence with deterministic runtime decisions for
   authorization metadata, tool annotations, tool-surface drift, Agent
@@ -790,6 +793,23 @@ the MCP server as `recipes_agentic_standards_crosswalk`.
 
 ---
 
+### Generate the MCP and agentic-skill risk coverage pack
+
+The coverage pack maps the OWASP MCP Top 10 beta and OWASP Agentic
+Skills Top 10 to SecurityRecipes controls, generated evidence, MCP
+tools, and hosted product wedges.
+
+```bash
+python3 scripts/generate_mcp_risk_coverage_pack.py
+python3 scripts/generate_mcp_risk_coverage_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/mcp-risk-coverage-pack.json` and is exposed through the
+MCP server as `recipes_mcp_risk_coverage_pack`.
+
+---
+
 ### Generate the agentic control plane blueprint
 
 The control plane blueprint joins existing generated evidence into an
@@ -1211,7 +1231,7 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 | **Agents** | Per-tool recipes for GitHub Copilot, Claude, Cursor, Codex, Devin — each with Install → Configure → Dispatch → Guardrails, plus General and Enterprise onboarding. |
 | **Prompt Library** | Tool-agnostic prompts under `general/` (OWASP Top 10 2026 audit, OWASP Top 10 2026 remediate) plus per-tool prompts for CVE triage, vulnerable deps, and SDE remediation. |
 | **MCP Servers** | Why MCP exists; connector catalog (risk, ownership, ticket, knowledge, code, observability); MCP gateway patterns; integration on-ramp. |
-| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic control plane blueprint, exposure graph, threat radar, workflow control plane, MCP gateway policy pack, runtime decision evaluator, action runtime pack, browser-agent boundary pack, MCP connector intake scanner, MCP connector trust registry, A2A Agent Card trust profile, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, capability risk register, red-team drill pack, agent identity ledger, Agentic System BOM, agentic run receipts, agentic telemetry contract, model provider routing gate, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
+| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic control plane blueprint, exposure graph, threat radar, MCP and agentic-skill risk coverage, workflow control plane, MCP gateway policy pack, runtime decision evaluator, action runtime pack, browser-agent boundary pack, MCP connector intake scanner, MCP connector trust registry, A2A Agent Card trust profile, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, capability risk register, red-team drill pack, agent identity ledger, Agentic System BOM, agentic run receipts, agentic telemetry contract, model provider routing gate, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
 | **Automation** | The "just use a linter" checklist — deterministic automation that earns its keep before an agent ever runs. |
 | **Contribute** | How to add a recipe, a prompt, or a new workflow. |
 
@@ -1904,6 +1924,22 @@ evaluators, MCP tools, and commercialization hooks. CI runs the generator
 in `--check` mode so standards coverage cannot drift silently from the
 generated MCP-facing artifact.
 
+### MCP and agentic skills risk coverage
+
+The generated risk coverage pack maps OWASP MCP Top 10 and OWASP
+Agentic Skills Top 10 risks to SecurityRecipes capabilities, generated
+evidence, MCP tools, and hosted product wedges:
+
+- profile: `data/assurance/mcp-risk-coverage-profile.json`
+- generator: `scripts/generate_mcp_risk_coverage_pack.py`
+- pack: `data/evidence/mcp-risk-coverage-pack.json`
+- MCP tool: `recipes_mcp_risk_coverage_pack`
+
+The pack answers buyer questions about token exposure, scope creep, tool
+poisoning, shadow MCP servers, context over-sharing, malicious skills,
+over-privileged skills, weak isolation, update drift, and skill
+governance with evidence paths rather than claims.
+
 ### Agentic control plane blueprint
 
 The generated agentic control plane blueprint turns the existing packs
@@ -2163,6 +2199,9 @@ Edit `mcp-server.toml`:
   the `recipes_agentic_threat_radar` MCP tool
 - `standards_crosswalk_path` -> generated agentic standards crosswalk
   exposed through the `recipes_agentic_standards_crosswalk` MCP tool
+- `mcp_risk_coverage_pack_path` -> generated OWASP MCP and agentic-skill
+  risk coverage exposed through the `recipes_mcp_risk_coverage_pack`
+  MCP tool
 - `control_plane_blueprint_path` -> generated control plane blueprint
   exposed through the `recipes_agentic_control_plane_blueprint` MCP tool
 - `exposure_graph_path` -> generated agentic exposure graph exposed

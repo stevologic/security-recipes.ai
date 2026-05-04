@@ -1,0 +1,149 @@
+{{- $catalog := site.Data.marketplace.catalog -}}
+{{- $inputs := sort (site.Data.marketplace.input_channels.channels | default (slice)) "label" -}}
+{{- $outputs := sort (site.Data.marketplace.output_channels.channels | default (slice)) "label" -}}
+{{- $reports := sort (site.Data.marketplace.report_profiles.profiles | default (slice)) "label" -}}
+{{- $workflows := sort (site.Data.marketplace.workflow_templates.templates | default (slice)) "label" -}}
+
+<div class="sr-marketplace-gallery">
+  <section class="sr-marketplace-overview">
+    <div>
+      <p class="sr-marketplace-kicker">Client-side security control plane</p>
+      <h2>Inspect every input, report, output, and workflow pack before you trust it.</h2>
+      <p>{{ $catalog.positioning.summary }}</p>
+    </div>
+    <div class="sr-marketplace-stats">
+      <article>
+        <strong>{{ len $inputs }}</strong>
+        <span>Input channels</span>
+      </article>
+      <article>
+        <strong>{{ len $outputs }}</strong>
+        <span>Output channels</span>
+      </article>
+      <article>
+        <strong>{{ len $reports }}</strong>
+        <span>Report profiles</span>
+      </article>
+      <article>
+        <strong>{{ len $workflows }}</strong>
+        <span>Workflow packs</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="sr-marketplace-section">
+    <div class="sr-marketplace-section-head">
+      <h2>Output channels</h2>
+      <p>Downstream delivery routes for tickets, collaboration, SIEM, and custom relays.</p>
+    </div>
+    <div class="sr-marketplace-grid">
+      {{- range $outputs }}
+      <article class="sr-marketplace-card">
+        <header>
+          <div>
+            <h3>{{ .label }}</h3>
+            <p>{{ .description }}</p>
+          </div>
+          <div class="sr-marketplace-badges">
+            <span>{{ .category }}</span>
+            <span>{{ .status }}</span>
+            <span>{{ .runtime_support }}</span>
+          </div>
+        </header>
+        <dl>
+          <div><dt>Driver</dt><dd><code>{{ .driver }}</code></dd></div>
+          <div><dt>Browser delivery</dt><dd>{{ cond .browser_delivery "yes" "no" }}</dd></div>
+          <div><dt>Config type</dt><dd><code>{{ .config.type }}</code></dd></div>
+        </dl>
+        <p class="sr-marketplace-requirement">{{ .requirement }}</p>
+      </article>
+      {{- end }}
+    </div>
+  </section>
+
+  <section class="sr-marketplace-section">
+    <div class="sr-marketplace-section-head">
+      <h2>Input channels</h2>
+      <p>Context and scanner sources that the browser workbench can attach to chat and agent runs.</p>
+    </div>
+    <div class="sr-marketplace-grid">
+      {{- range $inputs }}
+      <article class="sr-marketplace-card">
+        <header>
+          <div>
+            <h3>{{ .label }}</h3>
+            <p>{{ .description }}</p>
+          </div>
+          <div class="sr-marketplace-badges">
+            <span>{{ .category }}</span>
+            <span>{{ .status }}</span>
+            <span>{{ .runtime_support }}</span>
+          </div>
+        </header>
+        <dl>
+          <div><dt>Auth</dt><dd>{{ if .auth_modes }}{{ delimit .auth_modes ", " }}{{ else }}none{{ end }}</dd></div>
+          <div><dt>Config type</dt><dd><code>{{ .config.type }}</code></dd></div>
+          {{ with .config.source }}<div><dt>Source</dt><dd><code>{{ . }}</code></dd></div>{{ end }}
+        </dl>
+      </article>
+      {{- end }}
+    </div>
+  </section>
+
+  <section class="sr-marketplace-section">
+    <div class="sr-marketplace-section-head">
+      <h2>Report profiles</h2>
+      <p>Normalized report contracts that make browser runs reusable outside the prompt transcript.</p>
+    </div>
+    <div class="sr-marketplace-grid">
+      {{- range $reports }}
+      <article class="sr-marketplace-card">
+        <header>
+          <div>
+            <h3>{{ .label }}</h3>
+            <p>{{ .description }}</p>
+          </div>
+          <div class="sr-marketplace-badges">
+            <span>{{ .status }}</span>
+            <span>{{ .format }}</span>
+          </div>
+        </header>
+        <dl>
+          <div><dt>Sections</dt><dd>{{ if .sections }}{{ delimit .sections ", " }}{{ else }}none{{ end }}</dd></div>
+          <div><dt>ID</dt><dd><code>{{ .id }}</code></dd></div>
+        </dl>
+      </article>
+      {{- end }}
+    </div>
+  </section>
+
+  <section class="sr-marketplace-section">
+    <div class="sr-marketplace-section-head">
+      <h2>Workflow templates</h2>
+      <p>Opinionated packs that bind inputs, recipes, reports, and outputs into repeatable operating motions.</p>
+    </div>
+    <div class="sr-marketplace-grid">
+      {{- range $workflows }}
+      <article class="sr-marketplace-card">
+        <header>
+          <div>
+            <h3>{{ .label }}</h3>
+            <p>{{ .description }}</p>
+          </div>
+          <div class="sr-marketplace-badges">
+            <span>{{ .status }}</span>
+            <span>{{ .workflow_value }}</span>
+          </div>
+        </header>
+        <dl>
+          <div><dt>Inputs</dt><dd>{{ if .default_input_channel_ids }}{{ delimit .default_input_channel_ids ", " }}{{ else }}none{{ end }}</dd></div>
+          <div><dt>Report</dt><dd><code>{{ .default_report_profile_id }}</code></dd></div>
+          <div><dt>Output</dt><dd><code>{{ .default_output_channel_id }}</code></dd></div>
+          <div><dt>Cadence</dt><dd>{{ .default_cadence }}</dd></div>
+          <div><dt>Approval</dt><dd>{{ .default_approval_gate }}</dd></div>
+        </dl>
+      </article>
+      {{- end }}
+    </div>
+  </section>
+</div>

@@ -570,6 +570,16 @@ jobs:
         run: |
           python3 scripts/generate_agent_skill_supply_chain_pack.py --check
 
+      - name: Refresh MCP risk coverage pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_mcp_risk_coverage_pack.py
+
+      - name: Validate MCP risk coverage pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_mcp_risk_coverage_pack.py --check
+
       - name: Validate agent skill runtime decisions
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |

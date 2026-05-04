@@ -98,6 +98,7 @@ Second, it reads local generated packs from the filesystem:
 | Context egress boundary pack | `./data/evidence/context-egress-boundary-pack.json` | `recipes_context_egress_boundary_pack`, `recipes_evaluate_context_egress_decision` |
 | Agentic threat radar | `./data/evidence/agentic-threat-radar.json` | `recipes_agentic_threat_radar` |
 | Agentic standards crosswalk | `./data/evidence/agentic-standards-crosswalk.json` | `recipes_agentic_standards_crosswalk` |
+| MCP and agentic-skill risk coverage | `./data/evidence/mcp-risk-coverage-pack.json` | `recipes_mcp_risk_coverage_pack` |
 | Agentic control plane blueprint | `./data/evidence/agentic-control-plane-blueprint.json` | `recipes_agentic_control_plane_blueprint` |
 | Agentic exposure graph | `./data/evidence/agentic-exposure-graph.json` | `recipes_agentic_exposure_graph` |
 | Agentic posture snapshot | `./data/evidence/agentic-posture-snapshot.json` | `recipes_agentic_posture_snapshot`, `recipes_evaluate_agentic_posture_decision` |
@@ -174,6 +175,7 @@ listed in `README.mcp-localhost.md`.
 | `recipes_evaluate_context_egress_decision` | `workflow_id`, `destination_class`, plus optional `data_class`, `source_id`, `mcp_namespace`, tenant, residency, DPA, ZDR, and approval attributes | A deterministic allow, hold, deny, or kill-session decision before context leaves a tenant, model, MCP, telemetry, or public-corpus boundary. |
 | `recipes_agentic_threat_radar` | Optional `signal_id`, `priority`, `horizon`, `capability_id`, `minimum_score` | Current source-backed agentic AI and MCP threat signals, mapped product capabilities, buyer triggers, and roadmap priorities. |
 | `recipes_agentic_standards_crosswalk` | Optional `standard_id`, `control_id`, `capability_id`, `source_id`, `status` | Standards-to-evidence mappings for OWASP Agentic Top 10, NIST AI agent guidance, MCP authorization, and frontier-lab prompt-injection defenses. |
+| `recipes_mcp_risk_coverage_pack` | Optional `risk_id`, `standard_id`, `capability_id`, `source_id`, `risk_tier`, `status` | OWASP MCP Top 10 and OWASP Agentic Skills Top 10 coverage mapped to generated evidence packs, MCP tools, and hosted product wedges. |
 | `recipes_agentic_control_plane_blueprint` | Optional `layer_id`, `question_id`, `status` | Acquisition-ready architecture, source-pack map, MCP evidence surface, buyer diligence questions, and commercialization path. |
 | `recipes_agentic_exposure_graph` | Optional `path_id`, `workflow_id`, `identity_id`, `namespace`, `decision`, `path_class_id`, `minimum_score`, `node_id` | Risk-ranked graph paths across secure context, identities, MCP namespaces, authorization, egress, readiness, risk, and run receipts. |
 | `recipes_agentic_posture_snapshot` | Optional `workflow_id`, `decision`, `risk_factor_id`, `buyer_view_id`, `minimum_score` | Enterprise posture score, workflow posture decisions, high-exposure paths, pilot connector rollups, and buyer views. |
@@ -259,6 +261,7 @@ The main TOML fields are:
 | `context_egress_boundary_pack_path` | Local path for the generated context egress boundary pack. |
 | `threat_radar_path` | Local path for the generated agentic threat radar. |
 | `standards_crosswalk_path` | Local path for the generated agentic standards crosswalk. |
+| `mcp_risk_coverage_pack_path` | Local path for the generated MCP and agentic-skill risk coverage pack. |
 | `control_plane_blueprint_path` | Local path for the generated agentic control plane blueprint. |
 | `exposure_graph_path` | Local path for the generated agentic exposure graph. |
 | `posture_snapshot_path` | Local path for the generated agentic posture snapshot. |
@@ -298,6 +301,7 @@ such as `RECIPES_MCP_GATEWAY_POLICY_PATH`,
 `RECIPES_MCP_CONTEXT_EGRESS_BOUNDARY_PACK_PATH`,
 `RECIPES_MCP_SECURE_CONTEXT_ATTESTATION_PACK_PATH`,
 `RECIPES_MCP_SECURE_CONTEXT_EVAL_PACK_PATH`,
+`RECIPES_MCP_RISK_COVERAGE_PACK_PATH`,
 `RECIPES_MCP_CONTROL_PLANE_BLUEPRINT_PATH`,
 `RECIPES_MCP_POSTURE_SNAPSHOT_PATH`,
 `RECIPES_MCP_APP_INTAKE_PACK_PATH`,
@@ -475,6 +479,7 @@ capabilities are not feature flags hidden inside `mcp_server.py`.
 | Runtime agent handoff boundary evaluation | Available through `recipes_evaluate_agent_handoff_decision` | Available as hosted signed Agent Card trust, handoff replay, protocol gateway policy, and approval receipt enforcement where provisioned |
 | Runtime A2A Agent Card trust evaluation | Available through `recipes_evaluate_a2a_agent_card_trust_decision` | Available as hosted Agent Card monitoring, signature verification, allowlist drift detection, and remote-agent promotion policy where provisioned |
 | Standards-to-evidence crosswalk | Available through `recipes_agentic_standards_crosswalk` as a local generated diligence packet | Available as hosted standards drift monitoring, customer evidence mapping, and procurement export where provisioned |
+| MCP and agentic-skill risk coverage | Available through `recipes_mcp_risk_coverage_pack` as local OWASP MCP and Agentic Skills risk-to-evidence mapping | Available as hosted MCP fleet drift monitoring, skill registry scanning, policy enforcement, and buyer exports where provisioned |
 | Catastrophic-risk annex | Available through `recipes_agentic_catastrophic_risk_annex` and `recipes_evaluate_agentic_catastrophic_risk_decision` as local severe-risk evidence and deterministic runtime decisions | Available as hosted high-impact action inventory, approval receipt validation, risk acceptance, replay, and runtime kill policy where provisioned |
 | Agentic action runtime decisions | Available through `recipes_agentic_action_runtime_pack` and `recipes_evaluate_agentic_action_runtime_decision` as local action envelopes and deterministic allow/hold/deny/kill decisions | Available as hosted action firewall APIs, signed action receipts, approval validation, and SIEM/SOAR export where provisioned |
 | Agentic approval receipt decisions | Available through `recipes_agentic_approval_receipt_pack` and `recipes_evaluate_agentic_approval_receipt_decision` as local scope-bound approval profiles and deterministic receipt validation | Available as hosted approval-source integrations, signed approval receipts, two-key review enforcement, and audit export where provisioned |
