@@ -3,6 +3,7 @@
     {
       "id": "remediation-pr-packet",
       "label": "Remediation PR packet",
+      "status": "native",
       "category": "Remediation",
       "format": "markdown+json",
       "description": "Reviewer-ready packet for a code or configuration fix that stops at draft stage.",
@@ -17,6 +18,7 @@
     {
       "id": "scan-findings-bundle",
       "label": "Scan findings bundle",
+      "status": "native",
       "category": "Scanning",
       "format": "json",
       "description": "Normalized browser-side report for imported SARIF, SBOM, and scanner context that can be copied or exported downstream as JSON.",
@@ -33,9 +35,10 @@
     {
       "id": "ticket-ready-brief",
       "label": "Ticket-ready brief",
+      "status": "native",
       "category": "Operational handoff",
       "format": "markdown",
-      "description": "Compact summary optimized for Jira, GitHub Issues, ServiceNow, or Linear.",
+      "description": "Compact summary optimized for Jira, GitHub Issues, ServiceNow, Linear, or GitLab.",
       "sections": ["title", "impact", "scope", "actions", "owner_notes", "links"],
       "example_output": {
         "report_type": "ticket_ready_brief",
@@ -46,6 +49,7 @@
     {
       "id": "exec-risk-brief",
       "label": "Executive risk brief",
+      "status": "native",
       "category": "Reporting",
       "format": "markdown+json",
       "description": "Short-form leadership update for weekly risk review or board prep.",
@@ -59,6 +63,7 @@
     {
       "id": "run-receipt",
       "label": "Run receipt",
+      "status": "native",
       "category": "Evidence",
       "format": "json",
       "description": "Evidence-oriented receipt for a browser-run investigation or remediation planning session.",
@@ -71,8 +76,24 @@
       }
     },
     {
+      "id": "investigation-session-packet",
+      "label": "Investigation session packet",
+      "status": "native",
+      "category": "Evidence",
+      "format": "json",
+      "description": "Grouped browser-local investigation session export with timeline, linked case reference, and handoff guidance.",
+      "sections": ["investigation_session", "session", "timeline", "linked_case", "next_actions"],
+      "example_output": {
+        "report_type": "investigation_session_packet",
+        "session_kind": "agent_run",
+        "record_count": 9,
+        "linked_case_id": "case-dependency-fix-payments-api"
+      }
+    },
+    {
       "id": "connector-intake-decision",
       "label": "Connector intake decision",
+      "status": "native",
       "category": "Governance",
       "format": "json",
       "description": "Structured approval, hold, or deny pack for new MCP or API integration candidates.",
@@ -81,6 +102,48 @@
         "report_type": "connector_intake_decision",
         "decision": "hold_for_review",
         "required_controls": ["token_audience_validation", "audit_every_tool_call"]
+      }
+    },
+    {
+      "id": "incident-response-brief",
+      "label": "Incident response brief",
+      "status": "native",
+      "category": "Incident response",
+      "format": "markdown+json",
+      "description": "Short-form incident commander brief for XDR, SIEM, and responder escalation workflows.",
+      "sections": ["incident_summary", "triage", "impacted_assets", "containment", "owner_handoff", "evidence_links"],
+      "example_output": {
+        "report_type": "incident_response_brief",
+        "incident_severity": "high",
+        "recommended_escalation": "pagerduty"
+      }
+    },
+    {
+      "id": "case-management-packet",
+      "label": "Case management packet",
+      "status": "native",
+      "category": "Case management",
+      "format": "json",
+      "description": "Structured case payload optimized for SOAR and case-management systems that want fields instead of freeform prose.",
+      "sections": ["title", "severity", "scope", "tasks", "entities", "references", "custom_fields"],
+      "example_output": {
+        "report_type": "case_management_packet",
+        "destination": "xsoar",
+        "case_template": "cloud_exposure"
+      }
+    },
+    {
+      "id": "siem-forwarding-envelope",
+      "label": "SIEM forwarding envelope",
+      "status": "native",
+      "category": "Telemetry",
+      "format": "json",
+      "description": "Normalized telemetry envelope for SIEM, webhook, and downstream analytics ingestion paths.",
+      "sections": ["metadata", "routing", "summary", "findings", "entities", "observables", "artifacts"],
+      "example_output": {
+        "report_type": "siem_forwarding_envelope",
+        "destination": "splunk",
+        "event_count": 1
       }
     }
   ]

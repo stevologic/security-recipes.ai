@@ -1,0 +1,1141 @@
+{
+  "commercialization_path": {
+    "acquirer_value": "A frontier AI lab, security cloud, or developer platform gets the bridge from agentic AI control evidence to operational SOC detection without needing customers to expose raw prompts.",
+    "enterprise_layer": "Hosted secure-context event pipeline, signed detection pack delivery, SIEM/SOAR integrations, alert-to-receipt correlation, and managed replay validation.",
+    "open_layer": "Public SOC detection model, SIEM query templates, runtime evaluator, docs, and generated evidence pack.",
+    "team_layer": "Private tenant field mappings, collector configuration, alert routing, suppression lists, ticket enrichment, and response runbooks."
+  },
+  "detection_contract": {
+    "decision_order": [
+      "soc_critical_kill_session",
+      "soc_high_escalate",
+      "soc_medium_investigate",
+      "soc_hold_for_trace_completion",
+      "soc_no_alert"
+    ],
+    "default_state": "soc_untrusted_until_trace_contract_ready",
+    "minimum_detection_rules": 9,
+    "minimum_retention_days": 400,
+    "prohibited_field_response": "soc_critical_kill_session",
+    "redaction_default": "metadata_only",
+    "required_common_attributes": [
+      "service.name",
+      "deployment.environment",
+      "trace_id",
+      "span_id",
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "receipt_id",
+      "telemetry.redaction_state"
+    ],
+    "required_source_packs": [
+      "workflow_manifest",
+      "agentic_telemetry_contract",
+      "agentic_incident_response_pack",
+      "agentic_threat_radar",
+      "agentic_red_team_replay_harness"
+    ]
+  },
+  "detection_rules": [
+    {
+      "all_match_conditions": [
+        {
+          "field": "event_class",
+          "operator": "in",
+          "value": [
+            "secure_context.retrieval",
+            "context.poisoning_scan",
+            "policy.decision"
+          ]
+        }
+      ],
+      "any_match_conditions": [
+        {
+          "field": "poisoning_scan_state",
+          "operator": "in",
+          "value": [
+            "critical",
+            "high",
+            "failed_open"
+          ]
+        },
+        {
+          "field": "context.retrieval_decision",
+          "operator": "in",
+          "value": [
+            "deny_context_poisoning",
+            "kill_session_on_context_poisoning"
+          ]
+        }
+      ],
+      "decision": "soc_critical_kill_session",
+      "event_classes": [
+        "secure_context.retrieval",
+        "context.poisoning_scan",
+        "policy.decision"
+      ],
+      "id": "context-poisoning-retrieval",
+      "mapped_risks": [
+        "Prompt injection via contextual payloads",
+        "Context injection and over-sharing",
+        "RAG poisoning"
+      ],
+      "required_attributes": [
+        "context.source_ids",
+        "context.package_hash",
+        "poisoning_scan_state",
+        "context.retrieval_decision",
+        "policy.decision"
+      ],
+      "response_playbook": "Kill the session, quarantine the context source, run replay fixtures, and require source recertification before retrieval resumes.",
+      "severity": "critical",
+      "severity_score": 100,
+      "siem_queries": {
+        "chronicle_yara_l": "rule context_poisoning_retrieval {\n  events:\n    (($e.metadata.event_type = \"secure_context.retrieval\" or $e.metadata.event_type = \"context.poisoning_scan\" or $e.metadata.event_type = \"policy.decision\")) and ((($e.principal.labels.poisoning_scan_state = \"critical\" or $e.principal.labels.poisoning_scan_state = \"high\" or $e.principal.labels.poisoning_scan_state = \"failed_open\") or ($e.principal.labels.context_retrieval_decision = \"deny_context_poisoning\" or $e.principal.labels.context_retrieval_decision = \"kill_session_on_context_poisoning\")))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where EventClass in (\"secure_context.retrieval\", \"context.poisoning_scan\", \"policy.decision\")\n| where (tostring(Attributes[\"poisoning_scan_state\"]) in (\"critical\", \"high\", \"failed_open\") or tostring(Attributes[\"context.retrieval_decision\"]) in (\"deny_context_poisoning\", \"kill_session_on_context_poisoning\"))\n| extend DetectionRule=\"context-poisoning-retrieval\", Severity=\"critical\"",
+        "splunk_spl": "index=agentic_ai (event_class=\"secure_context.retrieval\" OR event_class=\"context.poisoning_scan\" OR event_class=\"policy.decision\") ((poisoning_scan_state=\"critical\" OR poisoning_scan_state=\"high\" OR poisoning_scan_state=\"failed_open\") OR (context.retrieval_decision=\"deny_context_poisoning\" OR context.retrieval_decision=\"kill_session_on_context_poisoning\"))"
+      },
+      "siem_window": "5m",
+      "title": "Context poisoning reached retrieval"
+    },
+    {
+      "all_match_conditions": [
+        {
+          "field": "event_class",
+          "operator": "in",
+          "value": [
+            "mcp.tools.call",
+            "policy.decision"
+          ]
+        }
+      ],
+      "any_match_conditions": [
+        {
+          "field": "authorization.token_passthrough_detected",
+          "operator": "bool_true"
+        },
+        {
+          "field": "authorization.audience_mismatch",
+          "operator": "bool_true"
+        },
+        {
+          "field": "authorization.decision",
+          "operator": "in",
+          "value": [
+            "deny_token_passthrough",
+            "kill_token_passthrough",
+            "deny_audience_mismatch"
+          ]
+        }
+      ],
+      "decision": "soc_critical_kill_session",
+      "event_classes": [
+        "mcp.tools.call",
+        "policy.decision"
+      ],
+      "id": "mcp-token-passthrough-or-audience-mismatch",
+      "mapped_risks": [
+        "MCP token passthrough",
+        "MCP confused deputy",
+        "OWASP MCP07 insufficient authentication and authorization"
+      ],
+      "required_attributes": [
+        "mcp.method.name",
+        "mcp.session.id",
+        "authorization.decision",
+        "authorization.audience",
+        "authorization.resource",
+        "policy.decision"
+      ],
+      "response_playbook": "Kill the agent session, revoke delegated credentials, preserve the run receipt, and open an MCP authorization incident.",
+      "severity": "critical",
+      "severity_score": 100,
+      "siem_queries": {
+        "chronicle_yara_l": "rule mcp_token_passthrough_or_audience_mismatch {\n  events:\n    (($e.metadata.event_type = \"mcp.tools.call\" or $e.metadata.event_type = \"policy.decision\")) and (($e.principal.labels.authorization_token_passthrough_detected = \"true\" or $e.principal.labels.authorization_audience_mismatch = \"true\" or ($e.principal.labels.authorization_decision = \"deny_token_passthrough\" or $e.principal.labels.authorization_decision = \"kill_token_passthrough\" or $e.principal.labels.authorization_decision = \"deny_audience_mismatch\")))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where EventClass in (\"mcp.tools.call\", \"policy.decision\")\n| where (tolower(tostring(Attributes[\"authorization.token_passthrough_detected\"])) in (\"true\", \"1\", \"yes\") or tolower(tostring(Attributes[\"authorization.audience_mismatch\"])) in (\"true\", \"1\", \"yes\") or tostring(Attributes[\"authorization.decision\"]) in (\"deny_token_passthrough\", \"kill_token_passthrough\", \"deny_audience_mismatch\"))\n| extend DetectionRule=\"mcp-token-passthrough-or-audience-mismatch\", Severity=\"critical\"",
+        "splunk_spl": "index=agentic_ai (event_class=\"mcp.tools.call\" OR event_class=\"policy.decision\") (authorization.token_passthrough_detected=true OR authorization.audience_mismatch=true OR (authorization.decision=\"deny_token_passthrough\" OR authorization.decision=\"kill_token_passthrough\" OR authorization.decision=\"deny_audience_mismatch\"))"
+      },
+      "siem_window": "5m",
+      "title": "MCP token passthrough or audience mismatch"
+    },
+    {
+      "all_match_conditions": [],
+      "any_match_conditions": [
+        {
+          "field": "telemetry.contains_secret",
+          "operator": "bool_true"
+        },
+        {
+          "field": "telemetry.cross_tenant_context",
+          "operator": "bool_true"
+        },
+        {
+          "field": "telemetry.redaction_state",
+          "operator": "in",
+          "value": [
+            "raw_secret",
+            "unredacted_pii",
+            "cross_tenant"
+          ]
+        }
+      ],
+      "decision": "soc_critical_kill_session",
+      "event_classes": [
+        "agent.session",
+        "gen_ai.model_call",
+        "mcp.tools.call",
+        "secure_context.retrieval",
+        "policy.decision",
+        "egress.decision"
+      ],
+      "id": "secret-or-cross-tenant-telemetry",
+      "mapped_risks": [
+        "Sensitive information disclosure",
+        "Token mismanagement",
+        "Telemetry data sink"
+      ],
+      "required_attributes": [
+        "telemetry.redaction_state",
+        "tenant_id",
+        "workflow_id",
+        "run_id"
+      ],
+      "response_playbook": "Kill the session, purge unsafe telemetry, rotate exposed credentials, and preserve metadata-only incident evidence.",
+      "severity": "critical",
+      "severity_score": 100,
+      "siem_queries": {
+        "chronicle_yara_l": "rule secret_or_cross_tenant_telemetry {\n  events:\n    (($e.principal.labels.telemetry_contains_secret = \"true\" or $e.principal.labels.telemetry_cross_tenant_context = \"true\" or ($e.principal.labels.telemetry_redaction_state = \"raw_secret\" or $e.principal.labels.telemetry_redaction_state = \"unredacted_pii\" or $e.principal.labels.telemetry_redaction_state = \"cross_tenant\")))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where (tolower(tostring(Attributes[\"telemetry.contains_secret\"])) in (\"true\", \"1\", \"yes\") or tolower(tostring(Attributes[\"telemetry.cross_tenant_context\"])) in (\"true\", \"1\", \"yes\") or tostring(Attributes[\"telemetry.redaction_state\"]) in (\"raw_secret\", \"unredacted_pii\", \"cross_tenant\"))\n| extend DetectionRule=\"secret-or-cross-tenant-telemetry\", Severity=\"critical\"",
+        "splunk_spl": "index=agentic_ai (telemetry.contains_secret=true OR telemetry.cross_tenant_context=true OR (telemetry.redaction_state=\"raw_secret\" OR telemetry.redaction_state=\"unredacted_pii\" OR telemetry.redaction_state=\"cross_tenant\"))"
+      },
+      "siem_window": "1m",
+      "title": "Secret or cross-tenant data emitted into telemetry"
+    },
+    {
+      "all_match_conditions": [
+        {
+          "field": "action.impact_class",
+          "operator": "in",
+          "value": [
+            "high",
+            "critical",
+            "irreversible"
+          ]
+        }
+      ],
+      "any_match_conditions": [
+        {
+          "field": "approval.decision",
+          "operator": "in",
+          "value": [
+            "missing",
+            "expired",
+            "declined",
+            "bypassed"
+          ]
+        }
+      ],
+      "decision": "soc_high_escalate",
+      "event_classes": [
+        "agent.action",
+        "human.approval",
+        "mcp.tools.call",
+        "policy.decision"
+      ],
+      "id": "approval-bypass-high-impact-action",
+      "mapped_risks": [
+        "Excessive agency",
+        "Human approval bypass",
+        "Privilege escalation via scope creep"
+      ],
+      "required_attributes": [
+        "action.impact_class",
+        "approval.required",
+        "approval.decision",
+        "approval.expires_at",
+        "receipt_id",
+        "policy.decision"
+      ],
+      "response_playbook": "Hold or kill the action, require explicit reviewer approval, and attach the failed approval receipt to incident evidence.",
+      "severity": "high",
+      "severity_score": 80,
+      "siem_queries": {
+        "chronicle_yara_l": "rule approval_bypass_high_impact_action {\n  events:\n    (($e.principal.labels.action_impact_class = \"high\" or $e.principal.labels.action_impact_class = \"critical\" or $e.principal.labels.action_impact_class = \"irreversible\")) and (($e.principal.labels.approval_decision = \"missing\" or $e.principal.labels.approval_decision = \"expired\" or $e.principal.labels.approval_decision = \"declined\" or $e.principal.labels.approval_decision = \"bypassed\"))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where tostring(Attributes[\"action.impact_class\"]) in (\"high\", \"critical\", \"irreversible\")\n| where tostring(Attributes[\"approval.decision\"]) in (\"missing\", \"expired\", \"declined\", \"bypassed\")\n| extend DetectionRule=\"approval-bypass-high-impact-action\", Severity=\"high\"",
+        "splunk_spl": "index=agentic_ai (action.impact_class=\"high\" OR action.impact_class=\"critical\" OR action.impact_class=\"irreversible\") (approval.decision=\"missing\" OR approval.decision=\"expired\" OR approval.decision=\"declined\" OR approval.decision=\"bypassed\")"
+      },
+      "siem_window": "10m",
+      "title": "High-impact action without valid approval receipt"
+    },
+    {
+      "all_match_conditions": [
+        {
+          "field": "destination_class",
+          "operator": "in",
+          "value": [
+            "external",
+            "public_internet",
+            "unknown"
+          ]
+        }
+      ],
+      "any_match_conditions": [
+        {
+          "field": "egress.decision",
+          "operator": "in",
+          "value": [
+            "deny_context_egress",
+            "kill_session_on_egress",
+            "hold_for_egress_review"
+          ]
+        },
+        {
+          "field": "browser.prompt_injection_signal",
+          "operator": "bool_true"
+        },
+        {
+          "field": "browser.sends_external_message",
+          "operator": "bool_true"
+        }
+      ],
+      "decision": "soc_high_escalate",
+      "event_classes": [
+        "browser.navigation",
+        "egress.decision",
+        "agent.action"
+      ],
+      "id": "browser-agent-url-exfiltration",
+      "mapped_risks": [
+        "URL-based exfiltration",
+        "Indirect prompt injection",
+        "External send without policy approval"
+      ],
+      "required_attributes": [
+        "target_origin",
+        "destination_class",
+        "egress.decision",
+        "browser.sends_external_message",
+        "browser.prompt_injection_signal"
+      ],
+      "response_playbook": "Stop browser automation, preserve the URL/form evidence, redact sensitive values, and replay the boundary case.",
+      "severity": "high",
+      "severity_score": 80,
+      "siem_queries": {
+        "chronicle_yara_l": "rule browser_agent_url_exfiltration {\n  events:\n    (($e.principal.labels.destination_class = \"external\" or $e.principal.labels.destination_class = \"public_internet\" or $e.principal.labels.destination_class = \"unknown\")) and ((($e.principal.labels.egress_decision = \"deny_context_egress\" or $e.principal.labels.egress_decision = \"kill_session_on_egress\" or $e.principal.labels.egress_decision = \"hold_for_egress_review\") or $e.principal.labels.browser_prompt_injection_signal = \"true\" or $e.principal.labels.browser_sends_external_message = \"true\"))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where tostring(Attributes[\"destination_class\"]) in (\"external\", \"public_internet\", \"unknown\")\n| where (tostring(Attributes[\"egress.decision\"]) in (\"deny_context_egress\", \"kill_session_on_egress\", \"hold_for_egress_review\") or tolower(tostring(Attributes[\"browser.prompt_injection_signal\"])) in (\"true\", \"1\", \"yes\") or tolower(tostring(Attributes[\"browser.sends_external_message\"])) in (\"true\", \"1\", \"yes\"))\n| extend DetectionRule=\"browser-agent-url-exfiltration\", Severity=\"high\"",
+        "splunk_spl": "index=agentic_ai (destination_class=\"external\" OR destination_class=\"public_internet\" OR destination_class=\"unknown\") ((egress.decision=\"deny_context_egress\" OR egress.decision=\"kill_session_on_egress\" OR egress.decision=\"hold_for_egress_review\") OR browser.prompt_injection_signal=true OR browser.sends_external_message=true)"
+      },
+      "siem_window": "5m",
+      "title": "Browser agent URL or form-based data exfiltration"
+    },
+    {
+      "all_match_conditions": [
+        {
+          "field": "tool_surface.drift_detected",
+          "operator": "bool_true"
+        }
+      ],
+      "any_match_conditions": [
+        {
+          "field": "tool_surface.drift_severity",
+          "operator": "in",
+          "value": [
+            "critical",
+            "high"
+          ]
+        },
+        {
+          "field": "policy.decision",
+          "operator": "in",
+          "value": [
+            "hold_for_tool_surface_review",
+            "deny_tool_surface_drift",
+            "kill_session_on_tool_surface_drift"
+          ]
+        }
+      ],
+      "decision": "soc_high_escalate",
+      "event_classes": [
+        "mcp.tools.list_changed",
+        "mcp.tools.call",
+        "policy.decision"
+      ],
+      "id": "mcp-tool-surface-drift-critical",
+      "mapped_risks": [
+        "Tool poisoning",
+        "Shadow MCP servers",
+        "Unapproved capability expansion"
+      ],
+      "required_attributes": [
+        "mcp.server.id",
+        "mcp.tool.name",
+        "mcp.tool.fingerprint",
+        "mcp.tool.previous_fingerprint",
+        "tool_surface.drift_severity",
+        "policy.decision"
+      ],
+      "response_playbook": "Freeze the connector promotion path, compare signed descriptors, and require human review before tool calls resume.",
+      "severity": "high",
+      "severity_score": 80,
+      "siem_queries": {
+        "chronicle_yara_l": "rule mcp_tool_surface_drift_critical {\n  events:\n    ($e.principal.labels.tool_surface_drift_detected = \"true\") and ((($e.principal.labels.tool_surface_drift_severity = \"critical\" or $e.principal.labels.tool_surface_drift_severity = \"high\") or ($e.principal.labels.policy_decision = \"hold_for_tool_surface_review\" or $e.principal.labels.policy_decision = \"deny_tool_surface_drift\" or $e.principal.labels.policy_decision = \"kill_session_on_tool_surface_drift\")))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where tolower(tostring(Attributes[\"tool_surface.drift_detected\"])) in (\"true\", \"1\", \"yes\")\n| where (tostring(Attributes[\"tool_surface.drift_severity\"]) in (\"critical\", \"high\") or tostring(Attributes[\"policy.decision\"]) in (\"hold_for_tool_surface_review\", \"deny_tool_surface_drift\", \"kill_session_on_tool_surface_drift\"))\n| extend DetectionRule=\"mcp-tool-surface-drift-critical\", Severity=\"high\"",
+        "splunk_spl": "index=agentic_ai tool_surface.drift_detected=true ((tool_surface.drift_severity=\"critical\" OR tool_surface.drift_severity=\"high\") OR (policy.decision=\"hold_for_tool_surface_review\" OR policy.decision=\"deny_tool_surface_drift\" OR policy.decision=\"kill_session_on_tool_surface_drift\"))"
+      },
+      "siem_window": "15m",
+      "title": "Critical MCP tool surface drift"
+    },
+    {
+      "all_match_conditions": [
+        {
+          "field": "replay.status",
+          "operator": "in",
+          "value": [
+            "failed",
+            "regressed"
+          ]
+        }
+      ],
+      "any_match_conditions": [
+        {
+          "field": "replay.observed_decision",
+          "operator": "not_equals_field",
+          "value": "replay.expected_decision"
+        },
+        {
+          "field": "policy.decision",
+          "operator": "in",
+          "value": [
+            "hold_for_replay_failure",
+            "deny_release_on_replay_regression"
+          ]
+        }
+      ],
+      "decision": "soc_high_escalate",
+      "event_classes": [
+        "red_team.replay",
+        "verifier.result",
+        "policy.decision"
+      ],
+      "id": "red-team-replay-regression",
+      "mapped_risks": [
+        "Control regression",
+        "Prompt-injection bypass",
+        "Agentic incident recurrence"
+      ],
+      "required_attributes": [
+        "replay.case_id",
+        "replay.expected_decision",
+        "replay.observed_decision",
+        "replay.status",
+        "policy.pack_hash"
+      ],
+      "response_playbook": "Block release or connector promotion, attach replay evidence, and route to the owning control pack maintainer.",
+      "severity": "high",
+      "severity_score": 80,
+      "siem_queries": {
+        "chronicle_yara_l": "rule red_team_replay_regression {\n  events:\n    (($e.principal.labels.replay_status = \"failed\" or $e.principal.labels.replay_status = \"regressed\")) and (($e.principal.labels.replay_observed_decision != $e.principal.labels.replay_expected_decision or ($e.principal.labels.policy_decision = \"hold_for_replay_failure\" or $e.principal.labels.policy_decision = \"deny_release_on_replay_regression\")))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where tostring(Attributes[\"replay.status\"]) in (\"failed\", \"regressed\")\n| where (tostring(Attributes[\"replay.observed_decision\"]) != tostring(Attributes[\"replay.expected_decision\"]) or tostring(Attributes[\"policy.decision\"]) in (\"hold_for_replay_failure\", \"deny_release_on_replay_regression\"))\n| extend DetectionRule=\"red-team-replay-regression\", Severity=\"high\"",
+        "splunk_spl": "index=agentic_ai (replay.status=\"failed\" OR replay.status=\"regressed\") (replay.observed_decision!=replay.expected_decision OR (policy.decision=\"hold_for_replay_failure\" OR policy.decision=\"deny_release_on_replay_regression\"))"
+      },
+      "siem_window": "1h",
+      "title": "Red-team replay regression after control change"
+    },
+    {
+      "all_match_conditions": [
+        {
+          "field": "mcp.server.registry_status",
+          "operator": "in",
+          "value": [
+            "unknown",
+            "unregistered",
+            "quarantined"
+          ]
+        }
+      ],
+      "any_match_conditions": [
+        {
+          "field": "mcp.server.trust_tier",
+          "operator": "in",
+          "value": [
+            "unknown",
+            "experimental",
+            "blocked"
+          ]
+        },
+        {
+          "field": "policy.decision",
+          "operator": "in",
+          "value": [
+            "deny_unregistered_connector",
+            "hold_for_connector_intake",
+            "kill_session_on_shadow_mcp"
+          ]
+        }
+      ],
+      "decision": "soc_high_escalate",
+      "event_classes": [
+        "mcp.initialize",
+        "mcp.tools.list_changed",
+        "mcp.tools.call"
+      ],
+      "id": "shadow-mcp-server-or-unknown-connector",
+      "mapped_risks": [
+        "Shadow MCP servers",
+        "Untrusted connector intake",
+        "Tool poisoning"
+      ],
+      "required_attributes": [
+        "mcp.server.id",
+        "mcp.server.trust_tier",
+        "mcp.server.registry_status",
+        "mcp.tool.name",
+        "workflow_id"
+      ],
+      "response_playbook": "Quarantine the server, run connector intake, compare advertised tools, and require registry promotion before reuse.",
+      "severity": "high",
+      "severity_score": 80,
+      "siem_queries": {
+        "chronicle_yara_l": "rule shadow_mcp_server_or_unknown_connector {\n  events:\n    (($e.principal.labels.mcp_server_registry_status = \"unknown\" or $e.principal.labels.mcp_server_registry_status = \"unregistered\" or $e.principal.labels.mcp_server_registry_status = \"quarantined\")) and ((($e.principal.labels.mcp_server_trust_tier = \"unknown\" or $e.principal.labels.mcp_server_trust_tier = \"experimental\" or $e.principal.labels.mcp_server_trust_tier = \"blocked\") or ($e.principal.labels.policy_decision = \"deny_unregistered_connector\" or $e.principal.labels.policy_decision = \"hold_for_connector_intake\" or $e.principal.labels.policy_decision = \"kill_session_on_shadow_mcp\")))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where tostring(Attributes[\"mcp.server.registry_status\"]) in (\"unknown\", \"unregistered\", \"quarantined\")\n| where (tostring(Attributes[\"mcp.server.trust_tier\"]) in (\"unknown\", \"experimental\", \"blocked\") or tostring(Attributes[\"policy.decision\"]) in (\"deny_unregistered_connector\", \"hold_for_connector_intake\", \"kill_session_on_shadow_mcp\"))\n| extend DetectionRule=\"shadow-mcp-server-or-unknown-connector\", Severity=\"high\"",
+        "splunk_spl": "index=agentic_ai (mcp.server.registry_status=\"unknown\" OR mcp.server.registry_status=\"unregistered\" OR mcp.server.registry_status=\"quarantined\") ((mcp.server.trust_tier=\"unknown\" OR mcp.server.trust_tier=\"experimental\" OR mcp.server.trust_tier=\"blocked\") OR (policy.decision=\"deny_unregistered_connector\" OR policy.decision=\"hold_for_connector_intake\" OR policy.decision=\"kill_session_on_shadow_mcp\"))"
+      },
+      "siem_window": "15m",
+      "title": "Shadow MCP server or unknown connector used by agent"
+    },
+    {
+      "all_match_conditions": [],
+      "any_match_conditions": [
+        {
+          "field": "source.freshness_decision",
+          "operator": "in",
+          "value": [
+            "stale",
+            "hold_for_source_refresh",
+            "standards_changed"
+          ]
+        },
+        {
+          "field": "standards.changed",
+          "operator": "bool_true"
+        }
+      ],
+      "decision": "soc_medium_investigate",
+      "event_classes": [
+        "source.freshness",
+        "standards.drift",
+        "policy.decision"
+      ],
+      "id": "source-freshness-or-standard-drift",
+      "mapped_risks": [
+        "Outdated AI security controls",
+        "Stale MCP guidance",
+        "Assurance drift"
+      ],
+      "required_attributes": [
+        "source.id",
+        "source.last_checked_at",
+        "source.freshness_decision",
+        "standards.changed",
+        "policy.pack_hash"
+      ],
+      "response_playbook": "Refresh source packs, rerun generators, and flag control mappings whose source anchor has changed.",
+      "severity": "medium",
+      "severity_score": 50,
+      "siem_queries": {
+        "chronicle_yara_l": "rule source_freshness_or_standard_drift {\n  events:\n    ((($e.principal.labels.source_freshness_decision = \"stale\" or $e.principal.labels.source_freshness_decision = \"hold_for_source_refresh\" or $e.principal.labels.source_freshness_decision = \"standards_changed\") or $e.principal.labels.standards_changed = \"true\"))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where (tostring(Attributes[\"source.freshness_decision\"]) in (\"stale\", \"hold_for_source_refresh\", \"standards_changed\") or tolower(tostring(Attributes[\"standards.changed\"])) in (\"true\", \"1\", \"yes\"))\n| extend DetectionRule=\"source-freshness-or-standard-drift\", Severity=\"medium\"",
+        "splunk_spl": "index=agentic_ai ((source.freshness_decision=\"stale\" OR source.freshness_decision=\"hold_for_source_refresh\" OR source.freshness_decision=\"standards_changed\") OR standards.changed=true)"
+      },
+      "siem_window": "24h",
+      "title": "Source freshness or agentic standard drift"
+    },
+    {
+      "all_match_conditions": [],
+      "any_match_conditions": [
+        {
+          "field": "loop.iteration_count",
+          "operator": "greater_equal",
+          "value": 8
+        },
+        {
+          "field": "budget.tokens_pct",
+          "operator": "greater_equal",
+          "value": 90
+        },
+        {
+          "field": "budget.cost_pct",
+          "operator": "greater_equal",
+          "value": 90
+        }
+      ],
+      "decision": "soc_medium_investigate",
+      "event_classes": [
+        "agent.session",
+        "gen_ai.model_call",
+        "agent.action"
+      ],
+      "id": "unbounded-agent-loop-or-cost-runaway",
+      "mapped_risks": [
+        "Unbounded consumption",
+        "Runaway autonomous loop",
+        "Denial of wallet"
+      ],
+      "required_attributes": [
+        "loop.iteration_count",
+        "budget.tokens_used",
+        "budget.tokens_limit",
+        "budget.cost_usd",
+        "budget.cost_limit_usd"
+      ],
+      "response_playbook": "Pause the run, summarize loop state, require reviewer continuation, and tune workflow budget or termination criteria.",
+      "severity": "medium",
+      "severity_score": 50,
+      "siem_queries": {
+        "chronicle_yara_l": "rule unbounded_agent_loop_or_cost_runaway {\n  events:\n    (($e.principal.labels.loop_iteration_count >= 8 or $e.principal.labels.budget_tokens_pct >= 90 or $e.principal.labels.budget_cost_pct >= 90))\n  condition:\n    $e\n}",
+        "microsoft_sentinel_kql": "AgenticAIEvents\n| where (todouble(tostring(Attributes[\"loop.iteration_count\"])) >= 8 or todouble(tostring(Attributes[\"budget.tokens_pct\"])) >= 90 or todouble(tostring(Attributes[\"budget.cost_pct\"])) >= 90)\n| extend DetectionRule=\"unbounded-agent-loop-or-cost-runaway\", Severity=\"medium\"",
+        "splunk_spl": "index=agentic_ai (loop.iteration_count>=8 OR budget.tokens_pct>=90 OR budget.cost_pct>=90)"
+      },
+      "siem_window": "30m",
+      "title": "Unbounded agent loop or cost runaway"
+    }
+  ],
+  "detection_summary": {
+    "decision_counts": {
+      "soc_critical_kill_session": 3,
+      "soc_high_escalate": 5,
+      "soc_medium_investigate": 2
+    },
+    "failure_count": 0,
+    "max_rules_per_workflow": 9,
+    "rule_count": 10,
+    "severity_counts": {
+      "critical": 3,
+      "high": 5,
+      "medium": 2
+    },
+    "siem_target_count": 3,
+    "workflow_count": 8
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can convert secure-context controls into deployable detections for agentic AI and MCP incidents while preserving least-data telemetry defaults.",
+    "default_questions_answered": [
+      "Which agentic and MCP events should the SOC alert on first?",
+      "Which telemetry fields are required before an alert is actionable?",
+      "Which detections force kill-session, escalation, investigation, or no-alert decisions?",
+      "How do alerts tie back to run receipts, policy decisions, context packages, incidents, and replay evidence?",
+      "Which SIEM query shape should Splunk, Sentinel, and Chronicle users start with?"
+    ],
+    "recommended_first_use": "Attach the pack to agentic AI SIEM onboarding, MCP gateway logging requirements, SOC playbooks, design-partner pilots, and acquisition diligence.",
+    "sales_motion": "Lead with open detection rules, then sell hosted event normalization, SIEM/SOAR export, receipt correlation, tenant-specific suppression, and managed replay validation."
+  },
+  "evaluator_contract": {
+    "decision_order": [
+      "soc_critical_kill_session",
+      "soc_high_escalate",
+      "soc_medium_investigate",
+      "soc_hold_for_trace_completion",
+      "soc_no_alert"
+    ],
+    "default_decision": "soc_no_alert",
+    "missing_trace_decision": "soc_hold_for_trace_completion",
+    "prohibited_field_response": "soc_critical_kill_session"
+  },
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "intent": "Define a vendor-neutral SOC detection profile for agentic AI and MCP systems so SecurityRecipes can turn secure-context telemetry, policy decisions, incident classes, red-team replay, and threat-radar signals into SIEM-ready detections without requiring raw prompt or tool payload collection.",
+  "positioning": {
+    "buyer": "Detection Engineering, AI Platform, Security Operations, Security Engineering, GRC, and acquisition diligence teams",
+    "category": "Agentic AI SOC detection and secure-context signal pack",
+    "enterprise_promise": "SecurityRecipes makes agentic AI observable in the systems enterprises already run: each detection maps to trace fields, MCP policy evidence, run receipts, incident response, and SOC-ready queries.",
+    "why_now": "Agentic AI has moved from chat to tool-using systems with identities, MCP servers, browser sessions, external egress, and non-human approvals. Security teams need detections they can deploy before autonomous agents become an unmanaged production blind spot."
+  },
+  "residual_risks": [
+    {
+      "risk": "The open pack provides portable detection logic, not a guarantee that a customer's collector emits every required attribute.",
+      "treatment": "Use the Agentic Telemetry Contract and this SOC pack together during SIEM onboarding."
+    },
+    {
+      "risk": "Query templates require field mapping before they are production-ready in any specific SIEM.",
+      "treatment": "Bind SecurityRecipes field names to tenant collector schemas and keep raw prompt/tool payload capture disabled by default."
+    },
+    {
+      "risk": "Agentic attack chains evolve quickly as MCP servers, browser agents, and model capabilities change.",
+      "treatment": "Regenerate the pack after source-freshness or threat-radar changes and replay red-team fixtures before rollout."
+    }
+  ],
+  "schema_version": "1.0",
+  "selected_feature": {
+    "id": "agentic-soc-detection-pack",
+    "implementation": [
+      "SOC detection profile under data/assurance.",
+      "Deterministic generator under scripts.",
+      "Runtime evaluator for SOC alert/no-alert decisions.",
+      "Generated SIEM-ready evidence pack under data/evidence.",
+      "Human-readable docs page and MCP tool exposure."
+    ],
+    "reason": "Enterprise buyers need agentic AI controls that land inside SOC operations, not only docs or standalone JSON evidence."
+  },
+  "siem_targets": [
+    {
+      "default_index_hint": "index=agentic_ai",
+      "id": "splunk",
+      "name": "Splunk SPL",
+      "query_style": "fielded_search"
+    },
+    {
+      "default_table_hint": "AgenticAIEvents",
+      "id": "microsoft_sentinel",
+      "name": "Microsoft Sentinel KQL",
+      "query_style": "kql_where"
+    },
+    {
+      "default_table_hint": "events",
+      "id": "chronicle",
+      "name": "Google Security Operations YARA-L style",
+      "query_style": "udm_predicate"
+    }
+  ],
+  "source_artifacts": {
+    "agentic_incident_response_pack": {
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527"
+    },
+    "agentic_red_team_replay_harness": {
+      "path": "data/evidence/agentic-red-team-replay-harness.json",
+      "sha256": "c7c07ad2b13a354e78f4b62bde72281045680538c96beff44ab017e9f53b1ecb"
+    },
+    "agentic_soc_detection_profile": {
+      "path": "data/assurance/agentic-soc-detection-profile.json",
+      "sha256": "414a55671f74531f2f18a5d0439c7b4f1e070cb1a67a0cbfb9735f33886a3e12"
+    },
+    "agentic_telemetry_contract": {
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+    },
+    "agentic_threat_radar": {
+      "path": "data/evidence/agentic-threat-radar.json",
+      "sha256": "c36eb376ab0f1576116c8ade981106d4446aab6f9feebbea39a9b7cca6271eda"
+    },
+    "workflow_manifest": {
+      "path": "data/control-plane/workflow-manifests.json",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb"
+    }
+  },
+  "standards_alignment": [
+    {
+      "coverage": "Uses provider-neutral GenAI, model, tool, and retrieval attributes as the event fabric for SOC-ready agent detections.",
+      "id": "opentelemetry-genai-semconv",
+      "name": "OpenTelemetry Semantic Conventions for Generative AI Systems",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/"
+    },
+    {
+      "coverage": "Anchors MCP JSON-RPC request ids, method names, tool calls, protocol version, session ids, and transport evidence used by detection rules.",
+      "id": "opentelemetry-mcp-semconv",
+      "name": "OpenTelemetry Semantic Conventions for Model Context Protocol",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/"
+    },
+    {
+      "coverage": "Maps confused deputy, token passthrough, SSRF, session hijacking, local server compromise, and scope minimization guidance into deployable SOC detections.",
+      "id": "mcp-security-best-practices-2025-06-18",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices"
+    },
+    {
+      "coverage": "Covers server-initiated user input requests, sensitive information restrictions, user approval, rate limiting, and clear requesting-server display.",
+      "id": "mcp-elicitation-2025-06-18",
+      "name": "Model Context Protocol Elicitation",
+      "url": "https://modelcontextprotocol.io/specification/2025-06-18/client/elicitation"
+    },
+    {
+      "coverage": "Prioritizes token exposure, scope creep, tool poisoning, command execution, insufficient authorization, lack of telemetry, shadow MCP servers, and context over-sharing.",
+      "id": "owasp-mcp-top-10",
+      "name": "OWASP MCP Top 10",
+      "url": "https://owasp.org/www-project-mcp-top-10/"
+    },
+    {
+      "coverage": "Covers prompt injection, sensitive information disclosure, supply chain, improper output handling, excessive agency, vector weaknesses, and unbounded consumption.",
+      "id": "owasp-llm-top-10-2025",
+      "name": "OWASP Top 10 for LLM Applications 2025",
+      "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications"
+    },
+    {
+      "coverage": "Maps SOC detections to Govern, Map, Measure, and Manage expectations for GAI monitoring, risk response, lifecycle evidence, and incident handling.",
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence"
+    },
+    {
+      "coverage": "Reinforces agent identity, least privilege, prompt/data separation, memory isolation, tool allowlists, organization controls, and recovery planning for MCP-backed agents.",
+      "id": "google-cloud-mcp-ai-security",
+      "name": "Google Cloud MCP AI Security and Safety",
+      "url": "https://docs.cloud.google.com/mcp/ai-security-safety"
+    },
+    {
+      "coverage": "Supports preserving visibility and control in AI deployment while democratizing defensive tools for trusted cyber operators.",
+      "id": "openai-cybersecurity-intelligence-age-2026",
+      "name": "OpenAI Cybersecurity in the Intelligence Age",
+      "url": "https://openai.com/index/cybersecurity-in-the-intelligence-age/"
+    },
+    {
+      "coverage": "Frames high-risk agentic attack chains, autonomous tool use, and threat-informed defensive chokepoints that SOC detections should observe.",
+      "id": "mitre-atlas-openclaw-2026",
+      "name": "MITRE ATLAS OpenClaw Investigation",
+      "url": "https://www.mitre.org/news-insights/publication/mitre-atlas-openclaw-investigation"
+    }
+  ],
+  "workflow_detection_overlays": [
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "devin"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "incidents.security",
+        "inventory.artifacts",
+        "registries.quarantine"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/artifact-cache-purge/",
+      "receipt_id": "sr-run-receipt::artifact-cache-quarantine",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "ci.runs",
+        "images.golden",
+        "repo.contents"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/base-images/",
+      "receipt_id": "sr-run-receipt::base-image-remediation",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "ci.runs",
+        "recipes.defaults",
+        "repo.contents"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/classic-vulnerable-defaults/",
+      "receipt_id": "sr-run-receipt::classic-vulnerable-defaults",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "context-poisoning-retrieval",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "payments.findings",
+        "payments.simulation",
+        "repo.contents"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/crypto-payments/",
+      "receipt_id": "sr-run-receipt::crypto-payment-security",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "context-poisoning-retrieval",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "chain.simulation",
+        "protocol.findings",
+        "repo.contents"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/defi-blockchain/",
+      "receipt_id": "sr-run-receipt::defi-blockchain-security",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "context-poisoning-retrieval",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        "ci.runs",
+        "findings.sast",
+        "repo.contents"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/sast-findings/",
+      "receipt_id": "sr-run-receipt::sast-finding-remediation",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "context-poisoning-retrieval",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "findings.sde",
+        "repo.contents",
+        "tickets.security"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/sensitive-data/",
+      "receipt_id": "sr-run-receipt::sensitive-data-remediation",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "agent_classes": [
+        "codex",
+        "claude",
+        "cursor",
+        "github_copilot",
+        "devin"
+      ],
+      "detection_rule_ids": [
+        "approval-bypass-high-impact-action",
+        "mcp-token-passthrough-or-audience-mismatch",
+        "mcp-tool-surface-drift-critical",
+        "red-team-replay-regression",
+        "secret-or-cross-tenant-telemetry",
+        "shadow-mcp-server-or-unknown-connector",
+        "source-freshness-or-standard-drift",
+        "unbounded-agent-loop-or-cost-runaway"
+      ],
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        "advisories.vulnerability",
+        "repo.contents",
+        "sbom.inventory"
+      ],
+      "minimum_retention_days": 400,
+      "public_path": "/security-remediation/vulnerable-dependencies/",
+      "receipt_id": "sr-run-receipt::vulnerable-dependency-remediation",
+      "replay_fixture_count": 7,
+      "required_signal_classes": [
+        "agent_session",
+        "model_call",
+        "mcp_tool_call",
+        "context_retrieval",
+        "policy_decision",
+        "egress_decision",
+        "human_approval",
+        "verifier_result",
+        "incident_signal"
+      ],
+      "soc_default_decision": "soc_no_alert",
+      "status": "active",
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    }
+  ]
+}

@@ -150,6 +150,7 @@ If you are adding a new connector pack, report contract, or workflow bundle:
 - keep the runtime state honest: `live`, `live_or_copy`, `copy_only`, `config_only`, or `planned`
 - document the auth shape, browser/CORS assumptions, and human-review expectation on a docs page
 - include an example target system and example scope so reviewers can validate the payload shape
+- validate browser-authored submission packets against the published schema files under `static/marketplace-schemas/` or the generated `/marketplace-schemas/*.json` URLs before opening the PR
 
 The marketplace files are split on purpose:
 
@@ -161,6 +162,57 @@ The marketplace files are split on purpose:
 For public discoverability, update the
 [Marketplace and Workflow Gallery]({{< relref "/docs/marketplace-gallery" >}})
 when your PR changes how a pack should be explained to operators.
+
+The site build also emits public JSON feeds from the same source files, so downstream tooling can consume marketplace contracts without scraping the page UI. Keep the data files authoritative; do not hand-edit generated feed outputs elsewhere.
+
+If you are starting from the browser workbench instead of hand-authoring JSON:
+
+- use the **Workflow Pack Lab** in the Control Plane tab to clone a pack or capture the current agent planner configuration
+- save it locally until the pack shape feels stable
+- use **Validate draft** so the contribution packet matches the published workflow schema before you export it
+- copy the generated contribution packet, then paste the `template` object into `data/marketplace/workflow_templates.json`
+- include the operator story, auth assumptions, browser/CORS expectations, and review gate in your PR description or companion docs update
+
+If you are contributing a report contract from the browser workbench:
+
+- use the **Report Profile Lab** in the Control Plane tab to clone or author the report profile locally
+- capture the intended sections, output format, and example JSON payload before you export it
+- use **Validate draft** so the contribution packet matches the published report-profile schema before you export it
+- copy the generated contribution packet, then paste the `profile` object into `data/marketplace/report_profiles.json`
+- document which downstream systems or reviewers consume the report, and what evidence the contract is expected to carry
+
+If you are contributing an input or output integration pack from the
+browser workbench instead of hand-authoring JSON:
+
+- use the **Integration Pack Lab** in the Control Plane tab to clone or author the pack locally
+- save the draft in browser storage while you refine the runtime support, auth modes, and config JSON
+- use **Validate draft** so the contribution packet matches the published input/output schema before you export it
+- use **Copy submission** for the specific pack, then paste the `channel` object into `data/marketplace/input_channels.json` or `data/marketplace/output_channels.json`
+- use the local library copy/download actions if you need to move private input, output, report, or workflow contracts between browser profiles before opening the PR
+- if you import a portable local library, keep it on the schema-backed `/marketplace-schemas/local-library.schema.json` contract so the browser can validate it before merging it into local storage
+
+For browser-local asset and ownership libraries:
+
+- use the **Asset and Ownership Board** to capture repositories, services, hosts, APIs, or tenants with owner-team and criticality metadata
+- keep import/export payloads on the schema-backed `/marketplace-schemas/asset-library.schema.json` contract
+- include portfolio IDs / labels when multiple repositories, APIs, or stores should roll up into one service-level queue
+- use related asset IDs when reviewers should be able to reconstruct a lightweight service map from the exported library
+- include the matching aliases you expect reviewers to validate, especially when a record is supposed to enrich Exposure Board routing
+
+For browser-local routing policy libraries:
+
+- use the **Routing Policy Lab** to capture severity, criticality, source, workflow, owner, portfolio, environment, and downstream default logic locally first
+- keep single-policy exports on `/marketplace-schemas/routing-policy.schema.json`
+- keep full routing-library backups on `/marketplace-schemas/routing-library.schema.json`
+- document which downstream defaults reviewers should expect, especially when a policy is meant to prefill Jira project, Linear team, ServiceNow table, Elastic owner, or Splunk index settings
+- include the expected explainability outcome in the PR notes: which match signals should fire, which route/report/review defaults should appear, and whether the recommended route should already be browser-ready or remain a template/local-only path
+
+For private browser investigations, use the same discipline even though
+Caseboard exports are not public marketplace contributions:
+
+- keep single-case exports on `/marketplace-schemas/case-file.schema.json`
+- keep whole Caseboard backups on `/marketplace-schemas/case-library.schema.json`
+- validate before handing saved investigations to another reviewer, tool, or browser profile
 
 ## Contributing a new agent recipe
 

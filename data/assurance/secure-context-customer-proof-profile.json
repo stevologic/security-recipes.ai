@@ -1,0 +1,478 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define the SecurityRecipes customer proof pack so the secure context layer can move from credible reference evidence to acquisition-grade customer evidence. The pack binds design-partner telemetry, MCP authorization decisions, run receipts, redaction, ROI metrics, renewal gates, and buyer proof claims into one generated artifact without pretending customer runtime data already exists.",
+  "positioning": {
+    "buyer": "Frontier model labs, AI platform vendors, security platform vendors, regulated enterprises, VC diligence teams, and strategic acquirers",
+    "category": "Customer proof contract for secure context, MCP governance, and agentic AI assurance",
+    "enterprise_promise": "SecurityRecipes makes AI easier to approve by telling a buyer exactly which runtime events, metrics, receipts, and redacted evidence must be collected before a design-partner pilot can support renewal or acquisition claims.",
+    "why_now": "Agentic systems are moving from pilots to production MCP, tool use, A2A handoffs, non-human identities, browser agents, and private context. The market now needs customer-proof evidence, not only standards mapping or prompt libraries."
+  },
+  "source_references": [
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/",
+      "source_class": "industry_standard",
+      "why_it_matters": "OWASP frames agent behavior hijacking, tool misuse, and identity abuse as real-world agentic risks that customer proof must measure."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "publisher": "OWASP Foundation",
+      "published": "2025",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "source_class": "industry_standard",
+      "why_it_matters": "MCP-specific risks such as token exposure, scope creep, command execution, missing telemetry, shadow servers, and context over-sharing drive the proof events in this pack."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Protected MCP servers need resource indicators, token audience validation, PKCE, secure token handling, and scope minimization before customer proof can count a tool call as governed."
+    },
+    {
+      "id": "opentelemetry-mcp-semconv",
+      "name": "OpenTelemetry Semantic Conventions for MCP",
+      "publisher": "OpenTelemetry",
+      "published": "2026-05-04",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/",
+      "source_class": "telemetry_standard",
+      "why_it_matters": "MCP spans and metrics are the emerging evidence language for customer proof because they capture sessions, methods, transports, tool calls, errors, and durations."
+    },
+    {
+      "id": "nist-ai-rmf-gai-profile",
+      "name": "NIST AI RMF Generative AI Profile",
+      "publisher": "NIST",
+      "published": "2024-07-26",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "source_class": "government_framework",
+      "why_it_matters": "The GenAI profile supports governance, measurement, monitoring, provenance, incident response, and lifecycle risk management expectations that design partners will ask to see."
+    },
+    {
+      "id": "nist-ai-rmf-critical-infrastructure-concept",
+      "name": "NIST AI RMF Critical Infrastructure Profile concept note",
+      "publisher": "NIST",
+      "published": "2026-04-07",
+      "url": "https://www.nist.gov/itl/ai-risk-management-framework",
+      "source_class": "government_framework",
+      "why_it_matters": "NIST's 2026 critical-infrastructure AI work raises the bar for customer proof in high-assurance environments where agentic AI can touch essential operations."
+    },
+    {
+      "id": "cisa-ai-data-security-2025",
+      "name": "AI Data Security: Best Practices for Securing Data Used to Train and Operate AI Systems",
+      "publisher": "CISA, NSA, FBI, and international partners",
+      "published": "2025-05-22",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "source_class": "government_guidance",
+      "why_it_matters": "Customer proof must show data security, integrity, monitoring, threat detection, and lifecycle controls for the data that powers AI systems."
+    },
+    {
+      "id": "cisa-deploying-ai-securely-2024",
+      "name": "Joint Guidance on Deploying AI Systems Securely",
+      "publisher": "CISA, NSA, FBI, ASD, CCCS, NCSC-NZ, and NCSC-UK",
+      "published": "2024-04-15",
+      "url": "https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely",
+      "source_class": "government_guidance",
+      "why_it_matters": "Deployment guidance emphasizes confidentiality, integrity, availability, vulnerability mitigation, detection, and response for AI systems and related data."
+    }
+  ],
+  "proof_contract": {
+    "default_state": "not_acquisition_ready_until_customer_runtime_evidence_is_bound",
+    "minimum_source_packs": 8,
+    "minimum_proof_claims": 6,
+    "minimum_runtime_event_classes": 8,
+    "minimum_metric_definitions": 8,
+    "minimum_renewal_gates": 5,
+    "required_source_pack_keys": [
+      "enterprise_trust_center_export",
+      "secure_context_value_model",
+      "design_partner_pilot_pack",
+      "agentic_telemetry_contract",
+      "agentic_run_receipt_pack",
+      "mcp_authorization_conformance_pack",
+      "agentic_protocol_conformance_pack",
+      "agentic_app_intake_pack",
+      "agentic_source_freshness_watch",
+      "secure_context_eval_pack"
+    ],
+    "required_mcp_tools": [
+      "recipes_enterprise_trust_center_export",
+      "recipes_secure_context_value_model",
+      "recipes_design_partner_pilot_pack",
+      "recipes_agentic_telemetry_contract",
+      "recipes_agentic_run_receipt_pack",
+      "recipes_mcp_authorization_conformance_pack",
+      "recipes_agentic_protocol_conformance_pack",
+      "recipes_agentic_app_intake_pack",
+      "recipes_agentic_source_freshness_watch",
+      "recipes_secure_context_eval_pack",
+      "recipes_secure_context_customer_proof_pack"
+    ],
+    "proof_success_criteria": [
+      "Every counted customer run has a receipt, context hash, policy decision, authorization decision, verifier result, and reviewer outcome.",
+      "ROI metrics are calculated from customer runtime events instead of assumed productivity.",
+      "Redaction and data-boundary rules are explicit enough for regulated telemetry pipelines.",
+      "Safe holds, denials, and kill decisions are counted as product value when they prevent unsafe agent action.",
+      "Renewal evidence identifies budget owner, paid wedge, expansion trigger, and support burden.",
+      "Acquisition claims remain blocked until customer evidence is present, redacted, reproducible, and linked to generated reference packs."
+    ]
+  },
+  "evidence_sources": [
+    {
+      "key": "enterprise_trust_center_export",
+      "title": "Enterprise Trust Center Export",
+      "path": "data/evidence/enterprise-trust-center-export.json",
+      "proof_role": "Reference evidence index for trust-center sections, diligence questions, runtime evidence contract, and pack hashes."
+    },
+    {
+      "key": "secure_context_value_model",
+      "title": "Secure Context Value Model",
+      "path": "data/evidence/secure-context-value-model.json",
+      "proof_role": "Assumption-based ROI model that customer telemetry must replace before renewal or acquisition claims."
+    },
+    {
+      "key": "design_partner_pilot_pack",
+      "title": "Design Partner Pilot Pack",
+      "path": "data/evidence/design-partner-pilot-pack.json",
+      "proof_role": "Pilot phases, required telemetry, success metrics, monetization wedges, and risk gates."
+    },
+    {
+      "key": "agentic_telemetry_contract",
+      "title": "Agentic Telemetry Contract",
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "proof_role": "OpenTelemetry-aligned signal and redaction contract for runtime proof."
+    },
+    {
+      "key": "agentic_run_receipt_pack",
+      "title": "Agentic Run Receipt Pack",
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "proof_role": "Receipt structure for reconstructing identity, context, MCP decisions, approvals, verifiers, evidence, and closure."
+    },
+    {
+      "key": "mcp_authorization_conformance_pack",
+      "title": "MCP Authorization Conformance Pack",
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "proof_role": "Runtime evidence for resource indicators, token audience, token passthrough, session binding, and scope drift."
+    },
+    {
+      "key": "agentic_protocol_conformance_pack",
+      "title": "Agentic Protocol Conformance Pack",
+      "path": "data/evidence/agentic-protocol-conformance-pack.json",
+      "proof_role": "MCP and A2A protocol controls, source references, and conformance checks."
+    },
+    {
+      "key": "agentic_app_intake_pack",
+      "title": "Agentic App Intake Pack",
+      "path": "data/evidence/agentic-app-intake-pack.json",
+      "proof_role": "Launch review decisions for autonomy, data, tools, memory, guardrails, telemetry, and approval evidence."
+    },
+    {
+      "key": "agentic_source_freshness_watch",
+      "title": "Agentic Source Freshness Watch",
+      "path": "data/evidence/agentic-source-freshness-watch.json",
+      "proof_role": "Current-source and standards-drift evidence for buyer-facing claims."
+    },
+    {
+      "key": "secure_context_eval_pack",
+      "title": "Secure Context Eval Pack",
+      "path": "data/evidence/secure-context-eval-pack.json",
+      "proof_role": "Eval scenarios for retrieval correctness, attestation, poisoning resilience, egress, answers, and handoff boundaries."
+    }
+  ],
+  "proof_claims": [
+    {
+      "id": "governed-context-retrieval",
+      "title": "Governed context retrieval is working in customer runs",
+      "buyer_question": "Can the buyer prove what context an agent saw, why it was allowed, and whether the source was current?",
+      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_run_receipt_pack", "secure_context_eval_pack"],
+      "required_runtime_fields": ["tenant_id", "run_id", "context_package_hash", "context_source_ids", "retrieval_decision", "source_freshness_state", "citation_status"],
+      "minimum_signal_count": 10,
+      "blocked_until": "At least ten customer runs return registered context with hashes, freshness state, citations, and receipt linkage."
+    },
+    {
+      "id": "mcp-calls-are-authorized-before-execution",
+      "title": "MCP calls are authorized before execution",
+      "buyer_question": "Can protected MCP calls enforce resource, audience, scope, session, and token-handling controls?",
+      "evidence_pack_keys": ["mcp_authorization_conformance_pack", "agentic_protocol_conformance_pack", "agentic_run_receipt_pack"],
+      "required_runtime_fields": ["tenant_id", "run_id", "mcp_namespace", "mcp_tool_name", "resource_indicator", "token_audience", "authorization_decision", "scope_state"],
+      "minimum_signal_count": 25,
+      "blocked_until": "Customer MCP calls produce pre-execution authorization decisions and no token passthrough or unbound audience is counted as success."
+    },
+    {
+      "id": "unsafe-agent-actions-hold-or-stop",
+      "title": "Unsafe agent actions hold or stop cleanly",
+      "buyer_question": "Does the system create measurable value by stopping risky agent behavior instead of only celebrating successful automation?",
+      "evidence_pack_keys": ["design_partner_pilot_pack", "agentic_app_intake_pack", "agentic_run_receipt_pack"],
+      "required_runtime_fields": ["tenant_id", "run_id", "action_class", "policy_decision", "approval_receipt_id", "verifier_status", "kill_signal", "reviewer_outcome"],
+      "minimum_signal_count": 5,
+      "blocked_until": "Pilot data includes safe holds, denials, or kill decisions tied to receipts and reviewer outcomes."
+    },
+    {
+      "id": "telemetry-is-useful-without-leaking-sensitive-data",
+      "title": "Telemetry is useful without leaking sensitive data",
+      "buyer_question": "Can security teams reconstruct agent runs without turning observability into a secret, prompt, or private-code leakage sink?",
+      "evidence_pack_keys": ["agentic_telemetry_contract", "agentic_run_receipt_pack", "enterprise_trust_center_export"],
+      "required_runtime_fields": ["tenant_id", "trace_id", "span_id", "event_class", "telemetry_redaction_state", "argument_capture", "result_capture", "contains_secret"],
+      "minimum_signal_count": 25,
+      "blocked_until": "Customer telemetry shows metadata-first events, redaction state, receipt linkage, and zero counted secret captures."
+    },
+    {
+      "id": "roi-is-replaced-by-customer-telemetry",
+      "title": "ROI assumptions are replaced by customer telemetry",
+      "buyer_question": "What proves value beyond assumed productivity or demo metrics?",
+      "evidence_pack_keys": ["secure_context_value_model", "design_partner_pilot_pack", "agentic_telemetry_contract"],
+      "required_runtime_fields": ["tenant_id", "run_id", "eligible_finding_count", "review_minutes", "avoided_engineer_hours", "verifier_status", "customer_outcome", "renewal_signal"],
+      "minimum_signal_count": 20,
+      "blocked_until": "Customer run data replaces default value-model assumptions for at least one renewal scenario."
+    },
+    {
+      "id": "source-and-standards-freshness-is-maintained",
+      "title": "Source and standards freshness is maintained",
+      "buyer_question": "Can the buyer see whether SecurityRecipes guidance stays current as MCP, OWASP, NIST, and AI data-security guidance changes?",
+      "evidence_pack_keys": ["agentic_source_freshness_watch", "enterprise_trust_center_export", "agentic_protocol_conformance_pack"],
+      "required_runtime_fields": ["source_watch_id", "last_reviewed", "source_hash", "dependent_pack_id", "regeneration_status", "review_due_state"],
+      "minimum_signal_count": 1,
+      "blocked_until": "Freshness watch shows no due critical sources and every customer-facing pack has a regeneration path."
+    },
+    {
+      "id": "renewal-and-paid-wedge-are-explicit",
+      "title": "Renewal and paid wedge are explicit",
+      "buyer_question": "Which paid product surface did the customer validate, and who owns the budget?",
+      "evidence_pack_keys": ["secure_context_value_model", "design_partner_pilot_pack", "enterprise_trust_center_export"],
+      "required_runtime_fields": ["tenant_id", "paid_wedge_id", "budget_owner", "renewal_signal", "expansion_trigger", "support_burden", "blocked_gap"],
+      "minimum_signal_count": 1,
+      "blocked_until": "The design partner names a paid wedge, budget owner, expansion trigger, and support burden before any acquisition-ready claim is made."
+    }
+  ],
+  "runtime_event_classes": [
+    {
+      "id": "agent.run.started",
+      "title": "Agent run started",
+      "required_fields": ["tenant_id", "run_id", "workflow_id", "agent_id", "identity_id", "model_provider", "correlation_id"],
+      "redaction_default": "metadata_only"
+    },
+    {
+      "id": "context.package.returned",
+      "title": "Context package returned",
+      "required_fields": ["tenant_id", "run_id", "context_package_hash", "context_source_ids", "retrieval_decision", "source_freshness_state"],
+      "redaction_default": "hashes_and_metadata_only"
+    },
+    {
+      "id": "mcp.authorization.decided",
+      "title": "MCP authorization decided",
+      "required_fields": ["tenant_id", "run_id", "mcp_namespace", "mcp_tool_name", "resource_indicator", "token_audience", "authorization_decision"],
+      "redaction_default": "no_token_capture"
+    },
+    {
+      "id": "mcp.tool_surface.checked",
+      "title": "MCP tool surface checked",
+      "required_fields": ["tenant_id", "connector_id", "mcp_namespace", "tool_surface_hash", "drift_decision", "observed_at"],
+      "redaction_default": "schema_hashes_first"
+    },
+    {
+      "id": "approval.receipt.validated",
+      "title": "Approval receipt validated",
+      "required_fields": ["tenant_id", "run_id", "approval_receipt_id", "action_class", "approval_status", "approved_scope_hash"],
+      "redaction_default": "approval_metadata_only"
+    },
+    {
+      "id": "verifier.completed",
+      "title": "Verifier completed",
+      "required_fields": ["tenant_id", "run_id", "verifier_status", "test_status", "policy_status", "triage_status"],
+      "redaction_default": "summary_only"
+    },
+    {
+      "id": "reviewer.outcome.recorded",
+      "title": "Reviewer outcome recorded",
+      "required_fields": ["tenant_id", "run_id", "reviewer_outcome", "review_minutes", "accepted_output", "customer_outcome"],
+      "redaction_default": "summary_only"
+    },
+    {
+      "id": "agent.run.closed",
+      "title": "Agent run closed",
+      "required_fields": ["tenant_id", "run_id", "receipt_id", "customer_outcome", "safe_hold", "renewal_signal"],
+      "redaction_default": "metadata_only"
+    },
+    {
+      "id": "incident.signal.detected",
+      "title": "Incident signal detected",
+      "required_fields": ["tenant_id", "run_id", "incident_signal", "kill_signal", "containment_action", "replay_case_id"],
+      "redaction_default": "security_metadata_only"
+    }
+  ],
+  "metric_definitions": [
+    {
+      "id": "receipt-completeness-ratio",
+      "title": "Receipt completeness ratio",
+      "metric_type": "evidence_quality",
+      "telemetry_fields": ["receipt_id", "identity_id", "context_package_hash", "authorization_decision", "verifier_status", "reviewer_outcome"],
+      "proof_claim_ids": ["governed-context-retrieval", "mcp-calls-are-authorized-before-execution"],
+      "target": ">= 0.95",
+      "customer_proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "context-hash-coverage-ratio",
+      "title": "Context hash coverage ratio",
+      "metric_type": "context_integrity",
+      "telemetry_fields": ["context_package_hash", "context_source_ids", "source_freshness_state"],
+      "proof_claim_ids": ["governed-context-retrieval"],
+      "target": "1.00",
+      "customer_proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "mcp-pre-execution-decision-ratio",
+      "title": "MCP pre-execution decision ratio",
+      "metric_type": "runtime_control",
+      "telemetry_fields": ["mcp_namespace", "mcp_tool_name", "authorization_decision", "policy_decision"],
+      "proof_claim_ids": ["mcp-calls-are-authorized-before-execution"],
+      "target": ">= 0.95",
+      "customer_proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "safe-hold-and-deny-count",
+      "title": "Safe hold and deny count",
+      "metric_type": "risk_reduction",
+      "telemetry_fields": ["policy_decision", "kill_signal", "reviewer_outcome"],
+      "proof_claim_ids": ["unsafe-agent-actions-hold-or-stop"],
+      "target": "All ambiguous or unsafe states hold, deny, or kill instead of silently proceeding",
+      "customer_proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "sensitive-telemetry-escape-count",
+      "title": "Sensitive telemetry escape count",
+      "metric_type": "privacy_and_security",
+      "telemetry_fields": ["telemetry_redaction_state", "argument_capture", "result_capture", "contains_secret"],
+      "proof_claim_ids": ["telemetry-is-useful-without-leaking-sensitive-data"],
+      "target": "0",
+      "customer_proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "reviewer-minutes-delta",
+      "title": "Reviewer minutes delta",
+      "metric_type": "roi",
+      "telemetry_fields": ["review_minutes", "accepted_output", "eligible_finding_count"],
+      "proof_claim_ids": ["roi-is-replaced-by-customer-telemetry"],
+      "target": ">= 25% reduction by week eight",
+      "customer_proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "automation-success-ratio",
+      "title": "Automation success ratio",
+      "metric_type": "workflow_outcome",
+      "telemetry_fields": ["eligible_finding_count", "accepted_output", "structured_triage_note", "verifier_status"],
+      "proof_claim_ids": ["roi-is-replaced-by-customer-telemetry"],
+      "target": ">= 0.50 of eligible pilot findings produce approved output or structured triage",
+      "customer_proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "source-refresh-due-count",
+      "title": "Source refresh due count",
+      "metric_type": "freshness",
+      "telemetry_fields": ["source_watch_id", "review_due_state", "regeneration_status"],
+      "proof_claim_ids": ["source-and-standards-freshness-is-maintained"],
+      "target": "0 critical due sources before buyer export",
+      "customer_proof_state": "reference_and_customer_policy_mapping_required"
+    },
+    {
+      "id": "paid-wedge-confirmation",
+      "title": "Paid wedge confirmation",
+      "metric_type": "commercial",
+      "telemetry_fields": ["paid_wedge_id", "budget_owner", "renewal_signal", "expansion_trigger", "support_burden"],
+      "proof_claim_ids": ["renewal-and-paid-wedge-are-explicit"],
+      "target": "Named wedge, owner, expansion trigger, and renewal decision",
+      "customer_proof_state": "customer_commitment_required"
+    }
+  ],
+  "renewal_gates": [
+    {
+      "id": "evidence-complete",
+      "title": "Evidence complete",
+      "linked_metric_ids": ["receipt-completeness-ratio", "context-hash-coverage-ratio", "mcp-pre-execution-decision-ratio"],
+      "decision": "hold_renewal_claim_until_evidence_complete",
+      "what_passes": "Core run receipts, context hashes, and MCP decisions meet target coverage."
+    },
+    {
+      "id": "security-value-proven",
+      "title": "Security value proven",
+      "linked_metric_ids": ["safe-hold-and-deny-count", "sensitive-telemetry-escape-count"],
+      "decision": "hold_expansion_until_safety_value_is_visible",
+      "what_passes": "The pilot shows risky actions stop safely and sensitive telemetry escapes stay at zero."
+    },
+    {
+      "id": "roi-replaces-assumptions",
+      "title": "ROI replaces assumptions",
+      "linked_metric_ids": ["reviewer-minutes-delta", "automation-success-ratio"],
+      "decision": "hold_acquisition_claim_until_customer_metrics_replace_defaults",
+      "what_passes": "Customer telemetry can replace at least one value-model scenario."
+    },
+    {
+      "id": "freshness-ready",
+      "title": "Freshness ready",
+      "linked_metric_ids": ["source-refresh-due-count"],
+      "decision": "hold_buyer_export_until_sources_are_current",
+      "what_passes": "Critical source-backed packs are current or explicitly reviewed before buyer export."
+    },
+    {
+      "id": "paid-wedge-ready",
+      "title": "Paid wedge ready",
+      "linked_metric_ids": ["paid-wedge-confirmation"],
+      "decision": "hold_revenue_story_until_budget_owner_and_wedge_are_named",
+      "what_passes": "Design partner names the paid wedge, budget owner, expansion trigger, and support burden."
+    }
+  ],
+  "acquirer_readout": {
+    "headline": "SecurityRecipes has reference evidence; the customer proof pack defines exactly what must be measured before a $10-20M outcome is credible.",
+    "what_is_ready": "Open corpus, generated evidence packs, deterministic evaluators, read-only MCP access, source freshness, buyer brief, value model, and pilot motion.",
+    "what_is_not_ready": "Hosted tenant isolation, customer-private evidence ingestion, live connector monitoring, signed receipts, paid renewal signal, metering, and customer references.",
+    "next_90_days": [
+      "Run one design partner around read-only secure context and MCP authorization proof.",
+      "Bind customer-private context with hashes, owners, freshness, poisoning scan summary, and redacted telemetry.",
+      "Collect enough receipt, MCP decision, verifier, reviewer, and ROI events to replace one value-model scenario.",
+      "Use renewal gates to block overclaiming until the paid wedge and budget owner are explicit."
+    ]
+  },
+  "risk_register": [
+    {
+      "id": "synthetic-success-risk",
+      "risk": "Demo or synthetic run metrics are mistaken for customer proof.",
+      "decision": "hold_until_customer_runtime_events_exist",
+      "mitigation": "Label all value-model assumptions as assumptions and require tenant-bound runtime events before renewal or acquisition claims."
+    },
+    {
+      "id": "telemetry-leakage-risk",
+      "risk": "Proof telemetry captures secrets, private code, raw prompts, or customer logs.",
+      "decision": "kill_on_sensitive_telemetry_escape",
+      "mitigation": "Use metadata, hashes, decisions, redacted summaries, and receipt ids by default; never count runs with raw secret capture."
+    },
+    {
+      "id": "mcp-auth-proof-gap",
+      "risk": "MCP calls are counted as governed without pre-execution authorization decisions.",
+      "decision": "deny_counting_unproven_mcp_calls",
+      "mitigation": "Require resource indicator, token audience, scope state, session binding, and authorization decision fields for counted tool calls."
+    },
+    {
+      "id": "roi-overclaim-risk",
+      "risk": "The project claims productivity gains without reviewer, verifier, and customer outcome data.",
+      "decision": "hold_roi_claim_until_customer_metrics_replace_defaults",
+      "mitigation": "Require reviewer minutes, avoided engineer hours, verifier status, accepted output, and customer outcome fields."
+    },
+    {
+      "id": "freshness-drift-risk",
+      "risk": "Fast-moving MCP, OWASP, NIST, CISA, or telemetry guidance makes customer-facing proof stale.",
+      "decision": "hold_buyer_export_for_source_refresh",
+      "mitigation": "Bind customer proof exports to source freshness checks and regenerate evidence before trust-center delivery."
+    },
+    {
+      "id": "paid-wedge-ambiguity-risk",
+      "risk": "The pilot produces useful activity but no obvious paid product surface.",
+      "decision": "hold_commercial_expansion_until_paid_wedge_is_named",
+      "mitigation": "Require paid wedge id, budget owner, renewal signal, expansion trigger, and support burden before expansion."
+    }
+  ]
+}

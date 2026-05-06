@@ -1,0 +1,261 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Create a buyer-grade source freshness and standards-drift watch for SecurityRecipes so the secure context layer can prove that agentic AI, MCP, A2A, prompt-injection, and AI data-security guidance is monitored, reviewed, and regenerated as evidence instead of treated as static documentation.",
+  "positioning": {
+    "buyer": "AI platform, product security, AppSec, GRC, vendor-risk, procurement security, model-risk, and acquisition diligence teams",
+    "category": "Agentic AI source freshness and standards drift evidence",
+    "enterprise_promise": "SecurityRecipes can answer which primary sources are watched, which packs depend on them, when each pack was last reviewed, which references are recent or standing guidance, and which review lanes are due before enterprise use.",
+    "why_now": "Agentic AI security guidance is changing across protocol specifications, government programs, frontier-lab defenses, OWASP projects, and production adoption signals. A credible secure context layer needs a current-source watch that makes freshness inspectable through generated JSON and MCP."
+  },
+  "freshness_contract": {
+    "default_state": "not_enterprise_ready_until_primary_sources_and_dependent_packs_are_current",
+    "as_of": "2026-05-04",
+    "minimum_watch_sources": 8,
+    "minimum_unique_source_references": 20,
+    "minimum_primary_watchlist_items": 8,
+    "maximum_due_watch_sources": 0,
+    "required_publishers": [
+      "OWASP",
+      "NIST",
+      "Model Context Protocol",
+      "OpenAI",
+      "CISA",
+      "Cloud Security Alliance",
+      "A2A"
+    ],
+    "required_source_classes": [
+      "industry_standard",
+      "government_framework",
+      "protocol_specification",
+      "frontier_lab_guidance"
+    ],
+    "review_lanes": [
+      {
+        "id": "protocol-specifications",
+        "source_class_match": "protocol",
+        "review_cadence_days": 30,
+        "why": "MCP and A2A are fast-moving protocol surfaces that can change authorization, tool, transport, metadata, and delegation assumptions."
+      },
+      {
+        "id": "frontier-lab-defenses",
+        "source_class_match": "frontier_lab",
+        "review_cadence_days": 45,
+        "why": "Prompt-injection and agent-defense guidance from frontier labs evolves with product capabilities and observed attack patterns."
+      },
+      {
+        "id": "government-ai-security",
+        "source_class_match": "government",
+        "review_cadence_days": 60,
+        "why": "NIST, CAISI, CISA, NSA, FBI, and partner guidance shapes enterprise governance, procurement, and critical-infrastructure expectations."
+      },
+      {
+        "id": "industry-consensus",
+        "source_class_match": "industry",
+        "review_cadence_days": 60,
+        "why": "OWASP, CSA, and related consensus projects create the shared buyer language for AI and agentic security controls."
+      }
+    ],
+    "valid_watch_decisions": [
+      "current",
+      "review_due",
+      "stale_or_missing",
+      "blocked_by_missing_source"
+    ]
+  },
+  "watched_sources": [
+    {
+      "id": "agentic-threat-radar-sources",
+      "title": "Agentic Threat Radar Sources",
+      "path": "data/intelligence/agentic-threat-radar-sources.json",
+      "reference_paths": ["source_references"],
+      "review_cadence_days": 14,
+      "business_criticality": "critical",
+      "why": "This is the market and threat-intelligence spine for the product roadmap and buyer narrative."
+    },
+    {
+      "id": "agentic-standards-crosswalk-profile",
+      "title": "Agentic Standards Crosswalk Profile",
+      "path": "data/assurance/agentic-standards-crosswalk.json",
+      "reference_paths": ["source_references"],
+      "review_cadence_days": 30,
+      "business_criticality": "critical",
+      "why": "This is the standards-to-evidence artifact buyers use for procurement, platform architecture, and acquisition diligence."
+    },
+    {
+      "id": "agentic-protocol-conformance-profile",
+      "title": "Agentic Protocol Conformance Profile",
+      "path": "data/assurance/agentic-protocol-conformance-profile.json",
+      "reference_paths": ["source_references"],
+      "review_cadence_days": 14,
+      "business_criticality": "critical",
+      "why": "This pack tracks MCP, A2A, tool annotations, identity, handoff, and prompt-injection protocol boundaries."
+    },
+    {
+      "id": "mcp-risk-coverage-profile",
+      "title": "MCP and Agentic Skills Risk Coverage Profile",
+      "path": "data/assurance/mcp-risk-coverage-profile.json",
+      "reference_paths": ["source_references"],
+      "review_cadence_days": 30,
+      "business_criticality": "high",
+      "why": "This pack proves coverage against OWASP MCP and Agentic Skills risks."
+    },
+    {
+      "id": "mcp-authorization-conformance-profile",
+      "title": "MCP Authorization Conformance Profile",
+      "path": "data/assurance/mcp-authorization-conformance-profile.json",
+      "reference_paths": ["standards_alignment"],
+      "review_cadence_days": 21,
+      "business_criticality": "critical",
+      "why": "MCP authorization, resource indicators, token audience, PKCE, and token-passthrough expectations are core hosted-MCP trust controls."
+    },
+    {
+      "id": "secure-context-release-profile",
+      "title": "Secure Context Release Profile",
+      "path": "data/context/secure-context-release-profile.json",
+      "reference_paths": ["standards_alignment"],
+      "review_cadence_days": 30,
+      "business_criticality": "high",
+      "why": "Secure context releases are the bridge from open references to production MCP and trust-center release channels."
+    },
+    {
+      "id": "agentic-catastrophic-risk-annex",
+      "title": "Agentic Catastrophic Risk Annex",
+      "path": "data/assurance/agentic-catastrophic-risk-annex.json",
+      "reference_paths": ["standards_alignment"],
+      "review_cadence_days": 30,
+      "business_criticality": "high",
+      "why": "Severe-risk and high-impact autonomy guidance affects board-grade review and acquisition diligence."
+    },
+    {
+      "id": "agentic-incident-response-profile",
+      "title": "Agentic Incident Response Profile",
+      "path": "data/assurance/agentic-incident-response-profile.json",
+      "reference_paths": ["standards_alignment"],
+      "review_cadence_days": 30,
+      "business_criticality": "high",
+      "why": "Incident response guidance must track the latest MCP, context, identity, handoff, and evidence-integrity failure modes."
+    },
+    {
+      "id": "agent-trust-fabric-profile",
+      "title": "Agent Trust Fabric Profile",
+      "path": "data/assurance/agent-trust-fabric-profile.json",
+      "reference_paths": ["source_references"],
+      "review_cadence_days": 14,
+      "business_criticality": "critical",
+      "why": "The Agent Trust Fabric is the customer-facing zero-trust verdict layer, so its CSA, NIST, MCP, OpenAI, OWASP, and OpenTelemetry references must stay current."
+    }
+  ],
+  "primary_watchlist": [
+    {
+      "id": "owasp-agentic-top-10",
+      "title": "OWASP Top 10 for Agentic Applications",
+      "publisher_family": "OWASP",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/",
+      "review_cadence_days": 30,
+      "commercial_reason": "Consensus agentic risk language is a buyer shortcut for trust, procurement, and roadmap prioritization."
+    },
+    {
+      "id": "owasp-mcp-top-10",
+      "title": "OWASP MCP Top 10",
+      "publisher_family": "OWASP",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "review_cadence_days": 30,
+      "commercial_reason": "MCP-specific risks justify hosted connector intake, gateway policy, and tool-surface drift monitoring."
+    },
+    {
+      "id": "mcp-authorization",
+      "title": "Model Context Protocol Authorization",
+      "publisher_family": "Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "review_cadence_days": 14,
+      "commercial_reason": "Protected resource metadata, resource indicators, PKCE, token audience, and token-passthrough rules are premium gateway controls."
+    },
+    {
+      "id": "nist-ai-agent-standards",
+      "title": "NIST AI Agent Standards Initiative",
+      "publisher_family": "NIST",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "review_cadence_days": 30,
+      "commercial_reason": "NIST agent standards, identity, and security evaluation work shape the enterprise governance market."
+    },
+    {
+      "id": "nist-caisi-agent-security",
+      "title": "NIST CAISI AI Agent Security RFI",
+      "publisher_family": "NIST",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "review_cadence_days": 30,
+      "commercial_reason": "CAISI names indirect prompt injection, poisoning, misaligned actions, and deployment access constraints as distinct agent-system risks."
+    },
+    {
+      "id": "openai-agent-prompt-injection",
+      "title": "OpenAI agent prompt-injection guidance",
+      "publisher_family": "OpenAI",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/",
+      "review_cadence_days": 30,
+      "commercial_reason": "Frontier-lab source-to-sink and social-engineering framing validates egress checks, confirmations, and layered safeguards."
+    },
+    {
+      "id": "cisa-ai-data-security",
+      "title": "CISA AI Data Security",
+      "publisher_family": "CISA",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "review_cadence_days": 60,
+      "commercial_reason": "AI data provenance, integrity, monitoring, and lifecycle security make source freshness and context release evidence enterprise requirements."
+    },
+    {
+      "id": "a2a-enterprise-guidance",
+      "title": "A2A Enterprise Implementation Guidance",
+      "publisher_family": "A2A",
+      "url": "https://a2a-protocol.org/latest/topics/enterprise-ready/",
+      "review_cadence_days": 14,
+      "commercial_reason": "A2A remote-agent guidance expands the product from MCP context to multi-agent delegation trust."
+    },
+    {
+      "id": "csa-agentic-risk",
+      "title": "CSA agentic risk and control-plane guidance",
+      "publisher_family": "Cloud Security Alliance",
+      "url": "https://cloudsecurityalliance.org/articles/securing-the-agentic-ai-control-plane-announcing-the-mcp-security-resource-center",
+      "review_cadence_days": 45,
+      "commercial_reason": "CSA control-plane language supports board, cloud, and buyer diligence for agentic AI governance."
+    },
+    {
+      "id": "csa-agentic-trust-framework",
+      "title": "CSA Agentic Trust Framework",
+      "publisher_family": "Cloud Security Alliance",
+      "url": "https://cloudsecurityalliance.org/blog/2026/04/03/every-rsac-keynote-asked-the-same-five-questions-here-s-the-framework-that-answers-them",
+      "review_cadence_days": 30,
+      "commercial_reason": "CSA's zero-trust agent framing validates the trust-fabric product layer for identity, behavior, data, least privilege, and containment."
+    }
+  ],
+  "buyer_views": [
+    {
+      "id": "procurement-freshness-review",
+      "title": "Procurement Freshness Review",
+      "question": "Which primary sources does SecurityRecipes monitor, and are any source-backed packs due for review?",
+      "answer_contract": "Return watched packs, last-reviewed dates, source coverage, publisher coverage, review-due findings, and source artifact hashes."
+    },
+    {
+      "id": "ai-platform-standards-drift",
+      "title": "AI Platform Standards Drift Review",
+      "question": "What changes in MCP, A2A, OWASP, NIST, CISA, OpenAI, or CSA guidance could force a policy or evidence refresh?",
+      "answer_contract": "Return primary watchlist coverage, review lanes, dependent source packs, source classes, and recommended refresh actions."
+    },
+    {
+      "id": "acquisition-diligence",
+      "title": "Acquisition Diligence",
+      "question": "How does SecurityRecipes prove that its secure context layer is maintained as a living control plane?",
+      "answer_contract": "Return current-source proof, regeneration paths, artifact hashes, commercial freshness wedges, and gaps that would block enterprise review."
+    }
+  ],
+  "commercialization_path": {
+    "open_layer": "Publish the source freshness watch as open evidence so users can inspect which standards and primary sources influence the site.",
+    "enterprise_layer": "Sell hosted source-drift monitoring, customer-private standards mappings, protocol update alerts, freshness SLAs, trust-center exports, and MCP-readable review tickets.",
+    "acquirer_value": "A strategic buyer gets a maintained control-plane substrate that can attach to agent hosts, MCP gateways, protocol registries, and enterprise AI trust centers."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes maintains source freshness as generated evidence, so secure-context guidance can be reviewed, regenerated, and audited as standards and agent protocols move.",
+    "recommended_first_use": "Attach the source freshness watch to AI platform architecture reviews, MCP gateway intake, quarterly standards reviews, and acquisition diligence.",
+    "sales_motion": "Lead with public freshness evidence, then sell hosted monitoring and customer-specific drift tickets tied to private context, connector, and model-provider inventories."
+  }
+}

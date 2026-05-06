@@ -193,11 +193,13 @@ jobs:
       - name: Validate MCP connector trust pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_mcp_connector_trust_pack.py
           python3 scripts/generate_mcp_connector_trust_pack.py --check
 
       - name: Validate MCP connector intake pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_mcp_connector_intake_pack.py
           python3 scripts/generate_mcp_connector_intake_pack.py --check
 
       - name: Validate MCP STDIO launch boundary pack
@@ -237,6 +239,7 @@ jobs:
       - name: Validate MCP authorization conformance pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_mcp_authorization_conformance_pack.py
           python3 scripts/generate_mcp_authorization_conformance_pack.py --check
 
       - name: Validate MCP authorization runtime decisions
@@ -244,21 +247,50 @@ jobs:
         run: |
           python3 scripts/evaluate_mcp_authorization_decision.py \
             --workflow-id vulnerable-dependency-remediation \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --run-id ci-auth-allow \
             --connector-id repository-contents \
             --namespace repo.contents \
+            --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
+            --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
+            --client-metadata-document-validated \
+            --authorization-server-discovery-method www_authenticate \
+            --protected-resource-metadata-url https://mcp.security-recipes.ai/.well-known/oauth-protected-resource \
             --requested-access-mode write_branch \
             --resource-indicator https://mcp.security-recipes.ai/mcp \
             --token-audience https://mcp.security-recipes.ai/mcp \
+            --token-issuer https://auth.security-recipes.ai \
+            --token-expires-at 2099-01-01T00:15:00Z \
             --token-scope repo.contents:write_branch \
+            --scope-challenge repo.contents:write_branch \
+            --consent-record-id consent-ci-auth-allow \
+            --session-id session-ci-auth-allow \
+            --correlation-id corr-ci-auth-allow \
+            --gateway-policy-hash sha256:ci-policy \
             --expect-decision allow_authorized_mcp_request
 
           python3 scripts/evaluate_mcp_authorization_decision.py \
             --workflow-id vulnerable-dependency-remediation \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --run-id ci-auth-deny \
             --connector-id repository-contents \
             --namespace repo.contents \
+            --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
+            --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
+            --client-metadata-document-validated \
+            --authorization-server-discovery-method www_authenticate \
+            --protected-resource-metadata-url https://mcp.security-recipes.ai/.well-known/oauth-protected-resource \
             --requested-access-mode write_branch \
+            --resource-indicator https://mcp.security-recipes.ai/mcp \
             --token-audience https://wrong.example/mcp \
+            --token-issuer https://auth.security-recipes.ai \
+            --token-expires-at 2099-01-01T00:15:00Z \
             --token-scope repo.contents:write_branch \
+            --scope-challenge repo.contents:write_branch \
+            --consent-record-id consent-ci-auth-deny \
+            --session-id session-ci-auth-deny \
+            --correlation-id corr-ci-auth-deny \
+            --gateway-policy-hash sha256:ci-policy \
             --expect-decision deny_unbound_token
 
           python3 scripts/evaluate_mcp_authorization_decision.py \
@@ -271,9 +303,35 @@ jobs:
             --token-scope live_funds_movement \
             --expect-decision kill_session_on_secret_or_signer_scope
 
+          python3 scripts/evaluate_mcp_authorization_decision.py \
+            --workflow-id artifact-cache-quarantine \
+            --agent-id sr-agent::artifact-cache-quarantine::codex \
+            --run-id ci-auth-step-up \
+            --connector-id registry-quarantine \
+            --namespace registries.quarantine \
+            --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
+            --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
+            --client-metadata-document-validated \
+            --authorization-server-discovery-method www_authenticate \
+            --protected-resource-metadata-url https://mcp.security-recipes.ai/.well-known/oauth-protected-resource \
+            --requested-access-mode approval_required \
+            --resource-indicator https://mcp.security-recipes.ai/mcp \
+            --token-audience https://mcp.security-recipes.ai/mcp \
+            --token-issuer https://auth.security-recipes.ai \
+            --token-expires-at 2099-01-01T00:15:00Z \
+            --token-scope registries.quarantine:approval_required \
+            --scope-challenge registries.quarantine:approval_required \
+            --consent-record-id consent-ci-auth-step-up \
+            --session-id session-ci-auth-step-up \
+            --correlation-id corr-ci-auth-step-up \
+            --gateway-policy-hash sha256:ci-policy \
+            --step-up-required \
+            --expect-decision hold_for_step_up_authorization
+
       - name: Validate MCP tool-risk contract
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_mcp_tool_risk_contract.py
           python3 scripts/generate_mcp_tool_risk_contract.py --check
 
       - name: Validate MCP tool-risk decisions
@@ -317,6 +375,7 @@ jobs:
       - name: Validate MCP tool-surface drift pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_mcp_tool_surface_drift_pack.py
           python3 scripts/generate_mcp_tool_surface_drift_pack.py --check
 
       - name: Validate MCP tool-surface drift decisions
@@ -356,11 +415,13 @@ jobs:
       - name: Validate agent identity delegation ledger
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_agent_identity_ledger.py
           python3 scripts/generate_agent_identity_ledger.py --check
 
       - name: Validate agentic red-team drill pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_agentic_red_team_drill_pack.py
           python3 scripts/generate_agentic_red_team_drill_pack.py --check
 
       - name: Validate agentic readiness scorecard
@@ -371,6 +432,7 @@ jobs:
       - name: Validate agent capability risk register
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_agent_capability_risk_register.py
           python3 scripts/generate_agent_capability_risk_register.py --check
 
       - name: Validate agent memory boundary pack
@@ -412,6 +474,7 @@ jobs:
       - name: Validate Agentic System BOM
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
+          python3 scripts/generate_agentic_system_bom.py
           python3 scripts/generate_agentic_system_bom.py --check
 
       - name: Refresh context poisoning guard pack
@@ -559,6 +622,16 @@ jobs:
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
           python3 scripts/generate_agentic_standards_crosswalk.py --check
+
+      - name: Refresh agentic source freshness watch
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_source_freshness_watch.py
+
+      - name: Validate agentic source freshness watch
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_agentic_source_freshness_watch.py --check
 
       - name: Refresh agent skill supply-chain pack
         working-directory: ${{ steps.hugo-dir.outputs.path }}
@@ -1457,6 +1530,60 @@ jobs:
             --approval-bypass-signal \
             --expect-decision kill_session_on_approval_bypass_signal
 
+      - name: Refresh critical-infrastructure secure-context pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_critical_infrastructure_secure_context_pack.py
+
+      - name: Validate critical-infrastructure secure-context pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_critical_infrastructure_secure_context_pack.py --check
+
+      - name: Validate critical-infrastructure context decisions
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/evaluate_critical_infrastructure_context_decision.py \
+            --sector-id energy-ot-ics \
+            --workflow-id vulnerable-dependency-remediation \
+            --action-class read_only_context \
+            --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+            --run-id ci-readonly \
+            --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+            --tenant-id ci-tenant \
+            --context-package-hash sha256:context \
+            --authorization-decision allow_authorized_mcp_request \
+            --egress-decision allow_internal_context \
+            --expect-decision allow_ci_read_only_context
+
+          python3 scripts/evaluate_critical_infrastructure_context_decision.py \
+            --sector-id energy-ot-ics \
+            --workflow-id base-image-remediation \
+            --action-class critical_infrastructure_control \
+            --agent-id sr-agent::base-image-remediation::codex \
+            --run-id ci-hold \
+            --identity-id sr-agent::base-image-remediation::codex \
+            --tenant-id ci-tenant \
+            --context-package-hash sha256:context \
+            --authorization-decision allow_authorized_mcp_request \
+            --egress-decision allow_internal_context \
+            --flag affects_ot_or_ics=true \
+            --expect-decision hold_for_ci_safety_case
+
+          python3 scripts/evaluate_critical_infrastructure_context_decision.py \
+            --sector-id communications-cloud-and-dns \
+            --workflow-id mcp-connector-intake-scanner \
+            --action-class read_only_context \
+            --agent-id sr-agent::mcp-connector-intake-scanner::codex \
+            --run-id ci-kill \
+            --identity-id sr-agent::mcp-connector-intake-scanner::codex \
+            --tenant-id ci-tenant \
+            --context-package-hash sha256:context \
+            --authorization-decision allow_authorized_mcp_request \
+            --egress-decision allow_internal_context \
+            --flag token_passthrough=true \
+            --expect-decision kill_session_on_ci_hazard_signal
+
       - name: Refresh agentic control plane blueprint
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
@@ -1476,6 +1603,56 @@ jobs:
         working-directory: ${{ steps.hugo-dir.outputs.path }}
         run: |
           python3 scripts/generate_enterprise_trust_center_export.py --check
+
+      - name: Refresh secure context value model
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_value_model.py
+
+      - name: Validate secure context value model
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_value_model.py --check
+
+      - name: Refresh design partner pilot pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_design_partner_pilot_pack.py
+
+      - name: Validate design partner pilot pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_design_partner_pilot_pack.py --check
+
+      - name: Refresh secure context buyer diligence brief
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_buyer_diligence_brief.py
+
+      - name: Validate secure context buyer diligence brief
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_buyer_diligence_brief.py --check
+
+      - name: Refresh secure context customer proof pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_customer_proof_pack.py
+
+      - name: Validate secure context customer proof pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_secure_context_customer_proof_pack.py --check
+
+      - name: Refresh hosted MCP readiness pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_hosted_mcp_readiness_pack.py
+
+      - name: Validate hosted MCP readiness pack
+        working-directory: ${{ steps.hugo-dir.outputs.path }}
+        run: |
+          python3 scripts/generate_hosted_mcp_readiness_pack.py --check
 
       - name: Build site
         working-directory: ${{ steps.hugo-dir.outputs.path }}

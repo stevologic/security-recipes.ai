@@ -1,0 +1,858 @@
+{
+  "agent_trust_fabric_pack_id": "security-recipes.agent-trust-fabric.v1",
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, AI platform, or security vendor gets a standards-backed agent trust surface that can sit between agents, MCP tools, context stores, telemetry, and trust centers.",
+    "enterprise_layer": "Sell hosted trust-fabric APIs that combine customer-private identity, telemetry, authorization, egress, approval, and receipt data into signed MCP-readable trust verdicts.",
+    "open_layer": "Publish the Agent Trust Fabric pack as open evidence so teams can understand the trust decision model and fork it into their own control plane."
+  },
+  "enterprise_adoption_packet": {
+    "board_level_claim": "SecurityRecipes can reduce agent adoption friction by turning many scattered agent safety controls into one inspectable trust verdict per run.",
+    "default_questions_answered": [
+      "Which agent is asking for context or tool access?",
+      "Which workflow and trust tier does the run belong to?",
+      "Which evidence proves identity, context, scope, behavior, egress, and containment?",
+      "Should the runtime allow, hold, deny, or kill the run?",
+      "Which source packs and MCP tools explain the decision?"
+    ],
+    "recommended_first_use": "Use the open pack for AI platform architecture review, then attach the evaluator to MCP gateway decisions and customer pilot telemetry.",
+    "sales_motion": "Lead with the open trust-fabric pack, then sell hosted customer-specific trust scoring, policy adapters, signed verdicts, SOC export, and trust-center evidence APIs."
+  },
+  "executive_readout": {
+    "board_level_claim": "SecurityRecipes can reduce agent adoption friction by turning many scattered agent safety controls into one inspectable trust verdict per run.",
+    "recommended_first_use": "Use the open pack for AI platform architecture review, then attach the evaluator to MCP gateway decisions and customer pilot telemetry.",
+    "why_it_is_differentiated": "Most agent guidance stops at controls. The trust fabric composes generated evidence into an allow, hold, deny, or kill decision that agents and auditors can consume."
+  },
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "positioning": {
+    "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
+    "category": "Agentic AI zero-trust decision fabric",
+    "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. Current guidance converges on the same enterprise requirement: every agent must have verifiable identity, least-privilege scope, governed context input and output, real-time behavior telemetry, and fast containment."
+  },
+  "runtime_policy": {
+    "decision_order": [
+      "kill_session_on_agent_trust_break",
+      "deny_untrusted_agent",
+      "hold_for_trust_evidence",
+      "hold_for_step_up",
+      "allow_trusted_agent_context"
+    ],
+    "deny_when": [
+      "workflow is unknown",
+      "requested trust tier exceeds generated workflow tier and no approval exists",
+      "required evidence fields are missing after normalization",
+      "trust score falls below deny threshold"
+    ],
+    "kill_when": [
+      "token passthrough is observed",
+      "delegated identity was used after revocation",
+      "secret egress or cross-tenant context access is observed",
+      "runtime kill signal is present",
+      "prompt injection is combined with external side effect",
+      "agent repeats a denied action"
+    ],
+    "step_up_required_when": [
+      "requested_trust_tier is operator or principal and human approval is absent",
+      "authorization_decision, egress_decision, action_runtime_decision, or telemetry_decision is hold",
+      "source_freshness_decision is review_due or stale_or_missing",
+      "scope_escalation is requested",
+      "cross_tenant_context_access is requested",
+      "external_side_effect is requested"
+    ]
+  },
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "agent_identity_ledger": {
+      "failure_count": 0,
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "schema_version": "1.0",
+      "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42",
+      "summary_keys": [
+        "identity_summary"
+      ]
+    },
+    "agentic_action_runtime_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-action-runtime-pack.json",
+      "schema_version": "1.0",
+      "sha256": "557b1c53c422fdd256a085160fc2fa65609fc63113b627ea06140f671819b3f3",
+      "summary_keys": [
+        "action_runtime_summary"
+      ]
+    },
+    "agentic_entitlement_review_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-entitlement-review-pack.json",
+      "schema_version": "1.0",
+      "sha256": "993f2fc0377c9bb175de7758a3e12e25b02cf0b807c2c4bf0d62697be70e50cd",
+      "summary_keys": [
+        "entitlement_review_summary"
+      ]
+    },
+    "agentic_run_receipt_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "schema_version": "1.0",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+      "summary_keys": [
+        "receipt_summary"
+      ]
+    },
+    "agentic_soc_detection_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-soc-detection-pack.json",
+      "schema_version": "1.0",
+      "sha256": "d6a92dbeae805585141ee5c19df3645557f362d3308c44316f0d8aea430cce6a",
+      "summary_keys": [
+        "detection_summary"
+      ]
+    },
+    "agentic_source_freshness_watch": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-source-freshness-watch.json",
+      "schema_version": "1.0",
+      "sha256": "872f72b80fce38d882f63c1235c040aa167dfaf06cf8d2689137832269cdea50",
+      "summary_keys": [
+        "freshness_summary"
+      ]
+    },
+    "agentic_telemetry_contract": {
+      "failure_count": 0,
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "schema_version": "1.0",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f",
+      "summary_keys": [
+        "telemetry_summary"
+      ]
+    },
+    "context_egress_boundary_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "schema_version": "1.0",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833",
+      "summary_keys": [
+        "egress_boundary_summary"
+      ]
+    },
+    "context_poisoning_guard_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "schema_version": "1.0",
+      "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8",
+      "summary_keys": [
+        "guard_summary"
+      ]
+    },
+    "enterprise_trust_center_export": {
+      "failure_count": 0,
+      "path": "data/evidence/enterprise-trust-center-export.json",
+      "schema_version": "1.0",
+      "sha256": "b723e383ef0c3d325db82508a73eaca88a8babe45f1db108229a1b34b0a27ddc",
+      "summary_keys": [
+        "export_summary"
+      ]
+    },
+    "hosted_mcp_readiness_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/hosted-mcp-readiness-pack.json",
+      "schema_version": "1.0",
+      "sha256": "4eaea921a2f4c0f7705219f28f1d5caaab7a439d63adeeb2347300a877920fcf",
+      "summary_keys": [
+        "hosted_mcp_readiness_summary"
+      ]
+    },
+    "mcp_authorization_conformance": {
+      "failure_count": 0,
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "schema_version": "1.0",
+      "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f",
+      "summary_keys": [
+        "authorization_summary"
+      ]
+    },
+    "secure_context_trust_pack": {
+      "failure_count": 0,
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "schema_version": "1.0",
+      "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085",
+      "summary_keys": [
+        "context_trust_summary"
+      ]
+    },
+    "workflow_manifest": {
+      "failure_count": 0,
+      "path": "data/control-plane/workflow-manifests.json",
+      "schema_version": "1.0",
+      "sha256": "22f45f06fee190b602ac27f300c94d72ab38646f76a1ad2e4f80923a3a444ceb",
+      "summary_keys": []
+    }
+  },
+  "source_references": [
+    {
+      "id": "csa-agentic-trust-framework-2026",
+      "name": "ATF: Zero Trust for AI Agents",
+      "published": "2026-04-03",
+      "publisher": "Cloud Security Alliance",
+      "source_class": "industry_framework",
+      "url": "https://cloudsecurityalliance.org/blog/2026/04/03/every-rsac-keynote-asked-the-same-five-questions-here-s-the-framework-that-answers-them",
+      "why_it_matters": "CSA frames agent security around identity, behavior, data governance, least privilege, and containment, which matches the trust-fabric dimensions SecurityRecipes can enforce through MCP-readable evidence."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "AI Controls Matrix",
+      "published": "2025-10-30",
+      "publisher": "Cloud Security Alliance",
+      "source_class": "enterprise_control_framework",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "why_it_matters": "CSA AICM gives enterprise buyers a broader AI governance and shared-responsibility control baseline that the trust fabric can map into operational agent checks."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "published": "2026-02-17",
+      "publisher": "NIST CAISI",
+      "source_class": "government_standards_signal",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "why_it_matters": "NIST is prioritizing trusted, interoperable, secure agent standards; SecurityRecipes needs a cross-vendor trust decision shape rather than a vendor-specific prompt policy."
+    },
+    {
+      "id": "nist-caisi-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "published": "2026-01-12",
+      "publisher": "NIST CAISI",
+      "source_class": "government_security_signal",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "why_it_matters": "CAISI highlights indirect prompt injection, poisoning, misaligned actions, and constrained deployment access as distinct agent security risks."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "why_it_matters": "The current MCP authorization spec requires protected-resource metadata, scope challenges, resource indicators, token audience validation, and token-passthrough denial for protected MCP servers."
+    },
+    {
+      "id": "mcp-changelog-2025-11-25",
+      "name": "Model Context Protocol 2025-11-25 Key Changes",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
+      "why_it_matters": "The latest MCP revision adds incremental scope consent, URL-mode elicitation, OAuth client ID metadata documents, and experimental tasks that affect trust decisions for long-running agent work."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "published": "2025-01-01",
+      "publisher": "OWASP Foundation",
+      "source_class": "industry_risk_catalog",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "why_it_matters": "OWASP MCP risks such as token exposure, scope creep, tool poisoning, command execution, insufficient auth, shadow MCP servers, and over-sharing define trust-fabric failure modes."
+    },
+    {
+      "id": "openai-agents-guardrails-2026",
+      "name": "OpenAI Agents SDK Guardrails",
+      "published": "2026-05-04",
+      "publisher": "OpenAI",
+      "source_class": "frontier_lab_guidance",
+      "url": "https://openai.github.io/openai-agents-js/guides/guardrails/",
+      "why_it_matters": "OpenAI's guardrail guidance distinguishes first-input, final-output, and per-function-tool guardrails, making runtime placement and hosted-tool gaps explicit trust-fabric concerns."
+    },
+    {
+      "id": "openai-agents-tracing-2026",
+      "name": "OpenAI Agents SDK Tracing",
+      "published": "2026-05-04",
+      "publisher": "OpenAI",
+      "source_class": "frontier_lab_guidance",
+      "url": "https://openai.github.io/openai-agents-js/guides/tracing/",
+      "why_it_matters": "Agent trust cannot be reconstructed without traces that capture LLM generations, tool calls, handoffs, guardrails, and custom events."
+    },
+    {
+      "id": "opentelemetry-genai-agent-spans-2026",
+      "name": "OpenTelemetry GenAI Agent and Framework Spans",
+      "published": "2026-05-04",
+      "publisher": "OpenTelemetry",
+      "source_class": "observability_standard",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/",
+      "why_it_matters": "OpenTelemetry GenAI conventions provide cross-vendor span names and attributes for agent invocation and tool execution, giving the trust fabric a portable telemetry substrate."
+    }
+  ],
+  "tabletop_cases": [
+    {
+      "expected_decision": "allow_trusted_agent_context",
+      "id": "trusted-scoped-remediation-run",
+      "trigger": "A scoped dependency remediation run has identity, context, authorization, egress, telemetry, receipt, and source freshness evidence."
+    },
+    {
+      "expected_decision": "hold_for_step_up",
+      "id": "operator-tier-without-approval",
+      "trigger": "An agent requests operator autonomy for a scoped write while approval or action-runtime evidence is incomplete."
+    },
+    {
+      "expected_decision": "deny_untrusted_agent",
+      "id": "unknown-workflow-or-stale-source",
+      "trigger": "The workflow is missing from the generated matrix or source freshness is stale enough to drop the score below the deny threshold."
+    },
+    {
+      "expected_decision": "kill_session_on_agent_trust_break",
+      "id": "token-passthrough-or-secret-egress",
+      "trigger": "A protected MCP token is passed downstream, a revoked identity is used, or a secret crosses an external egress boundary."
+    }
+  ],
+  "trust_contract": {
+    "default_state": "agent_untrusted_until_identity_context_scope_behavior_telemetry_and_containment_evidence_are_bound",
+    "kill_signals": [
+      "token_passthrough",
+      "identity_used_after_revocation",
+      "secret_egress",
+      "runtime_kill_signal",
+      "deny_after_deny_loop",
+      "prompt_injection_with_external_side_effect",
+      "untrusted_context_with_high_autonomy",
+      "telemetry_redaction_failure",
+      "cross_tenant_context_access"
+    ],
+    "minimum_dimensions": 6,
+    "minimum_evidence_sources": 10,
+    "minimum_runtime_fields": 16,
+    "required_evidence_sources": [
+      "workflow_manifest",
+      "agent_identity_ledger",
+      "agentic_entitlement_review_pack",
+      "mcp_authorization_conformance",
+      "secure_context_trust_pack",
+      "context_poisoning_guard_pack",
+      "context_egress_boundary_pack",
+      "agentic_action_runtime_pack",
+      "agentic_telemetry_contract",
+      "agentic_soc_detection_pack",
+      "agentic_run_receipt_pack",
+      "agentic_source_freshness_watch",
+      "hosted_mcp_readiness_pack",
+      "enterprise_trust_center_export"
+    ],
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "trust_event_id",
+      "requested_trust_tier",
+      "intent_summary",
+      "context_package_hash",
+      "policy_pack_hash",
+      "authorization_decision",
+      "egress_decision",
+      "telemetry_event_id",
+      "receipt_id",
+      "source_freshness_decision"
+    ],
+    "score_thresholds": {
+      "allow_trusted_agent_context": 85,
+      "deny_untrusted_agent": 50,
+      "hold_for_step_up": 70
+    }
+  },
+  "trust_dimensions": [
+    {
+      "evidence_paths": [
+        "data/evidence/agent-identity-delegation-ledger.json",
+        "data/evidence/agentic-entitlement-review-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json"
+      ],
+      "failure_modes": [
+        "unknown_agent",
+        "expired_entitlement",
+        "wrong_token_audience",
+        "token_passthrough",
+        "identity_used_after_revocation"
+      ],
+      "id": "identity",
+      "mcp_tools": [
+        "recipes_agent_identity_ledger",
+        "recipes_agentic_entitlement_review_pack",
+        "recipes_evaluate_agentic_entitlement_decision",
+        "recipes_evaluate_mcp_authorization_decision"
+      ],
+      "question": "Who is the agent and which delegated identity is it using?",
+      "required_evidence": [
+        "agent_identity_ledger",
+        "agentic_entitlement_review_pack",
+        "mcp_authorization_conformance"
+      ],
+      "title": "Verifiable Agent Identity",
+      "weight": 20
+    },
+    {
+      "evidence_paths": [
+        "data/evidence/secure-context-trust-pack.json",
+        "data/evidence/context-poisoning-guard-pack.json",
+        "data/evidence/agentic-source-freshness-watch.json"
+      ],
+      "failure_modes": [
+        "missing_context_hash",
+        "poisoning_signal",
+        "stale_source_reference",
+        "untrusted_context_with_high_autonomy"
+      ],
+      "id": "context",
+      "mcp_tools": [
+        "recipes_secure_context_trust_pack",
+        "recipes_evaluate_context_retrieval_decision",
+        "recipes_context_poisoning_guard_pack",
+        "recipes_agentic_source_freshness_watch"
+      ],
+      "question": "What is the agent consuming and is that context safe to trust?",
+      "required_evidence": [
+        "secure_context_trust_pack",
+        "context_poisoning_guard_pack",
+        "agentic_source_freshness_watch"
+      ],
+      "title": "Trusted Context Ingress",
+      "weight": 18
+    },
+    {
+      "evidence_paths": [
+        "data/evidence/agentic-action-runtime-pack.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/context-egress-boundary-pack.json"
+      ],
+      "failure_modes": [
+        "scope_creep",
+        "unregistered_action",
+        "invalid_scope_challenge",
+        "egress_denied",
+        "production_write_without_approval"
+      ],
+      "id": "scope",
+      "mcp_tools": [
+        "recipes_agentic_action_runtime_pack",
+        "recipes_evaluate_agentic_action_runtime_decision",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_context_egress_boundary_pack"
+      ],
+      "question": "Where can the agent go and which action class is being attempted?",
+      "required_evidence": [
+        "agentic_action_runtime_pack",
+        "mcp_authorization_conformance",
+        "context_egress_boundary_pack"
+      ],
+      "title": "Least-Privilege Scope and Action Boundary",
+      "weight": 18
+    },
+    {
+      "evidence_paths": [
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-soc-detection-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json"
+      ],
+      "failure_modes": [
+        "missing_trace_context",
+        "deny_after_deny_loop",
+        "tool_output_hidden",
+        "guardrail_gap",
+        "behavior_anomaly"
+      ],
+      "id": "behavior",
+      "mcp_tools": [
+        "recipes_agentic_telemetry_contract",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_agentic_soc_detection_pack",
+        "recipes_evaluate_agentic_soc_detection_event",
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "question": "What is the agent doing in real time and does it match its declared intent?",
+      "required_evidence": [
+        "agentic_telemetry_contract",
+        "agentic_soc_detection_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "title": "Runtime Behavior Monitoring",
+      "weight": 16
+    },
+    {
+      "evidence_paths": [
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-run-receipt-pack.json",
+        "data/evidence/enterprise-trust-center-export.json"
+      ],
+      "failure_modes": [
+        "secret_egress",
+        "cross_tenant_context_access",
+        "public_corpus_write",
+        "zero_data_retention_gap"
+      ],
+      "id": "data-boundary",
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_agentic_run_receipt_pack",
+        "recipes_enterprise_trust_center_export"
+      ],
+      "question": "What is the agent serving or sending outside the trust boundary?",
+      "required_evidence": [
+        "context_egress_boundary_pack",
+        "agentic_run_receipt_pack",
+        "enterprise_trust_center_export"
+      ],
+      "title": "Context Output and Egress Governance",
+      "weight": 12
+    },
+    {
+      "evidence_paths": [
+        "data/evidence/agentic-soc-detection-pack.json",
+        "data/evidence/hosted-mcp-readiness-pack.json",
+        "data/evidence/agentic-action-runtime-pack.json"
+      ],
+      "failure_modes": [
+        "missing_kill_switch",
+        "no_incident_route",
+        "runtime_kill_signal",
+        "unbounded_task",
+        "customer_impact_without_containment"
+      ],
+      "id": "containment",
+      "mcp_tools": [
+        "recipes_agentic_soc_detection_pack",
+        "recipes_hosted_mcp_readiness_pack",
+        "recipes_agentic_action_runtime_pack"
+      ],
+      "question": "What happens if the agent goes off-policy?",
+      "required_evidence": [
+        "agentic_soc_detection_pack",
+        "hosted_mcp_readiness_pack",
+        "agentic_action_runtime_pack"
+      ],
+      "title": "Containment and Recovery",
+      "weight": 16
+    }
+  ],
+  "trust_fabric_summary": {
+    "dimension_count": 6,
+    "failure_count": 0,
+    "source_failure_count": 0,
+    "source_pack_count": 14,
+    "status": "agent_trust_fabric_ready",
+    "trust_tier_counts": {
+      "operator": 5,
+      "principal": 3
+    },
+    "workflow_count": 8
+  },
+  "trust_tiers": [
+    {
+      "allowed_actions": [
+        "read_public_context",
+        "draft_triage_note"
+      ],
+      "autonomy": "observe_only",
+      "id": "intern",
+      "minimum_score": 55,
+      "promotion_gate": "Identity registered, telemetry present, no high-risk tool access, and context source freshness is current.",
+      "title": "Intern"
+    },
+    {
+      "allowed_actions": [
+        "read_private_context",
+        "recommend_action",
+        "open_draft_artifact"
+      ],
+      "autonomy": "bounded_read_and_suggest",
+      "id": "apprentice",
+      "minimum_score": 70,
+      "promotion_gate": "Context trust, poisoning scan, least-privilege scopes, and receipt evidence are complete for the workflow.",
+      "title": "Apprentice"
+    },
+    {
+      "allowed_actions": [
+        "invoke_scoped_mcp_tool",
+        "write_scoped_branch",
+        "request_step_up"
+      ],
+      "autonomy": "scoped_action_with_review",
+      "id": "operator",
+      "minimum_score": 85,
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run.",
+      "title": "Operator"
+    },
+    {
+      "allowed_actions": [
+        "high_impact_action_after_risk_acceptance",
+        "cross_agent_delegation_after_policy_check"
+      ],
+      "autonomy": "high_impact_with_separate_acceptance",
+      "id": "principal",
+      "minimum_score": 92,
+      "promotion_gate": "Separate risk acceptance, containment proof, red-team replay evidence, and customer-specific hosted MCP controls are present.",
+      "title": "Principal"
+    }
+  ],
+  "workflow_trust_matrix": [
+    {
+      "default_trust_tier": "operator",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "findings.sde"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "tickets.security"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "multi_namespace",
+        "scoped_write",
+        "sensitive_data"
+      ],
+      "title": "Sensitive Data Element Remediation",
+      "workflow_id": "sensitive-data-remediation"
+    },
+    {
+      "default_trust_tier": "operator",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "advisories.vulnerability"
+        },
+        {
+          "access": "read",
+          "namespace": "sbom.inventory"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "multi_namespace",
+        "scoped_write"
+      ],
+      "title": "Vulnerable Dependency Remediation",
+      "workflow_id": "vulnerable-dependency-remediation"
+    },
+    {
+      "default_trust_tier": "operator",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "findings.sast"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "multi_namespace",
+        "scoped_write"
+      ],
+      "title": "SAST Finding Remediation",
+      "workflow_id": "sast-finding-remediation"
+    },
+    {
+      "default_trust_tier": "operator",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "images.golden"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "multi_namespace",
+        "scoped_write"
+      ],
+      "title": "Base Image and Container Layer Remediation",
+      "workflow_id": "base-image-remediation"
+    },
+    {
+      "default_trust_tier": "principal",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "inventory.artifacts"
+        },
+        {
+          "access": "approval_required",
+          "namespace": "registries.quarantine"
+        },
+        {
+          "access": "write_ticket",
+          "namespace": "incidents.security"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "high_impact_action",
+        "multi_namespace"
+      ],
+      "title": "Artifact Cache and Mirror Quarantine",
+      "workflow_id": "artifact-cache-quarantine"
+    },
+    {
+      "default_trust_tier": "operator",
+      "maturity_stage": "walk",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "recipes.defaults"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "ci.runs"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "multi_namespace",
+        "scoped_write"
+      ],
+      "title": "Classic Vulnerable Defaults",
+      "workflow_id": "classic-vulnerable-defaults"
+    },
+    {
+      "default_trust_tier": "principal",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "payments.findings"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "payments.simulation"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "high_impact_action",
+        "irreversible_transaction",
+        "multi_namespace",
+        "scoped_write"
+      ],
+      "title": "Cryptocurrency and Crypto Payments Security",
+      "workflow_id": "crypto-payment-security"
+    },
+    {
+      "default_trust_tier": "principal",
+      "maturity_stage": "crawl",
+      "mcp_namespaces": [
+        {
+          "access": "read",
+          "namespace": "protocol.findings"
+        },
+        {
+          "access": "write_branch",
+          "namespace": "repo.contents"
+        },
+        {
+          "access": "read",
+          "namespace": "chain.simulation"
+        }
+      ],
+      "required_dimension_ids": [
+        "identity",
+        "context",
+        "scope",
+        "behavior",
+        "data-boundary",
+        "containment"
+      ],
+      "risk_flags": [
+        "high_impact_action",
+        "irreversible_transaction",
+        "multi_namespace",
+        "scoped_write"
+      ],
+      "title": "DeFi and Blockchain Protocol Security",
+      "workflow_id": "defi-blockchain-security"
+    }
+  ]
+}

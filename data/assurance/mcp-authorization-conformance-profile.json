@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "last_reviewed": "2026-05-02",
-  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify resource-bound tokens, token audience validation, PKCE, protected-resource metadata, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
+  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP authorization conformance and scope-drift control",
@@ -10,10 +10,10 @@
   },
   "standards_alignment": [
     {
-      "id": "mcp-authorization-2025-06-18",
+      "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization",
-      "coverage": "OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata, authorization-server metadata, PKCE, HTTPS, bearer-token validation, and token audience checks."
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata discovery, authorization-server metadata discovery, OAuth client ID metadata documents, PKCE, HTTPS, bearer-token validation, token audience checks, scope challenges, and step-up authorization."
     },
     {
       "id": "mcp-security-best-practices",
@@ -69,22 +69,32 @@
       "connector_id",
       "namespace",
       "client_id",
+      "client_metadata_document_url",
+      "client_metadata_document_validated",
+      "authorization_server_discovery_method",
+      "protected_resource_metadata_url",
       "resource_indicator",
       "token_audience",
       "token_issuer",
       "token_expires_at",
       "token_scopes",
+      "scope_challenge",
       "requested_access_mode",
       "consent_record_id",
       "session_id",
       "correlation_id",
-      "gateway_policy_hash"
+      "gateway_policy_hash",
+      "step_up_required",
+      "step_up_authorization_record_id"
     ],
     "valid_runtime_decisions": [
       "allow_authorized_mcp_request",
       "hold_for_authorization_evidence",
+      "hold_for_client_metadata_evidence",
+      "hold_for_step_up_authorization",
       "deny_token_passthrough",
       "deny_unbound_token",
+      "deny_scope_challenge_mismatch",
       "deny_scope_drift",
       "kill_session_on_secret_or_signer_scope"
     ],
@@ -117,6 +127,9 @@
     "candidate_auth_checks": [
       "resource_indicators",
       "audience_validation",
+      "client_id_metadata_document",
+      "scope_challenge_handling",
+      "step_up_authorization",
       "pkce",
       "short_lived_tokens",
       "deny_token_passthrough",
@@ -127,14 +140,25 @@
     "live_metadata_evidence_required": [
       "protected_resource_metadata_url",
       "authorization_server_metadata_url",
+      "client_metadata_document_url",
+      "client_metadata_document_hash",
       "resource_indicator_value",
       "token_audience_value",
       "jwks_or_introspection_validation",
       "redirect_uri_policy",
-      "scope_catalog_hash"
+      "scope_catalog_hash",
+      "scope_challenge_policy_hash",
+      "step_up_authorization_policy"
     ]
   },
   "control_checks": [
+    {
+      "id": "protected_resource_metadata_discovery",
+      "severity": "high",
+      "applies_to": "remote_http_mcp",
+      "evidence_key": "protected_resource_metadata_url",
+      "control_reason": "Clients must support protected-resource metadata discovery through WWW-Authenticate resource metadata and well-known fallbacks so authorization-server selection is explicit and auditable."
+    },
     {
       "id": "protected_resource_metadata",
       "severity": "high",
@@ -148,6 +172,13 @@
       "applies_to": "remote_http_mcp",
       "evidence_key": "authorization_server_metadata_url",
       "control_reason": "Authorization server metadata makes issuer, endpoint, supported challenge methods, and token validation assumptions reviewable."
+    },
+    {
+      "id": "client_id_metadata_document",
+      "severity": "high",
+      "applies_to": "remote_http_mcp",
+      "evidence_key": "client_metadata_document_url",
+      "control_reason": "Latest MCP authorization supports OAuth client ID metadata documents for clients and servers without a pre-existing relationship; production gateways should validate the HTTPS client metadata document and exact client_id match before accepting the grant."
     },
     {
       "id": "resource_indicators",
@@ -183,6 +214,20 @@
       "applies_to": "all_mcp",
       "evidence_key": "token_scopes",
       "control_reason": "Scopes should bind to workflow, namespace, access mode, and run intent rather than broad user or service-account authority."
+    },
+    {
+      "id": "scope_challenge_handling",
+      "severity": "high",
+      "applies_to": "remote_http_mcp",
+      "evidence_key": "scope_challenge",
+      "control_reason": "MCP clients must treat scopes returned in authorization challenges as authoritative for the current request and must not silently expand or ignore challenged scopes."
+    },
+    {
+      "id": "step_up_authorization",
+      "severity": "high",
+      "applies_to": "approval_required_mcp",
+      "evidence_key": "step_up_authorization_record_id",
+      "control_reason": "High-impact MCP operations need a typed step-up authorization receipt before the gateway forwards approval-required tool calls."
     },
     {
       "id": "session_binding",

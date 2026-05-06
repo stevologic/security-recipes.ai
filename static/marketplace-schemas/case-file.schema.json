@@ -1,0 +1,691 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/case-file.schema.json",
+  "title": "SecurityRecipes case file",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "title",
+    "status",
+    "created_at",
+    "updated_at",
+    "planner",
+    "workflow_template",
+    "report_profile",
+    "output_channel",
+    "summary",
+    "input_channels",
+    "imported_artifacts",
+    "recommended_workflows",
+    "tags",
+    "output_summary",
+    "generated_output",
+    "report",
+    "marketplace_contract",
+    "delivery_envelope",
+    "last_delivery",
+    "timeline"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.case-file.v1"
+    },
+    "id": {
+      "$ref": "#/$defs/caseId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 140
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "in_review", "closed"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "planner": {
+      "$ref": "#/$defs/plannerSnapshot"
+    },
+    "workflow_template": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/workflowTemplateRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "report_profile": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/reportProfileRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "output_channel": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/outputChannelRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "summary": {
+      "$ref": "#/$defs/caseSummary"
+    },
+    "input_channels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/inputChannelRef"
+      }
+    },
+    "imported_artifacts": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "recommended_workflows": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "output_summary": {
+      "type": "string",
+      "maxLength": 1200
+    },
+    "generated_output": {
+      "type": "string",
+      "maxLength": 20000
+    },
+    "launch_readiness": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/launchReadiness"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "marketplace_contract": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "delivery_envelope": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "last_delivery": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/lastDelivery"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "timeline": {
+      "type": "array",
+      "maxItems": 18,
+      "items": {
+        "$ref": "#/$defs/timelineEvent"
+      }
+    }
+  },
+  "$defs": {
+    "caseId": {
+      "type": "string",
+      "pattern": "^case-[a-z0-9]+(?:-[a-z0-9]+)*-\\d{10}$"
+    },
+    "marketplaceId": {
+      "type": "string",
+      "pattern": "^(?:local-)?[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "runtimeSupport": {
+      "type": "string",
+      "enum": ["live", "live_or_copy", "copy_only", "config_only", "planned", "contract"]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "info"]
+    },
+    "plannerSnapshot": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "provider",
+        "model",
+        "workflow_prompt",
+        "workflow_value",
+        "workflow_label",
+        "recipe_path",
+        "recipe_title",
+        "recipe_query",
+        "scope",
+        "cadence",
+        "next_run",
+        "approval_gate",
+        "context_pack",
+        "workflow_template_id",
+        "report_profile_id",
+        "input_channel_ids",
+        "output_channel_id"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workflow_prompt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workflow_value": {
+          "type": "string",
+          "enum": [
+            "dependency",
+            "sast",
+            "sensitive-data",
+            "mcp-guardrail",
+            "base-image",
+            "recipe-runbook"
+          ]
+        },
+        "workflow_label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recipe_path": {
+          "type": "string"
+        },
+        "recipe_title": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "recipe_query": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cadence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "next_run": {
+          "type": "string",
+          "minLength": 1
+        },
+        "approval_gate": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_pack": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workflow_template_id": {
+          "type": "string",
+          "pattern": "^(?:|(?:local-)?[a-z0-9]+(?:-[a-z0-9]+)*)$"
+        },
+        "report_profile_id": {
+          "type": "string",
+          "pattern": "^(?:|(?:local-)?[a-z0-9]+(?:-[a-z0-9]+)*)$"
+        },
+        "input_channel_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/marketplaceId"
+          }
+        },
+        "output_channel_id": {
+          "type": "string",
+          "pattern": "^(?:|(?:local-)?[a-z0-9]+(?:-[a-z0-9]+)*)$"
+        }
+      }
+    },
+    "workflowTemplateRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "status"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/marketplaceId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "status": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "reportProfileRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "format"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/marketplaceId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "format": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      }
+    },
+    "outputChannelRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "driver", "runtime_support"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/marketplaceId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "driver": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "runtime_support": {
+          "$ref": "#/$defs/runtimeSupport"
+        }
+      }
+    },
+    "caseSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_count",
+        "highest_severity",
+        "imported_artifact_count",
+        "selected_channel_count",
+        "ready_channel_count",
+        "sbom_component_count",
+        "sbom_vulnerability_count",
+        "dependency_count"
+      ],
+      "properties": {
+        "finding_count": {
+          "type": "number",
+          "minimum": 0
+        },
+        "highest_severity": {
+          "$ref": "#/$defs/severity"
+        },
+        "imported_artifact_count": {
+          "type": "number",
+          "minimum": 0
+        },
+        "selected_channel_count": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ready_channel_count": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sbom_component_count": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sbom_vulnerability_count": {
+          "type": "number",
+          "minimum": 0
+        },
+        "dependency_count": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "importedArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "file_name"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "file_name": {
+          "type": "string",
+          "maxLength": 240
+        }
+      }
+    },
+    "inputChannelRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "category", "runtime_support", "ready", "imported_artifact"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/marketplaceId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "runtime_support": {
+          "$ref": "#/$defs/runtimeSupport"
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "imported_artifact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/importedArtifactRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "lastDelivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "ok", "route_id", "route_label", "message"],
+      "properties": {
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "route_id": {
+          "$ref": "#/$defs/marketplaceId"
+        },
+        "route_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 240
+        }
+      }
+    },
+    "timelineEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "type", "message", "detail"],
+      "properties": {
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 420
+        }
+      }
+    },
+    "launchReadinessAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "action", "value"],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "action": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "value": {
+          "type": "string",
+          "maxLength": 180
+        }
+      }
+    },
+    "launchReadinessItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "state", "summary", "badges", "notes", "action"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "state": {
+          "type": "string",
+          "enum": ["ready", "copy_only", "template", "needs_config", "blocked"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "badges": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "notes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "action": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/launchReadinessAction"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "launchReadinessCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checks", "ready", "blocked", "needs_config", "template"],
+      "properties": {
+        "checks": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ready": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "needs_config": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "template": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "launchReadiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generated_at",
+        "overall_state",
+        "overall_label",
+        "summary",
+        "counts",
+        "selected_input_count",
+        "ready_input_count",
+        "route_label",
+        "report_label",
+        "refreshable_source_count",
+        "upload_gap_count",
+        "primary_action",
+        "refresh_action",
+        "items"
+      ],
+      "properties": {
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "overall_state": {
+          "type": "string",
+          "enum": ["ready", "copy_only", "template", "needs_config", "blocked"]
+        },
+        "overall_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 420
+        },
+        "counts": {
+          "$ref": "#/$defs/launchReadinessCounts"
+        },
+        "selected_input_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ready_input_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "route_label": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "report_label": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "refreshable_source_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "upload_gap_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "primary_action": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/launchReadinessAction"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "refresh_action": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/launchReadinessAction"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/launchReadinessItem"
+          }
+        }
+      }
+    }
+  }
+}

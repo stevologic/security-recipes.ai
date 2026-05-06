@@ -1,0 +1,1986 @@
+{
+  "buyer_views": [
+    {
+      "answer_contract": "Show that SecurityRecipes can expose context, policy, run, and incident evidence to agent products without silently transmitting private customer content or upstream credentials.",
+      "id": "frontier-lab",
+      "ready": true,
+      "release_channel_status": {
+        "hosted_mcp_api": "ready_for_release_evaluation",
+        "trust_center_external": "ready_for_release_evaluation"
+      },
+      "required_release_channels": [
+        "trust_center_external",
+        "hosted_mcp_api"
+      ],
+      "title": "Frontier Lab Integration View"
+    },
+    {
+      "answer_contract": "Show the API objects an agent runtime can call for evidence release checks, MCP decisions, receipt lookup, and trust-center export before building a native integration.",
+      "id": "ai-platform-vendor",
+      "ready": true,
+      "release_channel_status": {
+        "design_partner_private": "ready_for_release_evaluation",
+        "hosted_mcp_api": "ready_for_release_evaluation"
+      },
+      "required_release_channels": [
+        "design_partner_private",
+        "hosted_mcp_api"
+      ],
+      "title": "AI Platform Vendor View"
+    },
+    {
+      "answer_contract": "Show how SIEM, SOAR, identity, AppSec, CNAPP, and exposure products can ingest metadata-only evidence and correlate agentic decisions without private payload capture.",
+      "id": "security-platform-vendor",
+      "ready": true,
+      "release_channel_status": {
+        "acquirer_diligence": "ready_for_release_evaluation",
+        "hosted_mcp_api": "ready_for_release_evaluation"
+      },
+      "required_release_channels": [
+        "hosted_mcp_api",
+        "acquirer_diligence"
+      ],
+      "title": "Security Platform Vendor View"
+    },
+    {
+      "answer_contract": "Show procurement and governance teams how release channels enforce redaction, tenant binding, retention, DPA state, ZDR state, signatures, and approval receipts.",
+      "id": "regulated-enterprise",
+      "ready": true,
+      "release_channel_status": {
+        "design_partner_private": "ready_for_release_evaluation",
+        "trust_center_external": "ready_for_release_evaluation"
+      },
+      "required_release_channels": [
+        "design_partner_private",
+        "trust_center_external"
+      ],
+      "title": "Regulated Enterprise View"
+    },
+    {
+      "answer_contract": "Show that the open corpus can become a paid hosted product with source-backed object contracts, runtime proof, evidence APIs, and release gates that prevent overclaiming.",
+      "id": "acquirer",
+      "ready": true,
+      "release_channel_status": {
+        "acquirer_diligence": "ready_for_release_evaluation"
+      },
+      "required_release_channels": [
+        "acquirer_diligence"
+      ],
+      "title": "Acquirer Diligence View"
+    }
+  ],
+  "commercialization_path": {
+    "acquirer_value": "A buyer gets a defined evidence contract that can be embedded into an agent platform, MCP gateway, AI trust center, or security operations product.",
+    "enterprise_layer": "Turn evidence release evaluation, trust-center export, MCP decisions, and receipt lookup into hosted API surfaces.",
+    "open_reference": "Keep the public corpus useful, source-backed, and independently verifiable.",
+    "team_layer": "Use private release channels for design partners that need tenant-bound runtime proof."
+  },
+  "evidence_contract_summary": {
+    "api_endpoint_count": 8,
+    "evidence_object_type_count": 13,
+    "failure_count": 0,
+    "premium_api_endpoint_count": 7,
+    "readiness_score": 100,
+    "release_channel_count": 5,
+    "release_channel_status": {
+      "ready_for_release_evaluation": 5
+    },
+    "source_pack_count": 16,
+    "source_pack_status": {
+      "ready": 16
+    },
+    "status": "ready_for_release_evaluation"
+  },
+  "evidence_object_types": [
+    {
+      "description": "Top-level release envelope for public, trust-center, design-partner, or acquirer evidence.",
+      "id": "evidence_release",
+      "linked_source_pack_ids": [
+        "enterprise_trust_center_export",
+        "secure_context_customer_proof_pack",
+        "hosted_mcp_readiness_pack"
+      ],
+      "object_contract_hash": "38ec02004b0b89d46b4f416fb7974a2ddf4887f227d61228024172d297c9f7ff",
+      "redaction_rule": "Never include raw prompts, raw customer code, secrets, access tokens, private keys, or session cookies.",
+      "required_fields": [
+        "release_id",
+        "release_channel",
+        "artifact_ids",
+        "source_hashes",
+        "redaction_manifest_id",
+        "created_at"
+      ],
+      "title": "Evidence Release"
+    },
+    {
+      "description": "Stable pointer to an evidence pack, its hash, schema version, readiness status, and MCP tool surface.",
+      "id": "source_pack_reference",
+      "linked_source_pack_ids": [
+        "enterprise_trust_center_export",
+        "agentic_source_freshness_watch"
+      ],
+      "object_contract_hash": "3c8685784967ebdb455f1075a3d789b5369c36482fcdb99eda3e9c73491e1e64",
+      "redaction_rule": "Expose metadata and hashes only unless the pack is approved for the release channel.",
+      "required_fields": [
+        "id",
+        "path",
+        "sha256",
+        "schema_version",
+        "status"
+      ],
+      "title": "Source Pack Reference"
+    },
+    {
+      "description": "Hash-bound source, trust tier, attestation, poisoning scan, and lineage pointer for secure context.",
+      "id": "context_source_reference",
+      "linked_source_pack_ids": [
+        "secure_context_lineage_ledger",
+        "secure_context_attestation_pack"
+      ],
+      "object_contract_hash": "f0bb69a286716c94b1b10853b715d33affd2345c2e5496449aa87af4eed46770",
+      "redaction_rule": "Export source IDs, hashes, and metadata; do not export customer-private source content.",
+      "required_fields": [
+        "source_id",
+        "source_hash",
+        "trust_tier",
+        "attestation_status",
+        "lineage_stage_id"
+      ],
+      "title": "Context Source Reference"
+    },
+    {
+      "description": "Authorization, elicitation, tool-risk, or tool-surface decision before an MCP boundary is trusted.",
+      "id": "mcp_policy_decision",
+      "linked_source_pack_ids": [
+        "mcp_authorization_conformance_pack",
+        "mcp_elicitation_boundary_pack",
+        "mcp_tool_surface_drift_pack"
+      ],
+      "object_contract_hash": "8e681115030005c1bd91945c4ade85748d3e4db894db1297b5dbbfedc1dd0629",
+      "redaction_rule": "Expose decision metadata, not bearer tokens, raw tool payloads, or upstream credentials.",
+      "required_fields": [
+        "decision",
+        "workflow_id",
+        "namespace",
+        "correlation_id",
+        "policy_pack_hash"
+      ],
+      "title": "MCP Policy Decision"
+    },
+    {
+      "description": "Portable proof of identity, context, tools, approvals, verifier output, and closure for one governed agent run.",
+      "id": "run_receipt_reference",
+      "linked_source_pack_ids": [
+        "agentic_run_receipt_pack",
+        "agentic_telemetry_contract"
+      ],
+      "object_contract_hash": "88aa0e9773abf62d3d4a82d56765d10b7be01187b34ff50d7ad40c54f7da5536",
+      "redaction_rule": "Export receipt IDs, hashes, and status; keep private prompts and raw verifier logs in tenant storage.",
+      "required_fields": [
+        "receipt_id",
+        "workflow_id",
+        "agent_id",
+        "run_id",
+        "receipt_hash"
+      ],
+      "title": "Run Receipt Reference"
+    },
+    {
+      "description": "Scope-bound approval evidence for privileged or high-impact agent action.",
+      "id": "approval_receipt_reference",
+      "linked_source_pack_ids": [
+        "agentic_run_receipt_pack",
+        "secure_context_customer_proof_pack"
+      ],
+      "object_contract_hash": "1bccc13892e219a039b73e221aad8cfa9e822aaf7dea7c7f9ab6812266be35f4",
+      "redaction_rule": "Expose role, scope hash, and decision; do not expose personal data beyond configured tenant policy.",
+      "required_fields": [
+        "approval_receipt_id",
+        "scope_hash",
+        "approver_role",
+        "expires_at",
+        "decision"
+      ],
+      "title": "Approval Receipt Reference"
+    },
+    {
+      "description": "Metadata-only trace event for agent, model, MCP, context, approval, egress, verifier, or incident evidence.",
+      "id": "telemetry_event_reference",
+      "linked_source_pack_ids": [
+        "agentic_telemetry_contract",
+        "agentic_incident_response_pack"
+      ],
+      "object_contract_hash": "b57a59bc15cd794dbfe7ecab2bfe64a7233dd30f7cea7a3cc65f87c17b05b9fb",
+      "redaction_rule": "Telemetry exports are metadata-only by default and must not capture payload bodies or secrets.",
+      "required_fields": [
+        "event_id",
+        "trace_id",
+        "event_class",
+        "workflow_id",
+        "decision"
+      ],
+      "title": "Telemetry Event Reference"
+    },
+    {
+      "description": "Buyer-readable claim backed by required packs, diligence questions, MCP tools, and source hashes.",
+      "id": "trust_center_claim",
+      "linked_source_pack_ids": [
+        "enterprise_trust_center_export",
+        "secure_context_value_model"
+      ],
+      "object_contract_hash": "1f1f7cdb8d701ac5d5b31760132fa089a9ba8e0ceb94baabf11a8ecc46496f68",
+      "redaction_rule": "Use public or redacted evidence; customer-private attachments require a private release channel.",
+      "required_fields": [
+        "claim_id",
+        "question",
+        "answer",
+        "evidence_pack_ids",
+        "status"
+      ],
+      "title": "Trust Center Claim"
+    },
+    {
+      "description": "Design-partner runtime metric that proves value, renewal readiness, risk reduction, or reviewer burden.",
+      "id": "customer_proof_metric",
+      "linked_source_pack_ids": [
+        "secure_context_customer_proof_pack",
+        "design_partner_pilot_pack"
+      ],
+      "object_contract_hash": "767ac43fc43bd6c4bea9739ff2e0ec0dc75a72a96edcbab324b0271b76e199be",
+      "redaction_rule": "Aggregate metrics by default; do not export identifiable repository, employee, or customer records.",
+      "required_fields": [
+        "metric_id",
+        "name",
+        "measurement_window",
+        "target",
+        "evidence_source"
+      ],
+      "title": "Customer Proof Metric"
+    },
+    {
+      "description": "Pinned MCP tool name, description hash, input schema hash, output schema hash, annotation hash, and capability flags.",
+      "id": "mcp_tool_surface_baseline",
+      "linked_source_pack_ids": [
+        "mcp_tool_surface_drift_pack",
+        "mcp_authorization_conformance_pack"
+      ],
+      "object_contract_hash": "0336dea959cd026205c838eedb418d12646744be14ef0889482ddf7acd8994f1",
+      "redaction_rule": "Export hashes and declared metadata; do not export secrets found in tool payload examples.",
+      "required_fields": [
+        "surface_id",
+        "namespace",
+        "tool_name",
+        "description_sha256",
+        "input_schema_sha256",
+        "decision"
+      ],
+      "title": "MCP Tool Surface Baseline"
+    },
+    {
+      "description": "Runtime signal, containment decision, replay gate, or SOC alert tied to agentic AI and MCP evidence.",
+      "id": "incident_signal",
+      "linked_source_pack_ids": [
+        "agentic_incident_response_pack",
+        "agentic_telemetry_contract"
+      ],
+      "object_contract_hash": "5cb02b4cfe08ebec269a970f18e2f7b1b5b92db1ca7841048e0b8d759fcb2fba",
+      "redaction_rule": "Export incident metadata and containment state; keep forensic payloads in tenant-bound evidence vaults.",
+      "required_fields": [
+        "incident_id",
+        "incident_class_id",
+        "workflow_id",
+        "severity",
+        "decision"
+      ],
+      "title": "Incident Signal"
+    },
+    {
+      "description": "Release-time declaration of removed fields, payload classes, reviewer, and residual sensitivity for an evidence packet.",
+      "id": "redaction_manifest",
+      "linked_source_pack_ids": [
+        "context_egress_boundary_pack",
+        "secure_context_customer_proof_pack"
+      ],
+      "object_contract_hash": "9c10fc45da82bcc835c126934ae887c6cf78c23c0f42abb889f91fe240dd8db0",
+      "redaction_rule": "The manifest describes removals and residual risk; it must not include the removed sensitive values.",
+      "required_fields": [
+        "redaction_manifest_id",
+        "removed_payload_classes",
+        "reviewer_role",
+        "residual_sensitivity",
+        "decision"
+      ],
+      "title": "Redaction Manifest"
+    },
+    {
+      "description": "Signature, signing plan, or transparency-log pointer for trust-center and acquirer evidence releases.",
+      "id": "release_signature",
+      "linked_source_pack_ids": [
+        "secure_context_attestation_pack",
+        "hosted_mcp_readiness_pack"
+      ],
+      "object_contract_hash": "62ac271fac6814bc374c2b5a09f210dd12b3b9ea35d91b145ae38725b2be968f",
+      "redaction_rule": "Expose public signature metadata only; signing credentials and private keys are never exported.",
+      "required_fields": [
+        "signature_id",
+        "subject_hash",
+        "algorithm",
+        "signer",
+        "status"
+      ],
+      "title": "Release Signature"
+    }
+  ],
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "hosted_api_surface": {
+    "base_path": "/v1",
+    "endpoint_count": 8,
+    "endpoints": [
+      {
+        "endpoint_hash": "f508e1ec4ea27ba11db7e80a1f21a62b517b6bbfd50dbb0873fea81a08da3d30",
+        "id": "get-evidence-contract",
+        "linked_object_type_ids": [
+          "source_pack_reference",
+          "evidence_release"
+        ],
+        "linked_source_pack_ids": [
+          "enterprise_trust_center_export",
+          "agentic_source_freshness_watch"
+        ],
+        "method": "GET",
+        "path": "/v1/evidence/contract",
+        "premium_surface": false,
+        "purpose": "Return the current evidence object catalog, release channels, source pack hashes, and hosted API surface.",
+        "status": "contract_defined"
+      },
+      {
+        "endpoint_hash": "5a7b5f38a159f7a8fc72537443d85b92e5e2e1fd967efaefe564a6e716b8efd9",
+        "id": "evaluate-evidence-release",
+        "linked_object_type_ids": [
+          "evidence_release",
+          "redaction_manifest",
+          "release_signature"
+        ],
+        "linked_source_pack_ids": [
+          "secure_context_customer_proof_pack",
+          "context_egress_boundary_pack"
+        ],
+        "method": "POST",
+        "path": "/v1/evidence/releases/evaluate",
+        "premium_surface": true,
+        "purpose": "Evaluate whether a proposed evidence release is safe for a selected channel before it leaves the tenant or repo boundary.",
+        "status": "contract_defined"
+      },
+      {
+        "endpoint_hash": "2709fd00cccd6901fd87be937f6024ece9b4e45063194aa36e2e252ec8813308",
+        "id": "create-evidence-release",
+        "linked_object_type_ids": [
+          "evidence_release",
+          "source_pack_reference",
+          "release_signature"
+        ],
+        "linked_source_pack_ids": [
+          "secure_context_attestation_pack",
+          "enterprise_trust_center_export"
+        ],
+        "method": "POST",
+        "path": "/v1/evidence/releases",
+        "premium_surface": true,
+        "purpose": "Create a signed or signable release envelope for public, trust-center, design-partner, hosted API, or acquirer evidence.",
+        "status": "contract_defined"
+      },
+      {
+        "endpoint_hash": "386745678238286c8c8fcadf0c6b15f300ab1e4a8dde69c1dc68e4762989cbe4",
+        "id": "get-release",
+        "linked_object_type_ids": [
+          "evidence_release",
+          "redaction_manifest",
+          "release_signature"
+        ],
+        "linked_source_pack_ids": [
+          "secure_context_attestation_pack",
+          "secure_context_lineage_ledger"
+        ],
+        "method": "GET",
+        "path": "/v1/evidence/releases/{release_id}",
+        "premium_surface": true,
+        "purpose": "Retrieve one release envelope, redaction manifest, source-pack hashes, channel decision, and signature state.",
+        "status": "contract_defined"
+      },
+      {
+        "endpoint_hash": "4a809cb0553b9a03665d5ca63a1f8ee30360624c4dfae1d304dff0f1bed05a59",
+        "id": "get-trust-center-export",
+        "linked_object_type_ids": [
+          "trust_center_claim",
+          "source_pack_reference"
+        ],
+        "linked_source_pack_ids": [
+          "enterprise_trust_center_export",
+          "secure_context_value_model"
+        ],
+        "method": "GET",
+        "path": "/v1/trust-center/export",
+        "premium_surface": true,
+        "purpose": "Return a buyer-ready trust-center packet with linked evidence objects, questions, source hashes, and redaction status.",
+        "status": "contract_defined"
+      },
+      {
+        "endpoint_hash": "33c287c742c5f5d2c493d99968e972a1c1972bfcf9e3eed5393b1dec1a158dd9",
+        "id": "get-mcp-decision",
+        "linked_object_type_ids": [
+          "mcp_policy_decision",
+          "mcp_tool_surface_baseline"
+        ],
+        "linked_source_pack_ids": [
+          "mcp_authorization_conformance_pack",
+          "mcp_elicitation_boundary_pack",
+          "mcp_tool_surface_drift_pack"
+        ],
+        "method": "GET",
+        "path": "/v1/mcp/decisions/{correlation_id}",
+        "premium_surface": true,
+        "purpose": "Look up an MCP authorization, elicitation, tool-risk, or drift decision by correlation ID.",
+        "status": "contract_defined"
+      },
+      {
+        "endpoint_hash": "df2007e70d1aeb7869effaa2217a407dde5bda37a2512b30325110767597bcd6",
+        "id": "get-run-receipt",
+        "linked_object_type_ids": [
+          "run_receipt_reference",
+          "approval_receipt_reference",
+          "telemetry_event_reference"
+        ],
+        "linked_source_pack_ids": [
+          "agentic_run_receipt_pack",
+          "agentic_telemetry_contract"
+        ],
+        "method": "GET",
+        "path": "/v1/run-receipts/{receipt_id}",
+        "premium_surface": true,
+        "purpose": "Return a redacted run receipt reference with verifier, policy, approval, telemetry, and closure hashes.",
+        "status": "contract_defined"
+      },
+      {
+        "endpoint_hash": "90a53ae3f69ff59a191664d638f46fe935dd51f94da781a42eb2e997bc89ac3c",
+        "id": "list-customer-proof-metrics",
+        "linked_object_type_ids": [
+          "customer_proof_metric",
+          "incident_signal"
+        ],
+        "linked_source_pack_ids": [
+          "secure_context_customer_proof_pack",
+          "agentic_incident_response_pack"
+        ],
+        "method": "GET",
+        "path": "/v1/customer-proof/metrics",
+        "premium_surface": true,
+        "purpose": "Return aggregated design-partner proof metrics for renewal, business case, and acquirer review.",
+        "status": "contract_defined"
+      }
+    ],
+    "premium_endpoint_count": 7,
+    "version": "v1"
+  },
+  "positioning": {
+    "buyer": "AI platform, frontier lab, security platform, regulated enterprise, VC diligence, and acquisition reviewers",
+    "category": "Secure context evidence API and release contract",
+    "enterprise_promise": "SecurityRecipes can prove which evidence objects are safe to expose, which source packs back them, which API surfaces a hosted product should provide, and which runtime gates prevent raw prompts, source code, secrets, tokens, or customer data from leaking through diligence exports.",
+    "why_now": "Agentic AI and MCP programs are moving from pilots into procurement review. Buyers increasingly need redacted runtime evidence, source hashes, signatures, retention policy, tenant binding, and API-ready contracts before they approve a hosted context layer or value it as an acquisition target."
+  },
+  "release_channels": [
+    {
+      "allowed_payload_classes": [
+        "public_security_guidance",
+        "generated_pack_metadata",
+        "source_hashes"
+      ],
+      "audience": "Public users, forks, open-source adopters, and search engines",
+      "channel_hash": "547eb5b6ad595f792dbd78845a46e2192becc853c3400d37f99396bb9fd5e71f",
+      "commercial_reason": "Keeps the open corpus credible and forkable while proving the release boundary is intentional.",
+      "id": "open_reference",
+      "missing_required_source_pack_ids": [],
+      "required_controls": [
+        "source_hashes",
+        "redaction_manifest",
+        "no_secret_or_token_payload",
+        "reviewer_visible_payload_preview"
+      ],
+      "requires_customer_runtime_evidence": false,
+      "requires_signature": false,
+      "requires_tenant_binding": false,
+      "status": "ready_for_release_evaluation",
+      "title": "Open Reference Release"
+    },
+    {
+      "allowed_payload_classes": [
+        "redacted_customer_runtime_metadata",
+        "tenant_bound_metrics",
+        "receipt_hashes"
+      ],
+      "audience": "Customer pilot teams, customer security review, and customer AI platform owners",
+      "channel_hash": "43359cef56b3b740237f222e83822e5df63881c1cb68db614af6e9679d810c30",
+      "commercial_reason": "Turns design partner pilots into measurable evidence without sending private prompts, code, or secrets outside the tenant boundary.",
+      "id": "design_partner_private",
+      "missing_required_source_pack_ids": [],
+      "required_controls": [
+        "source_hashes",
+        "redaction_manifest",
+        "tenant_binding",
+        "approval_receipt",
+        "retention_policy",
+        "customer_runtime_evidence",
+        "no_secret_or_token_payload"
+      ],
+      "requires_customer_runtime_evidence": true,
+      "requires_signature": false,
+      "requires_tenant_binding": true,
+      "status": "ready_for_release_evaluation",
+      "title": "Design Partner Private Evidence Release"
+    },
+    {
+      "allowed_payload_classes": [
+        "redacted_trust_center_claims",
+        "source_hashes",
+        "receipt_status",
+        "aggregated_metrics"
+      ],
+      "audience": "Procurement security, GRC, enterprise architecture, and AI governance reviewers",
+      "channel_hash": "61f2ac59b7d0411c52e98bcf2c8ad19c5f52250f4b3117b4e2c65e86069fd4f1",
+      "commercial_reason": "Makes procurement and renewal review easier by giving buyers stable, signed, redacted evidence objects.",
+      "id": "trust_center_external",
+      "missing_required_source_pack_ids": [],
+      "required_controls": [
+        "source_hashes",
+        "redaction_manifest",
+        "approval_receipt",
+        "retention_policy",
+        "signature_or_signing_plan",
+        "metadata_only_telemetry",
+        "no_secret_or_token_payload"
+      ],
+      "requires_customer_runtime_evidence": true,
+      "requires_signature": true,
+      "requires_tenant_binding": false,
+      "status": "ready_for_release_evaluation",
+      "title": "External Trust Center Release"
+    },
+    {
+      "allowed_payload_classes": [
+        "redacted_customer_proof",
+        "commercial_metrics",
+        "source_pack_hashes",
+        "signed_evidence_index"
+      ],
+      "audience": "Frontier labs, AI platforms, security vendors, VC, and M&A diligence teams",
+      "channel_hash": "040eb8f100536dac3b1357ea793b07d0c8a73555b228c1652d219577780ed6f8",
+      "commercial_reason": "Supports the $10-20M acquisition path by separating credible runtime proof from public reference claims.",
+      "id": "acquirer_diligence",
+      "missing_required_source_pack_ids": [],
+      "required_controls": [
+        "source_hashes",
+        "redaction_manifest",
+        "approval_receipt",
+        "retention_policy",
+        "signature_or_signing_plan",
+        "customer_runtime_evidence",
+        "dpa_or_processor_record",
+        "no_secret_or_token_payload"
+      ],
+      "requires_customer_runtime_evidence": true,
+      "requires_signature": true,
+      "requires_tenant_binding": false,
+      "status": "ready_for_release_evaluation",
+      "title": "Acquirer Diligence Release"
+    },
+    {
+      "allowed_payload_classes": [
+        "metadata_only_telemetry",
+        "policy_decisions",
+        "receipt_hashes",
+        "tool_surface_hashes"
+      ],
+      "audience": "Agent runtimes, MCP gateways, AI platform products, and SIEM/SOAR integrations",
+      "channel_hash": "7cbc8993bf5ca7aea8b1a2d143c87e9ccb1a3860496f4b290eec81747c6836a2",
+      "commercial_reason": "Defines the paid API wedge: governed evidence retrieval, policy decisions, receipt lookup, and trust-center export for enterprise agent platforms.",
+      "id": "hosted_mcp_api",
+      "missing_required_source_pack_ids": [],
+      "required_controls": [
+        "source_hashes",
+        "redaction_manifest",
+        "tenant_binding",
+        "retention_policy",
+        "zero_data_retention_state",
+        "metadata_only_telemetry",
+        "no_secret_or_token_payload"
+      ],
+      "requires_customer_runtime_evidence": true,
+      "requires_signature": true,
+      "requires_tenant_binding": true,
+      "status": "ready_for_release_evaluation",
+      "title": "Hosted MCP Evidence API Release"
+    }
+  ],
+  "release_contract": {
+    "buyer_success_criteria": [
+      "Every exposed evidence object has a stable object type, required fields, redaction rule, and linked source packs.",
+      "Every release channel fails closed unless source hashes, redaction, tenant binding, approval, retention, and signature requirements are satisfied.",
+      "The hosted API surface is described before it is implemented so design partners can review integration semantics early.",
+      "The open repo can prove public evidence without exposing customer-private data.",
+      "Customer and acquirer claims are blocked until runtime telemetry and signed receipts replace assumptions."
+    ],
+    "default_state": "hold_release_until_evidence_is_redacted_bound_and_signed",
+    "minimum_evidence_object_types": 10,
+    "minimum_hosted_api_endpoints": 6,
+    "minimum_release_channels": 4,
+    "minimum_source_pack_count": 12,
+    "prohibited_payload_classes": [
+      "raw_access_token",
+      "api_key",
+      "private_key",
+      "seed_phrase",
+      "session_cookie",
+      "raw_prompt_with_customer_data",
+      "unredacted_source_code",
+      "live_signing_material"
+    ],
+    "release_controls": [
+      "source_hashes",
+      "redaction_manifest",
+      "tenant_binding",
+      "approval_receipt",
+      "retention_policy",
+      "signature_or_signing_plan",
+      "dpa_or_processor_record",
+      "zero_data_retention_state",
+      "metadata_only_telemetry",
+      "customer_runtime_evidence",
+      "no_secret_or_token_payload",
+      "reviewer_visible_payload_preview"
+    ],
+    "required_runtime_attributes": [
+      "release_id",
+      "release_channel",
+      "artifact_ids",
+      "tenant_id",
+      "correlation_id",
+      "source_hashes_present",
+      "redaction_verified",
+      "signature_present",
+      "approval_receipt_id",
+      "retention_policy_id",
+      "dpa_state",
+      "zero_data_retention_state",
+      "contains_secret",
+      "contains_raw_prompt",
+      "contains_source_code",
+      "contains_customer_data"
+    ],
+    "valid_runtime_decisions": [
+      "allow_publish_evidence_release",
+      "hold_for_redaction_or_signature",
+      "hold_for_customer_runtime_evidence",
+      "deny_sensitive_payload_release",
+      "kill_session_on_secret_or_token_release"
+    ]
+  },
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "secure_context_evidence_contract_profile": {
+      "path": "data/assurance/secure-context-evidence-contract-profile.json",
+      "sha256": "a491a3f573b0b861cb68fda9d5a8917f7773d6f26c82df4de2b778acc9269acd"
+    },
+    "source_packs": {
+      "agentic_incident_response_pack": {
+        "path": "data/evidence/agentic-incident-response-pack.json",
+        "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527",
+        "status": "ready"
+      },
+      "agentic_run_receipt_pack": {
+        "path": "data/evidence/agentic-run-receipt-pack.json",
+        "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+        "status": "ready"
+      },
+      "agentic_source_freshness_watch": {
+        "path": "data/evidence/agentic-source-freshness-watch.json",
+        "sha256": "ef87ecc69eb968dcbab01bf9f306c5f5050ae96083b5904650ec0d5fb419b21d",
+        "status": "ready"
+      },
+      "agentic_telemetry_contract": {
+        "path": "data/evidence/agentic-telemetry-contract.json",
+        "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f",
+        "status": "ready"
+      },
+      "context_egress_boundary_pack": {
+        "path": "data/evidence/context-egress-boundary-pack.json",
+        "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833",
+        "status": "ready"
+      },
+      "design_partner_pilot_pack": {
+        "path": "data/evidence/design-partner-pilot-pack.json",
+        "sha256": "6199dc7f67c99891f6f714e4b16e02b4fea3940a0de0b74ca3ac178ac1282399",
+        "status": "ready"
+      },
+      "enterprise_trust_center_export": {
+        "path": "data/evidence/enterprise-trust-center-export.json",
+        "sha256": "b723e383ef0c3d325db82508a73eaca88a8babe45f1db108229a1b34b0a27ddc",
+        "status": "ready"
+      },
+      "hosted_mcp_readiness_pack": {
+        "path": "data/evidence/hosted-mcp-readiness-pack.json",
+        "sha256": "4eaea921a2f4c0f7705219f28f1d5caaab7a439d63adeeb2347300a877920fcf",
+        "status": "ready"
+      },
+      "mcp_authorization_conformance_pack": {
+        "path": "data/evidence/mcp-authorization-conformance-pack.json",
+        "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f",
+        "status": "ready"
+      },
+      "mcp_elicitation_boundary_pack": {
+        "path": "data/evidence/mcp-elicitation-boundary-pack.json",
+        "sha256": "1d23dc36d690bdd499686977d9a853ee6e524ac10ffd1a745ab9156129c92823",
+        "status": "ready"
+      },
+      "mcp_tool_surface_drift_pack": {
+        "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+        "sha256": "397800a9a935c162067c29772bce422f79f52bf99444f6b64639f2b6f9673210",
+        "status": "ready"
+      },
+      "secure_context_attestation_pack": {
+        "path": "data/evidence/secure-context-attestation-pack.json",
+        "sha256": "3ed40d601397eec16a6d941187a62a5d5512584230c66f40e926cb99d1a3ee9d",
+        "status": "ready"
+      },
+      "secure_context_customer_proof_pack": {
+        "path": "data/evidence/secure-context-customer-proof-pack.json",
+        "sha256": "b0b7a96104de32fdc55fe4154311680a432f2a0e15d89b053d0c2a9e687776d6",
+        "status": "ready"
+      },
+      "secure_context_eval_pack": {
+        "path": "data/evidence/secure-context-eval-pack.json",
+        "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995",
+        "status": "ready"
+      },
+      "secure_context_lineage_ledger": {
+        "path": "data/evidence/secure-context-lineage-ledger.json",
+        "sha256": "4dc2a684c9dff94c72b46e599c18b9af68a9ff5bd7f29eebee029b417c7265ea",
+        "status": "ready"
+      },
+      "secure_context_value_model": {
+        "path": "data/evidence/secure-context-value-model.json",
+        "sha256": "1ca6835a9294ff004bb98ea77bbb7f75b9bd4fa0473add6096f916292a25ca00",
+        "status": "ready"
+      }
+    }
+  },
+  "source_pack_index": [
+    {
+      "available": true,
+      "category": "buyer_diligence",
+      "failure_count": 0,
+      "id": "enterprise_trust_center_export",
+      "mcp_tools": [
+        "recipes_enterprise_trust_center_export"
+      ],
+      "path": "data/evidence/enterprise-trust-center-export.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "b723e383ef0c3d325db82508a73eaca88a8babe45f1db108229a1b34b0a27ddc",
+      "status": "ready",
+      "summary": {
+        "key": "export_summary",
+        "value": {
+          "agent_card_trust_summary": {
+            "default_state": "hold_for_agent_card_intake",
+            "failure_count": 0,
+            "intake_profile_count": 4,
+            "required_agent_card_field_count": 8,
+            "sample_decision_counts": {
+              "allow_trusted_agent_card": 1,
+              "kill_session_on_agent_card_secret": 1,
+              "pilot_with_restricted_context": 1
+            },
+            "sample_evaluation_count": 3,
+            "skill_risk_tier_counts": {
+              "blocked": 1,
+              "discovery": 1,
+              "pilot": 1,
+              "production": 1
+            },
+            "status": "agent_card_trust_profile_ready"
+          },
+          "bom_summary": {
+            "active_workflow_count": 8,
+            "agent_class_count": 5,
+            "agent_identity_count": 32,
+            "component_counts": {
+              "agent_classes": 5,
+              "agent_identities": 32,
+              "evaluation_drills": 56,
+              "evidence_artifacts": 9,
+              "knowledge_sources": 4,
+              "mcp_connectors": 16,
+              "policy_components": 4,
+              "workflows": 8
+            },
+            "connector_count": 16,
+            "drift_trigger_count": 12,
+            "evaluation_drill_count": 56,
+            "failure_count": 0,
+            "mcp_namespace_count": 16,
+            "missing_identity_workflow_count": 0,
+            "readiness_decision_counts": {
+              "pilot_guarded": 4,
+              "scale_ready": 4
+            },
+            "source_failure_count": 0,
+            "workflow_count": 8
+          },
+          "category_counts": {
+            "agent_protocols": 2,
+            "agent_runtime": 2,
+            "assurance": 2,
+            "authorization": 1,
+            "connector_trust": 3,
+            "evals": 2,
+            "identity": 2,
+            "incident_response": 1,
+            "inventory": 1,
+            "risk": 4,
+            "runtime_evidence": 2,
+            "runtime_policy": 2,
+            "secure_context": 5,
+            "strategy": 3
+          },
+          "control_plane_acquisition_readiness": {
+            "active_workflow_count": 8,
+            "blueprint_score": 90,
+            "distinct_mcp_tool_count": 36,
+            "ready_layer_count": 10,
+            "ready_source_pack_count": 25,
+            "scale_ready_workflow_count": 4,
+            "source_pack_count": 25,
+            "status": "acquisition_diligence_ready",
+            "total_layer_count": 10
+          },
+          "critical_infrastructure_summary": {
+            "control_count": 9,
+            "control_status_counts": {
+              "ready": 9
+            },
+            "distinct_mcp_tool_count": 30,
+            "evidence_pack_count": 17,
+            "evidence_status_counts": {
+              "ready": 17
+            },
+            "failure_count": 0,
+            "lane_count": 4,
+            "lane_status_counts": {
+              "operator_review_required": 3,
+              "ready": 1
+            },
+            "ready_sector_count": 6,
+            "sector_count": 6,
+            "sector_status_counts": {
+              "ready_for_read_only_pilot": 6
+            },
+            "status": "critical_infrastructure_secure_context_ready"
+          },
+          "crosswalk_summary": {
+            "capability_count": 33,
+            "control_count": 39,
+            "control_status_counts": {
+              "ready": 39
+            },
+            "covered_capability_count": 33,
+            "distinct_mcp_tool_count": 50,
+            "failure_count": 0,
+            "source_class_counts": {
+              "frontier_lab_guidance": 4,
+              "government_framework": 5,
+              "incident_intelligence": 1,
+              "industry_standard": 5,
+              "protocol_guidance": 1,
+              "protocol_specification": 1
+            },
+            "source_reference_count": 17,
+            "standard_count": 7,
+            "standard_status_counts": {
+              "ready": 7
+            },
+            "status": "standards_crosswalk_ready"
+          },
+          "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
+          "distinct_mcp_tool_count": 48,
+          "entitlement_review_summary": {
+            "access_mode_counts": {
+              "approval_required": 3,
+              "read": 56,
+              "write_branch": 29,
+              "write_ticket": 8
+            },
+            "approval_required_entitlement_count": 12,
+            "distinct_identity_count": 32,
+            "entitlement_count": 96,
+            "failure_count": 0,
+            "high_or_critical_entitlement_count": 12,
+            "risk_counts": {
+              "high": 12,
+              "low": 56,
+              "medium": 28
+            },
+            "status": "entitlement_review_ready",
+            "tier_counts": {
+              "privileged_action": 12,
+              "read_context": 56,
+              "write_scoped": 28
+            },
+            "workflow_count": 8
+          },
+          "exposure_graph_summary": {
+            "decision_counts": {
+              "architecture_review": 24,
+              "guarded_rollout": 24,
+              "hold_for_owner_review": 3,
+              "standard_monitoring": 45
+            },
+            "distinct_agent_identity_count": 32,
+            "distinct_context_source_count": 9,
+            "distinct_mcp_namespace_count": 16,
+            "edge_counts": {
+              "delegates_mcp_scope": 96,
+              "requests_mcp_namespace": 24,
+              "requires_evidence_pack": 80,
+              "retrieves_context": 64,
+              "uses_identity": 32
+            },
+            "failure_count": 0,
+            "highest_exposure_paths": [
+              {
+                "access": "approval_required",
+                "agent_class": "claude",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::artifact-cache-quarantine::claude",
+                "mcp_namespace": "registries.quarantine",
+                "path_class_id": "approval_required_tool_path",
+                "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
+                "risk_tier": "high",
+                "score": 83,
+                "workflow_id": "artifact-cache-quarantine",
+                "workflow_title": "Artifact Cache and Mirror Quarantine"
+              },
+              {
+                "access": "approval_required",
+                "agent_class": "codex",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::artifact-cache-quarantine::codex",
+                "mcp_namespace": "registries.quarantine",
+                "path_class_id": "approval_required_tool_path",
+                "path_id": "exposure::artifact-cache-quarantine::codex::registries.quarantine",
+                "risk_tier": "high",
+                "score": 83,
+                "workflow_id": "artifact-cache-quarantine",
+                "workflow_title": "Artifact Cache and Mirror Quarantine"
+              },
+              {
+                "access": "approval_required",
+                "agent_class": "devin",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::artifact-cache-quarantine::devin",
+                "mcp_namespace": "registries.quarantine",
+                "path_class_id": "approval_required_tool_path",
+                "path_id": "exposure::artifact-cache-quarantine::devin::registries.quarantine",
+                "risk_tier": "high",
+                "score": 83,
+                "workflow_id": "artifact-cache-quarantine",
+                "workflow_title": "Artifact Cache and Mirror Quarantine"
+              },
+              {
+                "access": "write_branch",
+                "agent_class": "claude",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::crypto-payment-security::claude",
+                "mcp_namespace": "repo.contents",
+                "path_class_id": "high_impact_authority_path",
+                "path_id": "exposure::crypto-payment-security::claude::repo.contents",
+                "risk_tier": "high",
+                "score": 79,
+                "workflow_id": "crypto-payment-security",
+                "workflow_title": "Cryptocurrency and Crypto Payments Security"
+              },
+              {
+                "access": "write_branch",
+                "agent_class": "codex",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::crypto-payment-security::codex",
+                "mcp_namespace": "repo.contents",
+                "path_class_id": "high_impact_authority_path",
+                "path_id": "exposure::crypto-payment-security::codex::repo.contents",
+                "risk_tier": "high",
+                "score": 79,
+                "workflow_id": "crypto-payment-security",
+                "workflow_title": "Cryptocurrency and Crypto Payments Security"
+              },
+              {
+                "access": "write_branch",
+                "agent_class": "cursor",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::crypto-payment-security::cursor",
+                "mcp_namespace": "repo.contents",
+                "path_class_id": "high_impact_authority_path",
+                "path_id": "exposure::crypto-payment-security::cursor::repo.contents",
+                "risk_tier": "high",
+                "score": 79,
+                "workflow_id": "crypto-payment-security",
+                "workflow_title": "Cryptocurrency and Crypto Payments Security"
+              },
+              {
+                "access": "write_branch",
+                "agent_class": "claude",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::defi-blockchain-security::claude",
+                "mcp_namespace": "repo.contents",
+                "path_class_id": "high_impact_authority_path",
+                "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
+                "risk_tier": "high",
+                "score": 79,
+                "workflow_id": "defi-blockchain-security",
+                "workflow_title": "DeFi and Blockchain Protocol Security"
+              },
+              {
+                "access": "write_branch",
+                "agent_class": "codex",
+                "decision": "architecture_review",
+                "identity_id": "sr-agent::defi-blockchain-security::codex",
+                "mcp_namespace": "repo.contents",
+                "path_class_id": "high_impact_authority_path",
+                "path_id": "exposure::defi-blockchain-security::codex::repo.contents",
+                "risk_tier": "high",
+                "score": 79,
+                "workflow_id": "defi-blockchain-security",
+                "workflow_title": "DeFi and Blockchain Protocol Security"
+              }
+            ],
+            "node_counts": {
+              "agent_identity": 32,
+              "context_source": 9,
+              "evidence_pack": 10,
+              "mcp_namespace": 16,
+              "workflow": 8
+            },
+            "path_class_counts": {
+              "approval_required_tool_path": 3,
+              "context_to_read_tool": 9,
+              "context_to_write_tool": 23,
+              "high_impact_authority_path": 24,
+              "tenant_sensitive_context_path": 37
+            },
+            "total_edge_count": 296,
+            "total_node_count": 75,
+            "total_path_count": 96,
+            "workflow_count": 8
+          },
+          "failure_count": 0,
+          "incident_response_summary": {
+            "class_count": 8,
+            "decision_counts": {
+              "contain_and_open_war_room": 3,
+              "hold_for_forensics": 2,
+              "kill_session_and_escalate_board": 3
+            },
+            "failure_count": 0,
+            "required_evidence_source_count": 15,
+            "response_phase_count": 6,
+            "sev0_class_count": 2,
+            "sev1_class_count": 5,
+            "source_failure_count": 0,
+            "workflow_count": 8
+          },
+          "pack_count": 32,
+          "pack_status_counts": {
+            "ready": 32
+          },
+          "question_count": 31,
+          "readiness_summary": {
+            "active_workflow_count": 8,
+            "average_score": 95.75,
+            "blocked_workflow_count": 0,
+            "decision_counts": {
+              "pilot_guarded": 4,
+              "scale_ready": 4
+            },
+            "failure_count": 0,
+            "manual_gate_workflow_count": 0,
+            "pilot_connector_workflows": [
+              "artifact-cache-quarantine",
+              "crypto-payment-security",
+              "defi-blockchain-security"
+            ],
+            "pilot_guarded_workflow_count": 4,
+            "scale_ready_workflow_count": 4,
+            "source_failure_count": 0,
+            "workflow_count": 8
+          },
+          "section_count": 10,
+          "section_status_counts": {
+            "ready": 10
+          },
+          "status": "trust_center_ready",
+          "telemetry_summary": {
+            "decision_counts": {
+              "telemetry_ready": 8
+            },
+            "default_state": "untrusted_until_required_trace_fields_present",
+            "failure_count": 0,
+            "prohibited_field_count": 8,
+            "redaction_tier_count": 4,
+            "required_attribute_count": 26,
+            "sensitive_opt_in_attribute_count": 7,
+            "signal_class_count": 9,
+            "telemetry_check_count": 8,
+            "workflow_count": 8
+          },
+          "threat_radar_summary": {
+            "confidence_counts": {
+              "high": 12
+            },
+            "critical_or_high_signal_count": 11,
+            "feature_backlog_count": 7,
+            "horizon_counts": {
+              "next": 2,
+              "now": 10
+            },
+            "implemented_capability_count": 17,
+            "priority_counts": {
+              "critical": 4,
+              "high": 7,
+              "medium": 1
+            },
+            "signal_count": 12,
+            "source_class_counts": {
+              "frontier_lab_guidance": 3,
+              "government_framework": 4,
+              "government_guidance": 2,
+              "industry_guidance": 3,
+              "industry_standard": 3,
+              "protocol_guidance": 1,
+              "protocol_specification": 3,
+              "vendor_architecture_guidance": 1
+            },
+            "source_reference_count": 20,
+            "top_signals": [
+              {
+                "id": "agent-protocol-handoff-boundaries",
+                "priority": "critical",
+                "strategic_score": 98,
+                "title": "Agent handoffs are becoming a protocol trust boundary"
+              },
+              {
+                "id": "indirect-prompt-injection-social-engineering",
+                "priority": "critical",
+                "strategic_score": 98,
+                "title": "Indirect prompt injection is now social engineering against agents"
+              },
+              {
+                "id": "mcp-token-passthrough-and-scope-creep",
+                "priority": "critical",
+                "strategic_score": 95,
+                "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
+              },
+              {
+                "id": "agent-identity-explosion",
+                "priority": "critical",
+                "strategic_score": 93,
+                "title": "Agent identities are becoming a new non-human identity class"
+              },
+              {
+                "id": "capability-based-agentic-risk-governance",
+                "priority": "high",
+                "strategic_score": 93,
+                "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
+              }
+            ]
+          }
+        }
+      },
+      "title": "Enterprise Trust Center Export"
+    },
+    {
+      "available": true,
+      "category": "customer_runtime_proof",
+      "failure_count": 0,
+      "id": "secure_context_customer_proof_pack",
+      "mcp_tools": [
+        "recipes_secure_context_customer_proof_pack"
+      ],
+      "path": "data/evidence/secure-context-customer-proof-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "b0b7a96104de32fdc55fe4154311680a432f2a0e15d89b053d0c2a9e687776d6",
+      "status": "ready",
+      "summary": {
+        "key": "customer_proof_summary",
+        "value": {
+          "claim_count": 7,
+          "default_state": "reference_evidence_ready_customer_runtime_proof_required",
+          "failure_count": 0,
+          "metric_count": 9,
+          "pack_count": 10,
+          "pack_status_counts": {
+            "ready": 10
+          },
+          "proof_claim_status_counts": {
+            "reference_ready_customer_runtime_required": 7
+          },
+          "ready_source_pack_count": 10,
+          "renewal_gate_count": 5,
+          "status": "customer_proof_contract_ready"
+        }
+      },
+      "title": "Secure Context Customer Proof Pack"
+    },
+    {
+      "available": true,
+      "category": "hosted_product",
+      "failure_count": 0,
+      "id": "hosted_mcp_readiness_pack",
+      "mcp_tools": [
+        "recipes_hosted_mcp_readiness_pack"
+      ],
+      "path": "data/evidence/hosted-mcp-readiness-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "4eaea921a2f4c0f7705219f28f1d5caaab7a439d63adeeb2347300a877920fcf",
+      "status": "ready",
+      "summary": {
+        "key": "hosted_mcp_readiness_summary",
+        "value": {
+          "buyer_evidence_count": 5,
+          "contract_status": "hosted_mcp_readiness_contract_ready",
+          "control_count": 21,
+          "control_state_counts": {
+            "design_partner_runtime_required": 5,
+            "hosted_runtime_required": 13,
+            "reference_evidence_ready": 3
+          },
+          "critical_runtime_gaps": [
+            {
+              "default_decision": "deny_until_tenant_controls_exist",
+              "id": "tenant-bound-context-index",
+              "implementation_state": "hosted_runtime_required",
+              "priority": "critical",
+              "title": "Tenant-bound context index"
+            },
+            {
+              "default_decision": "hold_for_design_partner_runtime",
+              "id": "private-evidence-ingestion",
+              "implementation_state": "design_partner_runtime_required",
+              "priority": "critical",
+              "title": "Private evidence ingestion boundary"
+            },
+            {
+              "default_decision": "hold_for_hosted_runtime",
+              "id": "protected-resource-authorization",
+              "implementation_state": "hosted_runtime_required",
+              "priority": "critical",
+              "title": "Protected-resource authorization"
+            },
+            {
+              "default_decision": "kill_session_on_cross_tenant_or_secret_signal",
+              "id": "no-token-passthrough",
+              "implementation_state": "hosted_runtime_required",
+              "priority": "critical",
+              "title": "No token passthrough"
+            },
+            {
+              "default_decision": "hold_for_hosted_runtime",
+              "id": "connector-runtime-isolation",
+              "implementation_state": "hosted_runtime_required",
+              "priority": "critical",
+              "title": "Connector runtime isolation"
+            },
+            {
+              "default_decision": "hold_for_design_partner_runtime",
+              "id": "metadata-first-telemetry",
+              "implementation_state": "design_partner_runtime_required",
+              "priority": "critical",
+              "title": "Metadata-first telemetry"
+            },
+            {
+              "default_decision": "deny_until_tenant_controls_exist",
+              "id": "context-egress-enforcement",
+              "implementation_state": "hosted_runtime_required",
+              "priority": "critical",
+              "title": "Context egress enforcement"
+            },
+            {
+              "default_decision": "hold_for_hosted_runtime",
+              "id": "signed-run-receipts",
+              "implementation_state": "hosted_runtime_required",
+              "priority": "critical",
+              "title": "Signed or verifiable run receipts"
+            },
+            {
+              "default_decision": "hold_for_design_partner_runtime",
+              "id": "customer-proof-metrics",
+              "implementation_state": "design_partner_runtime_required",
+              "priority": "critical",
+              "title": "Customer proof metrics"
+            }
+          ],
+          "default_state": "not_hosted_production_ready_until_tenant_runtime_controls_are_implemented",
+          "failure_count": 0,
+          "gate_state_counts": {
+            "blocked_until_customer_private_controls_exist": 1,
+            "design_partner_runtime_required": 2,
+            "hosted_runtime_required": 4
+          },
+          "hosted_runtime_required_count": 18,
+          "open_reference_ready": true,
+          "product_readiness_decision": "hold_for_hosted_runtime_implementation",
+          "production_ready": false,
+          "reported_source_pack_issue_count": 0,
+          "rollout_gate_count": 7,
+          "source_pack_count": 14,
+          "source_pack_ready_count": 14,
+          "stage_count": 5
+        }
+      },
+      "title": "Hosted MCP Readiness Pack"
+    },
+    {
+      "available": true,
+      "category": "commercialization",
+      "failure_count": 0,
+      "id": "secure_context_value_model",
+      "mcp_tools": [
+        "recipes_secure_context_value_model"
+      ],
+      "path": "data/evidence/secure-context-value-model.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "1ca6835a9294ff004bb98ea77bbb7f75b9bd4fa0473add6096f916292a25ca00",
+      "status": "ready",
+      "summary": {
+        "key": "value_model_summary",
+        "value": {
+          "annual_net_value_range_usd": {
+            "max": 786000,
+            "min": 36384
+          },
+          "default_state": "assumption_based_until_customer_runtime_data_is_bound",
+          "failure_count": 0,
+          "ready_source_pack_count": 7,
+          "scenario_count": 3,
+          "source_pack_count": 7,
+          "source_pack_status_counts": {
+            "ready": 7
+          },
+          "status": "value_model_ready",
+          "value_driver_count": 5,
+          "value_driver_status_counts": {
+            "ready": 5
+          }
+        }
+      },
+      "title": "Secure Context Value Model"
+    },
+    {
+      "available": true,
+      "category": "commercialization",
+      "failure_count": 0,
+      "id": "design_partner_pilot_pack",
+      "mcp_tools": [
+        "recipes_design_partner_pilot_pack"
+      ],
+      "path": "data/evidence/design-partner-pilot-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "6199dc7f67c99891f6f714e4b16e02b4fea3940a0de0b74ca3ac178ac1282399",
+      "status": "ready",
+      "summary": {
+        "key": "pilot_summary",
+        "value": {
+          "buyer_segment_count": 4,
+          "decision": "ready_for_design_partner_outreach",
+          "failure_count": 0,
+          "monetization_wedge_count": 6,
+          "pilot_phase_count": 5,
+          "readiness_score": 100,
+          "source_pack_ready_count": 12,
+          "source_pack_total": 12,
+          "success_metric_count": 10
+        }
+      },
+      "title": "Design Partner Pilot Pack"
+    },
+    {
+      "available": true,
+      "category": "runtime_receipts",
+      "failure_count": 0,
+      "id": "agentic_run_receipt_pack",
+      "mcp_tools": [
+        "recipes_agentic_run_receipt_pack"
+      ],
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+      "status": "ready",
+      "summary": {
+        "key": "receipt_summary",
+        "value": {
+          "default_state": "untrusted_until_complete",
+          "failure_count": 0,
+          "readiness_decision_counts": {
+            "pilot_guarded": 4,
+            "scale_ready": 4
+          },
+          "required_event_class_count": 10,
+          "source_failure_count": 0,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Run Receipt Pack"
+    },
+    {
+      "available": true,
+      "category": "telemetry",
+      "failure_count": 0,
+      "id": "agentic_telemetry_contract",
+      "mcp_tools": [
+        "recipes_agentic_telemetry_contract",
+        "recipes_evaluate_agentic_telemetry_event"
+      ],
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f",
+      "status": "ready",
+      "summary": {
+        "key": "telemetry_summary",
+        "value": {
+          "decision_counts": {
+            "telemetry_ready": 8
+          },
+          "default_state": "untrusted_until_required_trace_fields_present",
+          "failure_count": 0,
+          "prohibited_field_count": 8,
+          "redaction_tier_count": 4,
+          "required_attribute_count": 26,
+          "sensitive_opt_in_attribute_count": 7,
+          "signal_class_count": 9,
+          "telemetry_check_count": 8,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Telemetry Contract"
+    },
+    {
+      "available": true,
+      "category": "mcp_policy",
+      "failure_count": 0,
+      "id": "mcp_authorization_conformance_pack",
+      "mcp_tools": [
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_evaluate_mcp_authorization_decision"
+      ],
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f",
+      "status": "ready",
+      "summary": {
+        "key": "authorization_summary",
+        "value": {
+          "candidate_count": 3,
+          "candidate_decision_counts": {
+            "approve_for_pilot": 1,
+            "deny_until_redesigned": 1,
+            "hold_for_authorization_evidence": 1
+          },
+          "client_metadata_evidence_required_count": 16,
+          "connector_count": 16,
+          "failure_count": 0,
+          "metadata_evidence_required_count": 16,
+          "registered_decision_counts": {
+            "approve_public_context_no_auth": 1,
+            "approve_with_gateway_attestation": 15
+          },
+          "step_up_connector_count": 1,
+          "workflow_count": 8
+        }
+      },
+      "title": "MCP Authorization Conformance Pack"
+    },
+    {
+      "available": true,
+      "category": "mcp_policy",
+      "failure_count": 0,
+      "id": "mcp_elicitation_boundary_pack",
+      "mcp_tools": [
+        "recipes_mcp_elicitation_boundary_pack",
+        "recipes_evaluate_mcp_elicitation_boundary_decision"
+      ],
+      "path": "data/evidence/mcp-elicitation-boundary-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "1d23dc36d690bdd499686977d9a853ee6e524ac10ffd1a745ab9156129c92823",
+      "status": "ready",
+      "summary": {
+        "key": "elicitation_boundary_summary",
+        "value": {
+          "allowed_profile_count": 4,
+          "critical_or_high_profile_count": 5,
+          "decision_counts": {
+            "allow_elicitation_with_receipt": 4,
+            "deny_sensitive_form_elicitation": 1,
+            "deny_untrusted_elicitation_url": 1,
+            "hold_for_elicitation_evidence": 1
+          },
+          "failure_count": 0,
+          "mode_counts": {
+            "form": 3,
+            "url": 4
+          },
+          "profile_count": 7,
+          "risk_tier_counts": {
+            "critical": 3,
+            "high": 2,
+            "low": 1,
+            "medium": 1
+          },
+          "status": "elicitation_boundary_ready",
+          "workflow_rule_count": 4
+        }
+      },
+      "title": "MCP Elicitation Boundary Pack"
+    },
+    {
+      "available": true,
+      "category": "mcp_policy",
+      "failure_count": 0,
+      "id": "mcp_tool_surface_drift_pack",
+      "mcp_tools": [
+        "recipes_mcp_tool_surface_drift_pack",
+        "recipes_evaluate_mcp_tool_surface_drift_decision"
+      ],
+      "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "397800a9a935c162067c29772bce422f79f52bf99444f6b64639f2b6f9673210",
+      "status": "ready",
+      "summary": {
+        "key": "tool_surface_summary",
+        "value": {
+          "default_decision_counts": {
+            "allow_pinned_tool_surface": 5,
+            "hold_for_tool_surface_review": 1
+          },
+          "failure_count": 0,
+          "high_impact_surface_count": 3,
+          "namespace_count": 6,
+          "source_kind_counts": {
+            "candidate_connector": 1,
+            "registered_connector": 5
+          },
+          "status": "drift_baseline_ready",
+          "surface_count": 6
+        }
+      },
+      "title": "MCP Tool Surface Drift Pack"
+    },
+    {
+      "available": true,
+      "category": "data_boundary",
+      "failure_count": 0,
+      "id": "context_egress_boundary_pack",
+      "mcp_tools": [
+        "recipes_context_egress_boundary_pack",
+        "recipes_evaluate_context_egress_decision"
+      ],
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833",
+      "status": "ready",
+      "summary": {
+        "key": "egress_boundary_summary",
+        "value": {
+          "data_class_counts": {
+            "curated_security_guidance": 2,
+            "generated_policy_evidence": 7
+          },
+          "decision_counts": {
+            "allow_public_egress_with_citation": 9
+          },
+          "destination_class_count": 7,
+          "failure_count": 0,
+          "namespace_policy_count": 24,
+          "prohibited_data_class_count": 2,
+          "source_count": 9,
+          "tenant_bound_data_class_count": 7,
+          "workflow_count": 8,
+          "workflow_namespace_data_class_counts": {
+            "curated_security_guidance": 1,
+            "customer_asset_metadata": 5,
+            "customer_case_context": 2,
+            "customer_finding_metadata": 5,
+            "customer_pipeline_metadata": 3,
+            "customer_source_code": 7,
+            "public_vulnerability_intelligence": 1
+          }
+        }
+      },
+      "title": "Context Egress Boundary Pack"
+    },
+    {
+      "available": true,
+      "category": "context_provenance",
+      "failure_count": 0,
+      "id": "secure_context_lineage_ledger",
+      "mcp_tools": [
+        "recipes_secure_context_lineage_ledger",
+        "recipes_evaluate_secure_context_lineage_decision"
+      ],
+      "path": "data/evidence/secure-context-lineage-ledger.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "4dc2a684c9dff94c72b46e599c18b9af68a9ff5bd7f29eebee029b417c7265ea",
+      "status": "ready",
+      "summary": {
+        "key": "lineage_summary",
+        "value": {
+          "default_decision": "deny_unbound_context_lineage",
+          "failure_count": 0,
+          "required_runtime_field_count": 19,
+          "source_decision_counts": {
+            "allow_lineage_bound_context": 8,
+            "hold_for_poisoning_review": 1
+          },
+          "source_lineage_count": 9,
+          "stage_count": 9,
+          "workflow_decision_counts": {
+            "hold_for_poisoning_review": 8
+          },
+          "workflow_lineage_count": 8,
+          "workflow_reuse_class_counts": {
+            "cross_workflow_policy_reuse": 8,
+            "same_run_context_replay": 8
+          }
+        }
+      },
+      "title": "Secure Context Lineage Ledger"
+    },
+    {
+      "available": true,
+      "category": "context_provenance",
+      "failure_count": 0,
+      "id": "secure_context_attestation_pack",
+      "mcp_tools": [
+        "recipes_secure_context_attestation_pack",
+        "recipes_evaluate_context_attestation_decision"
+      ],
+      "path": "data/evidence/secure-context-attestation-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "3ed40d601397eec16a6d941187a62a5d5512584230c66f40e926cb99d1a3ee9d",
+      "status": "ready",
+      "summary": {
+        "key": "attestation_summary",
+        "value": {
+          "active_subject_count": 19,
+          "context_source_subject_count": 9,
+          "decision_counts": {
+            "allow_attested_context": 9,
+            "allow_attested_workflow_context": 8
+          },
+          "failure_count": 0,
+          "source_artifact_subject_count": 2,
+          "status": "ready_for_open_reference_use",
+          "status_counts": {
+            "active": 19
+          },
+          "total_subject_count": 19,
+          "workflow_package_subject_count": 8
+        }
+      },
+      "title": "Secure Context Attestation Pack"
+    },
+    {
+      "available": true,
+      "category": "evals",
+      "failure_count": 0,
+      "id": "secure_context_eval_pack",
+      "mcp_tools": [
+        "recipes_secure_context_eval_pack",
+        "recipes_evaluate_secure_context_eval_case"
+      ],
+      "path": "data/evidence/secure-context-eval-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995",
+      "status": "ready",
+      "summary": {
+        "key": "eval_summary",
+        "value": {
+          "average_score": 100,
+          "decision_counts": {
+            "eval_ready": 7
+          },
+          "failure_count": 0,
+          "ready_scenario_count": 7,
+          "scenario_count": 7,
+          "scenario_type_counts": {
+            "a2a_handoff_boundary": 1,
+            "answer_contract": 1,
+            "context_poisoning_resilience": 1,
+            "egress_safety": 2,
+            "retrieval_correctness": 1,
+            "source_attestation": 1
+          },
+          "total_failed_checks": 0
+        }
+      },
+      "title": "Secure Context Eval Pack"
+    },
+    {
+      "available": true,
+      "category": "incident_response",
+      "failure_count": 0,
+      "id": "agentic_incident_response_pack",
+      "mcp_tools": [
+        "recipes_agentic_incident_response_pack",
+        "recipes_evaluate_agentic_incident_response_decision"
+      ],
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527",
+      "status": "ready",
+      "summary": {
+        "key": "incident_response_summary",
+        "value": {
+          "class_count": 8,
+          "decision_counts": {
+            "contain_and_open_war_room": 3,
+            "hold_for_forensics": 2,
+            "kill_session_and_escalate_board": 3
+          },
+          "failure_count": 0,
+          "required_evidence_source_count": 15,
+          "response_phase_count": 6,
+          "sev0_class_count": 2,
+          "sev1_class_count": 5,
+          "source_failure_count": 0,
+          "workflow_count": 8
+        }
+      },
+      "title": "Agentic Incident Response Pack"
+    },
+    {
+      "available": true,
+      "category": "source_quality",
+      "failure_count": 0,
+      "id": "agentic_source_freshness_watch",
+      "mcp_tools": [
+        "recipes_agentic_source_freshness_watch"
+      ],
+      "path": "data/evidence/agentic-source-freshness-watch.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "ef87ecc69eb968dcbab01bf9f306c5f5050ae96083b5904650ec0d5fb419b21d",
+      "status": "ready",
+      "summary": {
+        "key": "freshness_summary",
+        "value": {
+          "failure_count": 0,
+          "freshness_class_counts": {
+            "current_reference": 16,
+            "recent_signal": 14,
+            "standing_reference": 5,
+            "undated_review_required": 4
+          },
+          "newest_sources": [
+            {
+              "id": "openai-agents-sdk-guardrails-2026",
+              "name": "OpenAI Agents SDK Guardrails",
+              "published": "2026-05-04",
+              "publisher_family": "OpenAI",
+              "url": "https://openai.github.io/openai-agents-js/guides/guardrails/"
+            },
+            {
+              "id": "openai-agents-tracing-2026",
+              "name": "OpenAI Agents SDK Tracing",
+              "published": "2026-05-04",
+              "publisher_family": "OpenAI",
+              "url": "https://openai.github.io/openai-agents-js/guides/tracing/"
+            },
+            {
+              "id": "opentelemetry-genai-agent-spans-2026",
+              "name": "OpenTelemetry GenAI Agent and Framework Spans",
+              "published": "2026-05-04",
+              "publisher_family": "OpenTelemetry",
+              "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/"
+            },
+            {
+              "id": "csa-star-ai-catastrophic-risk-annex-2026",
+              "name": "STAR for AI Catastrophic Risk Annex",
+              "published": "2026-04-29",
+              "publisher_family": "Cloud Security Alliance",
+              "url": "https://cloudsecurityalliance.org/press-releases/2026/04/29/csai-foundation-announces-key-milestones-to-secure-the-agentic-control-plane"
+            },
+            {
+              "id": "a2a-protocol-latest",
+              "name": "Agent2Agent Protocol Specification",
+              "published": "2026-04-17",
+              "publisher_family": "A2A",
+              "url": "https://a2a-protocol.org/latest/specification/"
+            },
+            {
+              "id": "owasp-genai-exploit-roundup-q1-2026",
+              "name": "OWASP GenAI Exploit Round-up Report Q1 2026",
+              "published": "2026-04-14",
+              "publisher_family": "OWASP",
+              "url": "https://genai.owasp.org/2026/04/14/owasp-genai-exploit-round-up-report-q1-2026/"
+            },
+            {
+              "id": "linux-foundation-a2a-production-2026",
+              "name": "A2A Protocol production-ready adoption milestone",
+              "published": "2026-04-09",
+              "publisher_family": "Linux Foundation",
+              "url": "https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year"
+            },
+            {
+              "id": "nist-ai-rmf-2026-critical-infrastructure",
+              "name": "NIST AI Risk Management Framework",
+              "published": "2026-04-07",
+              "publisher_family": "NIST",
+              "url": "https://www.nist.gov/itl/ai-risk-management-framework"
+            }
+          ],
+          "primary_watchlist_count": 10,
+          "primary_watchlist_covered_count": 10,
+          "publisher_family_counts": {
+            "A2A": 2,
+            "Anthropic": 1,
+            "CISA": 3,
+            "Cloud Security Alliance": 6,
+            "Linux Foundation": 1,
+            "Microsoft": 1,
+            "Model Context Protocol": 4,
+            "NIST": 4,
+            "OWASP": 7,
+            "OpenAI": 5,
+            "OpenTelemetry": 1,
+            "Unknown": 4
+          },
+          "source_class_counts": {
+            "frontier_lab_guidance": 6,
+            "government_framework": 4,
+            "government_guidance": 3,
+            "incident_intelligence": 1,
+            "industry_framework": 1,
+            "industry_guidance": 3,
+            "industry_standard": 8,
+            "observability_standard": 1,
+            "protocol_guidance": 2,
+            "protocol_specification": 5,
+            "unknown": 4,
+            "vendor_architecture_guidance": 1
+          },
+          "status": "source_freshness_ready",
+          "unique_source_reference_count": 39,
+          "watch_decision_counts": {
+            "current": 9
+          },
+          "watch_source_count": 9
+        }
+      },
+      "title": "Agentic Source Freshness Watch"
+    }
+  ],
+  "source_references": [
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "why_it_matters": "Hosted MCP evidence exports must prove protected-resource metadata, resource indicators, audience-bound tokens, client metadata, scope challenges, and token-passthrough denial before buyers trust policy decisions."
+    },
+    {
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation Specification",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "why_it_matters": "URL-mode elicitation, form-mode limits, user review, consent, identity binding, and phishing controls are a new evidence surface for hosted MCP products."
+    },
+    {
+      "id": "mcp-tools-2025-11-25",
+      "name": "Model Context Protocol Tools Specification",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "why_it_matters": "Tool annotations, input schemas, output schemas, and execution metadata need trusted-source and drift evidence before they become policy inputs in an enterprise API."
+    },
+    {
+      "id": "mcp-transports-2025-11-25",
+      "name": "Model Context Protocol Transports Specification",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
+      "why_it_matters": "Streamable HTTP, origin validation, localhost binding, and authentication expectations shape the hosted evidence API boundary and local reference server warnings."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "published": "2026-02-17",
+      "publisher": "NIST CAISI",
+      "source_class": "government_framework",
+      "url": "https://www.nist.gov/caisi/ai-agent-standards-initiative",
+      "why_it_matters": "NIST is explicitly prioritizing secure, interoperable AI agents, agent authentication, identity infrastructure, and security evaluations, which makes evidence contracts strategically important for enterprise adoption."
+    },
+    {
+      "id": "openai-prompt-injection-2026",
+      "name": "Designing AI agents to resist prompt injection",
+      "published": "2026-03-11",
+      "publisher": "OpenAI",
+      "source_class": "frontier_lab_guidance",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/",
+      "why_it_matters": "OpenAI frames prompt injection as a source-to-sink and social-engineering problem, reinforcing that evidence releases must constrain dangerous transmissions even when content classification is imperfect."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "published": "2025",
+      "publisher": "OWASP Foundation",
+      "source_class": "industry_standard",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "why_it_matters": "The MCP Top 10 gives buyers a shared risk vocabulary for token exposure, scope creep, tool poisoning, audit gaps, shadow MCP servers, and context over-sharing."
+    },
+    {
+      "id": "owasp-agentic-applications-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "published": "2025-12-09",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+      "why_it_matters": "Agentic application risks push evidence exports beyond static documents into runtime identity, tool, approval, egress, telemetry, and containment proof."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "AI Controls Matrix",
+      "published": "2025-07-09",
+      "publisher": "Cloud Security Alliance",
+      "source_class": "industry_framework",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "why_it_matters": "CSA's vendor-agnostic AI control matrix gives procurement and GRC teams a familiar control language for reviewing hosted AI evidence APIs."
+    }
+  ]
+}

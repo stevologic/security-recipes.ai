@@ -1,0 +1,84 @@
+{{- $profiles := site.Data.marketplace.readiness_profiles -}}
+{{- $entries := slice -}}
+{{- range $channel := site.Data.marketplace.input_channels.channels -}}
+  {{- $runtime := $channel.runtime_support | default "live" -}}
+  {{- $authModes := $channel.auth_modes | default (slice "none") -}}
+  {{- $requirements := slice -}}
+  {{- with index $profiles.runtime_requirements $runtime -}}
+    {{- $requirements = $requirements | append . -}}
+  {{- end -}}
+  {{- range $mode := $authModes -}}
+    {{- with index $profiles.auth_mode_details $mode -}}
+      {{- $requirements = $requirements | append . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with $channel.config.source -}}
+    {{- $requirements = $requirements | append (printf "Runtime source: %s." .) -}}
+  {{- end -}}
+  {{- with $channel.config.accepted_formats -}}
+    {{- $requirements = $requirements | append (printf "Accepted formats: %s." (delimit . ", ")) -}}
+  {{- end -}}
+  {{- if and (not $channel.config.accepted_formats) $channel.config.base_url -}}
+    {{- $requirements = $requirements | append (printf "Provider endpoint: %s." $channel.config.base_url) -}}
+  {{- end -}}
+  {{- $blockers := index $profiles.runtime_blockers $runtime | default (slice) -}}
+  {{- $entries = $entries | append (dict
+    "key" (printf "input:%s" $channel.id)
+    "kind" "input"
+    "label" $channel.label
+    "category" $channel.category
+    "status" $channel.status
+    "runtime_support" $runtime
+    "runtime_label" (index $profiles.runtime_labels $runtime)
+    "auth_modes" $authModes
+    "description" $channel.description
+    "config_type" $channel.config.type
+    "requirements" $requirements
+    "blockers" $blockers
+  ) -}}
+{{- end -}}
+{{- range $channel := site.Data.marketplace.output_channels.channels -}}
+  {{- $runtime := $channel.runtime_support | default "copy_only" -}}
+  {{- $authModes := index $profiles.output_driver_auth_modes $channel.driver | default (slice "none") -}}
+  {{- $requirements := slice $channel.requirement -}}
+  {{- with index $profiles.runtime_requirements $runtime -}}
+    {{- $requirements = $requirements | append . -}}
+  {{- end -}}
+  {{- range $mode := $authModes -}}
+    {{- with index $profiles.auth_mode_details $mode -}}
+      {{- $requirements = $requirements | append . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if $channel.browser_delivery -}}
+    {{- $requirements = $requirements | append "Browser delivery is always operator-triggered; no server-side secret storage is introduced by this route." -}}
+  {{- end -}}
+  {{- $blockers := index $profiles.runtime_blockers $runtime | default (slice) -}}
+  {{- $entries = $entries | append (dict
+    "key" (printf "output:%s" $channel.id)
+    "kind" "output"
+    "label" $channel.label
+    "category" $channel.category
+    "status" $channel.status
+    "runtime_support" $runtime
+    "runtime_label" (index $profiles.runtime_labels $runtime)
+    "auth_modes" $authModes
+    "description" $channel.description
+    "config_type" $channel.config.type
+    "browser_delivery" $channel.browser_delivery
+    "requirements" $requirements
+    "blockers" $blockers
+  ) -}}
+{{- end -}}
+{{- dict
+  "generated_at" (now.Format "2006-01-02T15:04:05Z07:00")
+  "profiles" $profiles
+  "counts" (dict
+    "total_entries" (len $entries)
+    "live" (len (where $entries "runtime_support" "live"))
+    "live_or_copy" (len (where $entries "runtime_support" "live_or_copy"))
+    "copy_only" (len (where $entries "runtime_support" "copy_only"))
+    "planned" (len (where $entries "runtime_support" "planned"))
+    "config_only" (len (where $entries "runtime_support" "config_only"))
+  )
+  "entries" $entries
+| jsonify -}}

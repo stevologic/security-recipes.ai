@@ -1,0 +1,348 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define a conservative acquisition and enterprise-value model for SecurityRecipes so the open corpus, generated evidence packs, and production MCP path can be evaluated as a credible secure context layer business rather than a documentation-only site.",
+  "positioning": {
+    "buyer": "AI platform leaders, product security, AppSec, GRC, procurement security, model-risk, VC, and acquisition diligence teams",
+    "category": "Secure context layer value model for agentic AI and MCP governance",
+    "enterprise_promise": "SecurityRecipes makes AI easier to approve by turning agentic security knowledge, MCP control evidence, and runtime decision policies into one inspectable business case with conservative ROI assumptions and clear hosted product wedges.",
+    "why_now": "Enterprise agent adoption is being blocked by unresolved questions around context provenance, MCP authorization, tool-surface drift, non-human identity, protocol handoffs, telemetry evidence, and secure-by-design accountability. Buyers need technical evidence and economic justification in the same packet."
+  },
+  "source_references": [
+    {
+      "id": "mcp-changelog-2025-11-25",
+      "name": "Model Context Protocol 2025-11-25 Key Changes",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
+      "source_class": "protocol_specification",
+      "why_it_matters": "MCP is still changing quickly, including authorization discovery, incremental scope consent, URL elicitation, task support, and metadata surfaces that create premium drift-monitoring opportunities."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Protected MCP servers require resource indicators, audience validation, PKCE, short-lived tokens, and token-passthrough denial before agent authority can be trusted."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "publisher": "NIST",
+      "published": "2026-02-17",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "source_class": "government_framework",
+      "why_it_matters": "NIST is prioritizing interoperable agent protocols, agent authentication, identity infrastructure, and security evaluations, which validates SecurityRecipes' protocol and identity control-plane thesis."
+    },
+    {
+      "id": "nist-caisi-ai-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "publisher": "NIST CAISI",
+      "published": "2026-01-12",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "source_class": "government_framework",
+      "why_it_matters": "CAISI identifies indirect prompt injection, data poisoning, misaligned actions, and deployment access control as distinct security challenges for agent systems."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "source_class": "industry_standard",
+      "why_it_matters": "OWASP gives enterprise buyers shared language for tool misuse, identity abuse, context poisoning, insecure inter-agent communication, cascading failures, and rogue-agent risk."
+    },
+    {
+      "id": "nist-ai-rmf-gai-profile-2024",
+      "name": "NIST AI RMF Generative AI Profile",
+      "publisher": "NIST",
+      "published": "2024-07-26",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "source_class": "government_framework",
+      "why_it_matters": "The profile supports risk management, measurement, governance, and lifecycle thinking for generative AI systems that enterprises can map to secure context operations."
+    },
+    {
+      "id": "nist-sp-800-218a",
+      "name": "Secure Software Development Practices for Generative AI and Dual-Use Foundation Models",
+      "publisher": "NIST",
+      "published": "2024-07-26",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/a/final",
+      "source_class": "government_framework",
+      "why_it_matters": "AI systems still need secure development discipline, supply-chain governance, verification, and acquirer-readable evidence."
+    },
+    {
+      "id": "cisa-secure-by-design",
+      "name": "Secure by Design",
+      "publisher": "CISA",
+      "published": "2023-10-25",
+      "url": "https://www.cisa.gov/securebydesign",
+      "source_class": "government_guidance",
+      "why_it_matters": "CISA's emphasis on executive ownership, secure defaults, transparency, and measurable customer outcomes is the right bar for a product sold into enterprise agent programs."
+    }
+  ],
+  "value_contract": {
+    "default_state": "assumption_based_until_customer_runtime_data_is_bound",
+    "minimum_value_drivers": 5,
+    "minimum_buyer_segments": 4,
+    "minimum_adoption_scenarios": 3,
+    "minimum_diligence_questions": 10,
+    "required_source_pack_keys": [
+      "enterprise_trust_center_export",
+      "agentic_control_plane_blueprint",
+      "agentic_readiness_scorecard",
+      "agentic_threat_radar",
+      "agentic_standards_crosswalk",
+      "agentic_protocol_conformance_pack",
+      "mcp_risk_coverage_pack"
+    ],
+    "required_mcp_tools": [
+      "recipes_enterprise_trust_center_export",
+      "recipes_agentic_control_plane_blueprint",
+      "recipes_agentic_readiness_scorecard",
+      "recipes_agentic_threat_radar",
+      "recipes_agentic_standards_crosswalk",
+      "recipes_agentic_protocol_conformance_pack",
+      "recipes_mcp_risk_coverage_pack"
+    ],
+    "buyer_success_criteria": [
+      "A buyer can see the business case, required evidence, and technical source packs in one generated artifact.",
+      "The model separates open distribution value from hosted enterprise MCP value.",
+      "ROI math is explicit, conservative, and labeled as assumptions until customer telemetry is attached.",
+      "Every value driver links to an evidence pack that exists in the repository.",
+      "The value model names what must be true before a realistic $10-20M acquisition outcome is credible."
+    ]
+  },
+  "value_drivers": [
+    {
+      "id": "open-knowledge-distribution",
+      "title": "Open Knowledge Distribution",
+      "description": "Public recipes, CVE prompts, agent guidance, and standards-backed documentation create search demand, community contribution, and low-friction technical trust.",
+      "evidence_pack_keys": ["agentic_threat_radar", "agentic_standards_crosswalk"],
+      "mcp_tools": ["recipes_search", "recipes_get", "recipes_agentic_threat_radar", "recipes_agentic_standards_crosswalk"],
+      "premium_surface": "Private recipe packs, customer-specific secure context registries, and standards update streams.",
+      "why_acquirer_cares": "The open corpus creates distribution and category authority while the paid layer can monetize private context and policy packaging."
+    },
+    {
+      "id": "production-mcp-control-plane",
+      "title": "Production MCP Control Plane",
+      "description": "The repo-shipped MCP server proves a read-only secure context layer, while the hosted path can add auth, metering, drift alerts, signed receipts, and customer policy enforcement.",
+      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_protocol_conformance_pack", "mcp_risk_coverage_pack"],
+      "mcp_tools": ["recipes_enterprise_trust_center_export", "recipes_agentic_protocol_conformance_pack", "recipes_mcp_risk_coverage_pack"],
+      "premium_surface": "Hosted MCP gateway, live tool-surface diffing, protected-resource metadata monitoring, and signed policy decisions.",
+      "why_acquirer_cares": "MCP is becoming the agent integration layer; a security control plane that already speaks MCP can be embedded into model labs, AI platforms, or security products."
+    },
+    {
+      "id": "trust-center-evidence",
+      "title": "Trust-Center Evidence",
+      "description": "Generated evidence packs replace hand-written claims with hashes, readiness summaries, source artifacts, diligence questions, and MCP-readable exports.",
+      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_control_plane_blueprint", "agentic_readiness_scorecard"],
+      "mcp_tools": ["recipes_enterprise_trust_center_export", "recipes_agentic_control_plane_blueprint", "recipes_agentic_readiness_scorecard"],
+      "premium_surface": "Customer trust-center export API, private evidence ingestion, approval receipt exports, and procurement report generation.",
+      "why_acquirer_cares": "Enterprise sales and acquisition diligence both accelerate when technical controls are packaged as inspectable evidence."
+    },
+    {
+      "id": "runtime-receipts-evals",
+      "title": "Runtime Receipts and Evals",
+      "description": "Run receipts, telemetry contracts, eval packs, measurement probes, and red-team drill artifacts give buyers a path from policy intent to runtime proof.",
+      "evidence_pack_keys": ["enterprise_trust_center_export", "agentic_readiness_scorecard"],
+      "mcp_tools": ["recipes_enterprise_trust_center_export", "recipes_agentic_readiness_scorecard"],
+      "premium_surface": "Run receipt retention, continuous eval replay, incident evidence vaulting, and SIEM/SOAR export.",
+      "why_acquirer_cares": "A defensible agent security product must prove what happened during a run, not only what policy said should happen."
+    },
+    {
+      "id": "protocol-and-standards-drift",
+      "title": "Protocol and Standards Drift",
+      "description": "Agent protocols, MCP authorization, A2A, OWASP agentic risks, NIST agent standards, and frontier-lab guidance are changing fast enough to justify a continuous monitoring product.",
+      "evidence_pack_keys": ["agentic_protocol_conformance_pack", "agentic_standards_crosswalk", "agentic_threat_radar"],
+      "mcp_tools": ["recipes_agentic_protocol_conformance_pack", "recipes_agentic_standards_crosswalk", "recipes_agentic_threat_radar"],
+      "premium_surface": "Standards drift alerts, protocol conformance APIs, connector upgrade review, and buyer evidence refresh.",
+      "why_acquirer_cares": "A moving standards surface creates recurring demand for packaged controls, evidence updates, and hosted monitoring."
+    }
+  ],
+  "buyer_segments": [
+    {
+      "id": "frontier-model-lab",
+      "title": "Frontier Model Lab",
+      "buyer_trigger": "Needs enterprise customers to trust agents that retrieve context, call MCP tools, and delegate work across protocol boundaries.",
+      "primary_wedge_ids": ["production-mcp-control-plane", "runtime-receipts-evals", "protocol-and-standards-drift"],
+      "proof_needed": "Hosted MCP conformance, context provenance, prompt-injection source-to-sink controls, and customer-visible run receipts.",
+      "likely_objection": "The open repo is evidence-rich but not yet a hosted enforcement plane."
+    },
+    {
+      "id": "ai-platform-vendor",
+      "title": "AI Platform Vendor",
+      "buyer_trigger": "Wants a secure context and MCP governance layer without building all standards mapping, eval, and evidence packaging from scratch.",
+      "primary_wedge_ids": ["trust-center-evidence", "production-mcp-control-plane", "protocol-and-standards-drift"],
+      "proof_needed": "Connector intake, tool-surface drift, authorization conformance, trust-center exports, and customer-specific policy mapping.",
+      "likely_objection": "Needs productized tenant isolation, auth, metering, SLAs, and integration support."
+    },
+    {
+      "id": "security-platform-vendor",
+      "title": "Security Platform Vendor",
+      "buyer_trigger": "Needs agentic AI and MCP security coverage to extend AppSec, CNAPP, identity, or SOAR portfolios.",
+      "primary_wedge_ids": ["open-knowledge-distribution", "runtime-receipts-evals", "trust-center-evidence"],
+      "proof_needed": "Mappings to OWASP, NIST, MCP, identity, telemetry, incident response, and remediation workflow controls.",
+      "likely_objection": "Needs live connectors to existing issue trackers, SIEMs, code hosts, and identity providers."
+    },
+    {
+      "id": "regulated-enterprise",
+      "title": "Regulated Enterprise",
+      "buyer_trigger": "Needs to approve agent pilots without letting agents inherit broad human authority, unmanaged context, or unaudited MCP tools.",
+      "primary_wedge_ids": ["trust-center-evidence", "runtime-receipts-evals", "production-mcp-control-plane"],
+      "proof_needed": "Design-partner pilot with policy decisions, approval receipts, redacted telemetry, and measurable remediation outcomes.",
+      "likely_objection": "Needs private deployment, customer-specific evidence, and governance signoff before production use."
+    }
+  ],
+  "adoption_scenarios": [
+    {
+      "id": "security-team-pilot",
+      "title": "Security Team Pilot",
+      "time_horizon": "90 days",
+      "assumptions": {
+        "runs_per_month": 24,
+        "avoided_engineer_hours_per_run": 3,
+        "automation_success_rate": 0.55,
+        "reviewer_hours_per_run": 0.45,
+        "loaded_hourly_cost_usd": 140,
+        "annual_platform_cost_usd": 12000,
+        "implementation_cost_usd": 15000
+      },
+      "required_evidence": [
+        "workflow-control-plane report",
+        "MCP gateway policy decisions",
+        "agentic run receipts",
+        "trust-center export"
+      ],
+      "go_no_go": "Proceed when at least two workflows produce reviewer-approved PRs or triage notes with receipt evidence and no kill-signal bypass."
+    },
+    {
+      "id": "platform-team-rollout",
+      "title": "AI Platform Team Rollout",
+      "time_horizon": "6 months",
+      "assumptions": {
+        "runs_per_month": 120,
+        "avoided_engineer_hours_per_run": 2.5,
+        "automation_success_rate": 0.62,
+        "reviewer_hours_per_run": 0.35,
+        "loaded_hourly_cost_usd": 155,
+        "annual_platform_cost_usd": 60000,
+        "implementation_cost_usd": 45000
+      },
+      "required_evidence": [
+        "hosted MCP auth and policy logs",
+        "connector drift baselines",
+        "telemetry contract enforcement",
+        "quarterly access review"
+      ],
+      "go_no_go": "Proceed when hosted policy decisions, telemetry redaction, and customer-private evidence ingestion are operating for production pilot teams."
+    },
+    {
+      "id": "hosted-mcp-control-plane",
+      "title": "Hosted MCP Control Plane",
+      "time_horizon": "12 months",
+      "assumptions": {
+        "runs_per_month": 400,
+        "avoided_engineer_hours_per_run": 2,
+        "automation_success_rate": 0.7,
+        "reviewer_hours_per_run": 0.25,
+        "loaded_hourly_cost_usd": 175,
+        "annual_platform_cost_usd": 180000,
+        "implementation_cost_usd": 90000
+      },
+      "required_evidence": [
+        "multi-tenant MCP gateway controls",
+        "signed context releases",
+        "continuous eval replay",
+        "enterprise trust-center API",
+        "incident evidence vault"
+      ],
+      "go_no_go": "Proceed when design partners use the hosted service for real MCP governance and renew based on measurable risk-reduction and reviewer-time savings."
+    }
+  ],
+  "monetization_wedges": [
+    {
+      "id": "hosted-mcp-policy",
+      "title": "Hosted MCP Policy and Drift",
+      "pricing_motion": "Per tenant plus connector count",
+      "customer_value": "Block unsafe MCP calls, monitor metadata and tool-surface drift, and produce evidence for reviews."
+    },
+    {
+      "id": "private-secure-context-registry",
+      "title": "Private Secure Context Registry",
+      "pricing_motion": "Per workspace or private context pack",
+      "customer_value": "Register, hash, attest, scan, and retrieve customer-specific agent context without exposing it publicly."
+    },
+    {
+      "id": "run-receipt-evidence-vault",
+      "title": "Run Receipt Evidence Vault",
+      "pricing_motion": "Usage plus retention tier",
+      "customer_value": "Store signed run receipts, approval evidence, telemetry summaries, and incident replay references."
+    },
+    {
+      "id": "trust-center-export-api",
+      "title": "Trust Center Export API",
+      "pricing_motion": "Enterprise subscription",
+      "customer_value": "Answer procurement, platform intake, audit, and acquisition questions from live customer evidence."
+    },
+    {
+      "id": "continuous-agentic-evals",
+      "title": "Continuous Agentic Evals",
+      "pricing_motion": "Per workflow or scenario bundle",
+      "customer_value": "Replay prompt-injection, tool misuse, egress, handoff, and catastrophic-risk cases after model, connector, and policy drift."
+    }
+  ],
+  "diligence_questions": [
+    {
+      "id": "why-not-docs-only",
+      "question": "Why is SecurityRecipes more valuable than a documentation library?",
+      "answer": "The site now ships generated evidence packs, deterministic evaluators, MCP-readable trust artifacts, runtime decision contracts, and a path to hosted policy enforcement."
+    },
+    {
+      "id": "why-now",
+      "question": "Why does this need to exist now?",
+      "answer": "MCP, A2A, browser agents, non-human identity, agentic skills, and autonomous remediation are moving faster than enterprise governance processes can absorb without a secure context layer."
+    },
+    {
+      "id": "what-is-open",
+      "question": "What remains open in an open-core strategy?",
+      "answer": "Public recipes, prompt guidance, source-backed standards mapping, local generators, runtime evaluators, and the read-only reference MCP server stay useful and forkable."
+    },
+    {
+      "id": "what-is-paid",
+      "question": "What can be monetized without closing the corpus?",
+      "answer": "Hosted MCP policy enforcement, private context registries, connector drift monitoring, run-receipt retention, trust-center APIs, and customer-specific evidence packaging."
+    },
+    {
+      "id": "what-proves-roi",
+      "question": "What proves ROI instead of assumed productivity?",
+      "answer": "Customer pilots must bind runs, reviewer time, avoided remediation hours, success rate, false-positive rate, receipt completeness, and incident signals to telemetry."
+    },
+    {
+      "id": "what-is-acquirable",
+      "question": "What makes this acquirable by a frontier lab, AI platform, or security vendor?",
+      "answer": "The project sits between agents, tools, protocols, context, identity, and evidence. That control point is strategically useful to vendors that need enterprise agent trust."
+    },
+    {
+      "id": "what-is-missing",
+      "question": "What must still be built before a $10-20M outcome is credible?",
+      "answer": "Hosted auth, tenant isolation, metering, live connector monitoring, signed receipts, customer-private evidence ingestion, design-partner telemetry, and repeatable revenue proof."
+    },
+    {
+      "id": "who-buys-first",
+      "question": "Who should buy or partner first?",
+      "answer": "AI platform teams and security teams already piloting agents are the best design partners because they feel the MCP, context, identity, and evidence pain directly."
+    },
+    {
+      "id": "what-is-the-narrow-pilot",
+      "question": "What is the narrowest credible pilot?",
+      "answer": "Two security-operated remediation workflows with read-only secure context, MCP gateway decisions, approval receipts, telemetry summaries, and a trust-center export."
+    },
+    {
+      "id": "how-does-it-make-ai-easy",
+      "question": "How does this make AI easier?",
+      "answer": "It gives teams a default approval path: retrieve trusted context, enforce MCP policy, attach receipts, export evidence, and stop safely when required proof is missing."
+    }
+  ]
+}

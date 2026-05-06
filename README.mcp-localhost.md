@@ -111,6 +111,7 @@ After connecting, the server exposes these tools:
 - `recipes_evaluate_context_egress_decision`
 - `recipes_agentic_threat_radar`
 - `recipes_agentic_standards_crosswalk`
+- `recipes_agentic_source_freshness_watch`
 - `recipes_mcp_risk_coverage_pack`
 - `recipes_agentic_protocol_conformance_pack`
 - `recipes_evaluate_agentic_protocol_conformance_decision`
@@ -118,12 +119,16 @@ After connecting, the server exposes these tools:
 - `recipes_agentic_exposure_graph`
 - `recipes_agentic_posture_snapshot`
 - `recipes_evaluate_agentic_posture_decision`
+- `recipes_agentic_aivss_risk_scoring_pack`
+- `recipes_evaluate_agentic_aivss_risk_decision`
 - `recipes_agentic_app_intake_pack`
 - `recipes_evaluate_agentic_app_intake_decision`
 - `recipes_model_provider_routing_pack`
 - `recipes_evaluate_model_provider_routing_decision`
 - `recipes_agentic_catastrophic_risk_annex`
 - `recipes_evaluate_agentic_catastrophic_risk_decision`
+- `recipes_critical_infrastructure_secure_context_pack`
+- `recipes_evaluate_critical_infrastructure_context_decision`
 - `recipes_agentic_incident_response_pack`
 - `recipes_evaluate_agentic_incident_response_decision`
 - `recipes_agentic_action_runtime_pack`
@@ -133,7 +138,14 @@ After connecting, the server exposes these tools:
 - `recipes_agentic_measurement_probe_pack`
 - `recipes_agentic_telemetry_contract`
 - `recipes_evaluate_agentic_telemetry_event`
+- `recipes_agentic_soc_detection_pack`
+- `recipes_evaluate_agentic_soc_detection_event`
 - `recipes_enterprise_trust_center_export`
+- `recipes_secure_context_value_model`
+- `recipes_design_partner_pilot_pack`
+- `recipes_secure_context_buyer_diligence_brief`
+- `recipes_secure_context_customer_proof_pack`
+- `recipes_hosted_mcp_readiness_pack`
 - `recipes_match_finding`
 
 ## Use a custom config
@@ -156,21 +168,24 @@ Edit `mcp-server.toml` when you need to point the MCP server at a forked
 or self-hosted `recipes-index.json`, workflow manifest, gateway policy,
 assurance pack, identity ledger, entitlement review pack, connector trust
 pack, approval receipt pack, connector intake pack, STDIO launch boundary pack, authorization conformance pack,
-MCP elicitation boundary pack, MCP tool-risk contract, red-team drill pack, readiness scorecard,
+MCP elicitation boundary pack, MCP tool-risk contract, red-team drill pack,
+red-team replay harness, readiness scorecard,
 tool-surface drift pack, agent handoff boundary pack, A2A Agent Card trust profile,
 Agentic System BOM, secure
 context trust pack, context attestation pack, secure context eval pack,
 context poisoning guard pack, context egress boundary pack, or agentic
 threat radar, agentic standards crosswalk, MCP risk coverage pack, protocol conformance pack, control plane blueprint,
 exposure graph, catastrophic-risk annex, incident response pack,
-action runtime pack, measurement probe pack, telemetry contract, or
-trust-center export, browser-agent boundary pack, agentic app intake
-pack, model provider routing pack, or agentic posture snapshot.
+critical-infrastructure secure-context pack, action runtime pack, measurement probe pack, telemetry contract, SOC detection pack, or
+trust-center export, secure context value model, design partner pilot
+pack, buyer diligence brief, customer proof pack, hosted MCP readiness pack, browser-agent boundary pack,
+agentic AIVSS risk scoring pack, agentic app intake pack, model provider
+routing pack, or agentic posture snapshot.
 The secure context retrieval, attestation, eval, authorization, elicitation,
 MCP tool-risk, STDIO launch, handoff, A2A Agent Card trust,
 tool-surface drift, protocol-conformance, catastrophic-risk, incident-response, action-runtime,
-browser-agent boundary, entitlement-review, posture, model-provider
-routing, telemetry, approval-receipt, and egress evaluators use those generated packs and
+critical-infrastructure, browser-agent boundary, entitlement-review, AIVSS risk, posture, model-provider
+red-team replay, routing, telemetry, SOC-detection, approval-receipt, and egress evaluators use those generated packs and
 do not require separate config paths.
 
 ## Change the local port

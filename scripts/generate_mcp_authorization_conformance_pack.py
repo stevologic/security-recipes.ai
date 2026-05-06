@@ -104,7 +104,7 @@ def validate_profile(profile: dict[str, Any]) -> list[str]:
     require(contract.get("default_decision") == "hold_for_authorization_evidence", failures, "default decision must hold for missing auth evidence")
     require(str(contract.get("canonical_mcp_resource_uri", "")).startswith("https://"), failures, "canonical MCP resource URI must be https")
     require(len(as_list(contract.get("required_runtime_attributes"), "required_runtime_attributes")) >= 12, failures, "runtime attributes must include token, session, and workflow evidence")
-    require(len(as_list(profile.get("control_checks"), "profile.control_checks")) >= 9, failures, "control_checks must cover resource, token, scope, session, and audit controls")
+    require(len(as_list(profile.get("control_checks"), "profile.control_checks")) >= 12, failures, "control_checks must cover resource, token, client metadata, scope challenge, step-up, session, and audit controls")
     return failures
 
 
@@ -189,10 +189,16 @@ def registered_rows(connector_trust_pack: dict[str, Any], profile: dict[str, Any
                 "access_modes": connector.get("access_modes", []),
                 "canonical_resource_uri": canonical_resource_uri(profile),
                 "conformance_decision": registered_decision(connector, gaps),
-                "connector_id": connector.get("connector_id"),
+                "connector_id": connector.get("connector_id") or connector.get("id"),
                 "control_gaps": gaps,
                 "data_classes": connector.get("data_classes", []),
                 "evidence_mode": "gateway_control_attestation",
+                "latest_spec_controls": [
+                    "protected_resource_metadata_discovery",
+                    "client_id_metadata_document",
+                    "scope_challenge_handling",
+                    "step_up_authorization"
+                ],
                 "metadata_evidence_required": metadata,
                 "namespace": connector.get("namespace"),
                 "owner": connector.get("owner"),
@@ -216,10 +222,20 @@ def candidate_control_gaps(candidate: dict[str, Any], profile: dict[str, Any]) -
             gaps.append("resource_indicators")
         if not auth.get("audience_validation"):
             gaps.append("audience_validation")
+        if not auth.get("client_id_metadata_document"):
+            gaps.append("client_id_metadata_document")
+        if not auth.get("scope_challenge_handling"):
+            gaps.append("scope_challenge_handling")
         if not auth.get("pkce"):
             gaps.append("pkce")
         if not auth.get("short_lived_tokens"):
             gaps.append("short_lived_tokens")
+    access_modes = {
+        str(mode)
+        for mode in candidate.get("requested_access_modes", []) or candidate.get("access_modes", []) or []
+    }
+    if "approval_required" in access_modes and not auth.get("step_up_authorization"):
+        gaps.append("step_up_authorization")
     if auth.get("token_passthrough"):
         gaps.append("deny_token_passthrough")
     if network.get("allows_private_network") or network.get("allows_metadata_ip"):
@@ -271,6 +287,12 @@ def candidate_rows(
                 "control_gaps": gaps,
                 "data_classes": registry_preview.get("data_classes", []),
                 "evidence_mode": "candidate_auth_profile",
+                "latest_spec_controls": [
+                    "protected_resource_metadata_discovery",
+                    "client_id_metadata_document",
+                    "scope_challenge_handling",
+                    "step_up_authorization"
+                ],
                 "intake_decision": candidate.get("intake_decision"),
                 "namespace": candidate.get("namespace"),
                 "requested_access_modes": candidate.get("requested_access_modes", []),
@@ -351,10 +373,20 @@ def build_summary(
     return {
         "candidate_count": len(candidates),
         "candidate_decision_counts": dict(sorted(candidate_counts.items())),
+        "client_metadata_evidence_required_count": sum(
+            1
+            for row in registered
+            if "client_metadata_document_url" in (row.get("metadata_evidence_required") or [])
+        ),
         "connector_count": len(registered),
         "failure_count": len(failures),
         "metadata_evidence_required_count": sum(1 for row in registered if row.get("metadata_evidence_required")),
         "registered_decision_counts": dict(sorted(registered_counts.items())),
+        "step_up_connector_count": sum(
+            1
+            for row in registered
+            if "approval_required" in {str(mode) for mode in row.get("access_modes", []) or []}
+        ),
         "workflow_count": len(workflows),
     }
 

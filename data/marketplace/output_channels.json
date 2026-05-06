@@ -204,6 +204,200 @@
       }
     },
     {
+      "id": "pagerduty-events-v2",
+      "label": "PagerDuty Events API v2",
+      "driver": "pagerduty",
+      "category": "Incident response",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires a PagerDuty Events API v2 routing key or service integration configured for the target escalation path.",
+      "description": "Starter browser-side route for escalating a high-confidence incident or remediation brief into PagerDuty event orchestration.",
+      "config": {
+        "type": "pagerduty_events_v2",
+        "events_api_url": "https://events.pagerduty.com/v2/enqueue",
+        "event_action": "trigger",
+        "payload_class": "security_remediation",
+        "dedup_key_template": "securityrecipes-{{asset_id}}-{{finding_key}}"
+      }
+    },
+    {
+      "id": "google-chat-webhook",
+      "label": "Google Chat webhook",
+      "driver": "google-chat",
+      "category": "Collaboration",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires a Google Chat incoming webhook URL for the destination space.",
+      "description": "Starter browser-side route for posting a normalized remediation or incident brief into a Google Chat space.",
+      "config": {
+        "type": "google_chat_webhook",
+        "webhook_url": "https://chat.googleapis.com/v1/spaces/SPACE_ID/messages?key=KEY&token=TOKEN",
+        "include_fields": ["title", "severity", "scope", "next_steps", "links"]
+      }
+    },
+    {
+      "id": "azure-devops-work-item",
+      "label": "Azure DevOps work item",
+      "driver": "azure-devops",
+      "category": "Ticketing",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires an Azure DevOps organization, project, work item type, and a PAT or bearer token with Work Items write scope.",
+      "description": "Browser-side route for creating an Azure DevOps work item from a normalized remediation or scan handoff, with local preview fallback when direct delivery is blocked.",
+      "config": {
+        "type": "azure_devops_work_item",
+        "base_url": "https://dev.azure.com",
+        "project": "security-platform",
+        "work_item_type": "Issue",
+        "api_version": "7.1"
+      }
+    },
+    {
+      "id": "gitlab-issue",
+      "label": "GitLab issue",
+      "driver": "gitlab-issue",
+      "category": "Ticketing",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires a GitLab project path or ID plus a personal access token or bearer token. GitLab.com works out of the box; self-managed hosts need a browser-allowed API base URL.",
+      "description": "Browser-side route for creating a GitLab issue with a normalized remediation or triage brief, with local preview fallback when direct delivery is blocked.",
+      "config": {
+        "type": "gitlab_issue",
+        "base_url": "https://gitlab.com/api/v4",
+        "project": "group/project",
+        "labels": ["security-remediation", "ai-agent"],
+        "issue_type": "issue"
+      }
+    },
+    {
+      "id": "cortex-xsoar-incident",
+      "label": "Cortex XSOAR incident",
+      "driver": "xsoar",
+      "category": "SOAR and case management",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires a Cortex XSOAR tenant URL or incident endpoint plus API key ID and API key with incident create access. Direct browser delivery still depends on tenant CORS and any mandatory incident fields.",
+      "description": "Browser-side route for creating a Cortex XSOAR incident from a reviewed SecurityRecipes packet, with incident-shaped payloads and local preview fallback when direct delivery is blocked.",
+      "config": {
+        "type": "cortex_xsoar_incident",
+        "base_url": "https://xsoar.example.com/xsoar/public/v1/incident",
+        "api_key_header": "Authorization",
+        "api_key_id_header": "x-xdr-auth-id",
+        "create_investigation": true,
+        "incident_type": "Security",
+        "include_fields": ["name", "type", "severity", "details", "rawJSON"]
+      }
+    },
+    {
+      "id": "ibm-soar-incident",
+      "label": "IBM SOAR incident",
+      "driver": "ibm-soar",
+      "category": "SOAR and case management",
+      "status": "template",
+      "runtime_support": "planned",
+      "browser_delivery": true,
+      "requirement": "Requires an IBM SOAR organization URL and API credentials with incident create access.",
+      "description": "Starter browser-side route for creating an IBM SOAR incident from a structured SecurityRecipes packet.",
+      "config": {
+        "type": "ibm_soar_incident",
+        "base_url": "https://soar.example.com/rest/orgs/{orgId}/incidents",
+        "incident_type_ids": [123],
+        "handle_format": "names"
+      }
+    },
+    {
+      "id": "microsoft-sentinel-playbook",
+      "label": "Microsoft Sentinel playbook trigger",
+      "driver": "sentinel-playbook",
+      "category": "SOAR and case management",
+      "status": "template",
+      "runtime_support": "planned",
+      "browser_delivery": true,
+      "requirement": "Requires Azure subscription and workspace identifiers plus an OAuth token permitted to run Sentinel playbooks.",
+      "description": "Starter browser-side route for forwarding a reviewed packet into a Microsoft Sentinel incident playbook.",
+      "config": {
+        "type": "microsoft_sentinel_playbook",
+        "base_url": "https://management.azure.com",
+        "resource_path": "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/incidents/{incidentIdentifier}/runPlaybook",
+        "api_version": "2025-09-01"
+      }
+    },
+    {
+      "id": "tines-webhook",
+      "label": "Tines webhook",
+      "driver": "tines",
+      "category": "SOAR and case management",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires a Tines webhook or HTTP Request action endpoint approved for browser-triggered incident or remediation intake, with any optional auth header or custom headers configured in the browser.",
+      "description": "Browser-side route for forwarding a reviewed SecurityRecipes packet into a Tines story or event-driven workflow, with local preview fallback when direct delivery is blocked.",
+      "config": {
+        "type": "tines_webhook",
+        "webhook_url": "https://tenant.tines.com/webhook/...",
+        "story": "SecurityRecipes downstream orchestration",
+        "include_fields": ["title", "severity", "scope", "report", "links"]
+      }
+    },
+    {
+      "id": "torq-webhook",
+      "label": "Torq workflow webhook",
+      "driver": "torq",
+      "category": "SOAR and case management",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires a Torq webhook or API-triggered workflow endpoint plus any auth header or secret material approved for browser-side use.",
+      "description": "Browser-side route for sending a reviewed remediation or incident packet into a Torq automation workflow, with local preview fallback when direct delivery is blocked.",
+      "config": {
+        "type": "torq_webhook",
+        "webhook_url": "https://api.torq.io/webhooks/...",
+        "workflow": "SecurityRecipes handoff",
+        "include_fields": ["title", "severity", "scope", "recommendation", "artifacts"]
+      }
+    },
+    {
+      "id": "splunk-soar-incident",
+      "label": "Splunk SOAR incident",
+      "driver": "splunk-soar",
+      "category": "SOAR and case management",
+      "status": "native",
+      "runtime_support": "live_or_copy",
+      "browser_delivery": true,
+      "requirement": "Requires a Splunk SOAR or Phantom tenant URL or /rest/container endpoint plus a ph-auth-token for an automation user with container create access. Direct browser delivery still depends on tenant CORS and label permissions.",
+      "description": "Browser-side route for creating a Splunk SOAR container from a reviewed SecurityRecipes packet, with container-shaped payloads and local preview fallback when direct delivery is blocked.",
+      "config": {
+        "type": "splunk_soar_container",
+        "base_url": "https://phantom.example.com/rest/container",
+        "auth_header": "ph-auth-token",
+        "label": "events",
+        "container_type": "case",
+        "include_fields": ["name", "label", "description", "severity", "sensitivity", "source_data_identifier", "data"]
+      }
+    },
+    {
+      "id": "swimlane-case",
+      "label": "Swimlane case",
+      "driver": "swimlane",
+      "category": "SOAR and case management",
+      "status": "template",
+      "runtime_support": "planned",
+      "browser_delivery": true,
+      "requirement": "Requires a Swimlane environment URL, app identifier, and API token with record create access for the target case app.",
+      "description": "Starter browser-side route for creating a Swimlane case or work item from a reviewed SecurityRecipes packet.",
+      "config": {
+        "type": "swimlane_record",
+        "base_url": "https://swimlane.example.com/api",
+        "app": "Security Cases",
+        "record_type": "case"
+      }
+    },
+    {
       "id": "generic-webhook",
       "label": "Generic webhook",
       "driver": "generic-webhook",

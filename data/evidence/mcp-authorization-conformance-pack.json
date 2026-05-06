@@ -8,6 +8,9 @@
     "candidate_auth_checks": [
       "resource_indicators",
       "audience_validation",
+      "client_id_metadata_document",
+      "scope_challenge_handling",
+      "step_up_authorization",
       "pkce",
       "short_lived_tokens",
       "deny_token_passthrough",
@@ -28,11 +31,15 @@
     "live_metadata_evidence_required": [
       "protected_resource_metadata_url",
       "authorization_server_metadata_url",
+      "client_metadata_document_url",
+      "client_metadata_document_hash",
       "resource_indicator_value",
       "token_audience_value",
       "jwks_or_introspection_validation",
       "redirect_uri_policy",
-      "scope_catalog_hash"
+      "scope_catalog_hash",
+      "scope_challenge_policy_hash",
+      "step_up_authorization_policy"
     ],
     "prohibited_scope_terms": [
       "private_key",
@@ -51,22 +58,32 @@
       "connector_id",
       "namespace",
       "client_id",
+      "client_metadata_document_url",
+      "client_metadata_document_validated",
+      "authorization_server_discovery_method",
+      "protected_resource_metadata_url",
       "resource_indicator",
       "token_audience",
       "token_issuer",
       "token_expires_at",
       "token_scopes",
+      "scope_challenge",
       "requested_access_mode",
       "consent_record_id",
       "session_id",
       "correlation_id",
-      "gateway_policy_hash"
+      "gateway_policy_hash",
+      "step_up_required",
+      "step_up_authorization_record_id"
     ],
     "valid_runtime_decisions": [
       "allow_authorized_mcp_request",
       "hold_for_authorization_evidence",
+      "hold_for_client_metadata_evidence",
+      "hold_for_step_up_authorization",
       "deny_token_passthrough",
       "deny_unbound_token",
+      "deny_scope_challenge_mismatch",
       "deny_scope_drift",
       "kill_session_on_secret_or_signer_scope"
     ],
@@ -83,6 +100,7 @@
       "deny_until_redesigned": 1,
       "hold_for_authorization_evidence": 1
     },
+    "client_metadata_evidence_required_count": 16,
     "connector_count": 16,
     "failure_count": 0,
     "metadata_evidence_required_count": 16,
@@ -90,6 +108,7 @@
       "approve_public_context_no_auth": 1,
       "approve_with_gateway_attestation": 15
     },
+    "step_up_connector_count": 1,
     "workflow_count": 8
   },
   "candidate_authorization": [
@@ -103,10 +122,13 @@
       "control_gaps": [
         "audience_validation",
         "audit_denied_attempts",
+        "client_id_metadata_document",
         "deny_private_network_egress",
         "deny_token_passthrough",
         "hard_deny",
-        "kill_session_on_attempt"
+        "kill_session_on_attempt",
+        "scope_challenge_handling",
+        "step_up_authorization"
       ],
       "data_classes": [
         "image_digest",
@@ -115,6 +137,12 @@
       ],
       "evidence_mode": "candidate_auth_profile",
       "intake_decision": "deny_until_redesigned",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "namespace": "registries.publish",
       "requested_access_modes": [
         "approval_required"
@@ -152,6 +180,12 @@
       ],
       "evidence_mode": "candidate_auth_profile",
       "intake_decision": "hold_for_controls",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "namespace": "research.browser",
       "requested_access_modes": [
         "read"
@@ -182,6 +216,12 @@
       ],
       "evidence_mode": "candidate_auth_profile",
       "intake_decision": "approve_for_registry_candidate",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "namespace": "repo.remediation",
       "requested_access_modes": [
         "write_branch"
@@ -201,6 +241,13 @@
   "control_checks": [
     {
       "applies_to": "remote_http_mcp",
+      "control_reason": "Clients must support protected-resource metadata discovery through WWW-Authenticate resource metadata and well-known fallbacks so authorization-server selection is explicit and auditable.",
+      "evidence_key": "protected_resource_metadata_url",
+      "id": "protected_resource_metadata_discovery",
+      "severity": "high"
+    },
+    {
+      "applies_to": "remote_http_mcp",
       "control_reason": "Clients need machine-readable protected-resource metadata so tokens are minted for the correct MCP resource instead of a generic API.",
       "evidence_key": "protected_resource_metadata_url",
       "id": "protected_resource_metadata",
@@ -211,6 +258,13 @@
       "control_reason": "Authorization server metadata makes issuer, endpoint, supported challenge methods, and token validation assumptions reviewable.",
       "evidence_key": "authorization_server_metadata_url",
       "id": "authorization_server_metadata",
+      "severity": "high"
+    },
+    {
+      "applies_to": "remote_http_mcp",
+      "control_reason": "Latest MCP authorization supports OAuth client ID metadata documents for clients and servers without a pre-existing relationship; production gateways should validate the HTTPS client metadata document and exact client_id match before accepting the grant.",
+      "evidence_key": "client_metadata_document_url",
+      "id": "client_id_metadata_document",
       "severity": "high"
     },
     {
@@ -249,6 +303,20 @@
       "severity": "high"
     },
     {
+      "applies_to": "remote_http_mcp",
+      "control_reason": "MCP clients must treat scopes returned in authorization challenges as authoritative for the current request and must not silently expand or ignore challenged scopes.",
+      "evidence_key": "scope_challenge",
+      "id": "scope_challenge_handling",
+      "severity": "high"
+    },
+    {
+      "applies_to": "approval_required_mcp",
+      "control_reason": "High-impact MCP operations need a typed step-up authorization receipt before the gateway forwards approval-required tool calls.",
+      "evidence_key": "step_up_authorization_record_id",
+      "id": "step_up_authorization",
+      "severity": "high"
+    },
+    {
       "applies_to": "all_mcp",
       "control_reason": "Session binding makes a tool call traceable to one workflow run and simplifies revocation after kill signals.",
       "evidence_key": "session_id",
@@ -284,7 +352,7 @@
   },
   "failures": [],
   "generated_at": "2026-05-02",
-  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify resource-bound tokens, token audience validation, PKCE, protected-resource metadata, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
+  "intent": "Define the SecurityRecipes MCP authorization conformance model so agent hosts, MCP gateways, IAM teams, and enterprise buyers can verify latest MCP authorization requirements: resource-bound tokens, token audience validation, PKCE, protected-resource metadata discovery, client ID metadata documents, authoritative scope challenges, step-up authorization, token-passthrough denial, scope minimization, consent, session binding, and audit evidence before agents use MCP tools.",
   "positioning": {
     "buyer": "AI Platform, IAM, Product Security, GRC, procurement security, and enterprise architecture teams",
     "category": "MCP authorization conformance and scope-drift control",
@@ -307,14 +375,24 @@
         "known_exploited_status"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "advisories.vulnerability",
       "owner": {
@@ -328,16 +406,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Vulnerability Advisory Feed",
@@ -361,14 +446,24 @@
         "read_only_rpc_trace"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "chain.simulation",
       "owner": {
@@ -382,16 +477,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "pilot",
       "title": "Chain Simulation Reader",
@@ -415,14 +517,24 @@
         "scanner_artifacts"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "ci.runs",
       "owner": {
@@ -436,16 +548,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "CI Run Reader",
@@ -470,14 +589,24 @@
         "severity"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "findings.sast",
       "owner": {
@@ -491,16 +620,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "SAST Finding Intake",
@@ -524,14 +660,24 @@
         "sample_redacted_finding_context"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "findings.sde",
       "owner": {
@@ -545,16 +691,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Sensitive Data Finding Intake",
@@ -579,14 +732,24 @@
         "deprecation_window"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "images.golden",
       "owner": {
@@ -600,16 +763,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Golden Image Catalog",
@@ -633,14 +803,24 @@
         "remediation_links"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "incidents.security",
       "owner": {
@@ -654,16 +834,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Security Incident Workspace",
@@ -688,14 +875,24 @@
         "consumer_inventory"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "inventory.artifacts",
       "owner": {
@@ -709,16 +906,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Artifact Inventory",
@@ -743,14 +947,24 @@
         "test_vector"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "payments.findings",
       "owner": {
@@ -764,16 +978,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "pilot",
       "title": "Payment Security Findings",
@@ -797,14 +1018,24 @@
         "failure_trace"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "payments.simulation",
       "owner": {
@@ -818,16 +1049,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "pilot",
       "title": "Payment Simulation Reader",
@@ -852,14 +1090,24 @@
         "reproduction_steps"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "protocol.findings",
       "owner": {
@@ -873,16 +1121,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "pilot",
       "title": "Protocol Security Findings",
@@ -906,14 +1161,24 @@
         "prompt_instruction"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "recipes.defaults",
       "owner": {
@@ -927,16 +1192,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Approved Vulnerable-Defaults Recipes",
@@ -961,14 +1233,24 @@
         "registry_target"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "registries.quarantine",
       "owner": {
@@ -982,16 +1264,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "pilot",
       "title": "Registry Quarantine Controller",
@@ -1015,14 +1304,24 @@
         "repository_metadata"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "repo.contents",
       "owner": {
@@ -1036,16 +1335,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Repository Contents",
@@ -1070,14 +1376,24 @@
         "dependency_graph"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "sbom.inventory",
       "owner": {
@@ -1091,16 +1407,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "SBOM Inventory",
@@ -1124,14 +1447,24 @@
         "owner_routing"
       ],
       "evidence_mode": "gateway_control_attestation",
+      "latest_spec_controls": [
+        "protected_resource_metadata_discovery",
+        "client_id_metadata_document",
+        "scope_challenge_handling",
+        "step_up_authorization"
+      ],
       "metadata_evidence_required": [
         "protected_resource_metadata_url",
         "authorization_server_metadata_url",
+        "client_metadata_document_url",
+        "client_metadata_document_hash",
         "resource_indicator_value",
         "token_audience_value",
         "jwks_or_introspection_validation",
         "redirect_uri_policy",
-        "scope_catalog_hash"
+        "scope_catalog_hash",
+        "scope_challenge_policy_hash",
+        "step_up_authorization_policy"
       ],
       "namespace": "tickets.security",
       "owner": {
@@ -1145,16 +1478,23 @@
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "client_metadata_document_validated",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
         "token_expires_at",
         "token_scopes",
+        "scope_challenge",
         "requested_access_mode",
         "consent_record_id",
         "session_id",
         "correlation_id",
-        "gateway_policy_hash"
+        "gateway_policy_hash",
+        "step_up_required",
+        "step_up_authorization_record_id"
       ],
       "status": "production",
       "title": "Security Ticket Workspace",
@@ -1169,11 +1509,11 @@
   "source_artifacts": {
     "mcp_authorization_conformance_profile": {
       "path": "data/assurance/mcp-authorization-conformance-profile.json",
-      "sha256": "8a8ec4251dd78604a84d0fff7c61df9be5b03c05f691336708290827e98d580e"
+      "sha256": "3e05d6cca4a8deb1fef558a3b9116b88ce652e506f1e3d546915f78146d81e41"
     },
     "mcp_connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
-      "sha256": "67627bc35a30623c011f09296e020e5fe07009799aecdf981dae130b4d3080bf"
+      "sha256": "d6c783f56dc38909b87abb5187014f2d0acadb8d4771b1ab35e9a35538688148"
     },
     "mcp_connector_intake_pack": {
       "path": "data/evidence/mcp-connector-intake-pack.json",
@@ -1194,10 +1534,10 @@
   },
   "standards_alignment": [
     {
-      "coverage": "OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata, authorization-server metadata, PKCE, HTTPS, bearer-token validation, and token audience checks.",
-      "id": "mcp-authorization-2025-06-18",
+      "coverage": "OAuth authorization for HTTP MCP servers, resource indicators, protected-resource metadata discovery, authorization-server metadata discovery, OAuth client ID metadata documents, PKCE, HTTPS, bearer-token validation, token audience checks, scope challenges, and step-up authorization.",
+      "id": "mcp-authorization-2025-11-25",
       "name": "Model Context Protocol Authorization",
-      "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization"
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization"
     },
     {
       "coverage": "Confused-deputy prevention, token-passthrough avoidance, SSRF controls, scope minimization, session safety, local-server hardening, and audit trails.",

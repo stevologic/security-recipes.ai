@@ -5,8 +5,9 @@ weight: 19
 toc: true
 description: >
   Generated standards-to-evidence map that ties OWASP Agentic Top 10,
-  NIST AI agent guidance, MCP authorization, and frontier-lab
-  prompt-injection defenses to SecurityRecipes controls and MCP tools.
+  CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization,
+  critical-infrastructure AI readiness, and frontier-lab prompt-injection
+  defenses to SecurityRecipes controls and MCP tools.
 ---
 
 {{< callout type="info" >}}
@@ -20,19 +21,22 @@ SecurityRecipes is positioned as **the secure context layer for
 agentic AI**. That claim needs more than a strong homepage. Enterprise
 buyers, AI platform teams, and acquirers will ask whether the project
 tracks the current external control language: OWASP Agentic Top 10,
-NIST agent standards work, MCP authorization, prompt-injection
-defenses, evals, context provenance, and runtime evidence.
+CSA AI Controls Matrix, NIST agent standards work, MCP authorization,
+critical-infrastructure AI review expectations, prompt-injection
+defenses, evals, context provenance, telemetry, and runtime evidence.
 
 The **Agentic Standards Crosswalk** turns those references into a
 generated artifact:
 
-- Standards and source anchors from OWASP, NIST, MCP, OpenAI, and
+- Standards and source anchors from OWASP, NIST, CSA, MCP, OpenAI, and
   Anthropic.
 - Control mappings for goal hijack, tool misuse, identity abuse,
   supply-chain risk, unexpected code execution, memory/context
   poisoning, inter-agent communication, cascading failures, human-agent
   trust exploitation, rogue agents, MCP token safety, scope
-  minimization, sandboxing, and secure prompt-injection defenses.
+  minimization, sandboxing, AI governance, shared responsibility,
+  telemetry/SOC readiness, critical-infrastructure readiness, and secure
+  prompt-injection defenses.
 - Capability mappings to the Secure Context Trust Pack, Context
   Poisoning Guard, MCP Gateway Policy, MCP Authorization Conformance,
   Agent Identity Ledger, Run Receipts, Red-Team Drills, Measurement
@@ -67,8 +71,10 @@ answer a buyer's first hard questions:
 | --- | --- |
 | Which agentic risks are covered? | OWASP Agentic Top 10 controls map to generated capabilities and MCP tools. |
 | Which MCP authorization requirements matter? | Resource binding, audience validation, token-passthrough denial, PKCE, scope minimization, and local-server sandboxing map to concrete packs. |
+| How does this map to enterprise AI control frameworks? | CSA AI Controls Matrix-style governance, data lifecycle, access, monitoring, supply-chain, and resilience controls map to generated evidence. |
 | How does this track NIST agent and GenAI guidance? | Identity, protocols, security evaluations, governance, access constraints, monitoring, data provenance, and lifecycle risk map to evidence artifacts. |
 | How are prompt-injection defenses made operational? | Context poisoning scans, egress decisions, handoff boundaries, sandboxed tool use, red-team replay, and readiness checks are linked to frontier-lab guidance. |
+| What changes for high-impact deployments? | Critical-infrastructure readiness maps fail-safe action boundaries, operational monitoring, incident response, and lifecycle change control to MCP-readable evidence. |
 | What should a diligence team inspect first? | The generated crosswalk returns standards, controls, sources, evidence paths, MCP tools, and commercialization hooks in one packet. |
 
 ## Core mappings
@@ -77,8 +83,10 @@ answer a buyer's first hard questions:
 | --- | --- |
 | OWASP Agentic Top 10 | Context Poisoning Guard, Secure Context Evals, MCP Gateway Policy, Authorization Conformance, Identity Ledger, Skill Supply Chain, Handoff Boundary, Readiness Scorecard |
 | MCP Authorization and Security | MCP Authorization Conformance, MCP Gateway Policy, Connector Intake, Connector Trust, STDIO Launch Boundary, Context Egress Boundary |
+| CSA AI Controls Matrix | Agentic Assurance Pack, Enterprise Trust Center Export, Secure Context Trust Pack, Entitlement Review, Telemetry Contract, SOC Detection Pack |
 | NIST agent and GenAI risk guidance | Agent Identity Ledger, Agentic System BOM, Agentic Assurance Pack, Measurement Probes, Red-Team Drills, Enterprise Trust Center Export |
-| Frontier-lab prompt-injection defenses | Context Poisoning Guard, Context Egress Boundary, Run Receipts, Handoff Boundary, Red-Team Drills, Readiness Scorecard |
+| NIST critical-infrastructure AI readiness | Catastrophic Risk Annex, Action Runtime Pack, Approval Receipts, Telemetry Contract, SOC Detection Pack, Incident Response Pack |
+| Frontier-lab prompt-injection defenses | Context Poisoning Guard, Context Egress Boundary, Run Receipts, Handoff Boundary, Action Runtime Pack, Telemetry Contract, Red-Team Drills, Readiness Scorecard |
 
 ## MCP examples
 
@@ -132,10 +140,12 @@ Review and regenerate the crosswalk when these sources change:
 - [NIST CAISI RFI on Securing AI Agent Systems](https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems)
 - [NIST AI RMF](https://www.nist.gov/itl/ai-risk-management-framework)
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)
+- [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)
 - [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
 - [OpenAI prompt-injection guidance](https://openai.com/index/prompt-injections)
 - [OpenAI guidance on designing agents to resist prompt injection](https://openai.com/index/designing-agents-to-resist-prompt-injection/)
+- [OpenAI Agents SDK guardrails](https://openai.github.io/openai-agents-js/guides/guardrails/)
 - [Anthropic prompt-injection defenses for browser use](https://www.anthropic.com/news/prompt-injection-defenses)
 
 ## See also

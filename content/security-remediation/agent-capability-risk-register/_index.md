@@ -88,7 +88,7 @@ This feature follows current primary guidance:
   token exposure, scope creep, tool poisoning, command execution,
   insufficient authorization, audit gaps, shadow MCP servers, and
   context over-sharing.
-- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)
+- [Model Context Protocol Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
   for resource-bound tokens, audience validation, protected resource
   metadata, token handling, and PKCE expectations.
 - [NIST AI RMF Generative AI Profile](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence)

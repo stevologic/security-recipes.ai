@@ -35,6 +35,7 @@ SUMMARY_KEYS = [
     "connector_intake_summary",
     "connector_trust_summary",
     "control_plane_summary",
+    "critical_infrastructure_summary",
     "egress_boundary_summary",
     "entitlement_review_summary",
     "eval_summary",
@@ -341,6 +342,7 @@ def build_export_summary(
     agent_card_trust = packs.get("a2a-agent-card-trust-profile", {})
     bom = packs.get("agentic-system-bom", {})
     incident_response = packs.get("agentic-incident-response-pack", {})
+    critical_infrastructure = packs.get("critical-infrastructure-secure-context-pack", {})
     exposure_graph = packs.get("agentic-exposure-graph", {})
     telemetry = packs.get("agentic-telemetry-contract", {})
     entitlement_review = packs.get("agentic-entitlement-review-pack", {})
@@ -350,6 +352,7 @@ def build_export_summary(
         "bom_summary": bom.get("bom_summary") if isinstance(bom, dict) else None,
         "category_counts": dict(sorted(categories.items())),
         "control_plane_acquisition_readiness": blueprint.get("acquisition_readiness") if isinstance(blueprint, dict) else None,
+        "critical_infrastructure_summary": critical_infrastructure.get("critical_infrastructure_summary") if isinstance(critical_infrastructure, dict) else None,
         "crosswalk_summary": crosswalk.get("crosswalk_summary") if isinstance(crosswalk, dict) else None,
         "default_state": profile.get("trust_center_contract", {}).get("default_state"),
         "distinct_mcp_tool_count": len(mcp_tools),

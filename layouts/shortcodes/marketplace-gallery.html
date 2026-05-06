@@ -3,6 +3,34 @@
 {{- $outputs := sort (site.Data.marketplace.output_channels.channels | default (slice)) "label" -}}
 {{- $reports := sort (site.Data.marketplace.report_profiles.profiles | default (slice)) "label" -}}
 {{- $workflows := sort (site.Data.marketplace.workflow_templates.templates | default (slice)) "label" -}}
+{{- $readiness := site.Data.marketplace.readiness_profiles -}}
+{{- $scratch := newScratch -}}
+{{- $scratch.Set "liveInputs" 0 -}}
+{{- $scratch.Set "templateInputs" 0 -}}
+{{- $scratch.Set "liveOutputs" 0 -}}
+{{- $scratch.Set "copyOnlyOutputs" 0 -}}
+{{- $scratch.Set "templateOutputs" 0 -}}
+{{- range $inputs -}}
+  {{- $runtime := .runtime_support | default "copy_only" -}}
+  {{- if eq $runtime "live" -}}
+    {{- $scratch.Add "liveInputs" 1 -}}
+  {{- end -}}
+  {{- if or (eq $runtime "planned") (eq $runtime "config_only") -}}
+    {{- $scratch.Add "templateInputs" 1 -}}
+  {{- end -}}
+{{- end -}}
+{{- range $outputs -}}
+  {{- $runtime := .runtime_support | default "copy_only" -}}
+  {{- if or (eq $runtime "live") (eq $runtime "live_or_copy") -}}
+    {{- $scratch.Add "liveOutputs" 1 -}}
+  {{- end -}}
+  {{- if eq $runtime "copy_only" -}}
+    {{- $scratch.Add "copyOnlyOutputs" 1 -}}
+  {{- end -}}
+  {{- if or (eq $runtime "planned") (eq $runtime "config_only") -}}
+    {{- $scratch.Add "templateOutputs" 1 -}}
+  {{- end -}}
+{{- end -}}
 
 <div class="sr-marketplace-gallery">
   <section class="sr-marketplace-overview">
@@ -33,6 +61,265 @@
 
   <section class="sr-marketplace-section">
     <div class="sr-marketplace-section-head">
+      <h2>Runtime readiness</h2>
+      <p>See what the browser can execute today versus what is still a reviewed starter contract for later promotion.</p>
+    </div>
+    <div class="sr-marketplace-stats">
+      <article>
+        <strong>{{ $scratch.Get "liveInputs" }}</strong>
+        <span>Browser-live inputs</span>
+      </article>
+      <article>
+        <strong>{{ $scratch.Get "liveOutputs" }}</strong>
+        <span>Browser-live routes</span>
+      </article>
+      <article>
+        <strong>{{ $scratch.Get "copyOnlyOutputs" }}</strong>
+        <span>Local-only handoffs</span>
+      </article>
+      <article>
+        <strong>{{ add ($scratch.Get "templateInputs") ($scratch.Get "templateOutputs") }}</strong>
+        <span>Template contracts</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="sr-marketplace-section" id="readiness-matrix">
+    <div class="sr-marketplace-section-head">
+      <h2>Readiness matrix</h2>
+      <p>Drill into the auth pattern, operator prerequisites, and the blockers that still keep a pack in fallback or starter-contract mode.</p>
+    </div>
+    <div class="sr-marketplace-readiness-layout">
+      <div class="sr-marketplace-readiness-column">
+        <div class="sr-marketplace-readiness-head">
+          <h3>Output routes</h3>
+          <p>Downstream destinations with the exact browser-side review model called out.</p>
+        </div>
+        <div class="sr-marketplace-readiness-list">
+          {{- range $outputs }}
+            {{- $runtime := .runtime_support | default "copy_only" -}}
+            {{- $authModes := index $readiness.output_driver_auth_modes .driver | default (slice "none") -}}
+            <details class="sr-marketplace-readiness-item" data-runtime="{{ $runtime }}">
+              <summary>
+                <div>
+                  <strong>{{ .label }}</strong>
+                  <span>{{ .category }}</span>
+                </div>
+                <div class="sr-marketplace-badges">
+                  <span>{{ index $readiness.runtime_labels $runtime | default $runtime }}</span>
+                  <span>{{ .status }}</span>
+                </div>
+              </summary>
+              <div class="sr-marketplace-readiness-body">
+                <p>{{ .description }}</p>
+                <dl>
+                  <div><dt>Requirement</dt><dd>{{ .requirement }}</dd></div>
+                  <div><dt>Auth</dt><dd>{{ range $index, $mode := $authModes }}{{ if $index }}, {{ end }}{{ index $readiness.auth_mode_labels $mode | default $mode }}{{ end }}</dd></div>
+                  <div><dt>Config</dt><dd><code>{{ .config.type }}</code></dd></div>
+                  <div><dt>Browser delivery</dt><dd>{{ cond .browser_delivery "yes" "no" }}</dd></div>
+                </dl>
+                <div class="sr-marketplace-readiness-copy">
+                  <div>
+                    <h4>Readiness requirements</h4>
+                    <ul>
+                      <li>{{ index $readiness.runtime_requirements $runtime }}</li>
+                      {{- range $mode := $authModes }}
+                        <li>{{ index $readiness.auth_mode_details $mode }}</li>
+                      {{- end }}
+                      {{- if .browser_delivery }}
+                        <li>Browser delivery is always operator-triggered and keeps provider secrets in browser storage instead of a SecurityRecipes backend.</li>
+                      {{- end }}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4>Current blockers</h4>
+                    <ul>
+                      {{- range $blocker := (index $readiness.runtime_blockers $runtime | default (slice)) }}
+                        <li>{{ $blocker }}</li>
+                      {{- else }}
+                        <li>No catalog-level blocker is left in the current browser model; only operator configuration and reviewer judgment remain.</li>
+                      {{- end }}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </details>
+          {{- end }}
+        </div>
+      </div>
+      <div class="sr-marketplace-readiness-column">
+        <div class="sr-marketplace-readiness-head">
+          <h3>Input sources</h3>
+          <p>Context and finding sources, including the auth pattern and the reason a source is live, local, or still only a starter contract.</p>
+        </div>
+        <div class="sr-marketplace-readiness-list">
+          {{- range $inputs }}
+            {{- $runtime := .runtime_support | default "live" -}}
+            {{- $authModes := .auth_modes | default (slice "none") -}}
+            <details class="sr-marketplace-readiness-item" data-runtime="{{ $runtime }}">
+              <summary>
+                <div>
+                  <strong>{{ .label }}</strong>
+                  <span>{{ .category }}</span>
+                </div>
+                <div class="sr-marketplace-badges">
+                  <span>{{ index $readiness.runtime_labels $runtime | default $runtime }}</span>
+                  <span>{{ .status }}</span>
+                </div>
+              </summary>
+              <div class="sr-marketplace-readiness-body">
+                <p>{{ .description }}</p>
+                <dl>
+                  <div><dt>Auth</dt><dd>{{ range $index, $mode := $authModes }}{{ if $index }}, {{ end }}{{ index $readiness.auth_mode_labels $mode | default $mode }}{{ end }}</dd></div>
+                  <div><dt>Config</dt><dd><code>{{ .config.type }}</code></dd></div>
+                  {{ with .config.source }}<div><dt>Source</dt><dd><code>{{ . }}</code></dd></div>{{ end }}
+                </dl>
+                <div class="sr-marketplace-readiness-copy">
+                  <div>
+                    <h4>Readiness requirements</h4>
+                    <ul>
+                      <li>{{ index $readiness.runtime_requirements $runtime }}</li>
+                      {{- range $mode := $authModes }}
+                        <li>{{ index $readiness.auth_mode_details $mode }}</li>
+                      {{- end }}
+                      {{- with .config.accepted_formats }}
+                        <li>Accepted formats: {{ delimit . ", " }}.</li>
+                      {{- end }}
+                      {{- if and (not .config.accepted_formats) .config.base_url }}
+                        <li>Provider endpoint: <code>{{ .config.base_url }}</code>.</li>
+                      {{- end }}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4>Current blockers</h4>
+                    <ul>
+                      {{- range $blocker := (index $readiness.runtime_blockers $runtime | default (slice)) }}
+                        <li>{{ $blocker }}</li>
+                      {{- else }}
+                        <li>No catalog-level blocker is left; the remaining step is loading the selected page, repository, or file into the browser session.</li>
+                      {{- end }}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </details>
+          {{- end }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sr-marketplace-section">
+    <div class="sr-marketplace-section-head">
+      <h2>Public JSON feeds and schemas</h2>
+      <p>Machine-readable control-plane contracts and browser-authored schemas generated by the Hugo build so downstream systems can consume the marketplace and contributors can validate packets without scraping page state.</p>
+    </div>
+    <div class="sr-marketplace-feed-grid">
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-control-plane.json" | relURL }}">
+        <strong>Control plane manifest</strong>
+        <code>{{ "/marketplace-control-plane.json" | relURL }}</code>
+        <span>Combined catalog, routes, reports, and workflow bundles.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-catalog.json" | relURL }}">
+        <strong>Catalog feed</strong>
+        <code>{{ "/marketplace-catalog.json" | relURL }}</code>
+        <span>Positioning, browser runtime model, and market signals.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-input-channels.json" | relURL }}">
+        <strong>Input channels</strong>
+        <code>{{ "/marketplace-input-channels.json" | relURL }}</code>
+        <span>Scanner, repo, runbook, and browser context intake contracts.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-output-channels.json" | relURL }}">
+        <strong>Output channels</strong>
+        <code>{{ "/marketplace-output-channels.json" | relURL }}</code>
+        <span>Ticketing, collaboration, SIEM, and webhook route definitions.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-report-profiles.json" | relURL }}">
+        <strong>Report profiles</strong>
+        <code>{{ "/marketplace-report-profiles.json" | relURL }}</code>
+        <span>Reusable report and evidence contracts.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-workflow-templates.json" | relURL }}">
+        <strong>Workflow templates</strong>
+        <code>{{ "/marketplace-workflow-templates.json" | relURL }}</code>
+        <span>Curated and community workflow packs built from the same data model.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-readiness.json" | relURL }}">
+        <strong>Readiness matrix</strong>
+        <code>{{ "/marketplace-readiness.json" | relURL }}</code>
+        <span>Derived input and output readiness view with auth labels, requirements, and blocker summaries.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/index.json" | relURL }}">
+        <strong>Schema manifest</strong>
+        <code>{{ "/marketplace-schemas/index.json" | relURL }}</code>
+        <span>Discovery list for contribution-packet plus case, asset, and routing schema URLs.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/input-channel-contribution.schema.json" | relURL }}">
+        <strong>Input contribution schema</strong>
+        <code>{{ "/marketplace-schemas/input-channel-contribution.schema.json" | relURL }}</code>
+        <span>Validates browser-exported input-channel submission packets before a marketplace PR.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/output-channel-contribution.schema.json" | relURL }}">
+        <strong>Output contribution schema</strong>
+        <code>{{ "/marketplace-schemas/output-channel-contribution.schema.json" | relURL }}</code>
+        <span>Validates browser-exported output-route submission packets before a marketplace PR.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/report-profile-contribution.schema.json" | relURL }}">
+        <strong>Report contribution schema</strong>
+        <code>{{ "/marketplace-schemas/report-profile-contribution.schema.json" | relURL }}</code>
+        <span>Validates browser-exported report-profile submission packets before a marketplace PR.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/workflow-template-contribution.schema.json" | relURL }}">
+        <strong>Workflow contribution schema</strong>
+        <code>{{ "/marketplace-schemas/workflow-template-contribution.schema.json" | relURL }}</code>
+        <span>Validates reusable workflow-pack submission packets before they land in the public marketplace.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/local-library.schema.json" | relURL }}">
+        <strong>Local library schema</strong>
+        <code>{{ "/marketplace-schemas/local-library.schema.json" | relURL }}</code>
+        <span>Validates portable browser-local library export and import payloads for private input, output, report, and workflow packs.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/case-file.schema.json" | relURL }}">
+        <strong>Case file schema</strong>
+        <code>{{ "/marketplace-schemas/case-file.schema.json" | relURL }}</code>
+        <span>Validates exported Caseboard JSON before it is handed to another tool or reviewer.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/case-library.schema.json" | relURL }}">
+        <strong>Case library schema</strong>
+        <code>{{ "/marketplace-schemas/case-library.schema.json" | relURL }}</code>
+        <span>Validates portable browser-local Caseboard library export and import payloads.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/asset-library.schema.json" | relURL }}">
+        <strong>Asset library schema</strong>
+        <code>{{ "/marketplace-schemas/asset-library.schema.json" | relURL }}</code>
+        <span>Validates browser-local asset criticality and ownership library exports and imports.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/operations-history.schema.json" | relURL }}">
+        <strong>Operations history schema</strong>
+        <code>{{ "/marketplace-schemas/operations-history.schema.json" | relURL }}</code>
+        <span>Validates browser-local source sync, agent run, case action, and report-export history before handoff.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/operations-session.schema.json" | relURL }}">
+        <strong>Operations session schema</strong>
+        <code>{{ "/marketplace-schemas/operations-session.schema.json" | relURL }}</code>
+        <span>Validates grouped browser-local investigation sessions before correlated run context is handed downstream.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/routing-policy.schema.json" | relURL }}">
+        <strong>Routing policy schema</strong>
+        <code>{{ "/marketplace-schemas/routing-policy.schema.json" | relURL }}</code>
+        <span>Validates one owner-aware routing policy before it is applied across exposures, cases, or delivery flows.</span>
+      </a>
+      <a class="sr-marketplace-feed" href="{{ "/marketplace-schemas/routing-library.schema.json" | relURL }}">
+        <strong>Routing library schema</strong>
+        <code>{{ "/marketplace-schemas/routing-library.schema.json" | relURL }}</code>
+        <span>Validates portable browser-local routing libraries for approval, ticket, and downstream route defaults.</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="sr-marketplace-section">
+    <div class="sr-marketplace-section-head">
       <h2>Output channels</h2>
       <p>Downstream delivery routes for tickets, collaboration, SIEM, and custom relays.</p>
     </div>
@@ -54,6 +341,8 @@
           <div><dt>Driver</dt><dd><code>{{ .driver }}</code></dd></div>
           <div><dt>Browser delivery</dt><dd>{{ cond .browser_delivery "yes" "no" }}</dd></div>
           <div><dt>Config type</dt><dd><code>{{ .config.type }}</code></dd></div>
+          <div><dt>Version</dt><dd>{{ with .governance.pack_version }}{{ . }}{{ else }}1.0.0{{ end }}</dd></div>
+          <div><dt>Review</dt><dd>{{ with .governance.reviewed_at }}{{ . }}{{ else }}{{ $catalog.last_reviewed }}{{ end }}</dd></div>
         </dl>
         <p class="sr-marketplace-requirement">{{ .requirement }}</p>
       </article>
@@ -84,6 +373,8 @@
           <div><dt>Auth</dt><dd>{{ if .auth_modes }}{{ delimit .auth_modes ", " }}{{ else }}none{{ end }}</dd></div>
           <div><dt>Config type</dt><dd><code>{{ .config.type }}</code></dd></div>
           {{ with .config.source }}<div><dt>Source</dt><dd><code>{{ . }}</code></dd></div>{{ end }}
+          <div><dt>Version</dt><dd>{{ with .governance.pack_version }}{{ . }}{{ else }}1.0.0{{ end }}</dd></div>
+          <div><dt>Review</dt><dd>{{ with .governance.reviewed_at }}{{ . }}{{ else }}{{ $catalog.last_reviewed }}{{ end }}</dd></div>
         </dl>
       </article>
       {{- end }}
@@ -111,6 +402,8 @@
         <dl>
           <div><dt>Sections</dt><dd>{{ if .sections }}{{ delimit .sections ", " }}{{ else }}none{{ end }}</dd></div>
           <div><dt>ID</dt><dd><code>{{ .id }}</code></dd></div>
+          <div><dt>Version</dt><dd>{{ with .governance.pack_version }}{{ . }}{{ else }}1.0.0{{ end }}</dd></div>
+          <div><dt>Review</dt><dd>{{ with .governance.reviewed_at }}{{ . }}{{ else }}{{ $catalog.last_reviewed }}{{ end }}</dd></div>
         </dl>
       </article>
       {{- end }}
@@ -141,6 +434,8 @@
           <div><dt>Output</dt><dd><code>{{ .default_output_channel_id }}</code></dd></div>
           <div><dt>Cadence</dt><dd>{{ .default_cadence }}</dd></div>
           <div><dt>Approval</dt><dd>{{ .default_approval_gate }}</dd></div>
+          <div><dt>Version</dt><dd>{{ with .governance.pack_version }}{{ . }}{{ else }}1.0.0{{ end }}</dd></div>
+          <div><dt>Review</dt><dd>{{ with .governance.reviewed_at }}{{ . }}{{ else }}{{ $catalog.last_reviewed }}{{ end }}</dd></div>
         </dl>
       </article>
       {{- end }}

@@ -82,6 +82,7 @@ Second, it reads local generated packs from the filesystem:
 | MCP tool-risk contract | `./data/evidence/mcp-tool-risk-contract.json` | `recipes_mcp_tool_risk_contract`, `recipes_evaluate_mcp_tool_risk_decision` |
 | MCP tool-surface drift pack | `./data/evidence/mcp-tool-surface-drift-pack.json` | `recipes_mcp_tool_surface_drift_pack`, `recipes_evaluate_mcp_tool_surface_drift_decision` |
 | Agentic red-team drill pack | `./data/evidence/agentic-red-team-drill-pack.json` | `recipes_agentic_red_team_drill_pack` |
+| Agentic red-team replay harness | `./data/evidence/agentic-red-team-replay-harness.json` | `recipes_agentic_red_team_replay_harness`, `recipes_evaluate_agentic_red_team_replay_result` |
 | Agentic readiness scorecard | `./data/evidence/agentic-readiness-scorecard.json` | `recipes_agentic_readiness_scorecard` |
 | Agent capability risk register | `./data/evidence/agent-capability-risk-register.json` | `recipes_agent_capability_risk_register` |
 | Agent memory boundary pack | `./data/evidence/agent-memory-boundary-pack.json` | `recipes_agent_memory_boundary_pack`, `recipes_evaluate_agent_memory_decision` |
@@ -102,6 +103,7 @@ Second, it reads local generated packs from the filesystem:
 | Agentic control plane blueprint | `./data/evidence/agentic-control-plane-blueprint.json` | `recipes_agentic_control_plane_blueprint` |
 | Agentic exposure graph | `./data/evidence/agentic-exposure-graph.json` | `recipes_agentic_exposure_graph` |
 | Agentic posture snapshot | `./data/evidence/agentic-posture-snapshot.json` | `recipes_agentic_posture_snapshot`, `recipes_evaluate_agentic_posture_decision` |
+| Agentic AIVSS risk scoring pack | `./data/evidence/agentic-aivss-risk-scoring-pack.json` | `recipes_agentic_aivss_risk_scoring_pack`, `recipes_evaluate_agentic_aivss_risk_decision` |
 | Agentic app intake pack | `./data/evidence/agentic-app-intake-pack.json` | `recipes_agentic_app_intake_pack`, `recipes_evaluate_agentic_app_intake_decision` |
 | Agentic catastrophic-risk annex | `./data/evidence/agentic-catastrophic-risk-annex.json` | `recipes_agentic_catastrophic_risk_annex`, `recipes_evaluate_agentic_catastrophic_risk_decision` |
 | Agentic incident response pack | `./data/evidence/agentic-incident-response-pack.json` | `recipes_agentic_incident_response_pack`, `recipes_evaluate_agentic_incident_response_decision` |
@@ -112,6 +114,11 @@ Second, it reads local generated packs from the filesystem:
 | Agentic telemetry contract | `./data/evidence/agentic-telemetry-contract.json` | `recipes_agentic_telemetry_contract`, `recipes_evaluate_agentic_telemetry_event` |
 | Model provider routing pack | `./data/evidence/model-provider-routing-pack.json` | `recipes_model_provider_routing_pack`, `recipes_evaluate_model_provider_routing_decision` |
 | Enterprise trust-center export | `./data/evidence/enterprise-trust-center-export.json` | `recipes_enterprise_trust_center_export` |
+| Secure context value model | `./data/evidence/secure-context-value-model.json` | `recipes_secure_context_value_model` |
+| Design partner pilot pack | `./data/evidence/design-partner-pilot-pack.json` | `recipes_design_partner_pilot_pack` |
+| Secure context buyer diligence brief | `./data/evidence/secure-context-buyer-diligence-brief.json` | `recipes_secure_context_buyer_diligence_brief` |
+| Secure context customer proof pack | `./data/evidence/secure-context-customer-proof-pack.json` | `recipes_secure_context_customer_proof_pack` |
+| Hosted MCP readiness pack | `./data/evidence/hosted-mcp-readiness-pack.json` | `recipes_hosted_mcp_readiness_pack` |
 
 These packs are data artifacts, not live external connectors. For
 example, `recipes_mcp_connector_trust_pack` returns connector trust
@@ -143,13 +150,15 @@ listed in `README.mcp-localhost.md`.
 | `recipes_mcp_connector_intake_pack` | Optional `candidate_id`, `namespace`, `decision` | Connector intake decisions, risk findings, control gaps, registry patch previews, promotion plans, and red-team drills. |
 | `recipes_mcp_stdio_launch_boundary_pack` | Optional `launch_id`, `profile_id`, `decision` | STDIO launch profiles, exact command boundaries, sandbox expectations, environment rules, network controls, risk findings, and launch decisions. |
 | `recipes_evaluate_mcp_stdio_launch_decision` | `launch_id`, `command`, plus optional command args, package, sandbox, environment, network, filesystem, approval, and kill-signal attributes | A deterministic allow, hold, deny, or kill decision before an MCP client spawns a local STDIO server subprocess. |
-| `recipes_mcp_authorization_conformance_pack` | Optional `connector_id`, `namespace`, `workflow_id`, `decision` | Resource, audience, PKCE, token-passthrough, session-binding, and scope-drift conformance evidence for MCP connectors and candidates. |
-| `recipes_evaluate_mcp_authorization_decision` | `workflow_id`, `namespace`, `requested_access_mode`, plus optional connector, token, session, consent, and scope attributes | A deterministic allow, hold, deny, or kill-session decision before an MCP tool call is forwarded. |
+| `recipes_mcp_authorization_conformance_pack` | Optional `connector_id`, `namespace`, `workflow_id`, `decision` | Resource, audience, PKCE, client metadata, scope challenge, step-up, token-passthrough, session-binding, and scope-drift conformance evidence for MCP connectors and candidates. |
+| `recipes_evaluate_mcp_authorization_decision` | `workflow_id`, `namespace`, `requested_access_mode`, plus optional connector, client metadata, protected-resource metadata, token, session, consent, scope challenge, and step-up attributes | A deterministic allow, hold, deny, or kill-session decision before an MCP tool call is forwarded. |
 | `recipes_mcp_tool_risk_contract` | Optional `namespace`, `connector_id`, `workflow_id`, `risk_tier`, `decision` | Tool annotation, trust-source, workflow-scope, and session-combination evidence for MCP namespaces and workflows. |
 | `recipes_evaluate_mcp_tool_risk_decision` | `workflow_id`, `namespace`, `tool_name`, `requested_access_mode`, plus optional annotations, trust, session, approval, and kill-signal attributes | A deterministic allow, confirmation, hold, deny, or kill decision before an MCP tool is invoked. |
 | `recipes_mcp_tool_surface_drift_pack` | Optional `surface_id`, `namespace`, `tool_name`, `source_kind`, `decision` | Pinned MCP tool descriptions, input schemas, output schemas, annotations, capability flags, and source hashes for approved and candidate tool surfaces. |
 | `recipes_evaluate_mcp_tool_surface_drift_decision` | `namespace`, `tool_name`, plus optional workflow, access mode, observed hashes, annotations, approval, capability expansion, and kill-signal attributes | A deterministic allow, hold, deny, or kill decision before a changed MCP tool surface is trusted. |
 | `recipes_agentic_red_team_drill_pack` | Optional `scenario_id`, `workflow_id`, `attack_family` | Adversarial scenarios and workflow drills for agentic remediation and MCP control boundaries. |
+| `recipes_agentic_red_team_replay_harness` | Optional `replay_id`, `workflow_id`, `scenario_id`, `attack_family`, `severity` | Replay fixtures, expected decisions, trace requirements, receipt bindings, and evidence gates for agentic red-team proof. |
+| `recipes_evaluate_agentic_red_team_replay_result` | `observed_decision`, plus optional replay/workflow/scenario ids, evidence classes, trace events, fail signals, and unsafe runtime flags | A deterministic replay pass, hold, fail, or kill decision for one observed red-team replay result. |
 | `recipes_agentic_readiness_scorecard` | Optional `workflow_id`, `decision`, `minimum_score` | Scale, pilot, gate, or block decisions for workflows, including score summaries and next actions. |
 | `recipes_agent_capability_risk_register` | Optional `workflow_id`, `risk_tier`, `decision`, `minimum_residual_score` | Capability-based raw and residual risk tiers for workflows, including criticality, autonomy, MCP permissions, impact radius, control credits, and next actions. |
 | `recipes_agent_memory_boundary_pack` | Optional `memory_class_id`, `workflow_id`, `decision`, `persistent` | Agent memory classes, workflow profiles, TTLs, tenant boundaries, provenance requirements, rollback expectations, and persistence decisions. |
@@ -180,6 +189,8 @@ listed in `README.mcp-localhost.md`.
 | `recipes_agentic_exposure_graph` | Optional `path_id`, `workflow_id`, `identity_id`, `namespace`, `decision`, `path_class_id`, `minimum_score`, `node_id` | Risk-ranked graph paths across secure context, identities, MCP namespaces, authorization, egress, readiness, risk, and run receipts. |
 | `recipes_agentic_posture_snapshot` | Optional `workflow_id`, `decision`, `risk_factor_id`, `buyer_view_id`, `minimum_score` | Enterprise posture score, workflow posture decisions, high-exposure paths, pilot connector rollups, and buyer views. |
 | `recipes_evaluate_agentic_posture_decision` | `workflow_id`, `namespace`, plus optional action, data-class, readiness, egress, telemetry, receipt, approval, and kill-signal attributes | A deterministic posture-ready, hold, deny, or kill decision before workflow expansion. |
+| `recipes_agentic_aivss_risk_scoring_pack` | Optional `scenario_id`, `severity`, `runtime_default_decision`, `minimum_score`, `owner` | AIVSS-aligned risk scores, severity bands, remediation SLAs, owners, evidence keys, and hosted MCP wedges for agentic AI and MCP risks. |
+| `recipes_evaluate_agentic_aivss_risk_decision` | Optional `scenario_id`, `workflow_id`, `agent_id`, `aivss_score`, autonomy, context, skill, approval, shadow-MCP, external-write, and exfiltration attributes | A deterministic allow, guarded, hold, deny, or kill decision for one agentic risk event. |
 | `recipes_agentic_app_intake_pack` | Optional `app_id`, `decision`, `risk_tier`, `buyer_stage`, `minimum_score` | Launch-review profiles and decisions for agentic apps, agent hosts, and production MCP rollouts. |
 | `recipes_evaluate_agentic_app_intake_decision` | `app_id`, plus optional autonomy, data, MCP access, controls, telemetry, egress, authorization, approval, and kill-signal attributes | A deterministic launch or expansion decision for an agentic app. |
 | `recipes_agentic_catastrophic_risk_annex` | Optional `scenario_id`, `control_id`, `buyer_view_id`, `impact_domain`, `status` | Severe-risk scenarios, high-impact action classes, default decisions, kill signals, source evidence, and board/platform buyer views. |
@@ -195,9 +206,16 @@ listed in `README.mcp-localhost.md`.
 | `recipes_agentic_measurement_probe_pack` | Optional `probe_id`, `workflow_id`, `decision`, `class_id`, `status`, `minimum_score` | Measurement probes for context integrity, MCP authorization, identity, memory, egress, red-team replay, readiness, run receipts, and threat alignment. |
 | `recipes_agentic_telemetry_contract` | Optional `workflow_id`, `signal_class_id`, `check_id`, `decision`, `required_attribute` | OpenTelemetry-aligned trace contract for agent, model, MCP, context, policy, egress, approval, verifier, incident, redaction, and receipt evidence. |
 | `recipes_evaluate_agentic_telemetry_event` | `workflow_id`, `event_class`, `attributes`, plus optional payload-capture and secret flags | A deterministic telemetry-ready, hold, deny, or kill-session decision before trace evidence is trusted. |
+| `recipes_agentic_soc_detection_pack` | Optional `rule_id`, `workflow_id`, `severity`, `decision`, `event_class` | SIEM-ready detection rules, query templates, response playbooks, and workflow overlays for agentic AI and MCP telemetry. |
+| `recipes_evaluate_agentic_soc_detection_event` | `workflow_id`, `event_class`, `attributes`, plus optional `contains_secret` | A deterministic SOC alert, hold, kill-session, or no-alert decision for one runtime event. |
 | `recipes_model_provider_routing_pack` | Optional `provider_id`, `model_id`, `route_id`, `workflow_id`, `decision`, `risk_tier` | Provider profiles, model route profiles, workflow route matrix, required controls, and route hashes before secure context crosses a model-provider boundary. |
 | `recipes_evaluate_model_provider_routing_decision` | `workflow_id`, `provider_id`, `model_id`, `route_class`, plus optional route, data-class, autonomy, tenant, residency, DPA, ZDR, contract, guardrail, telemetry, receipt, egress, approval, and kill-signal attributes | A deterministic allow, hold, deny, or kill decision before secure context is sent to a frontier, private, local, or unsanctioned model route. |
 | `recipes_enterprise_trust_center_export` | Optional `section_id`, `pack_id`, `question_id`, `category`, `status` | Buyer-diligence export that bundles secure-context, MCP, identity, handoff, eval, readiness, runtime evidence, and commercialization artifacts into one trust-center packet. |
+| `recipes_secure_context_value_model` | Optional `driver_id`, `segment_id`, `scenario_id`, `wedge_id`, `question_id`, `status` | Acquisition and enterprise-value model with evidence-backed value drivers, buyer segments, conservative ROI scenarios, monetization wedges, and diligence answers. |
+| `recipes_design_partner_pilot_pack` | Optional `segment_id`, `phase_id`, `wedge_id`, `metric_id`, `question_id`, `risk_id`, `status` | Design-partner pilot motion with buyer segments, phase gates, paid wedges, telemetry requirements, success metrics, risk decisions, and source-pack readiness. |
+| `recipes_secure_context_buyer_diligence_brief` | Optional `buyer_id`, `question_id`, `objection_id`, `bet_id`, `source_id`, `status` | Buyer and acquirer diligence brief with audience-specific narratives, enterprise questions, objection handlers, industry bets, and deal-room proof steps. |
+| `recipes_secure_context_customer_proof_pack` | Optional `claim_id`, `event_id`, `metric_id`, `gate_id`, `risk_id`, `status` | Customer-proof contract for design partner runtime events, metrics, receipts, renewal gates, redaction evidence, and acquisition-proof claims. |
+| `recipes_hosted_mcp_readiness_pack` | Optional `stage_id`, `control_id`, `gate_id`, `buyer_evidence_id`, `risk_id`, `status` | Hosted MCP readiness plan for tenant isolation, protected-resource authorization, private context, connector isolation, telemetry, signed receipts, metering, and buyer rollout gates. |
 
 ## Runtime Behavior
 
@@ -245,6 +263,7 @@ The main TOML fields are:
 | `tool_risk_contract_path` | Local path for the generated MCP tool-risk contract. |
 | `tool_surface_drift_pack_path` | Local path for the generated MCP tool-surface drift pack. |
 | `red_team_drill_pack_path` | Local path for the generated agentic red-team drill pack. |
+| `red_team_replay_harness_path` | Local path for the generated agentic red-team replay harness. |
 | `readiness_scorecard_path` | Local path for the generated agentic readiness scorecard. |
 | `capability_risk_register_path` | Local path for the generated agent capability risk register. |
 | `agent_memory_boundary_pack_path` | Local path for the generated agent memory boundary pack. |
@@ -265,6 +284,7 @@ The main TOML fields are:
 | `control_plane_blueprint_path` | Local path for the generated agentic control plane blueprint. |
 | `exposure_graph_path` | Local path for the generated agentic exposure graph. |
 | `posture_snapshot_path` | Local path for the generated agentic posture snapshot. |
+| `agentic_aivss_risk_scoring_pack_path` | Local path for the generated Agentic AIVSS risk scoring pack. |
 | `app_intake_pack_path` | Local path for the generated agentic app intake pack. |
 | `catastrophic_risk_annex_path` | Local path for the generated agentic catastrophic-risk annex. |
 | `incident_response_pack_path` | Local path for the generated agentic incident response pack. |
@@ -274,6 +294,11 @@ The main TOML fields are:
 | `telemetry_contract_path` | Local path for the generated agentic telemetry contract. |
 | `model_provider_routing_pack_path` | Local path for the generated model provider routing pack. |
 | `enterprise_trust_center_export_path` | Local path for the generated enterprise trust-center export. |
+| `secure_context_value_model_path` | Local path for the generated secure context value model. |
+| `design_partner_pilot_pack_path` | Local path for the generated design partner pilot pack. |
+| `buyer_diligence_brief_path` | Local path for the generated secure context buyer diligence brief. |
+| `customer_proof_pack_path` | Local path for the generated secure context customer proof pack. |
+| `hosted_mcp_readiness_pack_path` | Local path for the generated hosted MCP readiness pack. |
 | `cache_ttl_seconds` | In-memory recipe index cache lifetime. |
 | `request_timeout_seconds` | HTTP timeout for fetching the recipe index. |
 | `max_results_default` | Default result count for list and search tools. |
@@ -296,6 +321,7 @@ such as `RECIPES_MCP_GATEWAY_POLICY_PATH`,
 `RECIPES_MCP_STDIO_LAUNCH_BOUNDARY_PACK_PATH`,
 `RECIPES_MCP_AUTHORIZATION_CONFORMANCE_PACK_PATH`,
 `RECIPES_MCP_TOOL_RISK_CONTRACT_PATH`,
+`RECIPES_MCP_RED_TEAM_REPLAY_HARNESS_PATH`,
 `RECIPES_MCP_READINESS_SCORECARD_PATH`,
 `RECIPES_MCP_AGENT_HANDOFF_BOUNDARY_PACK_PATH`,
 `RECIPES_MCP_CONTEXT_EGRESS_BOUNDARY_PACK_PATH`,
@@ -304,6 +330,7 @@ such as `RECIPES_MCP_GATEWAY_POLICY_PATH`,
 `RECIPES_MCP_RISK_COVERAGE_PACK_PATH`,
 `RECIPES_MCP_CONTROL_PLANE_BLUEPRINT_PATH`,
 `RECIPES_MCP_POSTURE_SNAPSHOT_PATH`,
+`RECIPES_MCP_AGENTIC_AIVSS_RISK_SCORING_PACK_PATH`,
 `RECIPES_MCP_APP_INTAKE_PACK_PATH`,
 `RECIPES_MCP_CATASTROPHIC_RISK_ANNEX_PATH`,
 `RECIPES_MCP_INCIDENT_RESPONSE_PACK_PATH`,
@@ -311,7 +338,12 @@ such as `RECIPES_MCP_GATEWAY_POLICY_PATH`,
 `RECIPES_MCP_APPROVAL_RECEIPT_PACK_PATH`,
 `RECIPES_MCP_MEASUREMENT_PROBE_PACK_PATH`,
 `RECIPES_MCP_TELEMETRY_CONTRACT_PATH`, and
-`RECIPES_MCP_MODEL_PROVIDER_ROUTING_PACK_PATH`. The TOML config can
+`RECIPES_MCP_MODEL_PROVIDER_ROUTING_PACK_PATH`, and
+`RECIPES_MCP_SECURE_CONTEXT_VALUE_MODEL_PATH`, and
+`RECIPES_MCP_DESIGN_PARTNER_PILOT_PACK_PATH`, and
+`RECIPES_MCP_BUYER_DILIGENCE_BRIEF_PATH`, and
+`RECIPES_MCP_CUSTOMER_PROOF_PACK_PATH`, and
+`RECIPES_MCP_HOSTED_MCP_READINESS_PACK_PATH`. The TOML config can
 override those resolved defaults.
 
 ## Run Locally
@@ -471,14 +503,16 @@ capabilities are not feature flags hidden inside `mcp_server.py`.
 | Public recipes and handbook content | Available through `recipes_search`, `recipes_list`, and `recipes_get` | Available |
 | Community prompt context | Available when present in the generated site index | Available |
 | Generated control, policy, evidence, trust, red-team, readiness, and identity packs | Available from local JSON files in this repo | Available, with hosted/enterprise packaging where provisioned |
+| Red-team replay harness | Available through `recipes_agentic_red_team_replay_harness` and `recipes_evaluate_agentic_red_team_replay_result` as local replay fixtures and deterministic proof checks | Available as hosted private replay, tenant-local fixture runners, trace-to-receipt validation, and evidence vaulting where provisioned |
 | Runtime gateway-policy decision evaluation | Available through `recipes_evaluate_mcp_gateway_decision` | Available as part of a production control path where provisioned |
-| Runtime MCP authorization conformance evaluation | Available through `recipes_evaluate_mcp_authorization_decision` | Available as hosted auth discovery, metadata checks, and scope-drift alerts where provisioned |
+| Runtime MCP authorization conformance evaluation | Available through `recipes_evaluate_mcp_authorization_decision` | Available as hosted auth discovery, client metadata checks, scope-challenge handling, step-up receipts, and scope-drift alerts where provisioned |
 | Runtime MCP tool-risk evaluation | Available through `recipes_evaluate_mcp_tool_risk_decision` | Available as hosted tool-list monitoring, signed annotation inventory, drift alerts, and session-combination blocking where provisioned |
 | Runtime MCP tool-surface drift evaluation | Available through `recipes_evaluate_mcp_tool_surface_drift_decision` | Available as hosted live tool-list diffing, signed baselines, vendor-server upgrade review, and fleet drift alerts where provisioned |
 | Runtime MCP STDIO launch evaluation | Available through `recipes_evaluate_mcp_stdio_launch_decision` | Available as hosted MCP client posture, endpoint launch policy, and launch receipt enforcement where provisioned |
 | Runtime agent handoff boundary evaluation | Available through `recipes_evaluate_agent_handoff_decision` | Available as hosted signed Agent Card trust, handoff replay, protocol gateway policy, and approval receipt enforcement where provisioned |
 | Runtime A2A Agent Card trust evaluation | Available through `recipes_evaluate_a2a_agent_card_trust_decision` | Available as hosted Agent Card monitoring, signature verification, allowlist drift detection, and remote-agent promotion policy where provisioned |
 | Standards-to-evidence crosswalk | Available through `recipes_agentic_standards_crosswalk` as a local generated diligence packet | Available as hosted standards drift monitoring, customer evidence mapping, and procurement export where provisioned |
+| Agentic AIVSS risk scoring | Available through `recipes_agentic_aivss_risk_scoring_pack` and `recipes_evaluate_agentic_aivss_risk_decision` as local severity, SLA, remediation, and runtime-decision evidence | Available as hosted live AIVSS drift scoring, gateway policy binding, remediation queue export, and trust-center severity reporting where provisioned |
 | MCP and agentic-skill risk coverage | Available through `recipes_mcp_risk_coverage_pack` as local OWASP MCP and Agentic Skills risk-to-evidence mapping | Available as hosted MCP fleet drift monitoring, skill registry scanning, policy enforcement, and buyer exports where provisioned |
 | Catastrophic-risk annex | Available through `recipes_agentic_catastrophic_risk_annex` and `recipes_evaluate_agentic_catastrophic_risk_decision` as local severe-risk evidence and deterministic runtime decisions | Available as hosted high-impact action inventory, approval receipt validation, risk acceptance, replay, and runtime kill policy where provisioned |
 | Agentic action runtime decisions | Available through `recipes_agentic_action_runtime_pack` and `recipes_evaluate_agentic_action_runtime_decision` as local action envelopes and deterministic allow/hold/deny/kill decisions | Available as hosted action firewall APIs, signed action receipts, approval validation, and SIEM/SOAR export where provisioned |
@@ -486,6 +520,11 @@ capabilities are not feature flags hidden inside `mcp_server.py`.
 | Browser-agent workspace decisions | Available through `recipes_browser_agent_boundary_pack` and `recipes_evaluate_browser_agent_boundary_decision` as local workspace, task, and ambient-authority policy | Available as hosted browser isolation policy, origin controls, prompt-injection telemetry, signed browser run receipts, and SIEM/SOAR export where provisioned |
 | Model provider routing decisions | Available through `recipes_model_provider_routing_pack` and `recipes_evaluate_model_provider_routing_decision` as local provider/model route policy | Available as hosted model-routing PDP, provider inventory, contract-state checks, route telemetry, and procurement exports where provisioned |
 | Enterprise trust-center export | Available through `recipes_enterprise_trust_center_export` as a local generated diligence packet | Available as hosted procurement export, customer evidence ingestion, signed context releases, and trust-center API where provisioned |
+| Secure context value model | Available through `recipes_secure_context_value_model` as a local acquisition and enterprise-value artifact | Available as customer-specific ROI telemetry, design-partner business cases, renewal evidence, and board-ready value reporting where provisioned |
+| Design partner pilot pack | Available through `recipes_design_partner_pilot_pack` as a local buyer-proof and pilot-motion artifact | Available as design-partner telemetry binding, private-context pilot management, paid-wedge validation, and renewal evidence where provisioned |
+| Secure context buyer diligence brief | Available through `recipes_secure_context_buyer_diligence_brief` as a local buyer and acquirer due-diligence artifact | Available as hosted investor and acquirer briefing, RFP answer automation, objection-handling evidence, and deal-room export where provisioned |
+| Secure context customer proof pack | Available through `recipes_secure_context_customer_proof_pack` as a local customer-proof contract | Available as customer runtime evidence binding, design-partner renewal gates, acquirer proof exports, and hosted proof telemetry where provisioned |
+| Hosted MCP readiness pack | Available through `recipes_hosted_mcp_readiness_pack` as a local product-readiness plan | Available as tenant-isolation, protected-resource authorization, private context, connector, receipt, metering, and rollout evidence for hosted MCP readiness |
 | Agent-verified premium prompt packs | Not shipped in this repo | Premium/hosted content, where provisioned |
 | Higher-rate endpoints and SLA | Not shipped in this repo | Premium/hosted infrastructure, where provisioned |
 | Enterprise auth, audit logging, metering, and entitlement checks | Not built into `mcp_server.py` | Deployment or gateway controls, where provisioned |
@@ -499,6 +538,7 @@ claims that the repository does not support.
 - [MCP Gateway Policy]({{< relref "/security-remediation/mcp-gateway-policy" >}}) - generated policy pack for scoped tool access.
 - [Agentic Control Plane Blueprint]({{< relref "/security-remediation/agentic-control-plane-blueprint" >}}) - acquisition-ready architecture and buyer evidence map.
 - [Agentic Exposure Graph]({{< relref "/security-remediation/agentic-exposure-graph" >}}) - relationship graph and risk-ranked exposure paths before workflow expansion.
+- [Agentic AIVSS Risk Scoring]({{< relref "/security-remediation/agentic-aivss-risk-scoring" >}}) - severity, SLA, remediation, and runtime-decision layer for agentic AI risks.
 - [Agentic Catastrophic Risk Annex]({{< relref "/security-remediation/agentic-catastrophic-risk-annex" >}}) - severe-risk scenarios and high-impact autonomy decisions.
 - [Agentic Action Runtime Pack]({{< relref "/security-remediation/agentic-action-runtime" >}}) - action classes and runtime allow, hold, deny, or kill decisions.
 - [Agentic Approval Receipt Pack]({{< relref "/security-remediation/agentic-approval-receipts" >}}) - scope-bound approval receipts before privileged agent actions execute.
@@ -508,14 +548,16 @@ claims that the repository does not support.
 - [MCP Runtime Decision Evaluator]({{< relref "/security-remediation/mcp-runtime-decision-evaluator" >}}) - deterministic runtime decisions.
 - [MCP Connector Intake Scanner]({{< relref "/security-remediation/mcp-connector-intake-scanner" >}}) - pre-promotion decisions for proposed MCP servers.
 - [MCP STDIO Launch Boundary]({{< relref "/security-remediation/mcp-stdio-launch-boundary" >}}) - local subprocess launch decisions before MCP clients start STDIO servers.
-- [MCP Authorization Conformance]({{< relref "/security-remediation/mcp-authorization-conformance" >}}) - resource, audience, and scope-drift decisions.
+- [MCP Authorization Conformance]({{< relref "/security-remediation/mcp-authorization-conformance" >}}) - resource, audience, client metadata, scope-challenge, step-up, and scope-drift decisions.
 - [MCP Tool Risk Contract]({{< relref "/security-remediation/mcp-tool-risk-contract" >}}) - annotation trust and session-combination decisions before tools run.
 - [MCP Tool Surface Drift Sentinel]({{< relref "/security-remediation/mcp-tool-surface-drift-sentinel" >}}) - pinned tool descriptions, schemas, annotations, and capability metadata before changed tools are trusted.
 - [MCP Connector Trust Registry]({{< relref "/security-remediation/mcp-connector-trust-registry" >}}) - connector trust evidence records.
 - [Agentic Assurance Pack]({{< relref "/security-remediation/agentic-assurance-pack" >}}) - enterprise assurance evidence.
 - [Agentic Red-Team Drills]({{< relref "/security-remediation/agentic-red-team-drills" >}}) - adversarial scenarios for workflow validation.
+- [Agentic Red-Team Replay Harness]({{< relref "/security-remediation/agentic-red-team-replay-harness" >}}) - replay fixtures and evaluator decisions for adversarial proof.
 - [Agentic Readiness Scorecard]({{< relref "/security-remediation/agentic-readiness-scorecard" >}}) - scale, pilot, gate, and block decisions.
 - [Agentic Measurement Probes]({{< relref "/security-remediation/agentic-measurement-probes" >}}) - generated traceability probes before workflow expansion.
+- [Agentic SOC Detection Pack]({{< relref "/security-remediation/agentic-soc-detection-pack" >}}) - SIEM-ready detections and runtime alert decisions for agentic AI and MCP telemetry.
 - [Secure Context Attestation]({{< relref "/security-remediation/secure-context-attestation" >}}) - attestation seed, recertification queue, and signature-readiness policy.
 - [Secure Context Evals]({{< relref "/security-remediation/secure-context-evals" >}}) - scenario-backed evals for context retrieval, attestation, egress, answers, and A2A handoffs.
 - [Agent Capability Risk Register]({{< relref "/security-remediation/agent-capability-risk-register" >}}) - capability-based residual-risk tiers.
@@ -524,4 +566,9 @@ claims that the repository does not support.
 - [Agent Handoff Boundary]({{< relref "/security-remediation/agent-handoff-boundary" >}}) - protocol handoff profiles and runtime boundary decisions.
 - [A2A Agent Card Trust]({{< relref "/security-remediation/a2a-agent-card-trust" >}}) - remote-agent discovery intake and runtime card trust decisions.
 - [Enterprise Trust Center Export]({{< relref "/security-remediation/enterprise-trust-center-export" >}}) - bundled buyer-diligence packet for secure-context and MCP evidence.
+- [Secure Context Value Model]({{< relref "/security-remediation/secure-context-value-model" >}}) - acquisition and enterprise-value model for hosted MCP strategy.
+- [Design Partner Pilot Pack]({{< relref "/security-remediation/design-partner-pilot-pack" >}}) - buyer-segment, telemetry, phase-gate, and paid-wedge pilot motion.
+- [Hosted MCP Readiness Pack]({{< relref "/security-remediation/hosted-mcp-readiness-pack" >}}) - tenant isolation, protected-resource authorization, private context, connector, telemetry, receipt, metering, and rollout gates.
+- [Secure Context Buyer Diligence Brief]({{< relref "/security-remediation/secure-context-buyer-diligence-brief" >}}) - buyer briefs, diligence questions, objections, industry bets, and deal-room proof steps.
+- [Secure Context Customer Proof Pack]({{< relref "/security-remediation/secure-context-customer-proof-pack" >}}) - customer runtime events, metrics, receipts, renewal gates, and acquisition-proof contract.
 - [Agent Identity Ledger]({{< relref "/security-remediation/agent-identity-ledger" >}}) - non-human identity and delegation contracts.

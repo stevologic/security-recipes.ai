@@ -23,7 +23,7 @@
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="no">
 <meta name="mobile-web-app-capable" content="no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev https://*.snyk.io https://*.atlassian.net https://api.atlassian.com https://gitlab.com https://*.gitlab.com https://dev.azure.com https://*.dev.azure.com https://*.visualstudio.com https://api.security.microsoft.com https://*.security.microsoft.com https://management.azure.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
 
 {{/*
   Load the custom stylesheet on every page.
@@ -114,7 +114,33 @@ window.__SECURITY_RECIPES_MARKETPLACE = {
   inputChannels: {{ site.Data.marketplace.input_channels | jsonify | safeJS }},
   outputChannels: {{ site.Data.marketplace.output_channels | jsonify | safeJS }},
   reportProfiles: {{ site.Data.marketplace.report_profiles | jsonify | safeJS }},
-  workflowTemplates: {{ site.Data.marketplace.workflow_templates | jsonify | safeJS }}
+  workflowTemplates: {{ site.Data.marketplace.workflow_templates | jsonify | safeJS }},
+  readinessProfiles: {{ site.Data.marketplace.readiness_profiles | jsonify | safeJS }}
+};
+window.__SECURITY_RECIPES_MARKETPLACE_FEEDS = {
+  manifest: {{ "/marketplace-control-plane.json" | relURL | jsonify | safeJS }},
+  catalog: {{ "/marketplace-catalog.json" | relURL | jsonify | safeJS }},
+  inputChannels: {{ "/marketplace-input-channels.json" | relURL | jsonify | safeJS }},
+  outputChannels: {{ "/marketplace-output-channels.json" | relURL | jsonify | safeJS }},
+  reportProfiles: {{ "/marketplace-report-profiles.json" | relURL | jsonify | safeJS }},
+  workflowTemplates: {{ "/marketplace-workflow-templates.json" | relURL | jsonify | safeJS }},
+  readiness: {{ "/marketplace-readiness.json" | relURL | jsonify | safeJS }}
+};
+window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
+  index: {{ "/marketplace-schemas/index.json" | relURL | jsonify | safeJS }},
+  inputChannelContribution: {{ "/marketplace-schemas/input-channel-contribution.schema.json" | relURL | jsonify | safeJS }},
+  outputChannelContribution: {{ "/marketplace-schemas/output-channel-contribution.schema.json" | relURL | jsonify | safeJS }},
+  reportProfileContribution: {{ "/marketplace-schemas/report-profile-contribution.schema.json" | relURL | jsonify | safeJS }},
+  workflowTemplateContribution: {{ "/marketplace-schemas/workflow-template-contribution.schema.json" | relURL | jsonify | safeJS }},
+  localLibrary: {{ "/marketplace-schemas/local-library.schema.json" | relURL | jsonify | safeJS }},
+  caseFile: {{ "/marketplace-schemas/case-file.schema.json" | relURL | jsonify | safeJS }},
+  caseLibrary: {{ "/marketplace-schemas/case-library.schema.json" | relURL | jsonify | safeJS }},
+  assetLibrary: {{ "/marketplace-schemas/asset-library.schema.json" | relURL | jsonify | safeJS }},
+  operationsHistory: {{ "/marketplace-schemas/operations-history.schema.json" | relURL | jsonify | safeJS }},
+  operationsSession: {{ "/marketplace-schemas/operations-session.schema.json" | relURL | jsonify | safeJS }},
+  portfolioCoverage: {{ "/marketplace-schemas/portfolio-coverage.schema.json" | relURL | jsonify | safeJS }},
+  routingPolicy: {{ "/marketplace-schemas/routing-policy.schema.json" | relURL | jsonify | safeJS }},
+  routingLibrary: {{ "/marketplace-schemas/routing-library.schema.json" | relURL | jsonify | safeJS }}
 };
 </script>
 {{/*

@@ -1,0 +1,2221 @@
+{
+  "buyer_evidence_items": [
+    {
+      "buyer_question": "Can SecurityRecipes safely feed current, source-backed security context into model and agent products without leaking customer data?",
+      "id": "frontier-lab-context-gateway",
+      "linked_control_ids": [
+        "tenant-bound-context-index",
+        "context-egress-enforcement",
+        "source-freshness-sla",
+        "metadata-first-telemetry"
+      ],
+      "linked_controls": [
+        {
+          "control_family": "tenant_isolation",
+          "id": "tenant-bound-context-index",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Tenant-bound context index"
+        },
+        {
+          "control_family": "data_security",
+          "id": "context-egress-enforcement",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Context egress enforcement"
+        },
+        {
+          "control_family": "knowledge_quality",
+          "id": "source-freshness-sla",
+          "implementation_state": "reference_evidence_ready",
+          "title": "Source freshness SLA"
+        },
+        {
+          "control_family": "observability",
+          "id": "metadata-first-telemetry",
+          "implementation_state": "design_partner_runtime_required",
+          "title": "Metadata-first telemetry"
+        }
+      ],
+      "required_artifact": "Redacted tenant context package, lineage ledger, source freshness export, egress decision, and telemetry redaction sample.",
+      "status": "design_partner_runtime_required",
+      "title": "Frontier lab context gateway diligence"
+    },
+    {
+      "buyer_question": "Can a hosted service authorize MCP calls before execution and detect connector or tool-surface drift?",
+      "id": "agent-runtime-mcp-gateway",
+      "linked_control_ids": [
+        "protected-resource-authorization",
+        "scope-step-up-challenges",
+        "connector-runtime-isolation",
+        "tool-surface-drift-monitoring"
+      ],
+      "linked_controls": [
+        {
+          "control_family": "mcp_authorization",
+          "id": "protected-resource-authorization",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Protected-resource authorization"
+        },
+        {
+          "control_family": "mcp_authorization",
+          "id": "scope-step-up-challenges",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Incremental scope and step-up challenges"
+        },
+        {
+          "control_family": "connector_security",
+          "id": "connector-runtime-isolation",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Connector runtime isolation"
+        },
+        {
+          "control_family": "connector_security",
+          "id": "tool-surface-drift-monitoring",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Tool-surface drift monitoring"
+        }
+      ],
+      "required_artifact": "Protected-resource metadata, scope challenge trace, connector promotion record, drift decision, and pre-execution authorization receipt.",
+      "status": "hosted_runtime_required",
+      "title": "Agent runtime MCP gateway diligence"
+    },
+    {
+      "buyer_question": "Can procurement, GRC, and security teams review evidence without exposing private prompts, source code, secrets, or regulated data?",
+      "id": "regulated-enterprise-trust-center",
+      "linked_control_ids": [
+        "private-evidence-ingestion",
+        "metadata-first-telemetry",
+        "buyer-proof-export",
+        "retention-and-deletion-controls"
+      ],
+      "linked_controls": [
+        {
+          "control_family": "data_security",
+          "id": "private-evidence-ingestion",
+          "implementation_state": "design_partner_runtime_required",
+          "title": "Private evidence ingestion boundary"
+        },
+        {
+          "control_family": "observability",
+          "id": "metadata-first-telemetry",
+          "implementation_state": "design_partner_runtime_required",
+          "title": "Metadata-first telemetry"
+        },
+        {
+          "control_family": "trust_center",
+          "id": "buyer-proof-export",
+          "implementation_state": "design_partner_runtime_required",
+          "title": "Buyer proof export"
+        },
+        {
+          "control_family": "data_lifecycle",
+          "id": "retention-and-deletion-controls",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Retention and deletion controls"
+        }
+      ],
+      "required_artifact": "Redacted trust-center export, data handling matrix, retention/deletion proof, telemetry schema, and zero secret-capture evidence.",
+      "status": "design_partner_runtime_required",
+      "title": "Regulated enterprise trust-center diligence"
+    },
+    {
+      "buyer_question": "Can agentic AI and MCP events produce detections that a SOC can route, triage, and contain?",
+      "id": "security-platform-soc-wedge",
+      "linked_control_ids": [
+        "soc-detection-coverage",
+        "incident-containment-runbooks",
+        "metadata-first-telemetry",
+        "no-token-passthrough"
+      ],
+      "linked_controls": [
+        {
+          "control_family": "security_operations",
+          "id": "soc-detection-coverage",
+          "implementation_state": "design_partner_runtime_required",
+          "title": "SOC detection coverage"
+        },
+        {
+          "control_family": "security_operations",
+          "id": "incident-containment-runbooks",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Incident containment runbooks"
+        },
+        {
+          "control_family": "observability",
+          "id": "metadata-first-telemetry",
+          "implementation_state": "design_partner_runtime_required",
+          "title": "Metadata-first telemetry"
+        },
+        {
+          "control_family": "credential_boundary",
+          "id": "no-token-passthrough",
+          "implementation_state": "hosted_runtime_required",
+          "title": "No token passthrough"
+        }
+      ],
+      "required_artifact": "SIEM query pack, sample alerts, containment decisions, token misuse detection, and incident replay evidence.",
+      "status": "design_partner_runtime_required",
+      "title": "Security platform SOC wedge diligence"
+    },
+    {
+      "buyer_question": "Can the hosted product become a real business, not only an impressive open corpus?",
+      "id": "acquirer-revenue-proof",
+      "linked_control_ids": [
+        "metering-and-entitlement",
+        "customer-proof-metrics",
+        "service-slo-and-dr",
+        "trust-center-export"
+      ],
+      "linked_controls": [
+        {
+          "control_family": "commercialization",
+          "id": "metering-and-entitlement",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Metering and entitlement"
+        },
+        {
+          "control_family": "commercialization",
+          "id": "customer-proof-metrics",
+          "implementation_state": "design_partner_runtime_required",
+          "title": "Customer proof metrics"
+        },
+        {
+          "control_family": "reliability",
+          "id": "service-slo-and-dr",
+          "implementation_state": "hosted_runtime_required",
+          "title": "Service SLO and disaster recovery"
+        },
+        {
+          "control_family": "trust_center",
+          "id": "trust-center-export",
+          "implementation_state": "reference_evidence_ready",
+          "title": "Trust-center export"
+        }
+      ],
+      "required_artifact": "Usage meters, entitlement records, renewal metric export, support commitment, paid-wedge confirmation, and customer proof pack.",
+      "status": "design_partner_runtime_required",
+      "title": "Acquirer revenue proof diligence"
+    }
+  ],
+  "commercial_packaging": {
+    "acquirer_value": "A strategic buyer gets a secure context control plane that can attach to agent hosts, MCP gateways, AI trust centers, SOC pipelines, and private enterprise context without rebuilding the evidence model from scratch.",
+    "enterprise_plans": [
+      {
+        "id": "team",
+        "meter": "context packages and read-only MCP decision evidence",
+        "proof_needed": "One private context package, redacted telemetry, and reviewer outcome loop",
+        "target": "Security teams piloting agentic remediation"
+      },
+      {
+        "id": "platform",
+        "meter": "protected MCP decisions, connector namespaces, and trust-center exports",
+        "proof_needed": "Authorization, drift, egress, telemetry, and receipt evidence across multiple connectors",
+        "target": "AI platform and agent runtime teams"
+      },
+      {
+        "id": "regulated",
+        "meter": "tenant-bound evidence retention, SOC exports, and diligence packs",
+        "proof_needed": "Deletion, retention, SLO, incident, and redacted trust-center evidence",
+        "target": "Regulated enterprise and critical infrastructure programs"
+      }
+    ],
+    "hosted_layer": "Paid tenant-bound context gateway with protected MCP authorization, private context ingestion, connector trust, telemetry, signed receipts, SOC export, source freshness SLA, and customer proof retention.",
+    "open_layer": "Free public site, generated evidence packs, local read-only MCP server, source freshness watch, and trust-center export for credibility and distribution."
+  },
+  "evidence_sources": [
+    {
+      "key": "mcp_authorization_conformance_pack",
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "readiness_role": "Defines protected-resource metadata, resource indicators, token audience, scope challenge, step-up authorization, session binding, and token-passthrough checks for hosted MCP.",
+      "title": "MCP Authorization Conformance Pack"
+    },
+    {
+      "key": "mcp_stdio_launch_boundary_pack",
+      "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
+      "readiness_role": "Keeps local subprocess launch risk explicit so hosted MCP does not inherit unsafe package-on-launch, ambient environment, or unreviewed command execution patterns.",
+      "title": "MCP STDIO Launch Boundary Pack"
+    },
+    {
+      "key": "mcp_tool_surface_drift_pack",
+      "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+      "readiness_role": "Pins tool descriptions, schemas, annotations, and capability metadata before live hosted connectors are allowed to change behavior.",
+      "title": "MCP Tool Surface Drift Pack"
+    },
+    {
+      "key": "mcp_connector_trust_pack",
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "readiness_role": "Supplies connector tiers, namespace boundaries, promotion criteria, kill signals, and workflow coverage for a hosted connector registry.",
+      "title": "MCP Connector Trust Pack"
+    },
+    {
+      "key": "mcp_connector_intake_pack",
+      "path": "data/evidence/mcp-connector-intake-pack.json",
+      "readiness_role": "Provides pre-promotion decisions, control gaps, registry patch previews, and red-team drills before a new hosted MCP connector reaches customers.",
+      "title": "MCP Connector Intake Pack"
+    },
+    {
+      "key": "agentic_app_intake_pack",
+      "path": "data/evidence/agentic-app-intake-pack.json",
+      "readiness_role": "Defines launch-review gates across autonomy, data, tools, memory, handoffs, telemetry, guardrails, and approval evidence for hosted agent customers.",
+      "title": "Agentic App Intake Pack"
+    },
+    {
+      "key": "agentic_run_receipt_pack",
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "readiness_role": "Defines the receipt structure that hosted MCP needs for identity, context, tool decisions, egress, approvals, verifier output, and closure.",
+      "title": "Agentic Run Receipt Pack"
+    },
+    {
+      "key": "agentic_telemetry_contract",
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "readiness_role": "Defines metadata-first telemetry, redaction rules, runtime attributes, and evidence quality checks for customer-private hosted operations.",
+      "title": "Agentic Telemetry Contract"
+    },
+    {
+      "key": "agentic_soc_detection_pack",
+      "path": "data/evidence/agentic-soc-detection-pack.json",
+      "readiness_role": "Turns hosted MCP telemetry into SIEM-ready detections, response playbooks, and runtime alert decisions for agentic AI and connector abuse.",
+      "title": "Agentic SOC Detection Pack"
+    },
+    {
+      "key": "context_egress_boundary_pack",
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "readiness_role": "Defines tenant, model, telemetry, public corpus, DPA, residency, and secret-egress controls before private context leaves a boundary.",
+      "title": "Context Egress Boundary Pack"
+    },
+    {
+      "key": "secure_context_lineage_ledger",
+      "path": "data/evidence/secure-context-lineage-ledger.json",
+      "readiness_role": "Binds source hashes to retrieval, attestation, poisoning scans, model routes, egress decisions, handoffs, telemetry, and run receipts.",
+      "title": "Secure Context Lineage Ledger"
+    },
+    {
+      "key": "agentic_source_freshness_watch",
+      "path": "data/evidence/agentic-source-freshness-watch.json",
+      "readiness_role": "Proves that MCP, OWASP, NIST, CSA, OpenAI, CISA, and A2A guidance are watched before buyer-facing hosted claims are exported.",
+      "title": "Agentic Source Freshness Watch"
+    },
+    {
+      "key": "enterprise_trust_center_export",
+      "path": "data/evidence/enterprise-trust-center-export.json",
+      "readiness_role": "Bundles buyer-diligence evidence so hosted readiness gaps and proof claims can be shown through a trust-center export.",
+      "title": "Enterprise Trust Center Export"
+    },
+    {
+      "key": "secure_context_customer_proof_pack",
+      "path": "data/evidence/secure-context-customer-proof-pack.json",
+      "readiness_role": "Defines customer runtime events, metrics, renewal gates, and acquisition-proof blockers that the hosted product must collect.",
+      "title": "Secure Context Customer Proof Pack"
+    }
+  ],
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "hosted_mcp_readiness_pack_id": "security-recipes-hosted-mcp-readiness-pack",
+  "hosted_mcp_readiness_summary": {
+    "buyer_evidence_count": 5,
+    "contract_status": "hosted_mcp_readiness_contract_ready",
+    "control_count": 21,
+    "control_state_counts": {
+      "design_partner_runtime_required": 5,
+      "hosted_runtime_required": 13,
+      "reference_evidence_ready": 3
+    },
+    "critical_runtime_gaps": [
+      {
+        "default_decision": "deny_until_tenant_controls_exist",
+        "id": "tenant-bound-context-index",
+        "implementation_state": "hosted_runtime_required",
+        "priority": "critical",
+        "title": "Tenant-bound context index"
+      },
+      {
+        "default_decision": "hold_for_design_partner_runtime",
+        "id": "private-evidence-ingestion",
+        "implementation_state": "design_partner_runtime_required",
+        "priority": "critical",
+        "title": "Private evidence ingestion boundary"
+      },
+      {
+        "default_decision": "hold_for_hosted_runtime",
+        "id": "protected-resource-authorization",
+        "implementation_state": "hosted_runtime_required",
+        "priority": "critical",
+        "title": "Protected-resource authorization"
+      },
+      {
+        "default_decision": "kill_session_on_cross_tenant_or_secret_signal",
+        "id": "no-token-passthrough",
+        "implementation_state": "hosted_runtime_required",
+        "priority": "critical",
+        "title": "No token passthrough"
+      },
+      {
+        "default_decision": "hold_for_hosted_runtime",
+        "id": "connector-runtime-isolation",
+        "implementation_state": "hosted_runtime_required",
+        "priority": "critical",
+        "title": "Connector runtime isolation"
+      },
+      {
+        "default_decision": "hold_for_design_partner_runtime",
+        "id": "metadata-first-telemetry",
+        "implementation_state": "design_partner_runtime_required",
+        "priority": "critical",
+        "title": "Metadata-first telemetry"
+      },
+      {
+        "default_decision": "deny_until_tenant_controls_exist",
+        "id": "context-egress-enforcement",
+        "implementation_state": "hosted_runtime_required",
+        "priority": "critical",
+        "title": "Context egress enforcement"
+      },
+      {
+        "default_decision": "hold_for_hosted_runtime",
+        "id": "signed-run-receipts",
+        "implementation_state": "hosted_runtime_required",
+        "priority": "critical",
+        "title": "Signed or verifiable run receipts"
+      },
+      {
+        "default_decision": "hold_for_design_partner_runtime",
+        "id": "customer-proof-metrics",
+        "implementation_state": "design_partner_runtime_required",
+        "priority": "critical",
+        "title": "Customer proof metrics"
+      }
+    ],
+    "default_state": "not_hosted_production_ready_until_tenant_runtime_controls_are_implemented",
+    "failure_count": 0,
+    "gate_state_counts": {
+      "blocked_until_customer_private_controls_exist": 1,
+      "design_partner_runtime_required": 2,
+      "hosted_runtime_required": 4
+    },
+    "hosted_runtime_required_count": 18,
+    "open_reference_ready": true,
+    "product_readiness_decision": "hold_for_hosted_runtime_implementation",
+    "production_ready": false,
+    "reported_source_pack_issue_count": 0,
+    "rollout_gate_count": 7,
+    "source_pack_count": 14,
+    "source_pack_ready_count": 14,
+    "stage_count": 5
+  },
+  "last_reviewed": "2026-05-04",
+  "next_90_days": [
+    "Keep the public read-only MCP layer stable while adding hosted readiness evidence to the trust-center narrative.",
+    "Run one design-partner scoped pilot around private context ingestion, metadata-first telemetry, and customer-proof metrics.",
+    "Prototype protected-resource metadata, resource indicators, token audience validation, and no-token-passthrough enforcement for hosted MCP.",
+    "Define receipt verification semantics and customer-private export redaction before claiming acquisition-grade proof.",
+    "Package the first paid wedge around tenant-bound context packages, governed MCP decisions, and trust-center exports."
+  ],
+  "positioning": {
+    "buyer": "Frontier model labs, AI platform vendors, agent runtime teams, security platform vendors, regulated enterprises, VC diligence teams, and strategic acquirers",
+    "category": "Hosted secure context and MCP readiness evidence",
+    "commercial_wedge": "A hosted secure context gateway that sells tenant-bound context packages, MCP authorization evidence, source freshness, redacted run receipts, connector trust, and trust-center exports to teams deploying agents against private systems.",
+    "enterprise_promise": "SecurityRecipes makes agentic AI easier to approve by showing exactly which hosted MCP controls must exist before private customer context, connector evidence, and runtime receipts can be trusted in production.",
+    "why_now": "MCP, A2A, browser agents, persistent memory, tool marketplaces, and frontier agent products are creating a new control-plane category. Buyers need hosted infrastructure that turns open AI security knowledge into enforceable context, authorization, telemetry, and proof."
+  },
+  "readiness_contract": {
+    "default_state": "not_hosted_production_ready_until_tenant_runtime_controls_are_implemented",
+    "hosted_boundaries": [
+      "tenant",
+      "organization",
+      "context_package",
+      "mcp_resource",
+      "connector_namespace",
+      "agent_identity",
+      "approval_scope",
+      "telemetry_sink",
+      "billing_meter",
+      "trust_center_export"
+    ],
+    "minimum_buyer_evidence_items": 5,
+    "minimum_controls": 12,
+    "minimum_rollout_gates": 6,
+    "minimum_source_packs": 10,
+    "minimum_stages": 5,
+    "required_mcp_tools": [
+      "recipes_mcp_authorization_conformance_pack",
+      "recipes_mcp_stdio_launch_boundary_pack",
+      "recipes_mcp_tool_surface_drift_pack",
+      "recipes_mcp_connector_trust_pack",
+      "recipes_mcp_connector_intake_pack",
+      "recipes_agentic_app_intake_pack",
+      "recipes_agentic_run_receipt_pack",
+      "recipes_agentic_telemetry_contract",
+      "recipes_agentic_soc_detection_pack",
+      "recipes_context_egress_boundary_pack",
+      "recipes_secure_context_lineage_ledger",
+      "recipes_agentic_source_freshness_watch",
+      "recipes_enterprise_trust_center_export",
+      "recipes_secure_context_customer_proof_pack",
+      "recipes_hosted_mcp_readiness_pack"
+    ],
+    "required_source_pack_keys": [
+      "mcp_authorization_conformance_pack",
+      "mcp_stdio_launch_boundary_pack",
+      "mcp_tool_surface_drift_pack",
+      "mcp_connector_trust_pack",
+      "mcp_connector_intake_pack",
+      "agentic_app_intake_pack",
+      "agentic_run_receipt_pack",
+      "agentic_telemetry_contract",
+      "agentic_soc_detection_pack",
+      "context_egress_boundary_pack",
+      "secure_context_lineage_ledger",
+      "agentic_source_freshness_watch",
+      "enterprise_trust_center_export",
+      "secure_context_customer_proof_pack"
+    ],
+    "valid_default_decisions": [
+      "allow_read_only_reference_context",
+      "hold_for_design_partner_runtime",
+      "hold_for_hosted_runtime",
+      "deny_until_tenant_controls_exist",
+      "kill_session_on_cross_tenant_or_secret_signal"
+    ],
+    "valid_implementation_states": [
+      "reference_evidence_ready",
+      "design_partner_runtime_required",
+      "hosted_runtime_required",
+      "blocked_until_customer_private_controls_exist"
+    ]
+  },
+  "readiness_controls": [
+    {
+      "buyer_claim": "The public MCP server can safely return open SecurityRecipes context and generated evidence without customer-private write authority.",
+      "control_family": "open_layer",
+      "default_decision": "allow_read_only_reference_context",
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "agentic_source_freshness_watch"
+      ],
+      "id": "read-only-reference-surface",
+      "implementation_state": "reference_evidence_ready",
+      "priority": "high",
+      "runtime_signals": [
+        "recipes-index generation",
+        "pack path availability",
+        "source freshness status"
+      ],
+      "source_pack_status": [
+        {
+          "key": "enterprise_trust_center_export",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_source_freshness_watch",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "reference_evidence_ready",
+      "title": "Read-only reference MCP surface"
+    },
+    {
+      "buyer_claim": "Private context is never retrieved, cached, mixed, exported, or reused without tenant, source, package, egress, and receipt binding.",
+      "control_family": "tenant_isolation",
+      "default_decision": "deny_until_tenant_controls_exist",
+      "evidence_pack_keys": [
+        "secure_context_lineage_ledger",
+        "context_egress_boundary_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "id": "tenant-bound-context-index",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "tenant_id",
+        "context_package_hash",
+        "context_source_ids",
+        "lineage_decision",
+        "egress_decision"
+      ],
+      "source_pack_status": [
+        {
+          "key": "secure_context_lineage_ledger",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "context_egress_boundary_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Tenant-bound context index"
+    },
+    {
+      "buyer_claim": "Customer evidence can be ingested as hashes, metadata, and redacted summaries without leaking secrets, raw prompts, private code, or regulated data.",
+      "control_family": "data_security",
+      "default_decision": "hold_for_design_partner_runtime",
+      "evidence_pack_keys": [
+        "agentic_telemetry_contract",
+        "secure_context_customer_proof_pack",
+        "context_egress_boundary_pack"
+      ],
+      "id": "private-evidence-ingestion",
+      "implementation_state": "design_partner_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "tenant_id",
+        "source_owner",
+        "data_class",
+        "redaction_state",
+        "retention_policy"
+      ],
+      "source_pack_status": [
+        {
+          "key": "agentic_telemetry_contract",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_customer_proof_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "context_egress_boundary_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "design_partner_runtime_required",
+      "title": "Private evidence ingestion boundary"
+    },
+    {
+      "buyer_claim": "Hosted MCP calls are authorized before execution with resource indicators, audience validation, issuer checks, session binding, and explicit decisions.",
+      "control_family": "mcp_authorization",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "mcp_authorization_conformance_pack",
+        "agentic_app_intake_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "id": "protected-resource-authorization",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "resource_indicator",
+        "token_audience",
+        "authorization_server_metadata",
+        "protected_resource_metadata",
+        "authorization_decision"
+      ],
+      "source_pack_status": [
+        {
+          "key": "mcp_authorization_conformance_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_app_intake_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Protected-resource authorization"
+    },
+    {
+      "buyer_claim": "Agents start with minimal scope and must obtain explicit step-up authorization when a workflow needs more authority.",
+      "control_family": "mcp_authorization",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "mcp_authorization_conformance_pack",
+        "agentic_app_intake_pack"
+      ],
+      "id": "scope-step-up-challenges",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "requested_scope",
+        "scope_challenge",
+        "step_up_required",
+        "consent_record_id",
+        "decision"
+      ],
+      "source_pack_status": [
+        {
+          "key": "mcp_authorization_conformance_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_app_intake_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Incremental scope and step-up challenges"
+    },
+    {
+      "buyer_claim": "The hosted service never accepts, transits, logs, or reuses user, model, or third-party tokens outside their intended resource boundary.",
+      "control_family": "credential_boundary",
+      "default_decision": "kill_session_on_cross_tenant_or_secret_signal",
+      "evidence_pack_keys": [
+        "mcp_authorization_conformance_pack",
+        "mcp_connector_trust_pack",
+        "agentic_soc_detection_pack"
+      ],
+      "id": "no-token-passthrough",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "token_audience",
+        "token_issuer",
+        "credential_source",
+        "token_passthrough_signal",
+        "kill_signal"
+      ],
+      "source_pack_status": [
+        {
+          "key": "mcp_authorization_conformance_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_connector_trust_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_soc_detection_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "No token passthrough"
+    },
+    {
+      "buyer_claim": "Hosted connectors run with namespace isolation, controlled egress, reviewed promotion criteria, and clear fallback when a connector cannot be trusted.",
+      "control_family": "connector_security",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "mcp_connector_trust_pack",
+        "mcp_connector_intake_pack",
+        "mcp_stdio_launch_boundary_pack"
+      ],
+      "id": "connector-runtime-isolation",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "connector_id",
+        "namespace",
+        "trust_tier",
+        "sandbox_profile",
+        "network_egress_policy"
+      ],
+      "source_pack_status": [
+        {
+          "key": "mcp_connector_trust_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_connector_intake_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_stdio_launch_boundary_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Connector runtime isolation"
+    },
+    {
+      "buyer_claim": "Tool descriptions, schemas, annotations, and capabilities cannot silently drift into new authority or hidden instructions.",
+      "control_family": "connector_security",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "mcp_tool_surface_drift_pack",
+        "mcp_connector_intake_pack",
+        "agentic_soc_detection_pack"
+      ],
+      "id": "tool-surface-drift-monitoring",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "tool_surface_hash",
+        "input_schema_hash",
+        "output_schema_hash",
+        "annotation_hash",
+        "drift_decision"
+      ],
+      "source_pack_status": [
+        {
+          "key": "mcp_tool_surface_drift_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_connector_intake_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_soc_detection_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Tool-surface drift monitoring"
+    },
+    {
+      "buyer_claim": "Sensitive third-party credentials and authorization flows are handled out of band on trusted domains, never through the MCP client prompt channel.",
+      "control_family": "user_interaction",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "mcp_authorization_conformance_pack",
+        "mcp_connector_intake_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "id": "url-mode-elicitation-boundary",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "elicitation_id",
+        "elicitation_mode",
+        "target_domain",
+        "user_action",
+        "credential_transit_check"
+      ],
+      "source_pack_status": [
+        {
+          "key": "mcp_authorization_conformance_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_connector_intake_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "URL-mode elicitation boundary"
+    },
+    {
+      "buyer_claim": "Customers can reconstruct agent and MCP behavior through metadata, hashes, decisions, and redacted summaries without raw secret capture.",
+      "control_family": "observability",
+      "default_decision": "hold_for_design_partner_runtime",
+      "evidence_pack_keys": [
+        "agentic_telemetry_contract",
+        "agentic_soc_detection_pack",
+        "secure_context_customer_proof_pack"
+      ],
+      "id": "metadata-first-telemetry",
+      "implementation_state": "design_partner_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "trace_id",
+        "span_id",
+        "mcp.session.id",
+        "mcp.method.name",
+        "redaction_state",
+        "contains_secret"
+      ],
+      "source_pack_status": [
+        {
+          "key": "agentic_telemetry_contract",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_soc_detection_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_customer_proof_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "design_partner_runtime_required",
+      "title": "Metadata-first telemetry"
+    },
+    {
+      "buyer_claim": "Private context cannot leave a tenant, model, telemetry, public corpus, or external connector boundary without an explicit egress decision.",
+      "control_family": "data_security",
+      "default_decision": "deny_until_tenant_controls_exist",
+      "evidence_pack_keys": [
+        "context_egress_boundary_pack",
+        "secure_context_lineage_ledger",
+        "agentic_run_receipt_pack"
+      ],
+      "id": "context-egress-enforcement",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "destination_class",
+        "data_class",
+        "tenant_id",
+        "model_provider",
+        "egress_decision"
+      ],
+      "source_pack_status": [
+        {
+          "key": "context_egress_boundary_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_lineage_ledger",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Context egress enforcement"
+    },
+    {
+      "buyer_claim": "Every governed run can produce a tamper-evident receipt that links identity, context, authorization, egress, approvals, verifier output, and closure.",
+      "control_family": "evidence_integrity",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "agentic_run_receipt_pack",
+        "secure_context_lineage_ledger",
+        "secure_context_customer_proof_pack"
+      ],
+      "id": "signed-run-receipts",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "receipt_id",
+        "receipt_hash",
+        "signing_key_id",
+        "signature_status",
+        "verification_status"
+      ],
+      "source_pack_status": [
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_lineage_ledger",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_customer_proof_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Signed or verifiable run receipts"
+    },
+    {
+      "buyer_claim": "Agentic and MCP telemetry produces actionable SOC detections for token misuse, scope drift, tool drift, egress, prompt injection, and unsafe actions.",
+      "control_family": "security_operations",
+      "default_decision": "hold_for_design_partner_runtime",
+      "evidence_pack_keys": [
+        "agentic_soc_detection_pack",
+        "agentic_telemetry_contract",
+        "mcp_authorization_conformance_pack"
+      ],
+      "id": "soc-detection-coverage",
+      "implementation_state": "design_partner_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "event_class",
+        "alert_decision",
+        "severity",
+        "containment_action",
+        "correlation_id"
+      ],
+      "source_pack_status": [
+        {
+          "key": "agentic_soc_detection_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_telemetry_contract",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_authorization_conformance_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "design_partner_runtime_required",
+      "title": "SOC detection coverage"
+    },
+    {
+      "buyer_claim": "The hosted service can contain compromised connectors, leaked context, cross-tenant signals, or unsafe agent actions without waiting for a manual investigation.",
+      "control_family": "security_operations",
+      "default_decision": "kill_session_on_cross_tenant_or_secret_signal",
+      "evidence_pack_keys": [
+        "agentic_soc_detection_pack",
+        "agentic_run_receipt_pack",
+        "mcp_connector_trust_pack"
+      ],
+      "id": "incident-containment-runbooks",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "incident_class",
+        "kill_signal",
+        "connector_disablement",
+        "tenant_hold",
+        "replay_case_id"
+      ],
+      "source_pack_status": [
+        {
+          "key": "agentic_soc_detection_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_connector_trust_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Incident containment runbooks"
+    },
+    {
+      "buyer_claim": "Tenant evidence, context packages, telemetry, and exports have explicit retention, deletion, tombstone, and re-export semantics.",
+      "control_family": "data_lifecycle",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "context_egress_boundary_pack",
+        "secure_context_lineage_ledger",
+        "enterprise_trust_center_export"
+      ],
+      "id": "retention-and-deletion-controls",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "retention_policy",
+        "deletion_request_id",
+        "context_package_hash",
+        "artifact_tombstone",
+        "export_state"
+      ],
+      "source_pack_status": [
+        {
+          "key": "context_egress_boundary_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_lineage_ledger",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "enterprise_trust_center_export",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Retention and deletion controls"
+    },
+    {
+      "buyer_claim": "The hosted secure context layer has reliability, support, and recovery commitments that make it viable as enterprise infrastructure.",
+      "control_family": "reliability",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "secure_context_customer_proof_pack",
+        "agentic_telemetry_contract"
+      ],
+      "id": "service-slo-and-dr",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "medium",
+      "runtime_signals": [
+        "availability_slo",
+        "rpo",
+        "rto",
+        "incident_id",
+        "support_response"
+      ],
+      "source_pack_status": [
+        {
+          "key": "enterprise_trust_center_export",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_customer_proof_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_telemetry_contract",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Service SLO and disaster recovery"
+    },
+    {
+      "buyer_claim": "The hosted product can charge for context packages, governed MCP calls, connector namespaces, trust-center exports, and customer proof retention.",
+      "control_family": "commercialization",
+      "default_decision": "hold_for_hosted_runtime",
+      "evidence_pack_keys": [
+        "secure_context_customer_proof_pack",
+        "enterprise_trust_center_export",
+        "mcp_connector_trust_pack"
+      ],
+      "id": "metering-and-entitlement",
+      "implementation_state": "hosted_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "tenant_id",
+        "plan_id",
+        "context_package_count",
+        "mcp_decision_count",
+        "connector_namespace",
+        "entitlement_decision"
+      ],
+      "source_pack_status": [
+        {
+          "key": "secure_context_customer_proof_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "enterprise_trust_center_export",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "mcp_connector_trust_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Metering and entitlement"
+    },
+    {
+      "buyer_claim": "Buyer-facing hosted claims remain tied to monitored primary sources and generated pack regeneration paths.",
+      "control_family": "knowledge_quality",
+      "default_decision": "allow_read_only_reference_context",
+      "evidence_pack_keys": [
+        "agentic_source_freshness_watch",
+        "enterprise_trust_center_export"
+      ],
+      "id": "source-freshness-sla",
+      "implementation_state": "reference_evidence_ready",
+      "priority": "high",
+      "runtime_signals": [
+        "source_watch_id",
+        "last_reviewed",
+        "review_due_state",
+        "regeneration_status"
+      ],
+      "source_pack_status": [
+        {
+          "key": "agentic_source_freshness_watch",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "enterprise_trust_center_export",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "reference_evidence_ready",
+      "title": "Source freshness SLA"
+    },
+    {
+      "buyer_claim": "A buyer can receive a redacted, source-backed, customer-specific trust-center export without exposing private context.",
+      "control_family": "trust_center",
+      "default_decision": "hold_for_design_partner_runtime",
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "secure_context_customer_proof_pack",
+        "agentic_run_receipt_pack"
+      ],
+      "id": "buyer-proof-export",
+      "implementation_state": "design_partner_runtime_required",
+      "priority": "high",
+      "runtime_signals": [
+        "export_id",
+        "tenant_id",
+        "pack_hash",
+        "redaction_state",
+        "customer_proof_state"
+      ],
+      "source_pack_status": [
+        {
+          "key": "enterprise_trust_center_export",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "secure_context_customer_proof_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "design_partner_runtime_required",
+      "title": "Buyer proof export"
+    },
+    {
+      "buyer_claim": "The hosted product can prove safety and ROI with customer runtime metrics instead of relying on demo assumptions.",
+      "control_family": "commercialization",
+      "default_decision": "hold_for_design_partner_runtime",
+      "evidence_pack_keys": [
+        "secure_context_customer_proof_pack",
+        "agentic_telemetry_contract",
+        "agentic_run_receipt_pack"
+      ],
+      "id": "customer-proof-metrics",
+      "implementation_state": "design_partner_runtime_required",
+      "priority": "critical",
+      "runtime_signals": [
+        "receipt_completeness_ratio",
+        "mcp_pre_execution_decision_ratio",
+        "safe_hold_count",
+        "reviewer_minutes_delta",
+        "paid_wedge_confirmation"
+      ],
+      "source_pack_status": [
+        {
+          "key": "secure_context_customer_proof_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_telemetry_contract",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_run_receipt_pack",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "design_partner_runtime_required",
+      "title": "Customer proof metrics"
+    },
+    {
+      "buyer_claim": "The open layer already produces a coherent trust-center export that can become customer-specific once private controls exist.",
+      "control_family": "trust_center",
+      "default_decision": "allow_read_only_reference_context",
+      "evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "agentic_source_freshness_watch"
+      ],
+      "id": "trust-center-export",
+      "implementation_state": "reference_evidence_ready",
+      "priority": "high",
+      "runtime_signals": [
+        "pack_id",
+        "source_artifact_hash",
+        "diligence_question",
+        "evidence_status"
+      ],
+      "source_pack_status": [
+        {
+          "key": "enterprise_trust_center_export",
+          "ready": true,
+          "reported_failure_count": 0
+        },
+        {
+          "key": "agentic_source_freshness_watch",
+          "ready": true,
+          "reported_failure_count": 0
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "reference_evidence_ready",
+      "title": "Trust-center export"
+    }
+  ],
+  "readiness_stages": [
+    {
+      "blocked_until": "Not blocked for public reference use; blocked for private customer context until tenant controls exist.",
+      "commercial_value": "Credible open layer that lets buyers inspect the corpus, evidence packs, and MCP surface before a hosted conversation.",
+      "control_state_counts": {
+        "reference_evidence_ready": 3
+      },
+      "current_state": "reference_evidence_ready",
+      "id": "open-reference-server",
+      "linked_control_count": 3,
+      "required_control_ids": [
+        "read-only-reference-surface",
+        "source-freshness-sla",
+        "trust-center-export"
+      ],
+      "required_controls": [
+        {
+          "control_family": "open_layer",
+          "default_decision": "allow_read_only_reference_context",
+          "id": "read-only-reference-surface",
+          "implementation_state": "reference_evidence_ready",
+          "priority": "high",
+          "title": "Read-only reference MCP surface"
+        },
+        {
+          "control_family": "knowledge_quality",
+          "default_decision": "allow_read_only_reference_context",
+          "id": "source-freshness-sla",
+          "implementation_state": "reference_evidence_ready",
+          "priority": "high",
+          "title": "Source freshness SLA"
+        },
+        {
+          "control_family": "trust_center",
+          "default_decision": "allow_read_only_reference_context",
+          "id": "trust-center-export",
+          "implementation_state": "reference_evidence_ready",
+          "priority": "high",
+          "title": "Trust-center export"
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "reference_evidence_ready",
+      "title": "Open reference MCP server"
+    },
+    {
+      "blocked_until": "A design partner can provide private context roots, telemetry sinks, reviewer outcomes, and approved redaction boundaries.",
+      "commercial_value": "Turns the open corpus into customer proof by binding private context, receipts, telemetry, and reviewer outcomes for one scoped tenant.",
+      "control_state_counts": {
+        "design_partner_runtime_required": 3,
+        "hosted_runtime_required": 2
+      },
+      "current_state": "design_partner_runtime_required",
+      "id": "design-partner-private-context",
+      "linked_control_count": 5,
+      "required_control_ids": [
+        "tenant-bound-context-index",
+        "private-evidence-ingestion",
+        "metadata-first-telemetry",
+        "context-egress-enforcement",
+        "customer-proof-metrics"
+      ],
+      "required_controls": [
+        {
+          "control_family": "tenant_isolation",
+          "default_decision": "deny_until_tenant_controls_exist",
+          "id": "tenant-bound-context-index",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Tenant-bound context index"
+        },
+        {
+          "control_family": "data_security",
+          "default_decision": "hold_for_design_partner_runtime",
+          "id": "private-evidence-ingestion",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "critical",
+          "title": "Private evidence ingestion boundary"
+        },
+        {
+          "control_family": "observability",
+          "default_decision": "hold_for_design_partner_runtime",
+          "id": "metadata-first-telemetry",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "critical",
+          "title": "Metadata-first telemetry"
+        },
+        {
+          "control_family": "data_security",
+          "default_decision": "deny_until_tenant_controls_exist",
+          "id": "context-egress-enforcement",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Context egress enforcement"
+        },
+        {
+          "control_family": "commercialization",
+          "default_decision": "hold_for_design_partner_runtime",
+          "id": "customer-proof-metrics",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "critical",
+          "title": "Customer proof metrics"
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Design partner private context pilot"
+    },
+    {
+      "blocked_until": "Hosted authorization server, protected-resource metadata, tenant identity binding, connector isolation, and live tool-surface monitoring exist.",
+      "commercial_value": "Creates the enterprise product surface: a secure context gateway that can sit in front of agent hosts and live MCP connectors.",
+      "control_state_counts": {
+        "hosted_runtime_required": 6
+      },
+      "current_state": "hosted_runtime_required",
+      "id": "protected-hosted-mcp",
+      "linked_control_count": 6,
+      "required_control_ids": [
+        "protected-resource-authorization",
+        "scope-step-up-challenges",
+        "no-token-passthrough",
+        "connector-runtime-isolation",
+        "tool-surface-drift-monitoring",
+        "url-mode-elicitation-boundary"
+      ],
+      "required_controls": [
+        {
+          "control_family": "mcp_authorization",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "protected-resource-authorization",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Protected-resource authorization"
+        },
+        {
+          "control_family": "mcp_authorization",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "scope-step-up-challenges",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Incremental scope and step-up challenges"
+        },
+        {
+          "control_family": "credential_boundary",
+          "default_decision": "kill_session_on_cross_tenant_or_secret_signal",
+          "id": "no-token-passthrough",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "No token passthrough"
+        },
+        {
+          "control_family": "connector_security",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "connector-runtime-isolation",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Connector runtime isolation"
+        },
+        {
+          "control_family": "connector_security",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "tool-surface-drift-monitoring",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Tool-surface drift monitoring"
+        },
+        {
+          "control_family": "user_interaction",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "url-mode-elicitation-boundary",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "URL-mode elicitation boundary"
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Protected hosted MCP gateway"
+    },
+    {
+      "blocked_until": "Signed or verifiable receipts, SOC exports, incident containment, deletion workflows, support commitments, and disaster recovery objectives are implemented.",
+      "commercial_value": "Gives security, GRC, and procurement teams the operational assurance needed to treat the hosted service as enterprise infrastructure.",
+      "control_state_counts": {
+        "design_partner_runtime_required": 1,
+        "hosted_runtime_required": 4
+      },
+      "current_state": "hosted_runtime_required",
+      "id": "assurance-and-operations",
+      "linked_control_count": 5,
+      "required_control_ids": [
+        "signed-run-receipts",
+        "soc-detection-coverage",
+        "incident-containment-runbooks",
+        "retention-and-deletion-controls",
+        "service-slo-and-dr"
+      ],
+      "required_controls": [
+        {
+          "control_family": "evidence_integrity",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "signed-run-receipts",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Signed or verifiable run receipts"
+        },
+        {
+          "control_family": "security_operations",
+          "default_decision": "hold_for_design_partner_runtime",
+          "id": "soc-detection-coverage",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "high",
+          "title": "SOC detection coverage"
+        },
+        {
+          "control_family": "security_operations",
+          "default_decision": "kill_session_on_cross_tenant_or_secret_signal",
+          "id": "incident-containment-runbooks",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Incident containment runbooks"
+        },
+        {
+          "control_family": "data_lifecycle",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "retention-and-deletion-controls",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Retention and deletion controls"
+        },
+        {
+          "control_family": "reliability",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "service-slo-and-dr",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "medium",
+          "title": "Service SLO and disaster recovery"
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Assurance and operations"
+    },
+    {
+      "blocked_until": "Metering, plan boundaries, private proof exports, support model, renewal metrics, and at least one paid wedge are validated by a design partner.",
+      "commercial_value": "Connects technical readiness to a credible paid wedge, expansion path, diligence export, and strategic acquisition story.",
+      "control_state_counts": {
+        "design_partner_runtime_required": 2,
+        "hosted_runtime_required": 2
+      },
+      "current_state": "hosted_runtime_required",
+      "id": "commercial-packaging",
+      "linked_control_count": 4,
+      "required_control_ids": [
+        "metering-and-entitlement",
+        "buyer-proof-export",
+        "customer-proof-metrics",
+        "service-slo-and-dr"
+      ],
+      "required_controls": [
+        {
+          "control_family": "commercialization",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "metering-and-entitlement",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Metering and entitlement"
+        },
+        {
+          "control_family": "trust_center",
+          "default_decision": "hold_for_design_partner_runtime",
+          "id": "buyer-proof-export",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "high",
+          "title": "Buyer proof export"
+        },
+        {
+          "control_family": "commercialization",
+          "default_decision": "hold_for_design_partner_runtime",
+          "id": "customer-proof-metrics",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "critical",
+          "title": "Customer proof metrics"
+        },
+        {
+          "control_family": "reliability",
+          "default_decision": "hold_for_hosted_runtime",
+          "id": "service-slo-and-dr",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "medium",
+          "title": "Service SLO and disaster recovery"
+        }
+      ],
+      "source_packs_ready": true,
+      "status": "hosted_runtime_required",
+      "title": "Commercial packaging and acquisition readiness"
+    }
+  ],
+  "risk_register": [
+    {
+      "decision": "label_reference_ready_but_block_hosted_claims",
+      "id": "open-reference-confused-with-hosted-runtime",
+      "mitigation": "Keep the readiness summary explicit: the open layer is ready for reference use, while tenant runtime controls, private ingestion, signing, and metering remain hosted gaps.",
+      "risk": "Buyers or contributors mistake the current read-only reference MCP server for a production tenant-safe hosted service."
+    },
+    {
+      "decision": "deny_until_tenant_controls_exist",
+      "id": "cross-tenant-context-mixing",
+      "mitigation": "Require tenant ids, context package hashes, egress decisions, lineage, retention policies, and deletion semantics before any private context pilot.",
+      "risk": "Private context, telemetry, receipts, or trust-center exports from one tenant become visible or reusable by another tenant."
+    },
+    {
+      "decision": "kill_session_on_cross_tenant_or_secret_signal",
+      "id": "mcp-token-passthrough",
+      "mitigation": "Bind authorization to protected-resource metadata, resource indicators, token audience, issuer, session, scope challenge, and no-passthrough enforcement.",
+      "risk": "Hosted MCP accepts or forwards tokens that were not issued for the hosted resource, creating confused-deputy and credential leakage risk."
+    },
+    {
+      "decision": "hold_connector_promotion_until_drift_checks_pass",
+      "id": "connector-marketplace-drift",
+      "mitigation": "Pin tool-surface hashes, require connector intake, monitor capability expansion, and quarantine or disable changed connectors until reviewed.",
+      "risk": "A hosted connector changes descriptions, schemas, annotations, egress behavior, or hidden capabilities after approval."
+    },
+    {
+      "decision": "hold_customer_proof_until_telemetry_is_useful_and_redacted",
+      "id": "proof-telemetry-leaks-sensitive-data",
+      "mitigation": "Default to metadata, hashes, decisions, redacted summaries, and receipt ids; block proof counting when sensitive telemetry escape is detected.",
+      "risk": "Telemetry collected for proof captures prompts, secrets, private code, raw tool outputs, or regulated customer data."
+    },
+    {
+      "decision": "hold_acquisition_claim_until_receipts_are_verifiable",
+      "id": "receipts-are-not-verifiable",
+      "mitigation": "Require receipt hashes, signing key ids or equivalent verification status, closure state, and source-pack hashes before acquisition-grade claims.",
+      "risk": "Run receipts can be edited after the fact, weakening buyer diligence, incident response, and acquisition proof."
+    },
+    {
+      "decision": "hold_revenue_story_until_metering_and_paid_wedge_exist",
+      "id": "commercial-metering-is-unclear",
+      "mitigation": "Define meters for context packages, governed MCP decisions, connector namespaces, trust-center exports, evidence retention, and customer proof metrics.",
+      "risk": "The project creates technical credibility but no paid product surface that maps to budget owner, usage, renewal, or expansion."
+    }
+  ],
+  "rollout_gates": [
+    {
+      "decision": "deny_private_context_until_tenant_isolation_passes",
+      "gate_state": "blocked_until_customer_private_controls_exist",
+      "id": "tenant-isolation-gate",
+      "linked_control_ids": [
+        "tenant-bound-context-index",
+        "context-egress-enforcement",
+        "retention-and-deletion-controls"
+      ],
+      "linked_controls": [
+        {
+          "id": "tenant-bound-context-index",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Tenant-bound context index"
+        },
+        {
+          "id": "context-egress-enforcement",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Context egress enforcement"
+        },
+        {
+          "id": "retention-and-deletion-controls",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Retention and deletion controls"
+        }
+      ],
+      "status": "blocked_until_customer_private_controls_exist",
+      "title": "Tenant isolation gate",
+      "what_passes": "Tenant ids, context package hashes, egress decisions, retention policies, and deletion paths are enforced in runtime tests."
+    },
+    {
+      "decision": "hold_hosted_mcp_until_authz_passes",
+      "gate_state": "hosted_runtime_required",
+      "id": "protected-resource-auth-gate",
+      "linked_control_ids": [
+        "protected-resource-authorization",
+        "scope-step-up-challenges",
+        "no-token-passthrough"
+      ],
+      "linked_controls": [
+        {
+          "id": "protected-resource-authorization",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Protected-resource authorization"
+        },
+        {
+          "id": "scope-step-up-challenges",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Incremental scope and step-up challenges"
+        },
+        {
+          "id": "no-token-passthrough",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "No token passthrough"
+        }
+      ],
+      "status": "hosted_runtime_required",
+      "title": "Protected-resource authorization gate",
+      "what_passes": "Every protected hosted MCP call validates resource indicators, audience, issuer, session, scope, and token handling before execution."
+    },
+    {
+      "decision": "hold_connector_promotion_until_isolation_and_drift_checks_pass",
+      "gate_state": "hosted_runtime_required",
+      "id": "connector-promotion-gate",
+      "linked_control_ids": [
+        "connector-runtime-isolation",
+        "tool-surface-drift-monitoring",
+        "url-mode-elicitation-boundary"
+      ],
+      "linked_controls": [
+        {
+          "id": "connector-runtime-isolation",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Connector runtime isolation"
+        },
+        {
+          "id": "tool-surface-drift-monitoring",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Tool-surface drift monitoring"
+        },
+        {
+          "id": "url-mode-elicitation-boundary",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "URL-mode elicitation boundary"
+        }
+      ],
+      "status": "hosted_runtime_required",
+      "title": "Connector promotion gate",
+      "what_passes": "A connector has approved namespace, sandbox, egress, tool-surface hashes, elicitation boundaries, and rollback behavior."
+    },
+    {
+      "decision": "hold_customer_proof_until_telemetry_is_useful_and_redacted",
+      "gate_state": "design_partner_runtime_required",
+      "id": "telemetry-redaction-gate",
+      "linked_control_ids": [
+        "metadata-first-telemetry",
+        "soc-detection-coverage",
+        "buyer-proof-export"
+      ],
+      "linked_controls": [
+        {
+          "id": "metadata-first-telemetry",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "critical",
+          "title": "Metadata-first telemetry"
+        },
+        {
+          "id": "soc-detection-coverage",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "high",
+          "title": "SOC detection coverage"
+        },
+        {
+          "id": "buyer-proof-export",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "high",
+          "title": "Buyer proof export"
+        }
+      ],
+      "status": "design_partner_runtime_required",
+      "title": "Telemetry redaction gate",
+      "what_passes": "Telemetry reconstructs agent runs through metadata and decisions while secret, prompt, raw code, and regulated-data escape count stays zero."
+    },
+    {
+      "decision": "hold_acquisition_claim_until_receipts_are_verifiable",
+      "gate_state": "hosted_runtime_required",
+      "id": "receipt-integrity-gate",
+      "linked_control_ids": [
+        "signed-run-receipts",
+        "customer-proof-metrics",
+        "buyer-proof-export"
+      ],
+      "linked_controls": [
+        {
+          "id": "signed-run-receipts",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "critical",
+          "title": "Signed or verifiable run receipts"
+        },
+        {
+          "id": "customer-proof-metrics",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "critical",
+          "title": "Customer proof metrics"
+        },
+        {
+          "id": "buyer-proof-export",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "high",
+          "title": "Buyer proof export"
+        }
+      ],
+      "status": "hosted_runtime_required",
+      "title": "Receipt integrity gate",
+      "what_passes": "Receipts are tamper-evident or externally verifiable and bind identity, context, authorization, egress, approvals, telemetry, and closure."
+    },
+    {
+      "decision": "hold_enterprise_rollout_until_operations_are_ready",
+      "gate_state": "hosted_runtime_required",
+      "id": "operations-gate",
+      "linked_control_ids": [
+        "incident-containment-runbooks",
+        "service-slo-and-dr",
+        "soc-detection-coverage"
+      ],
+      "linked_controls": [
+        {
+          "id": "incident-containment-runbooks",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Incident containment runbooks"
+        },
+        {
+          "id": "service-slo-and-dr",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "medium",
+          "title": "Service SLO and disaster recovery"
+        },
+        {
+          "id": "soc-detection-coverage",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "high",
+          "title": "SOC detection coverage"
+        }
+      ],
+      "status": "hosted_runtime_required",
+      "title": "Operations gate",
+      "what_passes": "Incident containment, customer support, monitoring, SLOs, recovery targets, and emergency connector disablement are tested."
+    },
+    {
+      "decision": "hold_revenue_story_until_metering_and_paid_wedge_exist",
+      "gate_state": "design_partner_runtime_required",
+      "id": "commercial-gate",
+      "linked_control_ids": [
+        "metering-and-entitlement",
+        "customer-proof-metrics",
+        "source-freshness-sla"
+      ],
+      "linked_controls": [
+        {
+          "id": "metering-and-entitlement",
+          "implementation_state": "hosted_runtime_required",
+          "priority": "high",
+          "title": "Metering and entitlement"
+        },
+        {
+          "id": "customer-proof-metrics",
+          "implementation_state": "design_partner_runtime_required",
+          "priority": "critical",
+          "title": "Customer proof metrics"
+        },
+        {
+          "id": "source-freshness-sla",
+          "implementation_state": "reference_evidence_ready",
+          "priority": "high",
+          "title": "Source freshness SLA"
+        }
+      ],
+      "status": "design_partner_runtime_required",
+      "title": "Commercial gate",
+      "what_passes": "A design partner validates plan boundaries, usage meters, renewal metrics, and one budget-owned paid wedge."
+    }
+  ],
+  "schema_version": "1.0",
+  "source_artifacts": {
+    "profile": {
+      "path": "data/assurance/hosted-mcp-readiness-profile.json",
+      "sha256": "3df93a52c4ad4fcaaf487483408d52ecafb1ce345f13be716d70ae9a03cc7ae1"
+    },
+    "source_packs": [
+      {
+        "key": "agentic_app_intake_pack",
+        "path": "data/evidence/agentic-app-intake-pack.json",
+        "sha256": "8fc8923faca76a09dd198e5974e35252deaf10b1f112667419a72a74630f2ede"
+      },
+      {
+        "key": "agentic_run_receipt_pack",
+        "path": "data/evidence/agentic-run-receipt-pack.json",
+        "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+      },
+      {
+        "key": "agentic_soc_detection_pack",
+        "path": "data/evidence/agentic-soc-detection-pack.json",
+        "sha256": "d6a92dbeae805585141ee5c19df3645557f362d3308c44316f0d8aea430cce6a"
+      },
+      {
+        "key": "agentic_source_freshness_watch",
+        "path": "data/evidence/agentic-source-freshness-watch.json",
+        "sha256": "872f72b80fce38d882f63c1235c040aa167dfaf06cf8d2689137832269cdea50"
+      },
+      {
+        "key": "agentic_telemetry_contract",
+        "path": "data/evidence/agentic-telemetry-contract.json",
+        "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+      },
+      {
+        "key": "context_egress_boundary_pack",
+        "path": "data/evidence/context-egress-boundary-pack.json",
+        "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+      },
+      {
+        "key": "enterprise_trust_center_export",
+        "path": "data/evidence/enterprise-trust-center-export.json",
+        "sha256": "b723e383ef0c3d325db82508a73eaca88a8babe45f1db108229a1b34b0a27ddc"
+      },
+      {
+        "key": "mcp_authorization_conformance_pack",
+        "path": "data/evidence/mcp-authorization-conformance-pack.json",
+        "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f"
+      },
+      {
+        "key": "mcp_connector_intake_pack",
+        "path": "data/evidence/mcp-connector-intake-pack.json",
+        "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f"
+      },
+      {
+        "key": "mcp_connector_trust_pack",
+        "path": "data/evidence/mcp-connector-trust-pack.json",
+        "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+      },
+      {
+        "key": "mcp_stdio_launch_boundary_pack",
+        "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
+        "sha256": "f1de8897098089e18dc0c7472518ba26039b254f031d028221c60fff4caadd2d"
+      },
+      {
+        "key": "mcp_tool_surface_drift_pack",
+        "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+        "sha256": "397800a9a935c162067c29772bce422f79f52bf99444f6b64639f2b6f9673210"
+      },
+      {
+        "key": "secure_context_customer_proof_pack",
+        "path": "data/evidence/secure-context-customer-proof-pack.json",
+        "sha256": "b0b7a96104de32fdc55fe4154311680a432f2a0e15d89b053d0c2a9e687776d6"
+      },
+      {
+        "key": "secure_context_lineage_ledger",
+        "path": "data/evidence/secure-context-lineage-ledger.json",
+        "sha256": "4dc2a684c9dff94c72b46e599c18b9af68a9ff5bd7f29eebee029b417c7265ea"
+      }
+    ]
+  },
+  "source_pack_index": [
+    {
+      "generated_at": "2026-05-03",
+      "key": "agentic_app_intake_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/agentic-app-intake-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "8fc8923faca76a09dd198e5974e35252deaf10b1f112667419a72a74630f2ede",
+      "title": "Agentic App Intake Pack"
+    },
+    {
+      "generated_at": "2026-05-02",
+      "key": "agentic_run_receipt_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+      "title": "Agentic Run Receipt Pack"
+    },
+    {
+      "generated_at": "2026-05-04",
+      "key": "agentic_soc_detection_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/agentic-soc-detection-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "d6a92dbeae805585141ee5c19df3645557f362d3308c44316f0d8aea430cce6a",
+      "title": "Agentic SOC Detection Pack"
+    },
+    {
+      "generated_at": "2026-05-04",
+      "key": "agentic_source_freshness_watch",
+      "last_reviewed": null,
+      "path": "data/evidence/agentic-source-freshness-watch.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "872f72b80fce38d882f63c1235c040aa167dfaf06cf8d2689137832269cdea50",
+      "title": "Agentic Source Freshness Watch"
+    },
+    {
+      "generated_at": "2026-05-03",
+      "key": "agentic_telemetry_contract",
+      "last_reviewed": null,
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f",
+      "title": "Agentic Telemetry Contract"
+    },
+    {
+      "generated_at": "2026-05-02",
+      "key": "context_egress_boundary_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833",
+      "title": "Context Egress Boundary Pack"
+    },
+    {
+      "generated_at": "2026-05-04",
+      "key": "enterprise_trust_center_export",
+      "last_reviewed": null,
+      "path": "data/evidence/enterprise-trust-center-export.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "b723e383ef0c3d325db82508a73eaca88a8babe45f1db108229a1b34b0a27ddc",
+      "title": "Enterprise Trust Center Export"
+    },
+    {
+      "generated_at": "2026-05-02",
+      "key": "mcp_authorization_conformance_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f",
+      "title": "MCP Authorization Conformance Pack"
+    },
+    {
+      "generated_at": "2026-05-02",
+      "key": "mcp_connector_intake_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/mcp-connector-intake-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f",
+      "title": "MCP Connector Intake Pack"
+    },
+    {
+      "generated_at": "2026-05-02",
+      "key": "mcp_connector_trust_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/mcp-connector-trust-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be",
+      "title": "MCP Connector Trust Pack"
+    },
+    {
+      "generated_at": "2026-05-03",
+      "key": "mcp_stdio_launch_boundary_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "f1de8897098089e18dc0c7472518ba26039b254f031d028221c60fff4caadd2d",
+      "title": "MCP STDIO Launch Boundary Pack"
+    },
+    {
+      "generated_at": "2026-05-04",
+      "key": "mcp_tool_surface_drift_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "397800a9a935c162067c29772bce422f79f52bf99444f6b64639f2b6f9673210",
+      "title": "MCP Tool Surface Drift Pack"
+    },
+    {
+      "generated_at": "2026-05-04",
+      "key": "secure_context_customer_proof_pack",
+      "last_reviewed": null,
+      "path": "data/evidence/secure-context-customer-proof-pack.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "b0b7a96104de32fdc55fe4154311680a432f2a0e15d89b053d0c2a9e687776d6",
+      "title": "Secure Context Customer Proof Pack"
+    },
+    {
+      "generated_at": "2026-05-04",
+      "key": "secure_context_lineage_ledger",
+      "last_reviewed": null,
+      "path": "data/evidence/secure-context-lineage-ledger.json",
+      "ready": true,
+      "reported_failure_count": 0,
+      "schema_version": "1.0",
+      "sha256": "4dc2a684c9dff94c72b46e599c18b9af68a9ff5bd7f29eebee029b417c7265ea",
+      "title": "Secure Context Lineage Ledger"
+    }
+  ],
+  "source_references": [
+    {
+      "id": "mcp-basic-2025-11-25",
+      "name": "Model Context Protocol basic specification",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic",
+      "why_it_matters": "The hosted plan must respect MCP's base protocol, lifecycle, resources, prompts, tools, client features, utilities, and transport separation instead of treating MCP as a generic REST wrapper."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "why_it_matters": "Protected hosted MCP must bind tokens to resources, validate token audiences, support protected-resource metadata, minimize scopes, handle step-up authorization, and reject token passthrough."
+    },
+    {
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "source_class": "protocol_specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "why_it_matters": "Hosted MCP needs safe user interaction boundaries, especially URL-mode flows where sensitive credentials or third-party authorization must not pass through the MCP client."
+    },
+    {
+      "id": "opentelemetry-mcp-semconv",
+      "name": "OpenTelemetry Semantic Conventions for MCP",
+      "published": "2026-05-04",
+      "publisher": "OpenTelemetry",
+      "source_class": "telemetry_standard",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/mcp/",
+      "why_it_matters": "MCP spans, sessions, transports, methods, tool calls, errors, and duration metrics are the likely shared evidence language for customer proof, support, SOC detection, and SLOs."
+    },
+    {
+      "id": "owasp-agentic-top-10-2025",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "published": "2025-12-09",
+      "publisher": "OWASP GenAI Security Project",
+      "source_class": "industry_standard",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/",
+      "why_it_matters": "The hosted product must address agent behavior hijacking, tool misuse, identity abuse, unsafe autonomy, and evidence gaps as operational risks, not only documentation topics."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "published": "2025",
+      "publisher": "OWASP Foundation",
+      "source_class": "industry_standard",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "why_it_matters": "MCP-specific risks such as token exposure, scope creep, tool poisoning, command execution, telemetry gaps, shadow servers, and context over-sharing define the hosted control surface."
+    },
+    {
+      "id": "csa-ai-controls-matrix",
+      "name": "AI Controls Matrix",
+      "published": "2025-07-09",
+      "publisher": "Cloud Security Alliance",
+      "source_class": "industry_standard",
+      "updated": "2025-10-30",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "why_it_matters": "CSA's AI-specific control objectives and mappings give enterprise buyers a familiar assurance language for hosted AI control-plane adoption."
+    },
+    {
+      "id": "csa-capabilities-based-risk-assessment",
+      "name": "Capabilities-Based Risk Assessment for Agentic AI",
+      "published": "2025-11-13",
+      "publisher": "Cloud Security Alliance",
+      "source_class": "industry_standard",
+      "url": "https://cloudsecurityalliance.org/press-releases/2025/11/13/cloud-security-alliance-introduces-new-tool-for-assessing-agentic-risk",
+      "why_it_matters": "System criticality, autonomy, access permissions, and impact radius map directly to hosted tenant isolation, runtime approvals, and paid risk scoring."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative",
+      "name": "NIST AI Agent Standards Initiative",
+      "published": "2026-02-17",
+      "publisher": "NIST CAISI",
+      "source_class": "government_framework",
+      "url": "https://www.nist.gov/node/1906621",
+      "why_it_matters": "NIST's agent standards initiative validates the need for secure, interoperable agent infrastructure and gives the hosted MCP plan a government-aligned standards lane."
+    },
+    {
+      "id": "nist-caisi-agent-security-rfi",
+      "name": "CAISI RFI on Securing AI Agent Systems",
+      "published": "2026-01-12",
+      "publisher": "NIST CAISI",
+      "source_class": "government_framework",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "why_it_matters": "The RFI highlights indirect prompt injection, poisoning, misaligned actions, access constraints, monitoring, and measurement as distinct agent-system security concerns."
+    },
+    {
+      "id": "cisa-ai-data-security-2025",
+      "name": "AI Data Security: Best Practices for Securing Data Used to Train and Operate AI Systems",
+      "published": "2025-05-22",
+      "publisher": "CISA, NSA, FBI, and international partners",
+      "source_class": "government_guidance",
+      "url": "https://www.cisa.gov/resources-tools/resources/ai-data-security-best-practices-securing-data-used-train-operate-ai-systems",
+      "why_it_matters": "Customer-private context and evidence ingestion must preserve data accuracy, integrity, confidentiality, monitoring, detection, and lifecycle protections."
+    },
+    {
+      "id": "cisa-deploying-ai-securely-2024",
+      "name": "Joint Guidance on Deploying AI Systems Securely",
+      "published": "2024-04-15",
+      "publisher": "CISA, NSA, FBI, ASD, CCCS, NCSC-NZ, and NCSC-UK",
+      "source_class": "government_guidance",
+      "url": "https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely",
+      "why_it_matters": "Hosted MCP deployment must protect confidentiality, integrity, availability, vulnerability management, detection, response, and related AI system data."
+    }
+  ]
+}

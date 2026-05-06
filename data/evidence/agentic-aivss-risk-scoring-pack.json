@@ -1,0 +1,918 @@
+{
+  "buyer_views": [
+    {
+      "id": "security-prioritization",
+      "question": "Which agentic AI risks are critical or high, who owns them, what SLA applies, and which controls should be implemented first?",
+      "title": "Security Prioritization",
+      "uses": [
+        "risk_scores",
+        "severity_summary",
+        "remediation_queue",
+        "source_artifacts"
+      ]
+    },
+    {
+      "id": "ai-platform-runtime",
+      "question": "What deterministic decision should a gateway or agent host return when a runtime event matches one of the scored agentic risk scenarios?",
+      "title": "AI Platform Runtime Gate",
+      "uses": [
+        "decision_contract",
+        "runtime_kill_signals",
+        "risk_scores",
+        "mcp_tools"
+      ]
+    },
+    {
+      "id": "acquisition-diligence",
+      "question": "Does SecurityRecipes translate emerging agentic-security standards into a productizable scoring layer with evidence, MCP tools, and hosted expansion wedges?",
+      "title": "Acquisition Diligence",
+      "uses": [
+        "positioning",
+        "commercialization_path",
+        "source_references",
+        "hosted_mcp_wedges"
+      ]
+    }
+  ],
+  "commercialization_path": {
+    "acquirer_value": "A frontier lab, AI coding platform, or security vendor gets a quantitative severity layer that can attach to every agent action, MCP tool, and trust-center export.",
+    "enterprise_layer": "Sell hosted AIVSS drift scoring with live MCP gateway logs, skill registries, Agent Cards, approval receipts, and customer-private context sources.",
+    "open_layer": "Publish a deterministic AIVSS-aligned risk score for the open secure-context and MCP evidence packs.",
+    "team_layer": "Let teams fork the profile, tune scenario vectors, and bind the score to their own agent identities, MCP servers, tools, and telemetry."
+  },
+  "decision_contract": {
+    "basis": "AIVSS-aligned severity rubric for agentic AI and MCP risks. This profile uses an explicit 0-10 scoring model so CI and MCP tools can reproduce the result; it does not claim to be the official OWASP AIVSS calculator.",
+    "default_decision": "hold_for_agentic_risk_review",
+    "dimensions": [
+      {
+        "id": "autonomy_exposure",
+        "max_score": 2,
+        "question": "How much can the agent plan or continue without direct human review?",
+        "title": "Autonomy Exposure"
+      },
+      {
+        "id": "authority_impact",
+        "max_score": 2,
+        "question": "Can the agent use delegated identity, privileged tools, external writes, production actions, or irreversible operations?",
+        "title": "Authority and Impact"
+      },
+      {
+        "id": "context_data_sensitivity",
+        "max_score": 1.5,
+        "question": "Can poisoned, stale, private, regulated, or tenant-sensitive context influence the action?",
+        "title": "Context and Data Sensitivity"
+      },
+      {
+        "id": "tool_reachability",
+        "max_score": 1.5,
+        "question": "Can MCP tools, A2A handoffs, browser workspaces, skills, or remote agent surfaces amplify the issue?",
+        "title": "Tool and Protocol Reachability"
+      },
+      {
+        "id": "exploit_maturity",
+        "max_score": 1,
+        "question": "Is the failure mode already represented in current OWASP, incident, red-team, or supply-chain evidence?",
+        "title": "Exploit Maturity"
+      },
+      {
+        "id": "control_confidence",
+        "max_score": 1,
+        "question": "How much confidence remains after current source-controlled controls, telemetry, approvals, and generated evidence are considered?",
+        "title": "Control Confidence"
+      },
+      {
+        "id": "business_materiality",
+        "max_score": 1,
+        "question": "Would this risk materially affect procurement, platform adoption, design-partner trust, or acquisition diligence?",
+        "title": "Business Materiality"
+      }
+    ],
+    "model_name": "SecurityRecipes Agentic AIVSS Risk Scoring v1",
+    "required_source_packs": [
+      "agentic-posture-snapshot",
+      "agentic-exposure-graph",
+      "mcp-tool-risk-contract",
+      "context-poisoning-guard-pack",
+      "agent-skill-supply-chain-pack",
+      "agentic-app-intake-pack",
+      "agentic-incident-response-pack",
+      "agentic-standards-crosswalk",
+      "mcp-risk-coverage-pack",
+      "agentic-approval-receipt-pack",
+      "agentic-action-runtime-pack"
+    ],
+    "runtime_kill_signals": [
+      "secret_or_token_seen_in_context_or_tool_output",
+      "unregistered_agent_or_shadow_mcp_server_attempts_high_impact_action",
+      "critical_aivss_score_with_external_write_and_no_human_approval",
+      "malicious_or_unpinned_skill_requests_shell_network_or_secret_access",
+      "session_combines_private_context_untrusted_content_and_exfiltration_capable_tool"
+    ],
+    "score_bands": [
+      {
+        "band": "critical",
+        "minimum_score": 8.6,
+        "remediation_sla": "24h owner triage; block production expansion until compensating controls or explicit risk acceptance exist",
+        "runtime_default_decision": "deny_pending_remediation"
+      },
+      {
+        "band": "high",
+        "minimum_score": 7,
+        "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+        "runtime_default_decision": "hold_for_human_security_review"
+      },
+      {
+        "band": "medium",
+        "minimum_score": 4,
+        "remediation_sla": "30d remediation or documented acceptance; monitor with telemetry and run receipts",
+        "runtime_default_decision": "allow_guarded_with_receipt"
+      },
+      {
+        "band": "low",
+        "minimum_score": 0,
+        "remediation_sla": "track in posture backlog; review when scope, autonomy, identity, or tool reach changes",
+        "runtime_default_decision": "allow_with_monitoring"
+      }
+    ]
+  },
+  "evidence_signal_summary": {
+    "actionable_context_poisoning_findings": 2,
+    "critical_or_high_skill_count": 1,
+    "high_exposure_path_count": 24,
+    "lethal_combination_workflow_count": 2,
+    "pilot_connector_count": 5,
+    "posture_decision": "guarded_enterprise_pilot",
+    "posture_score": 96,
+    "runtime_action_class_count": 10,
+    "top_risk_skill_count": 5,
+    "workflow_count": 8,
+    "xpia_sensitive_workflows": [
+      "artifact-cache-quarantine",
+      "crypto-payment-security",
+      "defi-blockchain-security"
+    ]
+  },
+  "failures": [],
+  "generated_at": "2026-05-04",
+  "hosted_mcp_wedges": [
+    {
+      "scenario_id": "mcp_tool_misuse_lethal_session",
+      "severity": "critical",
+      "wedge": "MCP session risk policy that denies dangerous tool combinations before a gateway forwards calls to enterprise systems."
+    },
+    {
+      "scenario_id": "rogue_agent_shadow_mcp",
+      "severity": "high",
+      "wedge": "Shadow-agent and shadow-MCP discovery intake with governance workflow and trust-center export."
+    },
+    {
+      "scenario_id": "unexpected_code_execution",
+      "severity": "high",
+      "wedge": "Runtime action firewall for code execution, STDIO launch, package-manager, and local developer-tool boundaries."
+    },
+    {
+      "scenario_id": "identity_privilege_abuse",
+      "severity": "high",
+      "wedge": "Agent identity entitlement review and authorization PDP for MCP gateways and agent hosts."
+    },
+    {
+      "scenario_id": "agent_goal_hijack_context_poisoning",
+      "severity": "high",
+      "wedge": "Real-time context poisoning score, source demotion, and retrieval kill decisions before private context reaches an agent."
+    },
+    {
+      "scenario_id": "agentic_supply_chain_skill_compromise",
+      "severity": "high",
+      "wedge": "Skill, tool, and MCP server registry scanner with signed baselines and promotion gates."
+    },
+    {
+      "scenario_id": "insecure_inter_agent_handoff",
+      "severity": "high",
+      "wedge": "A2A and agent-handoff trust monitor with signed Agent Card drift detection."
+    },
+    {
+      "scenario_id": "cascading_failure_runaway_agent",
+      "severity": "high",
+      "wedge": "Agentic runtime telemetry, runaway-loop detection, and incident replay export."
+    },
+    {
+      "scenario_id": "human_agent_trust_exploitation",
+      "severity": "medium",
+      "wedge": "Approval receipt verification and two-key review enforcement before privileged agent actions."
+    }
+  ],
+  "intent": "Turn current agentic AI and MCP security guidance into a repeatable severity, SLA, and runtime-decision layer for SecurityRecipes. The profile gives enterprise, platform, product-security, and acquisition reviewers a quantitative view of agentic risk without pretending that open reference evidence is the same as live customer telemetry.",
+  "positioning": {
+    "buyer": "AI Platform, Product Security, AppSec, IAM, GRC, AI governance, procurement security, and acquisition diligence teams",
+    "category": "Agentic AI risk scoring and remediation prioritization for secure context and MCP operations",
+    "enterprise_promise": "SecurityRecipes can score agentic AI risks with source-backed severity, map each score to generated evidence, route runtime events to allow/hold/deny/kill decisions, and show which hosted MCP controls would turn reference guidance into production enforcement.",
+    "why_now": "Agentic applications now combine autonomy, delegated identity, external tools, persistent memory, inter-agent handoffs, and MCP servers. OWASP AIVSS, the OWASP Agentic Top 10, OWASP MCP Top 10, and Agentic Skills guidance create a shared language, but buyers still need severity, ownership, SLA, and proof surfaces that can be consumed through MCP."
+  },
+  "remediation_queue": [
+    {
+      "aivss_score": 8.6,
+      "first_control": "Split sessions that combine private data, untrusted content, and exfiltration-capable write tools.",
+      "owner": "AI Platform Security",
+      "remediation_sla": "24h owner triage; block production expansion until compensating controls or explicit risk acceptance exist",
+      "runtime_default_decision": "deny_pending_remediation",
+      "scenario_id": "mcp_tool_misuse_lethal_session",
+      "severity": "critical",
+      "title": "MCP Tool Misuse in a Lethal Session Combination"
+    },
+    {
+      "aivss_score": 8.15,
+      "first_control": "Require app intake for every agent host, MCP server, and connector before production use.",
+      "owner": "AI Governance",
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "rogue_agent_shadow_mcp",
+      "severity": "high",
+      "title": "Rogue Agent or Shadow MCP Server"
+    },
+    {
+      "aivss_score": 8.15,
+      "first_control": "Keep STDIO launch commands exact and sandboxed.",
+      "owner": "Runtime Security",
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "unexpected_code_execution",
+      "severity": "high",
+      "title": "Unexpected Code Execution Through Tool or Skill Paths"
+    },
+    {
+      "aivss_score": 8.1,
+      "first_control": "Use per-workflow non-human identities with explicit denies.",
+      "owner": "IAM and Platform Security",
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "identity_privilege_abuse",
+      "severity": "high",
+      "title": "Identity and Privilege Abuse by an Agent"
+    },
+    {
+      "aivss_score": 8,
+      "first_control": "Demote retrieved context from instruction to cited evidence.",
+      "owner": "Product Security",
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "agent_goal_hijack_context_poisoning",
+      "severity": "high",
+      "title": "Agent Goal Hijack Through Poisoned Context"
+    },
+    {
+      "aivss_score": 8,
+      "first_control": "Pin skill, tool, and Agent Card hashes before execution.",
+      "owner": "Supply Chain Security",
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "agentic_supply_chain_skill_compromise",
+      "severity": "high",
+      "title": "Agentic Supply Chain or Skill Compromise"
+    },
+    {
+      "aivss_score": 7.8,
+      "first_control": "Treat Agent Cards and handoff metadata as untrusted until signed, pinned, and policy-mapped.",
+      "owner": "AI Platform Architecture",
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "insecure_inter_agent_handoff",
+      "severity": "high",
+      "title": "Insecure Inter-Agent Handoff or Remote Agent Trust"
+    },
+    {
+      "aivss_score": 7.3,
+      "first_control": "Define per-run budgets, loop limits, fan-out limits, and kill conditions.",
+      "owner": "Security Operations",
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "cascading_failure_runaway_agent",
+      "severity": "high",
+      "title": "Cascading Failure or Runaway Agent Operation"
+    }
+  ],
+  "risk_scores": [
+    {
+      "aivss_score": 8.6,
+      "aivss_vector": {
+        "authority_impact": 2,
+        "autonomy_exposure": 1.6,
+        "business_materiality": 0.9,
+        "context_data_sensitivity": 1.2,
+        "control_confidence": 0.6,
+        "exploit_maturity": 0.8,
+        "tool_reachability": 1.5
+      },
+      "business_materiality": 0.9,
+      "evidence_keys": [
+        "mcp_tool_risk_contract",
+        "mcp_authorization_conformance_pack",
+        "agentic_exposure_graph",
+        "agentic_action_runtime_pack"
+      ],
+      "hosted_mcp_wedge": "MCP session risk policy that denies dangerous tool combinations before a gateway forwards calls to enterprise systems.",
+      "owasp_agentic_ids": [
+        "ASI02"
+      ],
+      "owasp_mcp_ids": [
+        "MCP02",
+        "MCP05",
+        "MCP08"
+      ],
+      "owner": "AI Platform Security",
+      "recommended_controls": [
+        "Split sessions that combine private data, untrusted content, and exfiltration-capable write tools.",
+        "Require tool annotations, namespace allowlists, and scope challenge handling.",
+        "Block capability expansion until tool-surface drift is reviewed.",
+        "Emit MCP decision telemetry for every high-impact tool call."
+      ],
+      "remediation_sla": "24h owner triage; block production expansion until compensating controls or explicit risk acceptance exist",
+      "runtime_default_decision": "deny_pending_remediation",
+      "scenario_id": "mcp_tool_misuse_lethal_session",
+      "severity": "critical",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "MCP Tool Misuse in a Lethal Session Combination"
+    },
+    {
+      "aivss_score": 8.15,
+      "aivss_vector": {
+        "authority_impact": 1.8,
+        "autonomy_exposure": 1.5,
+        "business_materiality": 0.95,
+        "context_data_sensitivity": 1.1,
+        "control_confidence": 0.5,
+        "exploit_maturity": 0.8,
+        "tool_reachability": 1.5
+      },
+      "business_materiality": 0.95,
+      "evidence_keys": [
+        "agentic_app_intake_pack",
+        "mcp_connector_intake_pack",
+        "agent_identity_delegation_ledger",
+        "enterprise_trust_center_export"
+      ],
+      "hosted_mcp_wedge": "Shadow-agent and shadow-MCP discovery intake with governance workflow and trust-center export.",
+      "owasp_agentic_ids": [
+        "ASI10"
+      ],
+      "owasp_mcp_ids": [
+        "MCP09"
+      ],
+      "owner": "AI Governance",
+      "recommended_controls": [
+        "Require app intake for every agent host, MCP server, and connector before production use.",
+        "Deny unregistered agents and shadow MCP servers by default.",
+        "Tie agent identities, scopes, connectors, and owner teams to posture evidence.",
+        "Expose inventory and exceptions through the enterprise trust-center export."
+      ],
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "rogue_agent_shadow_mcp",
+      "severity": "high",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Rogue Agent or Shadow MCP Server"
+    },
+    {
+      "aivss_score": 8.15,
+      "aivss_vector": {
+        "authority_impact": 2,
+        "autonomy_exposure": 1.4,
+        "business_materiality": 1,
+        "context_data_sensitivity": 1,
+        "control_confidence": 0.4,
+        "exploit_maturity": 0.95,
+        "tool_reachability": 1.4
+      },
+      "business_materiality": 1,
+      "evidence_keys": [
+        "mcp_stdio_launch_boundary_pack",
+        "agent_skill_supply_chain_pack",
+        "agentic_action_runtime_pack",
+        "agentic_catastrophic_risk_annex"
+      ],
+      "hosted_mcp_wedge": "Runtime action firewall for code execution, STDIO launch, package-manager, and local developer-tool boundaries.",
+      "owasp_agentic_ids": [
+        "ASI05"
+      ],
+      "owasp_mcp_ids": [
+        "MCP05"
+      ],
+      "owner": "Runtime Security",
+      "recommended_controls": [
+        "Keep STDIO launch commands exact and sandboxed.",
+        "Deny dynamic shell, interpreter, package-manager, and network expansion without approval.",
+        "Require action-runtime decisions before code, deploy, registry, or filesystem actions.",
+        "Use kill signals for command injection, malicious package, or untrusted config execution."
+      ],
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "unexpected_code_execution",
+      "severity": "high",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Unexpected Code Execution Through Tool or Skill Paths"
+    },
+    {
+      "aivss_score": 8.1,
+      "aivss_vector": {
+        "authority_impact": 2,
+        "autonomy_exposure": 1.5,
+        "business_materiality": 1,
+        "context_data_sensitivity": 1.1,
+        "control_confidence": 0.5,
+        "exploit_maturity": 0.7,
+        "tool_reachability": 1.3
+      },
+      "business_materiality": 1,
+      "evidence_keys": [
+        "agent_identity_delegation_ledger",
+        "agentic_entitlement_review_pack",
+        "mcp_authorization_conformance_pack",
+        "agentic_approval_receipt_pack"
+      ],
+      "hosted_mcp_wedge": "Agent identity entitlement review and authorization PDP for MCP gateways and agent hosts.",
+      "owasp_agentic_ids": [
+        "ASI03"
+      ],
+      "owasp_mcp_ids": [
+        "MCP01",
+        "MCP02",
+        "MCP07"
+      ],
+      "owner": "IAM and Platform Security",
+      "recommended_controls": [
+        "Use per-workflow non-human identities with explicit denies.",
+        "Bind tokens to resource audiences and short-lived permission leases.",
+        "Require step-up approvals for privilege expansion.",
+        "Revoke identity sessions when the workflow, user, or connector drifts."
+      ],
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "identity_privilege_abuse",
+      "severity": "high",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Identity and Privilege Abuse by an Agent"
+    },
+    {
+      "aivss_score": 8,
+      "aivss_vector": {
+        "authority_impact": 1.4,
+        "autonomy_exposure": 1.7,
+        "business_materiality": 0.9,
+        "context_data_sensitivity": 1.5,
+        "control_confidence": 0.5,
+        "exploit_maturity": 0.9,
+        "tool_reachability": 1.1
+      },
+      "business_materiality": 0.9,
+      "evidence_keys": [
+        "context_poisoning_guard_pack",
+        "secure_context_trust_pack",
+        "agentic_posture_snapshot",
+        "agentic_red_team_replay_harness"
+      ],
+      "hosted_mcp_wedge": "Real-time context poisoning score, source demotion, and retrieval kill decisions before private context reaches an agent.",
+      "owasp_agentic_ids": [
+        "ASI01",
+        "ASI06"
+      ],
+      "owasp_mcp_ids": [
+        "MCP06",
+        "MCP10"
+      ],
+      "owner": "Product Security",
+      "recommended_controls": [
+        "Demote retrieved context from instruction to cited evidence.",
+        "Require poisoning scans and source hashes before retrieval.",
+        "Hold high-autonomy actions when untrusted context influences tool selection.",
+        "Bind every answer and tool decision to a run receipt."
+      ],
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "agent_goal_hijack_context_poisoning",
+      "severity": "high",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Agent Goal Hijack Through Poisoned Context"
+    },
+    {
+      "aivss_score": 8,
+      "aivss_vector": {
+        "authority_impact": 1.7,
+        "autonomy_exposure": 1.3,
+        "business_materiality": 0.9,
+        "context_data_sensitivity": 1,
+        "control_confidence": 0.6,
+        "exploit_maturity": 1,
+        "tool_reachability": 1.5
+      },
+      "business_materiality": 0.9,
+      "evidence_keys": [
+        "agent_skill_supply_chain_pack",
+        "mcp_tool_surface_drift_pack",
+        "mcp_connector_intake_pack",
+        "agentic_protocol_conformance_pack"
+      ],
+      "hosted_mcp_wedge": "Skill, tool, and MCP server registry scanner with signed baselines and promotion gates.",
+      "owasp_agentic_ids": [
+        "ASI04"
+      ],
+      "owasp_mcp_ids": [
+        "MCP03",
+        "MCP04",
+        "MCP09"
+      ],
+      "owner": "Supply Chain Security",
+      "recommended_controls": [
+        "Pin skill, tool, and Agent Card hashes before execution.",
+        "Verify publisher, registry, sandbox, and network restrictions.",
+        "Deny untrusted skill updates that request shell, network, credential, or filesystem expansion.",
+        "Route shadow MCP servers to intake before promotion."
+      ],
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "agentic_supply_chain_skill_compromise",
+      "severity": "high",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Agentic Supply Chain or Skill Compromise"
+    },
+    {
+      "aivss_score": 7.8,
+      "aivss_vector": {
+        "authority_impact": 1.5,
+        "autonomy_exposure": 1.6,
+        "business_materiality": 0.8,
+        "context_data_sensitivity": 1.25,
+        "control_confidence": 0.6,
+        "exploit_maturity": 0.6,
+        "tool_reachability": 1.45
+      },
+      "business_materiality": 0.8,
+      "evidence_keys": [
+        "agent_handoff_boundary_pack",
+        "a2a_agent_card_trust_profile",
+        "agentic_protocol_conformance_pack",
+        "context_egress_boundary_pack"
+      ],
+      "hosted_mcp_wedge": "A2A and agent-handoff trust monitor with signed Agent Card drift detection.",
+      "owasp_agentic_ids": [
+        "ASI07"
+      ],
+      "owasp_mcp_ids": [
+        "MCP07",
+        "MCP10"
+      ],
+      "owner": "AI Platform Architecture",
+      "recommended_controls": [
+        "Treat Agent Cards and handoff metadata as untrusted until signed, pinned, and policy-mapped.",
+        "Bound handoff payload fields and data classes before context crosses agents.",
+        "Require target-agent authorization, observability, and receipt binding.",
+        "Deny opaque remote agents requesting high-impact tools or memory writes."
+      ],
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "insecure_inter_agent_handoff",
+      "severity": "high",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Insecure Inter-Agent Handoff or Remote Agent Trust"
+    },
+    {
+      "aivss_score": 7.3,
+      "aivss_vector": {
+        "authority_impact": 1.4,
+        "autonomy_exposure": 1.85,
+        "business_materiality": 0.85,
+        "context_data_sensitivity": 0.8,
+        "control_confidence": 0.6,
+        "exploit_maturity": 0.6,
+        "tool_reachability": 1.2
+      },
+      "business_materiality": 0.85,
+      "evidence_keys": [
+        "agentic_telemetry_contract",
+        "agentic_incident_response_pack",
+        "agentic_run_receipt_pack",
+        "agentic_measurement_probe_pack"
+      ],
+      "hosted_mcp_wedge": "Agentic runtime telemetry, runaway-loop detection, and incident replay export.",
+      "owasp_agentic_ids": [
+        "ASI08"
+      ],
+      "owasp_mcp_ids": [
+        "MCP08"
+      ],
+      "owner": "Security Operations",
+      "recommended_controls": [
+        "Define per-run budgets, loop limits, fan-out limits, and kill conditions.",
+        "Emit telemetry for every model, tool, policy, egress, approval, and verifier event.",
+        "Bind incidents to replayable traces and receipts.",
+        "Require containment decisions before an agent resumes after a severe signal."
+      ],
+      "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
+      "runtime_default_decision": "hold_for_human_security_review",
+      "scenario_id": "cascading_failure_runaway_agent",
+      "severity": "high",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Cascading Failure or Runaway Agent Operation"
+    },
+    {
+      "aivss_score": 6.95,
+      "aivss_vector": {
+        "authority_impact": 1.55,
+        "autonomy_exposure": 1.2,
+        "business_materiality": 0.8,
+        "context_data_sensitivity": 1,
+        "control_confidence": 0.6,
+        "exploit_maturity": 0.7,
+        "tool_reachability": 1.1
+      },
+      "business_materiality": 0.8,
+      "evidence_keys": [
+        "agentic_approval_receipt_pack",
+        "agentic_action_runtime_pack",
+        "agentic_red_team_drill_pack",
+        "context_poisoning_guard_pack"
+      ],
+      "hosted_mcp_wedge": "Approval receipt verification and two-key review enforcement before privileged agent actions.",
+      "owasp_agentic_ids": [
+        "ASI09"
+      ],
+      "owasp_mcp_ids": [
+        "MCP06",
+        "MCP08"
+      ],
+      "owner": "GRC and Security Engineering",
+      "recommended_controls": [
+        "Make approvals scoped, time-boxed, auditable, and bound to the exact action envelope.",
+        "Deny approval reuse after context, tool, risk, or output changes.",
+        "Separate reviewer roles for high-impact or irreversible operations.",
+        "Run red-team drills for approval bypass, social-engineered prompts, and hidden instruction chains."
+      ],
+      "remediation_sla": "30d remediation or documented acceptance; monitor with telemetry and run receipts",
+      "runtime_default_decision": "allow_guarded_with_receipt",
+      "scenario_id": "human_agent_trust_exploitation",
+      "severity": "medium",
+      "source_signal_summary": {
+        "actionable_context_poisoning_findings": 2,
+        "critical_or_high_skill_count": 1,
+        "high_exposure_path_count": 24,
+        "lethal_combination_workflow_count": 2,
+        "pilot_connector_count": 5,
+        "posture_decision": "guarded_enterprise_pilot",
+        "posture_score": 96,
+        "runtime_action_class_count": 10,
+        "top_risk_skill_count": 5,
+        "workflow_count": 8,
+        "xpia_sensitive_workflows": [
+          "artifact-cache-quarantine",
+          "crypto-payment-security",
+          "defi-blockchain-security"
+        ]
+      },
+      "title": "Human-Agent Trust Exploitation or Approval Bypass"
+    }
+  ],
+  "schema_version": "1.0",
+  "severity_summary": {
+    "critical_or_high_count": 8,
+    "failure_count": 0,
+    "highest_score": 8.6,
+    "risk_score_count": 9,
+    "runtime_decision_counts": {
+      "allow_guarded_with_receipt": 1,
+      "deny_pending_remediation": 1,
+      "hold_for_human_security_review": 7
+    },
+    "severity_counts": {
+      "critical": 1,
+      "high": 7,
+      "medium": 1
+    },
+    "status": "agentic_aivss_ready"
+  },
+  "source_artifacts": {
+    "agent_skill_supply_chain_pack": {
+      "path": "data/evidence/agent-skill-supply-chain-pack.json",
+      "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450"
+    },
+    "agentic_action_runtime_pack": {
+      "path": "data/evidence/agentic-action-runtime-pack.json",
+      "sha256": "557b1c53c422fdd256a085160fc2fa65609fc63113b627ea06140f671819b3f3"
+    },
+    "agentic_aivss_risk_scoring_profile": {
+      "path": "data/assurance/agentic-aivss-risk-scoring-profile.json",
+      "sha256": "032a6c4c416475cf880c0d65ed971cdd42183ca41fbd5836a38a62dc5c28dc7d"
+    },
+    "agentic_app_intake_pack": {
+      "path": "data/evidence/agentic-app-intake-pack.json",
+      "sha256": "8fc8923faca76a09dd198e5974e35252deaf10b1f112667419a72a74630f2ede"
+    },
+    "agentic_approval_receipt_pack": {
+      "path": "data/evidence/agentic-approval-receipt-pack.json",
+      "sha256": "7df7c37c9332b498fb26a2fb622110ce5253acb954eb568c8d1a46132d5adc64"
+    },
+    "agentic_exposure_graph": {
+      "path": "data/evidence/agentic-exposure-graph.json",
+      "sha256": "467530248c4fe051cf942ff1f64e651b61731b7eeb9a5745c3b3777f5bf1eaba"
+    },
+    "agentic_incident_response_pack": {
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527"
+    },
+    "agentic_posture_snapshot": {
+      "path": "data/evidence/agentic-posture-snapshot.json",
+      "sha256": "19ea3207a783792db5674b67f721a41a7e2b4c98afced290c778e28c2fb037b0"
+    },
+    "agentic_standards_crosswalk": {
+      "path": "data/evidence/agentic-standards-crosswalk.json",
+      "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df"
+    },
+    "context_poisoning_guard_pack": {
+      "path": "data/evidence/context-poisoning-guard-pack.json",
+      "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8"
+    },
+    "mcp_risk_coverage_pack": {
+      "path": "data/evidence/mcp-risk-coverage-pack.json",
+      "sha256": "8726ae6bb7329c84783a4baf2ac54ca61e7fe418abb4f5a886ebfa46353f960f"
+    },
+    "mcp_tool_risk_contract": {
+      "path": "data/evidence/mcp-tool-risk-contract.json",
+      "sha256": "db3a0be61433b2a193ccc5c80bd854ce626f06376c2f93057ae4c128ef03002a"
+    }
+  },
+  "source_references": [
+    {
+      "id": "owasp-aivss-v0.8",
+      "name": "OWASP AI Vulnerability Scoring System v0.8",
+      "published": "2026",
+      "publisher": "OWASP",
+      "url": "https://aivss.owasp.org/",
+      "why_it_matters": "AIVSS is the most directly relevant emerging attempt to score agentic AI security risk rather than treating all AI failures as generic application vulnerabilities."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "published": "2025-12-09",
+      "publisher": "OWASP GenAI Security Project",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+      "why_it_matters": "The Agentic Top 10 names the practical risk families that matter when agents can pursue goals, chain tools, use delegated identity, and coordinate across systems."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "published": "2025",
+      "publisher": "OWASP",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "why_it_matters": "MCP security risks such as token exposure, scope creep, tool poisoning, command execution, authorization failure, telemetry gaps, shadow servers, and context over-sharing define the protocol layer this product secures."
+    },
+    {
+      "id": "owasp-agentic-skills-top-10",
+      "name": "OWASP Agentic Skills Top 10",
+      "published": "2026",
+      "publisher": "OWASP",
+      "url": "https://owasp.org/www-project-agentic-skills-top-10/",
+      "why_it_matters": "Agent skills are the behavior and execution layer between model intent and tool calls, so severity scoring must account for skill provenance, privilege, isolation, update drift, and registry compromise."
+    },
+    {
+      "id": "nist-ai-600-1",
+      "name": "NIST AI RMF Generative AI Profile",
+      "published": "2024-07-26",
+      "publisher": "NIST",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "why_it_matters": "NIST AI 600-1 provides the governance, mapping, measurement, and management framing enterprise buyers expect when AI risk scores become operational decisions."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "published": "2025-11-25",
+      "publisher": "Model Context Protocol",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "why_it_matters": "The MCP authorization specification anchors resource indicators, audience binding, token handling, and scope minimization, which are decisive controls for scoring delegated tool authority."
+    }
+  ]
+}

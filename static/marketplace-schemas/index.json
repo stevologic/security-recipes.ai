@@ -1,0 +1,96 @@
+{
+  "schema_version": "securityrecipes.marketplace.schemas.v1",
+  "schemas": [
+    {
+      "key": "inputChannelContribution",
+      "label": "Input channel contribution packet",
+      "href": "/marketplace-schemas/input-channel-contribution.schema.json",
+      "applies_to": "data/marketplace/input_channels.json",
+      "description": "Browser-exported community input-channel packets for Hugo marketplace pull requests."
+    },
+    {
+      "key": "outputChannelContribution",
+      "label": "Output channel contribution packet",
+      "href": "/marketplace-schemas/output-channel-contribution.schema.json",
+      "applies_to": "data/marketplace/output_channels.json",
+      "description": "Browser-exported community output-route packets for Hugo marketplace pull requests."
+    },
+    {
+      "key": "reportProfileContribution",
+      "label": "Report profile contribution packet",
+      "href": "/marketplace-schemas/report-profile-contribution.schema.json",
+      "applies_to": "data/marketplace/report_profiles.json",
+      "description": "Browser-exported report-profile packets for Hugo marketplace pull requests."
+    },
+    {
+      "key": "workflowTemplateContribution",
+      "label": "Workflow template contribution packet",
+      "href": "/marketplace-schemas/workflow-template-contribution.schema.json",
+      "applies_to": "data/marketplace/workflow_templates.json",
+      "description": "Browser-exported workflow-pack packets for Hugo marketplace pull requests."
+    },
+    {
+      "key": "localLibrary",
+      "label": "Local marketplace library",
+      "href": "/marketplace-schemas/local-library.schema.json",
+      "applies_to": "browser local marketplace export/import",
+      "description": "Portable browser-local library payload for private input, output, report, and workflow packs."
+    },
+    {
+      "key": "caseFile",
+      "label": "Case file",
+      "href": "/marketplace-schemas/case-file.schema.json",
+      "applies_to": "browser local case export",
+      "description": "Validates exported Caseboard JSON bundles before they are handed to another tool or reviewer."
+    },
+    {
+      "key": "caseLibrary",
+      "label": "Caseboard library",
+      "href": "/marketplace-schemas/case-library.schema.json",
+      "applies_to": "browser local Caseboard export/import",
+      "description": "Portable browser-local case library payload for importing and exporting saved investigations."
+    },
+    {
+      "key": "assetLibrary",
+      "label": "Asset and ownership library",
+      "href": "/marketplace-schemas/asset-library.schema.json",
+      "applies_to": "browser local asset register export/import",
+      "description": "Portable browser-local asset criticality and ownership library for enriching exposures and cases."
+    },
+    {
+      "key": "operationsHistory",
+      "label": "Operations history",
+      "href": "/marketplace-schemas/operations-history.schema.json",
+      "applies_to": "browser local process-log export",
+      "description": "Portable browser-local activity ledger for source syncs, chat sessions, agent runs, case actions, and report exports."
+    },
+    {
+      "key": "operationsSession",
+      "label": "Operations session",
+      "href": "/marketplace-schemas/operations-session.schema.json",
+      "applies_to": "browser local investigation-session export",
+      "description": "Portable browser-local grouped investigation session for correlated source syncs, AI runs, case actions, and handoff exports."
+    },
+    {
+      "key": "portfolioCoverage",
+      "label": "Portfolio coverage snapshot",
+      "href": "/marketplace-schemas/portfolio-coverage.schema.json",
+      "applies_to": "browser local portfolio coverage export",
+      "description": "Dependency-aware portfolio coverage snapshot with route readiness, fan-out, and downstream exposure impact."
+    },
+    {
+      "key": "routingPolicy",
+      "label": "Routing policy",
+      "href": "/marketplace-schemas/routing-policy.schema.json",
+      "applies_to": "browser local routing policy export",
+      "description": "Validates one owner-aware routing policy before it is reused across planner, exposure, or case flows."
+    },
+    {
+      "key": "routingLibrary",
+      "label": "Routing policy library",
+      "href": "/marketplace-schemas/routing-library.schema.json",
+      "applies_to": "browser local routing policy export/import",
+      "description": "Portable browser-local routing policy library for owner-aware downstream defaults and approval routing."
+    }
+  ]
+}

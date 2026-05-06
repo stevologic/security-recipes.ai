@@ -580,7 +580,7 @@ def build_ledger(
             {
                 "id": "mcp-authorization",
                 "name": "Model Context Protocol Authorization",
-                "url": "https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization",
+                "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
                 "coverage": "HTTP transport authorization, resource-owner consent, and restricted MCP server access.",
             },
             {

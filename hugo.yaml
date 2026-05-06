@@ -44,7 +44,7 @@ markup:
 
 # Output formats needed by Hextra search + MCP recipe indexing.
 outputs:
-  home: [HTML, RECIPESINDEX]
+  home: [HTML, RECIPESINDEX, MARKETPLACECATALOG, MARKETPLACEINPUTS, MARKETPLACEOUTPUTS, MARKETPLACEREPORTS, MARKETPLACEWORKFLOWS, MARKETPLACEREADINESS, MARKETPLACEMANIFEST]
   page: [HTML]
   section: [HTML, RSS]
 
@@ -52,6 +52,41 @@ outputFormats:
   RECIPESINDEX:
     mediaType: application/json
     baseName: recipes-index
+    isPlainText: true
+    notAlternative: true
+  MARKETPLACECATALOG:
+    mediaType: application/json
+    baseName: marketplace-catalog
+    isPlainText: true
+    notAlternative: true
+  MARKETPLACEINPUTS:
+    mediaType: application/json
+    baseName: marketplace-input-channels
+    isPlainText: true
+    notAlternative: true
+  MARKETPLACEOUTPUTS:
+    mediaType: application/json
+    baseName: marketplace-output-channels
+    isPlainText: true
+    notAlternative: true
+  MARKETPLACEREPORTS:
+    mediaType: application/json
+    baseName: marketplace-report-profiles
+    isPlainText: true
+    notAlternative: true
+  MARKETPLACEWORKFLOWS:
+    mediaType: application/json
+    baseName: marketplace-workflow-templates
+    isPlainText: true
+    notAlternative: true
+  MARKETPLACEREADINESS:
+    mediaType: application/json
+    baseName: marketplace-readiness
+    isPlainText: true
+    notAlternative: true
+  MARKETPLACEMANIFEST:
+    mediaType: application/json
+    baseName: marketplace-control-plane
     isPlainText: true
     notAlternative: true
 
@@ -267,6 +302,11 @@ menu:
       parent: security-remediation
       name: Model Provider Routing
       pageRef: security-remediation/model-provider-routing-gate
+      weight: 66
+    - identifier: secrem-aivss-risk-scoring
+      parent: security-remediation
+      name: AIVSS Risk Scoring
+      pageRef: security-remediation/agentic-aivss-risk-scoring
       weight: 66
     - identifier: secrem-threat-radar
       parent: security-remediation

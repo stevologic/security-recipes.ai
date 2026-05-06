@@ -1,0 +1,86 @@
+{
+  "runtime_labels": {
+    "live": "Browser live",
+    "live_or_copy": "Live with copy fallback",
+    "copy_only": "Local copy only",
+    "config_only": "Config contract only",
+    "planned": "Reviewed starter contract",
+    "contract": "Contract only"
+  },
+  "auth_mode_labels": {
+    "none": "No external auth",
+    "public": "Public access",
+    "pat": "Personal access token",
+    "oauth": "OAuth delegated token",
+    "api_key": "API key",
+    "api_token": "API token",
+    "access_key": "Access key pair",
+    "aws_sigv4": "AWS SigV4 signing",
+    "webhook": "Webhook secret or URL"
+  },
+  "auth_mode_details": {
+    "none": "No provider credential is required; the operator still chooses the exact page, file, or route input in the browser.",
+    "public": "The pack can rely on public or anonymously readable data, but the browser still needs a bounded repository, tenant, or document target.",
+    "pat": "A user-scoped personal access token must stay in browser storage and carry only the minimum read or write scope required for the selected task.",
+    "oauth": "The browser runtime needs an OAuth-capable flow and a delegated token with the provider scopes required for the selected source or route.",
+    "api_key": "The operator must paste a provider-issued API key into browser storage before the pack can call the provider API directly.",
+    "api_token": "The operator must supply a provider token or service token in browser storage before this pack can run.",
+    "access_key": "The pack needs provider access-key style credentials and should only be promoted when the browser flow can keep those values bounded and explicit.",
+    "aws_sigv4": "The browser runtime needs real AWS SigV4 request signing and short-lived credentials before the provider API can be called honestly from the browser.",
+    "webhook": "The destination system must expose a pre-approved webhook endpoint or secret-backed URL that the browser can post to directly."
+  },
+  "output_driver_auth_modes": {
+    "draft-pr": ["none"],
+    "github-issue": ["pat", "oauth"],
+    "slack": ["webhook"],
+    "email": ["none"],
+    "jira": ["api_token"],
+    "runbook": ["none"],
+    "server-runbook": ["none"],
+    "teams": ["webhook"],
+    "servicenow": ["oauth"],
+    "linear": ["api_key"],
+    "splunk-hec": ["api_token"],
+    "elastic-case": ["api_key"],
+    "pagerduty": ["api_key"],
+    "google-chat": ["webhook"],
+    "azure-devops": ["pat", "oauth"],
+    "gitlab-issue": ["pat", "oauth"],
+    "xsoar": ["api_key"],
+    "ibm-soar": ["api_key"],
+    "sentinel-playbook": ["oauth"],
+    "tines": ["webhook"],
+    "torq": ["webhook"],
+    "splunk-soar": ["api_token"],
+    "swimlane": ["api_token"],
+    "generic-webhook": ["webhook"]
+  },
+  "runtime_requirements": {
+    "live": "The browser workbench already has a direct BYO-token runtime path for this pack today.",
+    "live_or_copy": "The browser can try a direct write when the operator supplies the required config, and it still keeps a safe local copy or export fallback.",
+    "copy_only": "This pack intentionally stops at a local contract and never performs the external write for the operator.",
+    "config_only": "The contract shape is published for authoring and validation, but the browser runtime is not shipped.",
+    "planned": "This is a reviewed starter contract that still needs a verified browser-safe auth, API, and CORS story before promotion.",
+    "contract": "This entry is a reusable contract rather than a direct connector runtime."
+  },
+  "runtime_blockers": {
+    "live": [],
+    "live_or_copy": [
+      "Operator-owned credentials, webhook targets, or tenant metadata still need to be configured in the browser before a live call can run.",
+      "Provider cross-origin behavior and tenant policy still decide whether the direct browser path succeeds, so the local handoff fallback remains part of the design."
+    ],
+    "copy_only": [
+      "No external write path exists by design, so a reviewer or downstream tool must copy, download, or relay the generated payload."
+    ],
+    "config_only": [
+      "Only the configuration contract is published today; the browser runtime has not been implemented yet."
+    ],
+    "planned": [
+      "The runtime path has not been promoted from starter contract to live browser flow yet.",
+      "Auth scope, request signing, pagination, throttling, and cross-origin behavior still need explicit verification for this provider."
+    ],
+    "contract": [
+      "This pack shapes the workflow, but it is not itself a connector."
+    ]
+  }
+}

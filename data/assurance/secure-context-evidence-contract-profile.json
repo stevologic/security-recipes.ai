@@ -1,0 +1,560 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define the external evidence contract for SecurityRecipes so open reference packs, hosted MCP runtime evidence, trust-center exports, and acquirer diligence packets can share one redacted, schema-backed, release-gated contract instead of ad hoc JSON blobs.",
+  "positioning": {
+    "buyer": "AI platform, frontier lab, security platform, regulated enterprise, VC diligence, and acquisition reviewers",
+    "category": "Secure context evidence API and release contract",
+    "enterprise_promise": "SecurityRecipes can prove which evidence objects are safe to expose, which source packs back them, which API surfaces a hosted product should provide, and which runtime gates prevent raw prompts, source code, secrets, tokens, or customer data from leaking through diligence exports.",
+    "why_now": "Agentic AI and MCP programs are moving from pilots into procurement review. Buyers increasingly need redacted runtime evidence, source hashes, signatures, retention policy, tenant binding, and API-ready contracts before they approve a hosted context layer or value it as an acquisition target."
+  },
+  "release_contract": {
+    "default_state": "hold_release_until_evidence_is_redacted_bound_and_signed",
+    "minimum_source_pack_count": 12,
+    "minimum_evidence_object_types": 10,
+    "minimum_release_channels": 4,
+    "minimum_hosted_api_endpoints": 6,
+    "required_runtime_attributes": [
+      "release_id",
+      "release_channel",
+      "artifact_ids",
+      "tenant_id",
+      "correlation_id",
+      "source_hashes_present",
+      "redaction_verified",
+      "signature_present",
+      "approval_receipt_id",
+      "retention_policy_id",
+      "dpa_state",
+      "zero_data_retention_state",
+      "contains_secret",
+      "contains_raw_prompt",
+      "contains_source_code",
+      "contains_customer_data"
+    ],
+    "valid_runtime_decisions": [
+      "allow_publish_evidence_release",
+      "hold_for_redaction_or_signature",
+      "hold_for_customer_runtime_evidence",
+      "deny_sensitive_payload_release",
+      "kill_session_on_secret_or_token_release"
+    ],
+    "prohibited_payload_classes": [
+      "raw_access_token",
+      "api_key",
+      "private_key",
+      "seed_phrase",
+      "session_cookie",
+      "raw_prompt_with_customer_data",
+      "unredacted_source_code",
+      "live_signing_material"
+    ],
+    "release_controls": [
+      "source_hashes",
+      "redaction_manifest",
+      "tenant_binding",
+      "approval_receipt",
+      "retention_policy",
+      "signature_or_signing_plan",
+      "dpa_or_processor_record",
+      "zero_data_retention_state",
+      "metadata_only_telemetry",
+      "customer_runtime_evidence",
+      "no_secret_or_token_payload",
+      "reviewer_visible_payload_preview"
+    ],
+    "buyer_success_criteria": [
+      "Every exposed evidence object has a stable object type, required fields, redaction rule, and linked source packs.",
+      "Every release channel fails closed unless source hashes, redaction, tenant binding, approval, retention, and signature requirements are satisfied.",
+      "The hosted API surface is described before it is implemented so design partners can review integration semantics early.",
+      "The open repo can prove public evidence without exposing customer-private data.",
+      "Customer and acquirer claims are blocked until runtime telemetry and signed receipts replace assumptions."
+    ]
+  },
+  "source_references": [
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Hosted MCP evidence exports must prove protected-resource metadata, resource indicators, audience-bound tokens, client metadata, scope challenges, and token-passthrough denial before buyers trust policy decisions."
+    },
+    {
+      "id": "mcp-elicitation-2025-11-25",
+      "name": "Model Context Protocol Elicitation Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation",
+      "source_class": "protocol_specification",
+      "why_it_matters": "URL-mode elicitation, form-mode limits, user review, consent, identity binding, and phishing controls are a new evidence surface for hosted MCP products."
+    },
+    {
+      "id": "mcp-tools-2025-11-25",
+      "name": "Model Context Protocol Tools Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Tool annotations, input schemas, output schemas, and execution metadata need trusted-source and drift evidence before they become policy inputs in an enterprise API."
+    },
+    {
+      "id": "mcp-transports-2025-11-25",
+      "name": "Model Context Protocol Transports Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Streamable HTTP, origin validation, localhost binding, and authentication expectations shape the hosted evidence API boundary and local reference server warnings."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "publisher": "NIST CAISI",
+      "published": "2026-02-17",
+      "url": "https://www.nist.gov/caisi/ai-agent-standards-initiative",
+      "source_class": "government_framework",
+      "why_it_matters": "NIST is explicitly prioritizing secure, interoperable AI agents, agent authentication, identity infrastructure, and security evaluations, which makes evidence contracts strategically important for enterprise adoption."
+    },
+    {
+      "id": "openai-prompt-injection-2026",
+      "name": "Designing AI agents to resist prompt injection",
+      "publisher": "OpenAI",
+      "published": "2026-03-11",
+      "url": "https://openai.com/index/designing-agents-to-resist-prompt-injection/",
+      "source_class": "frontier_lab_guidance",
+      "why_it_matters": "OpenAI frames prompt injection as a source-to-sink and social-engineering problem, reinforcing that evidence releases must constrain dangerous transmissions even when content classification is imperfect."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "publisher": "OWASP Foundation",
+      "published": "2025",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "source_class": "industry_standard",
+      "why_it_matters": "The MCP Top 10 gives buyers a shared risk vocabulary for token exposure, scope creep, tool poisoning, audit gaps, shadow MCP servers, and context over-sharing."
+    },
+    {
+      "id": "owasp-agentic-applications-2026",
+      "name": "OWASP Top 10 for Agentic Applications",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/2025/12/09/owasp-top-10-for-agentic-applications-the-benchmark-for-agentic-security-in-the-age-of-autonomous-ai/",
+      "source_class": "industry_standard",
+      "why_it_matters": "Agentic application risks push evidence exports beyond static documents into runtime identity, tool, approval, egress, telemetry, and containment proof."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "AI Controls Matrix",
+      "publisher": "Cloud Security Alliance",
+      "published": "2025-07-09",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "source_class": "industry_framework",
+      "why_it_matters": "CSA's vendor-agnostic AI control matrix gives procurement and GRC teams a familiar control language for reviewing hosted AI evidence APIs."
+    }
+  ],
+  "source_pack_index": [
+    {
+      "id": "enterprise_trust_center_export",
+      "title": "Enterprise Trust Center Export",
+      "category": "buyer_diligence",
+      "path": "data/evidence/enterprise-trust-center-export.json",
+      "mcp_tools": ["recipes_enterprise_trust_center_export"],
+      "required": true
+    },
+    {
+      "id": "secure_context_customer_proof_pack",
+      "title": "Secure Context Customer Proof Pack",
+      "category": "customer_runtime_proof",
+      "path": "data/evidence/secure-context-customer-proof-pack.json",
+      "mcp_tools": ["recipes_secure_context_customer_proof_pack"],
+      "required": true
+    },
+    {
+      "id": "hosted_mcp_readiness_pack",
+      "title": "Hosted MCP Readiness Pack",
+      "category": "hosted_product",
+      "path": "data/evidence/hosted-mcp-readiness-pack.json",
+      "mcp_tools": ["recipes_hosted_mcp_readiness_pack"],
+      "required": true
+    },
+    {
+      "id": "secure_context_value_model",
+      "title": "Secure Context Value Model",
+      "category": "commercialization",
+      "path": "data/evidence/secure-context-value-model.json",
+      "mcp_tools": ["recipes_secure_context_value_model"],
+      "required": true
+    },
+    {
+      "id": "design_partner_pilot_pack",
+      "title": "Design Partner Pilot Pack",
+      "category": "commercialization",
+      "path": "data/evidence/design-partner-pilot-pack.json",
+      "mcp_tools": ["recipes_design_partner_pilot_pack"],
+      "required": true
+    },
+    {
+      "id": "agentic_run_receipt_pack",
+      "title": "Agentic Run Receipt Pack",
+      "category": "runtime_receipts",
+      "path": "data/evidence/agentic-run-receipt-pack.json",
+      "mcp_tools": ["recipes_agentic_run_receipt_pack"],
+      "required": true
+    },
+    {
+      "id": "agentic_telemetry_contract",
+      "title": "Agentic Telemetry Contract",
+      "category": "telemetry",
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "mcp_tools": ["recipes_agentic_telemetry_contract", "recipes_evaluate_agentic_telemetry_event"],
+      "required": true
+    },
+    {
+      "id": "mcp_authorization_conformance_pack",
+      "title": "MCP Authorization Conformance Pack",
+      "category": "mcp_policy",
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "mcp_tools": ["recipes_mcp_authorization_conformance_pack", "recipes_evaluate_mcp_authorization_decision"],
+      "required": true
+    },
+    {
+      "id": "mcp_elicitation_boundary_pack",
+      "title": "MCP Elicitation Boundary Pack",
+      "category": "mcp_policy",
+      "path": "data/evidence/mcp-elicitation-boundary-pack.json",
+      "mcp_tools": ["recipes_mcp_elicitation_boundary_pack", "recipes_evaluate_mcp_elicitation_boundary_decision"],
+      "required": true
+    },
+    {
+      "id": "mcp_tool_surface_drift_pack",
+      "title": "MCP Tool Surface Drift Pack",
+      "category": "mcp_policy",
+      "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+      "mcp_tools": ["recipes_mcp_tool_surface_drift_pack", "recipes_evaluate_mcp_tool_surface_drift_decision"],
+      "required": true
+    },
+    {
+      "id": "context_egress_boundary_pack",
+      "title": "Context Egress Boundary Pack",
+      "category": "data_boundary",
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "mcp_tools": ["recipes_context_egress_boundary_pack", "recipes_evaluate_context_egress_decision"],
+      "required": true
+    },
+    {
+      "id": "secure_context_lineage_ledger",
+      "title": "Secure Context Lineage Ledger",
+      "category": "context_provenance",
+      "path": "data/evidence/secure-context-lineage-ledger.json",
+      "mcp_tools": ["recipes_secure_context_lineage_ledger", "recipes_evaluate_secure_context_lineage_decision"],
+      "required": true
+    },
+    {
+      "id": "secure_context_attestation_pack",
+      "title": "Secure Context Attestation Pack",
+      "category": "context_provenance",
+      "path": "data/evidence/secure-context-attestation-pack.json",
+      "mcp_tools": ["recipes_secure_context_attestation_pack", "recipes_evaluate_context_attestation_decision"],
+      "required": true
+    },
+    {
+      "id": "secure_context_eval_pack",
+      "title": "Secure Context Eval Pack",
+      "category": "evals",
+      "path": "data/evidence/secure-context-eval-pack.json",
+      "mcp_tools": ["recipes_secure_context_eval_pack", "recipes_evaluate_secure_context_eval_case"],
+      "required": true
+    },
+    {
+      "id": "agentic_incident_response_pack",
+      "title": "Agentic Incident Response Pack",
+      "category": "incident_response",
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "mcp_tools": ["recipes_agentic_incident_response_pack", "recipes_evaluate_agentic_incident_response_decision"],
+      "required": true
+    },
+    {
+      "id": "agentic_source_freshness_watch",
+      "title": "Agentic Source Freshness Watch",
+      "category": "source_quality",
+      "path": "data/evidence/agentic-source-freshness-watch.json",
+      "mcp_tools": ["recipes_agentic_source_freshness_watch"],
+      "required": true
+    }
+  ],
+  "evidence_object_types": [
+    {
+      "id": "evidence_release",
+      "title": "Evidence Release",
+      "description": "Top-level release envelope for public, trust-center, design-partner, or acquirer evidence.",
+      "required_fields": ["release_id", "release_channel", "artifact_ids", "source_hashes", "redaction_manifest_id", "created_at"],
+      "redaction_rule": "Never include raw prompts, raw customer code, secrets, access tokens, private keys, or session cookies.",
+      "linked_source_pack_ids": ["enterprise_trust_center_export", "secure_context_customer_proof_pack", "hosted_mcp_readiness_pack"]
+    },
+    {
+      "id": "source_pack_reference",
+      "title": "Source Pack Reference",
+      "description": "Stable pointer to an evidence pack, its hash, schema version, readiness status, and MCP tool surface.",
+      "required_fields": ["id", "path", "sha256", "schema_version", "status"],
+      "redaction_rule": "Expose metadata and hashes only unless the pack is approved for the release channel.",
+      "linked_source_pack_ids": ["enterprise_trust_center_export", "agentic_source_freshness_watch"]
+    },
+    {
+      "id": "context_source_reference",
+      "title": "Context Source Reference",
+      "description": "Hash-bound source, trust tier, attestation, poisoning scan, and lineage pointer for secure context.",
+      "required_fields": ["source_id", "source_hash", "trust_tier", "attestation_status", "lineage_stage_id"],
+      "redaction_rule": "Export source IDs, hashes, and metadata; do not export customer-private source content.",
+      "linked_source_pack_ids": ["secure_context_lineage_ledger", "secure_context_attestation_pack"]
+    },
+    {
+      "id": "mcp_policy_decision",
+      "title": "MCP Policy Decision",
+      "description": "Authorization, elicitation, tool-risk, or tool-surface decision before an MCP boundary is trusted.",
+      "required_fields": ["decision", "workflow_id", "namespace", "correlation_id", "policy_pack_hash"],
+      "redaction_rule": "Expose decision metadata, not bearer tokens, raw tool payloads, or upstream credentials.",
+      "linked_source_pack_ids": ["mcp_authorization_conformance_pack", "mcp_elicitation_boundary_pack", "mcp_tool_surface_drift_pack"]
+    },
+    {
+      "id": "run_receipt_reference",
+      "title": "Run Receipt Reference",
+      "description": "Portable proof of identity, context, tools, approvals, verifier output, and closure for one governed agent run.",
+      "required_fields": ["receipt_id", "workflow_id", "agent_id", "run_id", "receipt_hash"],
+      "redaction_rule": "Export receipt IDs, hashes, and status; keep private prompts and raw verifier logs in tenant storage.",
+      "linked_source_pack_ids": ["agentic_run_receipt_pack", "agentic_telemetry_contract"]
+    },
+    {
+      "id": "approval_receipt_reference",
+      "title": "Approval Receipt Reference",
+      "description": "Scope-bound approval evidence for privileged or high-impact agent action.",
+      "required_fields": ["approval_receipt_id", "scope_hash", "approver_role", "expires_at", "decision"],
+      "redaction_rule": "Expose role, scope hash, and decision; do not expose personal data beyond configured tenant policy.",
+      "linked_source_pack_ids": ["agentic_run_receipt_pack", "secure_context_customer_proof_pack"]
+    },
+    {
+      "id": "telemetry_event_reference",
+      "title": "Telemetry Event Reference",
+      "description": "Metadata-only trace event for agent, model, MCP, context, approval, egress, verifier, or incident evidence.",
+      "required_fields": ["event_id", "trace_id", "event_class", "workflow_id", "decision"],
+      "redaction_rule": "Telemetry exports are metadata-only by default and must not capture payload bodies or secrets.",
+      "linked_source_pack_ids": ["agentic_telemetry_contract", "agentic_incident_response_pack"]
+    },
+    {
+      "id": "trust_center_claim",
+      "title": "Trust Center Claim",
+      "description": "Buyer-readable claim backed by required packs, diligence questions, MCP tools, and source hashes.",
+      "required_fields": ["claim_id", "question", "answer", "evidence_pack_ids", "status"],
+      "redaction_rule": "Use public or redacted evidence; customer-private attachments require a private release channel.",
+      "linked_source_pack_ids": ["enterprise_trust_center_export", "secure_context_value_model"]
+    },
+    {
+      "id": "customer_proof_metric",
+      "title": "Customer Proof Metric",
+      "description": "Design-partner runtime metric that proves value, renewal readiness, risk reduction, or reviewer burden.",
+      "required_fields": ["metric_id", "name", "measurement_window", "target", "evidence_source"],
+      "redaction_rule": "Aggregate metrics by default; do not export identifiable repository, employee, or customer records.",
+      "linked_source_pack_ids": ["secure_context_customer_proof_pack", "design_partner_pilot_pack"]
+    },
+    {
+      "id": "mcp_tool_surface_baseline",
+      "title": "MCP Tool Surface Baseline",
+      "description": "Pinned MCP tool name, description hash, input schema hash, output schema hash, annotation hash, and capability flags.",
+      "required_fields": ["surface_id", "namespace", "tool_name", "description_sha256", "input_schema_sha256", "decision"],
+      "redaction_rule": "Export hashes and declared metadata; do not export secrets found in tool payload examples.",
+      "linked_source_pack_ids": ["mcp_tool_surface_drift_pack", "mcp_authorization_conformance_pack"]
+    },
+    {
+      "id": "incident_signal",
+      "title": "Incident Signal",
+      "description": "Runtime signal, containment decision, replay gate, or SOC alert tied to agentic AI and MCP evidence.",
+      "required_fields": ["incident_id", "incident_class_id", "workflow_id", "severity", "decision"],
+      "redaction_rule": "Export incident metadata and containment state; keep forensic payloads in tenant-bound evidence vaults.",
+      "linked_source_pack_ids": ["agentic_incident_response_pack", "agentic_telemetry_contract"]
+    },
+    {
+      "id": "redaction_manifest",
+      "title": "Redaction Manifest",
+      "description": "Release-time declaration of removed fields, payload classes, reviewer, and residual sensitivity for an evidence packet.",
+      "required_fields": ["redaction_manifest_id", "removed_payload_classes", "reviewer_role", "residual_sensitivity", "decision"],
+      "redaction_rule": "The manifest describes removals and residual risk; it must not include the removed sensitive values.",
+      "linked_source_pack_ids": ["context_egress_boundary_pack", "secure_context_customer_proof_pack"]
+    },
+    {
+      "id": "release_signature",
+      "title": "Release Signature",
+      "description": "Signature, signing plan, or transparency-log pointer for trust-center and acquirer evidence releases.",
+      "required_fields": ["signature_id", "subject_hash", "algorithm", "signer", "status"],
+      "redaction_rule": "Expose public signature metadata only; signing credentials and private keys are never exported.",
+      "linked_source_pack_ids": ["secure_context_attestation_pack", "hosted_mcp_readiness_pack"]
+    }
+  ],
+  "release_channels": [
+    {
+      "id": "open_reference",
+      "title": "Open Reference Release",
+      "audience": "Public users, forks, open-source adopters, and search engines",
+      "allowed_payload_classes": ["public_security_guidance", "generated_pack_metadata", "source_hashes"],
+      "required_controls": ["source_hashes", "redaction_manifest", "no_secret_or_token_payload", "reviewer_visible_payload_preview"],
+      "requires_signature": false,
+      "requires_customer_runtime_evidence": false,
+      "requires_tenant_binding": false,
+      "commercial_reason": "Keeps the open corpus credible and forkable while proving the release boundary is intentional."
+    },
+    {
+      "id": "design_partner_private",
+      "title": "Design Partner Private Evidence Release",
+      "audience": "Customer pilot teams, customer security review, and customer AI platform owners",
+      "allowed_payload_classes": ["redacted_customer_runtime_metadata", "tenant_bound_metrics", "receipt_hashes"],
+      "required_controls": ["source_hashes", "redaction_manifest", "tenant_binding", "approval_receipt", "retention_policy", "customer_runtime_evidence", "no_secret_or_token_payload"],
+      "requires_signature": false,
+      "requires_customer_runtime_evidence": true,
+      "requires_tenant_binding": true,
+      "commercial_reason": "Turns design partner pilots into measurable evidence without sending private prompts, code, or secrets outside the tenant boundary."
+    },
+    {
+      "id": "trust_center_external",
+      "title": "External Trust Center Release",
+      "audience": "Procurement security, GRC, enterprise architecture, and AI governance reviewers",
+      "allowed_payload_classes": ["redacted_trust_center_claims", "source_hashes", "receipt_status", "aggregated_metrics"],
+      "required_controls": ["source_hashes", "redaction_manifest", "approval_receipt", "retention_policy", "signature_or_signing_plan", "metadata_only_telemetry", "no_secret_or_token_payload"],
+      "requires_signature": true,
+      "requires_customer_runtime_evidence": true,
+      "requires_tenant_binding": false,
+      "commercial_reason": "Makes procurement and renewal review easier by giving buyers stable, signed, redacted evidence objects."
+    },
+    {
+      "id": "acquirer_diligence",
+      "title": "Acquirer Diligence Release",
+      "audience": "Frontier labs, AI platforms, security vendors, VC, and M&A diligence teams",
+      "allowed_payload_classes": ["redacted_customer_proof", "commercial_metrics", "source_pack_hashes", "signed_evidence_index"],
+      "required_controls": ["source_hashes", "redaction_manifest", "approval_receipt", "retention_policy", "signature_or_signing_plan", "customer_runtime_evidence", "dpa_or_processor_record", "no_secret_or_token_payload"],
+      "requires_signature": true,
+      "requires_customer_runtime_evidence": true,
+      "requires_tenant_binding": false,
+      "commercial_reason": "Supports the $10-20M acquisition path by separating credible runtime proof from public reference claims."
+    },
+    {
+      "id": "hosted_mcp_api",
+      "title": "Hosted MCP Evidence API Release",
+      "audience": "Agent runtimes, MCP gateways, AI platform products, and SIEM/SOAR integrations",
+      "allowed_payload_classes": ["metadata_only_telemetry", "policy_decisions", "receipt_hashes", "tool_surface_hashes"],
+      "required_controls": ["source_hashes", "redaction_manifest", "tenant_binding", "retention_policy", "zero_data_retention_state", "metadata_only_telemetry", "no_secret_or_token_payload"],
+      "requires_signature": true,
+      "requires_customer_runtime_evidence": true,
+      "requires_tenant_binding": true,
+      "commercial_reason": "Defines the paid API wedge: governed evidence retrieval, policy decisions, receipt lookup, and trust-center export for enterprise agent platforms."
+    }
+  ],
+  "hosted_api_surface": {
+    "version": "v1",
+    "base_path": "/v1",
+    "endpoints": [
+      {
+        "id": "get-evidence-contract",
+        "method": "GET",
+        "path": "/v1/evidence/contract",
+        "purpose": "Return the current evidence object catalog, release channels, source pack hashes, and hosted API surface.",
+        "linked_object_type_ids": ["source_pack_reference", "evidence_release"],
+        "linked_source_pack_ids": ["enterprise_trust_center_export", "agentic_source_freshness_watch"],
+        "premium_surface": false
+      },
+      {
+        "id": "evaluate-evidence-release",
+        "method": "POST",
+        "path": "/v1/evidence/releases/evaluate",
+        "purpose": "Evaluate whether a proposed evidence release is safe for a selected channel before it leaves the tenant or repo boundary.",
+        "linked_object_type_ids": ["evidence_release", "redaction_manifest", "release_signature"],
+        "linked_source_pack_ids": ["secure_context_customer_proof_pack", "context_egress_boundary_pack"],
+        "premium_surface": true
+      },
+      {
+        "id": "create-evidence-release",
+        "method": "POST",
+        "path": "/v1/evidence/releases",
+        "purpose": "Create a signed or signable release envelope for public, trust-center, design-partner, hosted API, or acquirer evidence.",
+        "linked_object_type_ids": ["evidence_release", "source_pack_reference", "release_signature"],
+        "linked_source_pack_ids": ["secure_context_attestation_pack", "enterprise_trust_center_export"],
+        "premium_surface": true
+      },
+      {
+        "id": "get-release",
+        "method": "GET",
+        "path": "/v1/evidence/releases/{release_id}",
+        "purpose": "Retrieve one release envelope, redaction manifest, source-pack hashes, channel decision, and signature state.",
+        "linked_object_type_ids": ["evidence_release", "redaction_manifest", "release_signature"],
+        "linked_source_pack_ids": ["secure_context_attestation_pack", "secure_context_lineage_ledger"],
+        "premium_surface": true
+      },
+      {
+        "id": "get-trust-center-export",
+        "method": "GET",
+        "path": "/v1/trust-center/export",
+        "purpose": "Return a buyer-ready trust-center packet with linked evidence objects, questions, source hashes, and redaction status.",
+        "linked_object_type_ids": ["trust_center_claim", "source_pack_reference"],
+        "linked_source_pack_ids": ["enterprise_trust_center_export", "secure_context_value_model"],
+        "premium_surface": true
+      },
+      {
+        "id": "get-mcp-decision",
+        "method": "GET",
+        "path": "/v1/mcp/decisions/{correlation_id}",
+        "purpose": "Look up an MCP authorization, elicitation, tool-risk, or drift decision by correlation ID.",
+        "linked_object_type_ids": ["mcp_policy_decision", "mcp_tool_surface_baseline"],
+        "linked_source_pack_ids": ["mcp_authorization_conformance_pack", "mcp_elicitation_boundary_pack", "mcp_tool_surface_drift_pack"],
+        "premium_surface": true
+      },
+      {
+        "id": "get-run-receipt",
+        "method": "GET",
+        "path": "/v1/run-receipts/{receipt_id}",
+        "purpose": "Return a redacted run receipt reference with verifier, policy, approval, telemetry, and closure hashes.",
+        "linked_object_type_ids": ["run_receipt_reference", "approval_receipt_reference", "telemetry_event_reference"],
+        "linked_source_pack_ids": ["agentic_run_receipt_pack", "agentic_telemetry_contract"],
+        "premium_surface": true
+      },
+      {
+        "id": "list-customer-proof-metrics",
+        "method": "GET",
+        "path": "/v1/customer-proof/metrics",
+        "purpose": "Return aggregated design-partner proof metrics for renewal, business case, and acquirer review.",
+        "linked_object_type_ids": ["customer_proof_metric", "incident_signal"],
+        "linked_source_pack_ids": ["secure_context_customer_proof_pack", "agentic_incident_response_pack"],
+        "premium_surface": true
+      }
+    ]
+  },
+  "buyer_views": [
+    {
+      "id": "frontier-lab",
+      "title": "Frontier Lab Integration View",
+      "required_release_channels": ["trust_center_external", "hosted_mcp_api"],
+      "answer_contract": "Show that SecurityRecipes can expose context, policy, run, and incident evidence to agent products without silently transmitting private customer content or upstream credentials."
+    },
+    {
+      "id": "ai-platform-vendor",
+      "title": "AI Platform Vendor View",
+      "required_release_channels": ["design_partner_private", "hosted_mcp_api"],
+      "answer_contract": "Show the API objects an agent runtime can call for evidence release checks, MCP decisions, receipt lookup, and trust-center export before building a native integration."
+    },
+    {
+      "id": "security-platform-vendor",
+      "title": "Security Platform Vendor View",
+      "required_release_channels": ["hosted_mcp_api", "acquirer_diligence"],
+      "answer_contract": "Show how SIEM, SOAR, identity, AppSec, CNAPP, and exposure products can ingest metadata-only evidence and correlate agentic decisions without private payload capture."
+    },
+    {
+      "id": "regulated-enterprise",
+      "title": "Regulated Enterprise View",
+      "required_release_channels": ["design_partner_private", "trust_center_external"],
+      "answer_contract": "Show procurement and governance teams how release channels enforce redaction, tenant binding, retention, DPA state, ZDR state, signatures, and approval receipts."
+    },
+    {
+      "id": "acquirer",
+      "title": "Acquirer Diligence View",
+      "required_release_channels": ["acquirer_diligence"],
+      "answer_contract": "Show that the open corpus can become a paid hosted product with source-backed object contracts, runtime proof, evidence APIs, and release gates that prevent overclaiming."
+    }
+  ]
+}

@@ -24,15 +24,21 @@ from fastmcp import FastMCP
 try:
     from scripts.evaluate_a2a_agent_card_trust_decision import evaluate_a2a_agent_card_trust_decision
     from scripts.evaluate_agentic_action_runtime_decision import evaluate_agentic_action_runtime_decision
+    from scripts.evaluate_agent_trust_fabric_decision import evaluate_agent_trust_fabric_decision
     from scripts.evaluate_agentic_approval_receipt_decision import evaluate_agentic_approval_receipt_decision
+    from scripts.evaluate_agentic_aivss_risk_decision import evaluate_agentic_aivss_risk_decision
     from scripts.evaluate_agentic_entitlement_decision import evaluate_agentic_entitlement_decision
     from scripts.evaluate_agentic_app_intake_decision import evaluate_agentic_app_intake_decision
     from scripts.evaluate_agentic_catastrophic_risk_decision import evaluate_agentic_catastrophic_risk_decision
+    from scripts.evaluate_critical_infrastructure_context_decision import evaluate_critical_infrastructure_context_decision
     from scripts.evaluate_agentic_incident_response_decision import evaluate_agentic_incident_response_decision
     from scripts.evaluate_agentic_posture_decision import evaluate_agentic_posture_decision
     from scripts.evaluate_agentic_protocol_conformance_decision import evaluate_agentic_protocol_conformance_decision
+    from scripts.evaluate_agentic_red_team_replay_result import evaluate_agentic_red_team_replay_result
+    from scripts.evaluate_agentic_soc_detection_event import evaluate_agentic_soc_detection_event
     from scripts.evaluate_agentic_telemetry_event import evaluate_agentic_telemetry_event
     from scripts.evaluate_model_provider_routing_decision import evaluate_model_provider_routing_decision
+    from scripts.evaluate_secure_context_evidence_release import evaluate_secure_context_evidence_release
     from scripts.evaluate_browser_agent_boundary_decision import evaluate_browser_agent_boundary_decision
     from scripts.evaluate_mcp_elicitation_boundary_decision import evaluate_mcp_elicitation_boundary_decision
     from scripts.evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
@@ -51,15 +57,21 @@ try:
 except ImportError:  # pragma: no cover - supports direct script-directory execution.
     from evaluate_a2a_agent_card_trust_decision import evaluate_a2a_agent_card_trust_decision
     from evaluate_agentic_action_runtime_decision import evaluate_agentic_action_runtime_decision
+    from evaluate_agent_trust_fabric_decision import evaluate_agent_trust_fabric_decision
     from evaluate_agentic_approval_receipt_decision import evaluate_agentic_approval_receipt_decision
+    from evaluate_agentic_aivss_risk_decision import evaluate_agentic_aivss_risk_decision
     from evaluate_agentic_entitlement_decision import evaluate_agentic_entitlement_decision
     from evaluate_agentic_app_intake_decision import evaluate_agentic_app_intake_decision
     from evaluate_agentic_catastrophic_risk_decision import evaluate_agentic_catastrophic_risk_decision
+    from evaluate_critical_infrastructure_context_decision import evaluate_critical_infrastructure_context_decision
     from evaluate_agentic_incident_response_decision import evaluate_agentic_incident_response_decision
     from evaluate_agentic_posture_decision import evaluate_agentic_posture_decision
     from evaluate_agentic_protocol_conformance_decision import evaluate_agentic_protocol_conformance_decision
+    from evaluate_agentic_red_team_replay_result import evaluate_agentic_red_team_replay_result
+    from evaluate_agentic_soc_detection_event import evaluate_agentic_soc_detection_event
     from evaluate_agentic_telemetry_event import evaluate_agentic_telemetry_event
     from evaluate_model_provider_routing_decision import evaluate_model_provider_routing_decision
+    from evaluate_secure_context_evidence_release import evaluate_secure_context_evidence_release
     from evaluate_browser_agent_boundary_decision import evaluate_browser_agent_boundary_decision
     from evaluate_mcp_elicitation_boundary_decision import evaluate_mcp_elicitation_boundary_decision
     from evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
@@ -150,6 +162,10 @@ class ServerConfig:
         "RECIPES_MCP_RED_TEAM_DRILL_PACK_PATH",
         "./data/evidence/agentic-red-team-drill-pack.json",
     )
+    red_team_replay_harness_path: str = os.environ.get(
+        "RECIPES_MCP_RED_TEAM_REPLAY_HARNESS_PATH",
+        "./data/evidence/agentic-red-team-replay-harness.json",
+    )
     readiness_scorecard_path: str = os.environ.get(
         "RECIPES_MCP_READINESS_SCORECARD_PATH",
         "./data/evidence/agentic-readiness-scorecard.json",
@@ -214,6 +230,10 @@ class ServerConfig:
         "RECIPES_MCP_STANDARDS_CROSSWALK_PATH",
         "./data/evidence/agentic-standards-crosswalk.json",
     )
+    source_freshness_watch_path: str = os.environ.get(
+        "RECIPES_MCP_SOURCE_FRESHNESS_WATCH_PATH",
+        "./data/evidence/agentic-source-freshness-watch.json",
+    )
     mcp_risk_coverage_pack_path: str = os.environ.get(
         "RECIPES_MCP_RISK_COVERAGE_PACK_PATH",
         "./data/evidence/mcp-risk-coverage-pack.json",
@@ -234,13 +254,45 @@ class ServerConfig:
         "RECIPES_MCP_TELEMETRY_CONTRACT_PATH",
         "./data/evidence/agentic-telemetry-contract.json",
     )
+    soc_detection_pack_path: str = os.environ.get(
+        "RECIPES_MCP_SOC_DETECTION_PACK_PATH",
+        "./data/evidence/agentic-soc-detection-pack.json",
+    )
     enterprise_trust_center_export_path: str = os.environ.get(
         "RECIPES_MCP_ENTERPRISE_TRUST_CENTER_EXPORT_PATH",
         "./data/evidence/enterprise-trust-center-export.json",
     )
+    secure_context_value_model_path: str = os.environ.get(
+        "RECIPES_MCP_SECURE_CONTEXT_VALUE_MODEL_PATH",
+        "./data/evidence/secure-context-value-model.json",
+    )
+    design_partner_pilot_pack_path: str = os.environ.get(
+        "RECIPES_MCP_DESIGN_PARTNER_PILOT_PACK_PATH",
+        "./data/evidence/design-partner-pilot-pack.json",
+    )
+    buyer_diligence_brief_path: str = os.environ.get(
+        "RECIPES_MCP_BUYER_DILIGENCE_BRIEF_PATH",
+        "./data/evidence/secure-context-buyer-diligence-brief.json",
+    )
+    customer_proof_pack_path: str = os.environ.get(
+        "RECIPES_MCP_CUSTOMER_PROOF_PACK_PATH",
+        "./data/evidence/secure-context-customer-proof-pack.json",
+    )
+    evidence_contract_path: str = os.environ.get(
+        "RECIPES_MCP_EVIDENCE_CONTRACT_PATH",
+        "./data/evidence/secure-context-evidence-contract.json",
+    )
+    hosted_mcp_readiness_pack_path: str = os.environ.get(
+        "RECIPES_MCP_HOSTED_MCP_READINESS_PACK_PATH",
+        "./data/evidence/hosted-mcp-readiness-pack.json",
+    )
     catastrophic_risk_annex_path: str = os.environ.get(
         "RECIPES_MCP_CATASTROPHIC_RISK_ANNEX_PATH",
         "./data/evidence/agentic-catastrophic-risk-annex.json",
+    )
+    critical_infrastructure_pack_path: str = os.environ.get(
+        "RECIPES_MCP_CRITICAL_INFRASTRUCTURE_PACK_PATH",
+        "./data/evidence/critical-infrastructure-secure-context-pack.json",
     )
     incident_response_pack_path: str = os.environ.get(
         "RECIPES_MCP_INCIDENT_RESPONSE_PACK_PATH",
@@ -249,6 +301,10 @@ class ServerConfig:
     action_runtime_pack_path: str = os.environ.get(
         "RECIPES_MCP_ACTION_RUNTIME_PACK_PATH",
         "./data/evidence/agentic-action-runtime-pack.json",
+    )
+    agent_trust_fabric_pack_path: str = os.environ.get(
+        "RECIPES_MCP_AGENT_TRUST_FABRIC_PACK_PATH",
+        "./data/evidence/agent-trust-fabric-pack.json",
     )
     browser_agent_boundary_pack_path: str = os.environ.get(
         "RECIPES_MCP_BROWSER_AGENT_BOUNDARY_PACK_PATH",
@@ -261,6 +317,10 @@ class ServerConfig:
     posture_snapshot_path: str = os.environ.get(
         "RECIPES_MCP_POSTURE_SNAPSHOT_PATH",
         "./data/evidence/agentic-posture-snapshot.json",
+    )
+    agentic_aivss_risk_scoring_pack_path: str = os.environ.get(
+        "RECIPES_MCP_AGENTIC_AIVSS_RISK_SCORING_PACK_PATH",
+        "./data/evidence/agentic-aivss-risk-scoring-pack.json",
     )
     app_intake_pack_path: str = os.environ.get(
         "RECIPES_MCP_APP_INTAKE_PACK_PATH",
@@ -2423,6 +2483,160 @@ class AgenticRedTeamDrillPack:
             "standards_alignment": pack.get("standards_alignment", []),
             "workflow_drills": [self._workflow_preview(workflow) for workflow in workflows],
         }
+
+
+class AgenticRedTeamReplayHarness:
+    def __init__(self, harness_path: str):
+        self.path = Path(harness_path)
+        self._mtime: float | None = None
+        self._harness: dict[str, Any] | None = None
+        self._replay_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._harness is not None and self._mtime == stat.st_mtime:
+            return self._harness
+
+        harness = json.loads(self.path.read_text(encoding="utf-8"))
+        replays = harness.get("replay_fixtures") if isinstance(harness, dict) else []
+        self._replay_by_id = {
+            str(replay.get("replay_id")): replay
+            for replay in replays
+            if isinstance(replay, dict) and replay.get("replay_id")
+        }
+        self._harness = harness
+        self._mtime = stat.st_mtime
+        return harness
+
+    @staticmethod
+    def _replay_preview(replay: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "attack_family": replay.get("attack_family"),
+            "expected_policy_decisions": replay.get("expected_policy_decisions", []),
+            "expected_runtime_outcome": replay.get("expected_runtime_outcome"),
+            "fixture_count": len(replay.get("fixture_inputs", []) or []),
+            "replay_id": replay.get("replay_id"),
+            "scenario_id": replay.get("scenario_id"),
+            "scenario_title": replay.get("scenario_title"),
+            "severity": replay.get("severity"),
+            "status": replay.get("status"),
+            "workflow_id": replay.get("workflow_id"),
+            "workflow_title": replay.get("workflow_title"),
+        }
+
+    def get(
+        self,
+        replay_id: str | None = None,
+        workflow_id: str | None = None,
+        scenario_id: str | None = None,
+        attack_family: str | None = None,
+        severity: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            harness = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "harness_path": str(self.path),
+                "error": f"failed to load agentic red-team replay harness: {exc}",
+            }
+
+        if harness is None:
+            return {
+                "available": False,
+                "harness_path": str(self.path),
+                "error": "agentic red-team replay harness is not present",
+            }
+
+        if not isinstance(harness, dict):
+            return {
+                "available": False,
+                "harness_path": str(self.path),
+                "error": "agentic red-team replay harness root must be an object",
+            }
+
+        if replay_id:
+            replay = self._replay_by_id.get(replay_id.strip())
+            return {
+                "available": True,
+                "found": replay is not None,
+                "replay": replay,
+                "replay_id": replay_id,
+            }
+
+        replays = list(self._replay_by_id.values())
+        if workflow_id:
+            key = workflow_id.strip()
+            replays = [replay for replay in replays if str(replay.get("workflow_id")) == key]
+        if scenario_id:
+            key = scenario_id.strip()
+            replays = [replay for replay in replays if str(replay.get("scenario_id")) == key]
+        if attack_family:
+            key = attack_family.strip()
+            replays = [replay for replay in replays if str(replay.get("attack_family")) == key]
+        if severity:
+            key = severity.strip()
+            replays = [replay for replay in replays if str(replay.get("severity")) == key]
+
+        if workflow_id or scenario_id or attack_family or severity:
+            return {
+                "available": True,
+                "count": len(replays),
+                "filters": {
+                    "attack_family": attack_family,
+                    "scenario_id": scenario_id,
+                    "severity": severity,
+                    "workflow_id": workflow_id,
+                },
+                "replays": [self._replay_preview(replay) for replay in replays],
+            }
+
+        return {
+            "available": True,
+            "enterprise_adoption_packet": harness.get("enterprise_adoption_packet"),
+            "evaluator_contract": harness.get("evaluator_contract"),
+            "generated_at": harness.get("generated_at"),
+            "harness_contract": harness.get("harness_contract"),
+            "red_team_replay_harness_id": harness.get("red_team_replay_harness_id"),
+            "replay_modes": harness.get("replay_modes", []),
+            "replay_pass_gates": harness.get("replay_pass_gates", []),
+            "replay_summary": harness.get("replay_summary"),
+            "schema_version": harness.get("schema_version"),
+            "source_artifacts": harness.get("source_artifacts"),
+            "source_references": harness.get("source_references", []),
+            "workflow_replay_matrix": harness.get("workflow_replay_matrix", []),
+        }
+
+    def evaluate(self, runtime_result: dict[str, Any]) -> dict[str, Any]:
+        try:
+            harness = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "harness_path": str(self.path),
+                "error": f"failed to load agentic red-team replay harness: {exc}",
+            }
+
+        if harness is None:
+            return {
+                "available": False,
+                "harness_path": str(self.path),
+                "error": "agentic red-team replay harness is not present",
+            }
+
+        try:
+            decision = evaluate_agentic_red_team_replay_result(harness, runtime_result)
+        except Exception as exc:
+            return {
+                "available": False,
+                "harness_path": str(self.path),
+                "error": f"failed to evaluate agentic red-team replay result: {exc}",
+            }
+        decision["available"] = True
+        return decision
 
 
 class AgenticReadinessScorecard:
@@ -4901,6 +5115,160 @@ class AgenticPostureSnapshot:
         return decision
 
 
+class AgenticAivssRiskScoringPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._scenario_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        scores = pack.get("risk_scores") if isinstance(pack, dict) else []
+        self._scenario_by_id = {
+            str(score.get("scenario_id")): score
+            for score in scores
+            if isinstance(score, dict) and score.get("scenario_id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _score_preview(score: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "aivss_score": score.get("aivss_score"),
+            "hosted_mcp_wedge": score.get("hosted_mcp_wedge"),
+            "owner": score.get("owner"),
+            "remediation_sla": score.get("remediation_sla"),
+            "runtime_default_decision": score.get("runtime_default_decision"),
+            "scenario_id": score.get("scenario_id"),
+            "severity": score.get("severity"),
+            "title": score.get("title"),
+        }
+
+    def get(
+        self,
+        scenario_id: str | None = None,
+        severity: str | None = None,
+        runtime_default_decision: str | None = None,
+        minimum_score: float | None = None,
+        owner: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agentic AIVSS risk scoring pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agentic AIVSS risk scoring pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "agentic AIVSS risk scoring pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if scenario_id:
+            key = scenario_id.strip()
+            score = self._scenario_by_id.get(key)
+            return {
+                "available": True,
+                "found": score is not None,
+                "risk_score": score,
+                "scenario_id": key,
+            }
+
+        scores = list(self._scenario_by_id.values())
+        if severity:
+            key = severity.strip()
+            scores = [score for score in scores if str(score.get("severity")) == key]
+        if runtime_default_decision:
+            key = runtime_default_decision.strip()
+            scores = [
+                score
+                for score in scores
+                if str(score.get("runtime_default_decision")) == key
+            ]
+        if minimum_score is not None:
+            scores = [
+                score
+                for score in scores
+                if float(score.get("aivss_score") or 0) >= minimum_score
+            ]
+        if owner:
+            key = owner.strip().lower()
+            scores = [
+                score
+                for score in scores
+                if key in str(score.get("owner", "")).lower()
+            ]
+
+        return {
+            "available": True,
+            "buyer_views": pack.get("buyer_views", []),
+            "commercialization_path": pack.get("commercialization_path", {}),
+            "decision_contract": pack.get("decision_contract", {}),
+            "evidence_signal_summary": pack.get("evidence_signal_summary", {}),
+            "generated_at": pack.get("generated_at"),
+            "hosted_mcp_wedges": pack.get("hosted_mcp_wedges", []),
+            "minimum_score": minimum_score,
+            "remediation_queue": pack.get("remediation_queue", []),
+            "risk_score_count": len(scores),
+            "risk_scores": [self._score_preview(score) for score in scores],
+            "schema_version": pack.get("schema_version"),
+            "severity": severity,
+            "severity_summary": pack.get("severity_summary"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "source_references": pack.get("source_references", []),
+        }
+
+    def evaluate(self, runtime_event: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agentic AIVSS risk scoring pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agentic AIVSS risk scoring pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_agentic_aivss_risk_decision(pack, runtime_event)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate agentic AIVSS risk decision: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
 class AgenticAppIntakePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -5451,6 +5819,191 @@ class AgenticCatastrophicRiskAnnex:
         return decision
 
 
+class CriticalInfrastructureSecureContextPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._sector_by_id: dict[str, dict[str, Any]] = {}
+        self._control_by_id: dict[str, dict[str, Any]] = {}
+        self._buyer_view_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        sectors = pack.get("sector_profiles") if isinstance(pack, dict) else []
+        controls = pack.get("control_objectives") if isinstance(pack, dict) else []
+        buyer_views = pack.get("buyer_views") if isinstance(pack, dict) else []
+        self._sector_by_id = {
+            str(sector.get("id")): sector
+            for sector in sectors
+            if isinstance(sector, dict) and sector.get("id")
+        }
+        self._control_by_id = {
+            str(control.get("id")): control
+            for control in controls
+            if isinstance(control, dict) and control.get("id")
+        }
+        self._buyer_view_by_id = {
+            str(view.get("id")): view
+            for view in buyer_views
+            if isinstance(view, dict) and view.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _sector_preview(sector: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "default_decision": sector.get("default_decision"),
+            "id": sector.get("id"),
+            "operator_evidence_needed": sector.get("operator_evidence_needed"),
+            "prohibited_without_safety_case": sector.get("prohibited_without_safety_case", []),
+            "readiness_status": sector.get("readiness_status"),
+            "title": sector.get("title"),
+        }
+
+    @staticmethod
+    def _control_preview(control: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "evidence_paths": control.get("evidence_paths", []),
+            "hazard_flags": control.get("hazard_flags", []),
+            "id": control.get("id"),
+            "mcp_tools": control.get("mcp_tools", []),
+            "status": control.get("status"),
+            "title": control.get("title"),
+        }
+
+    def get(
+        self,
+        sector_id: str | None = None,
+        control_id: str | None = None,
+        buyer_view_id: str | None = None,
+        decision: str | None = None,
+        readiness_status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load critical-infrastructure secure-context pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "critical-infrastructure secure-context pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "critical-infrastructure secure-context pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if sector_id:
+            key = sector_id.strip()
+            sector = self._sector_by_id.get(key)
+            return {
+                "available": True,
+                "found": sector is not None,
+                "sector": sector,
+                "sector_id": key,
+            }
+
+        if control_id:
+            key = control_id.strip()
+            control = self._control_by_id.get(key)
+            return {
+                "available": True,
+                "control": control,
+                "control_id": key,
+                "found": control is not None,
+            }
+
+        if buyer_view_id:
+            key = buyer_view_id.strip()
+            buyer_view = self._buyer_view_by_id.get(key)
+            return {
+                "available": True,
+                "buyer_view": buyer_view,
+                "buyer_view_id": key,
+                "found": buyer_view is not None,
+            }
+
+        sectors = list(self._sector_by_id.values())
+        controls = list(self._control_by_id.values())
+        lanes = pack.get("rollout_lanes", []) if isinstance(pack.get("rollout_lanes"), list) else []
+        if decision:
+            key = decision.strip()
+            sectors = [sector for sector in sectors if str(sector.get("default_decision")) == key]
+            lanes = [lane for lane in lanes if isinstance(lane, dict) and str(lane.get("decision")) == key]
+        if readiness_status:
+            key = readiness_status.strip()
+            sectors = [sector for sector in sectors if str(sector.get("readiness_status")) == key]
+
+        return {
+            "available": True,
+            "buyer_view_count": len(self._buyer_view_by_id),
+            "buyer_views": list(self._buyer_view_by_id.values()),
+            "commercialization_path": pack.get("commercialization_path", {}),
+            "control_count": len(controls),
+            "controls": [self._control_preview(control) for control in controls],
+            "critical_infrastructure_summary": pack.get("critical_infrastructure_summary"),
+            "decision": decision,
+            "evidence_index": pack.get("evidence_index", []),
+            "generated_at": pack.get("generated_at"),
+            "readiness_contract": pack.get("readiness_contract", {}),
+            "readiness_status": readiness_status,
+            "rollout_lanes": lanes,
+            "schema_version": pack.get("schema_version"),
+            "sector_count": len(sectors),
+            "sectors": [self._sector_preview(sector) for sector in sectors],
+            "source_artifacts": pack.get("source_artifacts"),
+            "standards_alignment": pack.get("standards_alignment", []),
+        }
+
+    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load critical-infrastructure secure-context pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "critical-infrastructure secure-context pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_critical_infrastructure_context_decision(pack, runtime_request)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate critical-infrastructure context decision: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
 class AgenticIncidentResponsePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -5775,6 +6328,177 @@ class AgenticActionRuntimePack:
             return {
                 "available": False,
                 "error": f"failed to evaluate agentic action runtime decision: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
+class AgentTrustFabricPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._dimension_by_id: dict[str, dict[str, Any]] = {}
+        self._workflow_by_id: dict[str, dict[str, Any]] = {}
+        self._tier_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        dimensions = pack.get("trust_dimensions") if isinstance(pack, dict) else []
+        workflows = pack.get("workflow_trust_matrix") if isinstance(pack, dict) else []
+        tiers = pack.get("trust_tiers") if isinstance(pack, dict) else []
+        self._dimension_by_id = {
+            str(row.get("id")): row
+            for row in dimensions
+            if isinstance(row, dict) and row.get("id")
+        }
+        self._workflow_by_id = {
+            str(row.get("workflow_id")): row
+            for row in workflows
+            if isinstance(row, dict) and row.get("workflow_id")
+        }
+        self._tier_by_id = {
+            str(row.get("id")): row
+            for row in tiers
+            if isinstance(row, dict) and row.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _dimension_preview(row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "evidence_paths": row.get("evidence_paths", []),
+            "failure_modes": row.get("failure_modes", []),
+            "id": row.get("id"),
+            "mcp_tools": row.get("mcp_tools", []),
+            "question": row.get("question"),
+            "title": row.get("title"),
+            "weight": row.get("weight"),
+        }
+
+    @staticmethod
+    def _workflow_preview(row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "default_trust_tier": row.get("default_trust_tier"),
+            "maturity_stage": row.get("maturity_stage"),
+            "mcp_namespaces": row.get("mcp_namespaces", []),
+            "risk_flags": row.get("risk_flags", []),
+            "title": row.get("title"),
+            "workflow_id": row.get("workflow_id"),
+        }
+
+    def get(
+        self,
+        dimension_id: str | None = None,
+        workflow_id: str | None = None,
+        trust_tier: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agent trust fabric pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agent trust fabric pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "agent trust fabric pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if dimension_id:
+            key = dimension_id.strip()
+            dimension = self._dimension_by_id.get(key)
+            return {
+                "available": True,
+                "dimension": dimension,
+                "dimension_id": key,
+                "found": dimension is not None,
+            }
+
+        if workflow_id:
+            key = workflow_id.strip()
+            workflow = self._workflow_by_id.get(key)
+            return {
+                "available": True,
+                "found": workflow is not None,
+                "workflow": workflow,
+                "workflow_id": key,
+            }
+
+        workflows = list(self._workflow_by_id.values())
+        if trust_tier:
+            key = trust_tier.strip()
+            workflows = [row for row in workflows if str(row.get("default_trust_tier")) == key]
+
+        return {
+            "agent_trust_fabric_pack_id": pack.get("agent_trust_fabric_pack_id"),
+            "available": True,
+            "commercialization_path": pack.get("commercialization_path", {}),
+            "dimension_count": len(self._dimension_by_id),
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet", {}),
+            "executive_readout": pack.get("executive_readout", {}),
+            "generated_at": pack.get("generated_at"),
+            "runtime_policy": pack.get("runtime_policy", {}),
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts", {}),
+            "source_references": pack.get("source_references", []),
+            "status": status,
+            "tabletop_cases": pack.get("tabletop_cases", []),
+            "trust_contract": pack.get("trust_contract", {}),
+            "trust_dimensions": [self._dimension_preview(row) for row in self._dimension_by_id.values()],
+            "trust_fabric_summary": pack.get("trust_fabric_summary"),
+            "trust_tier": trust_tier,
+            "trust_tiers": list(self._tier_by_id.values()),
+            "workflow_count": len(workflows),
+            "workflows": [self._workflow_preview(row) for row in workflows],
+        }
+
+    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agent trust fabric pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agent trust fabric pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_agent_trust_fabric_decision(pack, runtime_request)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate agent trust fabric decision: {exc}",
                 "pack_path": str(self.path),
             }
 
@@ -6296,6 +7020,176 @@ class AgenticTelemetryContract:
             }
         decision["available"] = True
         return decision
+
+
+class AgenticSocDetectionPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._rule_by_id: dict[str, dict[str, Any]] = {}
+        self._workflow_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        rules = pack.get("detection_rules") if isinstance(pack, dict) else []
+        workflows = pack.get("workflow_detection_overlays") if isinstance(pack, dict) else []
+        self._rule_by_id = {
+            str(rule.get("id")): rule
+            for rule in rules
+            if isinstance(rule, dict) and rule.get("id")
+        }
+        self._workflow_by_id = {
+            str(workflow.get("workflow_id")): workflow
+            for workflow in workflows
+            if isinstance(workflow, dict) and workflow.get("workflow_id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _rule_preview(rule: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "decision": rule.get("decision"),
+            "event_classes": rule.get("event_classes", []),
+            "id": rule.get("id"),
+            "mapped_risks": rule.get("mapped_risks", []),
+            "response_playbook": rule.get("response_playbook"),
+            "severity": rule.get("severity"),
+            "severity_score": rule.get("severity_score"),
+            "siem_queries": rule.get("siem_queries", {}),
+            "title": rule.get("title"),
+        }
+
+    @staticmethod
+    def _workflow_preview(workflow: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "detection_rule_ids": workflow.get("detection_rule_ids", []),
+            "maturity_stage": workflow.get("maturity_stage"),
+            "mcp_namespaces": workflow.get("mcp_namespaces", []),
+            "public_path": workflow.get("public_path"),
+            "receipt_id": workflow.get("receipt_id"),
+            "replay_fixture_count": workflow.get("replay_fixture_count"),
+            "soc_default_decision": workflow.get("soc_default_decision"),
+            "status": workflow.get("status"),
+            "title": workflow.get("title"),
+            "workflow_id": workflow.get("workflow_id"),
+        }
+
+    def get(
+        self,
+        rule_id: str | None = None,
+        workflow_id: str | None = None,
+        severity: str | None = None,
+        decision: str | None = None,
+        event_class: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agentic SOC detection pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agentic SOC detection pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if rule_id:
+            key = rule_id.strip()
+            rule = self._rule_by_id.get(key)
+            return {
+                "available": True,
+                "found": rule is not None,
+                "rule": rule,
+                "rule_id": key,
+            }
+
+        if workflow_id:
+            key = workflow_id.strip()
+            workflow = self._workflow_by_id.get(key)
+            return {
+                "available": True,
+                "found": workflow is not None,
+                "workflow": workflow,
+                "workflow_id": key,
+            }
+
+        rules = list(self._rule_by_id.values())
+        if severity:
+            key = severity.strip()
+            rules = [rule for rule in rules if str(rule.get("severity")) == key]
+        if decision:
+            key = decision.strip()
+            rules = [rule for rule in rules if str(rule.get("decision")) == key]
+        if event_class:
+            key = event_class.strip()
+            rules = [
+                rule
+                for rule in rules
+                if key in set(str(item) for item in rule.get("event_classes", []))
+            ]
+
+        return {
+            "available": True,
+            "commercialization_path": pack.get("commercialization_path"),
+            "decision": decision,
+            "detection_contract": pack.get("detection_contract"),
+            "detection_summary": pack.get("detection_summary"),
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "event_class": event_class,
+            "evaluator_contract": pack.get("evaluator_contract"),
+            "generated_at": pack.get("generated_at"),
+            "rule_count": len(rules),
+            "rules": [self._rule_preview(rule) for rule in rules],
+            "schema_version": pack.get("schema_version"),
+            "selected_feature": pack.get("selected_feature"),
+            "severity": severity,
+            "siem_targets": pack.get("siem_targets", []),
+            "source_artifacts": pack.get("source_artifacts"),
+            "standards_alignment": pack.get("standards_alignment", []),
+            "workflow_count": len(self._workflow_by_id),
+            "workflows": [self._workflow_preview(workflow) for workflow in self._workflow_by_id.values()],
+        }
+
+    def evaluate(self, runtime_event: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agentic SOC detection pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agentic SOC detection pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            return evaluate_agentic_soc_detection_event(pack, runtime_event)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate agentic SOC detection event: {exc}",
+                "pack_path": str(self.path),
+            }
 
 
 class ContextPoisoningGuardPack:
@@ -6913,6 +7807,177 @@ class AgenticStandardsCrosswalk:
         }
 
 
+class AgenticSourceFreshnessWatch:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._watch_by_id: dict[str, dict[str, Any]] = {}
+        self._source_by_id: dict[str, dict[str, Any]] = {}
+        self._primary_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        watches = pack.get("watch_sources") if isinstance(pack, dict) else []
+        sources = pack.get("source_catalog") if isinstance(pack, dict) else []
+        primary = pack.get("primary_watchlist_coverage") if isinstance(pack, dict) else []
+        self._watch_by_id = {
+            str(row.get("id")): row
+            for row in watches
+            if isinstance(row, dict) and row.get("id")
+        }
+        self._source_by_id = {
+            str(row.get("id")): row
+            for row in sources
+            if isinstance(row, dict) and row.get("id")
+        }
+        self._primary_by_id = {
+            str(row.get("id")): row
+            for row in primary
+            if isinstance(row, dict) and row.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _watch_preview(row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "blockers": row.get("blockers", []),
+            "business_criticality": row.get("business_criticality"),
+            "decision": row.get("decision"),
+            "id": row.get("id"),
+            "last_reviewed": row.get("last_reviewed"),
+            "path": row.get("path"),
+            "reference_count": row.get("reference_count"),
+            "review_due_at": row.get("review_due_at"),
+            "title": row.get("title"),
+        }
+
+    @staticmethod
+    def _source_preview(row: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "freshness_class": row.get("freshness_class"),
+            "id": row.get("id"),
+            "name": row.get("name"),
+            "published": row.get("published"),
+            "published_age_days": row.get("published_age_days"),
+            "publisher_family": row.get("publisher_family"),
+            "referenced_by": row.get("referenced_by", []),
+            "source_class": row.get("source_class"),
+            "source_class_family": row.get("source_class_family"),
+            "url": row.get("url"),
+        }
+
+    def get(
+        self,
+        watched_source_id: str | None = None,
+        source_id: str | None = None,
+        primary_watchlist_id: str | None = None,
+        publisher_family: str | None = None,
+        source_class_family: str | None = None,
+        freshness_class: str | None = None,
+        decision: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load agentic source freshness watch: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "agentic source freshness watch is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "agentic source freshness watch root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if watched_source_id:
+            key = watched_source_id.strip()
+            watch = self._watch_by_id.get(key)
+            return {
+                "available": True,
+                "found": watch is not None,
+                "watch_source": watch,
+                "watched_source_id": key,
+            }
+
+        if source_id:
+            key = source_id.strip()
+            source = self._source_by_id.get(key)
+            return {
+                "available": True,
+                "found": source is not None,
+                "source": source,
+                "source_id": key,
+            }
+
+        if primary_watchlist_id:
+            key = primary_watchlist_id.strip()
+            primary = self._primary_by_id.get(key)
+            return {
+                "available": True,
+                "found": primary is not None,
+                "primary_watchlist": primary,
+                "primary_watchlist_id": key,
+            }
+
+        watches = list(self._watch_by_id.values())
+        sources = list(self._source_by_id.values())
+        if decision:
+            key = decision.strip()
+            watches = [row for row in watches if str(row.get("decision")) == key]
+        if publisher_family:
+            key = publisher_family.strip().lower()
+            sources = [row for row in sources if str(row.get("publisher_family", "")).lower() == key]
+        if source_class_family:
+            key = source_class_family.strip().lower()
+            sources = [row for row in sources if str(row.get("source_class_family", "")).lower() == key]
+        if freshness_class:
+            key = freshness_class.strip()
+            sources = [row for row in sources if str(row.get("freshness_class")) == key]
+
+        return {
+            "available": True,
+            "buyer_views": pack.get("buyer_views", []),
+            "commercialization_path": pack.get("commercialization_path", {}),
+            "enterprise_adoption_packet": pack.get("enterprise_adoption_packet"),
+            "filters": {
+                "decision": decision,
+                "freshness_class": freshness_class,
+                "publisher_family": publisher_family,
+                "source_class_family": source_class_family,
+            },
+            "freshness_contract": pack.get("freshness_contract", {}),
+            "freshness_summary": pack.get("freshness_summary"),
+            "generated_at": pack.get("generated_at"),
+            "primary_watchlist_coverage": pack.get("primary_watchlist_coverage", []),
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "source_catalog": [self._source_preview(row) for row in sources],
+            "source_count": len(sources),
+            "watch_source_count": len(watches),
+            "watch_sources": [self._watch_preview(row) for row in watches],
+        }
+
+
 class MCPRiskCoveragePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -7502,6 +8567,1149 @@ class EnterpriseTrustCenterExport:
         }
 
 
+class SecureContextValueModel:
+    def __init__(self, model_path: str):
+        self.path = Path(model_path)
+        self._mtime: float | None = None
+        self._model: dict[str, Any] | None = None
+        self._driver_by_id: dict[str, dict[str, Any]] = {}
+        self._segment_by_id: dict[str, dict[str, Any]] = {}
+        self._scenario_by_id: dict[str, dict[str, Any]] = {}
+        self._wedge_by_id: dict[str, dict[str, Any]] = {}
+        self._question_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._model is not None and self._mtime == stat.st_mtime:
+            return self._model
+
+        model = json.loads(self.path.read_text(encoding="utf-8"))
+        drivers = model.get("value_drivers") if isinstance(model, dict) else []
+        segments = model.get("buyer_segments") if isinstance(model, dict) else []
+        scenarios = model.get("adoption_scenarios") if isinstance(model, dict) else []
+        wedges = model.get("monetization_wedges") if isinstance(model, dict) else []
+        questions = model.get("diligence_questions") if isinstance(model, dict) else []
+        self._driver_by_id = {
+            str(driver.get("id")): driver
+            for driver in drivers
+            if isinstance(driver, dict) and driver.get("id")
+        }
+        self._segment_by_id = {
+            str(segment.get("id")): segment
+            for segment in segments
+            if isinstance(segment, dict) and segment.get("id")
+        }
+        self._scenario_by_id = {
+            str(scenario.get("id")): scenario
+            for scenario in scenarios
+            if isinstance(scenario, dict) and scenario.get("id")
+        }
+        self._wedge_by_id = {
+            str(wedge.get("id")): wedge
+            for wedge in wedges
+            if isinstance(wedge, dict) and wedge.get("id")
+        }
+        self._question_by_id = {
+            str(question.get("id")): question
+            for question in questions
+            if isinstance(question, dict) and question.get("id")
+        }
+        self._model = model
+        self._mtime = stat.st_mtime
+        return model
+
+    @staticmethod
+    def _driver_preview(driver: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": driver.get("id"),
+            "premium_surface": driver.get("premium_surface"),
+            "ready_evidence_count": driver.get("ready_evidence_count"),
+            "status": driver.get("status"),
+            "title": driver.get("title"),
+            "total_evidence_count": driver.get("total_evidence_count"),
+        }
+
+    @staticmethod
+    def _segment_preview(segment: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "buyer_trigger": segment.get("buyer_trigger"),
+            "id": segment.get("id"),
+            "primary_wedge_ids": segment.get("primary_wedge_ids", []),
+            "title": segment.get("title"),
+        }
+
+    @staticmethod
+    def _scenario_preview(scenario: dict[str, Any]) -> dict[str, Any]:
+        economics = scenario.get("economics") if isinstance(scenario.get("economics"), dict) else {}
+        return {
+            "annual_net_value_usd": economics.get("annual_net_value_usd"),
+            "first_year_net_after_implementation_usd": economics.get("first_year_net_after_implementation_usd"),
+            "id": scenario.get("id"),
+            "payback_months": economics.get("payback_months"),
+            "time_horizon": scenario.get("time_horizon"),
+            "title": scenario.get("title"),
+        }
+
+    def get(
+        self,
+        driver_id: str | None = None,
+        segment_id: str | None = None,
+        scenario_id: str | None = None,
+        wedge_id: str | None = None,
+        question_id: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            model = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context value model: {exc}",
+                "model_path": str(self.path),
+            }
+
+        if model is None:
+            return {
+                "available": False,
+                "error": "secure context value model is not present",
+                "model_path": str(self.path),
+            }
+
+        if not isinstance(model, dict):
+            return {
+                "available": False,
+                "error": "secure context value model root must be an object",
+                "model_path": str(self.path),
+            }
+
+        if driver_id:
+            key = driver_id.strip()
+            driver = self._driver_by_id.get(key)
+            return {"available": True, "driver": driver, "driver_id": key, "found": driver is not None}
+
+        if segment_id:
+            key = segment_id.strip()
+            segment = self._segment_by_id.get(key)
+            return {"available": True, "found": segment is not None, "segment": segment, "segment_id": key}
+
+        if scenario_id:
+            key = scenario_id.strip()
+            scenario = self._scenario_by_id.get(key)
+            return {"available": True, "found": scenario is not None, "scenario": scenario, "scenario_id": key}
+
+        if wedge_id:
+            key = wedge_id.strip()
+            wedge = self._wedge_by_id.get(key)
+            return {"available": True, "found": wedge is not None, "wedge": wedge, "wedge_id": key}
+
+        if question_id:
+            key = question_id.strip()
+            question = self._question_by_id.get(key)
+            return {"available": True, "found": question is not None, "question": question, "question_id": key}
+
+        drivers = list(self._driver_by_id.values())
+        if status:
+            key = status.strip()
+            drivers = [driver for driver in drivers if str(driver.get("status")) == key]
+
+        return {
+            "available": True,
+            "acquisition_readiness": model.get("acquisition_readiness"),
+            "adoption_scenarios": [self._scenario_preview(scenario) for scenario in self._scenario_by_id.values()],
+            "buyer_segments": [self._segment_preview(segment) for segment in self._segment_by_id.values()],
+            "diligence_question_count": len(self._question_by_id),
+            "evidence_rollup": model.get("evidence_rollup"),
+            "generated_at": model.get("generated_at"),
+            "monetization_wedges": list(self._wedge_by_id.values()),
+            "schema_version": model.get("schema_version"),
+            "secure_context_value_model_id": model.get("secure_context_value_model_id"),
+            "source_artifacts": model.get("source_artifacts"),
+            "source_pack_index": model.get("source_pack_index", []),
+            "source_references": model.get("source_references", []),
+            "status": status,
+            "value_contract": model.get("value_contract"),
+            "value_drivers": [self._driver_preview(driver) for driver in drivers],
+            "value_model_summary": model.get("value_model_summary"),
+        }
+
+
+class DesignPartnerPilotPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._segment_by_id: dict[str, dict[str, Any]] = {}
+        self._phase_by_id: dict[str, dict[str, Any]] = {}
+        self._wedge_by_id: dict[str, dict[str, Any]] = {}
+        self._metric_by_id: dict[str, dict[str, Any]] = {}
+        self._question_by_id: dict[str, dict[str, Any]] = {}
+        self._risk_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        segments = pack.get("buyer_segments") if isinstance(pack, dict) else []
+        phases = pack.get("pilot_phases") if isinstance(pack, dict) else []
+        wedges = pack.get("monetization_wedges") if isinstance(pack, dict) else []
+        metrics = pack.get("success_metrics") if isinstance(pack, dict) else []
+        questions = pack.get("diligence_questions") if isinstance(pack, dict) else []
+        risks = pack.get("risk_register") if isinstance(pack, dict) else []
+        self._segment_by_id = {
+            str(segment.get("id")): segment
+            for segment in segments
+            if isinstance(segment, dict) and segment.get("id")
+        }
+        self._phase_by_id = {
+            str(phase.get("id")): phase
+            for phase in phases
+            if isinstance(phase, dict) and phase.get("id")
+        }
+        self._wedge_by_id = {
+            str(wedge.get("id")): wedge
+            for wedge in wedges
+            if isinstance(wedge, dict) and wedge.get("id")
+        }
+        self._metric_by_id = {
+            str(metric.get("id")): metric
+            for metric in metrics
+            if isinstance(metric, dict) and metric.get("id")
+        }
+        self._question_by_id = {
+            str(question.get("id")): question
+            for question in questions
+            if isinstance(question, dict) and question.get("id")
+        }
+        self._risk_by_id = {
+            str(risk.get("id")): risk
+            for risk in risks
+            if isinstance(risk, dict) and risk.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _segment_preview(segment: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "buyer_trigger": segment.get("buyer_trigger"),
+            "id": segment.get("id"),
+            "primary_wedge_ids": segment.get("primary_wedge_ids", []),
+            "title": segment.get("title"),
+        }
+
+    @staticmethod
+    def _phase_preview(phase: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": phase.get("id"),
+            "minimum_duration_days": phase.get("minimum_duration_days"),
+            "status": phase.get("status"),
+            "title": phase.get("title"),
+        }
+
+    @staticmethod
+    def _wedge_preview(wedge: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": wedge.get("id"),
+            "paid_surface": wedge.get("paid_surface"),
+            "pricing_guardrail": wedge.get("pricing_guardrail"),
+            "status": wedge.get("status"),
+            "title": wedge.get("title"),
+        }
+
+    @staticmethod
+    def _metric_preview(metric: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": metric.get("id"),
+            "metric_type": metric.get("metric_type"),
+            "status": metric.get("status"),
+            "target": metric.get("target"),
+            "title": metric.get("title"),
+        }
+
+    def get(
+        self,
+        segment_id: str | None = None,
+        phase_id: str | None = None,
+        wedge_id: str | None = None,
+        metric_id: str | None = None,
+        question_id: str | None = None,
+        risk_id: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load design partner pilot pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "design partner pilot pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "design partner pilot pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if segment_id:
+            key = segment_id.strip()
+            segment = self._segment_by_id.get(key)
+            return {"available": True, "found": segment is not None, "segment": segment, "segment_id": key}
+
+        if phase_id:
+            key = phase_id.strip()
+            phase = self._phase_by_id.get(key)
+            return {"available": True, "found": phase is not None, "phase": phase, "phase_id": key}
+
+        if wedge_id:
+            key = wedge_id.strip()
+            wedge = self._wedge_by_id.get(key)
+            return {"available": True, "found": wedge is not None, "wedge": wedge, "wedge_id": key}
+
+        if metric_id:
+            key = metric_id.strip()
+            metric = self._metric_by_id.get(key)
+            return {"available": True, "found": metric is not None, "metric": metric, "metric_id": key}
+
+        if question_id:
+            key = question_id.strip()
+            question = self._question_by_id.get(key)
+            return {"available": True, "found": question is not None, "question": question, "question_id": key}
+
+        if risk_id:
+            key = risk_id.strip()
+            risk = self._risk_by_id.get(key)
+            return {"available": True, "found": risk is not None, "risk": risk, "risk_id": key}
+
+        phases = list(self._phase_by_id.values())
+        wedges = list(self._wedge_by_id.values())
+        metrics = list(self._metric_by_id.values())
+        if status:
+            key = status.strip()
+            phases = [phase for phase in phases if str(phase.get("status")) == key]
+            wedges = [wedge for wedge in wedges if str(wedge.get("status")) == key]
+            metrics = [metric for metric in metrics if str(metric.get("status")) == key]
+
+        return {
+            "available": True,
+            "buyer_segments": [self._segment_preview(segment) for segment in self._segment_by_id.values()],
+            "design_partner_pilot_pack_id": pack.get("design_partner_pilot_pack_id"),
+            "diligence_question_count": len(self._question_by_id),
+            "generated_at": pack.get("generated_at"),
+            "monetization_wedges": [self._wedge_preview(wedge) for wedge in wedges],
+            "pilot_contract": pack.get("pilot_contract"),
+            "pilot_phases": [self._phase_preview(phase) for phase in phases],
+            "pilot_summary": pack.get("pilot_summary"),
+            "pricing_guardrails": pack.get("pricing_guardrails"),
+            "readiness": pack.get("readiness"),
+            "risk_count": len(self._risk_by_id),
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "source_pack_index": pack.get("source_pack_index", []),
+            "source_references": pack.get("source_references", []),
+            "status": status,
+            "success_metrics": [self._metric_preview(metric) for metric in metrics],
+            "telemetry_requirements": pack.get("telemetry_requirements"),
+        }
+
+
+class SecureContextBuyerDiligenceBrief:
+    def __init__(self, brief_path: str):
+        self.path = Path(brief_path)
+        self._mtime: float | None = None
+        self._brief: dict[str, Any] | None = None
+        self._buyer_by_id: dict[str, dict[str, Any]] = {}
+        self._question_by_id: dict[str, dict[str, Any]] = {}
+        self._objection_by_id: dict[str, dict[str, Any]] = {}
+        self._bet_by_id: dict[str, dict[str, Any]] = {}
+        self._source_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._brief is not None and self._mtime == stat.st_mtime:
+            return self._brief
+
+        brief = json.loads(self.path.read_text(encoding="utf-8"))
+        buyers = brief.get("buyer_briefs") if isinstance(brief, dict) else []
+        questions = brief.get("enterprise_questions") if isinstance(brief, dict) else []
+        objections = brief.get("objection_handlers") if isinstance(brief, dict) else []
+        bets = brief.get("industry_bets") if isinstance(brief, dict) else []
+        sources = brief.get("source_references") if isinstance(brief, dict) else []
+        self._buyer_by_id = {
+            str(buyer.get("id")): buyer
+            for buyer in buyers
+            if isinstance(buyer, dict) and buyer.get("id")
+        }
+        self._question_by_id = {
+            str(question.get("id")): question
+            for question in questions
+            if isinstance(question, dict) and question.get("id")
+        }
+        self._objection_by_id = {
+            str(objection.get("id")): objection
+            for objection in objections
+            if isinstance(objection, dict) and objection.get("id")
+        }
+        self._bet_by_id = {
+            str(bet.get("id")): bet
+            for bet in bets
+            if isinstance(bet, dict) and bet.get("id")
+        }
+        self._source_by_id = {
+            str(source.get("id")): source
+            for source in sources
+            if isinstance(source, dict) and source.get("id")
+        }
+        self._brief = brief
+        self._mtime = stat.st_mtime
+        return brief
+
+    @staticmethod
+    def _buyer_preview(buyer: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "customer_evidence_needed": buyer.get("customer_evidence_needed"),
+            "evidence_status": buyer.get("evidence_status"),
+            "id": buyer.get("id"),
+            "paid_wedge": buyer.get("paid_wedge"),
+            "primary_decision": buyer.get("primary_decision"),
+            "title": buyer.get("title"),
+        }
+
+    @staticmethod
+    def _question_preview(question: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "acquirer_signal": question.get("acquirer_signal"),
+            "current_state": question.get("current_state"),
+            "evidence_status": question.get("evidence_status"),
+            "id": question.get("id"),
+            "question": question.get("question"),
+            "short_answer": question.get("short_answer"),
+        }
+
+    @staticmethod
+    def _objection_preview(objection: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "evidence_status": objection.get("evidence_status"),
+            "id": objection.get("id"),
+            "next_proof": objection.get("next_proof"),
+            "objection": objection.get("objection"),
+            "proof_state": objection.get("proof_state"),
+        }
+
+    def get(
+        self,
+        buyer_id: str | None = None,
+        question_id: str | None = None,
+        objection_id: str | None = None,
+        bet_id: str | None = None,
+        source_id: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            brief = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "brief_path": str(self.path),
+                "error": f"failed to load secure context buyer diligence brief: {exc}",
+            }
+
+        if brief is None:
+            return {
+                "available": False,
+                "brief_path": str(self.path),
+                "error": "secure context buyer diligence brief is not present",
+            }
+
+        if not isinstance(brief, dict):
+            return {
+                "available": False,
+                "brief_path": str(self.path),
+                "error": "secure context buyer diligence brief root must be an object",
+            }
+
+        if buyer_id:
+            key = buyer_id.strip()
+            buyer = self._buyer_by_id.get(key)
+            return {"available": True, "buyer": buyer, "buyer_id": key, "found": buyer is not None}
+
+        if question_id:
+            key = question_id.strip()
+            question = self._question_by_id.get(key)
+            return {"available": True, "found": question is not None, "question": question, "question_id": key}
+
+        if objection_id:
+            key = objection_id.strip()
+            objection = self._objection_by_id.get(key)
+            return {"available": True, "found": objection is not None, "objection": objection, "objection_id": key}
+
+        if bet_id:
+            key = bet_id.strip()
+            bet = self._bet_by_id.get(key)
+            return {"available": True, "bet": bet, "bet_id": key, "found": bet is not None}
+
+        if source_id:
+            key = source_id.strip()
+            source = self._source_by_id.get(key)
+            return {"available": True, "found": source is not None, "source": source, "source_id": key}
+
+        buyers = list(self._buyer_by_id.values())
+        questions = list(self._question_by_id.values())
+        objections = list(self._objection_by_id.values())
+        if status:
+            key = status.strip()
+            buyers = [
+                buyer
+                for buyer in buyers
+                if str(buyer.get("evidence_status", {}).get("status")) == key
+            ]
+            questions = [
+                question
+                for question in questions
+                if str(question.get("evidence_status", {}).get("status")) == key
+            ]
+            objections = [
+                objection
+                for objection in objections
+                if str(objection.get("evidence_status", {}).get("status")) == key
+            ]
+
+        return {
+            "available": True,
+            "brief_summary": brief.get("brief_summary"),
+            "buyer_briefs": [self._buyer_preview(buyer) for buyer in buyers],
+            "deal_room_next_steps": brief.get("deal_room_next_steps", []),
+            "diligence_contract": brief.get("diligence_contract", {}),
+            "enterprise_questions": [self._question_preview(question) for question in questions],
+            "evidence_rollup": brief.get("evidence_rollup"),
+            "features_assessed": brief.get("features_assessed", []),
+            "generated_at": brief.get("generated_at"),
+            "industry_bets": list(self._bet_by_id.values()),
+            "objection_handlers": [self._objection_preview(objection) for objection in objections],
+            "pack_index": brief.get("pack_index", []),
+            "positioning": brief.get("positioning", {}),
+            "schema_version": brief.get("schema_version"),
+            "secure_context_buyer_diligence_brief_id": brief.get("secure_context_buyer_diligence_brief_id"),
+            "source_artifacts": brief.get("source_artifacts"),
+            "source_references": list(self._source_by_id.values()),
+            "status": status,
+        }
+
+
+class SecureContextCustomerProofPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._claim_by_id: dict[str, dict[str, Any]] = {}
+        self._event_by_id: dict[str, dict[str, Any]] = {}
+        self._metric_by_id: dict[str, dict[str, Any]] = {}
+        self._gate_by_id: dict[str, dict[str, Any]] = {}
+        self._risk_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        claims = pack.get("proof_claims") if isinstance(pack, dict) else []
+        events = pack.get("runtime_event_classes") if isinstance(pack, dict) else []
+        metrics = pack.get("metric_definitions") if isinstance(pack, dict) else []
+        gates = pack.get("renewal_gates") if isinstance(pack, dict) else []
+        risks = pack.get("risk_register") if isinstance(pack, dict) else []
+        self._claim_by_id = {
+            str(claim.get("id")): claim
+            for claim in claims
+            if isinstance(claim, dict) and claim.get("id")
+        }
+        self._event_by_id = {
+            str(event.get("id")): event
+            for event in events
+            if isinstance(event, dict) and event.get("id")
+        }
+        self._metric_by_id = {
+            str(metric.get("id")): metric
+            for metric in metrics
+            if isinstance(metric, dict) and metric.get("id")
+        }
+        self._gate_by_id = {
+            str(gate.get("id")): gate
+            for gate in gates
+            if isinstance(gate, dict) and gate.get("id")
+        }
+        self._risk_by_id = {
+            str(risk.get("id")): risk
+            for risk in risks
+            if isinstance(risk, dict) and risk.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _claim_preview(claim: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "buyer_question": claim.get("buyer_question"),
+            "customer_proof_state": claim.get("customer_proof_state"),
+            "evidence_status": claim.get("evidence_status"),
+            "id": claim.get("id"),
+            "minimum_signal_count": claim.get("minimum_signal_count"),
+            "status": claim.get("status"),
+            "title": claim.get("title"),
+        }
+
+    @staticmethod
+    def _event_preview(event: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": event.get("id"),
+            "redaction_default": event.get("redaction_default"),
+            "required_fields": event.get("required_fields", []),
+            "title": event.get("title"),
+        }
+
+    @staticmethod
+    def _metric_preview(metric: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "claim_states": metric.get("claim_states", []),
+            "customer_proof_state": metric.get("customer_proof_state"),
+            "id": metric.get("id"),
+            "metric_type": metric.get("metric_type"),
+            "status": metric.get("status"),
+            "target": metric.get("target"),
+            "title": metric.get("title"),
+        }
+
+    @staticmethod
+    def _gate_preview(gate: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "decision": gate.get("decision"),
+            "id": gate.get("id"),
+            "linked_metric_ids": gate.get("linked_metric_ids", []),
+            "status": gate.get("status"),
+            "title": gate.get("title"),
+            "what_passes": gate.get("what_passes"),
+        }
+
+    def get(
+        self,
+        claim_id: str | None = None,
+        event_id: str | None = None,
+        metric_id: str | None = None,
+        gate_id: str | None = None,
+        risk_id: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context customer proof pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "secure context customer proof pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "secure context customer proof pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if claim_id:
+            key = claim_id.strip()
+            claim = self._claim_by_id.get(key)
+            return {"available": True, "claim": claim, "claim_id": key, "found": claim is not None}
+
+        if event_id:
+            key = event_id.strip()
+            event = self._event_by_id.get(key)
+            return {"available": True, "event": event, "event_id": key, "found": event is not None}
+
+        if metric_id:
+            key = metric_id.strip()
+            metric = self._metric_by_id.get(key)
+            return {"available": True, "found": metric is not None, "metric": metric, "metric_id": key}
+
+        if gate_id:
+            key = gate_id.strip()
+            gate = self._gate_by_id.get(key)
+            return {"available": True, "found": gate is not None, "gate": gate, "gate_id": key}
+
+        if risk_id:
+            key = risk_id.strip()
+            risk = self._risk_by_id.get(key)
+            return {"available": True, "found": risk is not None, "risk": risk, "risk_id": key}
+
+        claims = list(self._claim_by_id.values())
+        metrics = list(self._metric_by_id.values())
+        gates = list(self._gate_by_id.values())
+        if status:
+            key = status.strip()
+            claims = [claim for claim in claims if str(claim.get("status")) == key]
+            metrics = [metric for metric in metrics if str(metric.get("status")) == key]
+            gates = [gate for gate in gates if str(gate.get("status")) == key]
+
+        return {
+            "acquirer_readout": pack.get("acquirer_readout", {}),
+            "available": True,
+            "customer_proof_pack_id": pack.get("customer_proof_pack_id"),
+            "customer_proof_summary": pack.get("customer_proof_summary"),
+            "evidence_sources": pack.get("evidence_sources", []),
+            "generated_at": pack.get("generated_at"),
+            "metric_definitions": [self._metric_preview(metric) for metric in metrics],
+            "positioning": pack.get("positioning", {}),
+            "proof_claims": [self._claim_preview(claim) for claim in claims],
+            "proof_contract": pack.get("proof_contract", {}),
+            "renewal_gates": [self._gate_preview(gate) for gate in gates],
+            "risk_count": len(self._risk_by_id),
+            "runtime_event_classes": [self._event_preview(event) for event in self._event_by_id.values()],
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "source_pack_index": pack.get("source_pack_index", []),
+            "source_references": pack.get("source_references", []),
+            "status": status,
+        }
+
+
+class SecureContextEvidenceContract:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._object_by_id: dict[str, dict[str, Any]] = {}
+        self._channel_by_id: dict[str, dict[str, Any]] = {}
+        self._endpoint_by_id: dict[str, dict[str, Any]] = {}
+        self._artifact_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        objects = pack.get("evidence_object_types") if isinstance(pack, dict) else []
+        channels = pack.get("release_channels") if isinstance(pack, dict) else []
+        api_surface = pack.get("hosted_api_surface") if isinstance(pack, dict) else {}
+        endpoints = api_surface.get("endpoints") if isinstance(api_surface, dict) else []
+        artifacts = pack.get("source_pack_index") if isinstance(pack, dict) else []
+        self._object_by_id = {
+            str(item.get("id")): item
+            for item in objects
+            if isinstance(item, dict) and item.get("id")
+        }
+        self._channel_by_id = {
+            str(item.get("id")): item
+            for item in channels
+            if isinstance(item, dict) and item.get("id")
+        }
+        self._endpoint_by_id = {
+            str(item.get("id")): item
+            for item in endpoints
+            if isinstance(item, dict) and item.get("id")
+        }
+        self._artifact_by_id = {
+            str(item.get("id")): item
+            for item in artifacts
+            if isinstance(item, dict) and item.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _object_preview(item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": item.get("id"),
+            "linked_source_pack_ids": item.get("linked_source_pack_ids", []),
+            "object_contract_hash": item.get("object_contract_hash"),
+            "required_fields": item.get("required_fields", []),
+            "title": item.get("title"),
+        }
+
+    @staticmethod
+    def _channel_preview(item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "audience": item.get("audience"),
+            "id": item.get("id"),
+            "required_controls": item.get("required_controls", []),
+            "requires_customer_runtime_evidence": item.get("requires_customer_runtime_evidence"),
+            "requires_signature": item.get("requires_signature"),
+            "requires_tenant_binding": item.get("requires_tenant_binding"),
+            "status": item.get("status"),
+            "title": item.get("title"),
+        }
+
+    @staticmethod
+    def _endpoint_preview(item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "endpoint_hash": item.get("endpoint_hash"),
+            "id": item.get("id"),
+            "linked_object_type_ids": item.get("linked_object_type_ids", []),
+            "linked_source_pack_ids": item.get("linked_source_pack_ids", []),
+            "method": item.get("method"),
+            "path": item.get("path"),
+            "premium_surface": item.get("premium_surface"),
+            "status": item.get("status"),
+        }
+
+    @staticmethod
+    def _artifact_preview(item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "category": item.get("category"),
+            "failure_count": item.get("failure_count"),
+            "id": item.get("id"),
+            "mcp_tools": item.get("mcp_tools", []),
+            "path": item.get("path"),
+            "schema_version": item.get("schema_version"),
+            "sha256": item.get("sha256"),
+            "status": item.get("status"),
+            "title": item.get("title"),
+        }
+
+    def get(
+        self,
+        object_type_id: str | None = None,
+        channel_id: str | None = None,
+        endpoint_id: str | None = None,
+        artifact_id: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context evidence contract: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "secure context evidence contract is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "secure context evidence contract root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if object_type_id:
+            key = object_type_id.strip()
+            item = self._object_by_id.get(key)
+            return {"available": True, "evidence_object_type": item, "found": item is not None, "object_type_id": key}
+
+        if channel_id:
+            key = channel_id.strip()
+            item = self._channel_by_id.get(key)
+            return {"available": True, "channel": item, "channel_id": key, "found": item is not None}
+
+        if endpoint_id:
+            key = endpoint_id.strip()
+            item = self._endpoint_by_id.get(key)
+            return {"available": True, "endpoint": item, "endpoint_id": key, "found": item is not None}
+
+        if artifact_id:
+            key = artifact_id.strip()
+            item = self._artifact_by_id.get(key)
+            return {"available": True, "artifact": item, "artifact_id": key, "found": item is not None}
+
+        objects = list(self._object_by_id.values())
+        channels = list(self._channel_by_id.values())
+        endpoints = list(self._endpoint_by_id.values())
+        artifacts = list(self._artifact_by_id.values())
+        if status:
+            key = status.strip()
+            channels = [item for item in channels if str(item.get("status")) == key]
+            endpoints = [item for item in endpoints if str(item.get("status")) == key]
+            artifacts = [item for item in artifacts if str(item.get("status")) == key]
+
+        return {
+            "available": True,
+            "buyer_views": pack.get("buyer_views", []),
+            "commercialization_path": pack.get("commercialization_path", {}),
+            "evidence_contract_summary": pack.get("evidence_contract_summary"),
+            "evidence_object_types": [self._object_preview(item) for item in objects],
+            "failures": pack.get("failures", []),
+            "generated_at": pack.get("generated_at"),
+            "hosted_api_surface": {
+                **(pack.get("hosted_api_surface", {}) if isinstance(pack.get("hosted_api_surface"), dict) else {}),
+                "endpoints": [self._endpoint_preview(item) for item in endpoints],
+            },
+            "positioning": pack.get("positioning", {}),
+            "release_channels": [self._channel_preview(item) for item in channels],
+            "release_contract": pack.get("release_contract", {}),
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "source_pack_index": [self._artifact_preview(item) for item in artifacts],
+            "source_references": pack.get("source_references", []),
+            "status": status,
+        }
+
+    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load secure context evidence contract: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "secure context evidence contract is not present",
+                "pack_path": str(self.path),
+            }
+
+        try:
+            decision = evaluate_secure_context_evidence_release(pack, runtime_request)
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to evaluate secure context evidence release: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        decision["available"] = True
+        return decision
+
+
+class HostedMcpReadinessPack:
+    def __init__(self, pack_path: str):
+        self.path = Path(pack_path)
+        self._mtime: float | None = None
+        self._pack: dict[str, Any] | None = None
+        self._stage_by_id: dict[str, dict[str, Any]] = {}
+        self._control_by_id: dict[str, dict[str, Any]] = {}
+        self._gate_by_id: dict[str, dict[str, Any]] = {}
+        self._buyer_evidence_by_id: dict[str, dict[str, Any]] = {}
+        self._risk_by_id: dict[str, dict[str, Any]] = {}
+
+    def _load(self) -> dict[str, Any] | None:
+        if not self.path.exists():
+            return None
+
+        stat = self.path.stat()
+        if self._pack is not None and self._mtime == stat.st_mtime:
+            return self._pack
+
+        pack = json.loads(self.path.read_text(encoding="utf-8"))
+        stages = pack.get("readiness_stages") if isinstance(pack, dict) else []
+        controls = pack.get("readiness_controls") if isinstance(pack, dict) else []
+        gates = pack.get("rollout_gates") if isinstance(pack, dict) else []
+        buyer_items = pack.get("buyer_evidence_items") if isinstance(pack, dict) else []
+        risks = pack.get("risk_register") if isinstance(pack, dict) else []
+        self._stage_by_id = {
+            str(stage.get("id")): stage
+            for stage in stages
+            if isinstance(stage, dict) and stage.get("id")
+        }
+        self._control_by_id = {
+            str(control.get("id")): control
+            for control in controls
+            if isinstance(control, dict) and control.get("id")
+        }
+        self._gate_by_id = {
+            str(gate.get("id")): gate
+            for gate in gates
+            if isinstance(gate, dict) and gate.get("id")
+        }
+        self._buyer_evidence_by_id = {
+            str(item.get("id")): item
+            for item in buyer_items
+            if isinstance(item, dict) and item.get("id")
+        }
+        self._risk_by_id = {
+            str(risk.get("id")): risk
+            for risk in risks
+            if isinstance(risk, dict) and risk.get("id")
+        }
+        self._pack = pack
+        self._mtime = stat.st_mtime
+        return pack
+
+    @staticmethod
+    def _stage_preview(stage: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "control_state_counts": stage.get("control_state_counts"),
+            "current_state": stage.get("current_state"),
+            "id": stage.get("id"),
+            "linked_control_count": stage.get("linked_control_count"),
+            "status": stage.get("status"),
+            "title": stage.get("title"),
+        }
+
+    @staticmethod
+    def _control_preview(control: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "control_family": control.get("control_family"),
+            "default_decision": control.get("default_decision"),
+            "id": control.get("id"),
+            "implementation_state": control.get("implementation_state"),
+            "priority": control.get("priority"),
+            "source_packs_ready": control.get("source_packs_ready"),
+            "status": control.get("status"),
+            "title": control.get("title"),
+        }
+
+    @staticmethod
+    def _gate_preview(gate: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "decision": gate.get("decision"),
+            "gate_state": gate.get("gate_state"),
+            "id": gate.get("id"),
+            "linked_control_ids": gate.get("linked_control_ids", []),
+            "status": gate.get("status"),
+            "title": gate.get("title"),
+            "what_passes": gate.get("what_passes"),
+        }
+
+    @staticmethod
+    def _buyer_evidence_preview(item: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "buyer_question": item.get("buyer_question"),
+            "id": item.get("id"),
+            "linked_control_ids": item.get("linked_control_ids", []),
+            "required_artifact": item.get("required_artifact"),
+            "status": item.get("status"),
+            "title": item.get("title"),
+        }
+
+    def get(
+        self,
+        stage_id: str | None = None,
+        control_id: str | None = None,
+        gate_id: str | None = None,
+        buyer_evidence_id: str | None = None,
+        risk_id: str | None = None,
+        status: str | None = None,
+    ) -> dict[str, Any]:
+        try:
+            pack = self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "error": f"failed to load hosted MCP readiness pack: {exc}",
+                "pack_path": str(self.path),
+            }
+
+        if pack is None:
+            return {
+                "available": False,
+                "error": "hosted MCP readiness pack is not present",
+                "pack_path": str(self.path),
+            }
+
+        if not isinstance(pack, dict):
+            return {
+                "available": False,
+                "error": "hosted MCP readiness pack root must be an object",
+                "pack_path": str(self.path),
+            }
+
+        if stage_id:
+            key = stage_id.strip()
+            stage = self._stage_by_id.get(key)
+            return {"available": True, "found": stage is not None, "stage": stage, "stage_id": key}
+
+        if control_id:
+            key = control_id.strip()
+            control = self._control_by_id.get(key)
+            return {"available": True, "control": control, "control_id": key, "found": control is not None}
+
+        if gate_id:
+            key = gate_id.strip()
+            gate = self._gate_by_id.get(key)
+            return {"available": True, "found": gate is not None, "gate": gate, "gate_id": key}
+
+        if buyer_evidence_id:
+            key = buyer_evidence_id.strip()
+            buyer_item = self._buyer_evidence_by_id.get(key)
+            return {
+                "available": True,
+                "buyer_evidence": buyer_item,
+                "buyer_evidence_id": key,
+                "found": buyer_item is not None,
+            }
+
+        if risk_id:
+            key = risk_id.strip()
+            risk = self._risk_by_id.get(key)
+            return {"available": True, "found": risk is not None, "risk": risk, "risk_id": key}
+
+        stages = list(self._stage_by_id.values())
+        controls = list(self._control_by_id.values())
+        gates = list(self._gate_by_id.values())
+        buyer_items = list(self._buyer_evidence_by_id.values())
+        if status:
+            key = status.strip()
+            stages = [stage for stage in stages if str(stage.get("status") or stage.get("current_state")) == key]
+            controls = [control for control in controls if str(control.get("status") or control.get("implementation_state")) == key]
+            gates = [gate for gate in gates if str(gate.get("status") or gate.get("gate_state")) == key]
+            buyer_items = [item for item in buyer_items if str(item.get("status")) == key]
+
+        return {
+            "available": True,
+            "buyer_evidence_items": [self._buyer_evidence_preview(item) for item in buyer_items],
+            "commercial_packaging": pack.get("commercial_packaging", {}),
+            "evidence_sources": pack.get("evidence_sources", []),
+            "generated_at": pack.get("generated_at"),
+            "hosted_mcp_readiness_pack_id": pack.get("hosted_mcp_readiness_pack_id"),
+            "hosted_mcp_readiness_summary": pack.get("hosted_mcp_readiness_summary"),
+            "next_90_days": pack.get("next_90_days", []),
+            "positioning": pack.get("positioning", {}),
+            "readiness_contract": pack.get("readiness_contract", {}),
+            "readiness_controls": [self._control_preview(control) for control in controls],
+            "readiness_stages": [self._stage_preview(stage) for stage in stages],
+            "risk_count": len(self._risk_by_id),
+            "rollout_gates": [self._gate_preview(gate) for gate in gates],
+            "schema_version": pack.get("schema_version"),
+            "source_artifacts": pack.get("source_artifacts"),
+            "source_pack_index": pack.get("source_pack_index", []),
+            "source_references": pack.get("source_references", []),
+            "status": status,
+        }
+
+
 def load_config(config_path: str) -> ServerConfig:
     path = Path(config_path)
     cfg = ServerConfig()
@@ -7564,6 +9772,10 @@ def load_config(config_path: str) -> ServerConfig:
         "red_team_drill_pack_path",
         cfg.red_team_drill_pack_path,
     )
+    cfg.red_team_replay_harness_path = data.get(
+        "red_team_replay_harness_path",
+        cfg.red_team_replay_harness_path,
+    )
     cfg.readiness_scorecard_path = data.get(
         "readiness_scorecard_path",
         cfg.readiness_scorecard_path,
@@ -7625,6 +9837,10 @@ def load_config(config_path: str) -> ServerConfig:
         "standards_crosswalk_path",
         cfg.standards_crosswalk_path,
     )
+    cfg.source_freshness_watch_path = data.get(
+        "source_freshness_watch_path",
+        cfg.source_freshness_watch_path,
+    )
     cfg.mcp_risk_coverage_pack_path = data.get(
         "mcp_risk_coverage_pack_path",
         cfg.mcp_risk_coverage_pack_path,
@@ -7645,13 +9861,45 @@ def load_config(config_path: str) -> ServerConfig:
         "telemetry_contract_path",
         cfg.telemetry_contract_path,
     )
+    cfg.soc_detection_pack_path = data.get(
+        "soc_detection_pack_path",
+        cfg.soc_detection_pack_path,
+    )
     cfg.enterprise_trust_center_export_path = data.get(
         "enterprise_trust_center_export_path",
         cfg.enterprise_trust_center_export_path,
     )
+    cfg.secure_context_value_model_path = data.get(
+        "secure_context_value_model_path",
+        cfg.secure_context_value_model_path,
+    )
+    cfg.design_partner_pilot_pack_path = data.get(
+        "design_partner_pilot_pack_path",
+        cfg.design_partner_pilot_pack_path,
+    )
+    cfg.buyer_diligence_brief_path = data.get(
+        "buyer_diligence_brief_path",
+        cfg.buyer_diligence_brief_path,
+    )
+    cfg.customer_proof_pack_path = data.get(
+        "customer_proof_pack_path",
+        cfg.customer_proof_pack_path,
+    )
+    cfg.evidence_contract_path = data.get(
+        "evidence_contract_path",
+        cfg.evidence_contract_path,
+    )
+    cfg.hosted_mcp_readiness_pack_path = data.get(
+        "hosted_mcp_readiness_pack_path",
+        cfg.hosted_mcp_readiness_pack_path,
+    )
     cfg.catastrophic_risk_annex_path = data.get(
         "catastrophic_risk_annex_path",
         cfg.catastrophic_risk_annex_path,
+    )
+    cfg.critical_infrastructure_pack_path = data.get(
+        "critical_infrastructure_pack_path",
+        cfg.critical_infrastructure_pack_path,
     )
     cfg.incident_response_pack_path = data.get(
         "incident_response_pack_path",
@@ -7660,6 +9908,10 @@ def load_config(config_path: str) -> ServerConfig:
     cfg.action_runtime_pack_path = data.get(
         "action_runtime_pack_path",
         cfg.action_runtime_pack_path,
+    )
+    cfg.agent_trust_fabric_pack_path = data.get(
+        "agent_trust_fabric_pack_path",
+        cfg.agent_trust_fabric_pack_path,
     )
     cfg.browser_agent_boundary_pack_path = data.get(
         "browser_agent_boundary_pack_path",
@@ -7672,6 +9924,10 @@ def load_config(config_path: str) -> ServerConfig:
     cfg.posture_snapshot_path = data.get(
         "posture_snapshot_path",
         cfg.posture_snapshot_path,
+    )
+    cfg.agentic_aivss_risk_scoring_pack_path = data.get(
+        "agentic_aivss_risk_scoring_pack_path",
+        cfg.agentic_aivss_risk_scoring_pack_path,
     )
     cfg.app_intake_pack_path = data.get(
         "app_intake_pack_path",
@@ -7740,6 +9996,7 @@ elicitation_boundary_pack = MCPElicitationBoundaryPack(config.elicitation_bounda
 tool_risk_contract = MCPToolRiskContract(config.tool_risk_contract_path)
 tool_surface_drift_pack = MCPToolSurfaceDriftPack(config.tool_surface_drift_pack_path)
 red_team_drill_pack = AgenticRedTeamDrillPack(config.red_team_drill_pack_path)
+red_team_replay_harness = AgenticRedTeamReplayHarness(config.red_team_replay_harness_path)
 readiness_scorecard = AgenticReadinessScorecard(config.readiness_scorecard_path)
 capability_risk_register = AgentCapabilityRiskRegister(config.capability_risk_register_path)
 agent_memory_boundary_pack = AgentMemoryBoundaryPack(config.agent_memory_boundary_pack_path)
@@ -7756,20 +10013,31 @@ context_poisoning_guard_pack = ContextPoisoningGuardPack(config.context_poisonin
 context_egress_boundary_pack = ContextEgressBoundaryPack(config.context_egress_boundary_pack_path)
 threat_radar = AgenticThreatRadar(config.threat_radar_path)
 standards_crosswalk = AgenticStandardsCrosswalk(config.standards_crosswalk_path)
+source_freshness_watch = AgenticSourceFreshnessWatch(config.source_freshness_watch_path)
 mcp_risk_coverage_pack = MCPRiskCoveragePack(config.mcp_risk_coverage_pack_path)
 protocol_conformance_pack = AgenticProtocolConformancePack(config.protocol_conformance_pack_path)
 control_plane_blueprint = AgenticControlPlaneBlueprint(config.control_plane_blueprint_path)
 exposure_graph = AgenticExposureGraph(config.exposure_graph_path)
 posture_snapshot = AgenticPostureSnapshot(config.posture_snapshot_path)
+agentic_aivss_risk_scoring_pack = AgenticAivssRiskScoringPack(config.agentic_aivss_risk_scoring_pack_path)
 app_intake_pack = AgenticAppIntakePack(config.app_intake_pack_path)
 model_provider_routing_pack = ModelProviderRoutingPack(config.model_provider_routing_pack_path)
 catastrophic_risk_annex = AgenticCatastrophicRiskAnnex(config.catastrophic_risk_annex_path)
+critical_infrastructure_pack = CriticalInfrastructureSecureContextPack(config.critical_infrastructure_pack_path)
 incident_response_pack = AgenticIncidentResponsePack(config.incident_response_pack_path)
 action_runtime_pack = AgenticActionRuntimePack(config.action_runtime_pack_path)
+agent_trust_fabric_pack = AgentTrustFabricPack(config.agent_trust_fabric_pack_path)
 browser_agent_boundary_pack = BrowserAgentBoundaryPack(config.browser_agent_boundary_pack_path)
 measurement_probe_pack = AgenticMeasurementProbePack(config.measurement_probe_pack_path)
 telemetry_contract = AgenticTelemetryContract(config.telemetry_contract_path)
+soc_detection_pack = AgenticSocDetectionPack(config.soc_detection_pack_path)
 enterprise_trust_center_export = EnterpriseTrustCenterExport(config.enterprise_trust_center_export_path)
+secure_context_value_model = SecureContextValueModel(config.secure_context_value_model_path)
+design_partner_pilot_pack = DesignPartnerPilotPack(config.design_partner_pilot_pack_path)
+buyer_diligence_brief = SecureContextBuyerDiligenceBrief(config.buyer_diligence_brief_path)
+customer_proof_pack = SecureContextCustomerProofPack(config.customer_proof_pack_path)
+evidence_contract = SecureContextEvidenceContract(config.evidence_contract_path)
+hosted_mcp_readiness_pack = HostedMcpReadinessPack(config.hosted_mcp_readiness_pack_path)
 mcp = FastMCP(name="security-recipes-mcp")
 
 
@@ -7796,6 +10064,7 @@ async def recipes_server_info() -> dict[str, Any]:
         "tool_risk_contract_path": config.tool_risk_contract_path,
         "tool_surface_drift_pack_path": config.tool_surface_drift_pack_path,
         "red_team_drill_pack_path": config.red_team_drill_pack_path,
+        "red_team_replay_harness_path": config.red_team_replay_harness_path,
         "readiness_scorecard_path": config.readiness_scorecard_path,
         "capability_risk_register_path": config.capability_risk_register_path,
         "agent_memory_boundary_pack_path": config.agent_memory_boundary_pack_path,
@@ -7812,20 +10081,31 @@ async def recipes_server_info() -> dict[str, Any]:
         "context_egress_boundary_pack_path": config.context_egress_boundary_pack_path,
         "threat_radar_path": config.threat_radar_path,
         "standards_crosswalk_path": config.standards_crosswalk_path,
+        "source_freshness_watch_path": config.source_freshness_watch_path,
         "mcp_risk_coverage_pack_path": config.mcp_risk_coverage_pack_path,
         "protocol_conformance_pack_path": config.protocol_conformance_pack_path,
         "control_plane_blueprint_path": config.control_plane_blueprint_path,
         "exposure_graph_path": config.exposure_graph_path,
         "posture_snapshot_path": config.posture_snapshot_path,
+        "agentic_aivss_risk_scoring_pack_path": config.agentic_aivss_risk_scoring_pack_path,
         "app_intake_pack_path": config.app_intake_pack_path,
         "model_provider_routing_pack_path": config.model_provider_routing_pack_path,
         "catastrophic_risk_annex_path": config.catastrophic_risk_annex_path,
+        "critical_infrastructure_pack_path": config.critical_infrastructure_pack_path,
         "incident_response_pack_path": config.incident_response_pack_path,
         "action_runtime_pack_path": config.action_runtime_pack_path,
+        "agent_trust_fabric_pack_path": config.agent_trust_fabric_pack_path,
         "browser_agent_boundary_pack_path": config.browser_agent_boundary_pack_path,
         "measurement_probe_pack_path": config.measurement_probe_pack_path,
         "telemetry_contract_path": config.telemetry_contract_path,
+        "soc_detection_pack_path": config.soc_detection_pack_path,
         "enterprise_trust_center_export_path": config.enterprise_trust_center_export_path,
+        "secure_context_value_model_path": config.secure_context_value_model_path,
+        "design_partner_pilot_pack_path": config.design_partner_pilot_pack_path,
+        "buyer_diligence_brief_path": config.buyer_diligence_brief_path,
+        "customer_proof_pack_path": config.customer_proof_pack_path,
+        "evidence_contract_path": config.evidence_contract_path,
+        "hosted_mcp_readiness_pack_path": config.hosted_mcp_readiness_pack_path,
     }
 
 
@@ -8248,15 +10528,22 @@ async def recipes_evaluate_mcp_authorization_decision(
     agent_id: str | None = None,
     run_id: str | None = None,
     client_id: str | None = None,
+    client_metadata_document_url: str | None = None,
+    client_metadata_document_validated: bool = False,
+    authorization_server_discovery_method: str | None = None,
+    protected_resource_metadata_url: str | None = None,
     resource_indicator: str | None = None,
     token_audience: str | None = None,
     token_issuer: str | None = None,
     token_expires_at: str | None = None,
     token_scopes: list[str] | None = None,
+    scope_challenge: list[str] | None = None,
     consent_record_id: str | None = None,
     session_id: str | None = None,
     correlation_id: str | None = None,
     gateway_policy_hash: str | None = None,
+    step_up_required: bool = False,
+    step_up_authorization_record_id: str | None = None,
     token_passthrough: bool = False,
     contains_secret_scope: bool = False,
 ) -> dict[str, Any]:
@@ -8264,17 +10551,24 @@ async def recipes_evaluate_mcp_authorization_decision(
     return authorization_conformance_pack.evaluate(
         {
             "agent_id": agent_id,
+            "authorization_server_discovery_method": authorization_server_discovery_method,
             "client_id": client_id,
+            "client_metadata_document_url": client_metadata_document_url,
+            "client_metadata_document_validated": client_metadata_document_validated,
             "connector_id": connector_id,
             "consent_record_id": consent_record_id,
             "contains_secret_scope": contains_secret_scope,
             "correlation_id": correlation_id,
             "gateway_policy_hash": gateway_policy_hash,
             "namespace": namespace,
+            "protected_resource_metadata_url": protected_resource_metadata_url,
             "requested_access_mode": requested_access_mode,
             "resource_indicator": resource_indicator,
             "run_id": run_id,
+            "scope_challenge": scope_challenge or [],
             "session_id": session_id,
+            "step_up_authorization_record_id": step_up_authorization_record_id,
+            "step_up_required": step_up_required,
             "token_audience": token_audience,
             "token_expires_at": token_expires_at,
             "token_issuer": token_issuer,
@@ -8564,6 +10858,62 @@ async def recipes_agentic_red_team_drill_pack(
         scenario_id=scenario_id,
         workflow_id=workflow_id,
         attack_family=attack_family,
+    )
+
+
+@mcp.tool()
+async def recipes_agentic_red_team_replay_harness(
+    replay_id: str | None = None,
+    workflow_id: str | None = None,
+    scenario_id: str | None = None,
+    attack_family: str | None = None,
+    severity: str | None = None,
+) -> dict[str, Any]:
+    """Return replay fixtures, expected decisions, and evidence gates for red-team drills."""
+    return red_team_replay_harness.get(
+        replay_id=replay_id,
+        workflow_id=workflow_id,
+        scenario_id=scenario_id,
+        attack_family=attack_family,
+        severity=severity,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_agentic_red_team_replay_result(
+    observed_decision: str,
+    replay_id: str | None = None,
+    workflow_id: str | None = None,
+    scenario_id: str | None = None,
+    evidence_classes: list[str] | None = None,
+    trace_event_classes: list[str] | None = None,
+    fail_signals: list[str] | None = None,
+    agent_followed_injection: bool = False,
+    fabricated_evidence: bool = False,
+    out_of_scope_change: bool = False,
+    secret_leaked: bool = False,
+    unbounded_loop: bool = False,
+    unauthorized_tool_use: bool = False,
+    unsafe_handoff: bool = False,
+) -> dict[str, Any]:
+    """Return a replay_pass, hold, fail, or kill decision for one red-team replay result."""
+    return red_team_replay_harness.evaluate(
+        {
+            "agent_followed_injection": agent_followed_injection,
+            "evidence_classes": evidence_classes or [],
+            "fabricated_evidence": fabricated_evidence,
+            "fail_signals": fail_signals or [],
+            "observed_decision": observed_decision,
+            "out_of_scope_change": out_of_scope_change,
+            "replay_id": replay_id,
+            "scenario_id": scenario_id,
+            "secret_leaked": secret_leaked,
+            "trace_event_classes": trace_event_classes or [],
+            "unbounded_loop": unbounded_loop,
+            "unauthorized_tool_use": unauthorized_tool_use,
+            "unsafe_handoff": unsafe_handoff,
+            "workflow_id": workflow_id,
+        }
     )
 
 
@@ -9174,6 +11524,28 @@ async def recipes_agentic_standards_crosswalk(
 
 
 @mcp.tool()
+async def recipes_agentic_source_freshness_watch(
+    watched_source_id: str | None = None,
+    source_id: str | None = None,
+    primary_watchlist_id: str | None = None,
+    publisher_family: str | None = None,
+    source_class_family: str | None = None,
+    freshness_class: str | None = None,
+    decision: str | None = None,
+) -> dict[str, Any]:
+    """Return source-freshness and standards-drift evidence for SecurityRecipes."""
+    return source_freshness_watch.get(
+        watched_source_id=watched_source_id,
+        source_id=source_id,
+        primary_watchlist_id=primary_watchlist_id,
+        publisher_family=publisher_family,
+        source_class_family=source_class_family,
+        freshness_class=freshness_class,
+        decision=decision,
+    )
+
+
+@mcp.tool()
 async def recipes_mcp_risk_coverage_pack(
     risk_id: str | None = None,
     standard_id: str | None = None,
@@ -9362,6 +11734,60 @@ async def recipes_evaluate_agentic_posture_decision(
             "risk_factor": risk_factor,
             "session_exfiltration_path": session_exfiltration_path,
             "unregistered_agent": unregistered_agent,
+            "workflow_id": workflow_id,
+        }
+    )
+
+
+@mcp.tool()
+async def recipes_agentic_aivss_risk_scoring_pack(
+    scenario_id: str | None = None,
+    severity: str | None = None,
+    runtime_default_decision: str | None = None,
+    minimum_score: float | None = None,
+    owner: str | None = None,
+) -> dict[str, Any]:
+    """Return AIVSS-aligned agentic risk scores, SLAs, evidence, and hosted MCP wedges."""
+    return agentic_aivss_risk_scoring_pack.get(
+        scenario_id=scenario_id,
+        severity=severity,
+        runtime_default_decision=runtime_default_decision,
+        minimum_score=minimum_score,
+        owner=owner,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_agentic_aivss_risk_decision(
+    scenario_id: str | None = None,
+    workflow_id: str | None = None,
+    agent_id: str | None = None,
+    aivss_score: float | None = None,
+    autonomy_level: str = "bounded",
+    contains_secret: bool = False,
+    unregistered_agent: bool = False,
+    shadow_mcp_server: bool = False,
+    external_write: bool = False,
+    exfiltration_capable_tool: bool = False,
+    untrusted_context: bool = False,
+    human_approval_present: bool = False,
+    malicious_or_unpinned_skill: bool = False,
+) -> dict[str, Any]:
+    """Return a deterministic allow, guarded, hold, deny, or kill decision for one agentic risk event."""
+    return agentic_aivss_risk_scoring_pack.evaluate(
+        {
+            "agent_id": agent_id,
+            "aivss_score": aivss_score,
+            "autonomy_level": autonomy_level,
+            "contains_secret": contains_secret,
+            "exfiltration_capable_tool": exfiltration_capable_tool,
+            "external_write": external_write,
+            "human_approval_present": human_approval_present,
+            "malicious_or_unpinned_skill": malicious_or_unpinned_skill,
+            "scenario_id": scenario_id,
+            "shadow_mcp_server": shadow_mcp_server,
+            "unregistered_agent": unregistered_agent,
+            "untrusted_context": untrusted_context,
             "workflow_id": workflow_id,
         }
     )
@@ -9620,6 +12046,96 @@ async def recipes_evaluate_agentic_catastrophic_risk_decision(
 
 
 @mcp.tool()
+async def recipes_critical_infrastructure_secure_context_pack(
+    sector_id: str | None = None,
+    control_id: str | None = None,
+    buyer_view_id: str | None = None,
+    decision: str | None = None,
+    readiness_status: str | None = None,
+) -> dict[str, Any]:
+    """Return the generated critical-infrastructure secure-context profile."""
+    return critical_infrastructure_pack.get(
+        sector_id=sector_id,
+        control_id=control_id,
+        buyer_view_id=buyer_view_id,
+        decision=decision,
+        readiness_status=readiness_status,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_critical_infrastructure_context_decision(
+    sector_id: str,
+    workflow_id: str,
+    action_class: str,
+    agent_id: str | None = None,
+    run_id: str | None = None,
+    identity_id: str | None = None,
+    tenant_id: str | None = None,
+    context_package_hash: str | None = None,
+    policy_pack_hash: str | None = None,
+    authorization_decision: str | None = None,
+    egress_decision: str | None = None,
+    catastrophic_risk_decision: str | None = None,
+    human_approval_record: dict[str, Any] | None = None,
+    operator_approval_id: str | None = None,
+    ci_safety_case_id: str | None = None,
+    risk_acceptance_id: str | None = None,
+    receipt_id: str | None = None,
+    telemetry_trace_id: str | None = None,
+    runtime_kill_signal: str | None = None,
+    affects_ot_or_ics: bool = False,
+    patient_safety_impact: bool = False,
+    emergency_services_impact: bool = False,
+    funds_or_market_impact: bool = False,
+    public_service_disruption: bool = False,
+    cross_sector_dependency: bool = False,
+    handles_regulated_pii: bool = False,
+    raw_secret_access: bool = False,
+    shadow_mcp_server: bool = False,
+    token_passthrough: bool = False,
+    unsafe_local_mcp_launch: bool = False,
+    untrusted_context: bool = False,
+) -> dict[str, Any]:
+    """Return a deterministic decision for one critical-infrastructure context or action event."""
+    return critical_infrastructure_pack.evaluate(
+        {
+            "action_class": action_class,
+            "affects_ot_or_ics": affects_ot_or_ics,
+            "agent_id": agent_id,
+            "authorization_decision": authorization_decision,
+            "catastrophic_risk_decision": catastrophic_risk_decision,
+            "ci_safety_case_id": ci_safety_case_id,
+            "context_package_hash": context_package_hash,
+            "cross_sector_dependency": cross_sector_dependency,
+            "egress_decision": egress_decision,
+            "emergency_services_impact": emergency_services_impact,
+            "funds_or_market_impact": funds_or_market_impact,
+            "handles_regulated_pii": handles_regulated_pii,
+            "human_approval_record": human_approval_record or {},
+            "identity_id": identity_id,
+            "operator_approval_id": operator_approval_id,
+            "patient_safety_impact": patient_safety_impact,
+            "policy_pack_hash": policy_pack_hash,
+            "public_service_disruption": public_service_disruption,
+            "raw_secret_access": raw_secret_access,
+            "receipt_id": receipt_id,
+            "risk_acceptance_id": risk_acceptance_id,
+            "run_id": run_id,
+            "runtime_kill_signal": runtime_kill_signal,
+            "sector_id": sector_id,
+            "shadow_mcp_server": shadow_mcp_server,
+            "telemetry_trace_id": telemetry_trace_id,
+            "tenant_id": tenant_id,
+            "token_passthrough": token_passthrough,
+            "unsafe_local_mcp_launch": unsafe_local_mcp_launch,
+            "untrusted_context": untrusted_context,
+            "workflow_id": workflow_id,
+        }
+    )
+
+
+@mcp.tool()
 async def recipes_agentic_incident_response_pack(
     incident_class_id: str | None = None,
     workflow_id: str | None = None,
@@ -9808,6 +12324,110 @@ async def recipes_evaluate_agentic_action_runtime_decision(
 
 
 @mcp.tool()
+async def recipes_agent_trust_fabric_pack(
+    dimension_id: str | None = None,
+    workflow_id: str | None = None,
+    trust_tier: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return Agent Trust Fabric dimensions, workflow tiers, source evidence, and buyer proof."""
+    return agent_trust_fabric_pack.get(
+        dimension_id=dimension_id,
+        workflow_id=workflow_id,
+        trust_tier=trust_tier,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_agent_trust_fabric_decision(
+    workflow_id: str,
+    run_id: str,
+    agent_id: str,
+    identity_id: str,
+    tenant_id: str,
+    correlation_id: str,
+    trust_event_id: str,
+    requested_trust_tier: str,
+    intent_summary: str,
+    context_package_hash: str,
+    policy_pack_hash: str,
+    authorization_decision: str,
+    egress_decision: str,
+    telemetry_event_id: str,
+    receipt_id: str,
+    source_freshness_decision: str,
+    action_runtime_decision: str | None = None,
+    telemetry_decision: str | None = None,
+    soc_decision: str | None = None,
+    human_approval_record: dict[str, Any] | None = None,
+    risk_acceptance_id: str | None = None,
+    runtime_kill_signal: str | None = None,
+    indicators: list[str] | None = None,
+    mcp_namespaces: list[str] | None = None,
+    requested_actions: list[str] | None = None,
+    data_classes: list[str] | None = None,
+    context_poisoning_signal: bool = False,
+    cross_tenant_context_access: bool = False,
+    external_side_effect: bool = False,
+    high_impact_action: bool = False,
+    identity_used_after_revocation: bool = False,
+    missing_trace_context: bool = False,
+    prompt_injection_signal: bool = False,
+    repeated_denied_action: bool = False,
+    scope_escalation: bool = False,
+    secret_egress: bool = False,
+    telemetry_redaction_failure: bool = False,
+    token_passthrough: bool = False,
+    untrusted_context: bool = False,
+) -> dict[str, Any]:
+    """Return a deterministic trust-fabric allow, hold, deny, or kill decision for an agent run."""
+    return agent_trust_fabric_pack.evaluate(
+        {
+            "action_runtime_decision": action_runtime_decision,
+            "agent_id": agent_id,
+            "authorization_decision": authorization_decision,
+            "context_package_hash": context_package_hash,
+            "context_poisoning_signal": context_poisoning_signal,
+            "correlation_id": correlation_id,
+            "cross_tenant_context_access": cross_tenant_context_access,
+            "data_classes": data_classes or [],
+            "egress_decision": egress_decision,
+            "external_side_effect": external_side_effect,
+            "high_impact_action": high_impact_action,
+            "human_approval_record": human_approval_record,
+            "identity_id": identity_id,
+            "identity_used_after_revocation": identity_used_after_revocation,
+            "indicators": indicators or [],
+            "intent_summary": intent_summary,
+            "mcp_namespaces": mcp_namespaces or [],
+            "missing_trace_context": missing_trace_context,
+            "policy_pack_hash": policy_pack_hash,
+            "prompt_injection_signal": prompt_injection_signal,
+            "receipt_id": receipt_id,
+            "repeated_denied_action": repeated_denied_action,
+            "requested_actions": requested_actions or [],
+            "requested_trust_tier": requested_trust_tier,
+            "risk_acceptance_id": risk_acceptance_id,
+            "run_id": run_id,
+            "runtime_kill_signal": runtime_kill_signal,
+            "scope_escalation": scope_escalation,
+            "secret_egress": secret_egress,
+            "soc_decision": soc_decision,
+            "source_freshness_decision": source_freshness_decision,
+            "telemetry_decision": telemetry_decision,
+            "telemetry_event_id": telemetry_event_id,
+            "telemetry_redaction_failure": telemetry_redaction_failure,
+            "tenant_id": tenant_id,
+            "token_passthrough": token_passthrough,
+            "trust_event_id": trust_event_id,
+            "untrusted_context": untrusted_context,
+            "workflow_id": workflow_id,
+        }
+    )
+
+
+@mcp.tool()
 async def recipes_browser_agent_boundary_pack(
     workspace_class_id: str | None = None,
     task_profile_id: str | None = None,
@@ -9972,6 +12592,42 @@ async def recipes_evaluate_agentic_telemetry_event(
 
 
 @mcp.tool()
+async def recipes_agentic_soc_detection_pack(
+    rule_id: str | None = None,
+    workflow_id: str | None = None,
+    severity: str | None = None,
+    decision: str | None = None,
+    event_class: str | None = None,
+) -> dict[str, Any]:
+    """Return SIEM-ready detections for agentic AI and MCP telemetry."""
+    return soc_detection_pack.get(
+        rule_id=rule_id,
+        workflow_id=workflow_id,
+        severity=severity,
+        decision=decision,
+        event_class=event_class,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_agentic_soc_detection_event(
+    workflow_id: str,
+    event_class: str,
+    attributes: dict[str, Any],
+    contains_secret: bool = False,
+) -> dict[str, Any]:
+    """Return a SOC alert, hold, kill-session, or no-alert decision for one runtime event."""
+    return soc_detection_pack.evaluate(
+        {
+            "attributes": attributes,
+            "contains_secret": contains_secret,
+            "event_class": event_class,
+            "workflow_id": workflow_id,
+        }
+    )
+
+
+@mcp.tool()
 async def recipes_enterprise_trust_center_export(
     section_id: str | None = None,
     pack_id: str | None = None,
@@ -9985,6 +12641,188 @@ async def recipes_enterprise_trust_center_export(
         pack_id=pack_id,
         question_id=question_id,
         category=category,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_secure_context_value_model(
+    driver_id: str | None = None,
+    segment_id: str | None = None,
+    scenario_id: str | None = None,
+    wedge_id: str | None = None,
+    question_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return the secure context value model for buyer, ROI, and acquisition diligence."""
+    return secure_context_value_model.get(
+        driver_id=driver_id,
+        segment_id=segment_id,
+        scenario_id=scenario_id,
+        wedge_id=wedge_id,
+        question_id=question_id,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_design_partner_pilot_pack(
+    segment_id: str | None = None,
+    phase_id: str | None = None,
+    wedge_id: str | None = None,
+    metric_id: str | None = None,
+    question_id: str | None = None,
+    risk_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return the design partner pilot motion for buyer proof and hosted MCP validation."""
+    return design_partner_pilot_pack.get(
+        segment_id=segment_id,
+        phase_id=phase_id,
+        wedge_id=wedge_id,
+        metric_id=metric_id,
+        question_id=question_id,
+        risk_id=risk_id,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_secure_context_buyer_diligence_brief(
+    buyer_id: str | None = None,
+    question_id: str | None = None,
+    objection_id: str | None = None,
+    bet_id: str | None = None,
+    source_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return buyer and acquirer diligence evidence for the secure context layer."""
+    return buyer_diligence_brief.get(
+        buyer_id=buyer_id,
+        question_id=question_id,
+        objection_id=objection_id,
+        bet_id=bet_id,
+        source_id=source_id,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_secure_context_customer_proof_pack(
+    claim_id: str | None = None,
+    event_id: str | None = None,
+    metric_id: str | None = None,
+    gate_id: str | None = None,
+    risk_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return the customer proof contract for design partner and acquisition evidence."""
+    return customer_proof_pack.get(
+        claim_id=claim_id,
+        event_id=event_id,
+        metric_id=metric_id,
+        gate_id=gate_id,
+        risk_id=risk_id,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_secure_context_evidence_contract(
+    object_type_id: str | None = None,
+    channel_id: str | None = None,
+    endpoint_id: str | None = None,
+    artifact_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return the secure context evidence API and release contract."""
+    return evidence_contract.get(
+        object_type_id=object_type_id,
+        channel_id=channel_id,
+        endpoint_id=endpoint_id,
+        artifact_id=artifact_id,
+        status=status,
+    )
+
+
+@mcp.tool()
+async def recipes_evaluate_secure_context_evidence_release(
+    release_id: str,
+    release_channel: str,
+    artifact_ids: list[str],
+    payload_classes: list[str] | None = None,
+    tenant_id: str | None = None,
+    correlation_id: str | None = None,
+    approval_receipt_id: str | None = None,
+    retention_policy_id: str | None = None,
+    dpa_state: str | None = None,
+    zero_data_retention_state: str | None = None,
+    redaction_manifest_id: str | None = None,
+    signature_id: str | None = None,
+    source_hashes_present: bool = False,
+    redaction_verified: bool = False,
+    tenant_bound: bool = False,
+    signature_present: bool = False,
+    dpa_in_place: bool = False,
+    zero_data_retention_committed: bool = False,
+    contains_api_key: bool = False,
+    contains_customer_data: bool = False,
+    contains_private_key: bool = False,
+    contains_raw_prompt: bool = False,
+    contains_secret: bool = False,
+    contains_session_cookie: bool = False,
+    contains_source_code: bool = False,
+    contains_token: bool = False,
+) -> dict[str, Any]:
+    """Return a deterministic release decision before evidence leaves a trust boundary."""
+    return evidence_contract.evaluate(
+        {
+            "approval_receipt_id": approval_receipt_id,
+            "artifact_ids": artifact_ids,
+            "contains_api_key": contains_api_key,
+            "contains_customer_data": contains_customer_data,
+            "contains_private_key": contains_private_key,
+            "contains_raw_prompt": contains_raw_prompt,
+            "contains_secret": contains_secret,
+            "contains_session_cookie": contains_session_cookie,
+            "contains_source_code": contains_source_code,
+            "contains_token": contains_token,
+            "correlation_id": correlation_id,
+            "dpa_in_place": dpa_in_place,
+            "dpa_state": dpa_state,
+            "payload_classes": payload_classes or [],
+            "redaction_manifest_id": redaction_manifest_id,
+            "redaction_verified": redaction_verified,
+            "release_channel": release_channel,
+            "release_id": release_id,
+            "retention_policy_id": retention_policy_id,
+            "signature_id": signature_id,
+            "signature_present": signature_present,
+            "source_hashes_present": source_hashes_present,
+            "tenant_bound": tenant_bound,
+            "tenant_id": tenant_id,
+            "zero_data_retention_committed": zero_data_retention_committed,
+            "zero_data_retention_state": zero_data_retention_state,
+        }
+    )
+
+
+@mcp.tool()
+async def recipes_hosted_mcp_readiness_pack(
+    stage_id: str | None = None,
+    control_id: str | None = None,
+    gate_id: str | None = None,
+    buyer_evidence_id: str | None = None,
+    risk_id: str | None = None,
+    status: str | None = None,
+) -> dict[str, Any]:
+    """Return the hosted MCP readiness plan for enterprise product rollout."""
+    return hosted_mcp_readiness_pack.get(
+        stage_id=stage_id,
+        control_id=control_id,
+        gate_id=gate_id,
+        buyer_evidence_id=buyer_evidence_id,
+        risk_id=risk_id,
         status=status,
     )
 

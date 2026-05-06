@@ -118,7 +118,7 @@ incident evidence.
 
 This feature is intentionally boring and enforceable:
 
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
   emphasizes scoped authorization, secure transport, PKCE, and token
   handling. The firewall narrows context retrieval to declared source,
   workflow, and mode attributes.

@@ -64,6 +64,42 @@
       }
     },
     {
+      "id": "gitlab-project-context",
+      "label": "GitLab project context",
+      "category": "Code and findings sources",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Pulls bounded GitLab project metadata, useful repository files, open issues, and open merge requests directly in the browser for GitLab-centered remediation work.",
+      "auth_modes": ["public", "pat", "oauth"],
+      "config": {
+        "type": "gitlab_project_context",
+        "base_url": "https://gitlab.com/api/v4",
+        "project": "group/project",
+        "include": ["project", "readme", "default_branch", "issues", "merge_requests", "vulnerability_findings"],
+        "max_items": 20
+      }
+    },
+    {
+      "id": "azure-devops-repository",
+      "label": "Azure DevOps repository context",
+      "category": "Code and findings sources",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Pulls bounded Azure DevOps repository metadata, useful repo files, active pull requests, and recent open work items directly in the browser for remediation planning.",
+      "auth_modes": ["oauth", "pat"],
+      "config": {
+        "type": "azure_devops_repository",
+        "base_url": "https://dev.azure.com",
+        "organization": "example-org",
+        "project": "security-platform",
+        "repository": "payments-api",
+        "include": ["repository", "default_branch", "readme", "security", "contributing", "manifests", "pull_requests", "work_items"],
+        "api_version": "7.1",
+        "max_files": 18,
+        "max_chars_per_file": 1600
+      }
+    },
+    {
       "id": "sarif-manual-import",
       "label": "SARIF upload",
       "category": "Scanner findings",
@@ -103,6 +139,30 @@
       }
     },
     {
+      "id": "scanner-export-bundle",
+      "label": "Major scanner JSON exports",
+      "category": "Scanner findings",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Uploads major scanner and findings-platform JSON exports in the browser, normalizes them into a bounded summary, and feeds the exposure queue plus downstream reports without any server-side secret handling.",
+      "auth_modes": ["none"],
+      "config": {
+        "type": "scanner_export_bundle",
+        "source": "local_file",
+        "accepted_formats": [
+          "aws-security-hub-asff",
+          "tenable-vulnerability-export",
+          "defectdojo-findings-json",
+          "generic-findings-array-json"
+        ],
+        "normalization": {
+          "max_files": 12,
+          "max_findings": 1500,
+          "max_sample_findings": 12
+        }
+      }
+    },
+    {
       "id": "wiz-findings-api",
       "label": "Wiz findings API",
       "category": "Scanner findings",
@@ -127,9 +187,9 @@
       "id": "snyk-issues-api",
       "label": "Snyk issues API",
       "category": "Scanner findings",
-      "status": "template",
-      "runtime_support": "planned",
-      "description": "Pre-populated config for importing code, open source, container, and IaC issues from Snyk.",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Pulls a bounded first page of high-priority Snyk organization issues directly in the browser for scanner-aware triage and remediation planning.",
       "auth_modes": ["api_token"],
       "config": {
         "type": "snyk_issues",
@@ -159,12 +219,331 @@
       }
     },
     {
+      "id": "microsoft-defender-xdr-incidents",
+      "label": "Microsoft Defender XDR incidents",
+      "category": "Scanner findings",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Pulls a bounded Microsoft Defender XDR incident sample directly in the browser with local severity and status filters for queueing, reporting, and remediation planning.",
+      "auth_modes": ["oauth"],
+      "config": {
+        "type": "microsoft_defender_xdr_incidents",
+        "base_url": "https://api.security.microsoft.com/api/incidents",
+        "scopes": ["Incident.Read.All"],
+        "filters": {
+          "status": ["Active"],
+          "severity": ["High", "Medium"]
+        },
+        "pagination": {
+          "top": 50
+        }
+      }
+    },
+    {
+      "id": "microsoft-sentinel-incidents",
+      "label": "Microsoft Sentinel incidents",
+      "category": "Scanner findings",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Pulls a bounded Microsoft Sentinel workspace incident sample directly in the browser with local severity and status filters for queueing, reporting, and remediation planning.",
+      "auth_modes": ["oauth"],
+      "config": {
+        "type": "microsoft_sentinel_incidents",
+        "base_url": "https://management.azure.com",
+        "resource_path": "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/incidents",
+        "api_version": "2025-09-01",
+        "include": ["incidents"],
+        "filters": {
+          "status": ["New", "Active"],
+          "severity": ["High", "Medium"]
+        },
+        "pagination": {
+          "top": 50
+        }
+      }
+    },
+    {
+      "id": "gitlab-vulnerability-findings",
+      "label": "GitLab vulnerability findings",
+      "category": "Scanner findings",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Pulls a bounded first page of GitLab project vulnerability findings directly in the browser when AppSec findings and fix ownership live in the same GitLab namespace.",
+      "auth_modes": ["pat", "oauth"],
+      "config": {
+        "type": "gitlab_vulnerability_findings",
+        "base_url": "https://gitlab.com/api/v4",
+        "project": "group/project",
+        "endpoint": "/projects/:id/vulnerability_findings",
+        "filters": {
+          "report_type": ["dependency_scanning", "sast"],
+          "severity": ["high", "critical"],
+          "state": ["detected", "confirmed"]
+        }
+      }
+    },
+    {
+      "id": "crowdstrike-detections",
+      "label": "CrowdStrike detections",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for bounded CrowdStrike Falcon detection intake into browser-side triage and response workflows.",
+      "auth_modes": ["oauth", "api_key"],
+      "config": {
+        "type": "crowdstrike_detections",
+        "base_url": "https://api.crowdstrike.com",
+        "endpoint": "/detects/queries/detects/v1",
+        "filters": {
+          "status": ["new", "in_progress"],
+          "severity": ["high", "critical"]
+        }
+      }
+    },
+    {
+      "id": "tenable-vulnerability-management",
+      "label": "Tenable vulnerability management",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for exporting high-severity Tenable vulnerabilities into remediation and report workflows.",
+      "auth_modes": ["api_key"],
+      "config": {
+        "type": "tenable_vuln_export",
+        "base_url": "https://cloud.tenable.com",
+        "export_path": "/vulns/export",
+        "filters": {
+          "severity": ["high", "critical"],
+          "state": ["OPEN", "REOPENED"]
+        }
+      }
+    },
+    {
+      "id": "defectdojo-findings",
+      "label": "DefectDojo findings",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling active high-severity DefectDojo findings with enough context for analyst routing and ticket creation.",
+      "auth_modes": ["api_token", "oauth"],
+      "config": {
+        "type": "defectdojo_findings",
+        "base_url": "https://dojo.example.com/api/v2",
+        "endpoint": "/findings",
+        "include": ["product", "engagement", "test", "finding"],
+        "filters": {
+          "active": true,
+          "severity": ["Critical", "High"]
+        }
+      }
+    },
+    {
+      "id": "prisma-cloud-alerts",
+      "label": "Prisma Cloud alerts",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for Prisma Cloud alert intake across posture and runtime findings.",
+      "auth_modes": ["access_key"],
+      "config": {
+        "type": "prisma_cloud_alerts",
+        "base_url": "https://api.prismacloud.io",
+        "resource": "/alert",
+        "filters": {
+          "policy_severity": ["high", "critical"],
+          "alert_status": ["open"]
+        }
+      }
+    },
+    {
+      "id": "google-cloud-scc-findings",
+      "label": "Google Cloud SCC findings",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for Security Command Center findings when cloud exposures need browser-side triage and routing.",
+      "auth_modes": ["oauth"],
+      "config": {
+        "type": "google_cloud_scc_findings",
+        "base_url": "https://securitycenter.googleapis.com",
+        "resource": "organizations/{organizationId}/sources/-/findings",
+        "filters": {
+          "state": ["ACTIVE"],
+          "severity": ["HIGH", "CRITICAL"]
+        }
+      }
+    },
+    {
+      "id": "github-code-scanning-alerts",
+      "label": "GitHub code scanning alerts",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling open high-severity GitHub code scanning alerts into browser-side triage and remediation planning.",
+      "auth_modes": ["pat", "oauth"],
+      "config": {
+        "type": "github_code_scanning_alerts",
+        "base_url": "https://api.github.com",
+        "repository": "owner/repo",
+        "endpoint": "/repos/{owner}/{repo}/code-scanning/alerts",
+        "filters": {
+          "state": ["open"],
+          "severity": ["high", "critical"]
+        }
+      }
+    },
+    {
+      "id": "semgrep-appsec-findings",
+      "label": "Semgrep AppSec findings",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for bringing bounded Semgrep AppSec findings into browser-side reviewer queues and remediation handoffs.",
+      "auth_modes": ["api_token"],
+      "config": {
+        "type": "semgrep_appsec_findings",
+        "base_url": "https://semgrep.dev/api/v1",
+        "resource": "/deployments/{deploymentId}/findings",
+        "filters": {
+          "state": ["open", "triaged"],
+          "severity": ["high", "critical"]
+        }
+      }
+    },
+    {
+      "id": "sonarqube-issues",
+      "label": "SonarQube security issues",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling open SonarQube vulnerabilities and security hotspots into a browser-local remediation queue.",
+      "auth_modes": ["api_token"],
+      "config": {
+        "type": "sonarqube_issues",
+        "base_url": "https://sonarqube.example.com/api",
+        "endpoint": "/issues/search",
+        "filters": {
+          "statuses": ["OPEN", "CONFIRMED", "REOPENED"],
+          "severities": ["CRITICAL", "BLOCKER"],
+          "types": ["VULNERABILITY", "SECURITY_HOTSPOT"]
+        }
+      }
+    },
+    {
+      "id": "checkmarx-one-findings",
+      "label": "Checkmarx One findings",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling high-severity Checkmarx One findings into browser-side triage and routed handoff workflows.",
+      "auth_modes": ["oauth", "api_key"],
+      "config": {
+        "type": "checkmarx_one_findings",
+        "base_url": "https://ast.checkmarx.net/api",
+        "resource": "/findings",
+        "filters": {
+          "state": ["NEW", "TO_VERIFY"],
+          "severity": ["HIGH", "CRITICAL"]
+        }
+      }
+    },
+    {
+      "id": "veracode-findings",
+      "label": "Veracode findings",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling actionable Veracode findings into a browser-local remediation and reporting workflow.",
+      "auth_modes": ["api_key"],
+      "config": {
+        "type": "veracode_findings",
+        "base_url": "https://api.veracode.com/appsec/v1",
+        "resource": "/findings",
+        "filters": {
+          "scan_status": ["OPEN"],
+          "severity": ["HIGH", "VERY_HIGH"]
+        }
+      }
+    },
+    {
+      "id": "aws-inspector-findings",
+      "label": "AWS Inspector findings",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling Amazon Inspector findings into browser-side prioritization, reporting, and downstream routing.",
+      "auth_modes": ["aws_sigv4"],
+      "config": {
+        "type": "aws_inspector_findings",
+        "base_url": "https://inspector2.us-east-1.amazonaws.com",
+        "resource": "/findings/list",
+        "filters": {
+          "finding_status": ["ACTIVE"],
+          "severity": ["HIGH", "CRITICAL"]
+        }
+      }
+    },
+    {
+      "id": "rapid7-insightvm-vulnerabilities",
+      "label": "Rapid7 InsightVM vulnerabilities",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling high-risk Rapid7 InsightVM vulnerabilities into browser-side triage and routing workflows.",
+      "auth_modes": ["api_key"],
+      "config": {
+        "type": "rapid7_insightvm_vulnerabilities",
+        "base_url": "https://console.insight.rapid7.com/api/3",
+        "resource": "/vulnerabilities",
+        "filters": {
+          "severity": ["Severe", "Critical"],
+          "status": ["active"]
+        }
+      }
+    },
+    {
+      "id": "orca-security-alerts",
+      "label": "Orca Security alerts",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for Orca alert intake when cloud exposure and workload findings need browser-side case and report handling.",
+      "auth_modes": ["api_token"],
+      "config": {
+        "type": "orca_security_alerts",
+        "base_url": "https://api.orcasecurity.io",
+        "resource": "/api/alerts",
+        "filters": {
+          "state": ["open"],
+          "severity": ["high", "critical"]
+        }
+      }
+    },
+    {
+      "id": "lacework-alerts",
+      "label": "Lacework alerts",
+      "category": "Scanner findings",
+      "status": "template",
+      "runtime_support": "planned",
+      "description": "Starter config for pulling open high-severity Lacework alerts into browser-side remediation and escalation planning.",
+      "auth_modes": ["api_key"],
+      "config": {
+        "type": "lacework_alerts",
+        "base_url": "https://api.lacework.net",
+        "resource": "/api/v2/Alerts/Search",
+        "filters": {
+          "status": ["Open"],
+          "severity": ["High", "Critical"]
+        }
+      }
+    },
+    {
       "id": "confluence-knowledge",
       "label": "Confluence runbook context",
       "category": "Knowledge sources",
-      "status": "template",
-      "runtime_support": "planned",
-      "description": "Template for bringing internal runbooks and exception notes into a scoped agent session.",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Searches Confluence Cloud pages in the browser to bring internal runbooks, exception notes, and operational context into a scoped agent session.",
       "auth_modes": ["api_token", "oauth"],
       "config": {
         "type": "confluence_search",

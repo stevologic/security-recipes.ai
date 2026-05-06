@@ -1,0 +1,290 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Create an enterprise Agent Trust Fabric profile for SecurityRecipes that turns identity, behavior, context, least-privilege scope, telemetry, containment, source freshness, and buyer proof into one deterministic trust verdict before an agent retrieves secure context, invokes MCP tools, delegates, writes memory, or performs high-impact actions.",
+  "positioning": {
+    "buyer": "AI platform, product security, CISO, GRC, model-risk, SOC, procurement-security, and acquisition diligence teams",
+    "category": "Agentic AI zero-trust decision fabric",
+    "enterprise_promise": "SecurityRecipes can answer the board-level question 'which agents can we trust right now?' with generated evidence, source hashes, runtime decisions, and MCP tools instead of narrative policy.",
+    "why_now": "2026 agent deployments are moving from pilots to autonomous action. Current guidance converges on the same enterprise requirement: every agent must have verifiable identity, least-privilege scope, governed context input and output, real-time behavior telemetry, and fast containment."
+  },
+  "source_references": [
+    {
+      "id": "csa-agentic-trust-framework-2026",
+      "name": "ATF: Zero Trust for AI Agents",
+      "publisher": "Cloud Security Alliance",
+      "published": "2026-04-03",
+      "url": "https://cloudsecurityalliance.org/blog/2026/04/03/every-rsac-keynote-asked-the-same-five-questions-here-s-the-framework-that-answers-them",
+      "source_class": "industry_framework",
+      "why_it_matters": "CSA frames agent security around identity, behavior, data governance, least privilege, and containment, which matches the trust-fabric dimensions SecurityRecipes can enforce through MCP-readable evidence."
+    },
+    {
+      "id": "csa-ai-controls-matrix-2025",
+      "name": "AI Controls Matrix",
+      "publisher": "Cloud Security Alliance",
+      "published": "2025-10-30",
+      "url": "https://cloudsecurityalliance.org/artifacts/ai-controls-matrix",
+      "source_class": "enterprise_control_framework",
+      "why_it_matters": "CSA AICM gives enterprise buyers a broader AI governance and shared-responsibility control baseline that the trust fabric can map into operational agent checks."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "publisher": "NIST CAISI",
+      "published": "2026-02-17",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "source_class": "government_standards_signal",
+      "why_it_matters": "NIST is prioritizing trusted, interoperable, secure agent standards; SecurityRecipes needs a cross-vendor trust decision shape rather than a vendor-specific prompt policy."
+    },
+    {
+      "id": "nist-caisi-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "publisher": "NIST CAISI",
+      "published": "2026-01-12",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "source_class": "government_security_signal",
+      "why_it_matters": "CAISI highlights indirect prompt injection, poisoning, misaligned actions, and constrained deployment access as distinct agent security risks."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "The current MCP authorization spec requires protected-resource metadata, scope challenges, resource indicators, token audience validation, and token-passthrough denial for protected MCP servers."
+    },
+    {
+      "id": "mcp-changelog-2025-11-25",
+      "name": "Model Context Protocol 2025-11-25 Key Changes",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
+      "source_class": "protocol_specification",
+      "why_it_matters": "The latest MCP revision adds incremental scope consent, URL-mode elicitation, OAuth client ID metadata documents, and experimental tasks that affect trust decisions for long-running agent work."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "publisher": "OWASP Foundation",
+      "published": "2025-01-01",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "source_class": "industry_risk_catalog",
+      "why_it_matters": "OWASP MCP risks such as token exposure, scope creep, tool poisoning, command execution, insufficient auth, shadow MCP servers, and over-sharing define trust-fabric failure modes."
+    },
+    {
+      "id": "openai-agents-guardrails-2026",
+      "name": "OpenAI Agents SDK Guardrails",
+      "publisher": "OpenAI",
+      "published": "2026-05-04",
+      "url": "https://openai.github.io/openai-agents-js/guides/guardrails/",
+      "source_class": "frontier_lab_guidance",
+      "why_it_matters": "OpenAI's guardrail guidance distinguishes first-input, final-output, and per-function-tool guardrails, making runtime placement and hosted-tool gaps explicit trust-fabric concerns."
+    },
+    {
+      "id": "openai-agents-tracing-2026",
+      "name": "OpenAI Agents SDK Tracing",
+      "publisher": "OpenAI",
+      "published": "2026-05-04",
+      "url": "https://openai.github.io/openai-agents-js/guides/tracing/",
+      "source_class": "frontier_lab_guidance",
+      "why_it_matters": "Agent trust cannot be reconstructed without traces that capture LLM generations, tool calls, handoffs, guardrails, and custom events."
+    },
+    {
+      "id": "opentelemetry-genai-agent-spans-2026",
+      "name": "OpenTelemetry GenAI Agent and Framework Spans",
+      "publisher": "OpenTelemetry",
+      "published": "2026-05-04",
+      "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/",
+      "source_class": "observability_standard",
+      "why_it_matters": "OpenTelemetry GenAI conventions provide cross-vendor span names and attributes for agent invocation and tool execution, giving the trust fabric a portable telemetry substrate."
+    }
+  ],
+  "trust_contract": {
+    "default_state": "agent_untrusted_until_identity_context_scope_behavior_telemetry_and_containment_evidence_are_bound",
+    "minimum_dimensions": 6,
+    "minimum_evidence_sources": 10,
+    "minimum_runtime_fields": 16,
+    "score_thresholds": {
+      "allow_trusted_agent_context": 85,
+      "hold_for_step_up": 70,
+      "deny_untrusted_agent": 50
+    },
+    "required_runtime_fields": [
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "correlation_id",
+      "trust_event_id",
+      "requested_trust_tier",
+      "intent_summary",
+      "context_package_hash",
+      "policy_pack_hash",
+      "authorization_decision",
+      "egress_decision",
+      "telemetry_event_id",
+      "receipt_id",
+      "source_freshness_decision"
+    ],
+    "required_evidence_sources": [
+      "workflow_manifest",
+      "agent_identity_ledger",
+      "agentic_entitlement_review_pack",
+      "mcp_authorization_conformance",
+      "secure_context_trust_pack",
+      "context_poisoning_guard_pack",
+      "context_egress_boundary_pack",
+      "agentic_action_runtime_pack",
+      "agentic_telemetry_contract",
+      "agentic_soc_detection_pack",
+      "agentic_run_receipt_pack",
+      "agentic_source_freshness_watch",
+      "hosted_mcp_readiness_pack",
+      "enterprise_trust_center_export"
+    ],
+    "kill_signals": [
+      "token_passthrough",
+      "identity_used_after_revocation",
+      "secret_egress",
+      "runtime_kill_signal",
+      "deny_after_deny_loop",
+      "prompt_injection_with_external_side_effect",
+      "untrusted_context_with_high_autonomy",
+      "telemetry_redaction_failure",
+      "cross_tenant_context_access"
+    ]
+  },
+  "trust_dimensions": [
+    {
+      "id": "identity",
+      "title": "Verifiable Agent Identity",
+      "weight": 20,
+      "question": "Who is the agent and which delegated identity is it using?",
+      "required_evidence": ["agent_identity_ledger", "agentic_entitlement_review_pack", "mcp_authorization_conformance"],
+      "mcp_tools": ["recipes_agent_identity_ledger", "recipes_agentic_entitlement_review_pack", "recipes_evaluate_agentic_entitlement_decision", "recipes_evaluate_mcp_authorization_decision"],
+      "failure_modes": ["unknown_agent", "expired_entitlement", "wrong_token_audience", "token_passthrough", "identity_used_after_revocation"]
+    },
+    {
+      "id": "context",
+      "title": "Trusted Context Ingress",
+      "weight": 18,
+      "question": "What is the agent consuming and is that context safe to trust?",
+      "required_evidence": ["secure_context_trust_pack", "context_poisoning_guard_pack", "agentic_source_freshness_watch"],
+      "mcp_tools": ["recipes_secure_context_trust_pack", "recipes_evaluate_context_retrieval_decision", "recipes_context_poisoning_guard_pack", "recipes_agentic_source_freshness_watch"],
+      "failure_modes": ["missing_context_hash", "poisoning_signal", "stale_source_reference", "untrusted_context_with_high_autonomy"]
+    },
+    {
+      "id": "scope",
+      "title": "Least-Privilege Scope and Action Boundary",
+      "weight": 18,
+      "question": "Where can the agent go and which action class is being attempted?",
+      "required_evidence": ["agentic_action_runtime_pack", "mcp_authorization_conformance", "context_egress_boundary_pack"],
+      "mcp_tools": ["recipes_agentic_action_runtime_pack", "recipes_evaluate_agentic_action_runtime_decision", "recipes_mcp_authorization_conformance_pack", "recipes_context_egress_boundary_pack"],
+      "failure_modes": ["scope_creep", "unregistered_action", "invalid_scope_challenge", "egress_denied", "production_write_without_approval"]
+    },
+    {
+      "id": "behavior",
+      "title": "Runtime Behavior Monitoring",
+      "weight": 16,
+      "question": "What is the agent doing in real time and does it match its declared intent?",
+      "required_evidence": ["agentic_telemetry_contract", "agentic_soc_detection_pack", "agentic_run_receipt_pack"],
+      "mcp_tools": ["recipes_agentic_telemetry_contract", "recipes_evaluate_agentic_telemetry_event", "recipes_agentic_soc_detection_pack", "recipes_evaluate_agentic_soc_detection_event", "recipes_agentic_run_receipt_pack"],
+      "failure_modes": ["missing_trace_context", "deny_after_deny_loop", "tool_output_hidden", "guardrail_gap", "behavior_anomaly"]
+    },
+    {
+      "id": "data-boundary",
+      "title": "Context Output and Egress Governance",
+      "weight": 12,
+      "question": "What is the agent serving or sending outside the trust boundary?",
+      "required_evidence": ["context_egress_boundary_pack", "agentic_run_receipt_pack", "enterprise_trust_center_export"],
+      "mcp_tools": ["recipes_context_egress_boundary_pack", "recipes_evaluate_context_egress_decision", "recipes_agentic_run_receipt_pack", "recipes_enterprise_trust_center_export"],
+      "failure_modes": ["secret_egress", "cross_tenant_context_access", "public_corpus_write", "zero_data_retention_gap"]
+    },
+    {
+      "id": "containment",
+      "title": "Containment and Recovery",
+      "weight": 16,
+      "question": "What happens if the agent goes off-policy?",
+      "required_evidence": ["agentic_soc_detection_pack", "hosted_mcp_readiness_pack", "agentic_action_runtime_pack"],
+      "mcp_tools": ["recipes_agentic_soc_detection_pack", "recipes_hosted_mcp_readiness_pack", "recipes_agentic_action_runtime_pack"],
+      "failure_modes": ["missing_kill_switch", "no_incident_route", "runtime_kill_signal", "unbounded_task", "customer_impact_without_containment"]
+    }
+  ],
+  "trust_tiers": [
+    {
+      "id": "intern",
+      "title": "Intern",
+      "autonomy": "observe_only",
+      "minimum_score": 55,
+      "allowed_actions": ["read_public_context", "draft_triage_note"],
+      "promotion_gate": "Identity registered, telemetry present, no high-risk tool access, and context source freshness is current."
+    },
+    {
+      "id": "apprentice",
+      "title": "Apprentice",
+      "autonomy": "bounded_read_and_suggest",
+      "minimum_score": 70,
+      "allowed_actions": ["read_private_context", "recommend_action", "open_draft_artifact"],
+      "promotion_gate": "Context trust, poisoning scan, least-privilege scopes, and receipt evidence are complete for the workflow."
+    },
+    {
+      "id": "operator",
+      "title": "Operator",
+      "autonomy": "scoped_action_with_review",
+      "minimum_score": 85,
+      "allowed_actions": ["invoke_scoped_mcp_tool", "write_scoped_branch", "request_step_up"],
+      "promotion_gate": "Action runtime, authorization, egress, telemetry, approval, and receipt evidence are bound to the run."
+    },
+    {
+      "id": "principal",
+      "title": "Principal",
+      "autonomy": "high_impact_with_separate_acceptance",
+      "minimum_score": 92,
+      "allowed_actions": ["high_impact_action_after_risk_acceptance", "cross_agent_delegation_after_policy_check"],
+      "promotion_gate": "Separate risk acceptance, containment proof, red-team replay evidence, and customer-specific hosted MCP controls are present."
+    }
+  ],
+  "runtime_policy": {
+    "decision_order": [
+      "kill_session_on_agent_trust_break",
+      "deny_untrusted_agent",
+      "hold_for_trust_evidence",
+      "hold_for_step_up",
+      "allow_trusted_agent_context"
+    ],
+    "step_up_required_when": [
+      "requested_trust_tier is operator or principal and human approval is absent",
+      "authorization_decision, egress_decision, action_runtime_decision, or telemetry_decision is hold",
+      "source_freshness_decision is review_due or stale_or_missing",
+      "scope_escalation is requested",
+      "cross_tenant_context_access is requested",
+      "external_side_effect is requested"
+    ],
+    "deny_when": [
+      "workflow is unknown",
+      "requested trust tier exceeds generated workflow tier and no approval exists",
+      "required evidence fields are missing after normalization",
+      "trust score falls below deny threshold"
+    ],
+    "kill_when": [
+      "token passthrough is observed",
+      "delegated identity was used after revocation",
+      "secret egress or cross-tenant context access is observed",
+      "runtime kill signal is present",
+      "prompt injection is combined with external side effect",
+      "agent repeats a denied action"
+    ]
+  },
+  "commercialization_path": {
+    "open_layer": "Publish the Agent Trust Fabric pack as open evidence so teams can understand the trust decision model and fork it into their own control plane.",
+    "enterprise_layer": "Sell hosted trust-fabric APIs that combine customer-private identity, telemetry, authorization, egress, approval, and receipt data into signed MCP-readable trust verdicts.",
+    "acquirer_value": "A frontier lab, AI platform, or security vendor gets a standards-backed agent trust surface that can sit between agents, MCP tools, context stores, telemetry, and trust centers."
+  },
+  "executive_readout": {
+    "board_level_claim": "SecurityRecipes can reduce agent adoption friction by turning many scattered agent safety controls into one inspectable trust verdict per run.",
+    "recommended_first_use": "Use the open pack for AI platform architecture review, then attach the evaluator to MCP gateway decisions and customer pilot telemetry.",
+    "why_it_is_differentiated": "Most agent guidance stops at controls. The trust fabric composes generated evidence into an allow, hold, deny, or kill decision that agents and auditors can consume."
+  }
+}

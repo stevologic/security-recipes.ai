@@ -15,7 +15,7 @@
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="no">
 <meta name="mobile-web-app-capable" content="no">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev https://*.snyk.io https://*.atlassian.net https://api.atlassian.com https://gitlab.com https://*.gitlab.com https://dev.azure.com https://*.dev.azure.com https://*.visualstudio.com https://api.security.microsoft.com https://*.security.microsoft.com https://management.azure.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
 <link rel="icon" type="image/svg+xml" href="{{ "/images/logo.svg" | relURL }}">
 {{ with resources.Get "css/ai-chatbot.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
@@ -1267,7 +1267,7 @@
     for <span class="accent">Agentic AI</span>.
   </h1>
   <p class="subtitle reveal d3">
-    Open remediation recipes, reviewer-gated prompts, and read-only MCP context for security teams running AI agents safely.
+    Open remediation knowledge plus a production-oriented MCP server for teams that need AI agents to act with bounded, reviewable security context.
   </p>
   <div class="hero-cta-row reveal d3">
     <a class="hero-cta-primary" href="{{ "/quickstart/" | relURL }}">
@@ -1285,7 +1285,7 @@
     <span class="sep"></span>
     <span>Production MCP surface</span>
     <span class="sep"></span>
-    <span>Trust, attestation, eval, policy, egress, and run evidence</span>
+    <span>Trust, policy, eval, SOC, egress, and run evidence</span>
   </div>
   <div class="home-search reveal d4">
     <label class="home-search-label" for="home-search-input">Search docs</label>
@@ -1307,7 +1307,7 @@
   <div class="proof-item reveal d2">
     <div class="proof-label">Evidence</div>
     <strong>Generated trust artifacts</strong>
-    <span>Source hashes, policy decisions, attestation records, and run receipts make context provenance reviewable.</span>
+    <span>Source hashes, policy decisions, SOC detections, attestation records, and run receipts make context provenance reviewable.</span>
   </div>
   <div class="proof-item reveal d3">
     <div class="proof-label">MCP</div>
@@ -1645,12 +1645,12 @@
 <section class="trust-stack">
   <div class="section-header reveal d2">
     <h2>Built for Due Diligence</h2>
-    <p>SecurityRecipes is shaped as a credible open foundation with a production MCP path: auditable context, deterministic controls, and evidence a buyer or platform team can inspect.</p>
+    <p>SecurityRecipes is shaped as a credible open foundation with a production MCP path: auditable context, deterministic controls, and artifacts a platform team or diligence reviewer can inspect.</p>
   </div>
   <div class="trust-grid">
     <div class="trust-card reveal d1">
       <h3>Open Knowledge Moat</h3>
-      <p>Reviewed recipes and CVE prompts create durable search demand while giving teams a practical reason to return, fork, and contribute.</p>
+      <p>Reviewed recipes and CVE prompts create durable search demand while giving security teams a practical reason to return, fork, contribute, and trust the corpus.</p>
       <div class="dual-cta-tags">
         <span class="dual-cta-tag">MIT docs</span>
         <span class="dual-cta-tag">CVE prompts</span>
@@ -1658,7 +1658,7 @@
     </div>
     <div class="trust-card reveal d2">
       <h3>Secure Context Product</h3>
-      <p>The MCP server turns static knowledge into governed context retrieval, lineage decisions, app-intake decisions, model-provider routing, posture snapshots, authorization checks, elicitation boundary decisions, protocol conformance, tool-surface drift decisions, entitlement reviews, eval evidence, action-runtime decisions, browser-agent boundary decisions, egress decisions, run evidence, telemetry contracts, and trust-center exports.</p>
+      <p>The MCP server turns static knowledge into governed context retrieval, policy decisions, eval evidence, run receipts, SOC detections, trust-center exports, and hosted-MCP readiness evidence.</p>
       <div class="dual-cta-tags">
         <span class="dual-cta-tag">FastMCP</span>
         <span class="dual-cta-tag">typed tools</span>
@@ -1674,9 +1674,10 @@
     </div>
     <div class="trust-card reveal d4">
       <h3>Commercial Expansion</h3>
-      <p>The natural paid surface is hosted MCP, private context packs, enterprise policy mappings, and remediation workflow assurance.</p>
+      <p>The natural paid surface is hosted MCP with tenant-bound context packs, protected-resource authorization, connector isolation, signed receipts, enterprise policy mappings, and remediation workflow assurance.</p>
       <div class="dual-cta-tags">
         <span class="dual-cta-tag">open core</span>
+        <span class="dual-cta-tag">pilot proof</span>
         <span class="dual-cta-tag">enterprise MCP</span>
       </div>
     </div>
@@ -1853,7 +1854,33 @@ window.__SECURITY_RECIPES_MARKETPLACE = {
   inputChannels: {{ site.Data.marketplace.input_channels | jsonify | safeJS }},
   outputChannels: {{ site.Data.marketplace.output_channels | jsonify | safeJS }},
   reportProfiles: {{ site.Data.marketplace.report_profiles | jsonify | safeJS }},
-  workflowTemplates: {{ site.Data.marketplace.workflow_templates | jsonify | safeJS }}
+  workflowTemplates: {{ site.Data.marketplace.workflow_templates | jsonify | safeJS }},
+  readinessProfiles: {{ site.Data.marketplace.readiness_profiles | jsonify | safeJS }}
+};
+window.__SECURITY_RECIPES_MARKETPLACE_FEEDS = {
+  manifest: {{ "/marketplace-control-plane.json" | relURL | jsonify | safeJS }},
+  catalog: {{ "/marketplace-catalog.json" | relURL | jsonify | safeJS }},
+  inputChannels: {{ "/marketplace-input-channels.json" | relURL | jsonify | safeJS }},
+  outputChannels: {{ "/marketplace-output-channels.json" | relURL | jsonify | safeJS }},
+  reportProfiles: {{ "/marketplace-report-profiles.json" | relURL | jsonify | safeJS }},
+  workflowTemplates: {{ "/marketplace-workflow-templates.json" | relURL | jsonify | safeJS }},
+  readiness: {{ "/marketplace-readiness.json" | relURL | jsonify | safeJS }}
+};
+window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
+  index: {{ "/marketplace-schemas/index.json" | relURL | jsonify | safeJS }},
+  inputChannelContribution: {{ "/marketplace-schemas/input-channel-contribution.schema.json" | relURL | jsonify | safeJS }},
+  outputChannelContribution: {{ "/marketplace-schemas/output-channel-contribution.schema.json" | relURL | jsonify | safeJS }},
+  reportProfileContribution: {{ "/marketplace-schemas/report-profile-contribution.schema.json" | relURL | jsonify | safeJS }},
+  workflowTemplateContribution: {{ "/marketplace-schemas/workflow-template-contribution.schema.json" | relURL | jsonify | safeJS }},
+  localLibrary: {{ "/marketplace-schemas/local-library.schema.json" | relURL | jsonify | safeJS }},
+  caseFile: {{ "/marketplace-schemas/case-file.schema.json" | relURL | jsonify | safeJS }},
+  caseLibrary: {{ "/marketplace-schemas/case-library.schema.json" | relURL | jsonify | safeJS }},
+  assetLibrary: {{ "/marketplace-schemas/asset-library.schema.json" | relURL | jsonify | safeJS }},
+  operationsHistory: {{ "/marketplace-schemas/operations-history.schema.json" | relURL | jsonify | safeJS }},
+  operationsSession: {{ "/marketplace-schemas/operations-session.schema.json" | relURL | jsonify | safeJS }},
+  portfolioCoverage: {{ "/marketplace-schemas/portfolio-coverage.schema.json" | relURL | jsonify | safeJS }},
+  routingPolicy: {{ "/marketplace-schemas/routing-policy.schema.json" | relURL | jsonify | safeJS }},
+  routingLibrary: {{ "/marketplace-schemas/routing-library.schema.json" | relURL | jsonify | safeJS }}
 };
 </script>
 {{ with resources.Get "js/ai-chatbot.js" | minify | fingerprint }}

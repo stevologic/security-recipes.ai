@@ -16,17 +16,24 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
 DEFAULT_PACK = Path("data/evidence/mcp-authorization-conformance-pack.json")
 VALID_DECISIONS = {
     "allow_authorized_mcp_request",
     "hold_for_authorization_evidence",
+    "hold_for_client_metadata_evidence",
+    "hold_for_step_up_authorization",
     "deny_token_passthrough",
     "deny_unbound_token",
+    "deny_scope_challenge_mismatch",
     "deny_scope_drift",
     "kill_session_on_secret_or_signer_scope",
 }
+
+HTTP_TRANSPORTS = {"streamable-http", "http", "sse"}
+STEP_UP_ACCESS_MODES = {"approval_required"}
 
 
 class MCPAuthorizationDecisionError(RuntimeError):
@@ -59,6 +66,15 @@ def as_list(value: Any) -> list[Any]:
     if isinstance(value, list):
         return value
     return [value]
+
+
+def is_https_url_with_path(value: str) -> bool:
+    parsed = urlparse(value)
+    return parsed.scheme == "https" and bool(parsed.netloc) and bool(parsed.path and parsed.path != "/")
+
+
+def missing_fields(request: dict[str, Any], fields: list[str]) -> list[str]:
+    return [field for field in fields if request.get(field) in (None, "", [], {}, False)]
 
 
 def connectors_by_id(pack: dict[str, Any]) -> dict[str, dict[str, Any]]:
@@ -109,6 +125,9 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
@@ -118,11 +137,19 @@ def normalize_request(runtime_request: dict[str, Any]) -> dict[str, Any]:
         "session_id",
         "correlation_id",
         "gateway_policy_hash",
+        "step_up_authorization_record_id",
     ]:
         request[key] = str(request.get(key) or "").strip()
     request["token_passthrough"] = as_bool(request.get("token_passthrough"))
     request["contains_secret_scope"] = as_bool(request.get("contains_secret_scope"))
+    request["client_metadata_document_validated"] = as_bool(request.get("client_metadata_document_validated"))
+    request["step_up_required"] = as_bool(request.get("step_up_required"))
     request["token_scopes"] = [str(scope).strip() for scope in as_list(request.get("token_scopes")) if str(scope).strip()]
+    request["scope_challenge"] = [
+        str(scope).strip()
+        for scope in as_list(request.get("scope_challenge"))
+        if str(scope).strip()
+    ]
     return request
 
 
@@ -143,9 +170,13 @@ def decision_result(
         "decision": decision,
         "evidence": {
             "authorization_pack_generated_at": pack.get("generated_at"),
+            "authorization_server_discovery_method": request.get("authorization_server_discovery_method"),
             "canonical_resource_uri": connector.get("canonical_resource_uri") if connector else None,
+            "client_metadata_document_url": request.get("client_metadata_document_url"),
+            "client_metadata_document_validated": request.get("client_metadata_document_validated"),
             "conformance_decision": connector.get("conformance_decision") if connector else None,
             "observed_runtime_attributes": sorted(k for k, v in request.items() if v not in (None, "", [], {}, False)),
+            "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
             "source_artifacts": pack.get("source_artifacts"),
         },
         "matched_connector": connector,
@@ -154,13 +185,18 @@ def decision_result(
         "request": {
             "agent_id": request.get("agent_id"),
             "client_id": request.get("client_id"),
+            "client_metadata_document_url": request.get("client_metadata_document_url"),
             "connector_id": request.get("connector_id"),
             "correlation_id": request.get("correlation_id"),
+            "protected_resource_metadata_url": request.get("protected_resource_metadata_url"),
             "namespace": request.get("namespace"),
             "requested_access_mode": request.get("requested_access_mode"),
             "resource_indicator": request.get("resource_indicator"),
             "run_id": request.get("run_id"),
+            "scope_challenge": request.get("scope_challenge", []),
             "session_id": request.get("session_id"),
+            "step_up_authorization_record_id": request.get("step_up_authorization_record_id"),
+            "step_up_required": request.get("step_up_required"),
             "token_audience": request.get("token_audience"),
             "token_issuer": request.get("token_issuer"),
             "token_passthrough": request.get("token_passthrough"),
@@ -196,7 +232,7 @@ def evaluate_mcp_authorization_decision(
             violations=["token_passthrough=true"],
         )
 
-    requested_scope_text = " ".join(request.get("token_scopes", [])).lower()
+    requested_scope_text = " ".join([*request.get("token_scopes", []), *request.get("scope_challenge", [])]).lower()
     if request["contains_secret_scope"] or any(term in requested_scope_text for term in prohibited_terms):
         return decision_result(
             decision="kill_session_on_secret_or_signer_scope",
@@ -250,7 +286,49 @@ def evaluate_mcp_authorization_decision(
 
     canonical_resource_uri = str(connector.get("canonical_resource_uri") or contract.get("canonical_mcp_resource_uri") or "")
     transport = str(connector.get("transport") or "")
-    if transport != "stdio":
+    if transport in HTTP_TRANSPORTS:
+        missing = missing_fields(
+            request,
+            [
+                "client_id",
+                "token_issuer",
+                "token_expires_at",
+                "consent_record_id",
+                "session_id",
+                "correlation_id",
+                "gateway_policy_hash",
+                "protected_resource_metadata_url",
+            ],
+        )
+        if missing:
+            return decision_result(
+                decision="hold_for_authorization_evidence",
+                reason="request is missing required runtime authorization evidence",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=[f"missing runtime evidence: {field}" for field in missing],
+            )
+
+        metadata_url = request["client_metadata_document_url"] or request["client_id"]
+        if (
+            not request["client_metadata_document_validated"]
+            or not is_https_url_with_path(metadata_url)
+            or request["client_id"] != metadata_url
+        ):
+            return decision_result(
+                decision="hold_for_client_metadata_evidence",
+                reason="latest MCP authorization requires validated HTTPS client ID metadata document evidence for enterprise remote MCP access",
+                pack=authorization_pack,
+                request=request,
+                connector=connector,
+                workflow=workflow,
+                violations=[
+                    "client metadata document must be HTTPS, path-based, validated, and match client_id exactly"
+                ],
+            )
+
         if not request["resource_indicator"]:
             violations.append("resource_indicator is required for HTTP MCP authorization")
         elif canonical_resource_uri and request["resource_indicator"] != canonical_resource_uri:
@@ -270,8 +348,37 @@ def evaluate_mcp_authorization_decision(
                 violations=violations,
             )
 
+        challenged_scopes = set(request.get("scope_challenge", []) or [])
+        if challenged_scopes:
+            granted_scopes = set(request.get("token_scopes", []) or [])
+            missing_challenged = sorted(challenged_scopes - granted_scopes)
+            if missing_challenged:
+                return decision_result(
+                    decision="deny_scope_challenge_mismatch",
+                    reason="request does not satisfy the authoritative MCP scope challenge for this resource",
+                    pack=authorization_pack,
+                    request=request,
+                    connector=connector,
+                    workflow=workflow,
+                    violations=[f"missing challenged scope: {scope}" for scope in missing_challenged],
+                )
+
+    step_up_required = request["step_up_required"] or request["requested_access_mode"] in STEP_UP_ACCESS_MODES
+    if step_up_required and not request["step_up_authorization_record_id"]:
+        return decision_result(
+            decision="hold_for_step_up_authorization",
+            reason="approval-required MCP access needs a typed step-up authorization record before forwarding",
+            pack=authorization_pack,
+            request=request,
+            connector=connector,
+            workflow=workflow,
+            violations=["step_up_authorization_record_id is required"],
+        )
+
     if str(connector.get("conformance_decision")) in {
         "hold_for_authorization_evidence",
+        "hold_for_client_metadata_evidence",
+        "hold_for_step_up_authorization",
         "hold_for_live_metadata",
         "deny_until_redesigned",
     }:
@@ -307,6 +414,9 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "connector_id",
         "namespace",
         "client_id",
+        "client_metadata_document_url",
+        "authorization_server_discovery_method",
+        "protected_resource_metadata_url",
         "resource_indicator",
         "token_audience",
         "token_issuer",
@@ -316,16 +426,23 @@ def request_from_args(args: argparse.Namespace) -> dict[str, Any]:
         "session_id",
         "correlation_id",
         "gateway_policy_hash",
+        "step_up_authorization_record_id",
     ]:
         value = getattr(args, key)
         if value not in (None, ""):
             payload[key] = value
     if args.token_scope:
         payload["token_scopes"] = args.token_scope
+    if args.scope_challenge:
+        payload["scope_challenge"] = args.scope_challenge
     if args.token_passthrough:
         payload["token_passthrough"] = True
     if args.contains_secret_scope:
         payload["contains_secret_scope"] = True
+    if args.client_metadata_document_validated:
+        payload["client_metadata_document_validated"] = True
+    if args.step_up_required:
+        payload["step_up_required"] = True
     return payload
 
 
@@ -339,18 +456,25 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--connector-id", dest="connector_id")
     parser.add_argument("--namespace")
     parser.add_argument("--client-id", dest="client_id")
+    parser.add_argument("--client-metadata-document-url", dest="client_metadata_document_url")
+    parser.add_argument("--authorization-server-discovery-method", dest="authorization_server_discovery_method")
+    parser.add_argument("--protected-resource-metadata-url", dest="protected_resource_metadata_url")
     parser.add_argument("--resource-indicator", dest="resource_indicator")
     parser.add_argument("--token-audience", dest="token_audience")
     parser.add_argument("--token-issuer", dest="token_issuer")
     parser.add_argument("--token-expires-at", dest="token_expires_at")
     parser.add_argument("--token-scope", action="append", default=[])
+    parser.add_argument("--scope-challenge", action="append", default=[])
     parser.add_argument("--requested-access-mode", dest="requested_access_mode")
     parser.add_argument("--consent-record-id", dest="consent_record_id")
     parser.add_argument("--session-id", dest="session_id")
     parser.add_argument("--correlation-id", dest="correlation_id")
     parser.add_argument("--gateway-policy-hash", dest="gateway_policy_hash")
+    parser.add_argument("--step-up-authorization-record-id", dest="step_up_authorization_record_id")
     parser.add_argument("--token-passthrough", action="store_true")
     parser.add_argument("--contains-secret-scope", action="store_true")
+    parser.add_argument("--client-metadata-document-validated", action="store_true")
+    parser.add_argument("--step-up-required", action="store_true")
     parser.add_argument("--expect-decision", choices=sorted(VALID_DECISIONS))
     return parser.parse_args(argv)
 

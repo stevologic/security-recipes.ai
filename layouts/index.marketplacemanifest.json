@@ -1,0 +1,33 @@
+{{- dict
+  "generated_at" (now.Format "2006-01-02T15:04:05Z07:00")
+  "feeds" (dict
+    "manifest" ("/marketplace-control-plane.json" | relURL)
+    "catalog" ("/marketplace-catalog.json" | relURL)
+    "input_channels" ("/marketplace-input-channels.json" | relURL)
+    "output_channels" ("/marketplace-output-channels.json" | relURL)
+    "report_profiles" ("/marketplace-report-profiles.json" | relURL)
+    "workflow_templates" ("/marketplace-workflow-templates.json" | relURL)
+    "readiness" ("/marketplace-readiness.json" | relURL)
+  )
+  "schemas" (dict
+    "index" ("/marketplace-schemas/index.json" | relURL)
+    "input_channel_contribution" ("/marketplace-schemas/input-channel-contribution.schema.json" | relURL)
+    "output_channel_contribution" ("/marketplace-schemas/output-channel-contribution.schema.json" | relURL)
+    "report_profile_contribution" ("/marketplace-schemas/report-profile-contribution.schema.json" | relURL)
+    "workflow_template_contribution" ("/marketplace-schemas/workflow-template-contribution.schema.json" | relURL)
+    "local_library" ("/marketplace-schemas/local-library.schema.json" | relURL)
+    "case_file" ("/marketplace-schemas/case-file.schema.json" | relURL)
+    "case_library" ("/marketplace-schemas/case-library.schema.json" | relURL)
+    "asset_library" ("/marketplace-schemas/asset-library.schema.json" | relURL)
+    "operations_history" ("/marketplace-schemas/operations-history.schema.json" | relURL)
+    "operations_session" ("/marketplace-schemas/operations-session.schema.json" | relURL)
+    "routing_policy" ("/marketplace-schemas/routing-policy.schema.json" | relURL)
+    "routing_library" ("/marketplace-schemas/routing-library.schema.json" | relURL)
+  )
+  "catalog" site.Data.marketplace.catalog
+  "input_channels" site.Data.marketplace.input_channels
+  "output_channels" site.Data.marketplace.output_channels
+  "report_profiles" site.Data.marketplace.report_profiles
+  "workflow_templates" site.Data.marketplace.workflow_templates
+  "readiness_profiles" site.Data.marketplace.readiness_profiles
+| jsonify -}}

@@ -1,0 +1,659 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define the SecurityRecipes design partner pilot motion so enterprise buyers, frontier labs, AI platform teams, and security vendors can evaluate the secure context layer with explicit scope, telemetry, proof gates, monetization wedges, and acquisition-readiness criteria instead of treating the project as a documentation-only asset.",
+  "positioning": {
+    "buyer": "AI platform leaders, product security, AppSec, security architecture, GRC, procurement security, model-risk, VC, and acquisition diligence teams",
+    "category": "Design partner pilot kit for secure context, MCP governance, and agentic AI security",
+    "enterprise_promise": "SecurityRecipes makes AI easier to approve by packaging secure-context evidence, MCP control decisions, run receipts, eval replay, telemetry, and commercial proof gates into a pilot motion that a buyer can inspect before committing to production agent workflows.",
+    "why_now": "NIST, OWASP, MCP, and CISA guidance has converged on the same practical problem: agent systems need constrained access, trusted context, protocol conformance, evidence, and measurable security outcomes before enterprises can scale them beyond pilots."
+  },
+  "source_references": [
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "source_class": "protocol_specification",
+      "why_it_matters": "A serious pilot must prove MCP protected-resource metadata, resource indicators, token audience validation, PKCE, scope handling, and token-passthrough denial before production authority is granted."
+    },
+    {
+      "id": "mcp-changelog-2025-11-25",
+      "name": "Model Context Protocol 2025-11-25 Key Changes",
+      "publisher": "Model Context Protocol",
+      "published": "2025-11-25",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/changelog",
+      "source_class": "protocol_specification",
+      "why_it_matters": "Protocol drift, incremental scope consent, URL elicitation, task support, and metadata changes create design-partner value for continuous conformance and drift monitoring."
+    },
+    {
+      "id": "nist-ai-agent-standards-initiative-2026",
+      "name": "AI Agent Standards Initiative",
+      "publisher": "NIST",
+      "published": "2026-02-17",
+      "url": "https://www.nist.gov/artificial-intelligence/ai-agent-standards-initiative",
+      "source_class": "government_framework",
+      "why_it_matters": "NIST is prioritizing interoperable agent protocols, agent authentication, identity infrastructure, and security evaluations, which validates a secure-context and MCP governance pilot."
+    },
+    {
+      "id": "nist-caisi-agent-security-rfi-2026",
+      "name": "CAISI Request for Information on Securing AI Agent Systems",
+      "publisher": "NIST CAISI",
+      "published": "2026-01-12",
+      "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
+      "source_class": "government_framework",
+      "why_it_matters": "CAISI calls out indirect prompt injection, data poisoning, harmful agent actions, measurement, and deployment interventions that constrain and monitor agent access."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "publisher": "OWASP GenAI Security Project",
+      "published": "2025-12-09",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "source_class": "industry_standard",
+      "why_it_matters": "OWASP gives design partners shared language for agent goal hijack, tool misuse, identity abuse, context poisoning, insecure inter-agent communication, cascading failures, and rogue-agent risk."
+    },
+    {
+      "id": "nist-ai-rmf-gai-profile-2024",
+      "name": "NIST AI RMF Generative AI Profile",
+      "publisher": "NIST",
+      "published": "2024-07-26",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "source_class": "government_framework",
+      "why_it_matters": "The profile supports AI lifecycle governance, measurement, monitoring, data provenance, third-party risk, and incident response expectations that pilots should evidence."
+    },
+    {
+      "id": "cisa-deploying-ai-securely-2024",
+      "name": "Joint Guidance on Deploying AI Systems Securely",
+      "publisher": "CISA",
+      "published": "2024-04-15",
+      "url": "https://www.cisa.gov/news-events/alerts/2024/04/15/joint-guidance-deploying-ai-systems-securely",
+      "source_class": "government_guidance",
+      "why_it_matters": "Deployment guidance emphasizes confidentiality, integrity, availability, vulnerability mitigation, detection, and response for AI systems and related data and services."
+    },
+    {
+      "id": "cisa-secure-by-design-2023",
+      "name": "Secure by Design",
+      "publisher": "CISA",
+      "published": "2023-10-25",
+      "url": "https://www.cisa.gov/resources-tools/resources/secure-by-design",
+      "source_class": "secure_by_design_guidance",
+      "why_it_matters": "CISA's secure-by-design principles push vendors to own customer security outcomes, be transparent, and make secure defaults part of the product rather than paid add-ons."
+    }
+  ],
+  "pilot_contract": {
+    "default_state": "not_sales_ready_until_design_partner_evidence_is_bound",
+    "minimum_buyer_segments": 4,
+    "minimum_pilot_phases": 5,
+    "minimum_success_metrics": 8,
+    "minimum_monetization_wedges": 5,
+    "minimum_diligence_questions": 10,
+    "required_source_pack_keys": [
+      "secure_context_value_model",
+      "enterprise_trust_center_export",
+      "agentic_readiness_scorecard",
+      "agentic_protocol_conformance_pack",
+      "agentic_telemetry_contract",
+      "agentic_run_receipt_pack",
+      "secure_context_eval_pack",
+      "mcp_authorization_conformance_pack",
+      "mcp_tool_surface_drift_pack",
+      "mcp_connector_intake_pack",
+      "agentic_incident_response_pack",
+      "agentic_app_intake_pack"
+    ],
+    "required_mcp_tools": [
+      "recipes_secure_context_value_model",
+      "recipes_enterprise_trust_center_export",
+      "recipes_agentic_readiness_scorecard",
+      "recipes_agentic_protocol_conformance_pack",
+      "recipes_agentic_telemetry_contract",
+      "recipes_agentic_run_receipt_pack",
+      "recipes_secure_context_eval_pack",
+      "recipes_mcp_authorization_conformance_pack",
+      "recipes_mcp_tool_surface_drift_pack",
+      "recipes_mcp_connector_intake_pack",
+      "recipes_agentic_incident_response_pack",
+      "recipes_agentic_app_intake_pack"
+    ],
+    "required_runtime_fields": [
+      "tenant_id",
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "model_provider",
+      "context_package_hash",
+      "context_source_ids",
+      "retrieval_decision",
+      "authorization_decision",
+      "tool_surface_hash",
+      "approval_receipt_id",
+      "review_minutes",
+      "avoided_engineer_hours",
+      "verifier_status",
+      "incident_signal",
+      "customer_outcome",
+      "renewal_signal"
+    ],
+    "hard_gates": [
+      "No production write authority until approval receipts, entitlement review, and MCP authorization conformance are all linked to the run.",
+      "No raw customer logs, secrets, private keys, signing material, or unrestricted personal data can be exported into the open evidence layer.",
+      "Every retrieved context package must carry source ids, hashes, freshness state, and citation requirements.",
+      "Every pilot workflow must produce a run receipt, telemetry event, verifier result, and reviewer outcome before value is counted.",
+      "Any token passthrough, prompt-injection execution, unauthorized model route, or connector capability expansion kills the pilot run.",
+      "The design partner must be able to revoke agent identity, disable MCP scopes, and freeze evidence retention without vendor intervention.",
+      "Synthetic success metrics cannot be used as renewal proof unless customer runtime telemetry confirms the same pattern."
+    ]
+  },
+  "buyer_segments": [
+    {
+      "id": "frontier-model-lab",
+      "title": "Frontier Model Lab",
+      "buyer_trigger": "Enterprise customers ask whether hosted agents can retrieve context, call MCP tools, and delegate work without leaking data or inheriting unsafe authority.",
+      "primary_wedge_ids": [
+        "hosted-mcp-policy-plane",
+        "continuous-agentic-eval-replay",
+        "run-receipt-vault"
+      ],
+      "proof_needed": "Protocol conformance, context provenance, signed run receipts, prompt-injection regression, and customer-visible authorization decisions.",
+      "likely_objection": "Needs evidence that the control layer works across model/provider boundaries, not just inside the public repo."
+    },
+    {
+      "id": "ai-platform-vendor",
+      "title": "AI Platform Vendor",
+      "buyer_trigger": "Needs a secure context and MCP governance layer that can be embedded into agent-builder, gateway, or workflow products.",
+      "primary_wedge_ids": [
+        "hosted-mcp-policy-plane",
+        "private-secure-context-registry",
+        "trust-center-api"
+      ],
+      "proof_needed": "Tenant isolation, private context registry, connector drift baselines, auth metadata checks, and trust-center export APIs.",
+      "likely_objection": "Needs productized auth, metering, private deployments, SLAs, and customer-specific policy mapping."
+    },
+    {
+      "id": "security-platform-vendor",
+      "title": "Security Platform Vendor",
+      "buyer_trigger": "Needs agentic AI and MCP security coverage to extend AppSec, identity, CNAPP, SOAR, or exposure-management portfolios.",
+      "primary_wedge_ids": [
+        "connector-drift-monitoring",
+        "run-receipt-vault",
+        "continuous-agentic-eval-replay"
+      ],
+      "proof_needed": "Mappings to OWASP, NIST, MCP, identity, telemetry, incident response, and remediation workflow evidence.",
+      "likely_objection": "Needs live integrations with issue trackers, source hosts, SIEMs, identity providers, and connector inventories."
+    },
+    {
+      "id": "regulated-enterprise",
+      "title": "Regulated Enterprise",
+      "buyer_trigger": "Needs to approve agent pilots without granting broad human-equivalent authority or trusting unmanaged context.",
+      "primary_wedge_ids": [
+        "private-secure-context-registry",
+        "trust-center-api",
+        "run-receipt-vault"
+      ],
+      "proof_needed": "Private context ingestion, data-boundary controls, approval receipts, redacted telemetry, incident replay, and measurable reviewer-time reduction.",
+      "likely_objection": "Needs private deployment, governance approval, procurement signoff, and evidence retention before production expansion."
+    }
+  ],
+  "pilot_phases": [
+    {
+      "id": "qualify-and-scope",
+      "title": "Qualify and scope",
+      "minimum_duration_days": 7,
+      "objective": "Select one bounded workflow, one agent host, one MCP connector class, success metrics, data boundaries, and revocation owners before any customer context is connected.",
+      "required_evidence_pack_keys": [
+        "secure_context_value_model",
+        "agentic_app_intake_pack",
+        "agentic_readiness_scorecard"
+      ],
+      "required_mcp_tools": [
+        "recipes_secure_context_value_model",
+        "recipes_agentic_app_intake_pack",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "exit_criteria": [
+        "Buyer segment and primary wedge are selected.",
+        "Workflow is bounded to read-only or scoped branch-write actions.",
+        "Pilot success metrics and telemetry fields are approved by security, platform, and legal stakeholders."
+      ],
+      "kill_or_hold_signals": [
+        "Buyer requires unrestricted production write authority in phase one.",
+        "No accountable owner exists for identity revocation or evidence retention."
+      ]
+    },
+    {
+      "id": "bind-private-context",
+      "title": "Bind private context",
+      "minimum_duration_days": 14,
+      "objective": "Register customer-private context roots, source owners, context hashes, freshness expectations, and prohibited data classes without exporting sensitive material into the open corpus.",
+      "required_evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "secure_context_eval_pack",
+        "agentic_telemetry_contract"
+      ],
+      "required_mcp_tools": [
+        "recipes_enterprise_trust_center_export",
+        "recipes_secure_context_eval_pack",
+        "recipes_agentic_telemetry_contract"
+      ],
+      "exit_criteria": [
+        "Private context registry is defined with owner and recertification cadence.",
+        "Telemetry redaction rules are approved.",
+        "Context eval cases include poisoning, stale-source, and citation-failure paths."
+      ],
+      "kill_or_hold_signals": [
+        "Private context cannot be hashed or owner-attested.",
+        "Telemetry would expose raw secrets, unrestricted customer logs, or personal data."
+      ]
+    },
+    {
+      "id": "run-read-only-mcp",
+      "title": "Run read-only MCP",
+      "minimum_duration_days": 14,
+      "objective": "Prove agents can retrieve governed context, cite hashes, pass evals, and produce run receipts before any write or approval-required MCP action is enabled.",
+      "required_evidence_pack_keys": [
+        "agentic_run_receipt_pack",
+        "mcp_authorization_conformance_pack",
+        "mcp_tool_surface_drift_pack"
+      ],
+      "required_mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_mcp_authorization_conformance_pack",
+        "recipes_mcp_tool_surface_drift_pack"
+      ],
+      "exit_criteria": [
+        "At least ten controlled read-only runs produce complete receipts.",
+        "MCP authorization and tool-surface decisions are recorded for each run.",
+        "Eval failures are triaged with a hold, deny, or kill decision instead of being ignored."
+      ],
+      "kill_or_hold_signals": [
+        "Agent retrieves unregistered context.",
+        "Observed MCP tool schema or description drifts without review."
+      ]
+    },
+    {
+      "id": "govern-controlled-actions",
+      "title": "Govern controlled actions",
+      "minimum_duration_days": 30,
+      "objective": "Enable one scoped action class, such as branch-write remediation, only after approval receipts, entitlement review, verifier checks, and incident response evidence are wired into the run.",
+      "required_evidence_pack_keys": [
+        "agentic_run_receipt_pack",
+        "agentic_incident_response_pack",
+        "mcp_connector_intake_pack",
+        "agentic_protocol_conformance_pack"
+      ],
+      "required_mcp_tools": [
+        "recipes_agentic_run_receipt_pack",
+        "recipes_agentic_incident_response_pack",
+        "recipes_mcp_connector_intake_pack",
+        "recipes_agentic_protocol_conformance_pack"
+      ],
+      "exit_criteria": [
+        "At least two workflow runs produce reviewer-approved outputs or structured triage notes.",
+        "Approval receipts match the action scope and expire correctly.",
+        "Incident replay can reconstruct context, identity, MCP decisions, and verifier output."
+      ],
+      "kill_or_hold_signals": [
+        "Approval bypass, token passthrough, or model route mismatch appears in a run.",
+        "Verifier or reviewer failure is treated as success in value reporting."
+      ]
+    },
+    {
+      "id": "prove-renewal-case",
+      "title": "Prove renewal case",
+      "minimum_duration_days": 30,
+      "objective": "Replace assumption-based ROI with customer telemetry, renewal evidence, expansion triggers, and a board-ready package that states what is proven and what still remains unproven.",
+      "required_evidence_pack_keys": [
+        "secure_context_value_model",
+        "enterprise_trust_center_export",
+        "agentic_telemetry_contract",
+        "agentic_readiness_scorecard"
+      ],
+      "required_mcp_tools": [
+        "recipes_secure_context_value_model",
+        "recipes_enterprise_trust_center_export",
+        "recipes_agentic_telemetry_contract",
+        "recipes_agentic_readiness_scorecard"
+      ],
+      "exit_criteria": [
+        "Customer telemetry replaces default assumptions for at least one ROI scenario.",
+        "Renewal or expansion decision is tied to measured evidence completeness, reviewer-time reduction, and security outcome quality.",
+        "Paid wedges are ranked by buyer willingness to pay and implementation lift."
+      ],
+      "kill_or_hold_signals": [
+        "Customer cannot share enough telemetry to prove value.",
+        "Pilot requires bespoke manual services that do not map to hosted MCP or secure-context product surfaces."
+      ]
+    }
+  ],
+  "success_metrics": [
+    {
+      "id": "time-to-first-controlled-run",
+      "title": "Time to first controlled run",
+      "metric_type": "activation",
+      "target": "First governed run within 14 calendar days of kickoff",
+      "telemetry_field": "first_controlled_run_at",
+      "owner": "customer_success",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "receipt-completeness",
+      "title": "Run receipt completeness",
+      "metric_type": "evidence_quality",
+      "target": ">= 95% of counted runs include identity, context hash, authorization decision, verifier result, and reviewer outcome",
+      "telemetry_field": "receipt_completeness_ratio",
+      "owner": "security_architecture",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "context-hash-coverage",
+      "title": "Context hash coverage",
+      "metric_type": "context_integrity",
+      "target": "100% of returned context packages include registered source ids and hashes",
+      "telemetry_field": "context_hash_coverage_ratio",
+      "owner": "ai_platform",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "mcp-decision-coverage",
+      "title": "MCP decision coverage",
+      "metric_type": "runtime_control",
+      "target": ">= 95% of MCP tool calls have allow, hold, deny, or kill decisions before execution",
+      "telemetry_field": "mcp_decision_coverage_ratio",
+      "owner": "ai_platform",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "reviewer-time-saved",
+      "title": "Reviewer time saved",
+      "metric_type": "roi",
+      "target": ">= 25% reduction in reviewer minutes per accepted remediation output by week eight",
+      "telemetry_field": "review_minutes_delta",
+      "owner": "product_security",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "automation-success-rate",
+      "title": "Automation success rate",
+      "metric_type": "workflow_outcome",
+      "target": ">= 50% of eligible pilot findings produce reviewer-approved PRs or structured triage notes",
+      "telemetry_field": "eligible_run_success_ratio",
+      "owner": "product_security",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "safe-hold-rate",
+      "title": "Safe hold rate",
+      "metric_type": "risk_reduction",
+      "target": "100% of ambiguous context, authorization, eval, or approval states hold instead of silently proceeding",
+      "telemetry_field": "unsafe_ambiguous_proceed_count",
+      "owner": "security_architecture",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "incident-replay-completeness",
+      "title": "Incident replay completeness",
+      "metric_type": "forensics",
+      "target": ">= 90% of sampled runs can reconstruct context, identity, tool decisions, approvals, and verifier output",
+      "telemetry_field": "incident_replay_completeness_ratio",
+      "owner": "security_operations",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "private-context-ingestion",
+      "title": "Private context ingestion readiness",
+      "metric_type": "productization",
+      "target": "At least one customer-private context registry can be hashed, redacted, evaluated, and recertified without leaking data into the open corpus",
+      "telemetry_field": "private_context_registry_ready",
+      "owner": "ai_platform",
+      "proof_state": "customer_telemetry_required"
+    },
+    {
+      "id": "renewal-intent",
+      "title": "Renewal intent",
+      "metric_type": "commercial",
+      "target": "Design partner identifies a paid wedge, budget owner, and expansion trigger by the final readout",
+      "telemetry_field": "renewal_signal",
+      "owner": "founder_or_gm",
+      "proof_state": "customer_commitment_required"
+    }
+  ],
+  "monetization_wedges": [
+    {
+      "id": "hosted-mcp-policy-plane",
+      "title": "Hosted MCP policy plane",
+      "paid_surface": "Protected MCP gateway, resource metadata checks, authorization conformance, tool-risk decisions, and signed policy receipts.",
+      "linked_evidence_pack_keys": [
+        "mcp_authorization_conformance_pack",
+        "mcp_tool_surface_drift_pack",
+        "agentic_protocol_conformance_pack"
+      ],
+      "required_telemetry_fields": [
+        "authorization_decision",
+        "tool_surface_hash",
+        "policy_receipt_id"
+      ],
+      "proof_needed": "Customer shows MCP calls are blocked, held, or allowed by policy before tool execution.",
+      "pricing_guardrail": "Best suited for annual platform pricing once connected to live connector fleets."
+    },
+    {
+      "id": "private-secure-context-registry",
+      "title": "Private secure context registry",
+      "paid_surface": "Tenant-side registry for customer context roots, source hashes, freshness checks, poisoning scans, evals, and recertification.",
+      "linked_evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "secure_context_eval_pack",
+        "agentic_telemetry_contract"
+      ],
+      "required_telemetry_fields": [
+        "context_package_hash",
+        "context_source_ids",
+        "context_eval_decision"
+      ],
+      "proof_needed": "Customer-private context can be governed without exposing sensitive content to the public project.",
+      "pricing_guardrail": "Best suited for design-partner pilots where private evidence ingestion is the main blocker."
+    },
+    {
+      "id": "connector-drift-monitoring",
+      "title": "Connector drift monitoring",
+      "paid_surface": "Continuous discovery and diffing for MCP tool descriptions, schemas, annotations, capabilities, scopes, and server metadata.",
+      "linked_evidence_pack_keys": [
+        "mcp_connector_intake_pack",
+        "mcp_tool_surface_drift_pack",
+        "agentic_incident_response_pack"
+      ],
+      "required_telemetry_fields": [
+        "connector_id",
+        "tool_surface_hash",
+        "drift_decision"
+      ],
+      "proof_needed": "A design partner sees changed tool surfaces before agents trust them.",
+      "pricing_guardrail": "Best suited for security platforms and AI platform vendors with many MCP servers."
+    },
+    {
+      "id": "run-receipt-vault",
+      "title": "Run receipt vault",
+      "paid_surface": "Retention, search, signing, export, and replay for agent run receipts, approvals, verifier output, telemetry, and incident evidence.",
+      "linked_evidence_pack_keys": [
+        "agentic_run_receipt_pack",
+        "agentic_incident_response_pack",
+        "agentic_telemetry_contract"
+      ],
+      "required_telemetry_fields": [
+        "receipt_id",
+        "approval_receipt_id",
+        "incident_signal"
+      ],
+      "proof_needed": "Customer can reconstruct why an agent was allowed, held, denied, or killed.",
+      "pricing_guardrail": "Best suited for regulated enterprises and frontier labs selling agents to enterprise customers."
+    },
+    {
+      "id": "trust-center-api",
+      "title": "Trust-center API",
+      "paid_surface": "Customer-specific procurement, GRC, platform-intake, and acquisition diligence exports backed by live evidence hashes.",
+      "linked_evidence_pack_keys": [
+        "enterprise_trust_center_export",
+        "secure_context_value_model",
+        "agentic_readiness_scorecard"
+      ],
+      "required_telemetry_fields": [
+        "evidence_export_id",
+        "source_pack_hash",
+        "readiness_decision"
+      ],
+      "proof_needed": "Buyer can answer diligence questions without bespoke spreadsheet work.",
+      "pricing_guardrail": "Best suited for enterprise packaging and renewal evidence after the first pilot."
+    },
+    {
+      "id": "continuous-agentic-eval-replay",
+      "title": "Continuous agentic eval replay",
+      "paid_surface": "Recurring prompt-injection, context-poisoning, authorization, egress, approval, and incident replay tests against customer workflows.",
+      "linked_evidence_pack_keys": [
+        "secure_context_eval_pack",
+        "agentic_protocol_conformance_pack",
+        "agentic_incident_response_pack"
+      ],
+      "required_telemetry_fields": [
+        "eval_case_id",
+        "eval_decision",
+        "replay_result"
+      ],
+      "proof_needed": "Customer sees regressions before a model, connector, prompt, or policy change reaches production.",
+      "pricing_guardrail": "Best suited for recurring subscription value and expansion into model/provider governance."
+    }
+  ],
+  "pricing_guardrails": {
+    "status": "guardrails_not_public_list_prices",
+    "design_partner_pilot_usd": "15000-35000 for a 90-day private-context or MCP-governance pilot when customer telemetry and evidence export are included.",
+    "annual_platform_acv_usd": "60000-180000 after hosted controls, private context, receipts, and connector monitoring are proven with at least one design partner.",
+    "what_not_to_sell_yet": [
+      "Unbounded autonomous remediation",
+      "Compliance certification",
+      "Live connector enforcement without tenant isolation",
+      "Revenue projections not backed by customer telemetry"
+    ],
+    "conversion_condition": "Convert only when the customer can name the paid wedge, budget owner, renewal metric, and production control path."
+  },
+  "telemetry_requirements": {
+    "privacy_default": "metadata_and_hashes_by_default",
+    "redaction_required": true,
+    "customer_runtime_data_boundary": "tenant_side_or_customer_controlled_export",
+    "minimum_events": [
+      "agent.run.started",
+      "context.package.returned",
+      "mcp.authorization.decided",
+      "mcp.tool_surface.checked",
+      "approval.receipt.validated",
+      "verifier.completed",
+      "reviewer.outcome.recorded",
+      "agent.run.closed",
+      "incident.signal.detected"
+    ],
+    "do_not_capture": [
+      "raw_secret",
+      "private_key",
+      "seed_phrase",
+      "raw_access_token",
+      "unredacted_customer_log",
+      "bulk_personal_data"
+    ]
+  },
+  "diligence_questions": [
+    {
+      "id": "why-design-partners-now",
+      "question": "Why is a design partner motion the next high-leverage step?",
+      "answer": "The open corpus already proves breadth and category thinking, but acquisition-grade value requires customer telemetry, private context, hosted MCP controls, renewal signals, and evidence that security outcomes improve in real environments."
+    },
+    {
+      "id": "what-is-being-proven",
+      "question": "What exactly does the design partner pilot prove?",
+      "answer": "The pilot proves whether secure context, MCP authorization, tool-surface drift checks, run receipts, eval replay, and trust-center exports can reduce agent adoption friction while preserving security controls."
+    },
+    {
+      "id": "what-is-not-proven",
+      "question": "What is not proven by the open project alone?",
+      "answer": "The open project does not yet prove recurring revenue, multi-tenant hosted enforcement, customer-private evidence ingestion, operational SLAs, retention, expansion, or renewal value."
+    },
+    {
+      "id": "what-should-stay-open",
+      "question": "What should remain open to keep trust and distribution?",
+      "answer": "Public recipes, generated reference packs, local evaluators, standards mappings, docs, and the read-only MCP server should remain open so the project keeps credibility and adoption friction stays low."
+    },
+    {
+      "id": "what-can-be-paid",
+      "question": "What can be monetized without closing the corpus?",
+      "answer": "Hosted MCP policy, private secure-context registries, connector drift monitoring, run-receipt vaulting, trust-center APIs, customer-specific telemetry, and continuous eval replay are natural paid surfaces."
+    },
+    {
+      "id": "what-is-the-first-pilot",
+      "question": "What is the safest first design partner pilot?",
+      "answer": "Start with one bounded remediation workflow, read-only or scoped branch-write access, private context hashing, MCP authorization decisions, receipts, verifier output, and reviewer-approved outcomes."
+    },
+    {
+      "id": "what-would-kill-the-pilot",
+      "question": "Which events should kill or pause the pilot immediately?",
+      "answer": "Token passthrough, unregistered context retrieval, approval bypass, unsafe model routing, raw secret capture, connector capability expansion without review, or treating verifier failure as success should kill or pause the run."
+    },
+    {
+      "id": "what-convinces-a-buyer",
+      "question": "What convinces a buyer this is not servicesware?",
+      "answer": "A buyer needs repeatable generated artifacts, deterministic decision points, customer telemetry, self-serve MCP access, evidence export, and a paid wedge that does not require bespoke manual work for every deployment."
+    },
+    {
+      "id": "what-convinces-an-acquirer",
+      "question": "What convinces an acquirer this can reach a $10-20M outcome?",
+      "answer": "An acquirer needs evidence of design partner pull, private context ingestion, hosted MCP enforcement, renewal value, category authority, and a control point that improves their enterprise agent trust story."
+    },
+    {
+      "id": "what-metrics-matter",
+      "question": "Which metrics matter most for renewal?",
+      "answer": "Receipt completeness, context hash coverage, MCP decision coverage, reviewer-time reduction, automation success rate, safe hold behavior, incident replay completeness, and named expansion intent matter more than raw agent run volume."
+    }
+  ],
+  "risk_register": [
+    {
+      "id": "docs-only-objection",
+      "risk": "Buyer sees the project as a documentation library rather than a product.",
+      "decision": "hold_until_private_or_hosted_wedge_is_selected",
+      "mitigation": "Lead pilots with hosted MCP policy, private context registry, receipts, or trust-center API proof instead of generic content access."
+    },
+    {
+      "id": "overbroad-pilot-scope",
+      "risk": "Pilot attempts too many workflows, connectors, or action classes at once.",
+      "decision": "deny_unbounded_pilot",
+      "mitigation": "Limit phase one to one workflow, one agent host, one connector class, and explicit revocation ownership."
+    },
+    {
+      "id": "telemetry-privacy-risk",
+      "risk": "Telemetry needed for ROI may expose customer secrets, logs, or personal data.",
+      "decision": "kill_on_sensitive_telemetry_capture",
+      "mitigation": "Capture metadata, hashes, decisions, timings, and redacted outcomes by default; keep private content tenant-side."
+    },
+    {
+      "id": "synthetic-metric-risk",
+      "risk": "Synthetic demo metrics are mistaken for production value.",
+      "decision": "hold_for_customer_telemetry",
+      "mitigation": "Label assumptions explicitly and require customer runtime telemetry before renewal or acquisition claims."
+    },
+    {
+      "id": "standards-drift-risk",
+      "risk": "MCP, agent identity, and agent security guidance changes faster than the pilot artifacts.",
+      "decision": "hold_for_standards_refresh",
+      "mitigation": "Bind pilots to source-backed profiles and rerun generator checks when standards or protocol references change."
+    },
+    {
+      "id": "enterprise-auth-gap",
+      "risk": "Open reference MCP server is mistaken for production-authenticated hosted infrastructure.",
+      "decision": "deny_production_claim",
+      "mitigation": "Keep the repo server read-only and explicitly sell production auth, metering, audit logging, and entitlement checks as hosted or deployment-layer controls."
+    },
+    {
+      "id": "connector-drift-gap",
+      "risk": "A vendor MCP server changes tool descriptions, schemas, annotations, or scopes during the pilot.",
+      "decision": "hold_for_connector_review",
+      "mitigation": "Use connector intake and tool-surface drift evidence before changed tools are trusted by agents."
+    }
+  ]
+}

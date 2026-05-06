@@ -119,7 +119,7 @@ This feature follows current guidance:
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
   for agent goal hijack, tool misuse, identity abuse, context poisoning,
   cascading failures, and rogue-agent containment.
-- [MCP Authorization 2025-06-18](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)
+- [MCP Authorization 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
   for resource indicators, audience-bound tokens, HTTPS, PKCE, and token
   validation.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)

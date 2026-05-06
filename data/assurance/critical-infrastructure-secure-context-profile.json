@@ -1,0 +1,452 @@
+{
+  "schema_version": "1.0",
+  "last_reviewed": "2026-05-04",
+  "intent": "Define a critical-infrastructure secure-context profile for SecurityRecipes so operators, frontier labs, platform teams, and acquirers can see how agentic AI and MCP evidence must be constrained before context, tools, approvals, and autonomous actions touch high-stakes IT, OT, ICS, healthcare, financial, public-sector, communications, or transportation environments.",
+  "positioning": {
+    "buyer": "Critical infrastructure operators, regulated enterprises, AI platform teams, GRC, product security, SOC, model-risk, safety, procurement, frontier lab enterprise teams, and acquisition diligence reviewers",
+    "category": "Critical-infrastructure readiness profile for secure context, MCP, and agentic AI governance",
+    "enterprise_promise": "SecurityRecipes can make agentic AI easier to approve in high-stakes environments by turning sector hazards, MCP scope minimization, human oversight, telemetry, incident response, egress controls, and generated evidence packs into one deterministic profile and runtime evaluator.",
+    "why_now": "NIST started the AI RMF Profile on Trustworthy AI in Critical Infrastructure in April 2026. At the same time, OWASP Agentic Top 10, OWASP MCP Top 10, and MCP authorization guidance are making autonomous tool use, non-human identity, scope minimization, telemetry, and context boundaries core enterprise review surfaces."
+  },
+  "standards_alignment": [
+    {
+      "id": "nist-ai-rmf-critical-infrastructure-concept-note-2026",
+      "name": "NIST AI RMF Profile on Trustworthy AI in Critical Infrastructure Concept Note",
+      "url": "https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure",
+      "coverage": "Anchors this profile in NIST's April 2026 direction for AI-enabled critical infrastructure across IT, OT, and ICS lifecycles and supply chains."
+    },
+    {
+      "id": "nist-ai-rmf-generative-ai-profile-2024",
+      "name": "NIST AI RMF Generative AI Profile",
+      "url": "https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence",
+      "coverage": "Supports governance, mapping, measurement, management, provenance, monitoring, incident response, and lifecycle risk treatment for deployed generative AI systems."
+    },
+    {
+      "id": "cisa-secure-by-design",
+      "name": "CISA Secure by Design",
+      "url": "https://www.cisa.gov/securebydesign",
+      "coverage": "Frames secure defaults, accountability, customer outcome ownership, and radical transparency as product requirements for technology providers."
+    },
+    {
+      "id": "owasp-agentic-top-10-2026",
+      "name": "OWASP Top 10 for Agentic Applications 2026",
+      "url": "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/",
+      "coverage": "Covers autonomous behavior risks such as goal hijacking, tool misuse, identity abuse, supply-chain compromise, unexpected execution, memory poisoning, handoff failures, cascading failures, trust exploitation, and rogue behavior."
+    },
+    {
+      "id": "owasp-mcp-top-10-2025",
+      "name": "OWASP MCP Top 10",
+      "url": "https://owasp.org/www-project-mcp-top-10/",
+      "coverage": "Maps MCP-specific risks such as token exposure, scope creep, tool poisoning, command execution, missing telemetry, shadow MCP servers, and context over-sharing to SecurityRecipes controls."
+    },
+    {
+      "id": "mcp-authorization-2025-11-25",
+      "name": "Model Context Protocol Authorization Specification",
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "coverage": "Anchors protected MCP calls in OAuth 2.1, protected resource metadata, resource indicators, audience binding, PKCE, and explicit scope challenge behavior."
+    },
+    {
+      "id": "mcp-security-best-practices",
+      "name": "Model Context Protocol Security Best Practices",
+      "url": "https://modelcontextprotocol.io/docs/tutorials/security/security_best_practices",
+      "coverage": "Covers confused deputy, token passthrough, SSRF, session hijacking, local MCP server compromise, and scope minimization controls for MCP operators."
+    },
+    {
+      "id": "nist-sp-800-218a",
+      "name": "NIST SP 800-218A Secure Software Development Practices for Generative AI",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/a/final",
+      "coverage": "Gives producers, integrators, and acquirers a secure software development profile for AI systems and AI-related software supply chains."
+    }
+  ],
+  "readiness_contract": {
+    "default_state": "not_ci_ready_until_secure_context_controls_are_evidence_bound_and_operator_reviewed",
+    "minimum_evidence_packs": 14,
+    "minimum_sector_profiles": 6,
+    "minimum_control_objectives": 9,
+    "source_status": "NIST critical-infrastructure AI guidance is still a concept-note and community-of-interest effort, so this profile is a readiness scaffold and not a compliance claim.",
+    "required_runtime_evidence": [
+      "sector_id",
+      "workflow_id",
+      "run_id",
+      "agent_id",
+      "identity_id",
+      "tenant_id",
+      "action_class",
+      "context_package_hash",
+      "policy_pack_hash",
+      "authorization_decision",
+      "egress_decision",
+      "catastrophic_risk_decision",
+      "approval_id",
+      "operator_approval_id",
+      "ci_safety_case_id",
+      "risk_acceptance_id",
+      "receipt_id",
+      "telemetry_trace_id",
+      "incident_response_profile_id"
+    ],
+    "buyer_success_criteria": [
+      "Critical-infrastructure pilots start read-only and evidence-only before supervised action.",
+      "Every sector hazard maps to generated evidence and MCP tools, not only prose.",
+      "MCP scope minimization and token audience binding are required before context reaches high-stakes systems.",
+      "Operator approval and safety-case evidence are required before high-impact actions proceed.",
+      "Telemetry and incident response are complete enough to reconstruct agent context, tool calls, approvals, egress, and containment."
+    ],
+    "allowed_decisions": [
+      "allow_ci_read_only_context",
+      "allow_ci_supervised_action",
+      "hold_for_ci_safety_case",
+      "deny_untrusted_ci_context",
+      "kill_session_on_ci_hazard_signal"
+    ],
+    "high_impact_action_classes": [
+      "critical_infrastructure_control",
+      "production_write",
+      "production_deployment",
+      "identity_admin",
+      "funds_movement",
+      "mass_delete",
+      "model_route_change",
+      "connector_scope_escalation",
+      "safety_system_change",
+      "ot_or_ics_command"
+    ],
+    "baseline_allowed_action_classes": [
+      "read_only_context",
+      "evidence_generation",
+      "ticket_prefill",
+      "policy_simulation",
+      "posture_lookup"
+    ],
+    "hazard_flags": [
+      "affects_ot_or_ics",
+      "patient_safety_impact",
+      "emergency_services_impact",
+      "funds_or_market_impact",
+      "public_service_disruption",
+      "cross_sector_dependency",
+      "handles_regulated_pii",
+      "raw_secret_access",
+      "shadow_mcp_server",
+      "token_passthrough",
+      "unsafe_local_mcp_launch",
+      "untrusted_context"
+    ]
+  },
+  "evidence_sources": [
+    {
+      "id": "agentic-catastrophic-risk-annex",
+      "title": "Agentic Catastrophic Risk Annex",
+      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
+      "mcp_tools": ["recipes_agentic_catastrophic_risk_annex", "recipes_evaluate_agentic_catastrophic_risk_decision"],
+      "proof_role": "High-impact action classes, severe scenarios, default decisions, approval evidence, risk acceptance, and runtime kill signals."
+    },
+    {
+      "id": "agentic-action-runtime-pack",
+      "title": "Agentic Action Runtime Pack",
+      "path": "data/evidence/agentic-action-runtime-pack.json",
+      "mcp_tools": ["recipes_agentic_action_runtime_pack", "recipes_evaluate_agentic_action_runtime_decision"],
+      "proof_role": "Action classes, workflow envelopes, approval requirements, runtime kill signals, and deterministic allow, hold, deny, or kill decisions."
+    },
+    {
+      "id": "agentic-approval-receipt-pack",
+      "title": "Agentic Approval Receipt Pack",
+      "path": "data/evidence/agentic-approval-receipt-pack.json",
+      "mcp_tools": ["recipes_agentic_approval_receipt_pack", "recipes_evaluate_agentic_approval_receipt_decision"],
+      "proof_role": "Scope-bound approval profiles, expiry, separation of duties, reviewer roles, and approval-bypass kill signals."
+    },
+    {
+      "id": "agentic-readiness-scorecard",
+      "title": "Agentic Readiness Scorecard",
+      "path": "data/evidence/agentic-readiness-scorecard.json",
+      "mcp_tools": ["recipes_agentic_readiness_scorecard"],
+      "proof_role": "Scale, pilot, gate, and block decisions for enterprise workflow promotion."
+    },
+    {
+      "id": "agentic-incident-response-pack",
+      "title": "Agentic Incident Response Pack",
+      "path": "data/evidence/agentic-incident-response-pack.json",
+      "mcp_tools": ["recipes_agentic_incident_response_pack", "recipes_evaluate_agentic_incident_response_decision"],
+      "proof_role": "Incident classes, containment phases, forensic evidence, replay gates, and response decisions for agentic and MCP failures."
+    },
+    {
+      "id": "agentic-soc-detection-pack",
+      "title": "Agentic SOC Detection Pack",
+      "path": "data/evidence/agentic-soc-detection-pack.json",
+      "mcp_tools": ["recipes_agentic_soc_detection_pack", "recipes_evaluate_agentic_soc_detection_event"],
+      "proof_role": "SIEM-ready detections, query templates, alert decisions, and runtime evaluation for MCP and agent telemetry."
+    },
+    {
+      "id": "agentic-telemetry-contract",
+      "title": "Agentic Telemetry Contract",
+      "path": "data/evidence/agentic-telemetry-contract.json",
+      "mcp_tools": ["recipes_agentic_telemetry_contract", "recipes_evaluate_agentic_telemetry_event"],
+      "proof_role": "OpenTelemetry-aligned fields for agent, model, MCP, context, policy, egress, approval, verifier, incident, redaction, and receipt evidence."
+    },
+    {
+      "id": "mcp-authorization-conformance",
+      "title": "MCP Authorization Conformance",
+      "path": "data/evidence/mcp-authorization-conformance-pack.json",
+      "mcp_tools": ["recipes_mcp_authorization_conformance_pack", "recipes_evaluate_mcp_authorization_decision"],
+      "proof_role": "Resource indicator, audience, PKCE, token-passthrough, session-binding, and scope-drift checks before protected MCP calls."
+    },
+    {
+      "id": "mcp-stdio-launch-boundary",
+      "title": "MCP STDIO Launch Boundary",
+      "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
+      "mcp_tools": ["recipes_mcp_stdio_launch_boundary_pack", "recipes_evaluate_mcp_stdio_launch_decision"],
+      "proof_role": "Local MCP command allowlists, sandbox requirements, startup risk, env secret handling, and launch decisions."
+    },
+    {
+      "id": "mcp-tool-surface-drift-pack",
+      "title": "MCP Tool Surface Drift Pack",
+      "path": "data/evidence/mcp-tool-surface-drift-pack.json",
+      "mcp_tools": ["recipes_mcp_tool_surface_drift_pack", "recipes_evaluate_mcp_tool_surface_drift_decision"],
+      "proof_role": "Tool description, schema, annotation, and capability drift fingerprints before changed tools are trusted."
+    },
+    {
+      "id": "secure-context-trust-pack",
+      "title": "Secure Context Trust Pack",
+      "path": "data/evidence/secure-context-trust-pack.json",
+      "mcp_tools": ["recipes_secure_context_trust_pack", "recipes_evaluate_context_retrieval_decision"],
+      "proof_role": "Trusted source registry, context package hashes, retrieval policy, and workflow-safe context decisions."
+    },
+    {
+      "id": "secure-context-lineage-ledger",
+      "title": "Secure Context Lineage Ledger",
+      "path": "data/evidence/secure-context-lineage-ledger.json",
+      "mcp_tools": ["recipes_secure_context_lineage_ledger", "recipes_evaluate_secure_context_lineage_decision"],
+      "proof_role": "Source-to-run lineage across attestation, poisoning, retrieval, model route, egress, handoff, telemetry, and receipts."
+    },
+    {
+      "id": "context-egress-boundary-pack",
+      "title": "Context Egress Boundary Pack",
+      "path": "data/evidence/context-egress-boundary-pack.json",
+      "mcp_tools": ["recipes_context_egress_boundary_pack", "recipes_evaluate_context_egress_decision"],
+      "proof_role": "Data-class, destination, tenant, model, telemetry, DPA, zero-data-retention, and secret-egress decisions."
+    },
+    {
+      "id": "agent-identity-ledger",
+      "title": "Agent Identity and Delegation Ledger",
+      "path": "data/evidence/agent-identity-delegation-ledger.json",
+      "mcp_tools": ["recipes_agent_identity_ledger"],
+      "proof_role": "Non-human identity contracts for approved agents, workflows, delegated scopes, explicit denies, and revocation ownership."
+    },
+    {
+      "id": "agentic-entitlement-review-pack",
+      "title": "Agentic Entitlement Review Pack",
+      "path": "data/evidence/agentic-entitlement-review-pack.json",
+      "mcp_tools": ["recipes_agentic_entitlement_review_pack", "recipes_evaluate_agentic_entitlement_decision"],
+      "proof_role": "Expiring leases, review cadence, step-up authorization, and runtime entitlement decisions for agent identities and MCP scopes."
+    },
+    {
+      "id": "agentic-source-freshness-watch",
+      "title": "Agentic Source Freshness Watch",
+      "path": "data/evidence/agentic-source-freshness-watch.json",
+      "mcp_tools": ["recipes_agentic_source_freshness_watch"],
+      "proof_role": "Source freshness, standards drift, primary-source coverage, and source hashes for buyer-facing AI and MCP claims."
+    },
+    {
+      "id": "agentic-standards-crosswalk",
+      "title": "Agentic Standards Crosswalk",
+      "path": "data/evidence/agentic-standards-crosswalk.json",
+      "mcp_tools": ["recipes_agentic_standards_crosswalk"],
+      "proof_role": "Standards-to-evidence map across OWASP, NIST, CSA, MCP, OpenAI, Anthropic, and A2A security guidance."
+    }
+  ],
+  "control_objectives": [
+    {
+      "id": "ci-context-provenance-minimization",
+      "title": "Context provenance and minimization",
+      "control_objective": "Critical infrastructure agents receive only registered, cited, hashed, non-poisoned, workflow-scoped context with provenance, lineage, and egress rules attached before retrieval.",
+      "evidence_pack_ids": ["secure-context-trust-pack", "secure-context-lineage-ledger", "context-egress-boundary-pack"],
+      "mcp_tools": ["recipes_secure_context_trust_pack", "recipes_secure_context_lineage_ledger", "recipes_context_egress_boundary_pack"],
+      "hazard_flags": ["untrusted_context", "handles_regulated_pii", "raw_secret_access"]
+    },
+    {
+      "id": "ci-mcp-authorization-scope",
+      "title": "MCP authorization and scope minimization",
+      "control_objective": "Protected MCP calls use resource indicators, audience binding, PKCE, session binding, precise scope challenges, token-passthrough denial, and connector/workflow alignment before any high-stakes tool executes.",
+      "evidence_pack_ids": ["mcp-authorization-conformance", "agentic-entitlement-review-pack", "agent-identity-ledger"],
+      "mcp_tools": ["recipes_mcp_authorization_conformance_pack", "recipes_agentic_entitlement_review_pack", "recipes_agent_identity_ledger"],
+      "hazard_flags": ["token_passthrough", "shadow_mcp_server", "connector_scope_escalation"]
+    },
+    {
+      "id": "ci-human-oversight-approval",
+      "title": "Operator oversight and approval receipts",
+      "control_objective": "High-impact or irreversible agent actions require an operator approval record, scope-bound approval receipt, risk acceptance id, and safety-case id before execution.",
+      "evidence_pack_ids": ["agentic-approval-receipt-pack", "agentic-catastrophic-risk-annex", "agentic-action-runtime-pack"],
+      "mcp_tools": ["recipes_agentic_approval_receipt_pack", "recipes_agentic_catastrophic_risk_annex", "recipes_agentic_action_runtime_pack"],
+      "hazard_flags": ["affects_ot_or_ics", "patient_safety_impact", "funds_or_market_impact", "public_service_disruption"]
+    },
+    {
+      "id": "ci-action-runtime-deny-default",
+      "title": "Deny-by-default action runtime",
+      "control_objective": "Agentic action classes are inventoried, mapped to workflow envelopes, denied when evidence is missing, and killed when runtime hazard signals indicate unsafe autonomy.",
+      "evidence_pack_ids": ["agentic-action-runtime-pack", "agentic-catastrophic-risk-annex", "agentic-readiness-scorecard"],
+      "mcp_tools": ["recipes_agentic_action_runtime_pack", "recipes_agentic_catastrophic_risk_annex", "recipes_agentic_readiness_scorecard"],
+      "hazard_flags": ["critical_infrastructure_control", "ot_or_ics_command", "safety_system_change"]
+    },
+    {
+      "id": "ci-telemetry-reconstruction",
+      "title": "Telemetry and run reconstruction",
+      "control_objective": "Agent, model, MCP, context, policy, egress, approval, verifier, incident, redaction, trace, and receipt fields are emitted so a critical-infrastructure run can be reconstructed without raw transcript leakage.",
+      "evidence_pack_ids": ["agentic-telemetry-contract", "agentic-soc-detection-pack", "agentic-incident-response-pack"],
+      "mcp_tools": ["recipes_agentic_telemetry_contract", "recipes_agentic_soc_detection_pack", "recipes_agentic_incident_response_pack"],
+      "hazard_flags": ["handles_regulated_pii", "raw_secret_access", "public_service_disruption"]
+    },
+    {
+      "id": "ci-incident-containment-replay",
+      "title": "Incident containment and replay",
+      "control_objective": "Agentic incidents can be classified, contained, forensically reconstructed, replayed, recertified, and disclosed with evidence from receipts, telemetry, egress, handoff, authorization, and severe-risk packs.",
+      "evidence_pack_ids": ["agentic-incident-response-pack", "agentic-soc-detection-pack", "agentic-catastrophic-risk-annex"],
+      "mcp_tools": ["recipes_agentic_incident_response_pack", "recipes_agentic_soc_detection_pack", "recipes_agentic_catastrophic_risk_annex"],
+      "hazard_flags": ["emergency_services_impact", "cross_sector_dependency", "public_service_disruption"]
+    },
+    {
+      "id": "ci-local-mcp-sandbox",
+      "title": "Local MCP sandbox and launch boundary",
+      "control_objective": "Local or STDIO MCP servers used near critical workflows require explicit command display, sandboxed execution, env-secret deny rules, package-install holds, and startup kill signals.",
+      "evidence_pack_ids": ["mcp-stdio-launch-boundary", "mcp-tool-surface-drift-pack", "mcp-authorization-conformance"],
+      "mcp_tools": ["recipes_mcp_stdio_launch_boundary_pack", "recipes_mcp_tool_surface_drift_pack", "recipes_mcp_authorization_conformance_pack"],
+      "hazard_flags": ["unsafe_local_mcp_launch", "shadow_mcp_server", "raw_secret_access"]
+    },
+    {
+      "id": "ci-sector-hazard-escalation",
+      "title": "Sector hazard escalation",
+      "control_objective": "Sector-specific safety, availability, privacy, financial, emergency, and cross-sector hazards force holds, denies, or kill-session decisions until operator review and safety-case evidence exist.",
+      "evidence_pack_ids": ["agentic-catastrophic-risk-annex", "agentic-readiness-scorecard", "agentic-action-runtime-pack"],
+      "mcp_tools": ["recipes_agentic_catastrophic_risk_annex", "recipes_agentic_readiness_scorecard", "recipes_agentic_action_runtime_pack"],
+      "hazard_flags": ["affects_ot_or_ics", "patient_safety_impact", "emergency_services_impact", "funds_or_market_impact", "cross_sector_dependency"]
+    },
+    {
+      "id": "ci-source-freshness-drift",
+      "title": "Source freshness and standards drift",
+      "control_objective": "Critical-infrastructure AI claims are treated as maintained dependencies, with source freshness, standards drift, primary-source hashes, and review cadence visible before enterprise trust-center use.",
+      "evidence_pack_ids": ["agentic-source-freshness-watch", "agentic-standards-crosswalk"],
+      "mcp_tools": ["recipes_agentic_source_freshness_watch", "recipes_agentic_standards_crosswalk"],
+      "hazard_flags": ["stale_guidance", "unmapped_standard"]
+    }
+  ],
+  "sector_profiles": [
+    {
+      "id": "energy-ot-ics",
+      "title": "Energy, OT, and ICS",
+      "sector_hazard": "Agentic context or MCP tools can affect process control, grid reliability, safety interlocks, maintenance plans, vendor remote access, and incident response timing.",
+      "default_decision": "hold_for_ci_safety_case",
+      "required_control_ids": ["ci-context-provenance-minimization", "ci-mcp-authorization-scope", "ci-human-oversight-approval", "ci-action-runtime-deny-default", "ci-local-mcp-sandbox", "ci-sector-hazard-escalation", "ci-incident-containment-replay"],
+      "allowed_pilot_actions": ["read_only_context", "evidence_generation", "ticket_prefill", "policy_simulation"],
+      "prohibited_without_safety_case": ["critical_infrastructure_control", "ot_or_ics_command", "safety_system_change", "production_write", "connector_scope_escalation"],
+      "operator_evidence_needed": "Safety-case id, MOC/change ticket, OT owner approval, network zone evidence, maintenance window, rollback plan, and run receipt."
+    },
+    {
+      "id": "healthcare-and-public-health",
+      "title": "Healthcare and public health",
+      "sector_hazard": "Agentic context can expose regulated health data or influence care operations, clinical workflow availability, medical device operations, or emergency response coordination.",
+      "default_decision": "hold_for_ci_safety_case",
+      "required_control_ids": ["ci-context-provenance-minimization", "ci-human-oversight-approval", "ci-telemetry-reconstruction", "ci-incident-containment-replay", "ci-sector-hazard-escalation"],
+      "allowed_pilot_actions": ["read_only_context", "evidence_generation", "ticket_prefill"],
+      "prohibited_without_safety_case": ["patient_workflow_change", "production_write", "identity_admin", "mass_delete", "external_send"],
+      "operator_evidence_needed": "HIPAA/privacy review, patient-safety impact note, clinical owner approval, redacted telemetry, and incident escalation route."
+    },
+    {
+      "id": "financial-services",
+      "title": "Financial services",
+      "sector_hazard": "Agentic actions can create funds movement, market impact, access-policy drift, model-route risk, fraud-monitoring blind spots, or regulated-data leakage.",
+      "default_decision": "hold_for_ci_safety_case",
+      "required_control_ids": ["ci-mcp-authorization-scope", "ci-human-oversight-approval", "ci-action-runtime-deny-default", "ci-telemetry-reconstruction", "ci-sector-hazard-escalation"],
+      "allowed_pilot_actions": ["read_only_context", "evidence_generation", "ticket_prefill", "posture_lookup"],
+      "prohibited_without_safety_case": ["funds_movement", "identity_admin", "model_route_change", "production_write", "mass_delete"],
+      "operator_evidence_needed": "Risk acceptance, dual approval, transaction prohibition proof, model/provider route approval, DLP evidence, and run receipt."
+    },
+    {
+      "id": "water-and-wastewater",
+      "title": "Water and wastewater",
+      "sector_hazard": "Agentic workflows can affect treatment operations, remote access, field response, public-service continuity, and vendor maintenance windows.",
+      "default_decision": "hold_for_ci_safety_case",
+      "required_control_ids": ["ci-context-provenance-minimization", "ci-action-runtime-deny-default", "ci-local-mcp-sandbox", "ci-sector-hazard-escalation", "ci-incident-containment-replay"],
+      "allowed_pilot_actions": ["read_only_context", "evidence_generation", "ticket_prefill"],
+      "prohibited_without_safety_case": ["critical_infrastructure_control", "ot_or_ics_command", "production_write", "safety_system_change"],
+      "operator_evidence_needed": "OT owner approval, manual operating fallback, emergency contact path, remote access review, and rollback/restore evidence."
+    },
+    {
+      "id": "transportation-systems",
+      "title": "Transportation systems",
+      "sector_hazard": "Agentic decisions can affect passenger safety, logistics availability, signaling support systems, maintenance operations, and public-service continuity.",
+      "default_decision": "hold_for_ci_safety_case",
+      "required_control_ids": ["ci-human-oversight-approval", "ci-action-runtime-deny-default", "ci-telemetry-reconstruction", "ci-incident-containment-replay", "ci-sector-hazard-escalation"],
+      "allowed_pilot_actions": ["read_only_context", "evidence_generation", "ticket_prefill", "policy_simulation"],
+      "prohibited_without_safety_case": ["safety_system_change", "production_write", "critical_infrastructure_control", "identity_admin"],
+      "operator_evidence_needed": "Safety owner approval, service impact assessment, maintenance/change window, rollback evidence, and incident bridge route."
+    },
+    {
+      "id": "communications-cloud-and-dns",
+      "title": "Communications, cloud, and DNS",
+      "sector_hazard": "Agentic workflows can affect cross-sector dependencies, routing, identity, DNS, cloud metadata, tenant isolation, platform availability, and incident response visibility.",
+      "default_decision": "hold_for_ci_safety_case",
+      "required_control_ids": ["ci-context-provenance-minimization", "ci-mcp-authorization-scope", "ci-action-runtime-deny-default", "ci-telemetry-reconstruction", "ci-local-mcp-sandbox", "ci-sector-hazard-escalation"],
+      "allowed_pilot_actions": ["read_only_context", "evidence_generation", "ticket_prefill", "posture_lookup"],
+      "prohibited_without_safety_case": ["identity_admin", "production_write", "mass_delete", "connector_scope_escalation", "model_route_change"],
+      "operator_evidence_needed": "Tenant isolation evidence, DNS/routing change approval, identity-owner approval, metadata-service SSRF control, and incident response receipt."
+    }
+  ],
+  "rollout_lanes": [
+    {
+      "id": "read-only-context-pilot",
+      "title": "Read-only context pilot",
+      "decision": "allow_ci_read_only_context",
+      "entry_criteria": "Registered context sources, secure context trust pack, egress policy, identity ledger, and telemetry fields exist for the pilot sector.",
+      "exit_criteria": "Operators can reproduce agent answers from citations, hashes, receipts, and telemetry without exposing raw secrets or regulated records."
+    },
+    {
+      "id": "supervised-action-recommendations",
+      "title": "Supervised action recommendations",
+      "decision": "hold_for_ci_safety_case",
+      "entry_criteria": "The agent can propose tickets, diffs, or containment plans but cannot write, deploy, execute commands, or call high-impact tools.",
+      "exit_criteria": "Every recommendation binds to approval receipt requirements, incident routes, readiness score, and a sector safety-case template."
+    },
+    {
+      "id": "governed-production-mcp",
+      "title": "Governed production MCP",
+      "decision": "hold_for_ci_safety_case",
+      "entry_criteria": "Protected MCP resource metadata, audience binding, scope minimization, connector trust, tool-surface drift, entitlement review, and SOC detections are ready.",
+      "exit_criteria": "Production calls return deterministic allow, hold, deny, or kill decisions with receipt ids and complete telemetry."
+    },
+    {
+      "id": "high-impact-autonomy",
+      "title": "High-impact autonomy",
+      "decision": "deny_untrusted_ci_context",
+      "entry_criteria": "Do not enter this lane until design-partner runtime proof, two-key operator approval, catastrophic-risk replay, sector safety case, and insurance/legal review exist.",
+      "exit_criteria": "Only bounded, reversible, supervised action classes proceed; irreversible or safety-relevant actions remain denied by default."
+    }
+  ],
+  "buyer_views": [
+    {
+      "id": "critical-infrastructure-operator",
+      "title": "Critical infrastructure operator",
+      "question": "Can we pilot agentic AI without weakening safety, availability, privacy, or incident response in high-stakes systems?",
+      "answer_contract": "Start with read-only context, require source hashes, sector hazard mapping, operator approval, incident containment, and telemetry before any supervised action.",
+      "required_control_ids": ["ci-context-provenance-minimization", "ci-mcp-authorization-scope", "ci-human-oversight-approval", "ci-telemetry-reconstruction", "ci-incident-containment-replay"]
+    },
+    {
+      "id": "frontier-lab-enterprise-readiness",
+      "title": "Frontier lab enterprise readiness",
+      "question": "Can a frontier model or agent platform make custom MCP and critical-infrastructure buyers easier to approve?",
+      "answer_contract": "Expose SecurityRecipes evidence through MCP, show authorization and scope minimization, deny unsafe actions, bind operator approvals, and export trust-center proof.",
+      "required_control_ids": ["ci-mcp-authorization-scope", "ci-action-runtime-deny-default", "ci-source-freshness-drift", "ci-local-mcp-sandbox"]
+    },
+    {
+      "id": "security-vendor-acquisition",
+      "title": "Security vendor acquisition",
+      "question": "Does SecurityRecipes have a credible enterprise wedge beyond open prompts and documentation?",
+      "answer_contract": "The wedge is hosted critical-infrastructure secure-context evidence: private context registry, MCP auth checks, sector safety cases, run receipts, SOC detections, and incident replay.",
+      "required_control_ids": ["ci-sector-hazard-escalation", "ci-telemetry-reconstruction", "ci-incident-containment-replay", "ci-source-freshness-drift"]
+    }
+  ],
+  "commercialization_path": {
+    "open_layer": "Public critical-infrastructure profile, generated pack, docs page, runtime evaluator, and read-only MCP tools.",
+    "team_layer": "Private sector hazard profiles, operator approval receipt templates, customer-specific context sources, and internal policy crosswalks.",
+    "enterprise_layer": "Hosted MCP authorization checks, CI safety-case vault, run receipt retention, SOC/SIEM export, signed context releases, incident replay, and trust-center APIs.",
+    "acquirer_value": "Frontier labs, cloud providers, and security platforms need a credible way to sell agents into regulated and critical-infrastructure environments without claiming agents can safely self-govern."
+  }
+}

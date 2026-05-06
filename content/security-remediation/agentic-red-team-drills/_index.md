@@ -48,6 +48,9 @@ The red-team layer lives in three artifacts:
   generator and validator with `--check` mode for CI drift detection.
 - `data/evidence/agentic-red-team-drill-pack.json` - the generated pack
   that maps scenarios to every active workflow and MCP namespace.
+- `data/evidence/agentic-red-team-replay-harness.json` - the generated
+  replay harness that binds those drills to safe fixtures, expected
+  runtime decisions, trace events, receipt evidence, and evaluator output.
 
 Run it locally from the repo root:
 
@@ -126,7 +129,7 @@ The pack is aligned to current primary references:
   context poisoning, cascading failures, and rogue-agent behavior.
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)
   and
-  [MCP Authorization](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)
+  [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
   for confused-deputy prevention, token passthrough avoidance, delegated
   authorization, and session safety.
 - [CSA AI Controls Matrix](https://cloudsecurityalliance.org/artifacts/ai-controls-matrix)
@@ -161,3 +164,5 @@ than a one-time security exercise.
   - the buyer and auditor control evidence bundle.
 - [Agentic Readiness Scorecard]({{< relref "/security-remediation/agentic-readiness-scorecard" >}})
   - the workflow promotion gate that consumes red-team coverage.
+- [Agentic Red-Team Replay Harness]({{< relref "/security-remediation/agentic-red-team-replay-harness" >}})
+  - replay fixtures and evaluator decisions for adversarial proof.

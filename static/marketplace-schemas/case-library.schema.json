@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/case-library.schema.json",
+  "title": "SecurityRecipes Caseboard library",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "exported_at",
+    "browser_model",
+    "case_files"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.case-library.v1"
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "browser_model": {
+      "const": "client_side_byo_token"
+    },
+    "case_files": {
+      "type": "array",
+      "items": {
+        "$ref": "/marketplace-schemas/case-file.schema.json"
+      }
+    }
+  }
+}

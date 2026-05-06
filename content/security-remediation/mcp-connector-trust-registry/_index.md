@@ -99,7 +99,7 @@ private taxonomy:
   names MCP-specific risks such as confused deputy, token passthrough,
   SSRF, session hijacking, local server compromise, and scope
   minimization.
-- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization)
+- [MCP Authorization](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
   frames restricted MCP server access around authorization and resource
   owner consent.
 - [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/2025/12/09/owasp-genai-security-project-releases-top-10-risks-and-mitigations-for-agentic-ai-security/)

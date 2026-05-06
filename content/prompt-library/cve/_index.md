@@ -47,6 +47,25 @@ Every recipe follows the same outline:
 - **Watch for** — common failure shapes (partial fixes, new
   CVEs introduced by the upgrade, behaviour regressions).
 
+## Source freshness and review standard
+
+SecurityRecipes treats new GitHub Advisory Database entries as intake signals,
+not as final copy. A CVE recipe should only land when the remediation path is
+specific enough for a production reviewer to trust an agent-authored PR.
+
+For high and critical advisories, that means each prompt must include:
+
+- the model context used to generate it, currently `GPT 5.5 Extra High
+  reasoning`;
+- the exact affected surface and the version, configuration, or runtime signal
+  that proves exposure;
+- the safest default fix and a documented containment path when upgrade is
+  blocked;
+- explicit stop conditions that produce `TRIAGE.md` instead of an unsafe patch;
+- verification a reviewer can run without exposing secrets, tenant data,
+  customer content, or exploit payloads;
+- source links back to GHAD, NVD/CVE, vendor advisories, or release evidence.
+
 ## How to use a CVE recipe
 
 The same pattern as any other prompt on this site:
@@ -140,6 +159,10 @@ recipe end-to-end and produce a reviewable PR. That means:
   mitigation gets them out of the live-fire phase. Recipes
   that only have an upgrade path are a hard sell to a team
   with a frozen runtime.
+- **Make quick checks cross-platform when commands differ.**
+  If a recipe includes shell commands, provide macOS/Linux and
+  Windows variants so reviewers and operators can verify
+  exposure without rewriting the check on the fly.
 - **Verification is a step, not a wish.** Add the exact
   command(s) (a re-scan, a `strings` check, a service probe)
   that confirm the fix.

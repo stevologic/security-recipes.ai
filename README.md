@@ -48,6 +48,9 @@ SecurityRecipes content is designed to align with established security reference
 
 - **OWASP Top 10** for common application security failure modes.
 - **NIST AI Risk Management Framework (AI RMF 1.0)** for governable AI system lifecycle controls.
+- **NIST AI RMF Profile on Trustworthy AI in Critical Infrastructure
+  (concept note, 2026)** for high-stakes IT, OT, ICS, and sector
+  lifecycle readiness.
 - **Least-privilege + auditable control design** reflected in MCP guidance and reviewer-gated workflows.
 
 ## What's in the site
@@ -83,6 +86,10 @@ and ships with:
   that replay prompt injection, goal hijack, approval bypass, token
   passthrough, connector drift, runaway-loop, and evidence-integrity
   failure modes across approved workflows.
+- **Agentic Red-Team Replay Harness** - generated safe replay fixtures,
+  expected runtime decisions, trace requirements, receipt bindings, and
+  evaluator decisions that make agentic red-team proof repeatable for
+  design partners and acquisition diligence.
 - **Agentic Readiness Scorecard** - generated scale, pilot, gate, and
   block decisions for approved workflows using control-plane, MCP
   policy, connector trust, identity, assurance, and red-team evidence.
@@ -146,9 +153,17 @@ and ships with:
 - **Agentic Threat Radar** - generated source-backed threat signals,
   buyer triggers, mapped controls, and product roadmap priorities for
   agentic AI and MCP security.
-- **Agentic Standards Crosswalk** - generated OWASP, NIST, MCP,
-  OpenAI, and Anthropic standards-to-evidence map for buyer diligence,
-  AI platform architecture review, and MCP-native control review.
+- **Agentic Source Freshness Watch** - generated source-freshness and
+  standards-drift evidence that proves OWASP, NIST, MCP, A2A, CISA,
+  OpenAI, and CSA guidance stays current enough for enterprise review.
+- **Agentic Standards Crosswalk** - generated OWASP, CSA AI Controls
+  Matrix, NIST, MCP, OpenAI, and Anthropic standards-to-evidence map
+  for buyer diligence, critical-infrastructure readiness, AI platform
+  architecture review, and MCP-native control review.
+- **Agentic AIVSS Risk Scoring** - generated AIVSS-aligned severity,
+  remediation SLA, owner, hosted MCP wedge, and runtime decision layer
+  for agentic AI, MCP, A2A, skill, identity, context, and approval
+  risks.
 - **MCP and Agentic Skills Risk Coverage** - generated OWASP MCP Top 10
   and OWASP Agentic Skills Top 10 coverage map across evidence packs,
   MCP tools, and hosted product wedges.
@@ -159,10 +174,35 @@ and ships with:
 - **Agentic Control Plane Blueprint** - generated architecture, buyer
   diligence map, MCP evidence surface, and commercialization path for
   the secure context layer.
+- **Critical Infrastructure Secure Context Profile** - generated
+  NIST-aligned sector readiness profile with secure context, MCP
+  authorization, operator approval, safety-case gates, telemetry,
+  incident response, and deterministic CI context decisions.
+- **Secure Context Value Model** - generated acquisition and enterprise
+  value model that ties open knowledge, hosted MCP wedges, evidence
+  packs, conservative ROI assumptions, and missing proof points into one
+  diligence artifact.
+- **Design Partner Pilot Pack** - generated buyer-segment, phase-gate,
+  telemetry, paid-wedge, pricing-guardrail, and risk evidence for
+  proving the secure context layer inside a customer pilot.
+- **Hosted MCP Readiness Pack** - generated tenant-isolation,
+  protected-resource authorization, private context, connector,
+  telemetry, receipt, metering, and buyer rollout gates for the
+  enterprise hosted MCP product.
+- **Secure Context Buyer Diligence Brief** - generated buyer briefs,
+  enterprise questions, objection handlers, industry bets, and deal-room
+  proof steps for frontier lab, enterprise, VC, and acquirer review.
 - **Agentic Incident Response Pack** - generated incident classes,
   containment phases, forensic evidence bindings, replay gates, tabletop
   cases, and deterministic runtime response decisions for secure-context
   and MCP failures.
+- **Agentic Action Runtime Pack** - generated action classes, workflow
+  envelopes, approval requirements, runtime kill signals, and
+  deterministic allow, hold, deny, or kill decisions before autonomous
+  side effects execute.
+- **Agent Trust Fabric** - generated zero-trust agent verdicts across
+  identity, context, scope, behavior, egress, telemetry, containment,
+  source freshness, and receipt evidence.
 - **Agentic Approval Receipt Pack** - generated scope-bound approval
   profiles, expiry, reviewer-role, separation-of-duties, risk-acceptance,
   and runtime receipt decisions before privileged agent actions execute.
@@ -170,7 +210,8 @@ and ships with:
   control gaps, registry patch previews, and red-team drills for new or
   changed MCP servers before connector promotion.
 - **MCP Authorization Conformance** - generated resource, audience,
-  PKCE, token-passthrough, session-binding, and scope-drift decisions
+  PKCE, client metadata, scope challenge, step-up, token-passthrough,
+  session-binding, and scope-drift decisions
   before MCP tool calls execute.
 - **MCP Tool Risk Contract** - generated annotation-trust, workflow-scope,
   and session-combination decisions before MCP tools are invoked.
@@ -378,6 +419,25 @@ the MCP server as `recipes_agentic_red_team_drill_pack`.
 
 ---
 
+### Generate the agentic red-team replay harness
+
+The replay harness turns the red-team drill pack into replayable
+fixtures with expected runtime decisions, required evidence classes,
+trace event requirements, run receipt bindings, and evaluator decisions:
+
+```bash
+python3 scripts/generate_agentic_red_team_replay_harness.py
+python3 scripts/generate_agentic_red_team_replay_harness.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agentic-red-team-replay-harness.json` and is exposed
+through the MCP server as `recipes_agentic_red_team_replay_harness`.
+Replay result decisions are exposed through
+`recipes_evaluate_agentic_red_team_replay_result`.
+
+---
+
 ### Generate the agentic readiness scorecard
 
 The readiness scorecard joins the workflow manifest, MCP gateway policy,
@@ -505,6 +565,24 @@ the MCP server as `recipes_agentic_telemetry_contract` and
 
 ---
 
+### Generate the agentic SOC detection pack
+
+The SOC detection pack turns the telemetry contract, workflow manifest,
+incident response, threat radar, and red-team replay evidence into
+SIEM-ready alert rules for agentic AI and MCP systems:
+
+```bash
+python3 scripts/generate_agentic_soc_detection_pack.py
+python3 scripts/generate_agentic_soc_detection_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agentic-soc-detection-pack.json` and is exposed through
+the MCP server as `recipes_agentic_soc_detection_pack` and
+`recipes_evaluate_agentic_soc_detection_event`.
+
+---
+
 ### Generate the agentic measurement probe pack
 
 The measurement probe pack joins workflow scope, MCP gateway policy,
@@ -557,6 +635,27 @@ The generated artifact lives at
 `data/evidence/agentic-posture-snapshot.json` and is exposed through the
 MCP server as `recipes_agentic_posture_snapshot` and
 `recipes_evaluate_agentic_posture_decision`.
+
+---
+
+### Generate the agentic AIVSS risk scoring pack
+
+The AIVSS risk scoring pack turns posture, exposure, MCP, context,
+skill, app-intake, incident, approval, and action-runtime evidence into
+source-backed severity, SLA, remediation-owner, and runtime-decision
+evidence:
+
+```bash
+python3 scripts/generate_agentic_aivss_risk_scoring_pack.py
+python3 scripts/generate_agentic_aivss_risk_scoring_pack.py --check
+python3 scripts/evaluate_agentic_aivss_risk_decision.py \
+  --scenario-id mcp_tool_misuse_lethal_session
+```
+
+The generated artifact lives at
+`data/evidence/agentic-aivss-risk-scoring-pack.json` and is exposed
+through the MCP server as `recipes_agentic_aivss_risk_scoring_pack` and
+`recipes_evaluate_agentic_aivss_risk_decision`.
 
 ---
 
@@ -778,9 +877,10 @@ MCP server as `recipes_agentic_threat_radar`.
 
 ### Generate the agentic standards crosswalk
 
-The standards crosswalk maps OWASP, NIST, MCP, OpenAI, and Anthropic
-agentic security guidance to SecurityRecipes capabilities, generated
-evidence, and MCP tools.
+The standards crosswalk maps OWASP, CSA AI Controls Matrix, NIST, MCP,
+OpenAI, and Anthropic agentic security guidance to SecurityRecipes
+capabilities, generated evidence, critical-infrastructure readiness,
+and MCP tools.
 
 ```bash
 python3 scripts/generate_agentic_standards_crosswalk.py
@@ -790,6 +890,25 @@ python3 scripts/generate_agentic_standards_crosswalk.py --check
 The generated artifact lives at
 `data/evidence/agentic-standards-crosswalk.json` and is exposed through
 the MCP server as `recipes_agentic_standards_crosswalk`.
+
+---
+
+### Generate the agentic source freshness watch
+
+The source freshness watch treats standards, protocol, government, and
+frontier-lab references as maintained product dependencies. It scans the
+source-backed profiles that drive SecurityRecipes, checks review
+cadence, verifies primary publisher coverage, and emits buyer-ready
+freshness evidence.
+
+```bash
+python3 scripts/generate_agentic_source_freshness_watch.py
+python3 scripts/generate_agentic_source_freshness_watch.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agentic-source-freshness-watch.json` and is exposed
+through the MCP server as `recipes_agentic_source_freshness_watch`.
 
 ---
 
@@ -848,6 +967,28 @@ Runtime decisions are exposed through
 
 ---
 
+### Generate the critical-infrastructure secure-context pack
+
+The critical-infrastructure pack maps NIST's 2026 trustworthy AI in
+critical infrastructure direction to sector hazards, secure-context
+evidence, MCP authorization, operator approvals, safety-case gates,
+telemetry, incident response, rollout lanes, and deterministic runtime
+decisions.
+
+```bash
+python3 scripts/generate_critical_infrastructure_secure_context_pack.py
+python3 scripts/generate_critical_infrastructure_secure_context_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/critical-infrastructure-secure-context-pack.json` and is
+exposed through the MCP server as
+`recipes_critical_infrastructure_secure_context_pack`. Runtime decisions
+are exposed through
+`recipes_evaluate_critical_infrastructure_context_decision`.
+
+---
+
 ### Generate the agentic incident response pack
 
 The incident response pack maps secure-context and MCP-backed agentic
@@ -886,6 +1027,25 @@ The generated artifact lives at
 the MCP server as `recipes_agentic_action_runtime_pack`. Runtime action
 decisions are exposed through
 `recipes_evaluate_agentic_action_runtime_decision`.
+
+---
+
+### Generate the Agent Trust Fabric pack
+
+The Agent Trust Fabric pack composes identity, context, scope, behavior,
+egress, telemetry, containment, source freshness, and receipt evidence
+into one allow / hold / deny / kill trust verdict before an agent uses
+secure context or invokes MCP tools.
+
+```bash
+python3 scripts/generate_agent_trust_fabric_pack.py
+python3 scripts/generate_agent_trust_fabric_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/agent-trust-fabric-pack.json` and is exposed through the
+MCP server as `recipes_agent_trust_fabric_pack`. Runtime trust decisions
+are exposed through `recipes_evaluate_agent_trust_fabric_decision`.
 
 ---
 
@@ -967,6 +1127,99 @@ through the MCP server as `recipes_enterprise_trust_center_export`.
 
 ---
 
+### Generate the secure context value model
+
+The value model turns the trust-center evidence, MCP control path, buyer
+segments, monetization wedges, and conservative pilot assumptions into a
+generated acquisition and enterprise-value artifact.
+
+```bash
+python3 scripts/generate_secure_context_value_model.py
+python3 scripts/generate_secure_context_value_model.py --check
+```
+
+The generated artifact lives at
+`data/evidence/secure-context-value-model.json` and is exposed through
+the MCP server as `recipes_secure_context_value_model`.
+
+---
+
+### Generate the design partner pilot pack
+
+The design partner pilot pack turns the value model into an executable
+customer-proof motion: buyer segment, pilot phases, telemetry fields,
+success metrics, paid wedges, pricing guardrails, risk gates, and source
+pack readiness.
+
+```bash
+python3 scripts/generate_design_partner_pilot_pack.py
+python3 scripts/generate_design_partner_pilot_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/design-partner-pilot-pack.json` and is exposed through
+the MCP server as `recipes_design_partner_pilot_pack`.
+
+---
+
+### Generate the hosted MCP readiness pack
+
+The hosted MCP readiness pack turns the open reference corpus and local
+read-only MCP server into a concrete enterprise product plan: tenant
+isolation, protected-resource authorization, private context ingestion,
+connector isolation, tool-surface drift, metadata-first telemetry,
+signed receipts, SOC evidence, retention, SLOs, metering, and buyer
+rollout gates.
+
+```bash
+python3 scripts/generate_hosted_mcp_readiness_pack.py
+python3 scripts/generate_hosted_mcp_readiness_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/hosted-mcp-readiness-pack.json` and is exposed through
+the MCP server as `recipes_hosted_mcp_readiness_pack`.
+
+---
+
+### Generate the secure context buyer diligence brief
+
+The buyer diligence brief compresses the trust-center export, value
+model, design-partner pilot, source freshness, protocol conformance,
+MCP authorization, telemetry, receipts, app intake, and posture evidence
+into buyer briefs, RFP-style answers, objection handlers, industry bets,
+and deal-room proof steps.
+
+```bash
+python3 scripts/generate_secure_context_buyer_diligence_brief.py
+python3 scripts/generate_secure_context_buyer_diligence_brief.py --check
+```
+
+The generated artifact lives at
+`data/evidence/secure-context-buyer-diligence-brief.json` and is exposed
+through the MCP server as
+`recipes_secure_context_buyer_diligence_brief`.
+
+---
+
+### Generate the secure context customer proof pack
+
+The customer proof pack turns the diligence story into a design-partner
+evidence contract: runtime event classes, proof claims, metrics, renewal
+gates, redaction expectations, source-pack readiness, and acquisition
+proof blockers.
+
+```bash
+python3 scripts/generate_secure_context_customer_proof_pack.py
+python3 scripts/generate_secure_context_customer_proof_pack.py --check
+```
+
+The generated artifact lives at
+`data/evidence/secure-context-customer-proof-pack.json` and is exposed
+through the MCP server as `recipes_secure_context_customer_proof_pack`.
+
+---
+
 ### Generate the MCP connector trust pack
 
 The connector trust pack joins the MCP connector registry, workflow
@@ -1022,7 +1275,8 @@ Runtime decisions are exposed as `recipes_evaluate_mcp_stdio_launch_decision`.
 
 The authorization conformance pack joins connector trust, connector
 intake, workflow policy, and MCP authorization rules into a
-machine-readable resource, audience, token, session, and scope-drift
+machine-readable resource, audience, OAuth client metadata, scope
+challenge, step-up authorization, token, session, and scope-drift
 control layer:
 
 ```bash
@@ -1231,7 +1485,7 @@ the top nav's **Contribute** link points at) and `LICENSE`.
 | **Agents** | Per-tool recipes for GitHub Copilot, Claude, Cursor, Codex, Devin — each with Install → Configure → Dispatch → Guardrails, plus General and Enterprise onboarding. |
 | **Prompt Library** | Tool-agnostic prompts under `general/` (OWASP Top 10 2026 audit, OWASP Top 10 2026 remediate) plus per-tool prompts for CVE triage, vulnerable deps, and SDE remediation. |
 | **MCP Servers** | Why MCP exists; connector catalog (risk, ownership, ticket, knowledge, code, observability); MCP gateway patterns; integration on-ramp. |
-| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic control plane blueprint, exposure graph, threat radar, MCP and agentic-skill risk coverage, workflow control plane, MCP gateway policy pack, runtime decision evaluator, action runtime pack, browser-agent boundary pack, MCP connector intake scanner, MCP connector trust registry, A2A Agent Card trust profile, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, capability risk register, red-team drill pack, agent identity ledger, Agentic System BOM, agentic run receipts, agentic telemetry contract, model provider routing gate, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
+| **Security Remediation** | Reference workflows a security team can operate: SDE, vulnerable dependencies, SAST, base images, artifact quarantine, classic vulnerable defaults, crypto payments, and DeFi / blockchain security. Includes the agentic control plane blueprint, exposure graph, threat radar, MCP and agentic-skill risk coverage, workflow control plane, MCP gateway policy pack, runtime decision evaluator, action runtime pack, Agent Trust Fabric, browser-agent boundary pack, MCP connector intake scanner, MCP connector trust registry, A2A Agent Card trust profile, secure context trust pack, context poisoning guard, secure context firewall, agentic assurance pack, readiness scorecard, capability risk register, red-team drill pack, red-team replay harness, agent identity ledger, Agentic System BOM, agentic run receipts, agentic telemetry contract, model provider routing gate, program metrics, reviewer playbook, rollout maturity model, and compliance mapping. |
 | **Automation** | The "just use a linter" checklist — deterministic automation that earns its keep before an agent ever runs. |
 | **Contribute** | How to add a recipe, a prompt, or a new workflow. |
 
@@ -1399,6 +1653,8 @@ MCP authorization profiles compile into a pre-call conformance pack:
   `recipes_evaluate_mcp_authorization_decision`
 
 The generated pack checks resource indicators, token audience, PKCE,
+OAuth client ID metadata documents, protected-resource metadata
+discovery, authoritative scope challenges, step-up authorization,
 token-passthrough denial, session binding, consent, audit correlation,
 workflow namespace scope, and candidate MCP server auth gaps.
 
@@ -1516,6 +1772,22 @@ tool-result injection, goal hijack, credential access, approval bypass,
 token passthrough, connector schema drift, runaway loops, and evidence
 integrity failures. CI runs the generator in `--check` mode so red-team
 coverage cannot drift from workflow and MCP policy.
+
+### Agentic red-team replay harness
+
+Replay fixtures are generated from the red-team drill pack and bound to
+runtime evidence contracts:
+
+- profile: `data/assurance/agentic-red-team-replay-harness-profile.json`
+- generator: `scripts/generate_agentic_red_team_replay_harness.py`
+- evaluator: `scripts/evaluate_agentic_red_team_replay_result.py`
+- harness: `data/evidence/agentic-red-team-replay-harness.json`
+- MCP tools: `recipes_agentic_red_team_replay_harness`, `recipes_evaluate_agentic_red_team_replay_result`
+
+The harness makes red-team proof customer-safe: a design partner can run
+mocked connector payloads or trace-only imports locally, keep raw prompts
+tenant-side, and export hashes, decisions, receipt ids, trace metadata,
+and reviewer outcomes.
 
 ### Agentic readiness scorecard
 
@@ -1678,6 +1950,23 @@ model, MCP, context, policy, egress, approval, verifier, and incident
 events while making raw prompts, outputs, tool arguments, and tool
 results opt-in only.
 
+### Agentic SOC detection pack
+
+The generated SOC detection pack turns secure-context telemetry into
+SIEM-ready alert logic for MCP and agentic AI operations:
+
+- profile: `data/assurance/agentic-soc-detection-profile.json`
+- generator: `scripts/generate_agentic_soc_detection_pack.py`
+- evaluator: `scripts/evaluate_agentic_soc_detection_event.py`
+- pack: `data/evidence/agentic-soc-detection-pack.json`
+- MCP tools: `recipes_agentic_soc_detection_pack`,
+  `recipes_evaluate_agentic_soc_detection_event`
+
+The pack includes starter Splunk SPL, Microsoft Sentinel KQL, and
+Chronicle-style predicates for token passthrough, tool drift, context
+poisoning, unsafe telemetry, approval bypass, browser-agent egress,
+runaway loops, shadow MCP servers, source drift, and replay regression.
+
 ### Agentic measurement probe pack
 
 The generated measurement probe pack turns the same control artifacts
@@ -1728,6 +2017,25 @@ session-exfiltration risk factors, high-exposure paths, pilot connector
 rollups, actionable context-poisoning signals, source hashes, and buyer
 views for AI platform review, procurement security, and acquisition
 diligence.
+
+### Agentic AIVSS risk scoring
+
+The generated AIVSS risk scoring pack turns current agentic-security
+guidance into a buyer-ready severity and prioritization layer:
+
+- profile: `data/assurance/agentic-aivss-risk-scoring-profile.json`
+- generator: `scripts/generate_agentic_aivss_risk_scoring_pack.py`
+- runtime evaluator: `scripts/evaluate_agentic_aivss_risk_decision.py`
+- pack: `data/evidence/agentic-aivss-risk-scoring-pack.json`
+- MCP tools: `recipes_agentic_aivss_risk_scoring_pack`,
+  `recipes_evaluate_agentic_aivss_risk_decision`
+
+The pack scores agent goal hijack, MCP tool misuse, identity abuse,
+skill and supply-chain compromise, unexpected execution, inter-agent
+handoffs, cascading failure, approval bypass, and rogue agent or shadow
+MCP server scenarios. It maps each scenario to severity, SLA, owner,
+runtime default decision, generated evidence, and a hosted MCP wedge for
+production enforcement.
 
 ### Agentic app intake gate
 
@@ -1909,20 +2217,39 @@ artifact.
 
 ### Agentic standards crosswalk
 
-The generated standards crosswalk maps current OWASP, NIST, MCP,
-OpenAI, and Anthropic agentic security guidance to SecurityRecipes
-capabilities, generated evidence, and MCP tools:
+The generated standards crosswalk maps current OWASP, CSA AI Controls
+Matrix, NIST, MCP, OpenAI, and Anthropic agentic security guidance to
+SecurityRecipes capabilities, generated evidence, critical-infrastructure
+readiness, and MCP tools:
 
 - profile: `data/assurance/agentic-standards-crosswalk.json`
 - generator: `scripts/generate_agentic_standards_crosswalk.py`
 - crosswalk: `data/evidence/agentic-standards-crosswalk.json`
 - MCP tool: `recipes_agentic_standards_crosswalk`
 
-The pack answers procurement, AI platform, and acquisition diligence
-questions by linking standards controls to evidence paths, runtime
-evaluators, MCP tools, and commercialization hooks. CI runs the generator
-in `--check` mode so standards coverage cannot drift silently from the
-generated MCP-facing artifact.
+The pack answers procurement, AI platform, critical-infrastructure, and
+acquisition diligence questions by linking standards controls to evidence
+paths, runtime evaluators, MCP tools, and commercialization hooks. CI
+runs the generator in `--check` mode so standards coverage cannot drift
+silently from the generated MCP-facing artifact.
+
+### Agentic source freshness watch
+
+The generated source freshness watch tracks source references and
+last-reviewed dates across the buyer-facing standards, protocol, threat,
+release, incident, and severe-risk evidence packs:
+
+- profile: `data/assurance/agentic-source-freshness-profile.json`
+- generator: `scripts/generate_agentic_source_freshness_watch.py`
+- watch: `data/evidence/agentic-source-freshness-watch.json`
+- MCP tool: `recipes_agentic_source_freshness_watch`
+
+The pack answers whether SecurityRecipes is still current enough for
+enterprise review by returning watched packs, source references,
+publisher coverage, review-due decisions, primary watchlist coverage,
+and source artifact hashes. CI runs the generator in `--check` mode so
+current-source claims cannot drift silently from the generated
+MCP-facing artifact.
 
 ### MCP and agentic skills risk coverage
 
@@ -1972,6 +2299,24 @@ approval, procurement security, and acquisition diligence. CI runs the
 generator in `--check` mode so severe-risk evidence cannot drift from
 the generated source packs.
 
+### Critical-infrastructure secure-context profile
+
+The generated critical-infrastructure profile turns the Secure Context
+Layer thesis into a sector-ready evidence and runtime decision layer:
+
+- profile: `data/assurance/critical-infrastructure-secure-context-profile.json`
+- generator: `scripts/generate_critical_infrastructure_secure_context_pack.py`
+- evaluator: `scripts/evaluate_critical_infrastructure_context_decision.py`
+- pack: `data/evidence/critical-infrastructure-secure-context-pack.json`
+- MCP tools: `recipes_critical_infrastructure_secure_context_pack`, `recipes_evaluate_critical_infrastructure_context_decision`
+
+The pack covers energy/OT/ICS, healthcare, financial services,
+water/wastewater, transportation, and communications/cloud/DNS sector
+hazards. It is designed for regulated pilots, NIST critical
+infrastructure AI readiness conversations, MCP authorization review,
+operator approval, incident response, trust-center exports, and
+acquisition diligence.
+
 ### Agentic incident response pack
 
 The generated incident response pack turns secure-context and MCP-backed
@@ -2007,6 +2352,23 @@ handoffs, persistent memory writes, skill or tool installs, registry
 quarantine, and irreversible transactions. It is designed for MCP
 gateways, agent hosts, high-impact action inventory, platform readiness
 reviews, and buyer diligence.
+
+### Agent Trust Fabric pack
+
+The generated Agent Trust Fabric pack turns scattered agent safety
+controls into one zero-trust verdict per run:
+
+- profile: `data/assurance/agent-trust-fabric-profile.json`
+- generator: `scripts/generate_agent_trust_fabric_pack.py`
+- evaluator: `scripts/evaluate_agent_trust_fabric_decision.py`
+- pack: `data/evidence/agent-trust-fabric-pack.json`
+- MCP tools: `recipes_agent_trust_fabric_pack`, `recipes_evaluate_agent_trust_fabric_decision`
+
+The pack covers verifiable agent identity, trusted context ingress,
+least-privilege scope, runtime behavior monitoring, egress governance,
+containment, and source freshness. It is designed for AI platform
+architecture review, MCP gateways, SOC integration, trust-center exports,
+customer pilots, and acquisition diligence.
 
 ### Agentic approval receipt pack
 
@@ -2076,6 +2438,87 @@ The export indexes required evidence packs, hashes, categories, MCP
 tools, trust-center sections, and diligence questions. It is designed
 for procurement review, AI platform intake, trust-center export, and
 acquisition diligence.
+
+### Secure context value model
+
+The generated secure context value model packages the product thesis,
+buyer segments, hosted MCP wedges, conservative ROI assumptions, and
+acquisition readiness into one evidence-backed artifact:
+
+- profile: `data/assurance/secure-context-value-model-profile.json`
+- generator: `scripts/generate_secure_context_value_model.py`
+- model: `data/evidence/secure-context-value-model.json`
+- MCP tool: `recipes_secure_context_value_model`
+
+The model is explicitly assumption-based until customer runtime
+telemetry is attached. It is designed for design-partner scoping,
+board-level business cases, procurement value narratives, and
+acquisition diligence.
+
+### Design partner pilot pack
+
+The generated design partner pilot pack turns the product thesis into a
+customer-proof motion:
+
+- profile: `data/assurance/design-partner-pilot-profile.json`
+- generator: `scripts/generate_design_partner_pilot_pack.py`
+- pack: `data/evidence/design-partner-pilot-pack.json`
+- MCP tool: `recipes_design_partner_pilot_pack`
+
+The pack covers buyer segments, pilot phases, telemetry requirements,
+success metrics, paid wedges, pricing guardrails, diligence questions,
+source-pack readiness, and pilot risk decisions. It is designed for
+frontier labs, AI platform vendors, security vendors, regulated
+enterprises, VC diligence, and acquisition-readiness review.
+
+### Hosted MCP readiness pack
+
+The generated hosted MCP readiness pack is the enterprise product bridge
+from open evidence and local read-only MCP to tenant-safe hosted MCP:
+
+- profile: `data/assurance/hosted-mcp-readiness-profile.json`
+- generator: `scripts/generate_hosted_mcp_readiness_pack.py`
+- pack: `data/evidence/hosted-mcp-readiness-pack.json`
+- MCP tool: `recipes_hosted_mcp_readiness_pack`
+
+The pack covers readiness stages, tenant-bound context controls,
+protected-resource authorization, no-token-passthrough, connector
+isolation, tool-surface drift, URL-mode elicitation, metadata-first
+telemetry, signed receipt readiness, SOC detection, operations, metering,
+buyer evidence, and acquisition-risk gates.
+
+### Secure context buyer diligence brief
+
+The generated buyer diligence brief is the short-form review packet for
+frontier labs, AI platforms, security vendors, regulated enterprises,
+VCs, and acquisition reviewers:
+
+- profile: `data/assurance/secure-context-buyer-diligence-profile.json`
+- generator: `scripts/generate_secure_context_buyer_diligence_brief.py`
+- brief: `data/evidence/secure-context-buyer-diligence-brief.json`
+- MCP tool: `recipes_secure_context_buyer_diligence_brief`
+
+The brief covers feature options assessed, buyer persona briefs,
+enterprise questions, objection handlers, industry bets, source
+references, source-pack readiness, and deal-room proof steps. It is
+designed to make the first buyer review easy while separating reference
+evidence from customer runtime proof.
+
+### Secure context customer proof pack
+
+The generated customer proof pack is the design-partner evidence
+contract that turns the buyer story into measurable runtime proof:
+
+- profile: `data/assurance/secure-context-customer-proof-profile.json`
+- generator: `scripts/generate_secure_context_customer_proof_pack.py`
+- pack: `data/evidence/secure-context-customer-proof-pack.json`
+- MCP tool: `recipes_secure_context_customer_proof_pack`
+
+The pack covers proof claims, runtime event classes, metrics, renewal
+gates, redaction defaults, acquirer readout, source-pack hashes, and
+proof risks. It intentionally blocks revenue or acquisition claims until
+customer telemetry replaces assumptions with receipts, MCP decisions,
+reviewer outcomes, and paid-wedge evidence.
 
 ### Standalone MCP server (Python + Docker)
 
@@ -2155,6 +2598,9 @@ Edit `mcp-server.toml`:
   `recipes_evaluate_mcp_tool_surface_drift_decision`
 - `red_team_drill_pack_path` -> generated agentic red-team drill pack
   exposed through the `recipes_agentic_red_team_drill_pack` MCP tool
+- `red_team_replay_harness_path` -> generated agentic red-team replay
+  harness exposed through `recipes_agentic_red_team_replay_harness` and
+  `recipes_evaluate_agentic_red_team_replay_result` MCP tools
 - `readiness_scorecard_path` -> generated agentic readiness scorecard
   exposed through the `recipes_agentic_readiness_scorecard` MCP tool
 - `capability_risk_register_path` -> generated capability risk register
@@ -2199,6 +2645,8 @@ Edit `mcp-server.toml`:
   the `recipes_agentic_threat_radar` MCP tool
 - `standards_crosswalk_path` -> generated agentic standards crosswalk
   exposed through the `recipes_agentic_standards_crosswalk` MCP tool
+- `source_freshness_watch_path` -> generated source freshness watch
+  exposed through the `recipes_agentic_source_freshness_watch` MCP tool
 - `mcp_risk_coverage_pack_path` -> generated OWASP MCP and agentic-skill
   risk coverage exposed through the `recipes_mcp_risk_coverage_pack`
   MCP tool
@@ -2209,6 +2657,9 @@ Edit `mcp-server.toml`:
 - `posture_snapshot_path` -> generated agentic posture snapshot exposed
   through `recipes_agentic_posture_snapshot` and
   `recipes_evaluate_agentic_posture_decision` MCP tools
+- `agentic_aivss_risk_scoring_pack_path` -> generated Agentic AIVSS risk
+  scoring pack exposed through `recipes_agentic_aivss_risk_scoring_pack`
+  and `recipes_evaluate_agentic_aivss_risk_decision` MCP tools
 - `app_intake_pack_path` -> generated agentic app intake pack exposed
   through `recipes_agentic_app_intake_pack` and
   `recipes_evaluate_agentic_app_intake_decision` MCP tools
@@ -2221,6 +2672,9 @@ Edit `mcp-server.toml`:
 - `action_runtime_pack_path` -> generated agentic action runtime pack
   exposed through `recipes_agentic_action_runtime_pack` and
   `recipes_evaluate_agentic_action_runtime_decision` MCP tools
+- `agent_trust_fabric_pack_path` -> generated Agent Trust Fabric pack
+  exposed through `recipes_agent_trust_fabric_pack` and
+  `recipes_evaluate_agent_trust_fabric_decision` MCP tools
 - `browser_agent_boundary_pack_path` -> generated browser-agent
   workspace boundary pack exposed through
   `recipes_browser_agent_boundary_pack` and
@@ -2230,8 +2684,23 @@ Edit `mcp-server.toml`:
 - `telemetry_contract_path` -> generated agentic telemetry contract
   exposed through `recipes_agentic_telemetry_contract` and
   `recipes_evaluate_agentic_telemetry_event` MCP tools
+- `soc_detection_pack_path` -> generated agentic SOC detection pack
+  exposed through `recipes_agentic_soc_detection_pack` and
+  `recipes_evaluate_agentic_soc_detection_event` MCP tools
 - `enterprise_trust_center_export_path` -> generated trust-center export
   exposed through the `recipes_enterprise_trust_center_export` MCP tool
+- `secure_context_value_model_path` -> generated secure context value
+  model exposed through the `recipes_secure_context_value_model` MCP tool
+- `design_partner_pilot_pack_path` -> generated design partner pilot
+  pack exposed through the `recipes_design_partner_pilot_pack` MCP tool
+- `buyer_diligence_brief_path` -> generated secure context buyer
+  diligence brief exposed through the
+  `recipes_secure_context_buyer_diligence_brief` MCP tool
+- `customer_proof_pack_path` -> generated secure context customer proof
+  pack exposed through the `recipes_secure_context_customer_proof_pack`
+  MCP tool
+- `hosted_mcp_readiness_pack_path` -> generated hosted MCP readiness
+  pack exposed through the `recipes_hosted_mcp_readiness_pack` MCP tool
 
 This lets teams host the Hugo site and MCP server under different domains
 without changing code.

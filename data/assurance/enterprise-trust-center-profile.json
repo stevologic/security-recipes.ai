@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-03",
+  "last_reviewed": "2026-05-04",
   "intent": "Define the SecurityRecipes enterprise trust-center export so the open knowledge base, generated evidence packs, and repo-shipped MCP server can be reviewed as one acquisition-grade control package for AI platform, security, GRC, procurement, and frontier-lab diligence teams.",
   "positioning": {
     "buyer": "AI Platform, Security Engineering, Product Security, AppSec, GRC, procurement security, vendor-risk, model-risk, and acquisition diligence teams",
@@ -20,6 +20,12 @@
       "name": "CAISI Request for Information on Securing AI Agent Systems",
       "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems",
       "coverage": "Threats from indirect prompt injection, data poisoning, misaligned actions, and deployment controls that constrain and monitor agent access."
+    },
+    {
+      "id": "nist-ai-rmf-critical-infrastructure-concept-note-2026",
+      "name": "NIST AI RMF Profile on Trustworthy AI in Critical Infrastructure Concept Note",
+      "url": "https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure",
+      "coverage": "NIST's 2026 direction for AI-enabled critical infrastructure across IT, OT, ICS, sector lifecycles, supply chains, and trustworthiness requirements."
     },
     {
       "id": "owasp-agentic-top-10-2026",
@@ -153,6 +159,14 @@
       "path": "data/evidence/agentic-catastrophic-risk-annex.json",
       "category": "risk",
       "mcp_tools": ["recipes_agentic_catastrophic_risk_annex", "recipes_evaluate_agentic_catastrophic_risk_decision"],
+      "required": true
+    },
+    {
+      "id": "critical-infrastructure-secure-context-pack",
+      "title": "Critical Infrastructure Secure Context Pack",
+      "path": "data/evidence/critical-infrastructure-secure-context-pack.json",
+      "category": "risk",
+      "mcp_tools": ["recipes_critical_infrastructure_secure_context_pack", "recipes_evaluate_critical_infrastructure_context_decision"],
       "required": true
     },
     {
@@ -544,6 +558,36 @@
           "id": "catastrophic-risk-replay",
           "question": "Can severe-risk scenarios be replayed after model, connector, prompt, policy, or context drift?",
           "answer": "The annex ties severe scenarios to red-team drills, measurement probes, readiness decisions, run receipts, and expected runtime decisions so drift can trigger replay before expansion."
+        }
+      ]
+    },
+    {
+      "id": "critical-infrastructure-readiness",
+      "title": "Critical infrastructure readiness",
+      "claim": "Critical-infrastructure agent pilots start with read-only secure context, sector hazard mapping, MCP scope minimization, operator approvals, safety-case gates, telemetry, and incident response evidence.",
+      "evidence_pack_ids": [
+        "critical-infrastructure-secure-context-pack",
+        "agentic-catastrophic-risk-annex",
+        "mcp-authorization-conformance",
+        "context-egress-boundary-pack",
+        "agentic-telemetry-contract",
+        "agentic-incident-response-pack"
+      ],
+      "due_diligence_questions": [
+        {
+          "id": "ci-read-only-start",
+          "question": "Can critical-infrastructure operators pilot agents without allowing write or control actions?",
+          "answer": "The critical-infrastructure profile defines read-only context and evidence-generation lanes as the safe starting point, while high-impact or sector-hazard actions hold until safety-case, operator approval, risk acceptance, receipt, authorization, and egress evidence exist."
+        },
+        {
+          "id": "ci-sector-hazards",
+          "question": "How are energy, healthcare, finance, water, transportation, and communications hazards handled differently?",
+          "answer": "The profile contains sector profiles with prohibited actions, required controls, operator evidence, safety-case gates, and deterministic runtime decisions for each sector's safety, availability, privacy, financial, or cross-sector dependency hazards."
+        },
+        {
+          "id": "ci-mcp-scope",
+          "question": "What stops MCP scope creep, token passthrough, shadow servers, or unsafe local MCP launches in high-stakes workflows?",
+          "answer": "Critical-infrastructure decisions require MCP authorization and egress allow decisions, while token passthrough, shadow MCP servers, unsafe local launches, and raw secret access become kill-session signals."
         }
       ]
     },

@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0",
-  "last_reviewed": "2026-05-04",
+  "last_reviewed": "2026-05-05",
   "positioning": {
     "name": "SecurityRecipes client-side marketplace",
-    "summary": "A BYO-token browser control plane for AI security work: connect context, apply recipes, import scans, generate normalized reports, and hand results to downstream systems like Teams, ServiceNow, Linear, Splunk, Elastic, or custom webhooks without server-side secret storage.",
-    "browser_model": "Provider credentials, connector settings, and selected workflow state stay in browser storage. Recipes and marketplace templates are open Hugo content. Live API calls are explicit and same-origin or direct-to-provider from the browser.",
+    "summary": "A BYO-token browser control plane for AI security work: connect GitHub, GitLab, Azure DevOps, local scan artifacts, Snyk issues, Defender XDR incidents, Sentinel incidents, DefectDojo findings, Tenable exports, CrowdStrike detections, Prisma Cloud alerts, Security Hub findings, Confluence runbooks, and recipe context; surface source freshness, classify source failures, refresh browser-safe sources inline, and route manual uploads back to local setup before the next run; surface navigator mission-control cards for due schedules, queue head, source issues, open cases, portfolio gaps, and saved-case handoff drift; export a browser-local daily ops brief as markdown or JSON; keep a browser-local operations ledger for source syncs, chat sessions, agent runs, case actions, and report exports; group correlated source pulls, AI runs, case captures, and handoff exports into browser-local investigation sessions; filter the ledger by category, state, or free-text; inspect either one record or one grouped session as JSON; and jump back into the linked browser surface without leaving the navigator; register browser-local assets, owner teams, criticality, service portfolios, and lightweight asset relationships; turn imported findings into a prioritized browser-local Exposure Board; roll related repositories, services, APIs, and data stores into a portfolio-aware service map; score each service portfolio by owner coverage, case coverage, routing coverage, and live-delivery blockers; open a Reports desk that can seed a normalized handoff packet from a saved case, exposure queue item, or grouped investigation session; generate normalized reports with both current handoff readiness and source-case readiness provenance, and compare the current handoff context to the captured run before anything is routed downstream; hand results to downstream systems like Teams, ServiceNow, Linear, GitLab, Azure DevOps, Splunk, Elastic, PagerDuty, Google Chat, Cortex XSOAR, IBM SOAR, Sentinel playbooks, or custom webhooks without server-side secret storage; author private workflow, report, or integration packs locally with schema-backed validation; carry versioned pack governance, docs linkage, review cadence, and explicit pack dependencies alongside those contracts; capture reviewed runs as reusable browser-local case files with evidence timeline, replayable planner state, and captured launch-readiness provenance; author owner-aware and portfolio-aware routing policies that prefill downstream routes, approvals, and ticket metadata; inspect auditable routing analysis that shows which policy matched, which defaults were recommended, and where the planner still diverges before anything leaves the browser; audit the active planner for missing provider credentials, target-scope gaps, stale evidence, workflow-pack blockers, and route prerequisites before a run is generated; export portfolio coverage evidence alongside normalized report bundles so downstream review can see which services are still unrouted or only handoff-ready; and move validated case, asset, routing, marketplace, operations-history, or operations-session libraries between browser profiles before contributing anything back to Hugo.",
+    "browser_model": "Provider credentials, connector settings, and selected workflow state stay in browser storage. Recipes and marketplace templates are open Hugo content. Live API calls are explicit and same-origin or direct-to-provider/direct-to-approved-SaaS APIs from the browser.",
     "contribution_model": "Marketplace entries are Hugo data files and docs content so teams can fork, contribute, review, and publish new channels and workflows through normal pull requests."
   },
   "market_signals": [
@@ -19,6 +19,12 @@
       "source": "Airia MCP Gateway",
       "url": "https://airia.com/airias-mcp-gateway-surpasses-1000-pre-configured-integrations-delivering-the-largest-enterprise-ready-mcp-catalog/",
       "signal": "Enterprises now expect large governed integration catalogs with change detection, version pinning, and audit logging."
+    },
+    {
+      "date": "2026-01-28",
+      "source": "Cortex XSOAR content pack installation",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8/Cortex-XSOAR-Administrator-Guide/Content-Pack-Installation",
+      "signal": "Security marketplaces now treat version history plus required and optional pack dependencies as first-class operating constraints, which supports explicit pack governance and dependency health in the browser marketplace."
     },
     {
       "date": "2026-04-29",
@@ -49,6 +55,374 @@
       "source": "2026 State of Browser Security",
       "url": "https://www.scworld.com/brief/2026-state-of-browser-security-report-highlights-ai-integration-and-evolving-threats",
       "signal": "The browser is a meaningful AI operating surface, which supports a client-side BYO-token model but requires clear guardrails around extensions, personal accounts, and data egress."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Tines templates docs",
+      "url": "https://explained.tines.com/en/articles/12709787-templates-in-tines",
+      "signal": "Public and private reusable templates are now a product baseline, which supports private local pack labs before public contribution."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Cortex XDR report templates",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-5.x-Documentation/Run-or-schedule-reports",
+      "signal": "Security platforms now treat report templates as importable and exportable JSON artifacts, which supports making report profiles first-class browser-authored marketplace contracts instead of leaving output shape hard-coded."
+    },
+    {
+      "date": "2026-01-15",
+      "source": "Microsoft Security Copilot Export Activity API",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/activity-export-api",
+      "signal": "Security Copilot now exposes explicit export contracts for prompts, responses, and sessions, which supports treating browser-local session packs and report handoffs as durable artifacts instead of disposable UI state."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Cortex XSOAR content pack contributions",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8.10/Cortex-XSOAR-On-prem-Documentation/Content-pack-contributions",
+      "signal": "Security operators expect integration and workflow bundles to be contributed, reviewed, and optionally downloaded for Git-backed submission rather than authored only in a vendor-managed marketplace."
+    },
+    {
+      "date": "2026-05-05",
+      "source": "Cortex XSOAR create or update incident API",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR-8-API/Create-or-update-an-incident",
+      "signal": "Cortex XSOAR still exposes direct incident creation with API key plus x-xdr-auth-id headers and a createInvestigation switch, which supports a BYO-token browser route instead of keeping XSOAR at starter-contract status."
+    },
+    {
+      "date": "2025-09-02",
+      "source": "Using the Splunk SOAR REST API",
+      "url": "https://help.splunk.com/en/splunk-soar/soar-on-premises/rest-api-reference/6.4.0/using-the-splunk-soar-rest-api/using-the-rest-api-reference-for-splunk-soar-on-premises",
+      "signal": "Splunk SOAR still documents ph-auth-token authentication together with POST /rest/container, which keeps a BYO-token browser container route feasible for reviewed remediation and incident packets."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Torq integration builder docs",
+      "url": "https://kb.torq.io/en/articles/10662506-integration-builder-create-custom-integrations",
+      "signal": "Custom integration builders now expose auth parameters, documentation links, and test setup as first-class authoring inputs, which supports adding a browser-side input/output pack studio instead of hard-coding only vendor-owned routes."
+    },
+    {
+      "date": "2026-04-12",
+      "source": "Cortex XSOAR content validation",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8.10/Cortex-XSOAR-On-prem-Documentation/Content-pack-contributions",
+      "signal": "Marketplace contribution systems now treat validation as part of authoring, including pre-submit checks and exportable raw error details, which supports schema-backed browser validation before a SecurityRecipes marketplace PR."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Elastic Security cases docs",
+      "url": "https://www.elastic.co/docs/solutions/security/investigate/security-cases",
+      "signal": "Modern security workbenches treat cases as the place to collect investigation context, metrics, attachments, and external escalations, which supports adding a browser-local Caseboard instead of leaving runs stranded as one-off prompts."
+    },
+    {
+      "date": "2026-04-26",
+      "source": "Cortex XSOAR War Room docs",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8/Cortex-XSOAR-SaaS-Documentation/Use-the-War-Room-in-an-investigation",
+      "signal": "Incident handling products continue to emphasize an audit trail of automatic and manual actions inside each investigation, which supports capturing browser-run timelines and delivery events as first-class local case history."
+    },
+    {
+      "date": "2026-04-27",
+      "source": "Cortex XSIAM War Room docs",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSIAM/Cortex-XSIAM-Documentation/Use-the-War-Room-in-an-investigation",
+      "signal": "Major SecOps workbenches keep automatic and manual actions tied to one incident-local audit trail, which supports surfacing saved-case handoff drift and revalidation work directly inside the browser case and report surfaces."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Microsoft Sentinel incident investigation docs",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/incident-investigation",
+      "signal": "SecOps platforms still differentiate on giving analysts one place to review the chronology, evidence, and task context of an investigation, which supports making SecurityRecipes feel like a complete application rather than just a chat surface."
+    },
+    {
+      "date": "2026-03-23",
+      "source": "Elastic Workflows launch",
+      "url": "https://www.elastic.co/blog/workflows-soar",
+      "signal": "Security platforms are increasingly collapsing alerts, investigations, workflows, and response into one surface, which supports treating portable case libraries and replayable run context as first-class application primitives instead of disposable chat output."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Wiz Exposure Management",
+      "url": "https://www.wiz.io/solutions/exposure-management",
+      "signal": "Exposure-management platforms now differentiate by correlating findings across tools, removing alert silos, and turning prioritized risk into owner-ready action, which supports adding a browser-local Exposure Board on top of the existing scanner and case primitives."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Wiz ASM",
+      "url": "https://www.wiz.io/solutions/asm",
+      "signal": "Attack-surface and exposure products now explicitly promise business-impact and owner-aware prioritization, which supports adding a browser-local asset and ownership layer instead of leaving queue items detached from the team that should fix them."
+    },
+    {
+      "date": "2025-09-08",
+      "source": "Microsoft Security Exposure Management critical assets",
+      "url": "https://learn.microsoft.com/en-us/security-exposure-management/classify-critical-assets",
+      "signal": "Critical-asset programs now combine cyber-role, production context, and system importance to drive prioritization, which supports capturing local asset criticality and environment metadata alongside browser-first remediation queues."
+    },
+    {
+      "date": "2025-01-13",
+      "source": "Microsoft Security Exposure Management initiative metrics",
+      "url": "https://learn.microsoft.com/en-gb/security-exposure-management/security-metrics",
+      "signal": "Exposure programs now expose state, progress, affected assets, weighted impact, and linked recommendations in one scored initiative view, which supports deriving a browser-local portfolio coverage score and gap snapshot instead of leaving service maps as passive reference data."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Elastic asset criticality",
+      "url": "https://www.elastic.co/docs/solutions/security/advanced-entity-analytics/asset-criticality",
+      "signal": "Mature SecOps tools now bulk-import criticality from inventory files and enrich downstream alerts with that context, which supports schema-backed browser import/export for asset ownership and criticality libraries."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Elastic entity risk scoring",
+      "url": "https://www.elastic.co/docs/solutions/security/advanced-entity-analytics/entity-risk-scoring",
+      "signal": "Risk engines increasingly combine alerts and asset criticality into a recurring service or entity score, which supports adding portfolio coverage scoring that blends exposure queue state, owner gaps, and route readiness inside the browser workbench."
+    },
+    {
+      "date": "2026-03-12",
+      "source": "ServiceNow CMDB-based mapping",
+      "url": "https://www.servicenow.com/docs/r/it-operations-management/service-mapping/cmdb-based-mapping.html",
+      "signal": "Service mapping products now expect application services to be derived from related hosts, traffic, and dependency context, which supports adding lightweight browser-local portfolio and relationship fields instead of treating every asset as an isolated record."
+    },
+    {
+      "date": "2026-03-12",
+      "source": "ServiceNow link application services",
+      "url": "https://www.servicenow.com/docs/r/servicenow-platform/configuration-management-database-cmdb/link-services-to-services.html",
+      "signal": "Application-service maps now explicitly model service-to-service dependencies for impact monitoring, which supports deriving dependency fan-out and downstream blast radius from linked browser-local portfolios instead of only scoring each service in isolation."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Atlassian Assets",
+      "url": "https://support.atlassian.com/assets/docs/what-is-assets-in-jira-service-management-cloud/",
+      "signal": "Asset-management surfaces now emphasize linking incidents and changes to the relationships between applications, services, infrastructure, and dependencies, which supports surfacing a portfolio-aware service map directly in the browser workbench."
+    },
+    {
+      "date": "2025-09-15",
+      "source": "Microsoft Security Exposure Management attack surface map",
+      "url": "https://learn.microsoft.com/en-us/security-exposure-management/enterprise-exposure-map",
+      "signal": "Exposure-management platforms continue to differentiate on exploring asset connections, critical paths, and choke points in one map view, which supports adding dependency-aware route coverage and fan-out analytics to the browser Router instead of only listing flat queue counts."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Microsoft Sentinel automation rules",
+      "url": "https://learn.microsoft.com/en-us/azure/sentinel/automate-incident-handling-with-automation-rules",
+      "signal": "Mainstream SecOps tools now centralize trigger, condition, owner-assignment, severity-change, and playbook-routing logic in one automation layer, which supports adding browser-local routing policies instead of leaving downstream handling fully manual."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Elastic security workflows",
+      "url": "https://www.elastic.co/docs/explore-analyze/workflows/use-cases/security",
+      "signal": "Security workflow surfaces now explicitly combine automatic response, case creation, severity-based notification routing, and AI-assisted investigation, which supports treating routing defaults as a first-class control-plane layer between exposures, cases, and downstream outputs."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "ServiceNow flow execution details",
+      "url": "https://www.servicenow.com/docs/r/build-workflows/workflow-studio/flow-execution-details.html?contentId=TQmEZT4017Q7XcTIkebtNA",
+      "signal": "Mainstream workflow platforms expose runtime state, input and output values, and execution logs in a dedicated audit view, which supports surfacing routing match reasons, default injection, and readiness blockers directly in the browser planner."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Tines intelligent workflow platform",
+      "url": "https://www.tines.com/",
+      "signal": "Tines now explicitly positions deterministic workflows as the right surface for triage, routing, and explainability, which supports adding a first-class routing audit layer instead of treating browser-local policy matches as hidden background logic."
+    },
+    {
+      "date": "2026-03-18",
+      "source": "Microsoft Security Copilot plugins overview",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/plugin-overview",
+      "signal": "Security AI platforms now expose plugin and tool catalogs directly to operators, including enablement state and purchased capabilities, which supports a public readiness matrix instead of burying integration prerequisites inside hidden setup flows."
+    },
+    {
+      "date": "2026-03-18",
+      "source": "Microsoft Security Copilot prompting and promptbooks",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/prompting-security-copilot",
+      "signal": "Security AI products now surface reusable promptbooks and role-based starting flows directly from the home experience, which supports adding a first-class mission-control layer instead of hiding daily work behind separate tabs."
+    },
+    {
+      "date": "2025-11-25",
+      "source": "Microsoft Security Exposure Management prerequisites",
+      "url": "https://learn.microsoft.com/en-us/security-exposure-management/prerequisites",
+      "signal": "Exposure-management products now document explicit freshness windows and current-snapshot retention for connector-driven graph data, which supports showing stale-source warnings and navigator refresh actions instead of assuming imported context stays trustworthy forever."
+    },
+    {
+      "date": "2026-01-07",
+      "source": "Google SecOps Health Hub",
+      "url": "https://docs.cloud.google.com/chronicle/docs/reports/data-health-monitoring-and-troubleshooting-dashboard",
+      "signal": "Modern SecOps consoles now centralize failed sources, ingestion health, and remediation context in one health surface, which supports combining source recovery, freshness, and daily-ops triage inside the navigator."
+    },
+    {
+      "date": "2026-05-02",
+      "source": "Elastic Attack Discovery",
+      "url": "https://www.elastic.co/docs/solutions/security/ai/attack-discovery",
+      "signal": "AI security workflows now routinely combine scheduled discoveries, saved review state, status changes, and connector-aware notifications in one operating surface, which supports promoting SecurityRecipes from isolated panels into a browser-local mission board."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "GitLab Issues API",
+      "url": "https://docs.gitlab.com/api/issues/",
+      "signal": "GitLab still exposes direct project issue creation with URL-encoded project paths and token-authenticated API access, which makes a browser-first BYO-token issue route feasible without inventing a separate relay product."
+    },
+    {
+      "date": "2026-05-05",
+      "source": "GitLab Projects, Merge Requests, and Vulnerability Findings APIs",
+      "url": "https://docs.gitlab.com/api/projects/",
+      "signal": "GitLab still exposes project metadata through ID or URL-encoded path, project merge requests through the REST API, and project vulnerability findings through an authenticated but unstable REST surface that GitLab recommends treating as bounded and GraphQL-adjacent. That keeps browser-side GitLab intake viable, but it should stay explicitly sampled and reviewer-visible."
+    },
+    {
+      "date": "2026-05-04",
+      "source": "Azure DevOps REST auth and work item create docs",
+      "url": "https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/rest/samples?view=azure-devops",
+      "signal": "Azure DevOps continues to recommend Microsoft Entra tokens for production while still documenting PATs as simple auth and the Work Item Tracking create endpoint as JSON Patch, which supports a browser-local BYO-token route that remains `live_or_copy` rather than pretending every tenant should allow direct writes."
+    },
+    {
+      "date": "2026-05-01",
+      "source": "Azure DevOps public projects retirement",
+      "url": "https://learn.microsoft.com/en-us/azure/devops/organizations/projects/public-projects-retirement?view=azure-devops",
+      "signal": "Microsoft now treats Azure DevOps public projects as retired and says remaining public projects convert to private in 2027, which reinforces an authenticated browser-side enterprise intake model instead of designing around anonymous repository access."
+    },
+    {
+      "date": "2026-05-01",
+      "source": "Microsoft Security Copilot prompting",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/prompting-security-copilot",
+      "signal": "Microsoft now treats process-log visibility during response generation as a first-class operator surface, which supports exposing browser-local AI run chronology instead of leaving provider actions opaque."
+    },
+    {
+      "date": "2025-12-05",
+      "source": "Microsoft Security Copilot navigation",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/navigating-security-copilot",
+      "signal": "Security Copilot now exposes a dedicated History view plus process logs in the main workflow, which supports making Navigator carry both local session history and current operational context."
+    },
+    {
+      "date": "2026-03-04",
+      "source": "Cortex XSOAR incident management",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/6.11/Cortex-XSOAR-Administrator-Guide/Incident-Management",
+      "signal": "Cortex XSOAR continues to frame incident investigation as one place to review status, timeline, and escalations together, which supports exporting grouped browser-local investigation sessions instead of leaving only isolated event records."
+    },
+    {
+      "date": "2026-01-16",
+      "source": "Microsoft Security Copilot audit log",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/audit-log",
+      "signal": "Microsoft explicitly frames prompt, response, and activity metadata as audit artifacts, which supports giving the browser workbench a portable operations-history contract instead of treating AI work as disposable UI state."
+    },
+    {
+      "date": "2026-04-26",
+      "source": "Cortex XSOAR War Room",
+      "url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8/Cortex-XSOAR-SaaS-Documentation/Use-the-War-Room-in-an-investigation",
+      "signal": "Cortex XSOAR continues to position the investigation timeline as the place to document automatic and manual actions in one source, which reinforces adding a browser-local SecOps chronology on top of chat, cases, and routes."
+    },
+    {
+      "date": "2026-05-05",
+      "source": "Elastic Attack Discovery saved discoveries",
+      "url": "https://www.elastic.co/docs/solutions/security/ai/attack-discovery",
+      "signal": "Elastic now treats AI discoveries as saved artifacts for later review, reporting, tracking, and search/filter workflows, which supports adding a filterable replay-friendly operations ledger instead of limiting browser history to a short recent list."
+    },
+    {
+      "date": "2025-10-20",
+      "source": "Use plugins in Microsoft Security Copilot",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/use-plugins",
+      "signal": "Microsoft now exposes plugin state filters and per-plugin personalization settings such as default Sentinel workspaces, which supports treating launch-readiness and connector defaults as a first-class operator surface instead of burying them behind scattered setup forms."
+    },
+    {
+      "date": "2026-03-18",
+      "source": "Microsoft Security Copilot in your workflows",
+      "url": "https://learn.microsoft.com/en-us/copilot/security/workflows-overview",
+      "signal": "Microsoft now frames discovering agents, configuring plugins, and reviewing agent success as one workflow, which supports adding a planner-side readiness gate before analysts generate a run or attempt downstream delivery."
+    }
+  ],
+  "strategic_tracks": [
+    {
+      "id": "appsec-code-intake",
+      "label": "AppSec and code intake",
+      "priority": "now",
+      "summary": "Close the major AppSec intake gaps so the browser planner can start from first-party scanner state instead of only manual uploads and generic artifacts.",
+      "pack_ids": [
+        "github-code-scanning-alerts",
+        "gitlab-vulnerability-findings",
+        "semgrep-appsec-findings",
+        "sonarqube-issues",
+        "checkmarx-one-findings",
+        "veracode-findings",
+        "sarif-manual-import"
+      ],
+      "market_signal_sources": [
+        "Harness STO SARIF ingestion",
+        "GitLab Projects, Merge Requests, and Vulnerability Findings APIs",
+        "Microsoft Security Copilot plugins overview"
+      ],
+      "next_focus": [
+        "Promote GitHub code scanning and at least one dedicated AppSec platform feed from reviewed starter contract to browser-live intake.",
+        "Keep SARIF as the universal fallback when vendor APIs, scopes, or CORS policies block direct browser pulls."
+      ]
+    },
+    {
+      "id": "cloud-exposure-intake",
+      "label": "Cloud and exposure intake",
+      "priority": "now",
+      "summary": "Make cloud posture, CNAPP, and exposure feeds feel native by covering the attack-surface and runtime platforms that security teams already triage every day.",
+      "pack_ids": [
+        "wiz-findings-api",
+        "security-hub-api",
+        "aws-inspector-findings",
+        "prisma-cloud-alerts",
+        "orca-security-alerts",
+        "lacework-alerts",
+        "google-cloud-scc-findings"
+      ],
+      "market_signal_sources": [
+        "Wiz State of AI in the Cloud 2026",
+        "Salt Security 1H 2026 report",
+        "Microsoft Security Exposure Management prerequisites"
+      ],
+      "next_focus": [
+        "Group posture, runtime, and API-exposure evidence into one normalized queue so portfolios and cases stop depending on one vendor at a time.",
+        "Keep cloud-provider starter packs honest about request signing and delegated auth until the browser flow is proven end to end."
+      ]
+    },
+    {
+      "id": "secops-detection-intake",
+      "label": "SecOps detection intake",
+      "priority": "next",
+      "summary": "Broaden detection and vulnerability intake beyond Microsoft so the queue proves it is usable for MSSP, IR, and enterprise operations teams with mixed stacks.",
+      "pack_ids": [
+        "microsoft-defender-xdr-incidents",
+        "microsoft-sentinel-incidents",
+        "crowdstrike-detections",
+        "tenable-vulnerability-management",
+        "rapid7-insightvm-vulnerabilities"
+      ],
+      "market_signal_sources": [
+        "Google SecOps Health Hub",
+        "Elastic Attack Discovery",
+        "2026 State of Browser Security"
+      ],
+      "next_focus": [
+        "Promote one non-Microsoft detection feed to live browser pull so the queue is clearly multi-platform rather than Microsoft-centric.",
+        "Use freshness and queue-state labels to show when a detection feed is sampled, stale, or only available through a starter contract."
+      ]
+    },
+    {
+      "id": "orchestration-and-delivery",
+      "label": "Orchestration and delivery",
+      "priority": "now",
+      "summary": "Meet the baseline expectation that a security workbench can hand reviewed output into the ticketing, SOAR, and workflow systems already running the team.",
+      "pack_ids": [
+        "jira-ticket",
+        "servicenow-incident",
+        "gitlab-issue",
+        "azure-devops-work-item",
+        "cortex-xsoar-incident",
+        "ibm-soar-incident",
+        "microsoft-sentinel-playbook",
+        "tines-webhook",
+        "torq-webhook",
+        "splunk-soar-incident",
+        "swimlane-case",
+        "pagerduty-events-v2"
+      ],
+      "market_signal_sources": [
+        "Cortex XSOAR content pack contributions",
+        "Cortex XSOAR create or update incident API",
+        "Using the Splunk SOAR REST API",
+        "Torq integration builder docs",
+        "Tines templates docs",
+        "Tines intelligent workflow platform"
+      ],
+      "next_focus": [
+        "Build on the live Tines, Torq, Cortex XSOAR, and Splunk SOAR routes by promoting Swimlane or IBM SOAR next so the browser workbench covers both container and case-record handoff patterns.",
+        "Keep route-specific payload shaping and copy-safe handoff packets first-class so blocked writes do not collapse the operator workflow."
+      ]
     }
   ]
 }

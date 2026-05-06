@@ -232,6 +232,114 @@
       "section_id": "catastrophic-risk-governance"
     },
     {
+      "answer": "Critical-infrastructure decisions require MCP authorization and egress allow decisions, while token passthrough, shadow MCP servers, unsafe local launches, and raw secret access become kill-session signals.",
+      "evidence_pack_ids": [
+        "critical-infrastructure-secure-context-pack",
+        "agentic-catastrophic-risk-annex",
+        "mcp-authorization-conformance",
+        "context-egress-boundary-pack",
+        "agentic-telemetry-contract",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/critical-infrastructure-secure-context-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "ci-mcp-scope",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_critical_infrastructure_secure_context_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_critical_infrastructure_context_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "What stops MCP scope creep, token passthrough, shadow servers, or unsafe local MCP launches in high-stakes workflows?",
+      "section_id": "critical-infrastructure-readiness"
+    },
+    {
+      "answer": "The critical-infrastructure profile defines read-only context and evidence-generation lanes as the safe starting point, while high-impact or sector-hazard actions hold until safety-case, operator approval, risk acceptance, receipt, authorization, and egress evidence exist.",
+      "evidence_pack_ids": [
+        "critical-infrastructure-secure-context-pack",
+        "agentic-catastrophic-risk-annex",
+        "mcp-authorization-conformance",
+        "context-egress-boundary-pack",
+        "agentic-telemetry-contract",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/critical-infrastructure-secure-context-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "ci-read-only-start",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_critical_infrastructure_secure_context_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_critical_infrastructure_context_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "Can critical-infrastructure operators pilot agents without allowing write or control actions?",
+      "section_id": "critical-infrastructure-readiness"
+    },
+    {
+      "answer": "The profile contains sector profiles with prohibited actions, required controls, operator evidence, safety-case gates, and deterministic runtime decisions for each sector's safety, availability, privacy, financial, or cross-sector dependency hazards.",
+      "evidence_pack_ids": [
+        "critical-infrastructure-secure-context-pack",
+        "agentic-catastrophic-risk-annex",
+        "mcp-authorization-conformance",
+        "context-egress-boundary-pack",
+        "agentic-telemetry-contract",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/critical-infrastructure-secure-context-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "ci-sector-hazards",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_critical_infrastructure_secure_context_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_critical_infrastructure_context_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question": "How are energy, healthcare, finance, water, transportation, and communications hazards handled differently?",
+      "section_id": "critical-infrastructure-readiness"
+    },
+    {
       "answer": "The natural paid layer is hosted MCP policy, context signing, customer-private context packs, connector discovery and diffing, run evidence retention, incident response evidence vaulting, eval replay, trust-center exports, and enterprise approval receipts.",
       "evidence_pack_ids": [
         "agentic-threat-radar",
@@ -970,7 +1078,7 @@
       "identity": 2,
       "incident_response": 1,
       "inventory": 1,
-      "risk": 3,
+      "risk": 4,
       "runtime_evidence": 2,
       "runtime_policy": 2,
       "secure_context": 5,
@@ -987,32 +1095,55 @@
       "status": "acquisition_diligence_ready",
       "total_layer_count": 10
     },
-    "crosswalk_summary": {
-      "capability_count": 27,
-      "control_count": 29,
+    "critical_infrastructure_summary": {
+      "control_count": 9,
       "control_status_counts": {
-        "ready": 29
+        "ready": 9
       },
-      "covered_capability_count": 26,
-      "distinct_mcp_tool_count": 37,
+      "distinct_mcp_tool_count": 30,
+      "evidence_pack_count": 17,
+      "evidence_status_counts": {
+        "ready": 17
+      },
+      "failure_count": 0,
+      "lane_count": 4,
+      "lane_status_counts": {
+        "operator_review_required": 3,
+        "ready": 1
+      },
+      "ready_sector_count": 6,
+      "sector_count": 6,
+      "sector_status_counts": {
+        "ready_for_read_only_pilot": 6
+      },
+      "status": "critical_infrastructure_secure_context_ready"
+    },
+    "crosswalk_summary": {
+      "capability_count": 33,
+      "control_count": 39,
+      "control_status_counts": {
+        "ready": 39
+      },
+      "covered_capability_count": 33,
+      "distinct_mcp_tool_count": 50,
       "failure_count": 0,
       "source_class_counts": {
-        "frontier_lab_guidance": 3,
-        "government_framework": 4,
+        "frontier_lab_guidance": 4,
+        "government_framework": 5,
         "incident_intelligence": 1,
-        "industry_standard": 4,
+        "industry_standard": 5,
         "protocol_guidance": 1,
         "protocol_specification": 1
       },
-      "source_reference_count": 14,
-      "standard_count": 5,
+      "source_reference_count": 17,
+      "standard_count": 7,
       "standard_status_counts": {
-        "ready": 5
+        "ready": 7
       },
       "status": "standards_crosswalk_ready"
     },
     "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
-    "distinct_mcp_tool_count": 46,
+    "distinct_mcp_tool_count": 48,
     "entitlement_review_summary": {
       "access_mode_counts": {
         "approval_required": 3,
@@ -1197,11 +1328,11 @@
       "source_failure_count": 0,
       "workflow_count": 8
     },
-    "pack_count": 31,
+    "pack_count": 32,
     "pack_status_counts": {
-      "ready": 31
+      "ready": 32
     },
-    "question_count": 28,
+    "question_count": 31,
     "readiness_summary": {
       "active_workflow_count": 8,
       "average_score": 95.75,
@@ -1222,9 +1353,9 @@
       "source_failure_count": 0,
       "workflow_count": 8
     },
-    "section_count": 9,
+    "section_count": 10,
     "section_status_counts": {
-      "ready": 9
+      "ready": 10
     },
     "status": "trust_center_ready",
     "telemetry_summary": {
@@ -1304,7 +1435,7 @@
     }
   },
   "failures": [],
-  "generated_at": "2026-05-03",
+  "generated_at": "2026-05-04",
   "intent": "Define the SecurityRecipes enterprise trust-center export so the open knowledge base, generated evidence packs, and repo-shipped MCP server can be reviewed as one acquisition-grade control package for AI platform, security, GRC, procurement, and frontier-lab diligence teams.",
   "pack_index": [
     {
@@ -1397,31 +1528,31 @@
       "path": "data/evidence/agentic-standards-crosswalk.json",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df",
+      "sha256": "7e15621277691edf41cc37d126865fdfbb38e376fa4fc93f7e6020919037605a",
       "status": "ready",
       "summary": {
         "key": "crosswalk_summary",
         "value": {
-          "capability_count": 27,
-          "control_count": 29,
+          "capability_count": 33,
+          "control_count": 39,
           "control_status_counts": {
-            "ready": 29
+            "ready": 39
           },
-          "covered_capability_count": 26,
-          "distinct_mcp_tool_count": 37,
+          "covered_capability_count": 33,
+          "distinct_mcp_tool_count": 50,
           "failure_count": 0,
           "source_class_counts": {
-            "frontier_lab_guidance": 3,
-            "government_framework": 4,
+            "frontier_lab_guidance": 4,
+            "government_framework": 5,
             "incident_intelligence": 1,
-            "industry_standard": 4,
+            "industry_standard": 5,
             "protocol_guidance": 1,
             "protocol_specification": 1
           },
-          "source_reference_count": 14,
-          "standard_count": 5,
+          "source_reference_count": 17,
+          "standard_count": 7,
           "standard_status_counts": {
-            "ready": 5
+            "ready": 7
           },
           "status": "standards_crosswalk_ready"
         }
@@ -1660,6 +1791,48 @@
         }
       },
       "title": "Agentic Catastrophic Risk Annex"
+    },
+    {
+      "available": true,
+      "category": "risk",
+      "failure_count": 0,
+      "id": "critical-infrastructure-secure-context-pack",
+      "mcp_tools": [
+        "recipes_critical_infrastructure_secure_context_pack",
+        "recipes_evaluate_critical_infrastructure_context_decision"
+      ],
+      "path": "data/evidence/critical-infrastructure-secure-context-pack.json",
+      "required": true,
+      "schema_version": "1.0",
+      "sha256": "6f43cb863c143a749d4bdf376adb6d303c3a7457f1700573115afe1e4a065035",
+      "status": "ready",
+      "summary": {
+        "key": "critical_infrastructure_summary",
+        "value": {
+          "control_count": 9,
+          "control_status_counts": {
+            "ready": 9
+          },
+          "distinct_mcp_tool_count": 30,
+          "evidence_pack_count": 17,
+          "evidence_status_counts": {
+            "ready": 17
+          },
+          "failure_count": 0,
+          "lane_count": 4,
+          "lane_status_counts": {
+            "operator_review_required": 3,
+            "ready": 1
+          },
+          "ready_sector_count": 6,
+          "sector_count": 6,
+          "sector_status_counts": {
+            "ready_for_read_only_pilot": 6
+          },
+          "status": "critical_infrastructure_secure_context_ready"
+        }
+      },
+      "title": "Critical Infrastructure Secure Context Pack"
     },
     {
       "available": true,
@@ -2027,7 +2200,7 @@
       "path": "data/evidence/mcp-authorization-conformance-pack.json",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367",
+      "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f",
       "status": "ready",
       "summary": {
         "key": "authorization_summary",
@@ -2038,6 +2211,7 @@
             "deny_until_redesigned": 1,
             "hold_for_authorization_evidence": 1
           },
+          "client_metadata_evidence_required_count": 16,
           "connector_count": 16,
           "failure_count": 0,
           "metadata_evidence_required_count": 16,
@@ -2045,6 +2219,7 @@
             "approve_public_context_no_auth": 1,
             "approve_with_gateway_attestation": 15
           },
+          "step_up_connector_count": 1,
           "workflow_count": 8
         }
       },
@@ -2108,7 +2283,50 @@
       "schema_version": "1.0",
       "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f",
       "status": "ready",
-      "summary": null,
+      "summary": {
+        "key": "intake_summary",
+        "value": {
+          "candidate_count": 3,
+          "decision_counts": {
+            "approve_for_registry_candidate": 1,
+            "deny_until_redesigned": 1,
+            "hold_for_controls": 1
+          },
+          "highest_risk_candidates": [
+            {
+              "candidate_id": "registry-publisher",
+              "decision": "deny_until_redesigned",
+              "namespace": "registries.publish",
+              "risk_score": 100,
+              "title": "Container Registry Publisher"
+            },
+            {
+              "candidate_id": "browser-research-stdio",
+              "decision": "hold_for_controls",
+              "namespace": "research.browser",
+              "risk_score": 83,
+              "title": "Local Browser Research STDIO Server"
+            },
+            {
+              "candidate_id": "github-remediation-writer",
+              "decision": "approve_for_registry_candidate",
+              "namespace": "repo.remediation",
+              "risk_score": 0,
+              "title": "GitHub Remediation Branch Writer"
+            }
+          ],
+          "hold_or_deny_count": 2,
+          "tier_counts": {
+            "tier_1_internal_read": 1,
+            "tier_2_scoped_write": 1,
+            "tier_4_prohibited": 1
+          },
+          "transport_counts": {
+            "stdio": 1,
+            "streamable-http": 2
+          }
+        }
+      },
       "title": "MCP Connector Intake Pack"
     },
     {
@@ -2125,7 +2343,26 @@
       "schema_version": "1.0",
       "sha256": "f1de8897098089e18dc0c7472518ba26039b254f031d028221c60fff4caadd2d",
       "status": "ready",
-      "summary": null,
+      "summary": {
+        "key": "stdio_launch_summary",
+        "value": {
+          "allow_count": 1,
+          "decision_counts": {
+            "allow_pinned_sandboxed_stdio_launch": 1,
+            "deny_shell_or_network_bootstrap": 1,
+            "deny_untrusted_package_launch": 2
+          },
+          "deny_or_kill_count": 3,
+          "launch_count": 4,
+          "profile_counts": {
+            "containerized-stdio-server": 1,
+            "package-runner-bootstrap": 1,
+            "pinned-readonly-python-module": 1,
+            "shell-bootstrap": 1
+          },
+          "registered_stdio_launch_count": 4
+        }
+      },
       "title": "MCP STDIO Launch Boundary"
     },
     {
@@ -2142,7 +2379,44 @@
       "schema_version": "1.0",
       "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085",
       "status": "ready",
-      "summary": null,
+      "summary": {
+        "key": "context_trust_summary",
+        "value": {
+          "context_source_count": 9,
+          "decision_counts": {
+            "allow_policy_context_with_citation": 7,
+            "allow_public_context": 2
+          },
+          "default_decision": "deny_unregistered_context",
+          "failure_count": 0,
+          "prohibited_data_class_count": 7,
+          "registered_byte_count": 3532254,
+          "registered_file_count": 181,
+          "risk_family_counts": {
+            "context_poisoning": 8,
+            "memory_poisoning": 3,
+            "over_retrieval": 7,
+            "policy_drift": 8,
+            "prompt_injection": 3,
+            "secret_exposure": 6,
+            "stale_context": 8,
+            "tool_result_injection": 7,
+            "untrusted_source_confusion": 3
+          },
+          "source_kind_counts": {
+            "generated_evidence": 1,
+            "markdown_corpus": 2,
+            "policy_json": 5,
+            "runtime_code": 1
+          },
+          "sources_requiring_citation": 9,
+          "trust_tier_counts": {
+            "tier_1_curated_guidance": 2,
+            "tier_2_policy_context": 7
+          },
+          "workflow_context_package_count": 8
+        }
+      },
       "title": "Secure Context Trust Pack"
     },
     {
@@ -2402,7 +2676,52 @@
       "schema_version": "1.0",
       "sha256": "3348aa5898b7244a80e69a16382dc579431f90923b5b6ca065498f0a14edabed",
       "status": "ready",
-      "summary": null,
+      "summary": {
+        "key": "agent_memory_boundary_summary",
+        "value": {
+          "allow_class_count": 3,
+          "decision_counts": {
+            "allow_append_only_evidence_memory": 1,
+            "allow_ephemeral_memory": 1,
+            "allow_readonly_policy_memory": 1,
+            "hold_for_memory_admission_review": 1,
+            "hold_for_tenant_memory_boundary": 2,
+            "kill_session_on_prohibited_memory": 1
+          },
+          "failure_count": 0,
+          "hold_class_count": 3,
+          "kill_class_count": 1,
+          "memory_class_count": 7,
+          "memory_kind_counts": {
+            "append_only_evidence": 1,
+            "forbidden_persistence_target": 1,
+            "retrieval_index_state": 1,
+            "source_controlled_policy": 1,
+            "tenant_operational_state": 1,
+            "tenant_user_state": 1,
+            "volatile_runtime_state": 1
+          },
+          "persistent_class_count": 5,
+          "prohibited_data_class_count": 9,
+          "risk_family_counts": {
+            "context_poisoning": 1,
+            "cross_tenant_leakage": 2,
+            "human_agent_trust_exploitation": 1,
+            "identity_privilege_abuse": 1,
+            "memory_poisoning": 7,
+            "over_retrieval": 2,
+            "policy_drift": 2,
+            "prompt_injection": 1,
+            "rogue_agent": 1,
+            "secret_exposure": 4,
+            "stale_context": 5,
+            "tool_result_injection": 1,
+            "untrusted_source_confusion": 1,
+            "vector_embedding_weakness": 1
+          },
+          "workflow_profile_count": 8
+        }
+      },
       "title": "Agent Memory Boundary Pack"
     },
     {
@@ -2717,7 +3036,7 @@
   "source_artifacts": {
     "enterprise_trust_center_profile": {
       "path": "data/assurance/enterprise-trust-center-profile.json",
-      "sha256": "10511cd559310254b11c4be4b4e61e10c1b2ca17d443c3d6a5f2b1acf9b88ff3"
+      "sha256": "caba9e9a5609eb5e45322c8912b63b64244c71fb15ed5917a06f6deb7a61073d"
     },
     "evidence_packs": [
       {
@@ -2728,7 +3047,7 @@
       {
         "id": "agentic-standards-crosswalk",
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df"
+        "sha256": "7e15621277691edf41cc37d126865fdfbb38e376fa4fc93f7e6020919037605a"
       },
       {
         "id": "agentic-control-plane-blueprint",
@@ -2744,6 +3063,11 @@
         "id": "agentic-catastrophic-risk-annex",
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
         "sha256": "cf8b54686bbf25d87e9d371905faa31d5ee258d301a186a1601a57961cad50bb"
+      },
+      {
+        "id": "critical-infrastructure-secure-context-pack",
+        "path": "data/evidence/critical-infrastructure-secure-context-pack.json",
+        "sha256": "6f43cb863c143a749d4bdf376adb6d303c3a7457f1700573115afe1e4a065035"
       },
       {
         "id": "agentic-incident-response-pack",
@@ -2798,7 +3122,7 @@
       {
         "id": "mcp-authorization-conformance",
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
-        "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+        "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f"
       },
       {
         "id": "mcp-connector-trust-pack",
@@ -2889,6 +3213,12 @@
       "id": "nist-caisi-ai-agent-security-rfi-2026",
       "name": "CAISI Request for Information on Securing AI Agent Systems",
       "url": "https://www.nist.gov/news-events/news/2026/01/caisi-issues-request-information-about-securing-ai-agent-systems"
+    },
+    {
+      "coverage": "NIST's 2026 direction for AI-enabled critical infrastructure across IT, OT, ICS, sector lifecycles, supply chains, and trustworthiness requirements.",
+      "id": "nist-ai-rmf-critical-infrastructure-concept-note-2026",
+      "name": "NIST AI RMF Profile on Trustworthy AI in Critical Infrastructure Concept Note",
+      "url": "https://www.nist.gov/programs-projects/concept-note-ai-rmf-profile-trustworthy-ai-critical-infrastructure"
     },
     {
       "coverage": "Agent behavior hijacking, tool misuse, identity and privilege abuse, agentic supply chain, insecure inter-agent communication, memory and context poisoning, cascading failures, and rogue behavior.",
@@ -3801,6 +4131,155 @@
       "ready_evidence_count": 6,
       "status": "ready",
       "title": "Catastrophic-risk governance",
+      "total_evidence_count": 6
+    },
+    {
+      "claim": "Critical-infrastructure agent pilots start with read-only secure context, sector hazard mapping, MCP scope minimization, operator approvals, safety-case gates, telemetry, and incident response evidence.",
+      "evidence_pack_ids": [
+        "critical-infrastructure-secure-context-pack",
+        "agentic-catastrophic-risk-annex",
+        "mcp-authorization-conformance",
+        "context-egress-boundary-pack",
+        "agentic-telemetry-contract",
+        "agentic-incident-response-pack"
+      ],
+      "evidence_paths": [
+        "data/evidence/critical-infrastructure-secure-context-pack.json",
+        "data/evidence/agentic-catastrophic-risk-annex.json",
+        "data/evidence/mcp-authorization-conformance-pack.json",
+        "data/evidence/context-egress-boundary-pack.json",
+        "data/evidence/agentic-telemetry-contract.json",
+        "data/evidence/agentic-incident-response-pack.json"
+      ],
+      "id": "critical-infrastructure-readiness",
+      "mcp_tools": [
+        "recipes_agentic_catastrophic_risk_annex",
+        "recipes_agentic_incident_response_pack",
+        "recipes_agentic_telemetry_contract",
+        "recipes_context_egress_boundary_pack",
+        "recipes_critical_infrastructure_secure_context_pack",
+        "recipes_evaluate_agentic_catastrophic_risk_decision",
+        "recipes_evaluate_agentic_incident_response_decision",
+        "recipes_evaluate_agentic_telemetry_event",
+        "recipes_evaluate_context_egress_decision",
+        "recipes_evaluate_critical_infrastructure_context_decision",
+        "recipes_evaluate_mcp_authorization_decision",
+        "recipes_mcp_authorization_conformance_pack"
+      ],
+      "question_count": 3,
+      "questions": [
+        {
+          "answer": "The critical-infrastructure profile defines read-only context and evidence-generation lanes as the safe starting point, while high-impact or sector-hazard actions hold until safety-case, operator approval, risk acceptance, receipt, authorization, and egress evidence exist.",
+          "evidence_pack_ids": [
+            "critical-infrastructure-secure-context-pack",
+            "agentic-catastrophic-risk-annex",
+            "mcp-authorization-conformance",
+            "context-egress-boundary-pack",
+            "agentic-telemetry-contract",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/critical-infrastructure-secure-context-pack.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/agentic-telemetry-contract.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "ci-read-only-start",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_critical_infrastructure_secure_context_pack",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_critical_infrastructure_context_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "Can critical-infrastructure operators pilot agents without allowing write or control actions?",
+          "section_id": "critical-infrastructure-readiness"
+        },
+        {
+          "answer": "The profile contains sector profiles with prohibited actions, required controls, operator evidence, safety-case gates, and deterministic runtime decisions for each sector's safety, availability, privacy, financial, or cross-sector dependency hazards.",
+          "evidence_pack_ids": [
+            "critical-infrastructure-secure-context-pack",
+            "agentic-catastrophic-risk-annex",
+            "mcp-authorization-conformance",
+            "context-egress-boundary-pack",
+            "agentic-telemetry-contract",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/critical-infrastructure-secure-context-pack.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/agentic-telemetry-contract.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "ci-sector-hazards",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_critical_infrastructure_secure_context_pack",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_critical_infrastructure_context_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "How are energy, healthcare, finance, water, transportation, and communications hazards handled differently?",
+          "section_id": "critical-infrastructure-readiness"
+        },
+        {
+          "answer": "Critical-infrastructure decisions require MCP authorization and egress allow decisions, while token passthrough, shadow MCP servers, unsafe local launches, and raw secret access become kill-session signals.",
+          "evidence_pack_ids": [
+            "critical-infrastructure-secure-context-pack",
+            "agentic-catastrophic-risk-annex",
+            "mcp-authorization-conformance",
+            "context-egress-boundary-pack",
+            "agentic-telemetry-contract",
+            "agentic-incident-response-pack"
+          ],
+          "evidence_paths": [
+            "data/evidence/critical-infrastructure-secure-context-pack.json",
+            "data/evidence/agentic-catastrophic-risk-annex.json",
+            "data/evidence/mcp-authorization-conformance-pack.json",
+            "data/evidence/context-egress-boundary-pack.json",
+            "data/evidence/agentic-telemetry-contract.json",
+            "data/evidence/agentic-incident-response-pack.json"
+          ],
+          "id": "ci-mcp-scope",
+          "mcp_tools": [
+            "recipes_agentic_catastrophic_risk_annex",
+            "recipes_agentic_incident_response_pack",
+            "recipes_agentic_telemetry_contract",
+            "recipes_context_egress_boundary_pack",
+            "recipes_critical_infrastructure_secure_context_pack",
+            "recipes_evaluate_agentic_catastrophic_risk_decision",
+            "recipes_evaluate_agentic_incident_response_decision",
+            "recipes_evaluate_agentic_telemetry_event",
+            "recipes_evaluate_context_egress_decision",
+            "recipes_evaluate_critical_infrastructure_context_decision",
+            "recipes_evaluate_mcp_authorization_decision",
+            "recipes_mcp_authorization_conformance_pack"
+          ],
+          "question": "What stops MCP scope creep, token passthrough, shadow servers, or unsafe local MCP launches in high-stakes workflows?",
+          "section_id": "critical-infrastructure-readiness"
+        }
+      ],
+      "ready_evidence_count": 6,
+      "status": "ready",
+      "title": "Critical infrastructure readiness",
       "total_evidence_count": 6
     },
     {
