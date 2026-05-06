@@ -1,0 +1,384 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Phoenix</title><link>https://security-recipes.ai/tags/phoenix/</link><description>Recent content in Phoenix on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/phoenix/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-42786 - Bandit WebSocket fragment reassembly DoS</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42786-bandit-websocket-fragment-reassembly-dos/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42786-bandit-websocket-fragment-reassembly-dos/</guid><description>
+&lt;p>Bandit &lt;code>0.5.0&lt;/code> through &lt;code>1.10.4&lt;/code> can be forced to keep appending WebSocket
+continuation-frame payloads to a per-connection buffer without a cumulative
+message-size cap. The configured frame-size limit only bounds each individual
+frame, so an unauthenticated client that can open a WebSocket can stream many
+non-final continuation frames and grow BEAM memory until the process or node is
+killed.&lt;/p>
+&lt;p>The vulnerable path runs before application &lt;code>WebSock.handle_in/2&lt;/code> code gets a
+chance to reject the message. Phoenix Channels and LiveView deployments that use
+Bandit are therefore exposed when they accept WebSocket connections on an
+affected Bandit version.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Hex package &lt;code>bandit &amp;gt;=0.5.0, &amp;lt;1.11.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>bandit 1.11.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds or deploys an Elixir/Phoenix application that depends on
+Hex package &lt;code>bandit&lt;/code>.&lt;/li>
+&lt;li>&lt;code>mix.lock&lt;/code>, &lt;code>mix.exs&lt;/code>, an image SBOM, release metadata, or deployment artifact
+resolves &lt;code>bandit&lt;/code> to &lt;code>&amp;gt;=0.5.0, &amp;lt;1.11.0&lt;/code>.&lt;/li>
+&lt;li>The application exposes Phoenix Channels, LiveView, WebSock routes, or custom
+WebSocket upgrades through Bandit.&lt;/li>
+&lt;li>A public, partner, tenant, or otherwise untrusted client can open WebSocket
+connections to the affected service.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;bandit|Bandit|Phoenix.Endpoint|LiveView|socket|WebSock|upgrade\\(&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mix deps &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^\\* bandit &amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mix hex.outdated bandit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mix phx.routes &lt;span class="p">|&lt;/span> rg -i &lt;span class="s2">&amp;#34;socket|live&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Bandit runtime to &lt;code>1.11.0+&lt;/code>.&lt;/li>
+&lt;li>Regenerate &lt;code>mix.lock&lt;/code>, release metadata, container images, SBOMs, and rendered
+deployment artifacts that pin or report dependency versions.&lt;/li>
+&lt;li>Confirm WebSocket-facing services are patched before scaling traffic back up.&lt;/li>
+&lt;li>If the upgrade is blocked, temporarily reduce exposure by disabling or
+restricting affected WebSocket endpoints at the ingress, load balancer, route,
+or feature-flag layer. Treat that as containment, not remediation.&lt;/li>
+&lt;li>Review memory-pressure, connection-reset, and node-restart telemetry for the
+exposure window if the WebSocket endpoint was internet-facing.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42786 (Bandit WebSocket fragmented message
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">reassembly denial of service). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Bandit, verifies WebSocket
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure, adds safe dependency/deployment validation, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Bandit runtime or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42786.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not generate, run, or commit denial-of-service payloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run memory-exhaustion tests against production, staging, preview, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shared services.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not remove WebSocket, Phoenix Channel, or LiveView behavior unless the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository already has a feature flag or operator-approved route control.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory Bandit usage controlled by this repository: &lt;span class="sb">`mix.exs`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`mix.lock`&lt;/span>, umbrella apps, releases, Dockerfiles, base images, SBOMs, Helm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> values, Kubernetes manifests, Terraform, compose files, deployment scripts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and generated dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Hex package &lt;span class="sb">`bandit`&lt;/span> version. A runtime is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves to &lt;span class="sb">`&amp;gt;=0.5.0, &amp;lt;1.11.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify WebSocket exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Phoenix Channels;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> LiveView routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`WebSockAdapter.upgrade/4`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> custom Bandit or Plug WebSocket upgrade paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ingress, CDN, load balancer, or route rules that make those endpoints
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reachable by untrusted clients.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository only contains clients, documentation, or deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pointers to an externally owned service, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner, evidence checked, and required fixed version &lt;span class="sb">`bandit 1.11.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade vulnerable Bandit runtimes to &lt;span class="sb">`1.11.0+`&lt;/span> on the smallest compatible
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> release line. Regenerate &lt;span class="sb">`mix.lock`&lt;/span>, release artifacts, dependency reports,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, image digests, and rendered deployment manifests as appropriate for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If dependency constraints prevent the upgrade, update the direct dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that pins Bandit, add the narrowest override supported by the build, or stop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining the blocker and temporary containment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add a safe regression or policy check that proves the resolved Bandit version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is not vulnerable. Good examples:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a lockfile/dependency assertion for &lt;span class="sb">`bandit &amp;gt;=1.11.0`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a release metadata check;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a deployment-render test that confirms the patched image or release is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> used.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Avoid exploit-like fragmented-frame tests that intentionally consume memory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> If the repository controls emergency routing, add or document a reversible
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment option for blocked rollouts:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable public WebSocket routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict WebSocket endpoints to trusted networks or authenticated ingress;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> lower connection and request limits at the edge;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> increase observability for memory pressure and connection churn.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42786 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolved Bandit versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which WebSocket endpoints are exposed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether Phoenix Channels or LiveView are reachable from untrusted clients;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> what containment is required before or during rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether memory-pressure or restart telemetry should be reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether CVE-2026-39804 also applies to this deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run available validation: &lt;span class="sb">`mix deps.get`&lt;/span>, &lt;span class="sb">`mix deps.unlock --check-unused`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if used locally, &lt;span class="sb">`mix compile --warnings-as-errors`&lt;/span> when appropriate,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, format, dependency/security scans, image build, release build, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment rendering.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42786 in Bandit`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Bandit runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved Bandit version is already &lt;span class="sb">`1.11.0+`&lt;/span> across lockfiles, release
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata, SBOMs, and images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Bandit release cannot be consumed without a larger Phoenix, Plug, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Elixir migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verifying exposure would require running denial-of-service payloads or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> memory-exhaustion tests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent mitigation would silently break public WebSocket behavior
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without operator approval.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable Elixir release, image, lockfile, SBOM, or generated dependency
+report resolves &lt;code>bandit&lt;/code> below &lt;code>1.11.0&lt;/code>.&lt;/li>
+&lt;li>WebSocket exposure is explicitly inventoried, including Phoenix Channels,
+LiveView, and custom WebSock upgrade paths.&lt;/li>
+&lt;li>Tests or policy checks prove the patched dependency is resolved without using
+unsafe memory-exhaustion payloads.&lt;/li>
+&lt;li>Any temporary route or ingress containment is clearly labeled as temporary and
+reversible.&lt;/li>
+&lt;li>The PR calls out whether the related Bandit compression advisory
+CVE-2026-39804 is also relevant.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Umbrella apps where only one child app lockfile or release artifact was
+updated.&lt;/li>
+&lt;li>Container images that still carry an older release after &lt;code>mix.lock&lt;/code> was fixed.&lt;/li>
+&lt;li>Assuming a low &lt;code>max_frame_size&lt;/code> setting blocks this CVE; the vulnerable
+behavior is cumulative across continuation frames.&lt;/li>
+&lt;li>Internal WebSocket endpoints that are reachable by tenants, partner networks,
+worker pools, browser clients, or compromised services.&lt;/li>
+&lt;li>Confusing the Elixir &lt;code>bandit&lt;/code> server with the unrelated Python security
+scanner named Bandit.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-pf94-94m9-536p"target="_blank" rel="noopener">https://github.com/advisories/GHSA-pf94-94m9-536p&lt;/a>&lt;/li>
+&lt;li>GitHub Security Advisory: &lt;a href="https://github.com/mtrudel/bandit/security/advisories/GHSA-pf94-94m9-536p"target="_blank" rel="noopener">https://github.com/mtrudel/bandit/security/advisories/GHSA-pf94-94m9-536p&lt;/a>&lt;/li>
+&lt;li>OSV: &lt;a href="https://osv.dev/vulnerability/EEF-CVE-2026-42786"target="_blank" rel="noopener">https://osv.dev/vulnerability/EEF-CVE-2026-42786&lt;/a>&lt;/li>
+&lt;li>NVD: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-42786"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-42786&lt;/a>&lt;/li>
+&lt;li>Fix commit: &lt;a href="https://github.com/mtrudel/bandit/commit/21612c7c7b1ce43eccd36d3af3a2299d23513667"target="_blank" rel="noopener">https://github.com/mtrudel/bandit/commit/21612c7c7b1ce43eccd36d3af3a2299d23513667&lt;/a>&lt;/li>
+&lt;li>Hex package: &lt;a href="https://hex.pm/packages/bandit"target="_blank" rel="noopener">https://hex.pm/packages/bandit&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-39804 - Bandit permessage-deflate decompression DoS</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39804-bandit-permessage-deflate-dos/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39804-bandit-permessage-deflate-dos/</guid><description>
+&lt;p>Bandit &lt;code>0.5.9&lt;/code> through &lt;code>1.10.4&lt;/code> can exhaust BEAM memory while inflating a
+compressed WebSocket message. When WebSocket permessage-deflate is negotiated,
+Bandit&amp;rsquo;s inflate path can materialize the decompressed payload without enforcing
+an output-size cap. A small compressed frame can therefore expand into a much
+larger allocation before application code runs.&lt;/p>
+&lt;p>This issue is reachable only when both Bandit&amp;rsquo;s server-level WebSocket
+compression support is enabled and an application passes &lt;code>compress: true&lt;/code> to
+&lt;code>WebSockAdapter.upgrade/4&lt;/code>. Stock Phoenix and LiveView defaults are less exposed
+because their per-upgrade compression option defaults to false, but repositories
+should still check custom socket upgrades and endpoint configuration.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Hex package &lt;code>bandit &amp;gt;=0.5.9, &amp;lt;1.11.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>bandit 1.11.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds or deploys an Elixir/Phoenix application that depends on
+Hex package &lt;code>bandit&lt;/code>.&lt;/li>
+&lt;li>&lt;code>mix.lock&lt;/code>, &lt;code>mix.exs&lt;/code>, an image SBOM, release metadata, or deployment artifact
+resolves &lt;code>bandit&lt;/code> to &lt;code>&amp;gt;=0.5.9, &amp;lt;1.11.0&lt;/code>.&lt;/li>
+&lt;li>The service accepts WebSocket upgrades through Bandit.&lt;/li>
+&lt;li>&lt;code>WebSockAdapter.upgrade/4&lt;/code> or a wrapper passes &lt;code>compress: true&lt;/code>, and the
+server-level WebSocket compression option is enabled.&lt;/li>
+&lt;li>Public, partner, tenant, or otherwise untrusted clients can open compressed
+WebSocket connections to the service.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;bandit|Bandit|websocket_options|compress:\\s*true|WebSockAdapter\\.upgrade|permessage|deflate|socket|LiveView&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mix deps &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^\\* bandit &amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mix hex.outdated bandit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mix phx.routes &lt;span class="p">|&lt;/span> rg -i &lt;span class="s2">&amp;#34;socket|live&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Bandit runtime to &lt;code>1.11.0+&lt;/code>.&lt;/li>
+&lt;li>Regenerate &lt;code>mix.lock&lt;/code>, release metadata, container images, SBOMs, and rendered
+deployment artifacts that pin or report dependency versions.&lt;/li>
+&lt;li>If the upgrade is blocked, remove &lt;code>compress: true&lt;/code> from affected
+&lt;code>WebSockAdapter.upgrade/4&lt;/code> calls or otherwise disable permessage-deflate
+negotiation until patched.&lt;/li>
+&lt;li>For internet-facing WebSocket services, add short-term monitoring for memory
+pressure, connection spikes, and unexpected node restarts during rollout.&lt;/li>
+&lt;li>Check CVE-2026-42786 in the same change because it affects broader Bandit
+WebSocket handling and has the same fixed version.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39804 (Bandit WebSocket permessage-deflate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">decompression denial of service). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Bandit, verifies compressed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WebSocket exposure, adds safe dependency/deployment validation, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator containment, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Bandit runtime or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-39804.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not generate, run, or commit decompression bombs or denial-of-service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> payloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run memory-exhaustion tests against production, staging, preview, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shared services.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not disable WebSocket compression permanently without explaining behavior
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and performance impact.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory Bandit usage controlled by this repository: &lt;span class="sb">`mix.exs`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`mix.lock`&lt;/span>, umbrella apps, releases, Dockerfiles, base images, SBOMs, Helm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> values, Kubernetes manifests, Terraform, compose files, deployment scripts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and generated dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Hex package &lt;span class="sb">`bandit`&lt;/span> version. A runtime is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves to &lt;span class="sb">`&amp;gt;=0.5.9, &amp;lt;1.11.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify compressed WebSocket exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`WebSockAdapter.upgrade/4`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`compress: true`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> wrappers around WebSock upgrades;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Bandit &lt;span class="sb">`websocket_options`&lt;/span> compression configuration;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Phoenix Channels or LiveView customizations that enable compression;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ingress, CDN, load balancer, or route rules that expose those endpoints to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted clients.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository only contains clients, documentation, or deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pointers to an externally owned service, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner, evidence checked, and required fixed version &lt;span class="sb">`bandit 1.11.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade vulnerable Bandit runtimes to &lt;span class="sb">`1.11.0+`&lt;/span> on the smallest compatible
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> release line. Regenerate &lt;span class="sb">`mix.lock`&lt;/span>, release artifacts, dependency reports,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, image digests, and rendered deployment manifests as appropriate for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If dependency constraints prevent the upgrade, update the direct dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that pins Bandit, add the narrowest override supported by the build, or stop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining the blocker and temporary containment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If immediate upgrade is blocked and this repository controls the WebSocket
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upgrade code, remove or feature-flag &lt;span class="sb">`compress: true`&lt;/span> for affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`WebSockAdapter.upgrade/4`&lt;/span> paths. Keep the change reversible and document
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that it is containment until Bandit is upgraded.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add a safe regression or policy check that proves the resolved Bandit version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is not vulnerable. Good examples:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a lockfile/dependency assertion for &lt;span class="sb">`bandit &amp;gt;=1.11.0`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a release metadata check;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a deployment-render test that confirms the patched image or release is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> used;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a configuration test that proves emergency compression disablement renders
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> when that knob exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Avoid tests that intentionally inflate large compressed payloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-39804 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolved Bandit versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any WebSocket upgrade path sets &lt;span class="sb">`compress: true`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether server-level WebSocket compression is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which endpoints are reachable by untrusted clients;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> what containment is required before or during rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether memory-pressure or restart telemetry should be reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether CVE-2026-42786 also applies to this deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run available validation: &lt;span class="sb">`mix deps.get`&lt;/span>, &lt;span class="sb">`mix deps.unlock --check-unused`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if used locally, &lt;span class="sb">`mix compile --warnings-as-errors`&lt;/span> when appropriate,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, format, dependency/security scans, image build, release build, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment rendering.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-39804 in Bandit`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Bandit runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved Bandit version is already &lt;span class="sb">`1.11.0+`&lt;/span> across lockfiles, release
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata, SBOMs, and images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No WebSocket path is exposed and the repository cannot validate the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner&amp;#39;s deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Bandit release cannot be consumed without a larger Phoenix, Plug, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Elixir migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verifying exposure would require running decompression bombs or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> memory-exhaustion tests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent mitigation would silently break public WebSocket behavior
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without operator approval.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable Elixir release, image, lockfile, SBOM, or generated dependency
+report resolves &lt;code>bandit&lt;/code> below &lt;code>1.11.0&lt;/code>.&lt;/li>
+&lt;li>Compressed WebSocket exposure is explicitly inventoried, including
+&lt;code>compress: true&lt;/code> and server-level compression configuration.&lt;/li>
+&lt;li>Tests or policy checks prove the patched dependency is resolved without using
+unsafe decompression payloads.&lt;/li>
+&lt;li>Any temporary compression-disablement or ingress containment is clearly
+labeled as temporary and reversible.&lt;/li>
+&lt;li>The PR calls out whether the related Bandit fragment reassembly advisory
+CVE-2026-42786 is also relevant.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Custom WebSock upgrade wrappers where &lt;code>compress: true&lt;/code> is hidden behind a
+helper or endpoint macro.&lt;/li>
+&lt;li>Assuming Phoenix or LiveView defaults prove safety without checking local
+overrides.&lt;/li>
+&lt;li>Container images that still carry an older release after &lt;code>mix.lock&lt;/code> was fixed.&lt;/li>
+&lt;li>Treating WebSocket compression disablement as a complete fix instead of a
+temporary control.&lt;/li>
+&lt;li>Confusing the Elixir &lt;code>bandit&lt;/code> server with the unrelated Python security
+scanner named Bandit.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-frh3-6pv6-rc8j"target="_blank" rel="noopener">https://github.com/advisories/GHSA-frh3-6pv6-rc8j&lt;/a>&lt;/li>
+&lt;li>GitHub Security Advisory: &lt;a href="https://github.com/mtrudel/bandit/security/advisories/GHSA-frh3-6pv6-rc8j"target="_blank" rel="noopener">https://github.com/mtrudel/bandit/security/advisories/GHSA-frh3-6pv6-rc8j&lt;/a>&lt;/li>
+&lt;li>OSV: &lt;a href="https://osv.dev/vulnerability/EEF-CVE-2026-39804"target="_blank" rel="noopener">https://osv.dev/vulnerability/EEF-CVE-2026-39804&lt;/a>&lt;/li>
+&lt;li>EEF CVE entry: &lt;a href="https://cna.erlef.org/cves/CVE-2026-39804.html"target="_blank" rel="noopener">https://cna.erlef.org/cves/CVE-2026-39804.html&lt;/a>&lt;/li>
+&lt;li>Fix commit: &lt;a href="https://github.com/mtrudel/bandit/commit/8156921a51e684a951221da7bc30a70a022f722e"target="_blank" rel="noopener">https://github.com/mtrudel/bandit/commit/8156921a51e684a951221da7bc30a70a022f722e&lt;/a>&lt;/li>
+&lt;li>Hex package: &lt;a href="https://hex.pm/packages/bandit"target="_blank" rel="noopener">https://hex.pm/packages/bandit&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

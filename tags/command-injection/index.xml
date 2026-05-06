@@ -1,0 +1,938 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Command-Injection</title><link>https://security-recipes.ai/tags/command-injection/</link><description>Recent content in Command-Injection on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/command-injection/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41497 - PraisonAI MCP command injection incomplete fix</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41497-praisonai-mcp-command-injection-incomplete-fix/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41497-praisonai-mcp-command-injection-incomplete-fix/</guid><description>
+&lt;p>PraisonAI versions &lt;code>4.5.148&lt;/code> and earlier contain an incomplete fix for earlier
+MCP command handling. The vulnerable path parses MCP server command strings and
+passes the resulting executable and arguments toward subprocess execution
+without enough validation.&lt;/p>
+&lt;p>The follow-up advisory highlights missing controls that matter for production
+MCP server launchers: no strict executable allow-list, no basename validation to
+prevent path-based executable injection, and no argument inspection to reject
+shell metacharacters or interpreter inline-execution flags. In practice, MCP
+configuration becomes a code execution surface.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>praisonai &amp;lt;=4.5.148&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>praisonai 4.5.149+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected path:&lt;/strong> &lt;code>MCPHandler.parse_mcp_command()&lt;/code> in PraisonAI MCP command
+handling.&lt;/li>
+&lt;li>&lt;strong>Related context:&lt;/strong> Incomplete fix for &lt;code>CVE-2026-34935&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on or deploys PraisonAI &lt;code>&amp;lt;=4.5.148&lt;/code>.&lt;/li>
+&lt;li>MCP servers can be configured through user input, project files, workflow
+YAML, agent instructions, environment variables, database records, or remote
+control-plane config.&lt;/li>
+&lt;li>PraisonAI launches MCP servers from command strings instead of a vetted server
+registry.&lt;/li>
+&lt;li>Allowed MCP server commands include shells, interpreters with inline code
+flags, arbitrary paths, package-manager scripts, or pipe/download execution.&lt;/li>
+&lt;li>The PraisonAI process has access to model provider credentials, cloud
+credentials, source repositories, customer data, or internal network routes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;praisonai|parse_mcp_command|MCPHandler|mcp.*command|mcp.*server|stdio|uvx|npx|python -c|bash -c|/bin/sh|subprocess&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show praisonai
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^praisonai==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;mcpServers|mcp_servers|command\\s*:|args\\s*:|stdio&amp;#34;&lt;/span> .mcp* config* settings* Dockerfile* docker-compose*.yml charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade PraisonAI to &lt;code>4.5.149+&lt;/code> everywhere this repository controls package
+manifests, lockfiles, constraints, images, or deployment manifests.&lt;/li>
+&lt;li>Replace free-form MCP command strings with a governed MCP server registry:
+approved server ID, fixed executable, fixed transport, typed arguments, and
+explicit environment-variable bindings.&lt;/li>
+&lt;li>Reject path-qualified executables unless they resolve to an approved absolute
+path owned by the deployment.&lt;/li>
+&lt;li>Block shells and interpreter inline-execution patterns such as &lt;code>sh -c&lt;/code>,
+&lt;code>bash -c&lt;/code>, &lt;code>python -c&lt;/code>, &lt;code>node -e&lt;/code>, pipes, redirects, command substitution,
+backticks, and downloader-to-shell chains.&lt;/li>
+&lt;li>Launch MCP servers with least-privilege identities, redacted environment
+values, egress restrictions, and audit logging of server IDs rather than raw
+secret-bearing command lines.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41497 (PraisonAI incomplete fix for MCP command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades PraisonAI, removes unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> MCP command-string launch paths, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected PraisonAI runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41497 / GHSA-9qhq-v63v-fv3j and the related
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CVE-2026-34935 MCP command-handling fix path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat MCP server environment variables, API keys, model provider tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud credentials, source code, subprocess output, and agent logs as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit commands, shell payloads, downloader pipelines,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reverse shells, or arbitrary MCP server commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep caller-controlled command strings as the long-term MCP launch
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> interface.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every PraisonAI reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requirements files, pyproject files, lockfiles, constraints, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CI images, deployment manifests, MCP config, agent templates, runbooks, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`praisonai`&lt;/span> version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;lt;=4.5.148`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search all MCP server launch configuration for free-form &lt;span class="sb">`command`&lt;/span> strings,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`args`&lt;/span>, stdio transports, shell snippets, environment interpolation, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> project/user-controlled MCP definitions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy PraisonAI or only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade PraisonAI to &lt;span class="sb">`4.5.149+`&lt;/span>. Regenerate lockfiles, constraints, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Replace unsafe MCP command-string handling where this repo controls config or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wrappers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> define approved MCP server IDs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> map each ID to a fixed executable and transport;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow only typed, validated arguments;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind environment variables by approved names only;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject unknown executables, path traversal, path-qualified binaries, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell or interpreter inline execution.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add a shared MCP launch validator if the repository owns PraisonAI wrappers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or generated config. The validator must run after parsing and normalization,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> not only on the raw string.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`bash -c`&lt;/span>, &lt;span class="sb">`/bin/sh -c`&lt;/span>, &lt;span class="sb">`python -c`&lt;/span>, &lt;span class="sb">`node -e`&lt;/span>, backticks, &lt;span class="sb">`$()`&lt;/span>, pipes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> redirects, semicolons, &lt;span class="sb">`curl | sh`&lt;/span>, and path-qualified executables are
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> approved MCP server IDs map to expected executable/argument arrays;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secrets are redacted from validation errors and audit logs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> legacy command-string config fails closed unless explicitly migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add deployment containment:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run PraisonAI with least-privilege service accounts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate MCP server working directories;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict egress for agent and MCP processes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable untrusted project-level MCP config until migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41497 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> PraisonAI versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every MCP server launch source reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether untrusted users or projects could define MCP commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which MCP, model provider, cloud, or repository credentials should be
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for shell/interpreter launch attempts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, lockfile checks, MCP config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> validation, unit tests, lint/typecheck, container build, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41497 in PraisonAI MCP command handling`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected PraisonAI runtime or MCP launch path is controlled by this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed PraisonAI version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally allow arbitrary user-provided MCP command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> strings; document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves PraisonAI
+to &lt;code>&amp;lt;=4.5.148&lt;/code>.&lt;/li>
+&lt;li>MCP server launch configuration is registry-backed or otherwise allow-listed,
+not arbitrary command-string execution.&lt;/li>
+&lt;li>Tests reject shells, interpreter inline-code flags, path-qualified binaries,
+shell metacharacters, and downloader pipelines without executing them.&lt;/li>
+&lt;li>Logs and errors do not expose MCP environment values or tokens.&lt;/li>
+&lt;li>Operator actions identify credential rotation and log review if untrusted MCP
+config was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>praisonai&lt;/code> while generated MCP config, examples, or project
+templates still teach free-form command strings.&lt;/li>
+&lt;li>Allowing &lt;code>python&lt;/code> or &lt;code>node&lt;/code> generally but forgetting to block &lt;code>-c&lt;/code>, &lt;code>-m&lt;/code>,
+&lt;code>-e&lt;/code>, preload hooks, package scripts, or equivalent execution features.&lt;/li>
+&lt;li>Validating the raw command string before shell-like parsing and
+normalization.&lt;/li>
+&lt;li>Logging full command lines with embedded secrets.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-9qhq-v63v-fv3j"target="_blank" rel="noopener">https://github.com/advisories/GHSA-9qhq-v63v-fv3j&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41497"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41497&lt;/a>&lt;/li>
+&lt;li>PraisonAI project: &lt;a href="https://github.com/MervinPraison/PraisonAI"target="_blank" rel="noopener">https://github.com/MervinPraison/PraisonAI&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-vr7g-88fq-vhq3 - Paperclip workspace cleanup command injection</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-vr7g-88fq-vhq3-paperclip-cleanup-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-vr7g-88fq-vhq3-paperclip-cleanup-command-injection/</guid><description>
+&lt;p>Paperclip versions before &lt;code>2026.416.0&lt;/code> allowed OS command injection through the
+execution workspace lifecycle. The vulnerable API accepted
+&lt;code>config.cleanupCommand&lt;/code> through &lt;code>PATCH /api/execution-workspaces/:id&lt;/code>, stored
+that value, and later executed it through a shell during workspace cleanup.&lt;/p>
+&lt;p>This is especially dangerous for agent workspaces because cleanup runs at a
+privileged lifecycle boundary: the server may have source code, generated
+artifacts, browser state, credentials, local files, and network access that the
+agent used during execution.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>@paperclipai/server 2026.416.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoint:&lt;/strong> &lt;code>PATCH /api/execution-workspaces/:id&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected field:&lt;/strong> &lt;code>config.cleanupCommand&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected sink:&lt;/strong> shell execution during workspace archive/cleanup.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or packages &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Execution workspace APIs are enabled.&lt;/li>
+&lt;li>&lt;code>local_trusted&lt;/code> mode, desktop mode, localhost APIs, or authenticated company
+users can patch workspace config.&lt;/li>
+&lt;li>Workspace cleanup accepts arbitrary strings or shell snippets.&lt;/li>
+&lt;li>The server runs with access to repositories, local files, browser profiles,
+package tokens, cloud credentials, SSH keys, or internal networks.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;@paperclipai/server|paperclip|execution-workspaces|cleanupCommand|cleanupCommands|workspace-runtime|recordWorkspaceCommandOperation|spawn\\(|shell.*-c|resolveShell&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;local_trusted|trusted.*local|execution workspace|archive.*workspace|cleanup.*command&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy server src packages&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>@paperclipai/server&lt;/code> to &lt;code>2026.416.0+&lt;/code> everywhere this repository
+controls package manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Remove shell-backed cleanup command strings from workspace configuration.&lt;/li>
+&lt;li>Replace cleanup commands with a finite set of typed lifecycle actions such as
+deleting known workspace-owned directories, closing sessions, or revoking
+ephemeral credentials.&lt;/li>
+&lt;li>If a command must be launched, use an argument-array API with a fixed
+executable, fixed arguments, no shell, and no tenant/user-controlled command
+text.&lt;/li>
+&lt;li>Restrict workspace patch APIs by tenant, role, and workspace ownership.&lt;/li>
+&lt;li>Review workspace audit logs and rotate credentials if untrusted users could
+patch cleanup commands.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-vr7g-88fq-vhq3 (Paperclip execution workspace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cleanupCommand OS command injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Paperclip or removes the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell-backed cleanup path, adds regression coverage, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Paperclip deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-vr7g-88fq-vhq3.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat workspace files, repository contents, browser state, package tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud credentials, SSH keys, API keys, process output, and audit logs as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run exploit payloads, shell commands, or cleanupCommand values against
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production, staging, shared dev, or real user workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not replace &lt;span class="sb">`shell -c`&lt;/span> with another shell wrapper or escaping-only fix.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Paperclip runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, CI images, deployment docs, SBOMs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored server code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`@paperclipai/server`&lt;/span> version. A target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves below &lt;span class="sb">`2026.416.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search workspace lifecycle code and config for &lt;span class="sb">`cleanupCommand`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`cleanupCommands`&lt;/span>, &lt;span class="sb">`execution-workspaces`&lt;/span>, &lt;span class="sb">`workspace-runtime`&lt;/span>, &lt;span class="sb">`spawn`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`shell -c`&lt;/span>, and archive/cleanup hooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy Paperclip or only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading to &lt;span class="sb">`@paperclipai/server 2026.416.0+`&lt;/span>. Regenerate lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If this repository owns a fork or vendored patch path, remove shell-backed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> delete &lt;span class="sb">`cleanupCommand`&lt;/span> as a user-controlled string field;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> define typed cleanup actions with fixed behavior;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject unknown cleanup action types and legacy command strings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid &lt;span class="sb">`child_process.exec`&lt;/span>, &lt;span class="sb">`spawn(shell, [&amp;#34;-c&amp;#34;, value])`&lt;/span>, and equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell invocation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> if launching a helper is unavoidable, use a fixed executable and fixed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> argument array with no shell.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Patch authorization around workspace mutation:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require workspace ownership/company access before patching config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny unauthenticated mutation in local or desktop modes unless protected by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a local-only trust boundary and explicit user approval;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject config updates for archived or foreign workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> patching &lt;span class="sb">`cleanupCommand`&lt;/span> is rejected or ignored;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> cleanup lifecycle never calls a shell with tenant/user-controlled text;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> only allowed typed cleanup actions execute;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> cross-tenant workspace config patches are denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> local trusted mode does not expose a remote unauthenticated mutation path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run workspace services as least-privilege users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate workspaces per tenant/job;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scrub environment variables before workspace lifecycle operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> revoke ephemeral credentials on archive through typed cleanup actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-vr7g workspace operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected Paperclip versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`local_trusted`&lt;/span> or unauthenticated local APIs were enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether untrusted users could patch execution workspace config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which workspace logs should be reviewed for suspicious cleanup commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which credentials or workspace artifacts require rotation or quarantine.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: package install, lockfile checks, route tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workspace lifecycle tests, authorization tests, lint/typecheck, image build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOM refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remove Paperclip cleanupCommand shell execution`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Paperclip server deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Paperclip version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on arbitrary user-provided cleanup commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>@paperclipai/server&lt;/code> below &lt;code>2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Workspace cleanup no longer executes tenant/user-controlled strings through a
+shell.&lt;/li>
+&lt;li>Patch routes enforce tenant/workspace ownership.&lt;/li>
+&lt;li>Regression tests prove legacy &lt;code>cleanupCommand&lt;/code> input fails closed.&lt;/li>
+&lt;li>Operator actions cover workspace log review and credential rotation when
+exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Escaping &lt;code>cleanupCommand&lt;/code> instead of removing shell execution.&lt;/li>
+&lt;li>Allowing cleanup hooks from templates, project files, or imported workspaces
+to bypass route-level validation.&lt;/li>
+&lt;li>Treating localhost APIs as safe while browsers, extensions, or other local
+processes can reach them.&lt;/li>
+&lt;li>Logging command strings that contain secrets or file paths.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-vr7g-88fq-vhq3"target="_blank" rel="noopener">https://github.com/advisories/GHSA-vr7g-88fq-vhq3&lt;/a>&lt;/li>
+&lt;li>Paperclip project: &lt;a href="https://github.com/paperclipai/paperclip"target="_blank" rel="noopener">https://github.com/paperclipai/paperclip&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-7039 - ssh-mcp description command injection</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-7039-ssh-mcp-description-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-7039-ssh-mcp-description-command-injection/</guid><description>
+&lt;p>&lt;code>tufantunc/ssh-mcp&lt;/code> versions through &lt;code>1.5.0&lt;/code> are reported vulnerable to command
+injection in the MCP SSH execution path. The issue is especially dangerous when
+&lt;code>su&lt;/code> mode is enabled: the &lt;code>description&lt;/code> metadata field can be appended to a
+shell command and written to an interactive shell through &lt;code>shell.write()&lt;/code>.&lt;/p>
+&lt;p>The public report describes newline injection in &lt;code>description&lt;/code>. A benign-looking
+tool description can terminate the comment context and add a second command that
+runs with the privileges of the active shell. In &lt;code>su&lt;/code> mode, that can become root
+command execution on the SSH target.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>tufantunc/ssh-mcp &amp;lt;=1.5.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> no confirmed fixed release was identified in the checked GitHub
+Advisory Database and issue sources. If a later release exists, treat it as
+fixed only after verifying the changelog or patch removes newline/control
+character injection before &lt;code>shell.write()&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, vendors, builds, packages, or documents
+&lt;code>tufantunc/ssh-mcp&lt;/code>.&lt;/li>
+&lt;li>An MCP host can invoke the &lt;code>exec&lt;/code> or &lt;code>sudo-exec&lt;/code> tools with a caller-supplied
+&lt;code>description&lt;/code> field.&lt;/li>
+&lt;li>&lt;code>--suPassword&lt;/code>, persistent &lt;code>su&lt;/code> shell mode, privileged SSH users, or broad
+sudo permissions are enabled.&lt;/li>
+&lt;li>LLM-generated tool calls or user-controlled prompts can influence the
+&lt;code>description&lt;/code> value.&lt;/li>
+&lt;li>MCP logs show descriptions with line breaks, carriage returns, shell
+metacharacters, or unexpected commands near SSH execution events.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;ssh-mcp|tufantunc|suPassword|sudo-exec|shell.write|description&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls ssh-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why ssh-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why ssh-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;mcp.*ssh|ssh.*mcp|tools/call|description&amp;#34;&lt;/span> .mcp* config* docker-compose*.yml Dockerfile* charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Remove or disable &lt;code>ssh-mcp&lt;/code> where it is not strictly required.&lt;/li>
+&lt;li>Do not run affected &lt;code>ssh-mcp&lt;/code> versions with &lt;code>--suPassword&lt;/code>, persistent root
+shells, privileged SSH users, or broad sudo access.&lt;/li>
+&lt;li>If this repository owns a fork or vendored copy, patch command construction so
+human-readable descriptions are never concatenated into executable shell
+input. At minimum, reject or normalize &lt;code>\n&lt;/code>, &lt;code>\r&lt;/code>, NUL, ANSI control
+characters, and shell command delimiters before any &lt;code>shell.write()&lt;/code> call.&lt;/li>
+&lt;li>Prefer structured logging for descriptions instead of appending them as shell
+comments.&lt;/li>
+&lt;li>Run the MCP server with a dedicated least-privilege SSH identity, explicit
+command allow-lists, session recording, and egress/host restrictions.&lt;/li>
+&lt;li>Rotate SSH credentials and review command logs if an exposed deployment ran
+affected versions with privileged shell mode.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-7039 (tufantunc ssh-mcp description command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that removes, upgrades, or safely patches
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the affected MCP SSH execution path and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected deployment or cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-7039.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH private keys, passwords, sudo passwords, MCP tokens, command output,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> session transcripts, and hostnames as sensitive. Do not print or commit them.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run exploit payloads against production, staging, shared SSH targets,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> developer machines, or real privileged accounts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve &lt;span class="sb">`su`&lt;/span> shell behavior by only escaping one character class.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every &lt;span class="sb">`ssh-mcp`&lt;/span> reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`package.json`&lt;/span>, lockfiles, vendored source, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm values, Kubernetes manifests, MCP client/server config, runbooks, CI,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated SBOMs, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployable target runs &lt;span class="sb">`tufantunc/ssh-mcp &amp;lt;=1.5.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether the dangerous path is reachable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`exec`&lt;/span> or &lt;span class="sb">`sudo-exec`&lt;/span> MCP tools are enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tool callers can supply &lt;span class="sb">`description`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`--suPassword`&lt;/span> or persistent &lt;span class="sb">`su`&lt;/span> shell mode is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> the SSH identity has root, passwordless sudo, or broad host access;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> an LLM, user prompt, ticket body, workflow input, or remote config can
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> influence tool arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the package is not present or the repository only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> docs, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing the files checked and the owner that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> must remediate the runtime.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer removal or disablement when SSH command execution is not required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Remove the MCP server registration, image, dependency, and runbook steps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If a verified fixed upstream release is available, upgrade to that release,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regenerate lockfiles/SBOMs/images, and keep the hardening steps below.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If this repository owns a fork or vendored code, patch command handling:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> keep &lt;span class="sb">`description`&lt;/span> out of executable shell input entirely;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> log description as structured metadata, not a shell comment;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject or normalize &lt;span class="sb">`\n`&lt;/span>, &lt;span class="sb">`\r`&lt;/span>, NUL, ANSI controls, backticks, &lt;span class="sb">`$()`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> semicolons, pipes, redirects, and other shell delimiters before any legacy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compatibility path;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add a single command-construction helper used by &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`sudo-exec`&lt;/span>, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> any shared SSH execution path;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ensure the value passed to &lt;span class="sb">`shell.write()`&lt;/span> is built from validated command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fields only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add safe tests that do not contact a real SSH host:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a unit test proving descriptions containing &lt;span class="sb">`\n id`&lt;/span>, &lt;span class="sb">`\r`&lt;/span>, &lt;span class="sb">`;`&lt;/span>, &lt;span class="sb">`&amp;amp;&amp;amp;`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> backticks, and &lt;span class="sb">`$()`&lt;/span> are rejected or logged as inert metadata;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a test proving the command sent to the shell excludes description text;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a regression test covering both normal and &lt;span class="sb">`su`&lt;/span>/sudo execution builders.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add deployment containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable &lt;span class="sb">`--suPassword`&lt;/span> and persistent root shell mode by default;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run with a dedicated low-privilege SSH account;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict allowed commands or target hosts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add audit logging that records command IDs without secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-7039 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`ssh-mcp`&lt;/span> was removed, upgraded, or patched;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`su`&lt;/span> mode or privileged SSH identities were present;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which MCP clients or workflows could supply &lt;span class="sb">`description`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which SSH keys, passwords, or host credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which MCP and SSH logs should be reviewed for multiline descriptions or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unexpected child commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: package install, lockfile integrity, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lint/typecheck, container build, MCP config validation, SBOM generation, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-7039 in ssh-mcp`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No &lt;span class="sb">`ssh-mcp`&lt;/span> deployment, package, vendored source, or MCP registration is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A verified fixed upstream release is unavailable and the repository does not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> own a fork or vendored patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would require running exploit commands against real SSH
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hosts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The product intentionally requires root shell MCP access and there is no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> approved decision to remove or contain it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled deployment still runs &lt;code>tufantunc/ssh-mcp &amp;lt;=1.5.0&lt;/code> with &lt;code>su&lt;/code>
+mode enabled unless there is a documented operator-owned containment decision.&lt;/li>
+&lt;li>Descriptions are never concatenated into the string sent to &lt;code>shell.write()&lt;/code>.&lt;/li>
+&lt;li>Regression tests prove multiline/control-character descriptions cannot add a
+command.&lt;/li>
+&lt;li>MCP configuration removes or restricts privileged SSH execution paths.&lt;/li>
+&lt;li>Operator actions cover credential rotation and review of MCP/SSH command
+logs for the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Treating &lt;code>description&lt;/code> as harmless metadata even though tool arguments can be
+shaped by users or LLM output.&lt;/li>
+&lt;li>Escaping only &lt;code>#&lt;/code> or only newlines while leaving other shell delimiters active.&lt;/li>
+&lt;li>Updating package manifests while old MCP server registrations, images, or
+global installs remain in use.&lt;/li>
+&lt;li>Running the MCP server with developer SSH keys or root-capable automation
+credentials.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database listing: &lt;a href="https://github.com/advisories?query=severity%3Ahigh&amp;#43;sort%3Apublished-desc"target="_blank" rel="noopener">https://github.com/advisories?query=severity%3Ahigh+sort%3Apublished-desc&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-7039"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-7039&lt;/a>&lt;/li>
+&lt;li>Public issue report: &lt;a href="https://github.com/tufantunc/ssh-mcp/issues/44"target="_blank" rel="noopener">https://github.com/tufantunc/ssh-mcp/issues/44&lt;/a>&lt;/li>
+&lt;li>VulDB advisory: &lt;a href="https://vuldb.com/vuln/359619"target="_blank" rel="noopener">https://vuldb.com/vuln/359619&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-v4p8-mg3p-g94g - LiteLLM MCP stdio command execution</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-v4p8-mg3p-g94g-litellm-mcp-stdio-command-execution/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-v4p8-mg3p-g94g-litellm-mcp-stdio-command-execution/</guid><description>
+&lt;p>LiteLLM proxy versions &lt;code>1.74.2&lt;/code> through &lt;code>1.83.6&lt;/code> allowed authenticated command
+execution through MCP REST preview endpoints. The affected endpoints accepted a
+full MCP server configuration, including stdio transport fields such as
+&lt;code>command&lt;/code>, &lt;code>args&lt;/code>, and &lt;code>env&lt;/code>, then attempted to connect to that server.&lt;/p>
+&lt;p>Because the endpoints only required a valid proxy API key and did not require
+the &lt;code>PROXY_ADMIN&lt;/code> role, a low-privilege authenticated user could submit a stdio
+configuration that spawned an arbitrary subprocess on the LiteLLM proxy host.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>litellm &amp;gt;=1.74.2, &amp;lt;1.83.7&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>litellm 1.83.7+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoints:&lt;/strong>
+&lt;ul>
+&lt;li>&lt;code>POST /mcp-rest/test/connection&lt;/code>&lt;/li>
+&lt;li>&lt;code>POST /mcp-rest/test/tools/list&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds or deploys a LiteLLM proxy on &lt;code>&amp;gt;=1.74.2, &amp;lt;1.83.7&lt;/code>.&lt;/li>
+&lt;li>MCP server management or preview functionality is enabled.&lt;/li>
+&lt;li>Non-admin proxy API keys can reach either affected endpoint.&lt;/li>
+&lt;li>The proxy process can spawn subprocesses and has access to model provider
+credentials, cloud credentials, internal network routes, or tenant data.&lt;/li>
+&lt;li>Reverse proxy, API gateway, or ingress rules expose &lt;code>/mcp-rest/test/*&lt;/code> beyond
+a tightly controlled admin network.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;litellm|LiteLLM|mcp-rest|test/tools/list|test/connection|PROXY_ADMIN|proxy_server&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show litellm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^litellm==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;/mcp-rest/test/(connection|tools/list)|mcp.*stdio|\&amp;#34;command\&amp;#34;.*\&amp;#34;args\&amp;#34;|PROXY_ADMIN&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s nginx* traefik* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade LiteLLM to &lt;code>1.83.7+&lt;/code> everywhere the repository controls dependencies,
+images, or deployment manifests.&lt;/li>
+&lt;li>Until the patched version is deployed, block
+&lt;code>POST /mcp-rest/test/connection&lt;/code> and &lt;code>POST /mcp-rest/test/tools/list&lt;/code> at the
+reverse proxy, API gateway, WAF, or service mesh.&lt;/li>
+&lt;li>Verify only &lt;code>PROXY_ADMIN&lt;/code> users can preview or save MCP server
+configurations.&lt;/li>
+&lt;li>Treat stdio MCP server definitions as code execution requests. Require admin
+approval, command allow-lists, environment redaction, and audit logging.&lt;/li>
+&lt;li>Rotate LiteLLM proxy keys and provider credentials if low-privilege users
+could access the endpoints during the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-v4p8-mg3p-g94g (LiteLLM authenticated command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">execution via MCP stdio test endpoints). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades LiteLLM, restricts MCP test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoints, adds verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected LiteLLM proxy or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-v4p8-mg3p-g94g.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat LiteLLM API keys, model provider keys, MCP server environment values,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenant data, subprocess output, and proxy logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run arbitrary commands through the affected endpoints to prove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve low-privilege access to stdio MCP preview behavior.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every LiteLLM reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Python manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, reverse proxy config, API gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy, MCP server registry config, generated SBOMs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`litellm`&lt;/span> version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;gt;=1.74.2, &amp;lt;1.83.7`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether the affected endpoints are reachable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /mcp-rest/test/connection`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /mcp-rest/test/tools/list`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any route alias, proxy rewrite, or admin UI action that calls those paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether non-admin proxy API keys can reach the endpoints. Search
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> auth policy, role mapping, seeded users, integration tests, and gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rules for &lt;span class="sb">`PROXY_ADMIN`&lt;/span>, internal-user keys, and MCP admin permissions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not deploy a LiteLLM proxy or only contains client
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owner, files checked, and required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed version &lt;span class="sb">`litellm 1.83.7+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade all controlled LiteLLM deployments to &lt;span class="sb">`1.83.7+`&lt;/span>. Regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, image digests, SBOMs, deployment render output, and dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add temporary or permanent gateway containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny &lt;span class="sb">`POST /mcp-rest/test/connection`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`POST /mcp-rest/test/tools/list`&lt;/span> unless the caller is admin;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require &lt;span class="sb">`PROXY_ADMIN`&lt;/span> for MCP preview and save operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed for stdio transport previews if role context is unavailable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add safe tests or policy checks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> low-privilege/internal-user keys receive 403 for both affected endpoints;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`PROXY_ADMIN`&lt;/span> remains required for stdio MCP test and save paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> stdio configs with &lt;span class="sb">`command`&lt;/span>, &lt;span class="sb">`args`&lt;/span>, or &lt;span class="sb">`env`&lt;/span> are never executed during
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unauthorized tests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway render output contains the deny or admin-only rule.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add operator hardening for MCP stdio definitions:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> command allow-list or approved MCP server registry;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> environment variable redaction;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> subprocess audit logs without secret values;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> least-privilege runtime identity for the proxy process.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-v4p8-mg3p-g94g operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> LiteLLM versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether affected endpoints were externally or tenant reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which roles could call them before the patch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether proxy API keys, provider keys, or MCP environment secrets should
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for stdio configs or unexpected child
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> processes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, unit/API tests, authz tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway/ingress rendering, container build, deployment diff, SBOM refresh,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate GHSA-v4p8 in LiteLLM MCP endpoints`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected LiteLLM proxy deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed LiteLLM version cannot be consumed without a broader proxy migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Endpoint reachability cannot be verified without executing attacker-supplied
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing product requirements intentionally allow non-admin users to create
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stdio MCP command definitions; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled dependency, lockfile, image, SBOM, or deployment target resolves
+&lt;code>litellm &amp;gt;=1.74.2, &amp;lt;1.83.7&lt;/code>.&lt;/li>
+&lt;li>Low-privilege/internal-user keys cannot access either affected MCP test
+endpoint.&lt;/li>
+&lt;li>Gateway or service policy blocks the endpoints during rollout if the upgrade
+is not atomic.&lt;/li>
+&lt;li>Tests prove stdio MCP configs are not executed for unauthorized callers.&lt;/li>
+&lt;li>Operator actions cover key rotation and log review when exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating Python lockfiles while a Docker image, Helm value, or hosted proxy
+still pins an older LiteLLM release.&lt;/li>
+&lt;li>Treating a valid proxy key as sufficient authorization for subprocess-capable
+MCP actions.&lt;/li>
+&lt;li>Logging MCP &lt;code>env&lt;/code> fields or provider credentials while adding tests.&lt;/li>
+&lt;li>Allowing preview endpoints to bypass stricter controls used by the save path.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-v4p8-mg3p-g94g"target="_blank" rel="noopener">https://github.com/advisories/GHSA-v4p8-mg3p-g94g&lt;/a>&lt;/li>
+&lt;li>LiteLLM &lt;code>v1.83.7-stable&lt;/code> release: &lt;a href="https://github.com/BerriAI/litellm/releases/tag/v1.83.7-stable"target="_blank" rel="noopener">https://github.com/BerriAI/litellm/releases/tag/v1.83.7-stable&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-rpm5/GHSA-x2qx - GitPython command injection</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection/</guid><description>
+&lt;p>Two high-severity GitPython advisories affect applications that let untrusted
+input shape Git operation options:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>: unsafe Git option checks can be bypassed with Python
+kwargs such as &lt;code>upload_pack&lt;/code> and &lt;code>receive_pack&lt;/code>, which normalize into
+dangerous Git flags.&lt;/li>
+&lt;li>&lt;code>GHSA-x2qx-6953-8485&lt;/code>: &lt;code>multi_options&lt;/code> validation happens before
+&lt;code>shlex.split()&lt;/code>, allowing a seemingly safe option string to split into unsafe
+flags such as &lt;code>--config core.hooksPath=...&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>For agentic coding systems, CI workers, repository importers, and internal
+automation bots, the practical risk is code execution on the worker handling
+repo clone/fetch/pull/push operations.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>GitPython &amp;gt;=3.1.30, &amp;lt;3.1.47&lt;/code> for
+&lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>GitPython &amp;lt;3.1.47&lt;/code> for &lt;code>GHSA-x2qx-6953-8485&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>GitPython 3.1.47+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on GitPython directly or transitively.&lt;/li>
+&lt;li>Application code calls &lt;code>Repo.clone_from()&lt;/code>, &lt;code>Repo.clone()&lt;/code>,
+&lt;code>Remote.fetch()&lt;/code>, &lt;code>Remote.pull()&lt;/code>, &lt;code>Remote.push()&lt;/code>, or &lt;code>Submodule.update()&lt;/code>.&lt;/li>
+&lt;li>Users, tenants, webhooks, workflow YAML, job definitions, repository metadata,
+or LLM/tool inputs can influence &lt;code>kwargs&lt;/code>, &lt;code>multi_options&lt;/code>,
+&lt;code>clone_multi_options&lt;/code>, or &amp;ldquo;extra git options.&amp;rdquo;&lt;/li>
+&lt;li>The process performing Git operations has access to SSH keys, cloud
+credentials, package publishing tokens, source code, build artifacts, or
+internal network routes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;GitPython|from git import Repo|import git|Repo\.clone_from|Repo\.clone\(|\.fetch\(|\.pull\(|\.push\(|multi_options|clone_multi_options|upload_pack|receive_pack|allow_unsafe&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show GitPython
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^GitPython==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;extra.*git|git.*options|clone.*options|repo.*import|repository.*sync|webhook.*clone|workflow.*clone&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade GitPython to &lt;code>3.1.47+&lt;/code> everywhere this repository controls manifests,
+lockfiles, images, or runtime packaging.&lt;/li>
+&lt;li>Remove user-controlled pass-through of Git kwargs and &lt;code>multi_options&lt;/code>.&lt;/li>
+&lt;li>Replace free-form Git option input with a strict allow-list of product
+features, represented as typed fields rather than raw flags.&lt;/li>
+&lt;li>Block &lt;code>upload_pack&lt;/code>, &lt;code>receive_pack&lt;/code>, &lt;code>exec&lt;/code>, &lt;code>config&lt;/code>, &lt;code>c&lt;/code>, &lt;code>core.hooksPath&lt;/code>,
+and any option that can choose helper commands, hooks, config, protocol
+behavior, or SSH commands.&lt;/li>
+&lt;li>Run repo-ingest workers with least privilege, isolated workspaces, disabled
+hooks where possible, and credentials scoped to the one repository operation.&lt;/li>
+&lt;li>Review worker logs and credential access if untrusted users could control Git
+options during the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GitPython command injection advisories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades GitPython, removes unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> option pass-through, adds regression coverage, and documents operator cleanup,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected GitPython runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH keys, deploy keys, package tokens, cloud credentials, source code,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repo URLs, and worker environment values as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads, helper commands, custom hooks, reverse
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shells, or attacker-controlled Git options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep a free-form &amp;#34;extra Git options&amp;#34; feature for untrusted callers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every GitPython dependency controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requirements files, pyproject files, lockfiles, constraints, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> base images, CI images, worker images, SBOMs, vendored code, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved GitPython version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves below &lt;span class="sb">`3.1.47`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search code paths that perform repository operations:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Repo.clone_from()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Repo.clone()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.fetch()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.pull()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.push()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Submodule.update()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> wrappers around repository import, mirror, sync, CI checkout, or agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workspace preparation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether untrusted input can reach GitPython options:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request bodies, webhook payloads, tenant settings, workflow YAML, job config,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> LLM/tool arguments, database records, environment variables, or &amp;#34;advanced
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> options&amp;#34; fields.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If GitPython is absent or only used in non-deployable tooling, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was checked and why the runtime is not exposed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade GitPython to &lt;span class="sb">`3.1.47+`&lt;/span> on the smallest compatible release line.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Regenerate lockfiles, constraints, images, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Remove unsafe option pass-through:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> do not pass user dictionaries directly as &lt;span class="sb">`**kwargs`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> do not pass user strings to &lt;span class="sb">`multi_options`&lt;/span> or &lt;span class="sb">`clone_multi_options`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject &lt;span class="sb">`upload_pack`&lt;/span>, &lt;span class="sb">`receive_pack`&lt;/span>, &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`config`&lt;/span>, &lt;span class="sb">`c`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`core.hooksPath`&lt;/span>, &lt;span class="sb">`GIT_SSH_COMMAND`&lt;/span>, and equivalent normalized spellings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> represent supported behavior as typed fields, then map to a finite
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allow-list of safe GitPython arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`upload_pack`&lt;/span> and &lt;span class="sb">`receive_pack`&lt;/span> kwargs from untrusted input are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> hyphen, underscore, and mixed-normalization forms are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`multi_options`&lt;/span> strings containing embedded unsafe flags are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`clone_multi_options`&lt;/span> for submodules uses the same validator;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> validation happens after parsing/normalization, not only before it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Harden repo-ingest execution where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run workers as unprivileged users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate workspaces per job;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scrub environment variables before Git operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scope SSH/deploy keys to the target repo and operation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Git hooks or run with safe hook policy where supported.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GitPython advisory operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected GitPython versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which repo-operation paths were reachable by untrusted input;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether free-form Git option features were removed or restricted;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which worker credentials should be rotated if exposure existed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for suspicious helper, hook, config, or SSH
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> command options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, unit tests, integration tests
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for repository import/sync, lint/typecheck, image build, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate GitPython command injection advisories`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No deployable GitPython runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed GitPython version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on arbitrary caller-controlled Git options;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled hooks or helper
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves GitPython
+below &lt;code>3.1.47&lt;/code>.&lt;/li>
+&lt;li>User-controlled dictionaries, strings, workflow fields, or LLM/tool arguments
+cannot become raw GitPython kwargs, &lt;code>multi_options&lt;/code>, or
+&lt;code>clone_multi_options&lt;/code>.&lt;/li>
+&lt;li>Regression tests cover normalized option names and post-parse validation.&lt;/li>
+&lt;li>Repo-ingest workers do not run with broad credentials or reusable shared
+workspaces.&lt;/li>
+&lt;li>The PR identifies whether credential rotation and log review are required.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating application requirements while CI, worker, or agent images still
+carry an older GitPython version.&lt;/li>
+&lt;li>Blocking only literal &lt;code>--upload-pack&lt;/code> while allowing &lt;code>upload_pack&lt;/code>.&lt;/li>
+&lt;li>Validating &lt;code>multi_options&lt;/code> before splitting or normalization.&lt;/li>
+&lt;li>Treating repository URLs as the only untrusted input and missing workflow
+fields that configure clone/fetch behavior.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-rpm5-65cw-6hj4"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rpm5-65cw-6hj4&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-x2qx-6953-8485&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-x2qx-6953-8485"target="_blank" rel="noopener">https://github.com/advisories/GHSA-x2qx-6953-8485&lt;/a>&lt;/li>
+&lt;li>GitPython project: &lt;a href="https://github.com/gitpython-developers/GitPython"target="_blank" rel="noopener">https://github.com/gitpython-developers/GitPython&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

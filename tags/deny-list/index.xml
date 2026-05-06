@@ -1,0 +1,128 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Deny-List</title><link>https://security-recipes.ai/tags/deny-list/</link><description>Recent content in Deny-List on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/deny-list/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-40280 - Gotenberg SSRF deny-list bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-40280-gotenberg-deny-list-ssrf-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-40280-gotenberg-deny-list-ssrf-bypass/</guid><description>
+&lt;p>Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code> contains a critical SSRF bypass in the URL filtering used
+for webhook and &lt;code>downloadFrom&lt;/code> destinations. The private-IP deny-list patterns
+match lowercase schemes such as &lt;code>http://&lt;/code>, while URL schemes are
+case-insensitive and Go normalizes them before making the outbound request.&lt;/p>
+&lt;p>An attacker can use uppercase or mixed-case schemes such as &lt;code>HTTP://&lt;/code> to bypass
+the deny-list and reach private networks, link-local services, loopback targets,
+or cloud metadata endpoints from the Gotenberg runtime.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Gotenberg &lt;code>8.31.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg v8 is deployed at or below &lt;code>8.30.1&lt;/code>.&lt;/li>
+&lt;li>The service accepts user-controlled webhook URLs or &lt;code>downloadFrom&lt;/code> entries.&lt;/li>
+&lt;li>Runtime SSRF protection relies on deny-list regexes for URL schemes or
+private network ranges.&lt;/li>
+&lt;li>The workload has egress access to internal services or metadata endpoints.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;gotenberg|downloadFrom|WEBHOOK_DENY|DOWNLOAD_FROM_DENY|deny-list&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg/gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl get networkpolicy -A -o yaml &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;gotenberg|egress|169\\.254|10\\.|172\\.|192\\.168&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Gotenberg to &lt;code>8.31.0+&lt;/code> and pin image digests.&lt;/li>
+&lt;li>Prefer explicit allow-lists for webhook and &lt;code>downloadFrom&lt;/code> destinations over
+regex-only deny-lists.&lt;/li>
+&lt;li>Add egress controls that block private ranges, loopback, link-local, and
+metadata endpoints from the Gotenberg workload.&lt;/li>
+&lt;li>If upgrade cannot be immediate, restrict conversion endpoints to trusted
+callers and block mixed-case URL schemes at the ingress/proxy layer as a
+temporary mitigation.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-40280 (Gotenberg SSRF deny-list bypass). Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Gotenberg and hardens URL
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> destination controls, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if a safe patch cannot be made from this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-40280.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer Gotenberg &lt;span class="sb">`8.31.0+`&lt;/span>; do not substitute ad hoc regex edits for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-fixed release when an upgrade is possible.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat URL scheme, host, redirects, and resolved IP addresses as untrusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Find all Gotenberg references in dependencies, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm values, Terraform, Kubernetes manifests, SBOMs, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If any reference resolves to &lt;span class="sb">`&amp;lt;=8.30.1`&lt;/span>, upgrade it to &lt;span class="sb">`8.31.0+`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regenerate lockfiles or image metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Replace deny-list-only controls with explicit destination allow-lists where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the application has known webhook/download hosts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add runtime egress policy for Gotenberg that denies:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`127.0.0.0/8`&lt;/span> and &lt;span class="sb">`::1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> RFC1918 private ranges;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`169.254.0.0/16`&lt;/span> and cloud metadata endpoints;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> other internal service CIDRs used by this environment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Add a regression or smoke-test note that mixed-case schemes such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`HTTP://169.254.169.254/`&lt;/span> are rejected after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Run build, tests, dependency scans, image scans, and deployment rendering
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available in this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-40280 in Gotenberg`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo only consumes an externally managed Gotenberg service.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`8.31.0+`&lt;/span> is unavailable for the deployment channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- The only possible change would weaken URL filtering or broaden network egress.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg resolves to &lt;code>8.31.0+&lt;/code> everywhere this repo controls.&lt;/li>
+&lt;li>Webhook and &lt;code>downloadFrom&lt;/code> destinations are constrained by allow-list or
+equivalent policy.&lt;/li>
+&lt;li>Network egress prevents private/link-local/metadata access from the Gotenberg
+workload.&lt;/li>
+&lt;li>Verification notes explicitly cover mixed-case URL scheme bypass attempts.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Fixes that only lowercase user input in one call path while leaving redirects,
+webhook callbacks, or &lt;code>downloadFrom&lt;/code> handling unchecked.&lt;/li>
+&lt;li>Private-IP deny-list regexes that are case-sensitive or only match host text
+before DNS resolution.&lt;/li>
+&lt;li>Partial upgrades that leave worker images or cron conversion jobs on older
+Gotenberg tags.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5q7p-7jgv-ww56"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5q7p-7jgv-ww56&lt;/a>&lt;/li>
+&lt;li>Gotenberg release &lt;code>v8.31.0&lt;/code>: &lt;a href="https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0"target="_blank" rel="noopener">https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0&lt;/a>&lt;/li>
+&lt;li>Related earlier bypass CVE-2026-27018: &lt;a href="https://github.com/advisories/GHSA-jjwv-57xh-xr6r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-jjwv-57xh-xr6r&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

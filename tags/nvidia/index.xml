@@ -1,0 +1,202 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Nvidia</title><link>https://security-recipes.ai/tags/nvidia/</link><description>Recent content in Nvidia on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/nvidia/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-24159 — NVIDIA NeMo deserialization RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-24159-nvidia-nemo-deserialization-rce/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-24159-nvidia-nemo-deserialization-rce/</guid><description>
+&lt;p>CVE-2026-24159 is a NeMo Framework deserialization flaw (CWE-502) that can
+allow code execution when untrusted model/checkpoint content is processed.
+NVD currently scores this CVE as &lt;strong>9.8 (critical)&lt;/strong>, while NVIDIA&amp;rsquo;s CNA score
+is &lt;strong>7.8 (high)&lt;/strong>. Treat internet-reachable or shared training/inference
+pipelines as urgent remediation targets.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>nemo&lt;/code> versions earlier than &lt;code>2.6.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>nemo&amp;gt;=2.6.2&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NeMo is installed at a vulnerable version.&lt;/li>
+&lt;li>The environment ingests untrusted checkpoints/artifacts/datasets.&lt;/li>
+&lt;li>Jobs run with broad file-system or cloud credentials.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show nemo-toolkit &lt;span class="o">||&lt;/span> python -m pip show nemo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python - &lt;span class="s">&amp;lt;&amp;lt;&amp;#39;PY&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">import importlib
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">for name in (&amp;#34;nemo&amp;#34;, &amp;#34;nemo_toolkit&amp;#34;):
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> try:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> m = importlib.import_module(name)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> print(name, getattr(m, &amp;#34;__version__&amp;#34;, &amp;#34;unknown&amp;#34;))
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> except Exception:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> pass
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">PY&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;torch\.load|pickle|checkpoint|nemo&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade NeMo to &lt;code>2.6.2&lt;/code> or later.&lt;/li>
+&lt;li>Do not deserialize untrusted checkpoint/model files.&lt;/li>
+&lt;li>Require provenance controls (trusted registry/bucket, checksums/signatures).&lt;/li>
+&lt;li>Run NeMo jobs with least-privilege IAM and restricted network egress.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-24159 (NVIDIA NeMo deserialization RCE). Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A reviewer-ready PR with code/config/docs updates, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if no safe patch path exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Stay strictly in CVE-2026-24159 scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer the smallest safe upgrade path to &lt;span class="sb">`nemo&amp;gt;=2.6.2`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Assume model/checkpoint artifacts are untrusted unless proven otherwise.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Detect NeMo usage in manifests, lockfiles, images, and runtime scripts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If NeMo absent or already fixed, create a brief triage note and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Upgrade NeMo dependency pins and regenerate lockfiles.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add one hardening update near NeMo load paths (or ops docs):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> enforce trusted artifact sources,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require checksum/signature validation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document least-privilege execution requirements.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run tests/build checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-24159 in nvidia nemo`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Upgrade causes unsupported framework/API break without safe short path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Dependency manager/lockfile process is missing and cannot be made
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deterministic in this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Failures are unrelated pre-existing issues.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Manifest/lockfile/image now resolves to &lt;code>nemo&amp;gt;=2.6.2&lt;/code>.&lt;/li>
+&lt;li>No vulnerable NeMo versions remain in dependency inventory.&lt;/li>
+&lt;li>PR includes one concrete control for untrusted artifact ingestion.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NVD entry: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-24159"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-24159&lt;/a>&lt;/li>
+&lt;li>NVIDIA bulletin (NeMo): &lt;a href="https://nvidia.custhelp.com/app/answers/detail/a_id/5800"target="_blank" rel="noopener">https://nvidia.custhelp.com/app/answers/detail/a_id/5800&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-24159"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-24159&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-24164 — NVIDIA BioNeMo deserialization RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-24164-nvidia-bionemo-deserialization-rce/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-24164-nvidia-bionemo-deserialization-rce/</guid><description>
+&lt;p>CVE-2026-24164 affects NVIDIA BioNeMo via deserialization of untrusted data
+(CWE-502). NVD currently rates the issue as &lt;strong>9.8 (critical)&lt;/strong> while the NVIDIA
+CNA vector is &lt;strong>8.8 (high)&lt;/strong>. Because BioNeMo often handles user-provided
+biological/model artifacts, deployments should treat this as high-priority.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> BioNeMo branches/versions that do &lt;strong>not&lt;/strong> include commit
+&lt;code>e5e58c8&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> any BioNeMo branch that includes commit &lt;code>e5e58c8&lt;/code> (or a later
+release containing that patch)&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>BioNeMo is present in runtime or build tooling.&lt;/li>
+&lt;li>Workflows deserialize external datasets/model artifacts/checkpoints.&lt;/li>
+&lt;li>Platform is reachable by untrusted users or shared tenant workloads.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show bionemo &lt;span class="o">||&lt;/span> &lt;span class="nb">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git log --oneline --decorate -n &lt;span class="m">200&lt;/span> &lt;span class="p">|&lt;/span> rg e5e58c8 &lt;span class="o">||&lt;/span> &lt;span class="nb">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;pickle|torch\.load|yaml\.load|deserialize|bionemo&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Move to a BioNeMo revision that includes &lt;code>e5e58c8&lt;/code>.&lt;/li>
+&lt;li>Ensure loading paths reject or sandbox untrusted serialized content.&lt;/li>
+&lt;li>Restrict pipeline credentials and isolate workers handling imported artifacts.&lt;/li>
+&lt;li>Rebuild artifacts/images after patching.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-24164 (NVIDIA BioNeMo deserialization RCE).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A reviewer-ready PR with minimal safe remediation, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if no safe patch path exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-24164.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer applying/consuming the upstream fix commit &lt;span class="sb">`e5e58c8`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Keep changes minimal and deterministic.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Locate BioNeMo dependency source (pip, git submodule, vendored source,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container image).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Verify whether commit &lt;span class="sb">`e5e58c8`&lt;/span> is already present.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If missing, update version/ref to include it and regenerate lockfiles/images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add one control where deserialization occurs:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> trusted-source allow-list,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> explicit validation gate,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> or sandboxing/least-privilege execution note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run tests/build checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-24164 in nvidia bionemo`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Upstream patch cannot be consumed without unsafe major migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> BioNeMo is not present in this repository/runtime.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Build/test failures are pre-existing and unrelated.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Dependency ref/release includes commit &lt;code>e5e58c8&lt;/code> or newer fixed release.&lt;/li>
+&lt;li>No vulnerable BioNeMo revision remains in lockfiles/images.&lt;/li>
+&lt;li>PR documents one concrete control for untrusted deserialization paths.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NVD entry: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-24164"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-24164&lt;/a>&lt;/li>
+&lt;li>NVIDIA bulletin (BioNeMo): &lt;a href="https://nvidia.custhelp.com/app/answers/detail/a_id/5808"target="_blank" rel="noopener">https://nvidia.custhelp.com/app/answers/detail/a_id/5808&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-24164"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-24164&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,218 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Blockchain</title><link>https://security-recipes.ai/tags/blockchain/</link><description>Recent content in Blockchain on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/blockchain/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41583/CVE-2026-41584 - Zebra consensus split and rk panic</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41583-zebra-consensus-split-and-rk-panic/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41583-zebra-consensus-split-and-rk-panic/</guid><description>
+&lt;p>Zebra, the Rust implementation of a Zcash node, published two critical
+GitHub-reviewed advisories that share the same operational fix: upgrade the
+node runtime immediately and verify it is following the expected consensus
+chain.&lt;/p>
+&lt;p>&lt;code>CVE-2026-41583&lt;/code> covers transparent sighash hash-type handling. A refactor
+moved consensus-critical validation out of C++ verification code, but Zebra did
+not re-enforce the rule that restricts valid V5 transaction sighash hash types.
+For V4 transactions, Zebra also used the canonical hash type while &lt;code>zcashd&lt;/code>
+used the raw value. A malicious transaction could therefore be accepted by
+Zebra and rejected by &lt;code>zcashd&lt;/code>, or vice versa, risking a consensus split.&lt;/p>
+&lt;p>&lt;code>CVE-2026-41584&lt;/code> covers an Orchard transaction verification panic. A crafted
+transaction with an identity &lt;code>rk&lt;/code> value could cause the &lt;code>orchard&lt;/code> crate path
+used by Zebra verification to panic, crashing affected Zebra nodes.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>CVE-2026-41583 vulnerable:&lt;/strong> &lt;code>zebrad &amp;lt;4.3.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>CVE-2026-41583 vulnerable library:&lt;/strong> &lt;code>zebra-script &amp;lt;5.0.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>CVE-2026-41583 fixed:&lt;/strong> &lt;code>zebrad 4.3.1+&lt;/code> and &lt;code>zebra-script 5.0.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>CVE-2026-41584 vulnerable:&lt;/strong> &lt;code>zebrad &amp;lt;4.3.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>CVE-2026-41584 vulnerable library:&lt;/strong> &lt;code>zebra-chain &amp;lt;6.0.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>CVE-2026-41584 fixed:&lt;/strong> &lt;code>zebrad 4.3.1+&lt;/code> and &lt;code>zebra-chain 6.0.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, packages, deploys, or documents &lt;code>zebrad&lt;/code>
+before &lt;code>4.3.1&lt;/code>.&lt;/li>
+&lt;li>The repository includes &lt;code>zebra-script &amp;lt;5.0.1&lt;/code> or &lt;code>zebra-chain &amp;lt;6.0.2&lt;/code> in a
+custom Zcash transaction verification, block validation, wallet, indexer, or
+node-adjacent service.&lt;/li>
+&lt;li>A Zebra node is connected to public, partner, testnet, or mining networks
+where untrusted transactions or blocks can reach verification.&lt;/li>
+&lt;li>Deployment manifests pin Zebra images or binaries without immutable digests
+or an explicit fixed version.&lt;/li>
+&lt;li>Operators rely on Zebra for consensus-critical block acceptance, transaction
+verification, mining, indexing, or chain-observation signals.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zebrad|zebra-script|zebra-chain|ZcashFoundation/zebra|zcash|orchard|sighash|Cargo\\.lock|cargo&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cargo tree -i zebrad
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cargo tree -i zebra-script
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cargo tree -i zebra-chain
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zebrad|zebra|zcash|ZCASH|mainnet|testnet|regtest&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm systemd .github .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Zebra node runtime to &lt;code>zebrad 4.3.1+&lt;/code>.&lt;/li>
+&lt;li>Ensure library consumers resolve &lt;code>zebra-script 5.0.1+&lt;/code> and
+&lt;code>zebra-chain 6.0.2+&lt;/code>.&lt;/li>
+&lt;li>Regenerate Cargo locks, vendored dependency metadata, SBOMs, image digests,
+deployment render output, and runtime version documentation.&lt;/li>
+&lt;li>Treat this as a consensus-critical rollout. Drain, restart, or replace
+affected nodes according to the operator&amp;rsquo;s Zcash runbook, then verify chain
+height, best block hash, peer health, and crash-loop status against trusted
+patched peers.&lt;/li>
+&lt;li>Do not attempt to mitigate a network-reachable consensus node with network
+filtering alone. The advisories state immediate upgrade is the available
+mitigation.&lt;/li>
+&lt;li>If the repository only manages downstream services that read from Zebra,
+document the node owner, exposed runtime, and required upgrade in &lt;code>TRIAGE.md&lt;/code>
+instead of pretending a client-only patch remediates the CVEs.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41583 and CVE-2026-41584 in Zebra/Zcash node
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">deployments and Zebra Rust library consumers. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Zebra, proves affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtimes and libraries resolve to fixed versions, adds rollout-safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification, and documents operator actions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Zebra runtime/library
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41583, CVE-2026-41584,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> GHSA-8m29-fpq5-89jj, and GHSA-452v-w3gx-72wg.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not generate invalid Zcash transactions, crafted &lt;span class="sb">`rk`&lt;/span> values, forked-chain
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> payloads, consensus-split test cases, or crash payloads against production,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> staging, shared dev, public testnet, or shared mining infrastructure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not delete chain state, resync nodes, rotate wallets, alter mining
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy, or change peer allowlists unless the repository already owns those
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runbook actions and the PR makes the operator impact explicit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely on network isolation as a substitute for upgrading a node that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> can process untrusted transactions or blocks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Zebra/Zcash asset controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Cargo manifests, Cargo.lock files, vendored crates, Dockerfiles, base
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> images, compose files, Helm charts, Kubernetes manifests, Terraform,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Ansible, systemd units, CI images, SBOMs, release manifests, runbooks,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> node configuration, and runtime version probes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`zebrad`&lt;/span> is vulnerable if it resolves below &lt;span class="sb">`4.3.1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`zebra-script`&lt;/span> is vulnerable if it resolves below &lt;span class="sb">`5.0.1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`zebra-chain`&lt;/span> is vulnerable if it resolves below &lt;span class="sb">`6.0.2`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine exposure without exploit testing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Is &lt;span class="sb">`zebrad`&lt;/span> connected to public, partner, mining, testnet, or regtest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> peers that can supply untrusted transactions or blocks?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Does the service use Zebra libraries for transaction, block, mempool,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wallet, indexer, or chain-observation decisions?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Are node health, block acceptance, or mining decisions consumed by other
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production systems?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not own an affected runtime or library consumer,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, resolved versions, suspected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner, and the exact upgrade requested.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade controlled nodes and libraries:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> move &lt;span class="sb">`zebrad`&lt;/span> to &lt;span class="sb">`4.3.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> move &lt;span class="sb">`zebra-script`&lt;/span> to &lt;span class="sb">`5.0.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> move &lt;span class="sb">`zebra-chain`&lt;/span> to &lt;span class="sb">`6.0.2+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> update image tags to fixed immutable digests where possible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> regenerate Cargo locks, vendor metadata, SBOMs, image metadata, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendered deployment manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add a dependency guard or deployment policy check that rejects the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Zebra versions in future builds. Keep it narrow to Zebra/Zcash artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add safe verification that does not exercise the vulnerability:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency-resolution assertions for the fixed crate versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> image or binary version checks such as &lt;span class="sb">`zebrad --version`&lt;/span> where available;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deployment render tests proving fixed image tags or digests are used;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> runbook checks for patched node startup, peer health, chain height, best
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> block hash, and crash-loop status after rollout.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add temporary rollout containment when deployment is not atomic:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove vulnerable nodes from load-bearing consensus/mining/indexing roles;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer patched peers for validation during the rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> flag downstream services that consume Zebra consensus signals as degraded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> until patched nodes are healthy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document any operator-approved resync or state-rebuild requirement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`Zebra CVE operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every Zebra binary, crate, image, and deployment target before and after
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether affected nodes were public-peer, partner-peer, mining, indexer,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wallet, testnet, or internal-only;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any downstream service consumes Zebra consensus or chain-state
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> expected restart, drain, resync, peer-health, and chain-tip verification
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> steps;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> logs to inspect for consensus mismatch, invalid transaction handling,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Orchard verification panic, or crash loops;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any temporary degraded mode that remains after the PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: Cargo resolution, unit tests, dependency/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scan, SBOM refresh, image build, deployment render, policy checks, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe node startup/version checks available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate Zebra CVE-2026-41583 and CVE-2026-41584`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Zebra node, crate, image, or deployment target is controlled by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Zebra release cannot be consumed without a broader chain-node or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> protocol migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only available verification would require crafting invalid transactions,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> inducing a consensus split, or crashing a node.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The change would delete chain state, alter mining behavior, or trigger a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resync without operator approval.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Cargo lock, vendored crate, image, SBOM, or deployment target
+resolves &lt;code>zebrad &amp;lt;4.3.1&lt;/code>, &lt;code>zebra-script &amp;lt;5.0.1&lt;/code>, or
+&lt;code>zebra-chain &amp;lt;6.0.2&lt;/code>.&lt;/li>
+&lt;li>Deployment artifacts use fixed Zebra image tags or immutable digests and do
+not leave old binaries in sidecars, init containers, base images, or release
+bundles.&lt;/li>
+&lt;li>Verification is safe: dependency resolution, version probes, deployment
+rendering, patched startup, peer health, chain height, best block hash, and
+crash-loop checks.&lt;/li>
+&lt;li>Operator actions explain consensus-risk rollout steps and downstream services
+that consume Zebra output.&lt;/li>
+&lt;li>The PR does not include exploit transactions, crafted &lt;code>rk&lt;/code> values, or
+consensus-split reproduction payloads.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>zebrad&lt;/code> while a container layer, vendored crate directory, or
+release bundle still contains old Zebra binaries or libraries.&lt;/li>
+&lt;li>Treating &lt;code>zebra-script&lt;/code> or &lt;code>zebra-chain&lt;/code> library consumers as safe because
+they do not run the full &lt;code>zebrad&lt;/code> binary.&lt;/li>
+&lt;li>Checking only &lt;code>Cargo.toml&lt;/code> and missing &lt;code>Cargo.lock&lt;/code>, vendored sources, image
+digests, or Helm values.&lt;/li>
+&lt;li>Restarting a patched node without checking that it rejoins the expected
+chain tip and stops crash-looping.&lt;/li>
+&lt;li>Hiding operator actions such as drain, restart, resync, degraded mode, or
+downstream-consumer impact.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-8m29-fpq5-89jj&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-8m29-fpq5-89jj"target="_blank" rel="noopener">https://github.com/advisories/GHSA-8m29-fpq5-89jj&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-452v-w3gx-72wg&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-452v-w3gx-72wg"target="_blank" rel="noopener">https://github.com/advisories/GHSA-452v-w3gx-72wg&lt;/a>&lt;/li>
+&lt;li>Zebra project: &lt;a href="https://github.com/ZcashFoundation/zebra"target="_blank" rel="noopener">https://github.com/ZcashFoundation/zebra&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

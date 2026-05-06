@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/operations-session.schema.json",
+  "title": "SecurityRecipes browser-local operations session",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "exported_at",
+    "browser_model",
+    "session",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.operations-session.v1"
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "browser_model": {
+      "const": "client_side_byo_token"
+    },
+    "session": {
+      "$ref": "#/$defs/sessionSummary"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/activityRecord"
+      }
+    }
+  },
+  "$defs": {
+    "activityCategory": {
+      "type": "string",
+      "enum": ["agent", "chat", "source", "case", "report", "schedule", "router", "asset", "control"]
+    },
+    "activityStatus": {
+      "type": "string",
+      "enum": ["started", "running", "queued", "saved", "copied", "downloaded", "cleared", "ok", "error", "info"]
+    },
+    "sessionKind": {
+      "type": "string",
+      "enum": ["agent_run", "chat_session", "source_sync", "case_handoff", "report_export", "schedule_run", "asset_update", "workbench"]
+    },
+    "stateToken": {
+      "type": "string",
+      "enum": ["ready", "template", "needs_config", "blocked"]
+    },
+    "activityRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "createdAt",
+        "category",
+        "eventType",
+        "status",
+        "title",
+        "summary",
+        "detail",
+        "targetId",
+        "targetLabel",
+        "durationMs",
+        "sessionId",
+        "sessionLabel",
+        "sessionKind",
+        "badges"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^activity-[a-z0-9-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "category": {
+          "$ref": "#/$defs/activityCategory"
+        },
+        "eventType": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$",
+          "maxLength": 64
+        },
+        "status": {
+          "$ref": "#/$defs/activityStatus"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "targetId": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "targetLabel": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sessionId": {
+          "type": "string",
+          "pattern": "^session-[a-z0-9-]+$",
+          "maxLength": 80
+        },
+        "sessionLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "sessionKind": {
+          "$ref": "#/$defs/sessionKind"
+        },
+        "badges": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "maxItems": 8
+        }
+      }
+    },
+    "sessionSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "kind",
+        "kind_label",
+        "state",
+        "state_label",
+        "summary",
+        "started_at",
+        "ended_at",
+        "span_ms",
+        "total_recorded_duration_ms",
+        "record_count",
+        "error_count",
+        "running_count",
+        "source_event_count",
+        "case_event_count",
+        "report_event_count",
+        "target_ids",
+        "target_labels",
+        "badges"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^session-[a-z0-9-]+$",
+          "maxLength": 80
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "kind": {
+          "$ref": "#/$defs/sessionKind"
+        },
+        "kind_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "state": {
+          "$ref": "#/$defs/stateToken"
+        },
+        "state_label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 320
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "ended_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "span_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_recorded_duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "record_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "running_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "case_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "report_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "target_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "maxItems": 8
+        },
+        "target_labels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "maxItems": 8
+        },
+        "badges": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "maxItems": 8
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,105 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Kev</title><link>https://security-recipes.ai/tags/kev/</link><description>Recent content in Kev on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/kev/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-39987 — Marimo pre-auth RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39987-marimo-preauth-rce/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39987-marimo-preauth-rce/</guid><description>
+&lt;p>&lt;code>marimo&lt;/code> before &lt;code>0.23.0&lt;/code> exposes a pre-auth remote code execution path on
+&lt;code>/terminal/ws&lt;/code>. The endpoint accepted WebSocket connections without validating
+authentication, allowing an unauthenticated attacker to obtain a PTY shell and
+run arbitrary commands.&lt;/p>
+&lt;p>NVD shows this CVE was added to CISA&amp;rsquo;s KEV catalog on &lt;strong>2026-04-23&lt;/strong>, which
+means active exploitation evidence exists and remediation should be expedited.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>marimo&lt;/code> &lt;code>&amp;lt; 0.23.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>marimo&lt;/code> &lt;code>&amp;gt;= 0.23.0&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>marimo&lt;/code> is installed at a vulnerable version.&lt;/li>
+&lt;li>The service is reachable from untrusted networks.&lt;/li>
+&lt;li>Notebook or terminal functionality is exposed to shared users / internet.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show marimo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python - &lt;span class="s">&amp;lt;&amp;lt;&amp;#39;PY&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">import marimo
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">print(marimo.__version__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">PY&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ss -lntp &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;:2718|:8080|:80|:443&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade immediately to &lt;code>marimo&amp;gt;=0.23.0&lt;/code>.&lt;/li>
+&lt;li>Place the service behind strong authentication and reverse-proxy policy.&lt;/li>
+&lt;li>Restrict network reachability (VPN / private subnet / IP allow-list).&lt;/li>
+&lt;li>Rotate credentials and secrets available to the marimo runtime if exposure
+was internet-facing.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39987 (Marimo pre-auth RCE) in this repository or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">runtime image. Produce exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A reviewer-ready PR that upgrades marimo to a fixed version and adds basic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hardening controls.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if no safe patch path exists in this codebase.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Fix only CVE-2026-39987 scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer the smallest safe version bump to &lt;span class="sb">`&amp;gt;=0.23.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If internet-exposed runtime was vulnerable, include an incident-response
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checklist in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Detect current marimo version from lockfiles + environment metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If marimo is absent or already &lt;span class="sb">`&amp;gt;=0.23.0`&lt;/span>, stop with a short triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Update dependency manifests and lockfiles to a fixed marimo version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Search for marimo launch points and add a hardening note (auth + network
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boundary) in ops docs or deployment manifest comments, without unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run project tests/lint.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> PR title: &lt;span class="sb">`fix(sec): remediate CVE-2026-39987 in marimo`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> PR body must include: affected version, fixed version, test output summary,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and operator follow-ups (credential rotation if exposed).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Patch would require unsupported major stack migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No lockfile / deterministic dependency mechanism exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Tests fail due to unrelated pre-existing failures.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Lockfile and manifest pin &lt;code>marimo&lt;/code> to &lt;code>&amp;gt;=0.23.0&lt;/code>.&lt;/li>
+&lt;li>No vulnerable marimo version remains in dependency tree.&lt;/li>
+&lt;li>Tests/lint are green or failures are clearly pre-existing.&lt;/li>
+&lt;li>PR includes runtime hardening follow-ups if service was internet-reachable.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NVD entry: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-39987"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-39987&lt;/a>&lt;/li>
+&lt;li>GHSA advisory: &lt;a href="https://github.com/marimo-team/marimo/security/advisories/GHSA-2679-6mx9-h9xc"target="_blank" rel="noopener">https://github.com/marimo-team/marimo/security/advisories/GHSA-2679-6mx9-h9xc&lt;/a>&lt;/li>
+&lt;li>Patch commit: &lt;a href="https://github.com/marimo-team/marimo/commit/c24d4806398f30be6b12acd6c60d1d7c68cfd12a"target="_blank" rel="noopener">https://github.com/marimo-team/marimo/commit/c24d4806398f30be6b12acd6c60d1d7c68cfd12a&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,1085 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Authentication</title><link>https://security-recipes.ai/tags/authentication/</link><description>Recent content in Authentication on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/authentication/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-42560 - go-pkgz/auth Patreon identity collision</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42560-go-pkgz-auth-patreon-identity-collision/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42560-go-pkgz-auth-patreon-identity-collision/</guid><description>
+&lt;p>&lt;code>go-pkgz/auth&lt;/code> maps every authenticated Patreon user to the same local
+&lt;code>token.User.ID&lt;/code> in affected releases. The Patreon provider hashes an
+uninitialized destination field instead of the Patreon account ID, so unrelated
+Patreon accounts can collapse into the same application identity.&lt;/p>
+&lt;p>The bug is critical for applications that enable Patreon login and use
+&lt;code>token.User.ID&lt;/code> as an account key, role key, entitlement key, profile key, or
+subscription-state key. A normal Patreon login can then access or overwrite data
+associated with another Patreon-authenticated user, and any elevated privileges
+attached to the shared local ID can apply to every Patreon login.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/go-pkgz/auth &amp;gt;=1.18.0, &amp;lt;=1.25.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/go-pkgz/auth 1.25.2+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/go-pkgz/auth/v2 &amp;gt;=2.0.0, &amp;lt;=2.1.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/go-pkgz/auth/v2 2.1.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A Go service imports either affected module and resolves a vulnerable version.&lt;/li>
+&lt;li>The service enables the Patreon provider, such as &lt;code>provider.NewPatreon&lt;/code>.&lt;/li>
+&lt;li>Application code treats &lt;code>token.User.ID&lt;/code>, JWT user claims, or auth middleware
+context values as the stable local account identifier.&lt;/li>
+&lt;li>Data stores contain the shared broken Patreon ID:
+&lt;code>patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709&lt;/code>.&lt;/li>
+&lt;li>Existing Patreon sessions or long-lived JWTs may still carry the broken ID.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;github.com/go-pkgz/auth|NewPatreon|patreon_|token\\.User|User\\.ID&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m -json github.com/go-pkgz/auth github.com/go-pkgz/auth/v2 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/go-pkgz/auth&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>github.com/go-pkgz/auth&lt;/code> to &lt;code>1.25.2+&lt;/code> and
+&lt;code>github.com/go-pkgz/auth/v2&lt;/code> to &lt;code>2.1.2+&lt;/code>.&lt;/li>
+&lt;li>Add a regression test that maps two different Patreon payloads and asserts
+distinct local user IDs.&lt;/li>
+&lt;li>Expire Patreon-authenticated sessions and JWTs minted by vulnerable code.&lt;/li>
+&lt;li>Search production data for the shared broken ID and produce an operator-owned
+migration or relinking plan. Do not automatically split accounts without a
+human-reviewed source of truth.&lt;/li>
+&lt;li>If the fixed dependency cannot be shipped immediately, disable Patreon login
+until the upgrade and session cleanup are deployed.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42560 (go-pkgz/auth Patreon OAuth identity
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">collision). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that patches the dependency, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regression coverage, and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42560.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite unrelated authentication providers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently migrate or merge user accounts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log OAuth tokens, Patreon payloads, JWTs, cookies, or user secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all references to &lt;span class="sb">`github.com/go-pkgz/auth`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`github.com/go-pkgz/auth/v2`&lt;/span> in &lt;span class="sb">`go.mod`&lt;/span>, &lt;span class="sb">`go.sum`&lt;/span>, vendor trees, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency manifests, SBOMs, and container build inputs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether either module resolves to a vulnerable version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth &amp;gt;=1.18.0, &amp;lt;=1.25.1`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth/v2 &amp;gt;=2.0.0, &amp;lt;=2.1.1`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check whether the application enables Patreon OAuth, for example
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`provider.NewPatreon`&lt;/span>, and whether local accounts, roles, subscriptions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> entitlements are keyed from &lt;span class="sb">`token.User.ID`&lt;/span> or JWT user claims.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Upgrade vulnerable modules to fixed releases:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth &amp;gt;=1.25.2`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth/v2 &amp;gt;=2.1.2`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Then run the normal Go module tidy/vendor workflow used by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Add or update regression tests that exercise Patreon user mapping with at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> least two different Patreon &lt;span class="sb">`data.id`&lt;/span> fixture values and assert that the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resulting local IDs are distinct.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42560 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether Patreon login is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether the shared ID
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709`&lt;/span> was found in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application data, fixtures, seed data, or tests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which sessions, JWTs, refresh tokens, or auth caches must be expired;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether affected Patreon-linked accounts need human-reviewed relinking.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If Patreon login is enabled and account data may already be collapsed, add a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> conservative runbook or migration stub that identifies impacted records but
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requires explicit operator approval before changing account ownership.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Run the relevant validation, normally &lt;span class="sb">`go test ./...`&lt;/span>, dependency scanning,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and any auth-provider or API tests in the repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42560 in go-pkgz/auth`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The project cannot consume &lt;span class="sb">`go-pkgz/auth`&lt;/span> &lt;span class="sb">`1.25.2+`&lt;/span> or &lt;span class="sb">`v2.1.2+`&lt;/span> without a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> larger auth redesign.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The app uses Patreon login but there is no reliable way to identify records
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> created with the shared broken ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail for unrelated pre-existing reasons; document them instead of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> broadening scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> This repository only consumes a deployed service owned elsewhere; write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> TRIAGE.md with the owning service, vulnerable module evidence, and required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rollout actions.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No resolved dependency path remains on a vulnerable go-pkgz/auth release.&lt;/li>
+&lt;li>Patreon mapping tests prove that different Patreon account IDs produce
+different local user IDs.&lt;/li>
+&lt;li>Session/token expiry and any account relinking work are called out as
+operator actions, not hidden in a risky automatic migration.&lt;/li>
+&lt;li>CI, Go tests, and dependency scans pass or unrelated failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Transitive or vendored copies that keep the vulnerable module even after
+&lt;code>go.mod&lt;/code> is updated.&lt;/li>
+&lt;li>Applications that do not call Patreon directly but expose it through shared
+auth configuration.&lt;/li>
+&lt;li>Existing test fixtures that assert the broken
+&lt;code>patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709&lt;/code> value.&lt;/li>
+&lt;li>Long-lived JWTs that continue to authorize the shared ID after the dependency
+upgrade.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-f6qq-3m3h-4g42"target="_blank" rel="noopener">https://github.com/advisories/GHSA-f6qq-3m3h-4g42&lt;/a>&lt;/li>
+&lt;li>Fixed release &lt;code>v1.25.2&lt;/code>: &lt;a href="https://github.com/go-pkgz/auth/releases/tag/v1.25.2"target="_blank" rel="noopener">https://github.com/go-pkgz/auth/releases/tag/v1.25.2&lt;/a>&lt;/li>
+&lt;li>Fixed release &lt;code>v2.1.2&lt;/code>: &lt;a href="https://github.com/go-pkgz/auth/releases/tag/v2.1.2"target="_blank" rel="noopener">https://github.com/go-pkgz/auth/releases/tag/v2.1.2&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42354 - Sentry SAML SSO identity linking</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42354-sentry-saml-sso-identity-linking/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42354-sentry-saml-sso-identity-linking/</guid><description>
+&lt;p>Self-hosted Sentry versions &lt;code>21.12.0&lt;/code> through &lt;code>26.4.0&lt;/code> contain a critical SAML
+SSO authentication flaw in multi-organization deployments. A malicious user who
+can configure SAML SSO for one organization on the same Sentry instance can use
+a malicious identity provider and a known victim email address to link into the
+victim&amp;rsquo;s user account.&lt;/p>
+&lt;p>The highest-risk shape is a shared self-hosted Sentry installation with multiple
+organizations, organization-managed SAML settings, and users who do not enforce
+account-level two-factor authentication. Sentry SaaS was patched by the vendor;
+ordinary application use of Sentry SDKs is not this CVE.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>sentry &amp;gt;=21.12.0, &amp;lt;=26.4.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>sentry &amp;gt;=26.4.1&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns or deploys a self-hosted Sentry server, not just a Sentry
+SDK, DSN, or integration.&lt;/li>
+&lt;li>Sentry resolves to a vulnerable &lt;code>sentry&lt;/code> Python package version or a
+vulnerable self-hosted Sentry release/container tag.&lt;/li>
+&lt;li>Multi-organization mode is enabled, such as &lt;code>SENTRY_SINGLE_ORGANIZATION = False&lt;/code>.&lt;/li>
+&lt;li>SAML SSO is enabled for one or more organizations, and organization owners can
+modify SSO identity provider configuration.&lt;/li>
+&lt;li>Account-level 2FA is not required for all users.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;getsentry|sentry.*self-hosted|SENTRY_SINGLE_ORGANIZATION|SAML|saml2|sso&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;sentry==|sentry[&amp;lt;=&amp;gt;]|getsentry/sentry|self-hosted&amp;#34;&lt;/span> requirements*.txt pyproject.toml poetry.lock Pipfile.lock Dockerfile* docker-compose*.yml .github deploy helm charts k8s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;getsentry|sentry&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade self-hosted Sentry to &lt;code>26.4.1+&lt;/code>, including Python package pins,
+container images, Helm/chart values, compose files, and self-hosted release
+manifests controlled by the repository.&lt;/li>
+&lt;li>If the instance is intended to be single-organization only, set and verify
+&lt;code>SENTRY_SINGLE_ORGANIZATION = True&lt;/code> as a compensating exposure reduction.&lt;/li>
+&lt;li>Require user account-level 2FA for Sentry users, especially administrators and
+users in organizations with SAML SSO enabled.&lt;/li>
+&lt;li>Inventory organization SAML providers and identity links after patching. If
+suspicious links or IdP changes are found, expire sessions and require a
+human-reviewed account recovery plan.&lt;/li>
+&lt;li>Do not treat Sentry SDK dependency updates as remediation unless this repo
+actually builds or deploys the Sentry server.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42354 (Sentry SAML SSO identity linking account
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">takeover) in this repository or deployment source. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades self-hosted Sentry and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents required operator validation, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a self-hosted Sentry server or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42354.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinguish self-hosted Sentry server deployments from ordinary Sentry SDK,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DSN, logging, CI, or monitoring integrations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change unrelated identity provider settings, organization ownership,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> user emails, or account links automatically.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log SAML assertions, cookies, session tokens, IdP secrets, private
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys, DSNs, or user secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory Sentry server ownership:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Python package pins for &lt;span class="sb">`sentry`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`getsentry/sentry`&lt;/span> or self-hosted release images;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Docker Compose, Helm, Kubernetes, Terraform, Ansible, or release manifests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> internal runbooks that pin self-hosted Sentry versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repo only uses Sentry SDKs, DSNs, source-map uploaders, alerting
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integrations, or Sentry SaaS, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining why this CVE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is not patchable here.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether any self-hosted Sentry server version resolves to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;gt;=21.12.0, &amp;lt;=26.4.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Check exposure-relevant configuration and record it in the PR body:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`SENTRY_SINGLE_ORGANIZATION`&lt;/span> effective value;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether SAML SSO is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether organization owners can modify SSO provider settings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether account-level 2FA is required for administrators and SAML users.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every vulnerable self-hosted Sentry reference to &lt;span class="sb">`26.4.1+`&lt;/span> on the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository&amp;#39;s normal release line. Regenerate lockfiles, image metadata,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm lock files, SBOMs, and deployment render output where applicable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add or update a short operator runbook section named
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`CVE-2026-42354 operator checks`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> verification that the deployed Sentry version is &lt;span class="sb">`26.4.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of recent SAML IdP configuration changes across organizations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of unexpected SAML identity links for privileged users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> session expiration and account recovery steps if suspicious links exist;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> enforcement or rollout tracking for user account-level 2FA.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If upgrade cannot be deployed immediately, add the safest temporary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment available in this repo, such as forcing single-organization mode
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for single-tenant deployments, disabling organization-managed SAML setup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> behind a feature flag, restricting Sentry admin access, or documenting an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> emergency 2FA requirement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Run available validation: dependency resolution, image build or manifest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, configuration tests, and any auth/SSO tests this repo provides.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42354 in self-hosted Sentry`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not deploy a self-hosted Sentry server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only Sentry references are SDKs, DSNs, logging exporters, source-map
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upload tooling, or SaaS integrations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed self-hosted Sentry version cannot be consumed without a larger
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The patch would automatically alter SAML identity links, organization
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ownership, or user accounts without operator approval.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No self-hosted Sentry server reference remains on &lt;code>21.12.0&lt;/code> through &lt;code>26.4.0&lt;/code>.&lt;/li>
+&lt;li>The change updates the actual deployment source, not only a development or SDK
+dependency.&lt;/li>
+&lt;li>The PR body records multi-organization, SAML, and 2FA exposure status.&lt;/li>
+&lt;li>Operator checks cover SAML IdP changes, suspicious identity links, session
+expiry, and human-reviewed account recovery.&lt;/li>
+&lt;li>Build, dependency, image, and deployment-render checks pass or unrelated
+failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Repositories that contain both Sentry SDKs and a self-hosted Sentry deployment;
+only the server side is relevant to this CVE.&lt;/li>
+&lt;li>Floating image tags that make the patch non-reproducible.&lt;/li>
+&lt;li>Assuming organization-level SAML controls can enforce account-level 2FA for
+every user; the workaround depends on users having account 2FA enabled.&lt;/li>
+&lt;li>Confusing this advisory with earlier Sentry SAML identity-linking advisories
+that have different fixed versions.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-rcmw-7mc7-3rj7"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rcmw-7mc7-3rj7&lt;/a>&lt;/li>
+&lt;li>Sentry security advisory: &lt;a href="https://github.com/getsentry/sentry/security/advisories/GHSA-rcmw-7mc7-3rj7"target="_blank" rel="noopener">https://github.com/getsentry/sentry/security/advisories/GHSA-rcmw-7mc7-3rj7&lt;/a>&lt;/li>
+&lt;li>Sentry fix PR: &lt;a href="https://github.com/getsentry/sentry/pull/113720"target="_blank" rel="noopener">https://github.com/getsentry/sentry/pull/113720&lt;/a>&lt;/li>
+&lt;li>Sentry &lt;code>26.4.1&lt;/code> release: &lt;a href="https://github.com/getsentry/sentry/releases/tag/26.4.1"target="_blank" rel="noopener">https://github.com/getsentry/sentry/releases/tag/26.4.1&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-7567 - WordPress Temporary Login auth bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-7567-wordpress-temporary-login-auth-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-7567-wordpress-temporary-login-auth-bypass/</guid><description>
+&lt;p>The WordPress Temporary Login plugin versions &lt;code>&amp;lt;=1.0.0&lt;/code> contain a critical
+authentication bypass. The vulnerable login path does not first prove that the
+&lt;code>temp-login-token&lt;/code> request value is a scalar string. When an unauthenticated
+attacker sends the token parameter as an array, the token lookup can be reduced
+to an empty value and WordPress may return users that have the temporary-login
+token metadata key.&lt;/p>
+&lt;p>The result is account takeover for any currently active temporary-login user,
+including high-privilege support or administrator access that a site owner
+created through the plugin. Wordfence lists &lt;code>1.1.0&lt;/code> as the first patched
+version, and the public WordPress plugin directory currently offers newer
+fixed releases.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Temporary Login WordPress plugin &lt;code>&amp;lt;=1.0.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Temporary Login WordPress plugin &lt;code>&amp;gt;=1.1.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Preferred:&lt;/strong> Update to the latest available plugin release on the normal
+deployment channel, not just the minimum fixed release.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns a WordPress site, image, Bedrock/Composer project, plugin
+bundle, deployment manifest, or runbook that installs &lt;code>temporary-login&lt;/code>.&lt;/li>
+&lt;li>A deployable WordPress target resolves Temporary Login &lt;code>1.0.0&lt;/code> or older.&lt;/li>
+&lt;li>The plugin is active in production or staging and temporary-login users may
+exist.&lt;/li>
+&lt;li>The public WordPress site can receive requests containing
+&lt;code>temp-login-token[]&lt;/code> or equivalent array syntax.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">wp plugin list --fields&lt;span class="o">=&lt;/span>name,version,status &lt;span class="p">|&lt;/span> grep -E &lt;span class="s1">&amp;#39;^temporary-login[[:space:]]&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">wp plugin status temporary-login
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;temporary-login|wpackagist-plugin/temporary-login|temp-login-token|_temporary_login_token&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -path &lt;span class="s2">&amp;#34;*/wp-content/plugins/temporary-login/*&amp;#34;&lt;/span> -maxdepth &lt;span class="m">8&lt;/span> -type f &lt;span class="p">|&lt;/span> head&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Temporary Login to &lt;code>1.1.0+&lt;/code>, preferably the latest release available
+through WordPress.org, Composer/WPackagist, WP-CLI, or the repository&amp;rsquo;s
+plugin artifact channel.&lt;/li>
+&lt;li>If the plugin is not business-critical, remove or deactivate it and document
+the replacement support-access process.&lt;/li>
+&lt;li>Revoke all active temporary-login users after patching because exposed sites
+cannot trust existing temporary access links.&lt;/li>
+&lt;li>Review authentication logs, web access logs, and WordPress users for requests
+containing &lt;code>temp-login-token[]&lt;/code>, unexpected temporary-login use, or
+unexpected administrator activity.&lt;/li>
+&lt;li>If immediate upgrade is blocked, add temporary edge/WAF protection for array
+token requests and disable the plugin until a patched release is deployed.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-7567 (WordPress Temporary Login authentication
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">bypass). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or removes the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plugin and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own the WordPress plugin deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-7567.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat all temporary-login URLs, tokens, cookies, and WordPress session data as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets. Do not print them in logs, test output, screenshots, or PR text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently create, delete, demote, or relink WordPress user accounts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not hand-edit vendored plugin code unless no package/channel upgrade is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available and the patch is explicitly documented as temporary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory WordPress ownership in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`wp-content/plugins/temporary-login`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Composer or Bedrock references such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`wpackagist-plugin/temporary-login`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> WP-CLI install scripts, Dockerfiles, build artifacts, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, or deployment runbooks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SBOMs, image manifests, and plugin lock/state files.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repository does not deploy or package a WordPress site with the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Temporary Login plugin, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was checked and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> who owns the runtime remediation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine the resolved Temporary Login version for every deployable target.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> A target is vulnerable if it resolves to &lt;span class="sb">`&amp;lt;=1.0.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> For every vulnerable target, upgrade the plugin to &lt;span class="sb">`&amp;gt;=1.1.0`&lt;/span>, preferably the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> latest WordPress.org release available through the repo&amp;#39;s normal dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> channel. Regenerate Composer locks, plugin manifests, image metadata, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or deployment render output as appropriate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If the plugin is optional or only used for support access, prefer removal or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deactivation over carrying a temporary access plugin. Update runbooks to use
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a controlled support-access workflow.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-7567 operator actions`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> revocation of all active Temporary Login links/users after deployment;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of WordPress users with &lt;span class="sb">`_temporary_login_token`&lt;/span> metadata;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of web/auth logs for &lt;span class="sb">`temp-login-token[]`&lt;/span>, &lt;span class="sb">`temp-login-token%5B%5D`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or unexpected temporary-login activity;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> session invalidation for affected temporary users when feasible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> confirmation that production now runs Temporary Login &lt;span class="sb">`&amp;gt;=1.1.0`&lt;/span> or that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the plugin is disabled/removed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add or update verification that an array-form token request cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> authenticate, for example an integration test, a WP-CLI smoke-test note, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an operator curl check against a non-production site. Do not include real
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> If the fixed plugin cannot be deployed immediately, add the safest temporary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment controlled by this repo: disable the plugin, block requests where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`temp-login-token`&lt;/span> is an array, restrict wp-admin access at the edge, or add
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an emergency runbook instructing operators to revoke temporary logins.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Run the relevant validation: Composer install/update checks, WordPress plugin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> inventory, image build, deployment rendering, PHP tests, and security scan
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-7567 in Temporary Login`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No WordPress site or Temporary Login plugin deployment is controlled by this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The plugin version is managed exclusively in production outside the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed plugin release cannot be consumed without a broader WordPress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would automatically modify WordPress user accounts or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expose temporary-login tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable target still resolves Temporary Login &lt;code>&amp;lt;=1.0.0&lt;/code>.&lt;/li>
+&lt;li>The PR updates the real plugin delivery path, such as Composer lockfiles,
+WP-CLI install scripts, plugin artifact bundles, images, or deployment
+manifests.&lt;/li>
+&lt;li>Temporary-login revocation, log review, and session cleanup are explicit
+operator actions.&lt;/li>
+&lt;li>Verification covers &lt;code>temp-login-token[]&lt;/code> or URL-encoded array syntax and does
+not expose real temporary-login tokens.&lt;/li>
+&lt;li>Build, dependency, image, and deployment checks pass or unrelated failures are
+documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>WordPress repositories that vendor plugins under &lt;code>wp-content/plugins&lt;/code> while
+also installing plugins through Composer or WP-CLI.&lt;/li>
+&lt;li>Production plugin drift where the repository pins a safe version but runtime
+WordPress auto-updates or manual plugin management tell a different story.&lt;/li>
+&lt;li>Fixes that only block one spelling of the array parameter and miss encoded or
+repeated-parameter forms.&lt;/li>
+&lt;li>Treating user cleanup as a code-only problem; account/session review must stay
+operator-controlled.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-4v98-7r2c-mxg7"target="_blank" rel="noopener">https://github.com/advisories/GHSA-4v98-7r2c-mxg7&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-7567"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-7567&lt;/a>&lt;/li>
+&lt;li>Wordfence advisory: &lt;a href="https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/temporary-login/temporary-login-100-authentication-bypass-to-account-takeover"target="_blank" rel="noopener">https://www.wordfence.com/threat-intel/vulnerabilities/wordpress-plugins/temporary-login/temporary-login-100-authentication-bypass-to-account-takeover&lt;/a>&lt;/li>
+&lt;li>WordPress plugin directory: &lt;a href="https://wordpress.org/plugins/temporary-login/"target="_blank" rel="noopener">https://wordpress.org/plugins/temporary-login/&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-39858 - Traefik forwarded alias auth bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39858-traefik-forwarded-alias-auth-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39858-traefik-forwarded-alias-auth-bypass/</guid><description>
+&lt;p>Traefik contains a high-severity authentication bypass in &lt;code>ForwardAuth&lt;/code> and
+snippet-based authentication middleware. Affected releases sanitize canonical
+forwarded headers such as &lt;code>X-Forwarded-Proto&lt;/code>, but do not consistently strip or
+normalize alias spellings that use underscores, such as &lt;code>X_Forwarded_Proto&lt;/code>.&lt;/p>
+&lt;p>If the authentication backend treats underscore and dash header names as
+equivalent, an unauthenticated attacker can send spoofed trust context to the
+auth service. Protected routes may then be authorized as if the request came
+through a trusted scheme, host, prefix, or proxy path.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik &amp;lt;=1.7.34&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> no fixed v1 release listed; migrate to a fixed v2/v3 release or
+isolate with compensating controls.&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v2 &amp;lt;2.11.43&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v2 2.11.43+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 &amp;gt;=3.0.0-beta1, &amp;lt;3.6.14&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 3.6.14+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 &amp;gt;=3.7.0-ea.1, &amp;lt;3.7.0-rc.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 3.7.0-rc.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, embeds, or deploys Traefik in an affected
+version through Go modules, container images, Helm charts, compose files,
+Kubernetes manifests, Terraform, Ansible, or platform runbooks.&lt;/li>
+&lt;li>Traefik protects routes with &lt;code>ForwardAuth&lt;/code> or ingress-nginx snippet-style
+authentication middleware.&lt;/li>
+&lt;li>The authentication service uses forwarded request metadata such as scheme,
+host, original URI, client IP, prefix, or trusted proxy headers in its
+authorization decision.&lt;/li>
+&lt;li>The auth service, framework, proxy, or gateway normalizes underscore and dash
+header forms equivalently.&lt;/li>
+&lt;li>Public or tenant-controlled traffic can reach the protected Traefik entrypoint.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;traefik|ForwardAuth|forwardAuth|authRequestHeaders|X-Forwarded|X_Forwarded|snippet&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;traefik:v|traefik/traefik|github.com/traefik/traefik&amp;#34;&lt;/span> go.mod go.sum Dockerfile* docker-compose*.yml charts deploy k8s terraform ansible .github
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/traefik/traefik&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">helm template . 2&amp;gt;/dev/null &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;traefik|forwardAuth|X-Forwarded|X_Forwarded&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade all Traefik v2 deployments to &lt;code>2.11.43+&lt;/code>.&lt;/li>
+&lt;li>Upgrade all Traefik v3 &lt;code>3.0.0-beta1&lt;/code> through &lt;code>3.6.x&lt;/code> deployments to
+&lt;code>3.6.14+&lt;/code>.&lt;/li>
+&lt;li>Upgrade all Traefik v3 &lt;code>3.7.0-ea.*&lt;/code> deployments to &lt;code>3.7.0-rc.2+&lt;/code>, or move to
+the repository&amp;rsquo;s approved stable v3 release line if available.&lt;/li>
+&lt;li>Do not leave Traefik v1 as-is. GitHub lists no patched v1 release for this
+advisory, so migrate to a fixed v2/v3 release or document an operator-owned
+isolation plan.&lt;/li>
+&lt;li>Pin container image tags by digest where the repository controls deployment
+artifacts.&lt;/li>
+&lt;li>Add a strict &lt;code>authRequestHeaders&lt;/code> allow-list for ForwardAuth where compatible,
+and do not forward client-controlled &lt;code>X_Forwarded_*&lt;/code> aliases to auth services.&lt;/li>
+&lt;li>Add edge or ingress policy that denies or strips underscore-form aliases of
+forwarded headers while the upgrade rolls out.&lt;/li>
+&lt;li>Add non-production regression checks that spoof &lt;code>X_Forwarded_Proto&lt;/code>,
+&lt;code>X_Forwarded_Host&lt;/code>, and related aliases and verify protected routes remain
+denied.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39858 (Traefik ForwardAuth forwarded-header alias
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">spoofing authentication bypass). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or migrates affected Traefik
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployments and adds practical verification, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own Traefik deployment artifacts or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-39858.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not make unrelated proxy, router, identity provider, or application auth
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> changes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not test exploit requests against production or external systems.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log cookies, bearer tokens, auth service responses, private headers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client IP lists, or user identity claims.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Traefik reference in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Go modules and vendor trees;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> container image tags and digests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Helm charts, values, lock files, Kustomize overlays, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Docker Compose files, Terraform, Ansible, CI, and runbooks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated deployment manifests, SBOMs, and image metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployable target resolves to a vulnerable version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik &amp;lt;=1.7.34`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v2 &amp;lt;2.11.43`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v3 &amp;gt;=3.0.0-beta1, &amp;lt;3.6.14`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v3 &amp;gt;=3.7.0-ea.1, &amp;lt;3.7.0-rc.2`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check whether the target uses &lt;span class="sb">`ForwardAuth`&lt;/span> or snippet-based authentication
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> middleware and whether auth services rely on forwarded headers such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scheme, host, URI, prefix, or client IP.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Patch every vulnerable target:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v2: upgrade to &lt;span class="sb">`2.11.43+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v3 stable/beta line: upgrade to &lt;span class="sb">`3.6.14+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v3 early-access/RC line: upgrade to &lt;span class="sb">`3.7.0-rc.2+`&lt;/span> or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository&amp;#39;s approved fixed stable line;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v1: migrate to a fixed v2/v3 release or stop with TRIAGE.md
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documenting why no patched v1 release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Regenerate dependency locks, Helm locks, rendered manifests, image metadata,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, and digest pins according to the repository&amp;#39;s normal workflow.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add or tighten safe containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set &lt;span class="sb">`authRequestHeaders`&lt;/span> to an explicit allow-list when compatible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny or strip underscore-form forwarded aliases such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`X_Forwarded_Proto`&lt;/span>, &lt;span class="sb">`X_Forwarded_Host`&lt;/span>, &lt;span class="sb">`X_Forwarded_For`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`X_Forwarded_Port`&lt;/span>, &lt;span class="sb">`X_Forwarded_Prefix`&lt;/span>, and &lt;span class="sb">`X_Forwarded_Uri`&lt;/span> at the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> outer edge;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document that auth backends must not trust client-supplied forwarded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add non-production verification that a protected route stays denied when a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request includes underscore-form forwarded aliases. Use synthetic headers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> only, avoid real credentials, and keep the check in tests, local compose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> smoke tests, or operator runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-39858 exposure and rollout`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> each Traefik target and resolved version before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`ForwardAuth`&lt;/span> or snippet-based auth is configured;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether strict &lt;span class="sb">`authRequestHeaders`&lt;/span> or edge header-deny policy was added;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which non-production spoofed-header check was run;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any required operator rollout or config reload actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Run the relevant validation: Go tests if Traefik is embedded, dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolution, Helm/template rendering, compose config validation, Kubernetes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> schema validation, image build, and security/dependency scans available in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-39858 in Traefik`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not own Traefik dependencies, images, or deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Traefik v1 is deployed and cannot be migrated within this change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The target requires a broader proxy or identity-provider migration before a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed Traefik release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification requires attacking production or exposing real credentials.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable target remains on Traefik v2 &lt;code>&amp;lt;2.11.43&lt;/code>, v3 &lt;code>&amp;lt;3.6.14&lt;/code>, affected
+&lt;code>3.7.0-ea.*&lt;/code> builds, or unsupported vulnerable v1.&lt;/li>
+&lt;li>The change updates the real delivery path: image tags/digests, Helm values,
+compose files, Kubernetes manifests, Go modules, generated manifests, and
+SBOMs where applicable.&lt;/li>
+&lt;li>&lt;code>ForwardAuth&lt;/code> or snippet-based auth exposure is explicitly recorded in the PR
+body.&lt;/li>
+&lt;li>Regression or smoke-test evidence shows spoofed &lt;code>X_Forwarded_*&lt;/code> headers do
+not authorize protected routes in non-production.&lt;/li>
+&lt;li>Builds, dependency resolution, manifest rendering, and security scans pass or
+unrelated failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading only to &lt;code>2.11.42&lt;/code>, &lt;code>3.6.12&lt;/code>, or &lt;code>3.7.0-ea.3&lt;/code>; those fixed earlier
+Traefik auth issues but not this advisory.&lt;/li>
+&lt;li>Floating image tags such as &lt;code>traefik:v3&lt;/code> that make the patch non-reproducible.&lt;/li>
+&lt;li>Auth services that normalize underscores to dashes even after Traefik is
+patched.&lt;/li>
+&lt;li>Middleware chains that also need the same release for nearby Traefik auth
+bypass advisories, especially CVE-2026-35051 and CVE-2026-40912.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5m6w-wvh7-57vm"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5m6w-wvh7-57vm&lt;/a>&lt;/li>
+&lt;li>Traefik security announcement: &lt;a href="https://community.traefik.io/t/new-security-update-for-traefik-2-11-2-11-43-3-6-3-6-14-and-3-7-3-7-0-rc-2/29834"target="_blank" rel="noopener">https://community.traefik.io/t/new-security-update-for-traefik-2-11-2-11-43-3-6-3-6-14-and-3-7-3-7-0-rc-2/29834&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v2.11.43&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v2.11.43"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v2.11.43&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v3.6.14&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v3.6.14"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v3.6.14&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v3.7.0-rc.2&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v3.7.0-rc.2"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v3.7.0-rc.2&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-7458 - WordPress User Verification OTP auth bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-7458-wordpress-user-verification-otp-auth-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-7458-wordpress-user-verification-otp-auth-bypass/</guid><description>
+&lt;p>The WordPress User Verification by PickPlugins plugin versions &lt;code>&amp;lt;=2.0.46&lt;/code>
+contain a critical unauthenticated authentication bypass in the OTP login
+flow. The vulnerable code uses a loose PHP comparison while validating OTP
+codes in &lt;code>user_verification_form_wrap_process_otpLogin&lt;/code>, allowing an attacker
+to satisfy the OTP check with a crafted truthy value.&lt;/p>
+&lt;p>If the plugin is active and OTP login is exposed, an unauthenticated attacker
+may be able to authenticate as any user with a verified email address,
+including an administrator. The WordPress plugin directory changelog identifies
+version &lt;code>2.0.47&lt;/code> as the release that fixed the unauthenticated OTP
+authentication bypass.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> User Verification by PickPlugins WordPress plugin &lt;code>&amp;lt;=2.0.46&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> User Verification by PickPlugins WordPress plugin &lt;code>&amp;gt;=2.0.47&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Preferred:&lt;/strong> Update to the latest available plugin release through the
+normal WordPress.org, Composer/WPackagist, WP-CLI, or artifact channel.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns a WordPress site, image, Bedrock/Composer project,
+plugin bundle, deployment manifest, or runbook that installs
+&lt;code>user-verification&lt;/code>.&lt;/li>
+&lt;li>A deployable WordPress target resolves User Verification by PickPlugins
+&lt;code>2.0.46&lt;/code> or older.&lt;/li>
+&lt;li>OTP login, email OTP, passwordless login, or verification forms are exposed
+to unauthenticated users.&lt;/li>
+&lt;li>Logs, templates, or plugin code reference
+&lt;code>user_verification_form_wrap_process_otpLogin&lt;/code> or the OTP login shortcode.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">wp plugin list --fields&lt;span class="o">=&lt;/span>name,version,status &lt;span class="p">|&lt;/span> grep -E &lt;span class="s1">&amp;#39;^user-verification[[:space:]]&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">wp plugin status user-verification
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;user-verification|wpackagist-plugin/user-verification|user_verification_form_wrap_process_otpLogin|otp_login|otpLogin|user_verification_otp_login_form&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -path &lt;span class="s2">&amp;#34;*/wp-content/plugins/user-verification/*&amp;#34;&lt;/span> -maxdepth &lt;span class="m">8&lt;/span> -type f &lt;span class="p">|&lt;/span> head&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade User Verification by PickPlugins to &lt;code>2.0.47+&lt;/code>, preferably the latest
+release available through the repository&amp;rsquo;s normal plugin delivery channel.&lt;/li>
+&lt;li>If the plugin is not required, remove or deactivate it rather than carrying a
+public authentication-extension plugin.&lt;/li>
+&lt;li>If immediate upgrade is blocked, disable the OTP login feature and block the
+affected unauthenticated OTP flow at the edge or in WordPress routing until a
+patched release is deployed.&lt;/li>
+&lt;li>Expire WordPress sessions for administrator and privileged users after
+deployment, and require password resets or MFA re-enrollment where site
+policy calls for it.&lt;/li>
+&lt;li>Review WordPress users, role changes, login history, and web access logs for
+unexpected OTP login requests, &lt;code>user-verification&lt;/code> endpoint hits, suspicious
+truthy OTP values, or administrator activity during the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-7458 (WordPress User Verification by PickPlugins
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">OTP authentication bypass). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or disables the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plugin path and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own the WordPress plugin deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-7458.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat OTP codes, passwordless login links, cookies, session identifiers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WordPress nonces, and user email data as secrets. Do not print them in logs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, screenshots, or PR text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently create, delete, demote, relink, or reset WordPress user
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> accounts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not hand-edit vendored plugin code unless no package/channel upgrade is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available and the patch is explicitly documented as temporary containment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve public OTP login behavior by weakening validation elsewhere.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory WordPress ownership in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`wp-content/plugins/user-verification`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Composer or Bedrock references such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`wpackagist-plugin/user-verification`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> WP-CLI install scripts, Dockerfiles, build artifacts, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, or deployment runbooks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SBOMs, image manifests, plugin lock/state files, and WordPress operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documentation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repository does not deploy or package a WordPress site with User
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Verification by PickPlugins, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checked and who owns the runtime remediation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine the resolved User Verification plugin version for every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployable target. A target is vulnerable if it resolves to &lt;span class="sb">`&amp;lt;=2.0.46`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether OTP login, email OTP, passwordless login, or verification
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> forms are exposed to unauthenticated users. Search for shortcodes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> templates, REST/AJAX handlers, routing rules, and plugin settings tied to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`user_verification_form_wrap_process_otpLogin`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> For every vulnerable target, upgrade the plugin to &lt;span class="sb">`&amp;gt;=2.0.47`&lt;/span>, preferably
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the latest WordPress.org release available through the repo&amp;#39;s normal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency channel. Regenerate Composer locks, plugin manifests, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata, SBOMs, or deployment render output as appropriate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If the plugin is optional or only used for convenience authentication,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> prefer removal or deactivation. Update runbooks to use a controlled
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> support or account-verification workflow.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If a fixed plugin release cannot be deployed immediately, add the safest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> temporary containment controlled by this repo: disable OTP login, disable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the plugin, remove public OTP shortcodes, restrict the affected endpoint at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the edge, or add an emergency runbook instructing operators to disable the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> feature until patch deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add or update verification that crafted truthy OTP input cannot authenticate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a user in a non-production environment. Do not include real OTP codes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cookies, sessions, or user email addresses.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-7458 operator actions`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> confirmation production runs User Verification &lt;span class="sb">`&amp;gt;=2.0.47`&lt;/span> or the plugin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is disabled/removed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> session invalidation for privileged WordPress users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of administrator users, role changes, and unexpected account
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> activity;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of web/auth logs for User Verification OTP login requests and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> suspicious truthy OTP values;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> confirmation that public OTP/passwordless login forms are intentionally
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enabled only after patch deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run the relevant validation: Composer install/update checks, WordPress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plugin inventory, image build, deployment rendering, PHP tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> authentication smoke tests, and security scans available in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-7458 in User Verification`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No WordPress site or User Verification plugin deployment is controlled by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The plugin version is managed exclusively in production outside the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed plugin release cannot be consumed without a broader WordPress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would automatically modify WordPress user accounts or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expose OTP/session material.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable target still resolves User Verification by PickPlugins
+&lt;code>&amp;lt;=2.0.46&lt;/code>.&lt;/li>
+&lt;li>The PR updates the real plugin delivery path, such as Composer lockfiles,
+WP-CLI install scripts, plugin artifact bundles, images, or deployment
+manifests.&lt;/li>
+&lt;li>Temporary disablement is present if a patched release cannot be deployed
+immediately.&lt;/li>
+&lt;li>Session invalidation, privileged-account review, and log review are explicit
+operator actions.&lt;/li>
+&lt;li>Verification proves crafted truthy OTP input cannot authenticate and does not
+expose real OTP codes or sessions.&lt;/li>
+&lt;li>Build, dependency, image, and deployment checks pass or unrelated failures are
+documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>WordPress repositories that vendor plugins under &lt;code>wp-content/plugins&lt;/code> while
+also installing plugins through Composer, WPackagist, WP-CLI, or image build
+steps.&lt;/li>
+&lt;li>Production plugin drift where the repository pins a safe version but runtime
+WordPress auto-updates or manual plugin management tell a different story.&lt;/li>
+&lt;li>Fixes that only remove one shortcode while another OTP/passwordless login
+route remains public.&lt;/li>
+&lt;li>Treating account cleanup as a code-only problem; session invalidation and
+privileged-user review must stay operator-controlled.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-wj4w-hrrv-32x7"target="_blank" rel="noopener">https://github.com/advisories/GHSA-wj4w-hrrv-32x7&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-7458"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-7458&lt;/a>&lt;/li>
+&lt;li>WordPress plugin directory: &lt;a href="https://wordpress.org/plugins/user-verification/"target="_blank" rel="noopener">https://wordpress.org/plugins/user-verification/&lt;/a>&lt;/li>
+&lt;li>WordPress plugin changeset: &lt;a href="https://plugins.trac.wordpress.org/changeset/3519113/user-verification"target="_blank" rel="noopener">https://plugins.trac.wordpress.org/changeset/3519113/user-verification&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-41574 - Nhost OAuth email verification bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41574-nhost-oauth-email-verification-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41574-nhost-oauth-email-verification-bypass/</guid><description>
+&lt;p>Nhost could link a new OAuth identity to an existing account when email
+addresses matched even when the provider email was not reliably verified. The
+advisory identifies provider adapters that either ignored a verification field,
+accepted an unconfirmed fallback email, or treated non-ownership-proving
+Microsoft identity fields as verified email.&lt;/p>
+&lt;p>The result is account takeover: an attacker can authenticate with a provider
+identity that presents the victim&amp;rsquo;s email address, have that provider identity
+linked to the victim&amp;rsquo;s Nhost account, and receive a valid session for the
+victim account.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/nhost/nhost &amp;lt;0.0.0-20260417112436-ec8dab3f2cf4&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/nhost/nhost 0.0.0-20260417112436-ec8dab3f2cf4+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected providers called out by the advisory:&lt;/strong> Discord, Bitbucket,
+AzureAD, and EntraID.&lt;/li>
+&lt;li>&lt;strong>Affected behavior:&lt;/strong> provider identity linking by matching email without a
+trustworthy provider-level verified-email guarantee.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, deploys, or configures Nhost Auth from a
+vulnerable revision.&lt;/li>
+&lt;li>OAuth/OIDC login is enabled for Discord, Bitbucket, AzureAD, EntraID, or a
+custom provider that maps &lt;code>EmailVerified&lt;/code> from weak assumptions.&lt;/li>
+&lt;li>Existing account lookup or provider linking depends on email equality.&lt;/li>
+&lt;li>Provider adapters set &lt;code>EmailVerified&lt;/code> from &lt;code>email != &amp;quot;&amp;quot;&lt;/code>, fallback username
+fields, user principal names, unconfirmed email lists, or missing verification
+fields.&lt;/li>
+&lt;li>Applications grant admin, workspace, billing, tenant, agent, MCP connector,
+or production privileges through Nhost sessions.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;github.com/nhost/nhost|nhost|providerFlowSignIn|InsertUserProvider|EmailVerified|email_verified|verified|is_confirmed|discord|bitbucket|azuread|entraid|oauth|oidc&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/nhost/nhost&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;AUTH|OAUTH|OIDC|DISCORD|BITBUCKET|AZURE|ENTRA|NHOST&amp;#34;&lt;/span> .env* Dockerfile* docker-compose*.yml charts deploy k8s helm .github .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Nhost to &lt;code>0.0.0-20260417112436-ec8dab3f2cf4+&lt;/code> everywhere this
+repository controls source, images, deployment manifests, SBOMs, or docs.&lt;/li>
+&lt;li>Require provider-specific verified-email evidence before automatic account
+linking by email.&lt;/li>
+&lt;li>Remove adapter patterns that mark email as verified merely because it is
+present.&lt;/li>
+&lt;li>Disable or gate vulnerable providers until the fixed Auth service is rolled
+out.&lt;/li>
+&lt;li>Add regression tests proving unverified Discord and Bitbucket emails do not
+link to existing accounts, and Microsoft fallback identity fields cannot be
+used as email-ownership proof.&lt;/li>
+&lt;li>Audit provider links created during the vulnerable window and expire sessions
+for suspicious or affected accounts.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41574 / GHSA-6g38-8j4p-j3pr (Nhost OAuth email
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">verification bypass leading to account takeover). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Nhost or fixes the OAuth
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> account-linking guard, adds regression coverage, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Nhost Auth deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41574 / GHSA-6g38-8j4p-j3pr.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat OAuth tokens, ID tokens, refresh tokens, cookies, session IDs, user
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> profile payloads, provider IDs, emails, audit logs, and linked-account data as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create test accounts using real victim emails or real production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> identity providers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently unlink, merge, delete, or relink user identities.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log token material or full provider payloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Nhost Auth asset controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go modules, vendor trees, generated clients, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm/Kubernetes manifests, Terraform, CI images, SBOMs, runbooks,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment templates, auth configuration, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether &lt;span class="sb">`github.com/nhost/nhost`&lt;/span> resolves below
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`0.0.0-20260417112436-ec8dab3f2cf4`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify enabled OAuth/OIDC providers, especially Discord, Bitbucket,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> AzureAD, and EntraID. Include local, staging, production, preview, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> self-hosted configurations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Search account-linking code and provider adapters for &lt;span class="sb">`EmailVerified`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`email_verified`&lt;/span>, &lt;span class="sb">`verified`&lt;/span>, &lt;span class="sb">`is_confirmed`&lt;/span>, &lt;span class="sb">`InsertUserProvider`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`providerFlowSignIn`&lt;/span>, fallback email logic, &lt;span class="sb">`preferred_username`&lt;/span>, user
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> principal name, and &lt;span class="sb">`email != &amp;#34;&amp;#34;`&lt;/span> verification shortcuts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not own an affected Nhost Auth deployment, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, resolved versions, enabled providers if
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> visible, suspected runtime owner, and the exact upgrade requested.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Prefer upgrading to &lt;span class="sb">`github.com/nhost/nhost`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`0.0.0-20260417112436-ec8dab3f2cf4+`&lt;/span>. Regenerate &lt;span class="sb">`go.sum`&lt;/span>, vendor metadata,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, images, and rendered deployment manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If this repository owns a fork or equivalent auth code, patch the invariant:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> never auto-link an incoming provider identity to an existing account unless
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the provider email is explicitly verified by that provider;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject Discord emails when the provider &lt;span class="sb">`verified`&lt;/span> value is false or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> absent;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject Bitbucket emails unless they come from a confirmed email record;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> do not use AzureAD or EntraID &lt;span class="sb">`preferred_username`&lt;/span>, UPN, or equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenant-local identifiers as verified external email ownership proof;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed for provider adapters that cannot prove email verification.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unverified Discord email does not link to an existing account;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Bitbucket unconfirmed fallback email does not link;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> AzureAD/EntraID fallback identifiers do not link as verified email;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> verified provider email still links only when provider ID and tenant
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> constraints are valid;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a custom/new provider with missing verification data fails closed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add temporary containment if upgrade cannot be deployed immediately:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable affected OAuth providers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block automatic provider linking by email;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require existing-session reauthentication for privileged users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> increase audit logging without recording secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41574 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected Nhost version before and after;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> enabled OAuth/OIDC providers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether automatic provider linking by email was enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which sessions, cookies, refresh tokens, or auth caches must be expired;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> how to audit provider links created during the vulnerable window;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which suspicious linked identities require human-reviewed unlinking or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> account recovery.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: auth unit tests, provider adapter tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integration tests with mocked provider payloads, &lt;span class="sb">`go test ./...`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scan, SBOM refresh, image build, and deployment render.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): enforce verified OAuth email linking in Nhost`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Nhost Auth deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Nhost revision cannot be consumed without a broader auth migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Provider-link cleanup requires changing real user ownership without an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator-approved recovery plan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require real provider accounts, production emails, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled module, vendor tree, SBOM, image, or deployment target resolves
+&lt;code>github.com/nhost/nhost&lt;/code> below
+&lt;code>0.0.0-20260417112436-ec8dab3f2cf4&lt;/code>.&lt;/li>
+&lt;li>Automatic account linking requires provider-backed verified email evidence.&lt;/li>
+&lt;li>Discord, Bitbucket, AzureAD, EntraID, and missing-verification regression
+tests fail closed.&lt;/li>
+&lt;li>Operator actions cover session expiry, provider-link auditing, and
+human-reviewed account recovery.&lt;/li>
+&lt;li>The change does not log OAuth secrets or silently mutate linked identities.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Fixing one provider adapter while leaving the controller-level linking path
+willing to trust future weak providers.&lt;/li>
+&lt;li>Treating &lt;code>preferred_username&lt;/code>, UPN, or any tenant-local identifier as proof
+that a user controls an external email address.&lt;/li>
+&lt;li>Keeping long-lived sessions that were minted after a suspicious provider link.&lt;/li>
+&lt;li>Updating source but leaving old Nhost Auth images or Helm values deployed.&lt;/li>
+&lt;li>Tests that only cover successful verified login and never assert unverified
+email rejection.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-6g38-8j4p-j3pr"target="_blank" rel="noopener">https://github.com/advisories/GHSA-6g38-8j4p-j3pr&lt;/a>&lt;/li>
+&lt;li>Nhost project: &lt;a href="https://github.com/nhost/nhost"target="_blank" rel="noopener">https://github.com/nhost/nhost&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

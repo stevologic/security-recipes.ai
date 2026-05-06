@@ -1,0 +1,239 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Crypto</title><link>https://security-recipes.ai/tags/crypto/</link><description>Recent content in Crypto on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/crypto/index.xml" rel="self" type="application/rss+xml"/><item><title>Hot-wallet transaction policy enforcement</title><link>https://security-recipes.ai/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement/</guid><description>
+&lt;p>Use this prompt to harden a hot-wallet signing pipeline so unsafe
+transactions are blocked before they can be signed.&lt;/p>
+&lt;h2>Use when&lt;span class="hx:absolute hx:-mt-20" id="use-when">&lt;/span>
+&lt;a href="#use-when" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Payment services sign transfers from online wallets.&lt;/li>
+&lt;li>Destination and amount controls exist but are inconsistently enforced.&lt;/li>
+&lt;li>You need reproducible policy checks in CI and runtime.&lt;/li>
+&lt;/ul>
+&lt;h2>Prompt&lt;span class="hx:absolute hx:-mt-20" id="prompt">&lt;/span>
+&lt;a href="#prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are a security remediation agent for a cryptocurrency payment system.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Goal: enforce a deterministic transaction-policy gate for hot-wallet
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">signing requests. Produce either:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">1) a PR that adds policy enforcement + tests, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">2) TRIAGE.md if you cannot safely complete.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Policy checks must include: allowed chain, allowed asset, destination
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">allowlist, per-tx cap, rolling daily cap, and required business reason.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Constraints:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Never sign or broadcast real transactions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Operate in dry-run/simulation mode only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Fail closed if policy data is unavailable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Implementation tasks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Locate signing entrypoints and insert a &lt;span class="sb">`validateTransactionPolicy`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> guard before any signer call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Ensure every rejection is logged with reason code and request ID,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without logging secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add tests for allow, reject-by-destination, reject-by-amount,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reject-by-daily-cap, and reject-by-missing-policy-store.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a runbook note describing rollback and emergency deny-all mode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Stop and write TRIAGE.md if signing paths are dynamic/reflection-based
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">and cannot be bounded confidently.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div></description></item><item><title>Crypto payment address integrity checks</title><link>https://security-recipes.ai/prompt-library/general/crypto-defi/crypto-payment-address-integrity-check/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/crypto-defi/crypto-payment-address-integrity-check/</guid><description>
+&lt;p>Use this prompt to prevent destination-address substitution and
+address-poisoning mistakes in crypto payment systems.&lt;/p>
+&lt;h2>Use when&lt;span class="hx:absolute hx:-mt-20" id="use-when">&lt;/span>
+&lt;a href="#use-when" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Users paste wallet addresses manually.&lt;/li>
+&lt;li>Address books and recent-recipient UX can be poisoned.&lt;/li>
+&lt;li>Memos/tags are required for some chains.&lt;/li>
+&lt;/ul>
+&lt;h2>Prompt&lt;span class="hx:absolute hx:-mt-20" id="prompt">&lt;/span>
+&lt;a href="#prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are a security remediation agent for crypto payment integrity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Goal: implement and enforce destination address integrity controls.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output either a PR with tests or TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Required controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Chain-aware address format validation (checksum/network prefix).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Canonicalization before storage and comparison.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Address-book trust tiers (verified, user-added, untrusted).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> High-risk transfer interstitial requiring full-address confirmation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Required memo/tag validation for chains that need destination tags.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Tasks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add a shared address-validation module used by API + UI backend.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Reject mixed-chain mismatches (e.g., BTC address for EVM transfer).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add duplicate/similar-address detection to flag poisoning patterns.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add tests covering valid/invalid checksums, chain mismatch,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> missing memo/tag, and poisoning-like near-match cases.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Ensure telemetry emits structured security events for rejections.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Constraints:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-correct addresses silently.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not downgrade strict validation to warning-only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Stop with TRIAGE.md if chain metadata is incomplete.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div></description></item><item><title>Seed phrase and key-material purge</title><link>https://security-recipes.ai/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge/</guid><description>
+&lt;p>Use this prompt to locate and remove exposed wallet seed phrases,
+private keys, and signing credentials from code and operational systems.&lt;/p>
+&lt;h2>Use when&lt;span class="hx:absolute hx:-mt-20" id="use-when">&lt;/span>
+&lt;a href="#use-when" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A scan found possible BIP-39 mnemonics or private keys.&lt;/li>
+&lt;li>Secrets appeared in logs, tickets, or CI output.&lt;/li>
+&lt;li>Key rotation and chain migration runbooks are needed.&lt;/li>
+&lt;/ul>
+&lt;h2>Prompt&lt;span class="hx:absolute hx:-mt-20" id="prompt">&lt;/span>
+&lt;a href="#prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are a security remediation agent handling exposed crypto key material.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Goal: eradicate exposed key material and stage rotation actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output either:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> PR + incident audit note, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md when privileged rotation steps are blocked.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Tasks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Search repository and generated artifacts for candidate seed phrases,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> private keys, and keystore passphrases using approved detectors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Remove exposures from source, examples, docs, tests, and fixtures.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Replace with redacted placeholders and safe test vectors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add pre-commit/CI secret detection rules tuned for crypto material.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Draft rotation checklist: revoke old keys, rotate signer identities,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migrate remaining balances, and verify post-rotation health.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Constraints:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Never print full secret values in output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Keep only minimal fingerprint/hash for audit correlation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If active key rotation requires production privileges, stop and write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> TRIAGE.md with explicit human steps.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div></description></item><item><title>CVE-2026-33116 — .NET System.Security.Cryptography.Xml DoS</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-33116-dotnet-crypto-xml-dos/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-33116-dotnet-crypto-xml-dos/</guid><description>
+&lt;p>&lt;code>System.Security.Cryptography.Xml&lt;/code> contains a denial-of-service
+vulnerability across multiple release trains. Affected
+applications can be disrupted when vulnerable package versions
+are present in direct or transitive dependencies.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>System.Security.Cryptography.Xml&lt;/strong> &lt;code>&amp;gt;=8.0.0, &amp;lt;8.0.3&lt;/code> —
+vulnerable; &lt;code>8.0.3+&lt;/code> patched.&lt;/li>
+&lt;li>&lt;strong>System.Security.Cryptography.Xml&lt;/strong> &lt;code>&amp;gt;=9.0.0, &amp;lt;9.0.15&lt;/code> —
+vulnerable; &lt;code>9.0.15+&lt;/code> patched.&lt;/li>
+&lt;li>&lt;strong>System.Security.Cryptography.Xml&lt;/strong> &lt;code>&amp;gt;=10.0.0, &amp;lt;10.0.6&lt;/code> —
+vulnerable; &lt;code>10.0.6+&lt;/code> patched.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>You are exposed if any project in the solution directly or
+transitively resolves a vulnerable version.&lt;/p>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">dotnet list package --include-transitive &lt;span class="p">|&lt;/span> grep -i System.Security.Cryptography.Xml&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>Upgrade the package to a patched version for each runtime
+train in use:
+&lt;ul>
+&lt;li>.NET 8 → &lt;code>8.0.3+&lt;/code>&lt;/li>
+&lt;li>.NET 9 → &lt;code>9.0.15+&lt;/code>&lt;/li>
+&lt;li>.NET 10 → &lt;code>10.0.6+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Refresh lockfiles / central package management references.&lt;/li>
+&lt;li>Rebuild and redeploy all affected services.&lt;/li>
+&lt;li>Prefer aligning SDK/runtime baselines with patched lines.&lt;/li>
+&lt;/ol>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-33116 in a .NET repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR that upgrades vulnerable package versions and updates
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> all dependency state files, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md with concrete blockers and containment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Enumerate all &lt;span class="sb">`*.csproj`&lt;/span>, &lt;span class="sb">`Directory.Packages.props`&lt;/span>, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`packages.lock.json`&lt;/span> references to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`System.Security.Cryptography.Xml`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine the runtime train (8/9/10) for each project.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Remediate
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Upgrade to minimum patched versions per train:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 8.0.3 / 9.0.15 / 10.0.6 (or newer compatible).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Regenerate lockfiles and central package references.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> &lt;span class="sb">`dotnet list package --include-transitive`&lt;/span> shows no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Build/test pipelines pass for all touched projects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Upgrade introduces unresolved compile/runtime breakage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Runtime train is pinned by an external dependency and cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> be updated safely this sprint.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If stopped, write TRIAGE.md with blocked projects,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">short-term containment, owner, and follow-up date.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Dependency output shows no vulnerable versions.&lt;/li>
+&lt;li>Updated lockfiles are committed.&lt;/li>
+&lt;li>CI validates build and tests after remediation.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Multiple projects in one solution pinned to different trains.&lt;/li>
+&lt;li>Central package management overriding project-level updates.&lt;/li>
+&lt;li>Stale lockfiles masking effective package resolution.&lt;/li>
+&lt;/ul>
+&lt;h2>Sources&lt;span class="hx:absolute hx:-mt-20" id="sources">&lt;/span>
+&lt;a href="#sources" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;code>GHSA-37gx-xxp4-5rgx&lt;/code>&lt;/li>
+&lt;li>CVE: &lt;code>CVE-2026-33116&lt;/code>&lt;/li>
+&lt;/ul></description></item></channel></rss>

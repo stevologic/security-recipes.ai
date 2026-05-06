@@ -1,0 +1,239 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Backdoor</title><link>https://security-recipes.ai/tags/backdoor/</link><description>Recent content in Backdoor on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/backdoor/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2024-3094 — xz-utils backdoor</title><link>https://security-recipes.ai/prompt-library/cve/cve-2024-3094-xz-utils/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2024-3094-xz-utils/</guid><description>
+&lt;p>A maintainer with multi-year commit history shipped versions
+5.6.0 and 5.6.1 of &lt;code>xz-utils&lt;/code> containing a backdoor in
+&lt;code>liblzma&lt;/code>. When the library was loaded into &lt;code>sshd&lt;/code> (via
+systemd&amp;rsquo;s &lt;code>libsystemd&lt;/code> linkage), the backdoor extracted a
+hidden RSA-shaped trigger from the SSH connection and granted
+the attacker code execution. The vulnerability was discovered
+because a microbenchmark unrelated to the backdoor showed a
+half-second slowdown on SSH connections.&lt;/p>
+&lt;p>This is one of the closest near-misses in supply-chain
+history. The backdoor shipped to a few rolling-release distros
+before discovery; most stable distros never picked it up.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>xz-utils&lt;/strong> 5.6.0 and 5.6.1 — vulnerable.&lt;/li>
+&lt;li>&lt;strong>xz-utils&lt;/strong> 5.4.6 / 5.4.x — clean.&lt;/li>
+&lt;li>&lt;strong>xz-utils&lt;/strong> 5.6.2+ — clean (the backdoor was reverted).&lt;/li>
+&lt;/ul>
+&lt;p>The backdoor activates only when:&lt;/p>
+&lt;ul>
+&lt;li>The build is run on a glibc-using x86_64 Linux system.&lt;/li>
+&lt;li>The build is invoked through autotools (the malicious code is
+in the &lt;code>m4/build-to-host.m4&lt;/code> macro from the release tarballs,
+&lt;em>not&lt;/em> the git repo).&lt;/li>
+&lt;li>The resulting &lt;code>liblzma&lt;/code> is linked into a process that also
+loads &lt;code>libsystemd&lt;/code> &lt;em>or&lt;/em> matches a small set of binary
+signatures (&lt;code>sshd&lt;/code> is the named target).&lt;/li>
+&lt;/ul>
+&lt;p>This is the most thorough attack-narrow precondition list any
+single CVE has had. It still pays off if you&amp;rsquo;re running an
+affected distro.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The system is exposed if:&lt;/p>
+&lt;ul>
+&lt;li>The installed &lt;code>xz-utils&lt;/code> (or the underlying &lt;code>liblzma&lt;/code>) is
+5.6.0 or 5.6.1.&lt;/li>
+&lt;li>The system is glibc x86_64 Linux.&lt;/li>
+&lt;li>The &lt;code>sshd&lt;/code> binary on the system loads &lt;code>liblzma&lt;/code> (typically
+through &lt;code>libsystemd&lt;/code>).&lt;/li>
+&lt;/ul>
+&lt;p>Quick check:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Version&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">xz --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Does sshd load liblzma transitively?&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ldd &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="k">$(&lt;/span>which sshd&lt;span class="k">)&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="p">|&lt;/span> grep lzma&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>If the version is in range and &lt;code>sshd&lt;/code> links &lt;code>liblzma&lt;/code>, treat
+the system as compromised — credentials, host keys, and
+anything in process memory at the time of any SSH connection
+are suspect.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The fix is &lt;strong>all of&lt;/strong>:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Roll back&lt;/strong> &lt;code>xz-utils&lt;/code> to 5.4.x (or upgrade to 5.6.2+ on
+distros that ship it).&lt;/li>
+&lt;li>&lt;strong>Verify&lt;/strong> the installed binary is from the distro&amp;rsquo;s clean
+build. The malicious tarballs were signed; signature alone
+is not enough.&lt;/li>
+&lt;li>&lt;strong>Treat the host as compromised&lt;/strong> if it ran an affected
+&lt;code>sshd&lt;/code>:
+&lt;ul>
+&lt;li>Rotate every credential the host had access to (cloud
+IAM keys, deploy tokens, signed certs).&lt;/li>
+&lt;li>Rotate SSH host keys.&lt;/li>
+&lt;li>Rotate any in-memory secrets (recently-decrypted
+credentials, mTLS private keys, token caches).&lt;/li>
+&lt;li>Audit auth logs for unexplained connections during the
+exposure window.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>&lt;strong>Rebuild&lt;/strong> any artifact that was built on an affected host
+while it was affected. The backdoor allows arbitrary
+command execution; you cannot trust artifacts produced
+during the exposure window.&lt;/li>
+&lt;/ol>
+&lt;p>This is not a routine bump. The CVE narrative is a
+supply-chain compromise; the response is supply-chain incident
+response.&lt;/p>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2024-3094 (xz-utils backdoor) on this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">host or in this system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request rolling the package back, plus an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> incident-response checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the system is in the affected window and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> needs immediate human-led incident response.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This recipe is &lt;span class="gs">**not**&lt;/span> a routine package bump. If exposure is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">confirmed, do not auto-remediate; produce the incident
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">checklist and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the system&amp;#39;s &lt;span class="sb">`xz-utils`&lt;/span> / &lt;span class="sb">`liblzma`&lt;/span> version (via the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distro package manager, plus &lt;span class="sb">`xz --version`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`strings $(which xz) | grep -E &amp;#39;5\\.[456]&amp;#39;`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether &lt;span class="sb">`sshd`&lt;/span> on this system loads &lt;span class="sb">`liblzma`&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`ldd $(which sshd) | grep lzma`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check the host&amp;#39;s distro and version against published
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisories (the affected window varies — Debian sid /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Fedora 40 / Kali / openSUSE Tumbleweed all picked up the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bad version at different times).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Not affected:** Version is 5.4.x or ≥5.6.2; or &lt;span class="sb">`sshd`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> doesn&amp;#39;t load &lt;span class="sb">`liblzma`&lt;/span>. Document and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, never reachable from the network:** The host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> has affected &lt;span class="sb">`xz-utils`&lt;/span> but &lt;span class="sb">`sshd`&lt;/span> was firewalled-off /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disabled / not running during the exposure window. Roll
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> back the package; rotate any local secrets that were
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in-memory; document.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, network-reachable sshd:** Treat as compromised.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Stop here. Do not auto-remediate. Write a TRIAGE.md with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the incident-response checklist and page the security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on-call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Roll back the package (when classification is
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&amp;#34;not network-reachable affected&amp;#34;)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> For Debian / Ubuntu rolling: &lt;span class="sb">`apt install xz-utils=5.4.5-*`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (or the distro&amp;#39;s clean-version pin). For Fedora 40:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the distro shipped a rebuild — &lt;span class="sb">`dnf upgrade xz xz-libs`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> For Arch / openSUSE Tumbleweed / Kali: follow the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distro-specific roll-back advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Verify the new package signature matches the distro&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clean build.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Restart &lt;span class="sb">`sshd`&lt;/span> (and any other process that loaded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`liblzma`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="sb">`xz --version`&lt;/span> prints a clean version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> &lt;span class="sb">`ldd $(which sshd) | grep lzma`&lt;/span> shows the new path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> The host&amp;#39;s &lt;span class="sb">`liblzma`&lt;/span> SHA matches the distro&amp;#39;s published
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clean SHA.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Incident-response checklist (in the TRIAGE.md
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>when classification is &amp;#34;compromised&amp;#34;)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The checklist must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate SSH host keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate every long-lived credential the host had access to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud IAM, registry tokens, deploy keys, mTLS private
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate any in-memory secrets that were decrypted during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Pull the auth log and search for unexplained sessions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Identify and rebuild every artifact that was produced on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this host during the exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Report the incident through the org&amp;#39;s IR channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The checklist is human-driven. The agent does not run any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">of these steps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The system is in the &amp;#34;compromised&amp;#34; classification — write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the checklist and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The distro&amp;#39;s clean roll-back path is unclear and no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upstream advisory exists for this distro. Triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host has multi-tenant exposure (shared host, multiple
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customers) — escalate before touching anything.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not roll back any package other than xz-utils / liblzma.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently restart services without recording which.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify SSH configuration other than as part of a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documented IR action.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not draft credential rotation actions; the IR checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> names them, the operator runs them.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The version verification ran and produced a clean number.&lt;/li>
+&lt;li>The &lt;code>ldd&lt;/code> check confirmed &lt;code>sshd&lt;/code> linked the new lib.&lt;/li>
+&lt;li>For compromised hosts: the IR checklist was followed
+(review the linked artefacts), not just the package
+rollback.&lt;/li>
+&lt;li>The reviewer does &lt;em>not&lt;/em> trust the agent&amp;rsquo;s &amp;ldquo;not affected&amp;rdquo;
+classification without re-running the detection commands
+themselves.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Distro-specific repackages.&lt;/strong> Some distros backported the
+fix into 5.6.x rather than rolling back. Don&amp;rsquo;t assume &amp;ldquo;5.6&amp;rdquo;
+is bad without checking the distro&amp;rsquo;s published clean SHA.&lt;/li>
+&lt;li>&lt;strong>Container images built during the exposure window.&lt;/strong> A
+container image baked from an affected base inherits the
+backdoor. Rebuild every affected image; treat the affected
+image&amp;rsquo;s published copies as potentially compromised.&lt;/li>
+&lt;li>&lt;strong>CI runners.&lt;/strong> A self-hosted CI runner with an affected
+&lt;code>xz-utils&lt;/code> and a publicly-reachable &lt;code>sshd&lt;/code> is exactly the
+shape this attack targeted. Audit those first.&lt;/li>
+&lt;li>&lt;strong>&lt;code>liblzma&lt;/code> is not always reached through &lt;code>sshd&lt;/code>.&lt;/strong> Other
+binaries link &lt;code>liblzma&lt;/code> for legitimate reasons; the
+backdoor&amp;rsquo;s preconditions narrow the impact, but other CVEs
+in the future may not.&lt;/li>
+&lt;li>&lt;strong>Reproducibility from the git repo vs. tarball.&lt;/strong> The
+malicious code was in the release tarball but not in the
+git repository. Build provenance (&amp;ldquo;we built from git&amp;rdquo;) was
+the durable check; vendor signatures alone were not.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+— the workflow for evicting the bad artifact from internal
+mirrors.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/threat-model/#observed-real-world-patterns">Threat Model → Agent-infrastructure supply-chain compromise&lt;/a>
+— why this case is treated separately from routine CVEs.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— for evicting the affected version from container bases.&lt;/li>
+&lt;/ul></description></item></channel></rss>

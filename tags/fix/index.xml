@@ -1,0 +1,210 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Fix</title><link>https://security-recipes.ai/tags/fix/</link><description>Recent content in Fix on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 22 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/fix/index.xml" rel="self" type="application/rss+xml"/><item><title>OWASP Top 10 (2026) — remediate</title><link>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/</link><pubDate>Wed, 22 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/</guid><description>
+&lt;p>A tool-agnostic &lt;strong>remediation prompt&lt;/strong> that takes a single finding
+from an OWASP Top 10 (2026) audit — or any equivalent source — and
+turns it into a reviewer-ready pull request. Includes category-specific
+&amp;ldquo;how to fix this well&amp;rdquo; guidance so the agent doesn&amp;rsquo;t apply a naive
+patch that looks right and isn&amp;rsquo;t.&lt;/p>
+&lt;p>Works with the hunt side at
+&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/">OWASP Top 10 (2026) — audit&lt;/a>,
+but does not require it — any clear finding (SAST result, pen-test
+note, internal review comment) is a valid input.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reproduces&lt;/strong> the finding — confirms the weakness exists on the
+specified file and lines.&lt;/li>
+&lt;li>&lt;strong>Plans&lt;/strong> a fix using the category-appropriate pattern.&lt;/li>
+&lt;li>&lt;strong>Applies&lt;/strong> the fix on a new branch with small, reviewable commits.&lt;/li>
+&lt;li>&lt;strong>Adds tests&lt;/strong> that would have caught the original weakness.&lt;/li>
+&lt;li>&lt;strong>Opens a PR&lt;/strong> with blast-radius notes, before/after snippets, and
+a link back to the finding.&lt;/li>
+&lt;/ol>
+&lt;p>If the fix is out of scope for a safe agent change — needs a data
+migration, API contract change, or cross-repo coordination — the
+agent writes a triage note and stops.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>You have a specific finding with a file + category + fix direction.&lt;/li>
+&lt;li>The fix is a code change in the repo the agent has access to.&lt;/li>
+&lt;li>A human will review the PR before merge.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Runtime-only fixes (WAF rules, IAM policies in a separate repo).&lt;/li>
+&lt;li>Findings that require behavioural changes in a downstream consumer.&lt;/li>
+&lt;li>Anything labelled &amp;ldquo;critical, exploit in the wild&amp;rdquo; — go straight to
+your incident playbook.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Infer what you can from the session; prompt only when ambiguous.&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Finding&lt;/strong> — category (e.g., &lt;code>A01 — Broken Access Control&lt;/code>), file
+path, line range, and a short description. If the user only pasted
+a finding title and a file, that is enough; do not refuse.&lt;/li>
+&lt;li>&lt;strong>Recommended fix&lt;/strong> — optional. If present, treat it as a starting
+point, not a mandate.&lt;/li>
+&lt;li>&lt;strong>Repo&lt;/strong> — the working directory the agent is running in.&lt;/li>
+&lt;li>&lt;strong>Test runner&lt;/strong> — infer from the repo (&lt;code>pytest&lt;/code>, &lt;code>go test&lt;/code>, &lt;code>npm test&lt;/code>, etc.). If there is no test setup, note it and proceed with
+manual verification only.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating a single OWASP Top 10 (2026) finding in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">repository. Open one reviewer-ready PR or write a triage note. Do
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Reproduce and confirm
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the file and surrounding context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the weakness is present as described. If it is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reproducible (e.g., the code has been refactored), write a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> one-paragraph note and stop — do not invent a different finding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to remediate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify the minimum scope required to fix it. If the scope
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expands beyond ~200 lines or multiple unrelated files, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Apply the category-appropriate pattern
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not default to &amp;#34;add a check and ship it.&amp;#34; Use the pattern that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">fits the category.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A01 Broken Access Control** — Add authorization at the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controller/handler layer, not the view layer. Prefer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> centralized middleware / policy objects over ad-hoc &lt;span class="sb">`if`&lt;/span> checks
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scattered across routes. Verify the check runs on every code
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path, including error and retry paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A02 Cryptographic Failures** — Replace weak primitives with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the library&amp;#39;s current recommended default. Never roll your own.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> For password hashing, use argon2id or bcrypt with current cost
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> parameters. For data-at-rest, prefer envelope encryption with a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> KMS-managed key. Remove the old cipher path — do not leave a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fallback.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A03 Injection** — Parameterize. For SQL, use prepared
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> statements or the ORM&amp;#39;s parameter binding. For shell, prefer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`execFile`&lt;/span>/&lt;span class="sb">`subprocess.run(args=[...])`&lt;/span> with an explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlist over string concatenation. For templates, escape at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render time, not at input time. For LLM prompt injection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> treat model output as untrusted and keep untrusted text out of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> system prompts and tool-call arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A04 Insecure Design** — If the fix is design-level (missing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rate limit, enumeration oracle), add the minimum control:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server-side rate limit keyed on account + IP, uniform response
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for valid and invalid enumerable inputs, etc. Flag the larger
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> design gap in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A05 Security Misconfiguration** — Turn the defaults right.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Tighten CORS to explicit origins, disable debug in production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> paths, add the standard security headers (CSP, HSTS,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> X-Content-Type-Options, Referrer-Policy). If the config is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment-specific, fix the &lt;span class="ge">*default*&lt;/span> and override only where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> needed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A06 Vulnerable and Outdated Components** — Bump to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lowest non-vulnerable version that keeps the repo&amp;#39;s major /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> minor contract. Run tests. If a transitive dep is the problem
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the direct dep cannot be bumped, add a resolution/override
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if the ecosystem supports one; otherwise triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A07 Authentication Failures** — Add the missing control
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (MFA requirement on sensitive op, account lockout on repeated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> failures, secure session cookie flags). Invalidate existing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sessions if the old behaviour made them trust-on-first-use.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A08 Software/Data Integrity Failures** — Pin third-party CI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions by SHA, require signatures on release artifacts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> replace &lt;span class="sb">`pickle`&lt;/span>/&lt;span class="sb">`unsafe-eval`&lt;/span>/&lt;span class="sb">`Marshal`&lt;/span> on untrusted input
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with a safe serialization format.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A09 Logging/Monitoring Failures** — Add structured audit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> events for sensitive operations (auth, authz, privilege
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> escalation, data export). Scrub PII and secrets from the log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pipeline — not from the log statement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A10 SSRF** — Validate and allowlist outbound URLs against a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deny-by-default list. Block link-local and metadata-endpoint
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IPs. Resolve the hostname once, then connect to the resolved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IP — do not pass a hostname that could resolve differently on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> second lookup.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the 2026 list introduces or renames a category, apply the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">nearest fitting pattern above and note the category name in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PR description.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Tests that would have caught this
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add at least one test that &lt;span class="ge">*fails against the old code*&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="ge">*passes against the new code*&lt;/span>. If the project has no test setup,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">add a minimal one; do not skip the test step silently.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Commit and open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/owasp-&amp;lt;category&amp;gt;-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Small commits that tell a story: reproduction test, fix, any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> supporting refactor, docstring/config updates.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> PR title: &lt;span class="sb">`[Security][&amp;lt;category&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> PR body must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> OWASP category and link to the source finding.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Summary of the weakness and the exploitation path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> What was changed, per file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Blast radius — who and what this PR affects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A &amp;#34;how to verify&amp;#34; section with the commands a reviewer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should run locally.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Out-of-scope items discovered along the way, as checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> items for follow-up.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not merge. Label as &lt;span class="sb">`security-review`&lt;/span> (or the repo&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Stop and write a triage note at &lt;span class="sb">`TRIAGE.md`&lt;/span> (and ping the PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">reviewer channel) instead of forcing a PR if:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix requires a data migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix changes an externally-observable API contract.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The finding turns out to be a false positive (explain briefly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> why).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail and you cannot fix them without touching unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix requires credentials or infra you do not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch files outside the direct fix and its tests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite unrelated code &amp;#34;while you&amp;#39;re in there.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not update dependencies other than the one the finding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> targets (if any).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not modify CI pipelines, release automation, or secrets.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (happy path) with the structure above, or a
+&lt;code>TRIAGE.md&lt;/code> note (stop condition) with a short justification and
+a recommendation for the human next step.&lt;/li>
+&lt;li>No auto-merge. Ever.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Single-finding scope.&lt;/strong> One finding → one PR. If the agent
+notices adjacent issues, it lists them in the PR body&amp;rsquo;s
+follow-up checklist — it does not quietly fix them.&lt;/li>
+&lt;li>&lt;strong>Tests-before-ship.&lt;/strong> A PR without a new or updated test is an
+automatic block. If no test framework exists, the PR adds one
+minimally.&lt;/li>
+&lt;li>&lt;strong>Sensitive-data handling.&lt;/strong> The agent must never include
+secrets, keys, or PII in the PR description, commits, or test
+fixtures. Use obvious dummies.&lt;/li>
+&lt;li>&lt;strong>Reversibility.&lt;/strong> Every change should be reversible via a
+single revert. No data migrations bundled in.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/">OWASP Top 10 (2026) — audit&lt;/a> — the hunt side&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/">Fundamentals&lt;/a> — vocabulary used
+in the PR body&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/">Agentic Security Remediation&lt;/a>
+— how a security team runs prompts like this in production&lt;/li>
+&lt;/ul></description></item></channel></rss>

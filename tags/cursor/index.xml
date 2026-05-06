@@ -1,0 +1,420 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Cursor</title><link>https://security-recipes.ai/tags/cursor/</link><description>Recent content in Cursor on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 21 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/cursor/index.xml" rel="self" type="application/rss+xml"/><item><title>Vulnerable dependency remediation (rule + command)</title><link>https://security-recipes.ai/prompt-library/cursor/vulnerable-dep-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cursor/vulnerable-dep-remediation/</guid><description>
+&lt;p>A Cursor &lt;strong>project rule&lt;/strong> + &lt;strong>custom slash command&lt;/strong> pair for
+remediating a vulnerable open-source dependency. The rule encodes
+the house constraints (conservative bumps only, one PR per
+finding, no auto-merge). The slash command is the one-line trigger
+engineers invoke interactively — or that Cursor Automations
+invokes on a schedule / webhook.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When an engineer runs &lt;code>/remediate-dep CVE-2026-1234&lt;/code> in Cursor&amp;rsquo;s
+chat (or Cursor Automations invokes it on a schedule), the
+underlying Agent / Background Agent reads the finding, locates
+the affected package, applies the lowest-viable bump, runs the
+project&amp;rsquo;s tests, and opens a PR scoped to that single finding.
+The rule file guarantees the constraints are applied on every
+invocation regardless of who typed the command.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> the finding id (as the command argument), optional
+package hint in the chat body.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> either a branch + draft PR (happy path), or a
+summary in chat + no commits (triage path). Cursor Background
+Agents surface the run in the sidebar for review.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A developer already has Cursor open and wants to knock out a
+Dependabot / Snyk finding without leaving the editor.&lt;/li>
+&lt;li>Cursor Automations is wired to a GitHub issue label
+(&lt;code>security:remediate&lt;/code>) and needs a consistent command to
+invoke.&lt;/li>
+&lt;li>Nightly Background Agent sweeps through the top-N open
+findings, opening up to 5 PRs per run.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Major version migrations — the rule refuses by default.&lt;/li>
+&lt;li>Cross-repo fanouts — invoke per repo so the rule scope applies.&lt;/li>
+&lt;li>Interactive &amp;ldquo;is this CVE real&amp;rdquo; triage conversations — those
+are human work; this command jumps to fix mode.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Two files, checked in to the repo.&lt;/p>
+&lt;h3>&lt;code>.cursor/rules/remediate-dep.mdc&lt;/code>&lt;span class="hx:absolute hx:-mt-20" id="cursorrulesremediate-depmdc">&lt;/span>
+&lt;a href="#cursorrulesremediate-depmdc" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">---
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">description: &amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Conservative vulnerable-dep remediation house rules. Applies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> whenever the agent is asked to bump a dep in response to a CVE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or advisory id.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">globs:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;package.json&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;pnpm-lock.yaml&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;package-lock.json&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;yarn.lock&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;go.mod&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;go.sum&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;requirements*.txt&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;uv.lock&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;poetry.lock&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;Cargo.toml&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;Cargo.lock&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;Gemfile&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;Gemfile.lock&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh"># Vulnerable dependency remediation — house rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> ONE finding per run. One commit. One PR. No bundling.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`fix/&amp;lt;finding-id&amp;gt;`&lt;/span> (use the CVE / GHSA id verbatim).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Commit: Conventional Commits: `fix(sec): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> from &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">old&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">new&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">finding-id&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Version bump policy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Always pick the LOWEST version in the advisory&amp;#39;s patched range.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- NEVER cross a major-version boundary unless the user has
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> explicitly written &amp;#34;major ok&amp;#34; in the task brief.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- For transitive-only fixes, prefer bumping the direct parent to
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> pull in the patched transitive. If both options require a
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> major bump, stop and explain — do not guess.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Pre-release / rc / beta versions are off by default. If the
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> advisory only lists a pre-release fix, stop and triage.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Verification
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Use the NATIVE package manager to apply the bump; never
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> hand-edit the lockfile.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- After the bump: run the repo&amp;#39;s lint and test commands. Look
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> for `&lt;/span>pnpm test&lt;span class="sb">`, `&lt;/span>make test&lt;span class="sb">`, `&lt;/span>go test ./...&lt;span class="sb">`, `&lt;/span>uv run pytest&lt;span class="sb">`,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> `&lt;/span>cargo test&lt;span class="sb">`, `&lt;/span>bundle exec rspec&lt;span class="sb">` — whichever the repo uses.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- If lint or tests fail because of the bump, REVERT the bump
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> and summarize what failed. Do not try to fix the test.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- If a scanner (`&lt;/span>osv-scanner&lt;span class="sb">`, `&lt;/span>grype&lt;span class="sb">`, `&lt;/span>trivy fs&lt;span class="sb">`) is available,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> re-scan to confirm the finding is gone.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## What you may NOT touch
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Anything outside the manifest and its lockfile, except where
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> the package manager rewrites a peer file (e.g. `&lt;/span>go.sum&lt;span class="sb">` after
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> `&lt;/span>go mod tidy&lt;span class="sb">`).
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Any file under `&lt;/span>db/migrations/&lt;span class="sb">` or `&lt;/span>infra/terraform/&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Generated files (`&lt;/span>**/*.generated.*&lt;span class="sb">`).
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- CI workflows, except to change a pinned action version in
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> response to a CVE on that action.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## PR shape
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Title: `&lt;/span>fix(sec): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">finding-id&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Body: finding id + link, old → new version, direct/transitive,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> test command + pass evidence, one-line revert instructions.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Labels: `&lt;/span>security&lt;span class="sb">`, `&lt;/span>auto-remediation`.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- DRAFT PR. Never mark ready-for-review. Never auto-merge.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h3>&lt;code>.cursor/commands/remediate-dep.md&lt;/code>&lt;span class="hx:absolute hx:-mt-20" id="cursorcommandsremediate-depmd">&lt;/span>
+&lt;a href="#cursorcommandsremediate-depmd" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;p>Filename is the command name — no frontmatter required.&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">&lt;span class="gh"># Remediate a single vulnerable dependency
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Argument (optional): a CVE id or GHSA id (e.g. &lt;span class="sb">`CVE-2026-1234`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`GHSA-xxxx-xxxx-xxxx`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Infer everything else from the session: the repo root you&amp;#39;re
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">already in, the default branch (from the git remote), the test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">and lint commands (from &lt;span class="sb">`package.json`&lt;/span> scripts, &lt;span class="sb">`Makefile`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">targets, or the README).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If no finding id is provided AND no scanner MCP is wired in,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">discover a target yourself before touching code:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Run the lightest-weight local scanner available, in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> order: &lt;span class="sb">`osv-scanner scan source .`&lt;/span>, &lt;span class="sb">`npm audit --json`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`pip-audit`&lt;/span>, &lt;span class="sb">`govulncheck ./...`&lt;/span>, &lt;span class="sb">`cargo audit`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`bundle audit`&lt;/span>, &lt;span class="sb">`trivy fs --scanners vuln .`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If none are available, query the GitHub Advisory Database via
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`gh api /repos/{owner}/{repo}/vulnerability-alerts`&lt;/span> or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public advisories endpoint using package names from the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Pick the highest-severity fixable finding per the rules
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> below. Note in the PR body that the finding was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> self-discovered and which scanner produced it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If no discovery tooling is available, stop and post a summary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in chat naming what to install — do not guess.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using the house rules in &lt;span class="sb">`.cursor/rules/remediate-dep.mdc`&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Fetch the advisory details from the GitHub Advisory Database
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (or OSV if the GHSA isn&amp;#39;t available there yet). Record the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> affected package, affected range, and patched range.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Locate the affected package in this repo&amp;#39;s resolved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency tree (direct AND transitive). If not installed,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop and summarize &amp;#34;not-vulnerable: package not installed&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Pick the lowest version in the patched range. If it crosses a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> major boundary, refuse per the rule file and summarize why.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Apply the bump via the native package manager. Commit once.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run lint and tests. If either fails because of the bump,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> revert and summarize the failure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Open a DRAFT pull request per the rule file&amp;#39;s PR shape. Link
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the advisory in the PR body. Do not mark ready-for-review.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If any of 1–5 require human judgment (ambiguous patched range,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">major bump required, pre-release only, yanked version), stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">post a structured summary in chat instead of committing.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Invoke from chat with &lt;code>/remediate-dep CVE-2026-1234&lt;/code>. In Cursor
+Automations, the same command is the entry point for scheduled
+sweeps and issue-labeled triggers.&lt;/p>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Rule-scope globs&lt;/strong> must match the manifests actually touched;
+if your repo uses an unusual layout (e.g. manifests under
+&lt;code>tooling/*/&lt;/code>) extend the &lt;code>globs:&lt;/code> list so the rule loads.&lt;/li>
+&lt;li>&lt;strong>Multi-ecosystem repos.&lt;/strong> The command is fine for one
+ecosystem per run. For monorepos with mixed Node/Python/Go, run
+one invocation per affected workspace.&lt;/li>
+&lt;li>&lt;strong>Draft-PR policy is enforced by the rule, not by the PR API.&lt;/strong>
+Pair it with a repo-level branch protection that blocks merges
+from &lt;code>@cursor[bot]&lt;/code>-authored PRs until a human reviewer
+approves.&lt;/li>
+&lt;li>&lt;strong>Background Agent context budget.&lt;/strong> Very large monorepos can
+push the agent past its retrieval budget. Pin the
+&lt;code>.cursor/mcp.json&lt;/code> allowlist to only the MCP tools this flow
+needs.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Covers Node / Python / Go /
+Rust / Ruby. Monorepo fanout handled by invoking per-workspace.&lt;/li>
+&lt;/ul></description></item><item><title>Sensitive data element remediation (rule + command)</title><link>https://security-recipes.ai/prompt-library/cursor/sensitive-data-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cursor/sensitive-data-remediation/</guid><description>
+&lt;p>A Cursor &lt;strong>project rule&lt;/strong> + &lt;strong>custom slash command&lt;/strong> pair for
+remediating a sensitive-data-element (SDE) finding — hard-coded
+secrets, PII in logs, credentials in source. The rule locks in
+the house posture (&amp;ldquo;rotation first for exposed SDEs, no history
+rewrites, one finding per PR&amp;rdquo;); the command is the one-liner an
+engineer or Cursor Automation invokes.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When &lt;code>/remediate-sde &amp;lt;finding-id&amp;gt; &amp;lt;class&amp;gt;&lt;/code> runs, the Cursor Agent
+(interactive or Background) confirms the literal is in the
+current working tree, classifies the exposure scope, and — if
+pre-exposure — replaces the literal with a reference to the
+approved secret store (or a redaction helper for PII), adds a
+regression guard, runs tests, and opens a draft PR. For exposed
+findings, the rule forces the agent to stop, write a triage note
+with a rotation + disclosure checklist, and not touch code.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> finding id and SDE class (one of &lt;code>secret&lt;/code>, &lt;code>token&lt;/code>,
+&lt;code>pii&lt;/code>, &lt;code>pci&lt;/code>, &lt;code>phi&lt;/code>) as command arguments. Optional file-path
+hint in the chat body.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> a draft PR (pre-exposure path) or a triage branch +
+summary in chat (exposed path).&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub push protection / GitLeaks / TruffleHog / Wiz fires on a
+pre-exposure finding and the developer wants to fix it without
+leaving Cursor.&lt;/li>
+&lt;li>Cursor Automations watches an issue label (&lt;code>security:sde&lt;/code>) and
+needs a consistent command to dispatch.&lt;/li>
+&lt;li>A PII scanner flags a test fixture containing real user data
+and the replacement is a Faker-style synthetic value.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Any SDE already pushed to a shared remote or published log —
+the rule forces triage + rotation. This is the correct
+behavior, not a bug.&lt;/li>
+&lt;li>Cross-repo sweeps — run once per finding after dedup.&lt;/li>
+&lt;li>Binary artifacts — the rule refuses.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Two files, checked in to the repo.&lt;/p>
+&lt;h3>&lt;code>.cursor/rules/remediate-sde.mdc&lt;/code>&lt;span class="hx:absolute hx:-mt-20" id="cursorrulesremediate-sdemdc">&lt;/span>
+&lt;a href="#cursorrulesremediate-sdemdc" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">---
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">description: &amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Sensitive-data-element remediation house rules. Applies whenever
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the agent is asked to remove a hard-coded secret, PII, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credential from source.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">alwaysApply: true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh"># SDE remediation — house rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Exposure scope — always classify first
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> PRE-EXPOSURE: literal exists only in the current working tree,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> never committed to a shared remote, never printed in CI logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> EXPOSED: anything else. If in doubt, it&amp;#39;s exposed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gs">**Exposed SDEs are rotation problems, not code-edit problems.**&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For any EXPOSED finding: do NOT edit the offending file. Stop,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">create a triage branch, and write TRIAGE.md per the template
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">below. Rotation happens first; code hygiene second.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Pre-exposure remediation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Replace the literal with a reference to the project&amp;#39;s approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secret store (read &lt;span class="sb">`docs/security/secrets.md`&lt;/span> to identify the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client). For PII, route through the project&amp;#39;s redaction
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> helper (grep for &lt;span class="sb">`redact(`&lt;/span>, &lt;span class="sb">`mask_pii`&lt;/span>, &lt;span class="sb">`scrubPII`&lt;/span>). If the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> project has neither, stop and triage — do not invent one.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> For test fixtures containing real user data, replace with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Faker-style synthetic values and comment the finding id.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Minimal edit only. Never rename files, never reformat unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Regression guard
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Add a unit test or a scanner-config rule that fails if the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> literal reappears. Allowlist the synthetic-fixture path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> specifically (never a broad path allowlist).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## What you may NEVER do
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Rewrite git history (&lt;span class="sb">`filter-repo`&lt;/span>, force-push, commit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> amends on anyone else&amp;#39;s branch).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Echo the SDE literal in commit messages, chat output, PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bodies, or logs. When referring to it, hash it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Commit or delete &lt;span class="sb">`.env`&lt;/span> / &lt;span class="sb">`credentials.json`&lt;/span> — those require
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a &lt;span class="sb">`git filter-repo`&lt;/span> runbook + human sign-off.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Merge your own PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## PR shape (pre-exposure path)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`fix/&amp;lt;finding-id&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Commit: &lt;span class="sb">`fix(sec): remove &amp;lt;class&amp;gt; &amp;lt;finding-id&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`fix(sec): remove &amp;lt;class&amp;gt; from &amp;lt;file&amp;gt; (&amp;lt;finding-id&amp;gt;)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: finding id, exposure scope = &amp;#34;pre-exposure&amp;#34;,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> replacement pattern used, test pass evidence, one-line revert.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Labels: &lt;span class="sb">`security`&lt;/span>, &lt;span class="sb">`sde-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> DRAFT. Never ready-for-review, never auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Triage template (exposed path)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>Write TRIAGE.md on a &lt;span class="sb">`sde-triage/&amp;lt;finding-id&amp;gt;`&lt;/span> branch with YAML
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">frontmatter including: finding_id, sde_class, exposure_scope,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">first_seen_commit, first_seen_date; and body sections for:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotation checklist (revoke, rotate, re-deploy, invalidate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cached sessions).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Disclosure checklist (IR ticket, service owner, legal routing).&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h3>&lt;code>.cursor/commands/remediate-sde.md&lt;/code>&lt;span class="hx:absolute hx:-mt-20" id="cursorcommandsremediate-sdemd">&lt;/span>
+&lt;a href="#cursorcommandsremediate-sdemd" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;p>Filename is the command name — no frontmatter required.&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">&lt;span class="gh"># Remediate a single SDE finding
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Arguments (both optional):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Finding id (e.g. &lt;span class="sb">`GITLEAKS-AWS-001`&lt;/span>, &lt;span class="sb">`WIZ-SECRET-42931`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> SDE class: &lt;span class="sb">`secret`&lt;/span>, &lt;span class="sb">`token`&lt;/span>, &lt;span class="sb">`pii`&lt;/span>, &lt;span class="sb">`pci`&lt;/span>, or &lt;span class="sb">`phi`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Infer everything else from the session: the repo root you&amp;#39;re
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">already in, the default branch (from the git remote), the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">approved secret store (from &lt;span class="sb">`docs/security/secrets.md`&lt;/span> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`SECURITY.md`&lt;/span>), the redaction helper (grep for it), and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">test and lint commands (from the README, &lt;span class="sb">`package.json`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">scripts, or &lt;span class="sb">`Makefile`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If no finding id is provided AND no scanner MCP is wired in,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">discover a target yourself before touching code:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Run the lightest-weight secret/PII scanner available, in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> order: &lt;span class="sb">`gitleaks detect --source . --no-banner`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`trufflehog filesystem . --json`&lt;/span>, &lt;span class="sb">`detect-secrets scan
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> --all-files`&lt;/span>, &lt;span class="sb">`trivy fs --scanners secret .`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Restrict to the WORKING TREE only — never scan commit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> history. Exposed SDEs are rotation problems, handled by the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposed-path branch of the rule.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Pick the highest-confidence finding. Synthesize a local id:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`LOCAL-&amp;lt;scanner&amp;gt;-&amp;lt;rule&amp;gt;-&amp;lt;short-sha&amp;gt;`&lt;/span>. Classify the SDE class
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> from the rule id (e.g. AWS-access-key → &lt;span class="sb">`secret`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> email-in-logs → &lt;span class="sb">`pii`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Note in the PR body that the finding was self-discovered and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> which scanner produced it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If no scanner is installed, stop and post a summary in chat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> naming what to install — do not guess.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Never grep for a secret literal yourself — leave pattern
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">matching to the scanner so the literal never enters chat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Using the house rules in &lt;span class="sb">`.cursor/rules/remediate-sde.mdc`&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Confirm the literal appears in the current working tree. If
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the chat message includes a file path + line, start there.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> If the literal isn&amp;#39;t present, stop and summarize
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;not-reproduced&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Classify exposure scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Run &lt;span class="sb">`git log --all -S &amp;#39;&amp;lt;literal hash&amp;gt;&amp;#39; -- &amp;lt;file&amp;gt;`&lt;/span> to detect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> prior commits. NEVER echo the literal — refer to it by a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Check the finding source: was it seen in CI logs or a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public repo?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Any of the above → EXPOSED. Otherwise PRE-EXPOSURE.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> EXPOSED path: do not edit the file. Create
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`sde-triage/&amp;lt;finding-id&amp;gt;`&lt;/span> branch, write TRIAGE.md per the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rule&amp;#39;s template, push, and summarize the rotation +
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disclosure checklist in chat.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> PRE-EXPOSURE path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a. Pick the replacement pattern per the rule (secret store
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client for secrets/tokens; redaction helper for PII).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> b. Apply the minimal edit. Add a regression guard (unit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test or scanner-config rule).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> c. Run lint and tests. If either fails because of the edit,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> revert and summarize.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> d. Open a DRAFT PR per the rule&amp;#39;s PR shape. Do not mark
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ready-for-review.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Whenever you need to refer to the SDE literal, use a hash or an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">abstract description. Never echo the value.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Invoke from chat with &lt;code>/remediate-sde WIZ-SECRET-42931 secret&lt;/code>.
+From Cursor Automations, the same command is wired to the
+&lt;code>security:sde&lt;/code> label trigger.&lt;/p>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Exposure detection is git-history-shaped.&lt;/strong> The &lt;code>git log -S&lt;/code>
+heuristic can miss a secret that was renamed between commits;
+pair with the scanner&amp;rsquo;s own &amp;ldquo;first seen&amp;rdquo; metadata when
+possible.&lt;/li>
+&lt;li>&lt;strong>Hashing literals in chat.&lt;/strong> Cursor&amp;rsquo;s chat surface doesn&amp;rsquo;t
+natively redact — the agent must remember to hash. Treat any
+copy-paste of chat transcripts as sensitive until you&amp;rsquo;ve
+verified the agent obeyed the rule.&lt;/li>
+&lt;li>&lt;strong>History cleanup is out of scope.&lt;/strong> That lives in a separate
+&lt;code>secret-rotation&lt;/code> runbook; this prompt refuses to try.&lt;/li>
+&lt;li>&lt;strong>Redaction-helper detection&lt;/strong> relies on a grep list. Teams
+with non-obvious helper names should record them in
+&lt;code>docs/security/secrets.md&lt;/code> so the rule can cite them.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Covers secret / token /
+pii / pci / phi. Exposed-SDE path deliberately refuses code
+edits and routes to rotation.&lt;/li>
+&lt;/ul></description></item></channel></rss>

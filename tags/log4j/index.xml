@@ -1,0 +1,186 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Log4j</title><link>https://security-recipes.ai/tags/log4j/</link><description>Recent content in Log4j on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/log4j/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2021-44228 — Log4Shell</title><link>https://security-recipes.ai/prompt-library/cve/cve-2021-44228-log4shell/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2021-44228-log4shell/</guid><description>
+&lt;p>The Log4j 2.x logger interpolated &lt;code>${jndi:ldap://...}&lt;/code> strings
+when logging arbitrary content. An attacker who could get a
+string into a log statement (almost any user-controlled
+field — User-Agent, search query, username) could trigger an
+LDAP/RMI lookup, fetch a remote class, and execute it. The
+naive fix (upgrade to 2.15.0) had a follow-up CVE because the
+fix was incomplete; the durable fix is 2.17.1+ &lt;em>plus&lt;/em> class
+removal.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Log4j-core&lt;/strong> 2.0-beta9 through 2.14.1 — vulnerable.&lt;/li>
+&lt;li>&lt;strong>Log4j-core&lt;/strong> 2.15.0 — incomplete fix (CVE-2021-45046).&lt;/li>
+&lt;li>&lt;strong>Log4j-core&lt;/strong> 2.16.0 — DoS via uncontrolled recursion
+(CVE-2021-45105).&lt;/li>
+&lt;li>&lt;strong>Log4j-core&lt;/strong> 2.17.0 — JDBC Appender RCE under specific
+config (CVE-2021-44832).&lt;/li>
+&lt;li>&lt;strong>Log4j-core&lt;/strong> 2.17.1+ (or 2.12.4 / 2.3.2 for older Java
+versions) — the durable fix.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;code>log4j-api&lt;/code> alone is not vulnerable; the bug is in
+&lt;code>log4j-core&lt;/code>&amp;rsquo;s pattern-substitution code path.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Having &lt;code>log4j-core&lt;/code> in the classpath is the necessary
+condition. Sufficient exposure also requires:&lt;/p>
+&lt;ul>
+&lt;li>A vulnerable version (per the above).&lt;/li>
+&lt;li>A code path that logs untrusted input. In a typical web
+application, almost every code path qualifies — request
+headers, paths, bodies are routinely logged.&lt;/li>
+&lt;/ul>
+&lt;p>If the only logging in the application is a fixed string with
+no user-controlled fields and no exception traces (rare),
+exposure may be limited. Don&amp;rsquo;t rely on that for triage; the
+attacker&amp;rsquo;s job is to find one untrusted input that makes it
+to a log line.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The full fix is &lt;strong>all of&lt;/strong>:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Upgrade&lt;/strong> &lt;code>log4j-core&lt;/code> to 2.17.1+ (or 2.12.4 / 2.3.2 on
+older Java versions).&lt;/li>
+&lt;li>&lt;strong>Set the JVM flag&lt;/strong> &lt;code>-Dlog4j2.formatMsgNoLookups=true&lt;/code> (or
+the &lt;code>LOG4J_FORMAT_MSG_NO_LOOKUPS=true&lt;/code> environment
+variable) for defence-in-depth.&lt;/li>
+&lt;li>&lt;strong>Remove &lt;code>JndiLookup.class&lt;/code>&lt;/strong> from any vendored Log4j JAR
+that cannot be upgraded.&lt;/li>
+&lt;li>&lt;strong>Audit for &lt;code>log4j-1.x&lt;/code>&lt;/strong>. The 1.x branch has different
+CVEs (CVE-2019-17571, CVE-2022-23305) and is end-of-life.&lt;/li>
+&lt;/ol>
+&lt;p>Steps 2 and 3 are the mitigation path when the upgrade can&amp;rsquo;t
+ship immediately; both are still reasonable defence-in-depth
+&lt;em>after&lt;/em> the upgrade.&lt;/p>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating Log4Shell (CVE-2021-44228 / 45046 / 45105
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">/ 44832) in this repository. Output a PR (or set of PRs, one
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">per Maven module) or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Locate every &lt;span class="sb">`log4j-core`&lt;/span> dependency in the dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> graph: &lt;span class="sb">`pom.xml`&lt;/span>, &lt;span class="sb">`build.gradle`&lt;/span>, &lt;span class="sb">`build.sbt`&lt;/span>, the lockfile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if any, and shaded/uber-JAR contents.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Record the current version of each. Note any vendored or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shaded copies.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> List Log4j 1.x usages separately — they need a different
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fix path (replace with reload4j or upgrade to 2.x).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Apply the upgrade
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each &lt;span class="sb">`log4j-core`&lt;/span> reference:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Bump the version to 2.17.1+ (or 2.12.4 on Java 7, 2.3.2 on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Java 6). Match the major-runtime constraint of the project.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Bump &lt;span class="sb">`log4j-api`&lt;/span> to the same version. Mismatch breaks at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Run the project&amp;#39;s test suite. If tests fail because of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> genuinely-changed behaviour (rare in 2.14 → 2.17), document
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the change in the PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Defence-in-depth
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add &lt;span class="sb">`-Dlog4j2.formatMsgNoLookups=true`&lt;/span> to the JVM args
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the project&amp;#39;s launcher / Dockerfile / deploy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For any vendored / shaded JAR that cannot be upgraded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> immediately, remove &lt;span class="sb">`JndiLookup.class`&lt;/span> from the JAR:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Verify with &lt;span class="sb">`unzip -l log4j-core-*.jar | grep JndiLookup`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> showing no entry.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Re-run the SBOM / SCA scan against the post-upgrade
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifact. CVE-2021-44228, -45046, -45105, and -44832 must
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> all show as &amp;#34;fixed&amp;#34; or &amp;#34;not present.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Run a behaviour test: a log statement that includes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`${jndi:ldap://example.invalid/x}`&lt;/span> must log the literal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> string, not trigger an LDAP request.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Confirm the JVM flag is being applied at runtime by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> inspecting &lt;span class="sb">`java -XshowSettings:properties`&lt;/span> output (or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container&amp;#39;s startup logs).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/cve-2021-44228-log4shell`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][CVE-2021-44228] upgrade log4j-core to 2.17.1+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> CVE summary and link to the advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Per-module list of versions bumped.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> JVM flag changes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Class-removal actions on any vendored JARs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SCA scan output before/after.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Behaviour-test result.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Rollback plan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A vendored / shaded JAR cannot be safely modified
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (signed, license-restricted). Triage with a note about the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The application uses Log4j 1.x and replacement requires API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> changes. Triage; the right path is a separate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Log4j-1-to-2-or-reload4j migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail in a way that suggests a real behaviour change in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Log4j 2.17.1+ — read the release notes and document.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle other CVE bumps in this PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify application logging configuration beyond what
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the recipe requires.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not remove &lt;span class="sb">`JndiManager`&lt;/span> or other classes; only
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`JndiLookup.class`&lt;/span> is the fix.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Both &lt;code>log4j-core&lt;/code> and &lt;code>log4j-api&lt;/code> are at the same patched
+version.&lt;/li>
+&lt;li>The JVM flag is applied at the deployment layer (Dockerfile,
+Helm values, systemd unit), not just in a test config.&lt;/li>
+&lt;li>For vendored JARs: the &lt;code>JndiLookup.class&lt;/code> entry is gone.
+Confirm with &lt;code>unzip -l&lt;/code>.&lt;/li>
+&lt;li>The behaviour test in the PR exercised the actual logger
+path the application uses (not a synthetic logger).&lt;/li>
+&lt;li>The PR did not silently bump unrelated dependencies.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Shaded uber-JARs.&lt;/strong> Some applications shade Log4j into a
+bigger JAR. Bumping the dependency upstream isn&amp;rsquo;t enough;
+the shaded copy needs the patched version baked in.&lt;/li>
+&lt;li>&lt;strong>Java 6 / Java 7 targets.&lt;/strong> The patch backports for those
+runtimes are 2.3.2 and 2.12.4. Do not silently bump to
+2.17.1 on a Java 7 build.&lt;/li>
+&lt;li>&lt;strong>&lt;code>log4j-1.x&lt;/code>.&lt;/strong> A different bug surface
+(CVE-2019-17571 deserialization, CVE-2022-23305 SQL
+appender). The fix is migration to 2.x or reload4j; the
+recipe above does not cover it.&lt;/li>
+&lt;li>&lt;strong>JNDI is broader than Log4j.&lt;/strong> A Log4j-clean codebase can
+still have JNDI-injection bugs in other libraries (Spring,
+H2 Console, JNDI lookups in custom code). This recipe
+doesn&amp;rsquo;t catch those.&lt;/li>
+&lt;li>&lt;strong>The flag is not enough alone.&lt;/strong> &lt;code>formatMsgNoLookups=true&lt;/code>
+was a partial mitigation pre-2.16; some
+pattern-layout configurations still resolved lookups. The
+upgrade is the durable fix.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— the generic workflow this recipe specialises.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">Classic Vulnerable Defaults → Java ObjectInputStream&lt;/a>
+— adjacent Java deserialization risks.&lt;/li>
+&lt;/ul></description></item></channel></rss>

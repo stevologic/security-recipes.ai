@@ -1,0 +1,282 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Policy</title><link>https://security-recipes.ai/tags/policy/</link><description>Recent content in Policy on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 03 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/policy/index.xml" rel="self" type="application/rss+xml"/><item><title>Hot-wallet transaction policy enforcement</title><link>https://security-recipes.ai/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement/</guid><description>
+&lt;p>Use this prompt to harden a hot-wallet signing pipeline so unsafe
+transactions are blocked before they can be signed.&lt;/p>
+&lt;h2>Use when&lt;span class="hx:absolute hx:-mt-20" id="use-when">&lt;/span>
+&lt;a href="#use-when" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Payment services sign transfers from online wallets.&lt;/li>
+&lt;li>Destination and amount controls exist but are inconsistently enforced.&lt;/li>
+&lt;li>You need reproducible policy checks in CI and runtime.&lt;/li>
+&lt;/ul>
+&lt;h2>Prompt&lt;span class="hx:absolute hx:-mt-20" id="prompt">&lt;/span>
+&lt;a href="#prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are a security remediation agent for a cryptocurrency payment system.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Goal: enforce a deterministic transaction-policy gate for hot-wallet
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">signing requests. Produce either:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">1) a PR that adds policy enforcement + tests, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">2) TRIAGE.md if you cannot safely complete.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Policy checks must include: allowed chain, allowed asset, destination
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">allowlist, per-tx cap, rolling daily cap, and required business reason.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Constraints:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Never sign or broadcast real transactions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Operate in dry-run/simulation mode only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Fail closed if policy data is unavailable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Implementation tasks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Locate signing entrypoints and insert a &lt;span class="sb">`validateTransactionPolicy`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> guard before any signer call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Ensure every rejection is logged with reason code and request ID,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without logging secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add tests for allow, reject-by-destination, reject-by-amount,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reject-by-daily-cap, and reject-by-missing-policy-store.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a runbook note describing rollback and emergency deny-all mode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Stop and write TRIAGE.md if signing paths are dynamic/reflection-based
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">and cannot be bounded confidently.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div></description></item><item><title>GHSA-rh99-wc69-c255 - Contrast CopyFile policy symlink subversion</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-rh99-wc69-c255-contrast-copyfile-policy-symlink/</link><pubDate>Sun, 03 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-rh99-wc69-c255-contrast-copyfile-policy-symlink/</guid><description>
+&lt;p>Contrast versions before &lt;code>1.19.1&lt;/code> generated Kata agent policies whose
+&lt;code>CopyFile&lt;/code> verification could be bypassed through symlinks. A malicious host
+process that can connect to the Kata agent VSOCK can issue &lt;code>CopyFile&lt;/code> requests
+that write to arbitrary paths inside the guest root filesystem. That can
+overwrite security-sensitive files, change binaries that the workload later
+executes, or create a path to disclose sensitive workload data.&lt;/p>
+&lt;p>This matters for confidential container and secure context deployments because
+the host is explicitly outside the trusted computing base. A generated policy
+that allows host-provided file content to cross into the guest without a real
+resolved-path boundary breaks the same assumption SecurityRecipes expects from
+an MCP context layer: untrusted infrastructure can provide evidence or bytes,
+but must not be able to rewrite trusted execution state.&lt;/p>
+&lt;p>The Contrast GitHub advisory has no assigned CVE at the time this recipe was
+written. The related upstream Kata Containers issue is
+&lt;code>CVE-2026-41326&lt;/code> / &lt;code>GHSA-q49m-57vm-c8cc&lt;/code>.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable Contrast module:&lt;/strong> &lt;code>github.com/edgelesssys/contrast &amp;lt;1.19.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed Contrast module:&lt;/strong> &lt;code>github.com/edgelesssys/contrast 1.19.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Related upstream Kata issue:&lt;/strong> Kata Containers &lt;code>&amp;gt;=3.4.0, &amp;lt;3.29.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed upstream Kata version:&lt;/strong> Kata Containers &lt;code>3.29.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>High-risk condition:&lt;/strong> generated Kata agent policies permit &lt;code>CopyFile&lt;/code>
+operations while a host-side process can reach the Kata agent VSOCK.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, pins, deploys, or documents Contrast before
+&lt;code>1.19.1&lt;/code>.&lt;/li>
+&lt;li>The repository runs &lt;code>contrast generate&lt;/code>, commits generated policies, or
+distributes initdata/manifests produced by an older Contrast CLI.&lt;/li>
+&lt;li>Kubernetes workloads use Contrast confidential containers, Kata Containers,
+CoCo, or host-to-guest policy enforcement where the host is untrusted.&lt;/li>
+&lt;li>Generated policy, Rego, manifest, or runtime config references &lt;code>CopyFile&lt;/code>,
+Kata agent policy, initdata, VSOCK, guest root filesystem paths, or
+host-provided content transfer.&lt;/li>
+&lt;li>Workloads keep secrets, model provider credentials, service mesh keys, data
+processing artifacts, or privileged binaries inside the guest filesystem.&lt;/li>
+&lt;li>Runtime ownership is split between platform, cluster, and application teams,
+making stale generated policies likely to survive a dependency-only upgrade.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;edgelesssys/contrast|contrast generate|Contrast|kata-agent|Kata agent|CopyFile|VSOCK|vsock|initdata|agent policy|policy\\.rego&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^github.com/edgelesssys/contrast&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;kata-containers|io.containerd.kata|confidential|cvm|sev-snp|tdx|contrast.*policy|copy_file|copyfile&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm terraform .github .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -iname &lt;span class="s2">&amp;#34;*policy*.rego&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*initdata*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*contrast*&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Contrast CLI, module, container, deployment, and
+generated-policy toolchain to &lt;code>1.19.1+&lt;/code>.&lt;/li>
+&lt;li>Regenerate Kata agent policies, initdata, manifests, SBOMs, and deployment
+evidence with the fixed Contrast release. Do not assume upgrading the CLI
+protects workloads that still run old generated policy artifacts.&lt;/li>
+&lt;li>If this repository directly manages Kata Containers outside Contrast, upgrade
+affected Kata runtimes to &lt;code>3.29.0+&lt;/code>.&lt;/li>
+&lt;li>If immediate Contrast upgrade is blocked, apply the upstream policy-only
+Rego workaround through &lt;code>contrast generate --policy&lt;/code> and document it as
+temporary containment until &lt;code>1.19.1+&lt;/code> is deployed.&lt;/li>
+&lt;li>Restrict host access to the Kata agent VSOCK and treat host-provided
+&lt;code>CopyFile&lt;/code> content as untrusted even after patching.&lt;/li>
+&lt;li>Re-attest and redeploy affected confidential workloads so the running guest
+state proves it consumed the regenerated policy.&lt;/li>
+&lt;li>Rotate secrets and rebuild affected workload images if host-side access to
+the agent was possible during the vulnerable window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-rh99-wc69-c255 (Contrast-generated Kata agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">policies allow CopyFile policy subversion through symlinks). Produce exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or contains affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Contrast/Kata policy generation, regenerates trusted artifacts, adds safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Contrast or Kata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> confidential-container deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-rh99-wc69-c255 and the directly related upstream Kata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CopyFile symlink issue (&lt;span class="sb">`CVE-2026-41326`&lt;/span> / &lt;span class="sb">`GHSA-q49m-57vm-c8cc`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat guest filesystem contents, model/provider credentials, workload
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, service mesh keys, attestation evidence, generated policy bundles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> initdata, VSOCK endpoints, and host runtime logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not connect to a production or shared Kata agent VSOCK to prove exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not write test files into a real guest root filesystem, overwrite guest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> binaries, or exfiltrate workload data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not stop at updating &lt;span class="sb">`go.mod`&lt;/span> if generated policies, initdata, manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> images, or SBOMs remain stale.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Contrast and Kata asset controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go modules, lockfiles, vendored code, Contrast CLI download pins,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, Helm charts, Kubernetes manifests, Terraform, GitOps overlays,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated Kata agent policies, Rego files, initdata, attestation manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, runbooks, and CI workflows.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Contrast version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`github.com/edgelesssys/contrast &amp;lt;1.19.1`&lt;/span> or uses a Contrast
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CLI/container/image before &lt;span class="sb">`1.19.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether this repository directly manages Kata Containers. A
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> direct Kata target is affected by the related upstream issue if it resolves
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to &lt;span class="sb">`&amp;gt;=3.4.0, &amp;lt;3.29.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Identify generated artifacts that must be refreshed, including committed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy bundles, initdata, rendered manifests, attestation reference values,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, deployment evidence, and docs that tell operators how to generate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Determine exposure without exploiting it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Could a host-side process connect to the Kata agent VSOCK?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Do generated policies permit &lt;span class="sb">`CopyFile`&lt;/span> requests?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Could &lt;span class="sb">`CopyFile`&lt;/span> write into guest root paths that contain binaries,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> startup scripts, service config, credentials, or model/runtime data?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Are workloads running in confidential VMs where the host is explicitly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Are old generated policies deployed after a dependency or CLI upgrade?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If the repository does not own Contrast/Kata deployment or generated policy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the files checked, the likely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime owner, the required Contrast fixed version &lt;span class="sb">`1.19.1+`&lt;/span>, and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> related Kata fixed version &lt;span class="sb">`3.29.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Upgrade controlled Contrast dependencies, CLIs, images, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> references to &lt;span class="sb">`1.19.1+`&lt;/span>. Regenerate Go module state, binary checksums,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container metadata, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Regenerate every controlled Kata agent policy, initdata artifact,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> attestation manifest, rendered Kubernetes manifest, and deployment evidence
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with the fixed Contrast toolchain.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> If direct Kata Containers are controlled here, upgrade to &lt;span class="sb">`3.29.0+`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regenerate runtime class, node image, operator, or containerd/Kata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> If the Contrast upgrade cannot land immediately, add temporary containment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> using the upstream policy-only Rego fix through &lt;span class="sb">`contrast generate --policy`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> block or restrict host access to the Kata agent VSOCK where this repository
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controls runtime policy, and mark the workaround as temporary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add safe verification:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> version checks prove Contrast resolves to &lt;span class="sb">`1.19.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated policy fixtures reject symlink-mediated &lt;span class="sb">`CopyFile`&lt;/span> paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> direct Kata targets resolve to &lt;span class="sb">`3.29.0+`&lt;/span> when applicable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rendered deployment artifacts no longer contain stale vulnerable policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tests use synthetic temporary fixtures and do not contact production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agents, CVMs, or host VSOCK endpoints.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-rh99-wc69-c255 operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Contrast versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether direct Kata Containers are present and their versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which generated policies, initdata, attestation manifests, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts were regenerated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any workload could have run with host-reachable Kata agent VSOCK;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which guest secrets, binaries, service configs, or model/runtime files
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> could have been affected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which node, runtime, VSOCK, workload, attestation, and deployment logs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets, service mesh credentials, images, or workloads require
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation, rebuild, or redeployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Run relevant validation: Go dependency resolution, unit tests, policy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, Rego tests, manifest rendering, attestation/reference-value
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generation, container build, SBOM refresh, and dependency/security scans
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">14.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate Contrast CopyFile policy symlink subversion`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Contrast, Kata Containers, confidential-container deployment, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy, initdata, or attestation artifact is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository only consumes a platform-managed runtime and cannot safely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upgrade or regenerate policy artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A safe fix requires changing the confidential-container trust model or host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime ownership boundaries; document the required product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require contacting a production Kata agent VSOCK,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> overwriting guest files, or reading real workload data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Contrast dependency, CLI, image, SBOM, or deployment artifact
+remains below &lt;code>1.19.1&lt;/code>.&lt;/li>
+&lt;li>Every controlled generated Kata agent policy, initdata artifact, attestation
+manifest, and rendered deployment artifact was regenerated after the upgrade.&lt;/li>
+&lt;li>Direct Kata Containers targets, if present, resolve to &lt;code>3.29.0+&lt;/code>.&lt;/li>
+&lt;li>Tests or policy checks reject symlink-mediated &lt;code>CopyFile&lt;/code> writes using only
+synthetic local fixtures.&lt;/li>
+&lt;li>Runtime containment addresses host access to the Kata agent VSOCK where this
+repository owns that boundary.&lt;/li>
+&lt;li>Operator actions identify stale deployments, possible guest takeover impact,
+logs to review, and credentials or workloads that may need rotation or
+rebuild.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating Contrast source dependencies while committed policy/initdata
+artifacts remain generated by a vulnerable CLI.&lt;/li>
+&lt;li>Regenerating policy locally but leaving GitOps, Helm, or rendered manifests
+pinned to older artifacts.&lt;/li>
+&lt;li>Treating confidential computing attestation as sufficient when the measured
+policy itself permits unsafe host-to-guest file writes.&lt;/li>
+&lt;li>Proving the issue by writing into real guest paths or collecting real
+workload data.&lt;/li>
+&lt;li>Missing direct Kata Containers runtime pins because the repository uses
+RuntimeClass, node images, operator config, or containerd templates instead
+of Go modules.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-rh99-wc69-c255"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rh99-wc69-c255&lt;/a>&lt;/li>
+&lt;li>Upstream Kata advisory: &lt;a href="https://github.com/kata-containers/kata-containers/security/advisories/GHSA-q49m-57vm-c8cc"target="_blank" rel="noopener">https://github.com/kata-containers/kata-containers/security/advisories/GHSA-q49m-57vm-c8cc&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41326"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41326&lt;/a>&lt;/li>
+&lt;li>Contrast &lt;code>v1.19.1&lt;/code> release: &lt;a href="https://github.com/edgelesssys/contrast/releases/tag/v1.19.1"target="_blank" rel="noopener">https://github.com/edgelesssys/contrast/releases/tag/v1.19.1&lt;/a>&lt;/li>
+&lt;li>Policy-only workaround: &lt;a href="https://gist.github.com/burgerdev/304dd0ab0fff1665b7c27e18a30cf96e"target="_blank" rel="noopener">https://gist.github.com/burgerdev/304dd0ab0fff1665b7c27e18a30cf96e&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

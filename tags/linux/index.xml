@@ -1,0 +1,741 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Linux</title><link>https://security-recipes.ai/tags/linux/</link><description>Recent content in Linux on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/linux/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2024-3094 — xz-utils backdoor</title><link>https://security-recipes.ai/prompt-library/cve/cve-2024-3094-xz-utils/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2024-3094-xz-utils/</guid><description>
+&lt;p>A maintainer with multi-year commit history shipped versions
+5.6.0 and 5.6.1 of &lt;code>xz-utils&lt;/code> containing a backdoor in
+&lt;code>liblzma&lt;/code>. When the library was loaded into &lt;code>sshd&lt;/code> (via
+systemd&amp;rsquo;s &lt;code>libsystemd&lt;/code> linkage), the backdoor extracted a
+hidden RSA-shaped trigger from the SSH connection and granted
+the attacker code execution. The vulnerability was discovered
+because a microbenchmark unrelated to the backdoor showed a
+half-second slowdown on SSH connections.&lt;/p>
+&lt;p>This is one of the closest near-misses in supply-chain
+history. The backdoor shipped to a few rolling-release distros
+before discovery; most stable distros never picked it up.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>xz-utils&lt;/strong> 5.6.0 and 5.6.1 — vulnerable.&lt;/li>
+&lt;li>&lt;strong>xz-utils&lt;/strong> 5.4.6 / 5.4.x — clean.&lt;/li>
+&lt;li>&lt;strong>xz-utils&lt;/strong> 5.6.2+ — clean (the backdoor was reverted).&lt;/li>
+&lt;/ul>
+&lt;p>The backdoor activates only when:&lt;/p>
+&lt;ul>
+&lt;li>The build is run on a glibc-using x86_64 Linux system.&lt;/li>
+&lt;li>The build is invoked through autotools (the malicious code is
+in the &lt;code>m4/build-to-host.m4&lt;/code> macro from the release tarballs,
+&lt;em>not&lt;/em> the git repo).&lt;/li>
+&lt;li>The resulting &lt;code>liblzma&lt;/code> is linked into a process that also
+loads &lt;code>libsystemd&lt;/code> &lt;em>or&lt;/em> matches a small set of binary
+signatures (&lt;code>sshd&lt;/code> is the named target).&lt;/li>
+&lt;/ul>
+&lt;p>This is the most thorough attack-narrow precondition list any
+single CVE has had. It still pays off if you&amp;rsquo;re running an
+affected distro.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The system is exposed if:&lt;/p>
+&lt;ul>
+&lt;li>The installed &lt;code>xz-utils&lt;/code> (or the underlying &lt;code>liblzma&lt;/code>) is
+5.6.0 or 5.6.1.&lt;/li>
+&lt;li>The system is glibc x86_64 Linux.&lt;/li>
+&lt;li>The &lt;code>sshd&lt;/code> binary on the system loads &lt;code>liblzma&lt;/code> (typically
+through &lt;code>libsystemd&lt;/code>).&lt;/li>
+&lt;/ul>
+&lt;p>Quick check:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Version&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">xz --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Does sshd load liblzma transitively?&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ldd &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="k">$(&lt;/span>which sshd&lt;span class="k">)&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="p">|&lt;/span> grep lzma&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>If the version is in range and &lt;code>sshd&lt;/code> links &lt;code>liblzma&lt;/code>, treat
+the system as compromised — credentials, host keys, and
+anything in process memory at the time of any SSH connection
+are suspect.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The fix is &lt;strong>all of&lt;/strong>:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Roll back&lt;/strong> &lt;code>xz-utils&lt;/code> to 5.4.x (or upgrade to 5.6.2+ on
+distros that ship it).&lt;/li>
+&lt;li>&lt;strong>Verify&lt;/strong> the installed binary is from the distro&amp;rsquo;s clean
+build. The malicious tarballs were signed; signature alone
+is not enough.&lt;/li>
+&lt;li>&lt;strong>Treat the host as compromised&lt;/strong> if it ran an affected
+&lt;code>sshd&lt;/code>:
+&lt;ul>
+&lt;li>Rotate every credential the host had access to (cloud
+IAM keys, deploy tokens, signed certs).&lt;/li>
+&lt;li>Rotate SSH host keys.&lt;/li>
+&lt;li>Rotate any in-memory secrets (recently-decrypted
+credentials, mTLS private keys, token caches).&lt;/li>
+&lt;li>Audit auth logs for unexplained connections during the
+exposure window.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>&lt;strong>Rebuild&lt;/strong> any artifact that was built on an affected host
+while it was affected. The backdoor allows arbitrary
+command execution; you cannot trust artifacts produced
+during the exposure window.&lt;/li>
+&lt;/ol>
+&lt;p>This is not a routine bump. The CVE narrative is a
+supply-chain compromise; the response is supply-chain incident
+response.&lt;/p>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2024-3094 (xz-utils backdoor) on this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">host or in this system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request rolling the package back, plus an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> incident-response checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the system is in the affected window and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> needs immediate human-led incident response.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This recipe is &lt;span class="gs">**not**&lt;/span> a routine package bump. If exposure is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">confirmed, do not auto-remediate; produce the incident
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">checklist and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the system&amp;#39;s &lt;span class="sb">`xz-utils`&lt;/span> / &lt;span class="sb">`liblzma`&lt;/span> version (via the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distro package manager, plus &lt;span class="sb">`xz --version`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`strings $(which xz) | grep -E &amp;#39;5\\.[456]&amp;#39;`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether &lt;span class="sb">`sshd`&lt;/span> on this system loads &lt;span class="sb">`liblzma`&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`ldd $(which sshd) | grep lzma`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check the host&amp;#39;s distro and version against published
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisories (the affected window varies — Debian sid /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Fedora 40 / Kali / openSUSE Tumbleweed all picked up the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bad version at different times).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Not affected:** Version is 5.4.x or ≥5.6.2; or &lt;span class="sb">`sshd`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> doesn&amp;#39;t load &lt;span class="sb">`liblzma`&lt;/span>. Document and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, never reachable from the network:** The host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> has affected &lt;span class="sb">`xz-utils`&lt;/span> but &lt;span class="sb">`sshd`&lt;/span> was firewalled-off /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disabled / not running during the exposure window. Roll
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> back the package; rotate any local secrets that were
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in-memory; document.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, network-reachable sshd:** Treat as compromised.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Stop here. Do not auto-remediate. Write a TRIAGE.md with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the incident-response checklist and page the security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on-call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Roll back the package (when classification is
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&amp;#34;not network-reachable affected&amp;#34;)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> For Debian / Ubuntu rolling: &lt;span class="sb">`apt install xz-utils=5.4.5-*`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (or the distro&amp;#39;s clean-version pin). For Fedora 40:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the distro shipped a rebuild — &lt;span class="sb">`dnf upgrade xz xz-libs`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> For Arch / openSUSE Tumbleweed / Kali: follow the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distro-specific roll-back advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Verify the new package signature matches the distro&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clean build.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Restart &lt;span class="sb">`sshd`&lt;/span> (and any other process that loaded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`liblzma`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="sb">`xz --version`&lt;/span> prints a clean version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> &lt;span class="sb">`ldd $(which sshd) | grep lzma`&lt;/span> shows the new path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> The host&amp;#39;s &lt;span class="sb">`liblzma`&lt;/span> SHA matches the distro&amp;#39;s published
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clean SHA.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Incident-response checklist (in the TRIAGE.md
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>when classification is &amp;#34;compromised&amp;#34;)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The checklist must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate SSH host keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate every long-lived credential the host had access to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud IAM, registry tokens, deploy keys, mTLS private
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate any in-memory secrets that were decrypted during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Pull the auth log and search for unexplained sessions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Identify and rebuild every artifact that was produced on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this host during the exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Report the incident through the org&amp;#39;s IR channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The checklist is human-driven. The agent does not run any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">of these steps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The system is in the &amp;#34;compromised&amp;#34; classification — write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the checklist and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The distro&amp;#39;s clean roll-back path is unclear and no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upstream advisory exists for this distro. Triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host has multi-tenant exposure (shared host, multiple
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customers) — escalate before touching anything.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not roll back any package other than xz-utils / liblzma.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently restart services without recording which.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify SSH configuration other than as part of a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documented IR action.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not draft credential rotation actions; the IR checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> names them, the operator runs them.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The version verification ran and produced a clean number.&lt;/li>
+&lt;li>The &lt;code>ldd&lt;/code> check confirmed &lt;code>sshd&lt;/code> linked the new lib.&lt;/li>
+&lt;li>For compromised hosts: the IR checklist was followed
+(review the linked artefacts), not just the package
+rollback.&lt;/li>
+&lt;li>The reviewer does &lt;em>not&lt;/em> trust the agent&amp;rsquo;s &amp;ldquo;not affected&amp;rdquo;
+classification without re-running the detection commands
+themselves.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Distro-specific repackages.&lt;/strong> Some distros backported the
+fix into 5.6.x rather than rolling back. Don&amp;rsquo;t assume &amp;ldquo;5.6&amp;rdquo;
+is bad without checking the distro&amp;rsquo;s published clean SHA.&lt;/li>
+&lt;li>&lt;strong>Container images built during the exposure window.&lt;/strong> A
+container image baked from an affected base inherits the
+backdoor. Rebuild every affected image; treat the affected
+image&amp;rsquo;s published copies as potentially compromised.&lt;/li>
+&lt;li>&lt;strong>CI runners.&lt;/strong> A self-hosted CI runner with an affected
+&lt;code>xz-utils&lt;/code> and a publicly-reachable &lt;code>sshd&lt;/code> is exactly the
+shape this attack targeted. Audit those first.&lt;/li>
+&lt;li>&lt;strong>&lt;code>liblzma&lt;/code> is not always reached through &lt;code>sshd&lt;/code>.&lt;/strong> Other
+binaries link &lt;code>liblzma&lt;/code> for legitimate reasons; the
+backdoor&amp;rsquo;s preconditions narrow the impact, but other CVEs
+in the future may not.&lt;/li>
+&lt;li>&lt;strong>Reproducibility from the git repo vs. tarball.&lt;/strong> The
+malicious code was in the release tarball but not in the
+git repository. Build provenance (&amp;ldquo;we built from git&amp;rdquo;) was
+the durable check; vendor signatures alone were not.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+— the workflow for evicting the bad artifact from internal
+mirrors.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/threat-model/#observed-real-world-patterns">Threat Model → Agent-infrastructure supply-chain compromise&lt;/a>
+— why this case is treated separately from routine CVEs.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— for evicting the affected version from container bases.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2014-6271 — Shellshock</title><link>https://security-recipes.ai/prompt-library/cve/cve-2014-6271-shellshock/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2014-6271-shellshock/</guid><description>
+&lt;p>Bash supported exporting &lt;em>functions&lt;/em> through environment
+variables. The export syntax — &lt;code>() { …; }&lt;/code> — was parsed by
+any newly-spawned bash process on import. A trailing
+semicolon let the imported &amp;ldquo;function&amp;rdquo; body include arbitrary
+commands. Any process boundary that turned untrusted input
+into a bash environment variable became RCE. The classic
+target was &lt;code>mod_cgi&lt;/code>: HTTP headers became env vars; bash was
+the CGI interpreter; game over. The first patch was
+incomplete; the durable fix runs through six follow-up CVEs.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Bash&lt;/strong> 1.14 through 4.3 (with various patch levels) —
+vulnerable.&lt;/li>
+&lt;li>The fix shipped in patch levels: bash-3.2.53, bash-4.1.14,
+bash-4.2.50, bash-4.3.27, plus follow-up patches for the
+five sibling CVEs.&lt;/li>
+&lt;li>Modern Bash (5.x) — clean.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Detection is simple but the surface is wide:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># The classic detection one-liner (CVE-2014-6271):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">env &lt;span class="nv">x&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;() { :; }; echo VULNERABLE&amp;#39;&lt;/span> bash -c &lt;span class="s1">&amp;#39;true&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># The follow-up (CVE-2014-7169):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">env &lt;span class="nv">X&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;() { (a)=&amp;gt;\\&amp;#39;&lt;/span> bash -c &lt;span class="s1">&amp;#39;echo date&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span> cat echo&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>If the first prints &lt;code>VULNERABLE&lt;/code> or the second produces a
+file named &lt;code>echo&lt;/code> containing the date, the bash on this
+host has not been fully patched.&lt;/p>
+&lt;p>The exposure that matters is any &lt;strong>process boundary that
+maps untrusted input into a Bash environment&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>Apache &lt;code>mod_cgi&lt;/code> / &lt;code>mod_cgid&lt;/code> invoking a &lt;code>#!/bin/bash&lt;/code>
+CGI script.&lt;/li>
+&lt;li>DHCP clients that pass server-supplied options into a Bash
+hook script.&lt;/li>
+&lt;li>Forced-command SSH configs that run a Bash wrapper.&lt;/li>
+&lt;li>Setuid wrappers that drop into Bash.&lt;/li>
+&lt;li>Container entrypoints that re-exec Bash with attacker-
+controlled env.&lt;/li>
+&lt;/ul>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Upgrade&lt;/strong> Bash to a current 5.x release, &lt;em>or&lt;/em> to the
+patch level that includes the fix for &lt;em>all&lt;/em> of the
+Shellshock-family CVEs (-6271, -7169, -6277, -6278, -7186,
+-7187). Do not stop at the first one.&lt;/li>
+&lt;li>&lt;strong>Audit&lt;/strong> every CGI / DHCP-hook / setuid wrapper / SSH
+forced-command surface for use of Bash. Replace &lt;code>#!/bin/bash&lt;/code>
+with &lt;code>#!/bin/dash&lt;/code> (or &lt;code>/bin/sh&lt;/code> if Debian-family) where the
+script doesn&amp;rsquo;t need Bash features.&lt;/li>
+&lt;li>&lt;strong>Disable&lt;/strong> &lt;code>mod_cgi&lt;/code> and &lt;code>mod_cgid&lt;/code> in any web server that
+doesn&amp;rsquo;t need them.&lt;/li>
+&lt;li>&lt;strong>Re-audit&lt;/strong> the system as a whole. Shellshock exposure on
+a host today implies a multi-year patching gap; the
+incident response is broader than one CVE.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating Shellshock and its sibling CVEs on this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">host or system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request upgrading bash and tightening the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposed CGI / DHCP / SSH-hook surface, plus an IR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the host&amp;#39;s patching gap is broader than
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this CVE family.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read bash version: &lt;span class="sb">`bash --version`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Run all six Shellshock detection one-liners (or pull a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> detection script from a trusted source). Confirm none
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> print the canary string.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify Bash-using boundaries:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`find / -name &amp;#39;*.cgi&amp;#39; -exec head -1 {} \\; | grep bash`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> DHCP hook scripts under &lt;span class="sb">`/etc/dhcp`&lt;/span> /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/etc/NetworkManager/dispatcher.d`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SSH &lt;span class="sb">`authorized_keys`&lt;/span> &lt;span class="sb">`command=`&lt;/span> forced commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Container entrypoints that re-exec Bash.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Upgrade Bash
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="sb">`apt upgrade bash`&lt;/span> / &lt;span class="sb">`dnf upgrade bash`&lt;/span> to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distro&amp;#39;s current packaged version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Re-run all six detection one-liners. None should fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Tighten exposed surfaces
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For every Bash-using boundary identified in Step 0:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **CGI scripts:** if the script doesn&amp;#39;t need Bash features
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (associative arrays, &lt;span class="sb">`[[`&lt;/span>-tests, process substitution),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> switch the shebang to &lt;span class="sb">`/bin/dash`&lt;/span> or &lt;span class="sb">`/bin/sh`&lt;/span>. If it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> does need Bash, keep Bash but document the exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **&lt;span class="sb">`mod_cgi`&lt;/span> / &lt;span class="sb">`mod_cgid`&lt;/span>:** disable in &lt;span class="sb">`httpd.conf`&lt;/span> /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`apache2.conf`&lt;/span> if the application can serve via FastCGI,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PHP-FPM, or a modern WSGI / ASGI stack instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **DHCP hooks:** review for shell injection on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server-controlled fields. The agent doesn&amp;#39;t auto-rewrite
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> these — flag for triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **SSH forced commands:** audit the wrapper script;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> prefer a non-shell binary or a tightly-controlled allowlist.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — IR checklist (when patching gap is broader)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The TRIAGE.md must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Confirm host distro is supported and currently patched.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate any credentials that ran through the exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> surface (CGI auth tokens, DHCP-distributed secrets).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit web logs and DHCP logs for known Shellshock
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exploitation patterns: &lt;span class="sb">`User-Agent: () { :; };`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Referer: () { :; };`&lt;/span>, etc.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Schedule a comprehensive runtime upgrade.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distro is end-of-life and no patched bash is available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Triage with a recommendation to migrate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A CGI script genuinely depends on Bash and the migration
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to FastCGI/WSGI is non-trivial. Flag and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s auth log shows unexplained sessions during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure window — this is incident response, not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> routine remediation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite CGI scripts beyond the shebang change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not disable &lt;span class="sb">`mod_cgi`&lt;/span> if a legitimate application
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> depends on it; flag for triage instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle unrelated CVE fixes.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>All six Shellshock-family detection one-liners pass after
+the upgrade.&lt;/li>
+&lt;li>The Bash-using boundary list in the PR body is complete
+and accurate (re-grep to confirm).&lt;/li>
+&lt;li>For surfaces where Bash was replaced with &lt;code>dash&lt;/code> / &lt;code>sh&lt;/code>,
+the script&amp;rsquo;s tests still pass — Bashisms (&lt;code>[[&lt;/code>, &lt;code>==&lt;/code>,
+array syntax) are the common breakers.&lt;/li>
+&lt;li>The reviewer does not assume the absence of &lt;code>mod_cgi&lt;/code> is
+the same as the absence of all Bash-CGI surfaces.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Single-CVE patching.&lt;/strong> Many vendor advisories shipped a
+fix for -6271 days before -7169. A host patched against
+only the first is still exploitable. Test all six.&lt;/li>
+&lt;li>&lt;strong>Bash on Alpine.&lt;/strong> Alpine&amp;rsquo;s default shell is &lt;code>ash&lt;/code>, but
+containers that explicitly install bash inherit the same
+exposure. Audit Dockerfiles.&lt;/li>
+&lt;li>&lt;strong>Container entrypoints.&lt;/strong> A &lt;code>CMD [&amp;quot;/bin/bash&amp;quot;]&lt;/code> with
+attacker-controlled env (e.g., from an upstream input)
+re-creates the same surface inside a container. The
+generic remediation is to replace the entrypoint with a
+non-shell binary.&lt;/li>
+&lt;li>&lt;strong>OS images that aren&amp;rsquo;t actively patched.&lt;/strong> Shellshock
+exposure on a host in 2026 is a tip-of-the-iceberg signal.
+The recipe says so; don&amp;rsquo;t treat the bash bump as the end of
+the conversation.&lt;/li>
+&lt;li>&lt;strong>Proxies and load-balancers.&lt;/strong> Some appliances embed older
+Bash. The same shape applies; the fix path is the
+appliance vendor&amp;rsquo;s, not the host&amp;rsquo;s.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— for evicting old Bash from container bases.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— generic CVE workflow.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2024-6387 — regreSSHion</title><link>https://security-recipes.ai/prompt-library/cve/cve-2024-6387-regresshion/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2024-6387-regresshion/</guid><description>
+&lt;p>A race condition in OpenSSH&amp;rsquo;s &lt;code>sshd&lt;/code> signal handler — a
+regression of an older 2006-era issue (CVE-2006-5051) —
+re-enabled remote RCE as root on glibc Linux servers running
+affected &lt;code>sshd&lt;/code>. The bug is reached through the
+&lt;code>LoginGraceTime&lt;/code> SIGALRM handler; the exploit is hard but
+demonstrably real (Qualys published proof of concept).&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> versions earlier than 4.4p1 — vulnerable to the
+original 2006 issue (and to this one if other patches
+weren&amp;rsquo;t backported).&lt;/li>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> 4.4p1 through 8.5p1 — &lt;em>not&lt;/em> vulnerable (the
+2006 fix held).&lt;/li>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> 8.5p1 through 9.7p1 — vulnerable (regression
+reintroduced).&lt;/li>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> 9.8p1+ — patched.&lt;/li>
+&lt;/ul>
+&lt;p>OpenBSD&amp;rsquo;s native OpenSSH is not affected (the bug is
+glibc-specific). Linux distros backport patches at varying
+speeds; the right reference is your distro&amp;rsquo;s advisory.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Detection:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">ssh -V &lt;span class="c1"># Reports the OpenSSH version&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sshd -V 2&amp;gt;&lt;span class="p">&amp;amp;&lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="p">|&lt;/span> head -1 &lt;span class="c1"># Sometimes more accurate&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Also verify against the distro advisory&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">apt-cache policy openssh-server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dnf info openssh-server&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Sufficient exposure conditions:&lt;/p>
+&lt;ul>
+&lt;li>glibc Linux (i.e., not OpenBSD, FreeBSD, musl Alpine).&lt;/li>
+&lt;li>OpenSSH version in the 8.5p1–9.7p1 window.&lt;/li>
+&lt;li>&lt;code>sshd&lt;/code> reachable by an attacker.&lt;/li>
+&lt;li>Default &lt;code>LoginGraceTime&lt;/code> (120 seconds). The mitigation
+setting is &lt;code>LoginGraceTime 0&lt;/code>, which closes the race window
+by removing the alarm.&lt;/li>
+&lt;/ul>
+&lt;p>A network-isolated &lt;code>sshd&lt;/code> (only reachable from a bastion or
+internal-only) is a smaller exposure surface but still
+vulnerable to anyone who reaches the bastion.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Upgrade&lt;/strong> OpenSSH to 9.8p1+ via the distro&amp;rsquo;s package
+manager.&lt;/li>
+&lt;li>&lt;strong>Mitigate&lt;/strong> with &lt;code>LoginGraceTime 0&lt;/code> in
+&lt;code>/etc/ssh/sshd_config&lt;/code> until the upgrade lands. This
+removes the alarm-based race entirely; the cost is that a
+client hanging the auth handshake holds an &lt;code>sshd&lt;/code> slot
+forever (a &lt;code>MaxStartups&lt;/code> setting becomes load-bearing).&lt;/li>
+&lt;li>&lt;strong>Restart&lt;/strong> &lt;code>sshd&lt;/code> after either action.&lt;/li>
+&lt;li>&lt;strong>Audit&lt;/strong> auth logs for unexplained &lt;code>sshd[&amp;lt;pid&amp;gt;]: fatal: Timeout before authentication&lt;/code> messages — the published
+exploit signatures the failure pattern.&lt;/li>
+&lt;li>&lt;strong>Treat as compromised&lt;/strong> any host whose &lt;code>sshd&lt;/code> was the
+affected version &lt;em>and&lt;/em> network-reachable to untrusted
+networks for an extended window. Rotate host keys; rotate
+any secret accessible from &lt;code>sshd&lt;/code>&amp;rsquo;s process memory.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2024-6387 (regreSSHion) on this host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or in this system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request upgrading OpenSSH and (optionally)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> applying the &lt;span class="sb">`LoginGraceTime 0`&lt;/span> mitigation, plus an IR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the host has been running affected &lt;span class="sb">`sshd`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on the public internet for an extended period.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This recipe is &lt;span class="gs">**not**&lt;/span> auto-merge. The agent produces the PR;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the operator restarts &lt;span class="sb">`sshd`&lt;/span> and decides on IR scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read OpenSSH server version: &lt;span class="sb">`sshd -V 2&amp;gt;&amp;amp;1 | head -1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the host is glibc Linux: &lt;span class="sb">`ldd --version | head -1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Read &lt;span class="sb">`/etc/ssh/sshd_config`&lt;/span> for the current
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`LoginGraceTime`&lt;/span> value.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine network exposure: is &lt;span class="sb">`sshd`&lt;/span> listening on a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public interface? Is it firewalled to a bastion?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Not on glibc Linux** or **OpenSSH outside the affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> window:** document and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, not network-reachable from untrusted nets:**
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upgrade + restart, no IR escalation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, network-reachable from the public internet for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an extended window:** treat as potentially compromised.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Write the IR checklist; do not auto-rotate keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Upgrade
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="sb">`apt upgrade openssh-server`&lt;/span> /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`dnf upgrade openssh-server`&lt;/span> to the distro&amp;#39;s patched
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Verify the new version: &lt;span class="sb">`sshd -V`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> The PR body lists &lt;span class="sb">`systemctl restart sshd`&lt;/span> as an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator action. The agent does not restart the service.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Mitigate (interim)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the upgrade cannot ship immediately, propose a config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">change:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span># In /etc/ssh/sshd_config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LoginGraceTime 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">MaxStartups 10:30:100
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`LoginGraceTime 0`&lt;/span> removes the alarm entirely. Tighten
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`MaxStartups`&lt;/span> to keep an attacker from holding open many
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">slots. Recommend a &lt;span class="sb">`systemctl reload sshd`&lt;/span> after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — IR checklist (compromised classification)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The TRIAGE.md must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate SSH host keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit &lt;span class="sb">`auth.log`&lt;/span> / &lt;span class="sb">`journalctl -u ssh`&lt;/span> for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Timeout before authentication`&lt;/span> lines and unusual login
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patterns during the exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate any secret that lived in &lt;span class="sb">`sshd`&lt;/span>&amp;#39;s process memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> during the window: pam credentials, host certificates,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> any &lt;span class="sb">`AuthorizedKeysCommand`&lt;/span> script outputs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit any deploy / CI workflows that authenticated to this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> host during the window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rebuild any artifact produced on the host while it was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> affected and reachable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host is non-glibc Linux (musl, BSD) — not affected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s distro has no patched OpenSSH packaged yet.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Apply the &lt;span class="sb">`LoginGraceTime 0`&lt;/span> mitigation; triage with a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> note about the missing package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s exposure window is unclear or the auth log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation has lost evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify SSH client configuration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify firewall rules — mention them in the PR body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as a reviewer-considered defence-in-depth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated CVEs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run &lt;span class="sb">`systemctl restart sshd`&lt;/span>. Restarting &lt;span class="sb">`sshd`&lt;/span> is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the operator&amp;#39;s call (severs in-flight sessions).&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The package version after upgrade matches the distro&amp;rsquo;s
+patched version.&lt;/li>
+&lt;li>If the mitigation was applied: &lt;code>LoginGraceTime 0&lt;/code> is
+present and &lt;code>MaxStartups&lt;/code> is sane.&lt;/li>
+&lt;li>The PR body&amp;rsquo;s IR scope matches the host&amp;rsquo;s exposure
+classification — the reviewer doesn&amp;rsquo;t accept &amp;ldquo;it was
+internal&amp;rdquo; without seeing how that was confirmed.&lt;/li>
+&lt;li>For compromised classification, confirm the IR actions
+were carried out before merge.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Distro version strings.&lt;/strong> Some distros backport patches
+without bumping the upstream version string. The
+authoritative check is the distro advisory, not
+&lt;code>sshd -V&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Custom-compiled OpenSSH.&lt;/strong> Hosts running OpenSSH built
+from source do not get the distro patch. Treat as a
+separate remediation; rebuild from a clean tree.&lt;/li>
+&lt;li>&lt;strong>&lt;code>MaxStartups&lt;/code> interactions.&lt;/strong> Setting &lt;code>LoginGraceTime 0&lt;/code>
+without raising &lt;code>MaxStartups&lt;/code> can become an availability
+bug — clients failing-to-authenticate hold slots forever.
+Tune both together.&lt;/li>
+&lt;li>&lt;strong>Bastion-only exposure isn&amp;rsquo;t no exposure.&lt;/strong> A bastion that
+itself is reachable becomes the same target. The IR scope
+should follow the chain.&lt;/li>
+&lt;li>&lt;strong>Containerised sshd.&lt;/strong> Some images run &lt;code>sshd&lt;/code> for
+management. Image bumps follow the
+&lt;a href="https://security-recipes.ai/security-remediation/base-images/">base-image workflow&lt;/a>;
+this recipe applies to the package inside the container.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— generic CVE workflow.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— for OpenSSH inside container bases.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-41651 — PackageKit local root exploit</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41651-packagekit-pack2theroot/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41651-packagekit-pack2theroot/</guid><description>
+&lt;p>PackageKit &lt;code>&amp;lt;=1.3.4&lt;/code> contains a time-of-check/time-of-use flaw that can let a
+local user install or remove arbitrary packages, yielding local root privilege
+escalation on many Linux systems.&lt;/p>
+&lt;p>The vulnerability disclosure and fix release were announced on &lt;strong>2026-04-22&lt;/strong>,
+including &lt;code>1.3.5&lt;/code> as the fixed upstream release.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> PackageKit &lt;code>&amp;lt;=1.3.4&lt;/code> (unless distro-backported patch exists)&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> PackageKit &lt;code>1.3.5+&lt;/code> or distro package with equivalent backport&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Host has PackageKit installed at vulnerable version.&lt;/li>
+&lt;li>Untrusted local users can execute local code (multi-user desktop, shared host,
+or shell access for low-privileged users).&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">pkcon --version &lt;span class="o">||&lt;/span> packagekitd --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">apt-cache policy packagekit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dnf info PackageKit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rpm -q PackageKit&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade PackageKit to &lt;code>1.3.5+&lt;/code> or distro-patched package.&lt;/li>
+&lt;li>Reboot or restart PackageKit-related services after patching.&lt;/li>
+&lt;li>For sensitive systems, reduce local untrusted execution paths until all hosts
+are patched.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41651 (PackageKit TOCTOU local root exploit).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR/change request that upgrades PackageKit to a fixed release and includes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator actions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if upgrade cannot currently be completed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Constraints
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only this CVE.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Respect distro-specific backports; do not assume upstream version string is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the only truth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Detect PackageKit version on target image/host build recipe.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Check distro advisory/package metadata for a patched build.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If vulnerable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Update package source/version to patched PackageKit (&lt;span class="sb">`&amp;gt;=1.3.5`&lt;/span> or distro
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Include required service restart/reboot instructions for operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a short risk note if host is multi-user and was exposed to untrusted
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> local users.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Validate provisioning scripts or image build succeeds.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41651 (PackageKit)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No patched package is available in the target distro channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Target system does not include PackageKit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Build/test failures are unrelated and pre-existing.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Target package now resolves to patched PackageKit build.&lt;/li>
+&lt;li>Build/deploy pipeline for image or host config still passes.&lt;/li>
+&lt;li>PR body documents restart/reboot action and local-user risk context.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Disclosure thread (oss-security): &lt;a href="https://www.openwall.com/lists/oss-security/2026/04/22/6"target="_blank" rel="noopener">https://www.openwall.com/lists/oss-security/2026/04/22/6&lt;/a>&lt;/li>
+&lt;li>Upstream patch commit: &lt;a href="https://github.com/PackageKit/PackageKit/commit/76cfb675fb31acc3ad5595d4380bfff56d2a8697"target="_blank" rel="noopener">https://github.com/PackageKit/PackageKit/commit/76cfb675fb31acc3ad5595d4380bfff56d2a8697&lt;/a>&lt;/li>
+&lt;li>Upstream GHSA: &lt;a href="https://github.com/PackageKit/PackageKit/security/advisories/GHSA-f55j-vvr9-69xv"target="_blank" rel="noopener">https://github.com/PackageKit/PackageKit/security/advisories/GHSA-f55j-vvr9-69xv&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,69 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Dolphinscheduler</title><link>https://security-recipes.ai/tags/dolphinscheduler/</link><description>Recent content in Dolphinscheduler on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/dolphinscheduler/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-23902 — Apache DolphinScheduler authorization bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-23902-apache-dolphinscheduler/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-23902-apache-dolphinscheduler/</guid><description>
+&lt;p>Apache DolphinScheduler before &lt;code>3.4.1&lt;/code> allows authenticated users with platform
+login permissions to use tenants not defined on the platform during workflow
+execution. This is an authorization flaw with multi-tenant isolation impact.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> DolphinScheduler &lt;code>&amp;lt; 3.4.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> DolphinScheduler &lt;code>&amp;gt;= 3.4.1&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>DolphinScheduler version is below &lt;code>3.4.1&lt;/code>.&lt;/li>
+&lt;li>Instance is multi-tenant and users can submit workflow runs.&lt;/li>
+&lt;li>Tenant scoping is relied on for separation of duties or billing/security
+boundaries.&lt;/li>
+&lt;/ul>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade to &lt;code>3.4.1&lt;/code> or newer.&lt;/li>
+&lt;li>Revalidate tenant authorization controls after upgrade.&lt;/li>
+&lt;li>Review workflow execution logs for suspicious cross-tenant usage before fix.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-23902 in an Apache DolphinScheduler deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce either:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A PR/change request upgrading DolphinScheduler to 3.4.1+ and adding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification steps, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if upgrade is blocked.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Required workflow
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Identify current DolphinScheduler version from deployment manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container tags, Helm values, or Maven coordinates.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If version is &lt;span class="sb">`&amp;lt;3.4.1`&lt;/span>, apply minimal upgrade to &lt;span class="sb">`3.4.1+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a post-deploy verification checklist:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authenticated non-admin user cannot execute workflow with undefined tenant;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> expected tenant-scoped workflows still function.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Include audit task to inspect execution logs in exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Keep changes scoped; do not bundle unrelated upgrades.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Version already fixed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Deployment source does not pin DolphinScheduler version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Upgrade would require unsupported platform leap.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Deployment now references &lt;code>3.4.1+&lt;/code>.&lt;/li>
+&lt;li>Verification checklist is concrete and executable.&lt;/li>
+&lt;li>PR body documents any observed tenant-boundary anomalies and next actions.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Apache disclosure (oss-security): &lt;a href="https://www.openwall.com/lists/oss-security/2026/04/24/1"target="_blank" rel="noopener">https://www.openwall.com/lists/oss-security/2026/04/24/1&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-23902"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-23902&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

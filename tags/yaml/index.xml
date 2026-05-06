@@ -1,0 +1,327 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Yaml</title><link>https://security-recipes.ai/tags/yaml/</link><description>Recent content in Yaml on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/yaml/index.xml" rel="self" type="application/rss+xml"/><item><title>PyYAML `yaml.load` without a safe Loader</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/</guid><description>
+&lt;p>&lt;code>yaml.load(s)&lt;/code> — without an explicit &lt;code>Loader=&lt;/code> — was unsafe by
+default for over a decade. The default loader resolves
+&lt;code>!!python/object&lt;/code> tags, which is the YAML equivalent of pickle:
+arbitrary code execution on untrusted input. PyYAML 5.1 added a
+warning, 6.0 made the warning louder; the call shape is still
+out there in repos by the thousands.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>yaml.load(s)&lt;/code> — no &lt;code>Loader=&lt;/code> argument.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.Loader)&lt;/code> — explicit unsafe loader.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.UnsafeLoader)&lt;/code> — same, named.&lt;/li>
+&lt;li>&lt;code>yaml.full_load(s)&lt;/code> — looser than &lt;code>safe_load&lt;/code>; resolves
+arbitrary types, just not arbitrary Python.&lt;/li>
+&lt;/ul>
+&lt;p>The safe shapes:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>yaml.safe_load(s)&lt;/code> — refuses every Python tag. Almost
+always the right answer.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.SafeLoader)&lt;/code> — same thing, more
+verbose.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="cp">!!python/object/apply:os.system&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;rm -rf /&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>…is a payload &lt;code>yaml.load&lt;/code> will happily execute. There is no
+patch coming; &lt;code>safe_load&lt;/code> is the patch.&lt;/p>
+&lt;h2>Mitigation — monkey-patch at import&lt;span class="hx:absolute hx:-mt-20" id="mitigation--monkey-patch-at-import">&lt;/span>
+&lt;a href="#mitigation--monkey-patch-at-import" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the repo has dozens of call sites, replacing every one in
+a single PR is risky. The mitigation is a one-line shim that
+makes the unsafe loader behave like the safe one:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># importable as e.g. `import myapp.yaml_safety_shim`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">yaml&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">warnings&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">_orig_load&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">_safe_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">Loader&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Loader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">UnsafeLoader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">FullLoader&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">warnings&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">warn&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;yaml.load shimmed to SafeLoader&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">stacklevel&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">SafeLoader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">Loader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">_safe_load&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Import this shim once at the application&amp;rsquo;s entry point. Every
+unsafe call now warns at runtime and decodes safely.&lt;/p>
+&lt;h2>Uplift — replace each call&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-each-call">&lt;/span>
+&lt;a href="#uplift--replace-each-call" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The clean fix: replace every &lt;code>yaml.load(s)&lt;/code> with
+&lt;code>yaml.safe_load(s)&lt;/code>. Mechanical change. A repo-wide search and
+a sed-equivalent is enough for most cases — but the agent
+inspects each call to confirm the data flow and adds a
+behaviour-preservation test.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — list of files / lines where &lt;code>yaml.load&lt;/code>
+appears.&lt;/li>
+&lt;li>&lt;strong>Strategy&lt;/strong> — uplift each / install shim / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating PyYAML &lt;span class="sb">`yaml.load`&lt;/span> call sites that resolve
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">unsafe tags. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every &lt;span class="sb">`yaml.load`&lt;/span>, &lt;span class="sb">`yaml.full_load`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.Loader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.UnsafeLoader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.FullLoader)`&lt;/span> call in the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each call, record whether the input is untrusted (file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> uploaded by a user, fetched from a URL, parsed from a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request body) or trusted-only (a config file written by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the same process).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **≤5 call sites or all in application code:** uplift each
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> call site directly to &lt;span class="sb">`yaml.safe_load`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Many call sites or the codebase imports through helpers:**
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install the import-time shim &lt;span class="ge">*and*&lt;/span> still uplift the call
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sites that legitimately need a non-default loader.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Trusted-only call sites:** still uplift; the safe loader
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> costs nothing on trusted input.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Uplift
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace &lt;span class="sb">`yaml.load(s)`&lt;/span> with &lt;span class="sb">`yaml.safe_load(s)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Replace &lt;span class="sb">`yaml.load(s, Loader=yaml.Loader)`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.safe_load(s)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the call truly needs a non-Safe loader (e.g., the YAML
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> carries a custom tag this codebase legitimately registers),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keep the explicit loader and document why in a comment with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a &lt;span class="sb">`# noqa: yaml-load-policy`&lt;/span> marker.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a unit test: a payload containing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`!!python/object/apply:os.system [&amp;#34;echo pwned&amp;#34;]`&lt;/span> must raise
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.constructor.ConstructorError`&lt;/span> after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Install the shim (when chosen)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add the shim module at a stable import path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`&amp;lt;package&amp;gt;/_yaml_safety_shim.py`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Import the shim from the application&amp;#39;s entry point(s).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a unit test that imports the shim, calls &lt;span class="sb">`yaml.load`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without a Loader, and confirms the SafeLoader was used.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/yaml-safe-load-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][yaml] use safe_load on untrusted YAML`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: per-call-site analysis, strategy chosen, test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> additions, the &lt;span class="sb">`# noqa`&lt;/span> exceptions if any.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The codebase relies on a custom YAML tag that requires
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.Loader`&lt;/span> and the agent can&amp;#39;t determine whether the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> custom tag&amp;#39;s resolver is itself safe.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail because of a legitimate behaviour change in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unrelated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change YAML files themselves.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not add new YAML tags.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle in unrelated refactors.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>yaml.load(s, Loader=Loader)&lt;/code> where &lt;code>Loader&lt;/code> is a custom
+subclass.&lt;/strong> Custom loaders may already be safe. Read the
+subclass before swapping.&lt;/li>
+&lt;li>&lt;strong>&lt;code>yaml.load_all&lt;/code> and &lt;code>yaml.full_load_all&lt;/code>.&lt;/strong> Same problem,
+same fix — &lt;code>yaml.safe_load_all&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>The shim breaking custom-tag YAML&lt;/strong> in the repo&amp;rsquo;s own
+config files. The shim opts out only when an explicit
+Loader is passed; verify all legitimate custom-tag callers
+pass an explicit Loader.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">Python pickle&lt;/a>
+— same risk class, different syntax.&lt;/li>
+&lt;/ul></description></item><item><title>Ruby unsafe deserialization — `Marshal.load` / `YAML.load`</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/ruby-marshal-yaml-load/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/ruby-marshal-yaml-load/</guid><description>
+&lt;p>&lt;code>Marshal.load&lt;/code> and permissive YAML loaders are durable Ruby
+security traps. If untrusted bytes reach these APIs, attacker
+payloads can instantiate arbitrary classes and trigger dangerous
+code paths. This pattern appears in Rails jobs, cache/session
+layers, signed-cookie migrations, and background workers.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>Marshal.load(payload)&lt;/code> where payload crosses trust
+boundaries (HTTP params, Redis, MQ, DB rows editable by users).&lt;/li>
+&lt;li>&lt;code>YAML.load&lt;/code> / &lt;code>Psych.load&lt;/code> on untrusted YAML.&lt;/li>
+&lt;li>&lt;code>YAML.unsafe_load&lt;/code> in modern Ruby/Psych.&lt;/li>
+&lt;li>Indirect wrappers that decode serialized data before model/job
+processing.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Unsafe Ruby deserialization can become RCE via gadget chains in
+application or gem classes. Even without direct execution,
+attackers can tamper with object state to bypass authz checks,
+poison jobs, or trigger SSRF/file operations.&lt;/p>
+&lt;h2>Mitigation — safe loader with strict class policy&lt;span class="hx:absolute hx:-mt-20" id="mitigation--safe-loader-with-strict-class-policy">&lt;/span>
+&lt;a href="#mitigation--safe-loader-with-strict-class-policy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For YAML, switch to &lt;code>safe_load&lt;/code> with explicit permitted classes:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ruby" data-lang="ruby">&lt;span class="line">&lt;span class="cl">&lt;span class="n">parsed&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="no">YAML&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">safe_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">payload&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="ss">permitted_classes&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">[&lt;/span>&lt;span class="no">Date&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="no">Time&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="ss">aliases&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kp">false&lt;/span>&lt;span class="p">)&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>For Marshal paths that cannot be removed immediately, enforce
+trusted provenance and fail-closed guards at ingress. Treat as a
+temporary bridge, not a steady state.&lt;/p>
+&lt;h2>Uplift — move to JSON + explicit coercion&lt;span class="hx:absolute hx:-mt-20" id="uplift--move-to-json--explicit-coercion">&lt;/span>
+&lt;a href="#uplift--move-to-json--explicit-coercion" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Preferred uplift:&lt;/p>
+&lt;ul>
+&lt;li>Replace Marshal/YAML object payloads with JSON hashes/arrays.&lt;/li>
+&lt;li>Perform explicit coercion into value objects/DTOs.&lt;/li>
+&lt;li>Validate required fields and types before business logic.&lt;/li>
+&lt;li>Keep temporary legacy decode only where required, with
+telemetry and a removal date.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every &lt;code>Marshal.load&lt;/code>, &lt;code>YAML.load&lt;/code>,
+&lt;code>Psych.load&lt;/code>, and &lt;code>unsafe_load&lt;/code> usage.&lt;/li>
+&lt;li>&lt;strong>Data provenance&lt;/strong> — where each payload originates.&lt;/li>
+&lt;li>&lt;strong>Compatibility needs&lt;/strong> — which historical payloads must
+continue to decode during migration.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating unsafe Ruby deserialization call sites.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Search for &lt;span class="sb">`Marshal.load`&lt;/span>, &lt;span class="sb">`YAML.load`&lt;/span>, &lt;span class="sb">`Psych.load`&lt;/span>, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`unsafe_load`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Classify each by trust boundary: trusted-only internal,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> external/untrusted, or unknown.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Map legacy payload producers/consumers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Choose remediation per site
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Untrusted or unknown:** uplift to JSON + explicit coercion.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Trusted-only temporary compatibility path:** mitigate with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> strict guards and bounded lifespan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Implement
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For YAML sites:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replace with &lt;span class="sb">`YAML.safe_load`&lt;/span> and minimal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`permitted_classes`&lt;/span> list.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Disable aliases unless explicitly required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For Marshal sites:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replace with JSON decode + schema/type validation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Remove &lt;span class="sb">`Marshal.load`&lt;/span> from runtime paths handling external
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> input.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For temporary compat paths:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Isolate in a clearly named legacy decoder module.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Add telemetry counters for legacy decode usage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Add TODO with owner and removal date.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add behavior-preservation tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Valid legacy payloads decode to equivalent domain values.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Untrusted crafted payloads are rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Unknown class tags / alias abuse fails closed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/ruby-deser-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][Ruby] remove unsafe deserialize in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: inventory, trust classification, uplift/mitigation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decisions, compatibility plan, test evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Trust boundary cannot be determined.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Required migration spans multiple services with no staged
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rollout plan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Critical path lacks tests and cannot be safely instrumented.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not ship unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not introduce broad &lt;span class="sb">`permitted_classes`&lt;/span> catch-alls.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not retain legacy decode paths without explicit expiry.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Rails cookie/session migrations&lt;/strong> where old serializers are
+still enabled.&lt;/li>
+&lt;li>&lt;strong>Background job payload formats&lt;/strong> shared across deploy waves.&lt;/li>
+&lt;li>&lt;strong>&lt;code>aliases: true&lt;/code>&lt;/strong> in YAML parsers reopening gadget vectors.&lt;/li>
+&lt;li>&lt;strong>Monkey patches in initializers&lt;/strong> that re-enable unsafe
+loading globally.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+— analogous unsafe YAML default in Python.&lt;/li>
+&lt;/ul></description></item></channel></rss>

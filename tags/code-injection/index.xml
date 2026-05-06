@@ -1,0 +1,363 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Code-Injection</title><link>https://security-recipes.ai/tags/code-injection/</link><description>Recent content in Code-Injection on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/code-injection/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41265 - Flowise Airtable Agent code injection RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41265-flowise-airtable-agent-code-injection-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41265-flowise-airtable-agent-code-injection-rce/</guid><description>
+&lt;p>Flowise versions &lt;code>3.0.13&lt;/code> and earlier allow remote code execution through the
+Airtable Agent node. The node asks an LLM to generate Python code for a pandas
+dataframe, validates that generated code with deny-list patterns, then executes
+it in a Pyodide runtime on the Flowise server.&lt;/p>
+&lt;p>The advisory describes several ways attacker-controlled content can shape the
+generated Python: direct prompts sent to a vulnerable chatflow, an attacker-run
+model endpoint configured by an authenticated user, or prompt-injection text in
+Airtable data and column names. Because the validator was bypassable, generated
+code could reach OS command execution in the context of the Flowise server.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>flowise &amp;lt;=3.0.13&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>flowise-components &amp;lt;=3.0.13&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>flowise 3.1.0+&lt;/code> and &lt;code>flowise-components 3.1.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected component:&lt;/strong> Airtable Agent node code generation and evaluation.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys, builds, or documents Flowise &lt;code>&amp;lt;=3.0.13&lt;/code>.&lt;/li>
+&lt;li>A chatflow uses the Airtable Agent node.&lt;/li>
+&lt;li>Prediction or internal-prediction endpoints are reachable by untrusted users,
+unauthenticated users, public chat embeds, webhooks, or tenant-controlled
+integrations.&lt;/li>
+&lt;li>Authenticated users can create chatflows that point to arbitrary model
+servers or attacker-controlled Airtable data.&lt;/li>
+&lt;li>The Flowise process has access to LLM provider keys, Airtable tokens, source
+repositories, internal services, cloud credentials, or writable deployment
+storage.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;flowise|flowise-components|AirtableAgent|Airtable_Agents|validatePythonCodeForDataFrame|pyodide|internal-prediction|/api/v1/prediction&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls flowise flowise-components
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why flowise flowise-components
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why flowise flowise-components
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;Airtable Agent|airtable.*agent|chatflow|prediction|FLOWISE|FLOWISE_USERNAME|FLOWISE_PASSWORD&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s .github .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>flowise&lt;/code> and &lt;code>flowise-components&lt;/code> to &lt;code>3.1.0+&lt;/code> everywhere this
+repository controls package manifests, lockfiles, images, or deployment
+manifests.&lt;/li>
+&lt;li>Until the fixed version is deployed, disable Airtable Agent nodes and block
+public or tenant prediction routes for chatflows containing that node.&lt;/li>
+&lt;li>Prevent untrusted users from configuring arbitrary model endpoints, Airtable
+bases, or chatflows that can trigger server-side generated-code evaluation.&lt;/li>
+&lt;li>Treat LLM-generated code as untrusted code. Prefer removing server-side eval
+of generated Python; otherwise enforce a positive AST-level allow-list and
+run evaluation in a constrained, no-network, no-filesystem sandbox.&lt;/li>
+&lt;li>Rotate Flowise, Airtable, model provider, and runtime credentials if exposed
+chatflows could have reached the vulnerable node.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41265 (Flowise Airtable Agent code injection
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">remote code execution). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Flowise, disables exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Airtable Agent execution until patched, adds regression coverage, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Flowise deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41265 / GHSA-v38x-c887-992f.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Flowise credentials, Airtable tokens, LLM provider keys, chatflow
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> payloads, prompt logs, generated Python, environment variables, and workspace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> files as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run exploit payloads, reverse shells, shell commands, or attacker-like
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated Python against production, staging, shared dev, or real Flowise
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instances.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely on LLM prompt instructions or string deny-lists as the only
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security control for generated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Flowise runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`package.json`&lt;/span>, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, CI images, SBOMs, seed chatflows,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exported chatflow JSON, environment templates, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`flowise`&lt;/span> and &lt;span class="sb">`flowise-components`&lt;/span> version. A target
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is vulnerable if either package resolves to &lt;span class="sb">`&amp;lt;=3.0.13`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search for Airtable Agent exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Airtable Agent nodes in exported chatflows;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> public chat embeds or unauthenticated prediction routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tenant-controlled chatflow creation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> arbitrary model-server configuration;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Airtable table, column, or prompt content that can reach generated Python.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy Flowise or only contains unrelated client
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade all controlled Flowise packages and images to &lt;span class="sb">`3.1.0+`&lt;/span>. Regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Airtable Agent chatflows until every runtime is patched;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block public prediction calls to vulnerable chatflows at the API gateway;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict chatflow creation and model endpoint configuration to trusted
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> administrators;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed if node type or Flowise version cannot be determined.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests or policy checks that do not execute system commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> vulnerable package versions are rejected by dependency policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Airtable Agent chatflows cannot be publicly exposed on vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated Python containing imports, attribute tricks, file access,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> subprocess/system calls, or network access is rejected before execution;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> the evaluator is disabled, sandboxed, or upgraded according to the fixed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime contract.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> least-privilege Flowise service identity;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> no cloud or deployment-admin credentials in the Flowise process;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> egress restrictions for Flowise workers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret redaction in chatflow, prompt, and generated-code logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41265 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Flowise versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any Airtable Agent chatflow was public or tenant reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which Airtable, LLM provider, Flowise, and runtime credentials require
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which Flowise prediction logs and process logs should be reviewed for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejected generated code or suspicious child processes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any temporary route block or feature disablement still in place.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package install, lockfile integrity, unit/API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, chatflow import checks, gateway policy tests, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> diff, SBOM refresh, and dependency/security scans available in this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41265 in Flowise Airtable Agent`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Flowise runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Flowise version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The product intentionally depends on public Airtable Agent chatflows executing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> LLM-generated Python; document the risk and require a product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled code or commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>flowise&lt;/code> or &lt;code>flowise-components&lt;/code> to &lt;code>&amp;lt;=3.0.13&lt;/code>.&lt;/li>
+&lt;li>Airtable Agent chatflows are disabled, admin-only, or fixed before they are
+reachable by untrusted prompts.&lt;/li>
+&lt;li>Tests or policy checks prove generated Python cannot import modules, open
+files, spawn commands, or reach network/system APIs.&lt;/li>
+&lt;li>Gateway or feature-flag containment exists for non-atomic rollouts.&lt;/li>
+&lt;li>Operator actions cover credential rotation and log review when exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading the Flowise app package while old &lt;code>flowise-components&lt;/code> code remains
+in an image layer or global npm install.&lt;/li>
+&lt;li>Treating authenticated chatflow authors as trusted when tenants can configure
+model endpoints or Airtable data.&lt;/li>
+&lt;li>Leaving public prediction routes enabled for old exported chatflows.&lt;/li>
+&lt;li>Logging full generated Python, Airtable data, or provider credentials during
+debugging.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-v38x-c887-992f"target="_blank" rel="noopener">https://github.com/advisories/GHSA-v38x-c887-992f&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41265"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41265&lt;/a>&lt;/li>
+&lt;li>Flowise project: &lt;a href="https://github.com/FlowiseAI/Flowise"target="_blank" rel="noopener">https://github.com/FlowiseAI/Flowise&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-41507 - math-codegen string literal RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41507-math-codegen-string-literal-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41507-math-codegen-string-literal-rce/</guid><description>
+&lt;p>&lt;code>math-codegen&lt;/code> versions before &lt;code>0.4.3&lt;/code> can inject string literal content passed
+to &lt;code>cg.parse()&lt;/code> into a generated &lt;code>new Function()&lt;/code> body. When untrusted input
+reaches the parser, an attacker can turn formula or expression evaluation into
+server-side JavaScript code execution.&lt;/p>
+&lt;p>This class of vulnerability is especially relevant for agentic systems that
+accept user, ticket, spreadsheet, or tool-output expressions and evaluate them
+inside automation workers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>math-codegen &amp;lt;0.4.3&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>math-codegen 0.4.3+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected API:&lt;/strong> &lt;code>cg.parse()&lt;/code> when untrusted string literals reach generated
+code.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on &lt;code>math-codegen&lt;/code> directly or transitively.&lt;/li>
+&lt;li>Application code calls &lt;code>cg.parse()&lt;/code>, &lt;code>parse()&lt;/code>, generated expression
+functions, or wrappers around math/formula evaluation.&lt;/li>
+&lt;li>Users, tenants, spreadsheets, workflow YAML, tickets, LLM outputs, tool
+outputs, dashboards, rules, or API requests can supply expressions.&lt;/li>
+&lt;li>Expression evaluation runs in a server, worker, CI job, MCP tool, browser
+automation host, or privileged background process.&lt;/li>
+&lt;li>The process has access to credentials, source code, customer data, internal
+network routes, build artifacts, or writable deployment state.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;math-codegen|cg\\.parse|codegen.*parse|new Function|formula|expression.*parse|evaluate.*expression&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls math-codegen
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why math-codegen
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why math-codegen
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;formula|expression|rule|calculator|spreadsheet|ticket|tool output|LLM output|workflow.*input&amp;#34;&lt;/span> src server packages apps&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>math-codegen&lt;/code> to &lt;code>0.4.3+&lt;/code> everywhere this repository controls
+manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Block untrusted expression parsing until patched if the upgrade cannot be
+deployed atomically.&lt;/li>
+&lt;li>Add validation around expression features this product actually supports;
+reject strings, identifiers, or syntax that are not required.&lt;/li>
+&lt;li>Run expression evaluation in the least-privilege runtime available. Do not
+give formula evaluators ambient access to &lt;code>process&lt;/code>, filesystem APIs, network
+APIs, package tokens, or cloud credentials.&lt;/li>
+&lt;li>Prefer a non-code-generating expression evaluator for untrusted inputs when
+product requirements allow it.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41507 (math-codegen string literal code injection
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">leading to remote code execution). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades math-codegen, contains
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted expression evaluation, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected runtime or cannot make
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41507 / GHSA-p6x5-p4xf-cc4r.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat expression inputs, generated code, credentials, customer data, worker
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment values, source code, and logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads, shell commands, reverse shells, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> attacker-controlled generated functions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely on ad hoc escaping as the only fix when a patched package is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every &lt;span class="sb">`math-codegen`&lt;/span> reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, vendored code, Dockerfiles, CI images, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment manifests, generated bundles, and docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`math-codegen`&lt;/span> version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves below &lt;span class="sb">`0.4.3`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search for expression evaluation paths:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`cg.parse()`&lt;/span> or wrappers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> formula, rule, calculator, spreadsheet, dashboard, workflow, ticket, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tool-output parsing;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> LLM-generated expressions or agent-supplied tool arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether untrusted input can reach the parser. Include request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bodies, tenant settings, workflow YAML, uploaded files, spreadsheet cells,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ticket text, database records, webhook payloads, LLM output, and MCP tool
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> results.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If &lt;span class="sb">`math-codegen`&lt;/span> is absent or only used in non-deployable tests, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was checked and why the runtime is not exposed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade to &lt;span class="sb">`math-codegen 0.4.3+`&lt;/span>. Regenerate lockfiles, image digests, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bundled assets, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add containment for non-atomic rollouts:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable untrusted formula/expression evaluation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject string literals if the product does not need them;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject expressions from LLM/tool output unless explicitly approved;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run evaluators in a constrained worker with no secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> malicious-looking string literals are treated as inert data;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated function source does not contain raw string literal content;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> untrusted expression inputs cannot reach &lt;span class="sb">`new Function`&lt;/span> without the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched parser;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency policy rejects &lt;span class="sb">`math-codegen &amp;lt;0.4.3`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41507 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> math-codegen versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every untrusted expression entry point reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether formula evaluation was public, tenant reachable, or agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether worker credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for suspicious expression parse failures.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package install, lockfile checks, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integration tests for expression features, lint/typecheck, image build, SBOM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41507 in math-codegen`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected &lt;span class="sb">`math-codegen`&lt;/span> runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The product intentionally requires arbitrary code-generating expressions from
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted users; document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled generated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>math-codegen &amp;lt;0.4.3&lt;/code>.&lt;/li>
+&lt;li>Untrusted expression entry points are inventoried and either patched,
+disabled, or constrained.&lt;/li>
+&lt;li>Tests prove string literals remain data and cannot alter generated JavaScript
+syntax.&lt;/li>
+&lt;li>Expression evaluation does not run with broad credentials or ambient access.&lt;/li>
+&lt;li>Operator actions identify credential rotation and log review if exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating only direct dependencies while a bundle, workspace package, or image
+layer still carries &lt;code>math-codegen &amp;lt;0.4.3&lt;/code>.&lt;/li>
+&lt;li>Treating formulas from LLM output as trusted because they were generated by an
+internal agent.&lt;/li>
+&lt;li>Tests that assert parser output by executing the generated exploit-like
+function.&lt;/li>
+&lt;li>Manual escaping that fails on alternate string literal forms.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-p6x5-p4xf-cc4r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-p6x5-p4xf-cc4r&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41507"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41507&lt;/a>&lt;/li>
+&lt;li>math-codegen project: &lt;a href="https://github.com/mauriciopoppe/math-codegen"target="_blank" rel="noopener">https://github.com/mauriciopoppe/math-codegen&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

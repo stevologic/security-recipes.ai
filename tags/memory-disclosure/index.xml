@@ -1,0 +1,439 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Memory-Disclosure</title><link>https://security-recipes.ai/tags/memory-disclosure/</link><description>Recent content in Memory-Disclosure on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 05 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/memory-disclosure/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2014-0160 — Heartbleed</title><link>https://security-recipes.ai/prompt-library/cve/cve-2014-0160-heartbleed/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2014-0160-heartbleed/</guid><description>
+&lt;p>A missing length check in OpenSSL&amp;rsquo;s TLS heartbeat extension
+let an attacker request up to 64KB of process memory per
+heartbeat — keys, session tokens, decrypted plaintext, anything
+the OpenSSL process happened to have in its address space.
+The &amp;ldquo;we patched it&amp;rdquo; announcement is what most people remember;
+the durable lesson is that &lt;strong>patching wasn&amp;rsquo;t the fix&lt;/strong>.
+Rotating every key and revoking every cert that lived through
+the vulnerable window was the fix. A decade later this is still
+the most-cited reason post-incident playbooks demand key
+rotation, not just patching.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>OpenSSL&lt;/strong> 1.0.1 through 1.0.1f — vulnerable.&lt;/li>
+&lt;li>&lt;strong>OpenSSL&lt;/strong> 1.0.1g+ — patched.&lt;/li>
+&lt;li>&lt;strong>OpenSSL&lt;/strong> ≤1.0.0 / ≥1.0.2 — not affected.&lt;/li>
+&lt;li>LibreSSL, BoringSSL, Java&amp;rsquo;s JSSE, Go&amp;rsquo;s &lt;code>crypto/tls&lt;/code>,
+Microsoft Schannel — not affected (different stacks).&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The system was exposed if it ran OpenSSL in the affected
+range &lt;em>and&lt;/em> had the heartbeat extension enabled (the default
+for affected versions). Detection commands:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">openssl version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># or, for an installed binary:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">strings /usr/bin/openssl &lt;span class="p">|&lt;/span> grep -i &lt;span class="s1">&amp;#39;OpenSSL 1\.0\.1&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>For services: any TLS-terminating daemon (HTTPS server,
+mail server, VPN) compiled against affected OpenSSL was
+exposed. A heartbeat scan
+(&lt;code>openssl s_client -connect host:443 -tlsextdebug | grep heartbeat&lt;/code>) confirms whether the server still negotiated the
+extension.&lt;/p>
+&lt;p>This CVE is over a decade old. Any system still in the
+affected range today is also missing a decade of unrelated
+patches; treat the finding as a tip-of-the-iceberg signal,
+not just a single-CVE fix.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Upgrade&lt;/strong> to a current OpenSSL (the 3.x branch by 2026).
+1.0.1g was the immediate patch; the durable answer is
+current.&lt;/li>
+&lt;li>&lt;strong>Disable&lt;/strong> the TLS heartbeat extension in any service that
+doesn&amp;rsquo;t actively use it (most don&amp;rsquo;t). Defence-in-depth.&lt;/li>
+&lt;li>&lt;strong>Rotate&lt;/strong> every private key, session secret, API token, and
+password whose plaintext could have been in the process
+memory of an affected daemon during the exposure window.&lt;/li>
+&lt;li>&lt;strong>Revoke&lt;/strong> every TLS certificate generated using a private
+key that was on an affected host.&lt;/li>
+&lt;li>&lt;strong>Audit&lt;/strong> for unexplained authentication sessions during the
+exposure window.&lt;/li>
+&lt;/ul>
+&lt;p>For systems running OpenSSL 1.0.1 today: this is not a
+single-CVE fix. The right shape is a runtime upgrade. Treat
+this recipe as the &lt;em>trigger&lt;/em>; the workflow is broader.&lt;/p>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2014-0160 (Heartbleed) on this host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or in this system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request upgrading the OpenSSL runtime, plus
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an incident-response checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the host has been running an affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> OpenSSL with public exposure for an extended period.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This recipe is &lt;span class="gs">**not**&lt;/span> a routine package bump. If exposure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">is confirmed, do not auto-remediate; produce the incident
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">checklist and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the OpenSSL version: &lt;span class="sb">`openssl version`&lt;/span>. Read every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> service binary&amp;#39;s linked OpenSSL: &lt;span class="sb">`ldd &amp;lt;binary&amp;gt; | grep ssl`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> then &lt;span class="sb">`strings &amp;lt;libssl&amp;gt; | grep -i &amp;#39;OpenSSL 1\\.0\\.&amp;#39;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For every TLS-terminating service on the host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (HTTPS server, mail, VPN, internal RPC), test for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> heartbeat extension:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`openssl s_client -connect host:port -tlsextdebug 2&amp;gt;&amp;amp;1 | grep -i heartbeat`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine the host&amp;#39;s exposure window (when the affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> OpenSSL was first installed; when network-exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> services using it were started).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Never network-exposed during exposure window:** Upgrade
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the package, rotate any local keys, document.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Network-exposed during exposure window:** Treat as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compromised. Write the IR checklist; do not auto-remediate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the keys; only the package upgrade is in scope for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Upgrade
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> For modern distros, upgrade via the package manager:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`apt upgrade openssl libssl3 libssl1.1 libssl1.0.0`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`dnf upgrade openssl openssl-libs`&lt;/span>, etc. — to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> current 3.x branch on systems that support it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Restart every service that links the upgraded OpenSSL.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> The agent lists the services to restart in the PR body;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the operator runs the restart.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Re-run the heartbeat detection from Step 0 against every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> service. The extension should be absent or harmless on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched OpenSSL.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Disable the heartbeat extension (defence-in-depth)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For any TLS-terminating service that does not use heartbeats:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> nginx, Apache, HAProxy, etc. — set the OpenSSL ciphers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> list / disable heartbeats per the service&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration. Most modern configs already exclude it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — IR checklist (for compromised classification)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The TRIAGE.md must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate every TLS private key on the host.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Revoke and re-issue every certificate generated from those
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys. Confirm CRL / OCSP propagation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate every long-lived secret accessible from the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compromised process: DB passwords, API keys, OAuth
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client secrets, session-encryption keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Invalidate every session token that pre-dates the rotation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit the auth logs for unexplained sessions during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rebuild any artefacts produced on the host during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> window if the build process touched secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The system runs an OpenSSL old enough to indicate broader
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patching gaps. Triage with a recommendation for a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> comprehensive runtime upgrade, not just OpenSSL.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A service depends on the heartbeat extension for a real
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reason (rare). Document and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s exposure window is unclear from available logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rotate keys or revoke certs — those are operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions on the IR checklist.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify TLS configurations outside the documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> defence-in-depth scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle unrelated CVE fixes.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The OpenSSL runtime version after upgrade is on the
+current 3.x branch (or the distro&amp;rsquo;s currently-supported
+branch).&lt;/li>
+&lt;li>Every service listed in the PR was restarted.&lt;/li>
+&lt;li>The heartbeat scan shows the extension absent or harmless
+on every service.&lt;/li>
+&lt;li>For compromised classification: the IR checklist was
+followed end-to-end. A package upgrade alone is not
+sufficient.&lt;/li>
+&lt;li>The PR includes an honest assessment of the exposure
+window and the artefacts/services that depended on
+potentially-leaked secrets.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Statically-linked OpenSSL.&lt;/strong> A package upgrade doesn&amp;rsquo;t
+fix a service that bakes its own OpenSSL into a static
+binary. Identify and rebuild every such binary.&lt;/li>
+&lt;li>&lt;strong>Bundled OpenSSL in language runtimes.&lt;/strong> Older Python /
+Ruby / Node distributions sometimes ship their own
+OpenSSL. Upgrade the runtime, not just the system package.&lt;/li>
+&lt;li>&lt;strong>Long-lived sessions.&lt;/strong> A web session minted during the
+exposure window could still be active. Force a global
+re-login if the application&amp;rsquo;s session lifetime is long.&lt;/li>
+&lt;li>&lt;strong>Certificate revocation in practice.&lt;/strong> CRLs and OCSP can
+be slow. Many clients ignore revocation entirely. The
+durable defence is short-lived certs (ACME with renewal),
+not relying on revocation propagation.&lt;/li>
+&lt;li>&lt;strong>Internal services.&lt;/strong> Heartbleed exposure on an internal
+service is still exposure. &amp;ldquo;Behind the firewall&amp;rdquo; is not
+a control if any compromised internal client could have
+scanned.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— generic CVE workflow.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— when OpenSSL is in a container base image.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-7482 - Ollama GGUF memory disclosure</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-7482-ollama-gguf-memory-disclosure/</link><pubDate>Tue, 05 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-7482-ollama-gguf-memory-disclosure/</guid><description>
+&lt;p>Ollama before &lt;code>0.17.1&lt;/code> contains a heap out-of-bounds read in GGUF model
+loading. A malicious GGUF file can declare tensor offsets and sizes that exceed
+the actual file length. When the vulnerable server processes that model during
+creation or quantization, it can read beyond the intended heap buffer.&lt;/p>
+&lt;p>This is a secure-context issue, not only a model-server dependency issue.
+GitHub&amp;rsquo;s advisory notes that exposed memory may include environment variables,
+API keys, system prompts, and other users&amp;rsquo; conversation data. The same
+deployment often also gives the server a model push path, so the remediation
+needs to address both the vulnerable version and unauthenticated access to
+model creation and push endpoints.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Ollama &lt;code>&amp;lt;0.17.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Ollama &lt;code>0.17.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>High-risk exposure:&lt;/strong> Ollama is reachable by untrusted users and permits
+unauthenticated or weakly authenticated access to model creation or push
+routes, especially when &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> or equivalent bind settings
+expose the service beyond loopback.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, installs, packages, configures, or deploys Ollama.&lt;/li>
+&lt;li>A deployable binary, container image, package pin, installer, or SBOM resolves
+Ollama &lt;code>&amp;lt;0.17.1&lt;/code>.&lt;/li>
+&lt;li>Docker, Compose, Kubernetes, systemd, Terraform, Ansible, Nix, shell scripts,
+or runbooks set &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code>, publish the Ollama port, or place
+Ollama behind an ingress, reverse proxy, agent gateway, workspace gateway, or
+MCP-adjacent service.&lt;/li>
+&lt;li>Untrusted users, agents, notebooks, CI jobs, web applications, or automation
+can reach model creation, model import, or model push workflows.&lt;/li>
+&lt;li>The Ollama process has environment variables or mounted files containing
+model-provider keys, registry tokens, internal service credentials, system
+prompts, tenant context, or conversation data.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># macOS / Linux&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;ollama|OLLAMA_HOST|/api/create|/api/push|GGUF|Modelfile|ollama/ollama&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;0\\.17\\.0|0\\.16\\.|0\\.15\\.|ollama[:/@]|OLLAMA_HOST=0\\.0\\.0\\.0&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml .github charts deploy k8s manifests systemd scripts docs 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ollama --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s2">&amp;#34;ollama&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Windows PowerShell&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;ollama|OLLAMA_HOST|/api/create|/api/push|GGUF|Modelfile|ollama/ollama&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File -Include Dockerfile*,docker-compose*.yml,*.yaml,*.yml,*.ps1,*.md &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;0\.17\.0|0\.16\.|0\.15\.|ollama[:/@]|OLLAMA_HOST=0\.0\.0\.0&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ollama --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> Select-String &lt;span class="s2">&amp;#34;ollama&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Ollama install, image, package recipe, base image,
+workstation bootstrap, and deployment manifest to &lt;code>0.17.1+&lt;/code>; prefer the
+latest available patched release.&lt;/li>
+&lt;li>Regenerate lockfiles, image digests, SBOMs, checksums, rendered manifests,
+golden deployment output, and version evidence for every path that ships
+Ollama.&lt;/li>
+&lt;li>Bind Ollama to loopback or private service networks by default. Do not expose
+&lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> to untrusted networks without an authenticated gateway,
+allow-list, and explicit route policy.&lt;/li>
+&lt;li>Restrict model creation, model import, and model push workflows to trusted
+administrators or controlled automation. Block unauthenticated access to
+&lt;code>/api/create&lt;/code>, &lt;code>/api/push&lt;/code>, and any equivalent proxy route.&lt;/li>
+&lt;li>Allow-list trusted model sources and registries. Prefer digest-pinned models
+and signed or provenance-checked model artifacts for production deployments.&lt;/li>
+&lt;li>If exposure was possible, rotate model-provider keys, model registry tokens,
+service credentials, API keys, and other secrets present in the Ollama
+process environment. Treat untrusted model artifacts created during the
+window as suspect.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-7482 / GHSA-x8qc-fggm-mpqg (Ollama GGUF
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">out-of-bounds read that may disclose server process memory). Produce exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Ollama, restricts model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> creation and push exposure, adds verification, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Ollama deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install path, image, gateway policy, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-7482 and directly related Ollama exposure hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat environment variables, API keys, model registry tokens, provider
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials, system prompts, conversation data, tenant context, model files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and Ollama logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create or commit a malicious GGUF file, exploit payload, heap-memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disclosure artifact, or proof that attempts to read process memory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not push models or test artifacts to external registries.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not expose a local Ollama service publicly to reproduce the issue.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Ollama reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, base images, Compose files, Helm charts, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, Nix, package recipes, workstation bootstrap scripts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> systemd units, CI jobs, developer-container config, gateway/proxy policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> MCP or agent runtime config, SBOMs, checksums, docs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Ollama version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;lt;0.17.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine every exposure path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind address and &lt;span class="sb">`OLLAMA_HOST`&lt;/span> value;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> published ports, ingress routes, reverse proxy rules, service mesh policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> firewall rules, workspace gateway routes, and agent gateway routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reachability of &lt;span class="sb">`/api/create`&lt;/span>, &lt;span class="sb">`/api/push`&lt;/span>, and equivalent proxy or UI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether callers are authenticated and authorized before model creation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> model import, or model push.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy, package, configure, or route traffic to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Ollama, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, likely runtime owner,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed target &lt;span class="sb">`Ollama 0.17.1+`&lt;/span>, and operator actions the owner must perform.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade all controlled Ollama targets to &lt;span class="sb">`0.17.1+`&lt;/span>, preferably the latest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched release available through the repository&amp;#39;s normal distribution
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, checksum allowlists, rendered manifests, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, package metadata, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add fail-closed exposure controls where this repository owns routing or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime configuration:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind Ollama to loopback or a private service network by default;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication and admin authorization for model creation, model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> import, and model push;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block unauthenticated or tenant-user access to &lt;span class="sb">`/api/create`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/api/push`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove &lt;span class="sb">`OLLAMA_HOST=0.0.0.0`&lt;/span> unless a documented gateway policy protects
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the service;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add network policy or firewall constraints for non-public deployments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add model-source controls where this repository owns model supply:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow-list trusted model registries, buckets, or artifact repositories;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer digest-pinned model artifacts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document how model provenance or signatures are checked before production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> use;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject arbitrary user-supplied GGUF uploads unless a human-reviewed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ingestion path exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe verification without exploiting memory disclosure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency/image/SBOM assertions prove every Ollama target is &lt;span class="sb">`&amp;gt;=0.17.1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway or policy tests prove unauthenticated callers cannot reach
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/api/create`&lt;/span> or &lt;span class="sb">`/api/push`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> render tests prove public ingress does not expose Ollama without auth;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> config tests fail if &lt;span class="sb">`OLLAMA_HOST=0.0.0.0`&lt;/span> is set without an approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret scanning proves no real tokens, prompts, logs, or model files were
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-7482 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Ollama versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether Ollama was bound to loopback, private network, or public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> interfaces;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`/api/create`&lt;/span> or &lt;span class="sb">`/api/push`&lt;/span> was reachable by untrusted callers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which model artifacts or registries need quarantine or review;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which environment variables, provider keys, registry tokens, or service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which access logs should be reviewed for model creation, import, or push
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> activity during the vulnerable window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency resolution, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render, gateway policy tests, unit/integration tests, SBOM refresh, secret
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scan, and security scan available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-7482 in Ollama`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Ollama deployment, install path, image, package recipe, gateway route, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime config is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved Ollama version can only be confirmed from production access the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Ollama release cannot be consumed through the allowed distribution
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> channel without a broader platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require a malicious GGUF file, reading process memory,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exfiltrating model artifacts, or exposing a service to an untrusted network.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing product requirements intentionally allow untrusted users or agents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to create and push arbitrary models; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Ollama binary, package, image, SBOM, deployment manifest, or
+bootstrap path resolves to &lt;code>&amp;lt;0.17.1&lt;/code>.&lt;/li>
+&lt;li>Unauthenticated or tenant-level callers cannot reach model creation or model
+push routes.&lt;/li>
+&lt;li>Public or shared-network exposure of &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> is removed or
+protected by explicit gateway authorization and network policy.&lt;/li>
+&lt;li>Model-source controls prevent arbitrary untrusted GGUF ingestion in
+production.&lt;/li>
+&lt;li>Operator actions cover secret rotation, model artifact review, and access-log
+review when exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating a developer install script while production containers or Helm values
+still pin an older Ollama image.&lt;/li>
+&lt;li>Treating loopback defaults as proof of safety when deployment manifests set
+&lt;code>OLLAMA_HOST=0.0.0.0&lt;/code>.&lt;/li>
+&lt;li>Blocking &lt;code>/api/create&lt;/code> but leaving &lt;code>/api/push&lt;/code> or a proxy alias reachable.&lt;/li>
+&lt;li>Adding tests that create exploit-like GGUF payloads or commit model binaries.&lt;/li>
+&lt;li>Logging environment variables, prompts, model metadata, or conversation
+content while adding verification.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-x8qc-fggm-mpqg"target="_blank" rel="noopener">https://github.com/advisories/GHSA-x8qc-fggm-mpqg&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-7482"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-7482&lt;/a>&lt;/li>
+&lt;li>Ollama release &lt;code>v0.17.1&lt;/code>: &lt;a href="https://github.com/ollama/ollama/releases/tag/v0.17.1"target="_blank" rel="noopener">https://github.com/ollama/ollama/releases/tag/v0.17.1&lt;/a>&lt;/li>
+&lt;li>Ollama fix PR: &lt;a href="https://github.com/ollama/ollama/pull/14406"target="_blank" rel="noopener">https://github.com/ollama/ollama/pull/14406&lt;/a>&lt;/li>
+&lt;li>Ollama fix commit: &lt;a href="https://github.com/ollama/ollama/commit/88d57d0483cca907e0b23a968c83627a20b21047"target="_blank" rel="noopener">https://github.com/ollama/ollama/commit/88d57d0483cca907e0b23a968c83627a20b21047&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

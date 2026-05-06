@@ -1,0 +1,195 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Gitpython</title><link>https://security-recipes.ai/tags/gitpython/</link><description>Recent content in Gitpython on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/gitpython/index.xml" rel="self" type="application/rss+xml"/><item><title>GHSA-rpm5/GHSA-x2qx - GitPython command injection</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection/</guid><description>
+&lt;p>Two high-severity GitPython advisories affect applications that let untrusted
+input shape Git operation options:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>: unsafe Git option checks can be bypassed with Python
+kwargs such as &lt;code>upload_pack&lt;/code> and &lt;code>receive_pack&lt;/code>, which normalize into
+dangerous Git flags.&lt;/li>
+&lt;li>&lt;code>GHSA-x2qx-6953-8485&lt;/code>: &lt;code>multi_options&lt;/code> validation happens before
+&lt;code>shlex.split()&lt;/code>, allowing a seemingly safe option string to split into unsafe
+flags such as &lt;code>--config core.hooksPath=...&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>For agentic coding systems, CI workers, repository importers, and internal
+automation bots, the practical risk is code execution on the worker handling
+repo clone/fetch/pull/push operations.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>GitPython &amp;gt;=3.1.30, &amp;lt;3.1.47&lt;/code> for
+&lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>GitPython &amp;lt;3.1.47&lt;/code> for &lt;code>GHSA-x2qx-6953-8485&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>GitPython 3.1.47+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on GitPython directly or transitively.&lt;/li>
+&lt;li>Application code calls &lt;code>Repo.clone_from()&lt;/code>, &lt;code>Repo.clone()&lt;/code>,
+&lt;code>Remote.fetch()&lt;/code>, &lt;code>Remote.pull()&lt;/code>, &lt;code>Remote.push()&lt;/code>, or &lt;code>Submodule.update()&lt;/code>.&lt;/li>
+&lt;li>Users, tenants, webhooks, workflow YAML, job definitions, repository metadata,
+or LLM/tool inputs can influence &lt;code>kwargs&lt;/code>, &lt;code>multi_options&lt;/code>,
+&lt;code>clone_multi_options&lt;/code>, or &amp;ldquo;extra git options.&amp;rdquo;&lt;/li>
+&lt;li>The process performing Git operations has access to SSH keys, cloud
+credentials, package publishing tokens, source code, build artifacts, or
+internal network routes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;GitPython|from git import Repo|import git|Repo\.clone_from|Repo\.clone\(|\.fetch\(|\.pull\(|\.push\(|multi_options|clone_multi_options|upload_pack|receive_pack|allow_unsafe&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show GitPython
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^GitPython==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;extra.*git|git.*options|clone.*options|repo.*import|repository.*sync|webhook.*clone|workflow.*clone&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade GitPython to &lt;code>3.1.47+&lt;/code> everywhere this repository controls manifests,
+lockfiles, images, or runtime packaging.&lt;/li>
+&lt;li>Remove user-controlled pass-through of Git kwargs and &lt;code>multi_options&lt;/code>.&lt;/li>
+&lt;li>Replace free-form Git option input with a strict allow-list of product
+features, represented as typed fields rather than raw flags.&lt;/li>
+&lt;li>Block &lt;code>upload_pack&lt;/code>, &lt;code>receive_pack&lt;/code>, &lt;code>exec&lt;/code>, &lt;code>config&lt;/code>, &lt;code>c&lt;/code>, &lt;code>core.hooksPath&lt;/code>,
+and any option that can choose helper commands, hooks, config, protocol
+behavior, or SSH commands.&lt;/li>
+&lt;li>Run repo-ingest workers with least privilege, isolated workspaces, disabled
+hooks where possible, and credentials scoped to the one repository operation.&lt;/li>
+&lt;li>Review worker logs and credential access if untrusted users could control Git
+options during the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GitPython command injection advisories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades GitPython, removes unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> option pass-through, adds regression coverage, and documents operator cleanup,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected GitPython runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH keys, deploy keys, package tokens, cloud credentials, source code,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repo URLs, and worker environment values as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads, helper commands, custom hooks, reverse
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shells, or attacker-controlled Git options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep a free-form &amp;#34;extra Git options&amp;#34; feature for untrusted callers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every GitPython dependency controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requirements files, pyproject files, lockfiles, constraints, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> base images, CI images, worker images, SBOMs, vendored code, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved GitPython version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves below &lt;span class="sb">`3.1.47`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search code paths that perform repository operations:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Repo.clone_from()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Repo.clone()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.fetch()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.pull()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.push()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Submodule.update()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> wrappers around repository import, mirror, sync, CI checkout, or agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workspace preparation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether untrusted input can reach GitPython options:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request bodies, webhook payloads, tenant settings, workflow YAML, job config,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> LLM/tool arguments, database records, environment variables, or &amp;#34;advanced
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> options&amp;#34; fields.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If GitPython is absent or only used in non-deployable tooling, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was checked and why the runtime is not exposed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade GitPython to &lt;span class="sb">`3.1.47+`&lt;/span> on the smallest compatible release line.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Regenerate lockfiles, constraints, images, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Remove unsafe option pass-through:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> do not pass user dictionaries directly as &lt;span class="sb">`**kwargs`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> do not pass user strings to &lt;span class="sb">`multi_options`&lt;/span> or &lt;span class="sb">`clone_multi_options`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject &lt;span class="sb">`upload_pack`&lt;/span>, &lt;span class="sb">`receive_pack`&lt;/span>, &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`config`&lt;/span>, &lt;span class="sb">`c`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`core.hooksPath`&lt;/span>, &lt;span class="sb">`GIT_SSH_COMMAND`&lt;/span>, and equivalent normalized spellings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> represent supported behavior as typed fields, then map to a finite
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allow-list of safe GitPython arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`upload_pack`&lt;/span> and &lt;span class="sb">`receive_pack`&lt;/span> kwargs from untrusted input are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> hyphen, underscore, and mixed-normalization forms are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`multi_options`&lt;/span> strings containing embedded unsafe flags are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`clone_multi_options`&lt;/span> for submodules uses the same validator;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> validation happens after parsing/normalization, not only before it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Harden repo-ingest execution where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run workers as unprivileged users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate workspaces per job;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scrub environment variables before Git operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scope SSH/deploy keys to the target repo and operation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Git hooks or run with safe hook policy where supported.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GitPython advisory operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected GitPython versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which repo-operation paths were reachable by untrusted input;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether free-form Git option features were removed or restricted;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which worker credentials should be rotated if exposure existed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for suspicious helper, hook, config, or SSH
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> command options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, unit tests, integration tests
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for repository import/sync, lint/typecheck, image build, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate GitPython command injection advisories`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No deployable GitPython runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed GitPython version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on arbitrary caller-controlled Git options;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled hooks or helper
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves GitPython
+below &lt;code>3.1.47&lt;/code>.&lt;/li>
+&lt;li>User-controlled dictionaries, strings, workflow fields, or LLM/tool arguments
+cannot become raw GitPython kwargs, &lt;code>multi_options&lt;/code>, or
+&lt;code>clone_multi_options&lt;/code>.&lt;/li>
+&lt;li>Regression tests cover normalized option names and post-parse validation.&lt;/li>
+&lt;li>Repo-ingest workers do not run with broad credentials or reusable shared
+workspaces.&lt;/li>
+&lt;li>The PR identifies whether credential rotation and log review are required.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating application requirements while CI, worker, or agent images still
+carry an older GitPython version.&lt;/li>
+&lt;li>Blocking only literal &lt;code>--upload-pack&lt;/code> while allowing &lt;code>upload_pack&lt;/code>.&lt;/li>
+&lt;li>Validating &lt;code>multi_options&lt;/code> before splitting or normalization.&lt;/li>
+&lt;li>Treating repository URLs as the only untrusted input and missing workflow
+fields that configure clone/fetch behavior.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-rpm5-65cw-6hj4"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rpm5-65cw-6hj4&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-x2qx-6953-8485&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-x2qx-6953-8485"target="_blank" rel="noopener">https://github.com/advisories/GHSA-x2qx-6953-8485&lt;/a>&lt;/li>
+&lt;li>GitPython project: &lt;a href="https://github.com/gitpython-developers/GitPython"target="_blank" rel="noopener">https://github.com/gitpython-developers/GitPython&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

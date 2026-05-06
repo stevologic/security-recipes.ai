@@ -1,0 +1,239 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Audit</title><link>https://security-recipes.ai/tags/audit/</link><description>Recent content in Audit on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 22 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/audit/index.xml" rel="self" type="application/rss+xml"/><item><title>OWASP Top 10 (2026) — repo audit</title><link>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/</link><pubDate>Wed, 22 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/</guid><description>
+&lt;p>A tool-agnostic &lt;strong>hunt prompt&lt;/strong> that walks an agent through a structured
+audit of a repository against every category in the OWASP Top 10 (2026
+iteration). The output is a prioritised report with file-level pointers
+and concrete remediation recommendations — not a fix.&lt;/p>
+&lt;p>Pair this with the companion remediate prompt,
+&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) — remediate&lt;/a>,
+to take a single finding from the report to an open PR.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>It asks the agent to:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Enumerate the repo&lt;/strong> — language, framework, entry points, auth
+mechanism, data stores, external calls, secret-handling paths.&lt;/li>
+&lt;li>&lt;strong>Walk each OWASP Top 10 2026 category&lt;/strong> and look for concrete
+instances, not theoretical risk.&lt;/li>
+&lt;li>&lt;strong>Score and group findings&lt;/strong> by category, severity, and blast
+radius.&lt;/li>
+&lt;li>&lt;strong>Emit a structured report&lt;/strong> a reviewer can hand to product teams
+or feed into the remediate prompt.&lt;/li>
+&lt;/ol>
+&lt;p>Runs read-only. Does not edit files. No PRs.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Quarterly posture review of a service you own.&lt;/li>
+&lt;li>Diligence pass before a new service moves to production.&lt;/li>
+&lt;li>Follow-on after a pen-test report that only listed categories, not
+file paths.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Real-time exploit triage — too slow and too broad.&lt;/li>
+&lt;li>Replacing SAST/DAST — this is a structured LLM pass, not a
+vulnerability scanner. It catches design-level issues scanners miss
+and misses pattern-level issues scanners catch. Run both.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The agent should &lt;strong>infer&lt;/strong> as much as it can from the working session
+and prompt only when genuinely ambiguous:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Repo&lt;/strong> — the working directory the agent is running in.&lt;/li>
+&lt;li>&lt;strong>Scope&lt;/strong> — if the user mentions a specific directory or service,
+restrict to that. Otherwise, audit the whole repo.&lt;/li>
+&lt;li>&lt;strong>Deployment target&lt;/strong> — infer from &lt;code>Dockerfile&lt;/code> / &lt;code>k8s/&lt;/code> /
+&lt;code>terraform/&lt;/code> / CI config. If unknown, note it in the report.&lt;/li>
+&lt;li>&lt;strong>Auth / authz model&lt;/strong> — infer from routing + middleware + any
+&lt;code>auth/&lt;/code> module. If unclear, note it.&lt;/li>
+&lt;/ul>
+&lt;p>Do not refuse to run because an input is missing; produce the best
+report you can and flag the gaps.&lt;/p>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are performing a security posture audit of this repository against
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the OWASP Top 10 (2026). Run read-only. Do not edit files or run
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">destructive commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Repo orientation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Before auditing, infer and record:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Primary language and framework.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Entry points (HTTP routes, gRPC services, queue consumers, CLI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands, scheduled jobs).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Authentication mechanism.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Data stores touched (databases, caches, object storage, message
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> queues).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> External services called.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Secret handling (env vars, secret managers, config files).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> CI / deployment pipeline — where is this run, how is it built.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Record these in a short &amp;#34;Context&amp;#34; section at the top of the report.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If any are unknown after a reasonable look, say so — do not guess.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Walk each OWASP Top 10 2026 category
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each category, answer three questions:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="gs">**What would this look like in this codebase?**&lt;/span> (The concrete
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shape the weakness would take, given the framework and entry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> points.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> &lt;span class="gs">**Did you find any instances?**&lt;/span> (File paths, line numbers, and a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> one-line excerpt for each.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> &lt;span class="gs">**What would fix or mitigate it?**&lt;/span> (Specific, actionable —
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;add authz check to route X&amp;#34; beats &amp;#34;improve access control&amp;#34;.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### Categories to cover
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Use the current OWASP Top 10 2026 naming. If the release is still
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">draft, note the version you are auditing against at the top of the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">report. Cover at minimum:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A01 — Broken Access Control.** Missing authz checks on routes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IDOR patterns, tenant-id trust from client, over-broad admin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoints.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A02 — Cryptographic Failures.** Weak/old ciphers, hard-coded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys, TLS verification disabled, plaintext-at-rest for sensitive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fields, bad password hashing (MD5/SHA1/unsalted).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A03 — Injection.** SQL/NoSQL/command/LDAP/XPath injection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unsafe template rendering, prompt injection paths for LLM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> features (untrusted text pasted into a system prompt or tool
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> call).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A04 — Insecure Design.** Missing rate limits on auth-adjacent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoints, enumeration oracles (login, password-reset,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> invite-by-email), trust boundaries crossed without validation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> features shipped without a threat model.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A05 — Security Misconfiguration.** Debug mode in production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> paths, permissive CORS, default credentials, verbose error
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pages, cloud resources without least-privilege IAM, missing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security headers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A06 — Vulnerable and Outdated Components.** Lockfile entries
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with known CVEs, unpinned or wildcard deps, abandoned upstreams,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored code without a clear origin.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A07 — Identification and Authentication Failures.** Weak
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> session handling, no MFA for sensitive ops, no account lockout
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or rate limiting on login, password policy gaps, tokens in URLs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A08 — Software and Data Integrity Failures.** Unsigned release
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts, CI pipelines that trust unverified third-party
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions, deserialization of untrusted data, auto-update paths
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without signature checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A09 — Security Logging and Monitoring Failures.** Sensitive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operations that emit no audit record, PII/secrets in logs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> missing correlation IDs, no alerting on auth anomalies.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A10 — Server-Side Request Forgery (SSRF).** Outbound HTTP
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> built from user input without allowlisting, webhook fetchers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> URL preview services, metadata-endpoint (169.254.169.254) not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blocked.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the published 2026 list adds or renames a category (for example,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">a standalone entry for LLM/agent-supply-chain risks), include it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">using the current OWASP wording and drop any category that was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">merged or retired.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Score and prioritise
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each finding, assign:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Severity** — critical / high / medium / low. Use CVSS-style
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reasoning; err low when exploitation requires already-privileged
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Blast radius** — scope of impact if exploited (one tenant, all
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenants, infra, etc.).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Confidence** — high / medium / low. Low confidence is fine;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> flag it so a reviewer can verify.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Sort the report by (severity, blast radius, confidence).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Emit the report
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Write the report to &lt;span class="sb">`SECURITY_AUDIT.md`&lt;/span> at the repo root (or print
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">to stdout if the session is read-only). Use this structure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```markdown
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span>&lt;span class="gh"># OWASP Top 10 (2026) audit — &amp;lt;repo name&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="ge">_Generated by &amp;lt;agent name&amp;gt; on &amp;lt;date&amp;gt;. OWASP version: &amp;lt;draft/final, date&amp;gt;._&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Context
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Language / framework: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Entry points: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Auth model: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Data stores: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Deploy target: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Gaps in context: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Findings
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### &amp;lt;Severity&amp;gt; — &amp;lt;A0X category&amp;gt; — &amp;lt;short title&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> **File:** &lt;span class="sb">`path/to/file.py:42`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Excerpt:** &lt;span class="sb">`...one line of code...`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Why it&amp;#39;s flagged:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Blast radius:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Confidence:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Recommended fix:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(repeat for each finding, sorted)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Categories with no findings
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> A0X — reasoning for why no instance was found (searched patterns,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> areas covered).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Gaps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Things the audit could not reach (e.g., &amp;#34;no access to the IAM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> config for the deployed environment&amp;#34;).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Stop and write a note rather than guessing if:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo is larger than you can meaningfully audit in one pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Suggest splitting by module and re-running.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A category requires runtime context you do not have (for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> example, deploy configuration lives in another repo).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You find credentials, private keys, or unmistakable exploit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts — flag these to the top of the report immediately and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop; they are an incident, not an audit finding.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A single &lt;code>SECURITY_AUDIT.md&lt;/code> file with the structure above, or
+the same content on stdout if write access is not available.&lt;/li>
+&lt;li>No source file edits.&lt;/li>
+&lt;li>No PRs.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Read-only. The agent should not use any write tool.&lt;/li>
+&lt;li>Do not exfiltrate repo contents to external services. If the
+agent has web-search / fetch tools, restrict them to looking up
+CVE advisories and OWASP documentation.&lt;/li>
+&lt;li>Redact any credentials, tokens, or private keys the agent
+stumbles on while reading code — the report references them by
+file/line, never by value.&lt;/li>
+&lt;/ul>
+&lt;h2>How to hand off to remediation&lt;span class="hx:absolute hx:-mt-20" id="how-to-hand-off-to-remediation">&lt;/span>
+&lt;a href="#how-to-hand-off-to-remediation" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Pick the top finding.&lt;/li>
+&lt;li>Feed its file, line, category, and recommended fix into the
+companion prompt:
+&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) — remediate&lt;/a>.&lt;/li>
+&lt;li>Review the PR it opens.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/">Fundamentals&lt;/a> — vocabulary used in
+the report (SAST, SSRF, blast radius).&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/mcp-servers/">MCP Server Access&lt;/a> — wiring an
+agent to scanners so audits can cross-reference existing findings.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) — remediate&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

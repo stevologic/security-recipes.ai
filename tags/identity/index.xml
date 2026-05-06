@@ -1,0 +1,156 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Identity</title><link>https://security-recipes.ai/tags/identity/</link><description>Recent content in Identity on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/identity/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-42560 - go-pkgz/auth Patreon identity collision</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42560-go-pkgz-auth-patreon-identity-collision/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42560-go-pkgz-auth-patreon-identity-collision/</guid><description>
+&lt;p>&lt;code>go-pkgz/auth&lt;/code> maps every authenticated Patreon user to the same local
+&lt;code>token.User.ID&lt;/code> in affected releases. The Patreon provider hashes an
+uninitialized destination field instead of the Patreon account ID, so unrelated
+Patreon accounts can collapse into the same application identity.&lt;/p>
+&lt;p>The bug is critical for applications that enable Patreon login and use
+&lt;code>token.User.ID&lt;/code> as an account key, role key, entitlement key, profile key, or
+subscription-state key. A normal Patreon login can then access or overwrite data
+associated with another Patreon-authenticated user, and any elevated privileges
+attached to the shared local ID can apply to every Patreon login.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/go-pkgz/auth &amp;gt;=1.18.0, &amp;lt;=1.25.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/go-pkgz/auth 1.25.2+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/go-pkgz/auth/v2 &amp;gt;=2.0.0, &amp;lt;=2.1.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/go-pkgz/auth/v2 2.1.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A Go service imports either affected module and resolves a vulnerable version.&lt;/li>
+&lt;li>The service enables the Patreon provider, such as &lt;code>provider.NewPatreon&lt;/code>.&lt;/li>
+&lt;li>Application code treats &lt;code>token.User.ID&lt;/code>, JWT user claims, or auth middleware
+context values as the stable local account identifier.&lt;/li>
+&lt;li>Data stores contain the shared broken Patreon ID:
+&lt;code>patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709&lt;/code>.&lt;/li>
+&lt;li>Existing Patreon sessions or long-lived JWTs may still carry the broken ID.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;github.com/go-pkgz/auth|NewPatreon|patreon_|token\\.User|User\\.ID&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m -json github.com/go-pkgz/auth github.com/go-pkgz/auth/v2 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/go-pkgz/auth&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>github.com/go-pkgz/auth&lt;/code> to &lt;code>1.25.2+&lt;/code> and
+&lt;code>github.com/go-pkgz/auth/v2&lt;/code> to &lt;code>2.1.2+&lt;/code>.&lt;/li>
+&lt;li>Add a regression test that maps two different Patreon payloads and asserts
+distinct local user IDs.&lt;/li>
+&lt;li>Expire Patreon-authenticated sessions and JWTs minted by vulnerable code.&lt;/li>
+&lt;li>Search production data for the shared broken ID and produce an operator-owned
+migration or relinking plan. Do not automatically split accounts without a
+human-reviewed source of truth.&lt;/li>
+&lt;li>If the fixed dependency cannot be shipped immediately, disable Patreon login
+until the upgrade and session cleanup are deployed.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42560 (go-pkgz/auth Patreon OAuth identity
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">collision). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that patches the dependency, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regression coverage, and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42560.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite unrelated authentication providers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently migrate or merge user accounts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log OAuth tokens, Patreon payloads, JWTs, cookies, or user secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all references to &lt;span class="sb">`github.com/go-pkgz/auth`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`github.com/go-pkgz/auth/v2`&lt;/span> in &lt;span class="sb">`go.mod`&lt;/span>, &lt;span class="sb">`go.sum`&lt;/span>, vendor trees, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency manifests, SBOMs, and container build inputs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether either module resolves to a vulnerable version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth &amp;gt;=1.18.0, &amp;lt;=1.25.1`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth/v2 &amp;gt;=2.0.0, &amp;lt;=2.1.1`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check whether the application enables Patreon OAuth, for example
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`provider.NewPatreon`&lt;/span>, and whether local accounts, roles, subscriptions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> entitlements are keyed from &lt;span class="sb">`token.User.ID`&lt;/span> or JWT user claims.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Upgrade vulnerable modules to fixed releases:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth &amp;gt;=1.25.2`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth/v2 &amp;gt;=2.1.2`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Then run the normal Go module tidy/vendor workflow used by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Add or update regression tests that exercise Patreon user mapping with at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> least two different Patreon &lt;span class="sb">`data.id`&lt;/span> fixture values and assert that the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resulting local IDs are distinct.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42560 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether Patreon login is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether the shared ID
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709`&lt;/span> was found in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application data, fixtures, seed data, or tests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which sessions, JWTs, refresh tokens, or auth caches must be expired;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether affected Patreon-linked accounts need human-reviewed relinking.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If Patreon login is enabled and account data may already be collapsed, add a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> conservative runbook or migration stub that identifies impacted records but
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requires explicit operator approval before changing account ownership.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Run the relevant validation, normally &lt;span class="sb">`go test ./...`&lt;/span>, dependency scanning,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and any auth-provider or API tests in the repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42560 in go-pkgz/auth`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The project cannot consume &lt;span class="sb">`go-pkgz/auth`&lt;/span> &lt;span class="sb">`1.25.2+`&lt;/span> or &lt;span class="sb">`v2.1.2+`&lt;/span> without a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> larger auth redesign.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The app uses Patreon login but there is no reliable way to identify records
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> created with the shared broken ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail for unrelated pre-existing reasons; document them instead of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> broadening scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> This repository only consumes a deployed service owned elsewhere; write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> TRIAGE.md with the owning service, vulnerable module evidence, and required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rollout actions.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No resolved dependency path remains on a vulnerable go-pkgz/auth release.&lt;/li>
+&lt;li>Patreon mapping tests prove that different Patreon account IDs produce
+different local user IDs.&lt;/li>
+&lt;li>Session/token expiry and any account relinking work are called out as
+operator actions, not hidden in a risky automatic migration.&lt;/li>
+&lt;li>CI, Go tests, and dependency scans pass or unrelated failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Transitive or vendored copies that keep the vulnerable module even after
+&lt;code>go.mod&lt;/code> is updated.&lt;/li>
+&lt;li>Applications that do not call Patreon directly but expose it through shared
+auth configuration.&lt;/li>
+&lt;li>Existing test fixtures that assert the broken
+&lt;code>patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709&lt;/code> value.&lt;/li>
+&lt;li>Long-lived JWTs that continue to authorize the shared ID after the dependency
+upgrade.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-f6qq-3m3h-4g42"target="_blank" rel="noopener">https://github.com/advisories/GHSA-f6qq-3m3h-4g42&lt;/a>&lt;/li>
+&lt;li>Fixed release &lt;code>v1.25.2&lt;/code>: &lt;a href="https://github.com/go-pkgz/auth/releases/tag/v1.25.2"target="_blank" rel="noopener">https://github.com/go-pkgz/auth/releases/tag/v1.25.2&lt;/a>&lt;/li>
+&lt;li>Fixed release &lt;code>v2.1.2&lt;/code>: &lt;a href="https://github.com/go-pkgz/auth/releases/tag/v2.1.2"target="_blank" rel="noopener">https://github.com/go-pkgz/auth/releases/tag/v2.1.2&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

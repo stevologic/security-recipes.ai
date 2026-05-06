@@ -1,0 +1,44 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Risk-Controls</title><link>https://security-recipes.ai/tags/risk-controls/</link><description>Recent content in Risk-Controls on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/risk-controls/index.xml" rel="self" type="application/rss+xml"/><item><title>DeFi oracle manipulation guardrails</title><link>https://security-recipes.ai/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails/</guid><description>
+&lt;p>Use this prompt to add and verify protections against oracle-based
+price manipulation in DeFi execution paths.&lt;/p>
+&lt;h2>Use when&lt;span class="hx:absolute hx:-mt-20" id="use-when">&lt;/span>
+&lt;a href="#use-when" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Liquidation and borrow limits rely on oracle prices.&lt;/li>
+&lt;li>Thin-liquidity assets can be manipulated intra-block.&lt;/li>
+&lt;li>Protocol needs bounded fallback behavior during oracle anomalies.&lt;/li>
+&lt;/ul>
+&lt;h2>Prompt&lt;span class="hx:absolute hx:-mt-20" id="prompt">&lt;/span>
+&lt;a href="#prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are a DeFi security remediation agent implementing oracle guardrails.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Goal: harden oracle consumption paths and add tests proving safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">behavior under manipulation scenarios. Output PR or TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Controls to implement:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TWAP/medianized price checks where applicable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Maximum deviation and staleness thresholds.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Secondary-source cross-check or safe pause mode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Circuit breaker for extreme price movement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Tasks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Identify every contract/module that reads oracle values.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add validation wrapper enforcing staleness + deviation limits.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add simulation tests for flash-spike, stale feed, and feed outage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Ensure fail mode is deterministic (pause/reject) rather than
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> partially executing risky actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Constraints:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not relax collateral requirements to make tests pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Keep guardrail constants in governance-controlled config.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Stop with TRIAGE.md if no reliable fallback oracle exists.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div></description></item></channel></rss>

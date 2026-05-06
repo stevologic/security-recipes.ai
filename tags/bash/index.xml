@@ -1,0 +1,195 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Bash</title><link>https://security-recipes.ai/tags/bash/</link><description>Recent content in Bash on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/bash/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2014-6271 — Shellshock</title><link>https://security-recipes.ai/prompt-library/cve/cve-2014-6271-shellshock/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2014-6271-shellshock/</guid><description>
+&lt;p>Bash supported exporting &lt;em>functions&lt;/em> through environment
+variables. The export syntax — &lt;code>() { …; }&lt;/code> — was parsed by
+any newly-spawned bash process on import. A trailing
+semicolon let the imported &amp;ldquo;function&amp;rdquo; body include arbitrary
+commands. Any process boundary that turned untrusted input
+into a bash environment variable became RCE. The classic
+target was &lt;code>mod_cgi&lt;/code>: HTTP headers became env vars; bash was
+the CGI interpreter; game over. The first patch was
+incomplete; the durable fix runs through six follow-up CVEs.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Bash&lt;/strong> 1.14 through 4.3 (with various patch levels) —
+vulnerable.&lt;/li>
+&lt;li>The fix shipped in patch levels: bash-3.2.53, bash-4.1.14,
+bash-4.2.50, bash-4.3.27, plus follow-up patches for the
+five sibling CVEs.&lt;/li>
+&lt;li>Modern Bash (5.x) — clean.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Detection is simple but the surface is wide:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># The classic detection one-liner (CVE-2014-6271):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">env &lt;span class="nv">x&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;() { :; }; echo VULNERABLE&amp;#39;&lt;/span> bash -c &lt;span class="s1">&amp;#39;true&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># The follow-up (CVE-2014-7169):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">env &lt;span class="nv">X&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s1">&amp;#39;() { (a)=&amp;gt;\\&amp;#39;&lt;/span> bash -c &lt;span class="s1">&amp;#39;echo date&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span> cat echo&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>If the first prints &lt;code>VULNERABLE&lt;/code> or the second produces a
+file named &lt;code>echo&lt;/code> containing the date, the bash on this
+host has not been fully patched.&lt;/p>
+&lt;p>The exposure that matters is any &lt;strong>process boundary that
+maps untrusted input into a Bash environment&lt;/strong>:&lt;/p>
+&lt;ul>
+&lt;li>Apache &lt;code>mod_cgi&lt;/code> / &lt;code>mod_cgid&lt;/code> invoking a &lt;code>#!/bin/bash&lt;/code>
+CGI script.&lt;/li>
+&lt;li>DHCP clients that pass server-supplied options into a Bash
+hook script.&lt;/li>
+&lt;li>Forced-command SSH configs that run a Bash wrapper.&lt;/li>
+&lt;li>Setuid wrappers that drop into Bash.&lt;/li>
+&lt;li>Container entrypoints that re-exec Bash with attacker-
+controlled env.&lt;/li>
+&lt;/ul>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Upgrade&lt;/strong> Bash to a current 5.x release, &lt;em>or&lt;/em> to the
+patch level that includes the fix for &lt;em>all&lt;/em> of the
+Shellshock-family CVEs (-6271, -7169, -6277, -6278, -7186,
+-7187). Do not stop at the first one.&lt;/li>
+&lt;li>&lt;strong>Audit&lt;/strong> every CGI / DHCP-hook / setuid wrapper / SSH
+forced-command surface for use of Bash. Replace &lt;code>#!/bin/bash&lt;/code>
+with &lt;code>#!/bin/dash&lt;/code> (or &lt;code>/bin/sh&lt;/code> if Debian-family) where the
+script doesn&amp;rsquo;t need Bash features.&lt;/li>
+&lt;li>&lt;strong>Disable&lt;/strong> &lt;code>mod_cgi&lt;/code> and &lt;code>mod_cgid&lt;/code> in any web server that
+doesn&amp;rsquo;t need them.&lt;/li>
+&lt;li>&lt;strong>Re-audit&lt;/strong> the system as a whole. Shellshock exposure on
+a host today implies a multi-year patching gap; the
+incident response is broader than one CVE.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating Shellshock and its sibling CVEs on this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">host or system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request upgrading bash and tightening the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposed CGI / DHCP / SSH-hook surface, plus an IR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the host&amp;#39;s patching gap is broader than
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this CVE family.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read bash version: &lt;span class="sb">`bash --version`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Run all six Shellshock detection one-liners (or pull a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> detection script from a trusted source). Confirm none
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> print the canary string.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify Bash-using boundaries:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`find / -name &amp;#39;*.cgi&amp;#39; -exec head -1 {} \\; | grep bash`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> DHCP hook scripts under &lt;span class="sb">`/etc/dhcp`&lt;/span> /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/etc/NetworkManager/dispatcher.d`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SSH &lt;span class="sb">`authorized_keys`&lt;/span> &lt;span class="sb">`command=`&lt;/span> forced commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Container entrypoints that re-exec Bash.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Upgrade Bash
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="sb">`apt upgrade bash`&lt;/span> / &lt;span class="sb">`dnf upgrade bash`&lt;/span> to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distro&amp;#39;s current packaged version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Re-run all six detection one-liners. None should fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Tighten exposed surfaces
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For every Bash-using boundary identified in Step 0:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **CGI scripts:** if the script doesn&amp;#39;t need Bash features
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (associative arrays, &lt;span class="sb">`[[`&lt;/span>-tests, process substitution),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> switch the shebang to &lt;span class="sb">`/bin/dash`&lt;/span> or &lt;span class="sb">`/bin/sh`&lt;/span>. If it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> does need Bash, keep Bash but document the exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **&lt;span class="sb">`mod_cgi`&lt;/span> / &lt;span class="sb">`mod_cgid`&lt;/span>:** disable in &lt;span class="sb">`httpd.conf`&lt;/span> /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`apache2.conf`&lt;/span> if the application can serve via FastCGI,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PHP-FPM, or a modern WSGI / ASGI stack instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **DHCP hooks:** review for shell injection on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server-controlled fields. The agent doesn&amp;#39;t auto-rewrite
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> these — flag for triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **SSH forced commands:** audit the wrapper script;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> prefer a non-shell binary or a tightly-controlled allowlist.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — IR checklist (when patching gap is broader)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The TRIAGE.md must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Confirm host distro is supported and currently patched.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate any credentials that ran through the exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> surface (CGI auth tokens, DHCP-distributed secrets).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit web logs and DHCP logs for known Shellshock
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exploitation patterns: &lt;span class="sb">`User-Agent: () { :; };`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Referer: () { :; };`&lt;/span>, etc.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Schedule a comprehensive runtime upgrade.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distro is end-of-life and no patched bash is available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Triage with a recommendation to migrate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A CGI script genuinely depends on Bash and the migration
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to FastCGI/WSGI is non-trivial. Flag and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s auth log shows unexplained sessions during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure window — this is incident response, not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> routine remediation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite CGI scripts beyond the shebang change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not disable &lt;span class="sb">`mod_cgi`&lt;/span> if a legitimate application
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> depends on it; flag for triage instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle unrelated CVE fixes.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>All six Shellshock-family detection one-liners pass after
+the upgrade.&lt;/li>
+&lt;li>The Bash-using boundary list in the PR body is complete
+and accurate (re-grep to confirm).&lt;/li>
+&lt;li>For surfaces where Bash was replaced with &lt;code>dash&lt;/code> / &lt;code>sh&lt;/code>,
+the script&amp;rsquo;s tests still pass — Bashisms (&lt;code>[[&lt;/code>, &lt;code>==&lt;/code>,
+array syntax) are the common breakers.&lt;/li>
+&lt;li>The reviewer does not assume the absence of &lt;code>mod_cgi&lt;/code> is
+the same as the absence of all Bash-CGI surfaces.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Single-CVE patching.&lt;/strong> Many vendor advisories shipped a
+fix for -6271 days before -7169. A host patched against
+only the first is still exploitable. Test all six.&lt;/li>
+&lt;li>&lt;strong>Bash on Alpine.&lt;/strong> Alpine&amp;rsquo;s default shell is &lt;code>ash&lt;/code>, but
+containers that explicitly install bash inherit the same
+exposure. Audit Dockerfiles.&lt;/li>
+&lt;li>&lt;strong>Container entrypoints.&lt;/strong> A &lt;code>CMD [&amp;quot;/bin/bash&amp;quot;]&lt;/code> with
+attacker-controlled env (e.g., from an upstream input)
+re-creates the same surface inside a container. The
+generic remediation is to replace the entrypoint with a
+non-shell binary.&lt;/li>
+&lt;li>&lt;strong>OS images that aren&amp;rsquo;t actively patched.&lt;/strong> Shellshock
+exposure on a host in 2026 is a tip-of-the-iceberg signal.
+The recipe says so; don&amp;rsquo;t treat the bash bump as the end of
+the conversation.&lt;/li>
+&lt;li>&lt;strong>Proxies and load-balancers.&lt;/strong> Some appliances embed older
+Bash. The same shape applies; the fix path is the
+appliance vendor&amp;rsquo;s, not the host&amp;rsquo;s.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— for evicting old Bash from container bases.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— generic CVE workflow.&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,434 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – GitHub Copilot</title><link>https://security-recipes.ai/prompt-library/github_copilot/</link><description>Recent content in GitHub Copilot on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><atom:link href="https://security-recipes.ai/prompt-library/github_copilot/index.xml" rel="self" type="application/rss+xml"/><item><title>Vulnerable dependency remediation (issue template + instructions)</title><link>https://security-recipes.ai/prompt-library/github_copilot/vulnerable-dep-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/github_copilot/vulnerable-dep-remediation/</guid><description>
+&lt;p>A three-part bundle — a &lt;code>.github/copilot-instructions.md&lt;/code>
+addendum, a GitHub issue template, and the issue body that gets
+created when a scanner projects a finding. Together they shape
+the Copilot coding agent into a narrow, reviewable dependency
+remediator: one finding per issue, one draft PR per issue, no
+auto-merge.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the scanner (or a developer) creates an issue from the
+&lt;code>security-remediation-dep.yml&lt;/code> template and labels it
+&lt;code>copilot-remediate&lt;/code>, the Copilot coding agent picks it up, reads
+the repository-level instructions, applies the minimum viable
+version bump in the affected manifest + lockfile, runs CI, and
+opens a draft PR linked back to the issue. The agent respects
+the house rules — no major bumps, no lockfile-only edits, no
+disabling of tests.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> finding id + affected package (from the issue body),
+repository-level instructions (from &lt;code>.github/copilot-instructions.md&lt;/code>).&lt;br/>
+&lt;strong>Outputs:&lt;/strong> a draft PR linked to the issue, passing CI, and a
+human reviewer assigned via &lt;code>CODEOWNERS&lt;/code>.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>You want the shortest-setup remediation path. GitHub-native, no
+separate orchestration layer.&lt;/li>
+&lt;li>Your scanner already supports projecting findings into GitHub
+Issues (CodeQL, Snyk, Semgrep, Dependabot alerts converted to
+issues).&lt;/li>
+&lt;li>You have branch protection on &lt;code>main&lt;/code> that requires review and
+green CI, so the &amp;ldquo;agent opens a draft PR&amp;rdquo; pattern is safe.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Major version migrations — the repository instructions refuse.&lt;/li>
+&lt;li>Cross-repo fanouts — each repo needs its own label + workflow;
+this prompt is per-repo.&lt;/li>
+&lt;li>First-party SAST findings — use the SDE remediation recipe.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Three files, checked in to the repo.&lt;/p>
+&lt;h3>&lt;code>.github/copilot-instructions.md&lt;/code> — dependency remediation addendum&lt;span class="hx:absolute hx:-mt-20" id="githubcopilot-instructionsmd--dependency-remediation-addendum">&lt;/span>
+&lt;a href="#githubcopilot-instructionsmd--dependency-remediation-addendum" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;p>Append this to your existing &lt;code>copilot-instructions.md&lt;/code>:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Vulnerable dependency remediation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">When working on an issue labeled &lt;span class="sb">`copilot-remediate`&lt;/span> whose body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">includes a finding id (CVE- / GHSA-), follow these rules.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> ONE finding per PR. Never bundle multiple advisories.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`copilot/&amp;lt;finding-id&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Commit: Conventional Commits: `fix(sec): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> from &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">old&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">new&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">finding-id&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">### Version bump policy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Pick the LOWEST version in the advisory&amp;#39;s patched range.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- NEVER bump across a major-version boundary. If the only fix
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> is a major bump, post a comment on the issue explaining why
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> (direct dep vs transitive, breaking changes expected) and
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> stop — do not push a PR.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Pre-release / rc / beta versions are off by default. If the
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> advisory lists only a pre-release fix, comment on the issue
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> and stop.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">### Tooling
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Use the native package manager to apply the bump. Never
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> hand-edit the lockfile.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- After the bump, run the lint and test commands documented at
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> the top of this file. If they fail because of the bump,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> revert, comment on the issue with the failing tests, and stop.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">### Paths you may NOT touch
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- `&lt;/span>db/migrations/**&lt;span class="sb">` — any DB migration.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- `&lt;/span>infra/terraform/**&lt;span class="sb">` — infra-as-code.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- `&lt;/span>**/*.generated.*&lt;span class="sb">` — generated code.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Any CI workflow, except to update a pinned action version in
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> response to a CVE on that action.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">### PR shape
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Title: `&lt;/span>fix(sec): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">finding-id&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Body: link the issue (`&lt;/span>Closes &lt;span class="ni">#NNN&lt;/span>`), finding id + link to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory, old → new version, direct vs transitive, test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> command + pass evidence, one-line revert instructions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Keep the PR as DRAFT. Never mark ready-for-review. Never
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enable auto-merge.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h3>&lt;code>.github/ISSUE_TEMPLATE/security-remediation-dep.yml&lt;/code>&lt;span class="hx:absolute hx:-mt-20" id="githubissue_templatesecurity-remediation-depyml">&lt;/span>
+&lt;a href="#githubissue_templatesecurity-remediation-depyml" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Security — Dependency remediation&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Open a remediation task for a single CVE / GHSA finding.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;Remediate: &amp;lt;finding-id&amp;gt; in &amp;lt;package&amp;gt;&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">labels&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;copilot-remediate&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;security&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">assignees&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;copilot&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">input&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">finding_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Finding id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">CVE id, GHSA id, or scanner-assigned id.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">placeholder&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">CVE-2026-1234&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">input&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">package&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Affected package&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Package name (best-effort hint from the scanner).&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">placeholder&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;@example/unsafe-parser&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">dropdown&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">severity&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Advisory severity&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">options&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="l">critical, high, medium, low]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">textarea&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">advisory_url&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Advisory link(s)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Paste the GHSA / CVE / NVD URL.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">textarea&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">notes&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Notes for the agent&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Anything the scanner couldn&amp;#39;t auto-populate.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">placeholder&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="sd">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sd"> - Dependency is transitive via &amp;#34;express@4&amp;#34;.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sd"> - Workspace package `apps/web` is the caller.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h3>What gets dispatched&lt;span class="hx:absolute hx:-mt-20" id="what-gets-dispatched">&lt;/span>
+&lt;a href="#what-gets-dispatched" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;p>When the issue is created (or labeled), the
+&lt;code>assign-copilot.yml&lt;/code> Action from the recipe page assigns
+&lt;code>@copilot&lt;/code>. The coding agent reads:&lt;/p>
+&lt;ol>
+&lt;li>The repo-level &lt;code>copilot-instructions.md&lt;/code> (house rules + the
+dependency addendum above).&lt;/li>
+&lt;li>The issue body (finding id, package, advisory link).&lt;/li>
+&lt;/ol>
+&lt;p>And produces: a draft PR on &lt;code>copilot/&amp;lt;finding-id&amp;gt;&lt;/code> that either
+fixes the finding or posts a comment explaining why the fix was
+refused (major bump required, pre-release only, tests fail).&lt;/p>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Instructions are a prompt, not enforcement.&lt;/strong> Pair this with
+strict branch protection + &lt;code>CODEOWNERS&lt;/code> routing on any path
+the agent must not touch. The addendum&amp;rsquo;s &amp;ldquo;paths you may NOT
+touch&amp;rdquo; list is advisory; &lt;code>CODEOWNERS&lt;/code> makes it a hard gate.&lt;/li>
+&lt;li>&lt;strong>Single-manifest assumption.&lt;/strong> For monorepos, file one issue
+per affected workspace so the agent has a narrow scope.&lt;/li>
+&lt;li>&lt;strong>Transitive fixes.&lt;/strong> The agent can only hoist a transitive
+fix by bumping a parent; if the parent requires a major bump,
+the addendum forces a stop. That&amp;rsquo;s the correct behavior, but
+expect more &amp;ldquo;refused&amp;rdquo; comments than raw PRs for older
+ecosystems.&lt;/li>
+&lt;li>&lt;strong>Scanner projection cadence matters.&lt;/strong> If your scanner
+projects every low-severity finding into an issue, the Copilot
+review queue will balloon. Gate projection on severity
+&lt;code>high | critical&lt;/code> and label drift manually.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Covers Node / Python / Go
+lockfiles. Major-bump refusal is intentional.&lt;/li>
+&lt;/ul></description></item><item><title>Sensitive data element remediation (issue template + instructions)</title><link>https://security-recipes.ai/prompt-library/github_copilot/sensitive-data-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/github_copilot/sensitive-data-remediation/</guid><description>
+&lt;p>A three-part bundle for the Copilot coding agent — a
+&lt;code>.github/copilot-instructions.md&lt;/code> addendum, an issue template,
+and a repository policy — that shapes Copilot into a careful
+SDE remediator: pre-exposure findings get a minimal code fix in
+a draft PR; exposed findings get a structured triage issue and
+no code edits at all.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When an engineer (or a scanner&amp;rsquo;s issue projector) creates an
+issue from the &lt;code>security-remediation-sde.yml&lt;/code> template and it
+lands labeled &lt;code>copilot-remediate&lt;/code>, the Copilot coding agent
+picks it up. Guided by the repo-level instructions, it:&lt;/p>
+&lt;ol>
+&lt;li>Confirms the SDE literal still appears in the current
+working tree.&lt;/li>
+&lt;li>Classifies the exposure scope using the issue&amp;rsquo;s metadata +
+a git-history check.&lt;/li>
+&lt;li>&lt;strong>Pre-exposure:&lt;/strong> replaces the literal with a reference to
+the approved secret store (or redaction helper), adds a
+regression guard, runs CI, and opens a draft PR linked to
+the issue.&lt;/li>
+&lt;li>&lt;strong>Exposed:&lt;/strong> does not edit code. Instead it comments on the
+issue with a rotation + disclosure checklist and adds the
+&lt;code>needs-rotation&lt;/code> label, routing the work to the on-call.&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>Inputs:&lt;/strong> finding id, SDE class, exposure hint (from the
+issue body); repo-level &lt;code>copilot-instructions.md&lt;/code>.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> either a draft PR (pre-exposure) or an issue
+comment with a rotation checklist + &lt;code>needs-rotation&lt;/code> label
+(exposed).&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub push protection, GitLeaks, TruffleHog, or Wiz already
+writes findings into Issues (or has a webhook you can fan
+into Issues via &lt;code>repository_dispatch&lt;/code>).&lt;/li>
+&lt;li>Your repo has an approved secret-store client documented in
+&lt;code>docs/security/secrets.md&lt;/code> and (for PII) a redaction helper.&lt;/li>
+&lt;li>Branch protection on &lt;code>main&lt;/code> requires a human reviewer —
+critical because this class of change benefits from a second
+pair of eyes.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Already-exposed SDEs as primary-fix — the rule forces
+rotation first. The comment + label is the correct outcome.&lt;/li>
+&lt;li>History cleanup — that&amp;rsquo;s a &lt;code>git filter-repo&lt;/code> runbook, not a
+Copilot job.&lt;/li>
+&lt;li>Binary artifact scrubbing.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Three files, checked in to the repo.&lt;/p>
+&lt;h3>&lt;code>.github/copilot-instructions.md&lt;/code> — SDE remediation addendum&lt;span class="hx:absolute hx:-mt-20" id="githubcopilot-instructionsmd--sde-remediation-addendum">&lt;/span>
+&lt;a href="#githubcopilot-instructionsmd--sde-remediation-addendum" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;p>Append this to your existing &lt;code>copilot-instructions.md&lt;/code>:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Sensitive data element remediation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">When working on an issue labeled &lt;span class="sb">`copilot-remediate`&lt;/span> whose body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">declares an SDE class (&lt;span class="sb">`secret`&lt;/span>, &lt;span class="sb">`token`&lt;/span>, &lt;span class="sb">`pii`&lt;/span>, &lt;span class="sb">`pci`&lt;/span>, &lt;span class="sb">`phi`&lt;/span>),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">follow these rules.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### Exposure scope — classify first
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> PRE-EXPOSURE: literal exists only in the current working
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tree. Never committed to a shared remote. Never printed in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CI logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> EXPOSED: anything else. If in doubt, it&amp;#39;s EXPOSED.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Determine scope by:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Reading the &amp;#34;Exposure&amp;#34; field of the issue body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Running &lt;span class="sb">`git log --all -S &amp;#39;&amp;lt;literal-hash&amp;gt;&amp;#39;`&lt;/span> (hash the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> literal; never echo it).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### EXPOSED — do NOT edit code
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>If scope is EXPOSED:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not open a PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify the offending file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Post a single comment on the issue with:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The rotation checklist (revoke, rotate, re-deploy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> invalidate cached sessions).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The disclosure checklist (IR ticket, service owner, legal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> routing).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The first-seen commit sha + date.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Add the &lt;span class="sb">`needs-rotation`&lt;/span> label.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Remove the &lt;span class="sb">`copilot-remediate`&lt;/span> label (the finding is now a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation task, not an agent task).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### PRE-EXPOSURE — minimal code fix
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`copilot/&amp;lt;finding-id&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Commit: &lt;span class="sb">`fix(sec): remove &amp;lt;class&amp;gt; &amp;lt;finding-id&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replacement patterns:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`secret`&lt;/span> / &lt;span class="sb">`token`&lt;/span> → reference the project&amp;#39;s approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secret store. Identify the client from
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`docs/security/secrets.md`&lt;/span>. If that document doesn&amp;#39;t
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exist or names no client, comment on the issue explaining
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> why remediation is blocked and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`pii`&lt;/span> / &lt;span class="sb">`pci`&lt;/span> / &lt;span class="sb">`phi`&lt;/span> → route through the project&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> redaction helper (grep for &lt;span class="sb">`redact(`&lt;/span>, &lt;span class="sb">`mask_pii`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`scrubPII`&lt;/span>). If none exists, comment on the issue and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop — do not invent one.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Test fixtures with real user data → replace with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Faker-style synthetic values. Comment each fixture with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the finding id.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Add a regression guard: a unit test that fails if the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> literal reappears, or a scanner-config entry that flags it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Allowlist only the synthetic-fixture path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Minimal edit only. No renames. No reformatting unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### What you must NEVER do
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Rewrite git history.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Echo the SDE literal in commit messages, PR bodies, chat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output, or logs. When referring to it, hash it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Commit or remove &lt;span class="sb">`.env`&lt;/span> / &lt;span class="sb">`credentials.json`&lt;/span> files —
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> those require a &lt;span class="sb">`git filter-repo`&lt;/span> runbook + human sign-off.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Merge your own PR. Never enable auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### PR shape (pre-exposure path)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`fix(sec): remove &amp;lt;class&amp;gt; from &amp;lt;file&amp;gt; (&amp;lt;finding-id&amp;gt;)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: link the issue (&lt;span class="sb">`Closes #NNN`&lt;/span>), exposure scope
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`pre-exposure`&lt;/span>), replacement pattern used, test pass
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> evidence, one-line revert instructions. Never include the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> literal.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Labels: &lt;span class="sb">`security`&lt;/span>, &lt;span class="sb">`sde-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Keep the PR as DRAFT. Never mark ready-for-review.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h3>&lt;code>.github/ISSUE_TEMPLATE/security-remediation-sde.yml&lt;/code>&lt;span class="hx:absolute hx:-mt-20" id="githubissue_templatesecurity-remediation-sdeyml">&lt;/span>
+&lt;a href="#githubissue_templatesecurity-remediation-sdeyml" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="nt">name&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Security — Sensitive data element remediation&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Open a remediation task for a single SDE finding.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">title&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;Remediate: &amp;lt;finding-id&amp;gt; (&amp;lt;sde-class&amp;gt;)&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">labels&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;copilot-remediate&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;security&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">assignees&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;copilot&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="nt">body&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">input&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">finding_id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Finding id&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">placeholder&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">GITLEAKS-AWS-001&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">dropdown&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">sde_class&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">SDE class&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">options&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="l">secret, token, pii, pci, phi]&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">dropdown&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">exposure&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Exposure scope&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Best-known answer at the time of filing. The agent will re-verify.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">options&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">pre-exposure (literal only in working tree)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">exposed (committed / pushed / seen in CI logs / public)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="l">unknown&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">input&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">file_path&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">File path&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">placeholder&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">src/config/stripe.ts&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">input&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">line&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Line number&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">placeholder&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="s2">&amp;#34;42&amp;#34;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>- &lt;span class="nt">type&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">textarea&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">id&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">notes&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">attributes&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">label&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="l">Notes for the agent&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">description&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">|&lt;/span>&lt;span class="sd">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sd"> DO NOT paste the literal SDE value in this field. Hash or
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sd"> abstract it. Example: &amp;#34;STRIPE_LIVE_KEY_sk_live_*** (last
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sd"> 4 chars: abcd)&amp;#34;.&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">validations&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="nt">required&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h3>&lt;code>CODEOWNERS&lt;/code> pairing&lt;span class="hx:absolute hx:-mt-20" id="codeowners-pairing">&lt;/span>
+&lt;a href="#codeowners-pairing" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h3>&lt;p>Make sure your &lt;code>CODEOWNERS&lt;/code> routes SDE-relevant paths to the
+security team so branch protection blocks merges until they
+review:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;pre>&lt;code># CODEOWNERS excerpt
+src/config/** @org/security @org/platform
+**/.env.example @org/security
+docs/security/** @org/security&lt;/code>&lt;/pre>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Issue templates accept free-form text.&lt;/strong> If a reporter
+pastes the SDE literal into the notes field by mistake, it
+becomes part of the issue history. Gate the template with a
+CI step that scans &lt;code>issue.body&lt;/code> and auto-edits if a known
+secret pattern appears — don&amp;rsquo;t rely on the reporter.&lt;/li>
+&lt;li>&lt;strong>Git-history check is a heuristic.&lt;/strong> Renames, whitespace
+normalization, or format changes can hide a secret from
+&lt;code>git log -S&lt;/code>. Prefer the scanner&amp;rsquo;s own &amp;ldquo;first seen&amp;rdquo;
+metadata when it&amp;rsquo;s provided.&lt;/li>
+&lt;li>&lt;strong>Exposure classification still benefits from a human.&lt;/strong> If
+&lt;code>Exposure&lt;/code> is &lt;code>unknown&lt;/code>, the agent will treat it as exposed
+(safer default) — which may feel conservative on
+false-positive findings.&lt;/li>
+&lt;li>&lt;strong>Needs-rotation label is the handoff.&lt;/strong> Make sure on-call
+rotates actually subscribe to it.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Exposed-SDE path
+deliberately refuses code edits. Pair with &lt;code>CODEOWNERS&lt;/code> to
+make path protections enforceable at the branch level.&lt;/li>
+&lt;/ul></description></item></channel></rss>

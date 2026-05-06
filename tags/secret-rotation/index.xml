@@ -1,0 +1,244 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Secret-Rotation</title><link>https://security-recipes.ai/tags/secret-rotation/</link><description>Recent content in Secret-Rotation on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/secret-rotation/index.xml" rel="self" type="application/rss+xml"/><item><title>GHSA-xh72/GHSA-xmxx - OpenClaw agent-surface fail-closed bypasses</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-xh72-openclaw-agent-surface-fail-closed/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-xh72-openclaw-agent-surface-fail-closed/</guid><description>
+&lt;p>OpenClaw published a cluster of GitHub-reviewed High/Critical advisories around
+external agent inputs and runtime authorization boundaries. They matter because
+they sit exactly where agentic systems are most exposed: chat/webhook ingress,
+gateway bearer auth, chat-room command authorization, and tool-result media
+normalization.&lt;/p>
+&lt;p>The four advisories covered by this recipe are:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>GHSA-xh72-v6v9-mwhc&lt;/code> (Critical): Feishu webhook mode and card-action
+callbacks could fail open when signing configuration or callback tokens were
+missing or blank, allowing unauthenticated traffic to reach command dispatch.&lt;/li>
+&lt;li>&lt;code>GHSA-xmxx-7p24-h892&lt;/code> (High): gateway HTTP and WebSocket handlers could keep
+accepting an old bearer token after SecretRef rotation because auth was
+resolved at server startup instead of per request.&lt;/li>
+&lt;li>&lt;code>GHSA-2gvc-4f3c-2855&lt;/code> (High): Matrix room control-command authorization could
+trust sender IDs learned from the DM pairing store, crossing the DM/room
+command boundary.&lt;/li>
+&lt;li>&lt;code>GHSA-mr34-9552-qr95&lt;/code> (High): webchat tool-result media handling could pass
+local or UNC-style paths into host-side embedding before enforcing
+&lt;code>localRoots&lt;/code>, risking host file reads or Windows network credential exposure.&lt;/li>
+&lt;/ul>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>OpenClaw Feishu webhook/card-action validation:&lt;/strong>
+&lt;code>openclaw &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw gateway bearer auth re-resolution:&lt;/strong>
+&lt;code>openclaw &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw Matrix room control-command authorization:&lt;/strong>
+&lt;code>openclaw &amp;gt;2026.3.28, &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw webchat media local-root containment:&lt;/strong>
+&lt;code>openclaw &amp;gt;=2026.4.7, &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, builds, deploys, vendors, or documents
+&lt;code>openclaw&lt;/code> before &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>Feishu webhook mode is enabled, especially if &lt;code>encryptKey&lt;/code> is optional,
+missing, read from a SecretRef, or configured differently per environment.&lt;/li>
+&lt;li>Feishu card-action callbacks are accepted, and blank or malformed lifecycle
+callback tokens can reach action dispatch.&lt;/li>
+&lt;li>Gateway bearer tokens are provided through SecretRef or another dynamic
+secret source, and operators expect rotation to revoke old tokens without a
+process restart.&lt;/li>
+&lt;li>Matrix integration is enabled, room control commands are available, and DM
+pairing is used for the same bot account.&lt;/li>
+&lt;li>Webchat renders tool-result media, especially if agents, tools, or users can
+submit &lt;code>file://&lt;/code>, local filesystem, Windows drive, or UNC-style media paths.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;openclaw|@openclaw|OPENCLAW|Feishu|encryptKey|card-action|SecretRef|bearer|Matrix|commandAllowFrom|pairing|webchat|localRoots|file://|UNC&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;openclaw|feishu|matrix|gateway|webchat|localRoots|SecretRef|bearer&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm .github config* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled OpenClaw package, image, deployment manifest, and
+generated SBOM to &lt;code>2026.4.15+&lt;/code>.&lt;/li>
+&lt;li>Fail closed for Feishu ingress: webhook mode must not start without
+&lt;code>encryptKey&lt;/code>, missing signing config must be invalid, invalid signatures must
+return &lt;code>401&lt;/code>, and blank card-action callback tokens must be rejected before
+dispatch.&lt;/li>
+&lt;li>Re-resolve gateway bearer authentication from the current runtime secret
+snapshot on every HTTP request and WebSocket upgrade.&lt;/li>
+&lt;li>Enforce separate Matrix authorization boundaries: DM pairing-store entries
+must not authorize room control commands.&lt;/li>
+&lt;li>Reject remote-host &lt;code>file://&lt;/code> URLs, Windows network paths, and local-root
+bypasses before any media &lt;code>stat&lt;/code>, read, transform, or embed operation.&lt;/li>
+&lt;li>Until the fixed build is live, disable Feishu webhook/card-action ingress,
+disable Matrix room control commands, block local-file media embedding, and
+rotate/restart gateway bearer-token consumers where old tokens may remain
+accepted.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating the OpenClaw 2026.4.15 agent-surface advisory cluster:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-xh72-v6v9-mwhc, GHSA-xmxx-7p24-h892, GHSA-2gvc-4f3c-2855, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-mr34-9552-qr95. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades OpenClaw, adds containment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for exposed agent ingress, adds trust-boundary regression tests, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected OpenClaw runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only the four OpenClaw advisories named above.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Feishu signing keys, callback tokens, Matrix access tokens, gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bearer tokens, SecretRefs, tool-result media paths, local file paths, prompt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> logs, command logs, and workspace paths as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not send forged webhook traffic, room commands, WebSocket upgrades, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> file-read payloads to production, staging, shared dev, or real customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenants.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep any fail-open behavior because an integration was historically
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> optional.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every OpenClaw runtime controlled by this repository: npm manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, Dockerfiles, compose files, Helm charts, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, CI images, SBOMs, gateway config, chat integration config,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exported agent/workflow definitions, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`openclaw`&lt;/span> version. Treat any controlled runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> below &lt;span class="sb">`2026.4.15`&lt;/span> as vulnerable to at least one advisory in this cluster.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Map exposure by integration:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Feishu webhook mode, &lt;span class="sb">`encryptKey`&lt;/span>, signature validation, replay protection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and card-action lifecycle token handling;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway HTTP and WebSocket bearer auth, especially dynamic SecretRef
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation behavior;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Matrix room control commands, DM pairing-store use, room allowlists, group
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlists, and configured sender IDs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> webchat tool-result media embedding, &lt;span class="sb">`localRoots`&lt;/span>, &lt;span class="sb">`file://`&lt;/span> handling,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Windows drive paths, and UNC/network paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the repository does not deploy OpenClaw or only contains unrelated client
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, affected advisory IDs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every controlled OpenClaw package, image, and deployment target to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`2026.4.15+`&lt;/span>. Regenerate lockfiles, image digests, SBOMs, deployment render
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add Feishu fail-closed controls where this repository owns config or code:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> refuse webhook mode when &lt;span class="sb">`encryptKey`&lt;/span> is absent;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> return invalid/unauthorized for missing signing config and invalid
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> signatures;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject blank card-action callback tokens before any handler dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add explicit startup or policy checks so unsafe config cannot ship.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add gateway bearer-token rotation controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve auth from the current runtime secret snapshot per request and per
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WebSocket upgrade;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject old bearer tokens after SecretRef rotation without requiring a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> process restart;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add a readiness or probe test that demonstrates old-token rejection.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add Matrix room authorization controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ensure room command authorizers use configured room senders, room members,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and group allowlists only;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> exclude DM pairing-store sender IDs from room command authorization;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> skip DM pairing-store reads for room traffic where practical.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add webchat media containment controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject remote-host &lt;span class="sb">`file://`&lt;/span> URLs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject Windows UNC/network paths and Windows drive paths outside
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configured roots;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> call local-root containment checks before any filesystem &lt;span class="sb">`stat`&lt;/span>, read,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> transform, embed, or metadata probe;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed when media path type cannot be classified safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add regression tests that do not read real sensitive files or call real chat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> providers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> missing Feishu &lt;span class="sb">`encryptKey`&lt;/span> fails startup or policy validation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> invalid Feishu signatures return unauthorized before JSON/action dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> blank card-action tokens are rejected before handler dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> old gateway bearer tokens fail immediately after SecretRef rotation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> DM-paired Matrix senders cannot authorize room control commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remote-host &lt;span class="sb">`file://`&lt;/span>, UNC, and local-root bypass media paths are rejected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> before filesystem access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add temporary containment for any rollout that is not atomic:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Feishu webhook/card-action routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Matrix room control commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block local-file webchat media embedding;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restart gateway pods after bearer-token rotation until per-request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> re-resolution is verified.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Add a PR body section named &lt;span class="sb">`OpenClaw operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> OpenClaw versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which integrations were enabled and externally or tenant reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which tokens or signing keys should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether process restarts are required during rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which webhook, gateway, Matrix, command-dispatch, and media logs should
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> be reviewed for suspicious activity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Run relevant validation: package install, lockfile integrity, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integration tests with mocked providers, policy checks, gateway/ingress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render tests, image build, deployment diff, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">14.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate OpenClaw agent-surface advisories`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected OpenClaw deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed OpenClaw version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally depend on fail-open webhook auth, stale
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bearer-token validity, DM-to-room command trust, or host-file media embedding;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require forged traffic against real integrations or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reading sensitive host files.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves OpenClaw
+below &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>Feishu webhook mode fails closed when signing configuration is absent or
+invalid, and blank card-action tokens cannot reach dispatch.&lt;/li>
+&lt;li>Gateway bearer auth is resolved from the current secret snapshot per request
+and per WebSocket upgrade.&lt;/li>
+&lt;li>Matrix DM pairing-store entries cannot authorize room control commands.&lt;/li>
+&lt;li>Webchat media containment rejects &lt;code>file://&lt;/code>, UNC, and local-root bypass paths
+before filesystem access.&lt;/li>
+&lt;li>Operator actions cover token/key rotation, log review, temporary route
+blocks, and rollout restarts where exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading the main package while old OpenClaw images or globally installed
+CLI/runtime packages remain in deployment manifests.&lt;/li>
+&lt;li>Testing only normal Feishu signed messages and missing missing-config,
+invalid-signature, blank-token, and malformed-callback paths.&lt;/li>
+&lt;li>Rotating a SecretRef while the running gateway still holds startup-time auth.&lt;/li>
+&lt;li>Treating Matrix DM pairing as equivalent to room command authorization.&lt;/li>
+&lt;li>Checking local-root containment after &lt;code>stat&lt;/code>, preview generation, or media
+metadata probing has already touched the path.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-xh72-v6v9-mwhc&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-xh72-v6v9-mwhc"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xh72-v6v9-mwhc&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-xmxx-7p24-h892&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-xmxx-7p24-h892"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xmxx-7p24-h892&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-2gvc-4f3c-2855&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-2gvc-4f3c-2855"target="_blank" rel="noopener">https://github.com/advisories/GHSA-2gvc-4f3c-2855&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-mr34-9552-qr95&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-mr34-9552-qr95"target="_blank" rel="noopener">https://github.com/advisories/GHSA-mr34-9552-qr95&lt;/a>&lt;/li>
+&lt;li>OpenClaw project: &lt;a href="https://github.com/openclaw/openclaw"target="_blank" rel="noopener">https://github.com/openclaw/openclaw&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

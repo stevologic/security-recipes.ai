@@ -1,0 +1,1552 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Go</title><link>https://security-recipes.ai/tags/go/</link><description>Recent content in Go on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 03 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/go/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-39383 - Gotenberg webhook SSRF</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39383-gotenberg-webhook-ssrf/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39383-gotenberg-webhook-ssrf/</guid><description>
+&lt;p>Gotenberg &lt;code>8.29.1&lt;/code> through &lt;code>8.30.x&lt;/code> can be abused as a blind SSRF primitive
+through webhook callbacks. A network attacker who can submit conversion
+requests can set &lt;code>Gotenberg-Webhook-Url&lt;/code> to an internal or external URL and
+cause Gotenberg to POST the converted document there.&lt;/p>
+&lt;p>The issue is dangerous even when response bodies are not returned to the
+attacker: POST side effects can be triggered, internal hosts can be probed, and
+cloud metadata or service endpoints may be reachable from the Gotenberg runtime.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Gotenberg &lt;code>&amp;gt;=8.29.1, &amp;lt;8.31.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Gotenberg &lt;code>8.31.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg v8 is deployed in a container image, Helm chart, compose file, or
+Go module at an affected version.&lt;/li>
+&lt;li>Conversion endpoints are reachable from untrusted users or tenants.&lt;/li>
+&lt;li>Webhook headers are accepted and no explicit webhook allow-list is configured.&lt;/li>
+&lt;li>The runtime can reach private networks, link-local addresses, localhost, or
+cloud metadata services.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;gotenberg|GOTENBERG_API_WEBHOOK|Gotenberg-Webhook-Url|webhook&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image inspect gotenberg/gotenberg:8 --format &lt;span class="s1">&amp;#39;{{ index .RepoDigests 0 }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg/gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl get deploy,statefulset,cronjob -A -o yaml &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;gotenberg|WEBHOOK&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every Gotenberg deployment to &lt;code>8.31.0+&lt;/code> and pin container images by
+immutable digest.&lt;/li>
+&lt;li>Configure &lt;code>GOTENBERG_API_WEBHOOK_ALLOW_LIST&lt;/code> for approved callback hosts.&lt;/li>
+&lt;li>Add network egress policy that blocks private ranges, loopback, link-local,
+and metadata endpoints unless explicitly required.&lt;/li>
+&lt;li>Put conversion endpoints behind authentication or a trusted internal ingress
+while rollout is in progress.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39383 (Gotenberg webhook SSRF). Produce exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that patches Gotenberg and adds practical
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment controls, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-39383.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer upgrading Gotenberg to &lt;span class="sb">`8.31.0+`&lt;/span>; do not invent a local fork unless no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-fixed release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat all user-supplied webhook destinations as untrusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all Gotenberg references in manifests, lockfiles, image tags,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm values, compose files, Dockerfiles, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployed version is &lt;span class="sb">`&amp;gt;=8.29.1, &amp;lt;8.31.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Upgrade affected references to &lt;span class="sb">`8.31.0+`&lt;/span>; pin container images by digest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> where this repo controls deployment artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add or tighten webhook destination policy:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer &lt;span class="sb">`GOTENBERG_API_WEBHOOK_ALLOW_LIST`&lt;/span> for known callback hosts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add an egress rule denying loopback, RFC1918, link-local, and cloud
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata addresses from the Gotenberg workload;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication or trusted ingress for public conversion endpoints.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run the relevant build, dependency, container, and deployment validation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Include a PR body section with affected versions, fixed versions, remaining
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator actions, and any exposure window if the service was internet-facing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-39383 in Gotenberg`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Gotenberg is not present in this repo or deployment source.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The target platform cannot consume &lt;span class="sb">`8.31.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing tests or deployment rendering fail for unrelated pre-existing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reasons; document them in TRIAGE.md instead of expanding scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployment, lockfile, SBOM, or container reference resolves to vulnerable
+Gotenberg.&lt;/li>
+&lt;li>Webhook destinations are allow-listed or blocked from private/link-local
+ranges by policy.&lt;/li>
+&lt;li>CI, image build, and deployment rendering pass or failures are explicitly
+called out as pre-existing.&lt;/li>
+&lt;li>Publicly reachable deployments have an operator follow-up for exposure review.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Floating image tags such as &lt;code>gotenberg/gotenberg:8&lt;/code> that look patched today
+but are not reproducible without a digest.&lt;/li>
+&lt;li>Allow/deny-list variables only documented but not applied to runtime manifests.&lt;/li>
+&lt;li>Other Gotenberg &lt;code>8.31.0&lt;/code> advisories in the same rollout, especially
+CVE-2026-40280 and CVE-2026-40281.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5vh4-rgv7-p9g4"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5vh4-rgv7-p9g4&lt;/a>&lt;/li>
+&lt;li>Gotenberg release &lt;code>v8.31.0&lt;/code>: &lt;a href="https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0"target="_blank" rel="noopener">https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-40280 - Gotenberg SSRF deny-list bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-40280-gotenberg-deny-list-ssrf-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-40280-gotenberg-deny-list-ssrf-bypass/</guid><description>
+&lt;p>Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code> contains a critical SSRF bypass in the URL filtering used
+for webhook and &lt;code>downloadFrom&lt;/code> destinations. The private-IP deny-list patterns
+match lowercase schemes such as &lt;code>http://&lt;/code>, while URL schemes are
+case-insensitive and Go normalizes them before making the outbound request.&lt;/p>
+&lt;p>An attacker can use uppercase or mixed-case schemes such as &lt;code>HTTP://&lt;/code> to bypass
+the deny-list and reach private networks, link-local services, loopback targets,
+or cloud metadata endpoints from the Gotenberg runtime.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Gotenberg &lt;code>8.31.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg v8 is deployed at or below &lt;code>8.30.1&lt;/code>.&lt;/li>
+&lt;li>The service accepts user-controlled webhook URLs or &lt;code>downloadFrom&lt;/code> entries.&lt;/li>
+&lt;li>Runtime SSRF protection relies on deny-list regexes for URL schemes or
+private network ranges.&lt;/li>
+&lt;li>The workload has egress access to internal services or metadata endpoints.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;gotenberg|downloadFrom|WEBHOOK_DENY|DOWNLOAD_FROM_DENY|deny-list&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg/gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl get networkpolicy -A -o yaml &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;gotenberg|egress|169\\.254|10\\.|172\\.|192\\.168&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Gotenberg to &lt;code>8.31.0+&lt;/code> and pin image digests.&lt;/li>
+&lt;li>Prefer explicit allow-lists for webhook and &lt;code>downloadFrom&lt;/code> destinations over
+regex-only deny-lists.&lt;/li>
+&lt;li>Add egress controls that block private ranges, loopback, link-local, and
+metadata endpoints from the Gotenberg workload.&lt;/li>
+&lt;li>If upgrade cannot be immediate, restrict conversion endpoints to trusted
+callers and block mixed-case URL schemes at the ingress/proxy layer as a
+temporary mitigation.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-40280 (Gotenberg SSRF deny-list bypass). Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Gotenberg and hardens URL
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> destination controls, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if a safe patch cannot be made from this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-40280.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer Gotenberg &lt;span class="sb">`8.31.0+`&lt;/span>; do not substitute ad hoc regex edits for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-fixed release when an upgrade is possible.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat URL scheme, host, redirects, and resolved IP addresses as untrusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Find all Gotenberg references in dependencies, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm values, Terraform, Kubernetes manifests, SBOMs, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If any reference resolves to &lt;span class="sb">`&amp;lt;=8.30.1`&lt;/span>, upgrade it to &lt;span class="sb">`8.31.0+`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regenerate lockfiles or image metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Replace deny-list-only controls with explicit destination allow-lists where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the application has known webhook/download hosts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add runtime egress policy for Gotenberg that denies:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`127.0.0.0/8`&lt;/span> and &lt;span class="sb">`::1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> RFC1918 private ranges;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`169.254.0.0/16`&lt;/span> and cloud metadata endpoints;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> other internal service CIDRs used by this environment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Add a regression or smoke-test note that mixed-case schemes such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`HTTP://169.254.169.254/`&lt;/span> are rejected after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Run build, tests, dependency scans, image scans, and deployment rendering
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available in this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-40280 in Gotenberg`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo only consumes an externally managed Gotenberg service.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`8.31.0+`&lt;/span> is unavailable for the deployment channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- The only possible change would weaken URL filtering or broaden network egress.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg resolves to &lt;code>8.31.0+&lt;/code> everywhere this repo controls.&lt;/li>
+&lt;li>Webhook and &lt;code>downloadFrom&lt;/code> destinations are constrained by allow-list or
+equivalent policy.&lt;/li>
+&lt;li>Network egress prevents private/link-local/metadata access from the Gotenberg
+workload.&lt;/li>
+&lt;li>Verification notes explicitly cover mixed-case URL scheme bypass attempts.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Fixes that only lowercase user input in one call path while leaving redirects,
+webhook callbacks, or &lt;code>downloadFrom&lt;/code> handling unchecked.&lt;/li>
+&lt;li>Private-IP deny-list regexes that are case-sensitive or only match host text
+before DNS resolution.&lt;/li>
+&lt;li>Partial upgrades that leave worker images or cron conversion jobs on older
+Gotenberg tags.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5q7p-7jgv-ww56"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5q7p-7jgv-ww56&lt;/a>&lt;/li>
+&lt;li>Gotenberg release &lt;code>v8.31.0&lt;/code>: &lt;a href="https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0"target="_blank" rel="noopener">https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0&lt;/a>&lt;/li>
+&lt;li>Related earlier bypass CVE-2026-27018: &lt;a href="https://github.com/advisories/GHSA-jjwv-57xh-xr6r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-jjwv-57xh-xr6r&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-40281 - Gotenberg ExifTool argument injection</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-40281-gotenberg-exiftool-argument-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-40281-gotenberg-exiftool-argument-injection/</guid><description>
+&lt;p>Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code> contains a critical argument-injection issue in PDF
+metadata writing. The earlier key-sanitization fix did not sanitize metadata
+values before passing them to ExifTool through stdin. A newline in a metadata
+value can split the ExifTool input into extra pseudo-tag arguments.&lt;/p>
+&lt;p>For an exposed metadata-write endpoint, an unauthenticated attacker may be able
+to move or corrupt files inside the container and create link primitives that
+break assumptions about temporary file cleanup and filesystem isolation.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Gotenberg &lt;code>8.31.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg v8 is deployed at or below &lt;code>8.30.1&lt;/code>.&lt;/li>
+&lt;li>&lt;code>/forms/pdfengines/metadata/write&lt;/code> or equivalent PDF metadata-writing
+functionality is reachable by untrusted users or tenants.&lt;/li>
+&lt;li>The container runs with broad filesystem write access, root privileges, host
+mounts, or persistent shared volumes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;gotenberg|pdfengines|metadata/write|exiftool&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image inspect gotenberg/gotenberg:8 --format &lt;span class="s1">&amp;#39;{{ index .RepoDigests 0 }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg/gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl get deploy,statefulset -A -o yaml &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;gotenberg|readOnlyRootFilesystem|runAsNonRoot|volumeMounts&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Gotenberg to &lt;code>8.31.0+&lt;/code> and pin image digests.&lt;/li>
+&lt;li>Restrict access to PDF metadata-writing routes while rollout is underway.&lt;/li>
+&lt;li>Run the Gotenberg container as non-root with a read-only root filesystem where
+possible, and avoid host or sensitive persistent mounts.&lt;/li>
+&lt;li>Review logs and filesystem artifacts if a vulnerable public endpoint was
+exposed.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-40281 (Gotenberg ExifTool argument injection).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Gotenberg and adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> filesystem/exposure hardening, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository cannot safely patch the affected runtime.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-40281.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer upgrading Gotenberg to &lt;span class="sb">`8.31.0+`&lt;/span>; do not rely on local input filtering
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as the primary fix when the vendor patch can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat PDF metadata keys and values as untrusted input.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all Gotenberg references in dependency manifests, image tags,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, compose files, Helm values, Kubernetes manifests, SBOMs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any reference resolves to &lt;span class="sb">`&amp;lt;=8.30.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Upgrade affected references to &lt;span class="sb">`8.31.0+`&lt;/span>; regenerate lockfiles, image tags,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or deployment manifests as needed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add containment where this repo owns runtime config:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require auth or trusted ingress for metadata-write endpoints;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run as non-root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> enable read-only root filesystem where compatible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove host mounts or sensitive persistent volumes from Gotenberg.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Add a reviewer note that v8.30.1 is still vulnerable because it only
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sanitized metadata keys, not newline-bearing values.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Run available tests, dependency scans, image scans, and deployment rendering.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-40281 in Gotenberg`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Gotenberg is not present or is managed outside this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed &lt;span class="sb">`8.31.0+`&lt;/span> artifact is unavailable for the target deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Hardening changes would break documented production conversion behavior; file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> TRIAGE.md with the smallest safe upgrade and operator decision needed.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No vulnerable Gotenberg version remains in manifests, lockfiles, images, or
+SBOMs controlled by the repo.&lt;/li>
+&lt;li>Metadata-writing endpoints are not publicly reachable without auth or trusted
+ingress.&lt;/li>
+&lt;li>Container hardening is present where supported: non-root user, read-only root
+filesystem, and no sensitive host mounts.&lt;/li>
+&lt;li>PR notes explicitly reject v8.30.1 as incomplete for this CVE.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>False confidence from key-only sanitization; this CVE is about metadata
+values containing control characters.&lt;/li>
+&lt;li>Gotenberg sidecars or worker deployments that are versioned separately from
+the main API service.&lt;/li>
+&lt;li>HostPath mounts or shared volumes that turn a container-local file move into
+a broader production incident.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-q7r4-hc83-hf2q"target="_blank" rel="noopener">https://github.com/advisories/GHSA-q7r4-hc83-hf2q&lt;/a>&lt;/li>
+&lt;li>Gotenberg release &lt;code>v8.31.0&lt;/code>: &lt;a href="https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0"target="_blank" rel="noopener">https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42560 - go-pkgz/auth Patreon identity collision</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42560-go-pkgz-auth-patreon-identity-collision/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42560-go-pkgz-auth-patreon-identity-collision/</guid><description>
+&lt;p>&lt;code>go-pkgz/auth&lt;/code> maps every authenticated Patreon user to the same local
+&lt;code>token.User.ID&lt;/code> in affected releases. The Patreon provider hashes an
+uninitialized destination field instead of the Patreon account ID, so unrelated
+Patreon accounts can collapse into the same application identity.&lt;/p>
+&lt;p>The bug is critical for applications that enable Patreon login and use
+&lt;code>token.User.ID&lt;/code> as an account key, role key, entitlement key, profile key, or
+subscription-state key. A normal Patreon login can then access or overwrite data
+associated with another Patreon-authenticated user, and any elevated privileges
+attached to the shared local ID can apply to every Patreon login.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/go-pkgz/auth &amp;gt;=1.18.0, &amp;lt;=1.25.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/go-pkgz/auth 1.25.2+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/go-pkgz/auth/v2 &amp;gt;=2.0.0, &amp;lt;=2.1.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/go-pkgz/auth/v2 2.1.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A Go service imports either affected module and resolves a vulnerable version.&lt;/li>
+&lt;li>The service enables the Patreon provider, such as &lt;code>provider.NewPatreon&lt;/code>.&lt;/li>
+&lt;li>Application code treats &lt;code>token.User.ID&lt;/code>, JWT user claims, or auth middleware
+context values as the stable local account identifier.&lt;/li>
+&lt;li>Data stores contain the shared broken Patreon ID:
+&lt;code>patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709&lt;/code>.&lt;/li>
+&lt;li>Existing Patreon sessions or long-lived JWTs may still carry the broken ID.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;github.com/go-pkgz/auth|NewPatreon|patreon_|token\\.User|User\\.ID&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m -json github.com/go-pkgz/auth github.com/go-pkgz/auth/v2 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/go-pkgz/auth&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>github.com/go-pkgz/auth&lt;/code> to &lt;code>1.25.2+&lt;/code> and
+&lt;code>github.com/go-pkgz/auth/v2&lt;/code> to &lt;code>2.1.2+&lt;/code>.&lt;/li>
+&lt;li>Add a regression test that maps two different Patreon payloads and asserts
+distinct local user IDs.&lt;/li>
+&lt;li>Expire Patreon-authenticated sessions and JWTs minted by vulnerable code.&lt;/li>
+&lt;li>Search production data for the shared broken ID and produce an operator-owned
+migration or relinking plan. Do not automatically split accounts without a
+human-reviewed source of truth.&lt;/li>
+&lt;li>If the fixed dependency cannot be shipped immediately, disable Patreon login
+until the upgrade and session cleanup are deployed.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42560 (go-pkgz/auth Patreon OAuth identity
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">collision). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that patches the dependency, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regression coverage, and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42560.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite unrelated authentication providers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently migrate or merge user accounts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log OAuth tokens, Patreon payloads, JWTs, cookies, or user secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all references to &lt;span class="sb">`github.com/go-pkgz/auth`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`github.com/go-pkgz/auth/v2`&lt;/span> in &lt;span class="sb">`go.mod`&lt;/span>, &lt;span class="sb">`go.sum`&lt;/span>, vendor trees, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency manifests, SBOMs, and container build inputs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether either module resolves to a vulnerable version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth &amp;gt;=1.18.0, &amp;lt;=1.25.1`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth/v2 &amp;gt;=2.0.0, &amp;lt;=2.1.1`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check whether the application enables Patreon OAuth, for example
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`provider.NewPatreon`&lt;/span>, and whether local accounts, roles, subscriptions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> entitlements are keyed from &lt;span class="sb">`token.User.ID`&lt;/span> or JWT user claims.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Upgrade vulnerable modules to fixed releases:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth &amp;gt;=1.25.2`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/go-pkgz/auth/v2 &amp;gt;=2.1.2`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Then run the normal Go module tidy/vendor workflow used by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Add or update regression tests that exercise Patreon user mapping with at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> least two different Patreon &lt;span class="sb">`data.id`&lt;/span> fixture values and assert that the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resulting local IDs are distinct.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42560 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether Patreon login is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether the shared ID
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709`&lt;/span> was found in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application data, fixtures, seed data, or tests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which sessions, JWTs, refresh tokens, or auth caches must be expired;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether affected Patreon-linked accounts need human-reviewed relinking.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If Patreon login is enabled and account data may already be collapsed, add a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> conservative runbook or migration stub that identifies impacted records but
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requires explicit operator approval before changing account ownership.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Run the relevant validation, normally &lt;span class="sb">`go test ./...`&lt;/span>, dependency scanning,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and any auth-provider or API tests in the repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42560 in go-pkgz/auth`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The project cannot consume &lt;span class="sb">`go-pkgz/auth`&lt;/span> &lt;span class="sb">`1.25.2+`&lt;/span> or &lt;span class="sb">`v2.1.2+`&lt;/span> without a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> larger auth redesign.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The app uses Patreon login but there is no reliable way to identify records
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> created with the shared broken ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail for unrelated pre-existing reasons; document them instead of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> broadening scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> This repository only consumes a deployed service owned elsewhere; write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> TRIAGE.md with the owning service, vulnerable module evidence, and required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rollout actions.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No resolved dependency path remains on a vulnerable go-pkgz/auth release.&lt;/li>
+&lt;li>Patreon mapping tests prove that different Patreon account IDs produce
+different local user IDs.&lt;/li>
+&lt;li>Session/token expiry and any account relinking work are called out as
+operator actions, not hidden in a risky automatic migration.&lt;/li>
+&lt;li>CI, Go tests, and dependency scans pass or unrelated failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Transitive or vendored copies that keep the vulnerable module even after
+&lt;code>go.mod&lt;/code> is updated.&lt;/li>
+&lt;li>Applications that do not call Patreon directly but expose it through shared
+auth configuration.&lt;/li>
+&lt;li>Existing test fixtures that assert the broken
+&lt;code>patreon_da39a3ee5e6b4b0d3255bfef95601890afd80709&lt;/code> value.&lt;/li>
+&lt;li>Long-lived JWTs that continue to authorize the shared ID after the dependency
+upgrade.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-f6qq-3m3h-4g42"target="_blank" rel="noopener">https://github.com/advisories/GHSA-f6qq-3m3h-4g42&lt;/a>&lt;/li>
+&lt;li>Fixed release &lt;code>v1.25.2&lt;/code>: &lt;a href="https://github.com/go-pkgz/auth/releases/tag/v1.25.2"target="_blank" rel="noopener">https://github.com/go-pkgz/auth/releases/tag/v1.25.2&lt;/a>&lt;/li>
+&lt;li>Fixed release &lt;code>v2.1.2&lt;/code>: &lt;a href="https://github.com/go-pkgz/auth/releases/tag/v2.1.2"target="_blank" rel="noopener">https://github.com/go-pkgz/auth/releases/tag/v2.1.2&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-39858 - Traefik forwarded alias auth bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39858-traefik-forwarded-alias-auth-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39858-traefik-forwarded-alias-auth-bypass/</guid><description>
+&lt;p>Traefik contains a high-severity authentication bypass in &lt;code>ForwardAuth&lt;/code> and
+snippet-based authentication middleware. Affected releases sanitize canonical
+forwarded headers such as &lt;code>X-Forwarded-Proto&lt;/code>, but do not consistently strip or
+normalize alias spellings that use underscores, such as &lt;code>X_Forwarded_Proto&lt;/code>.&lt;/p>
+&lt;p>If the authentication backend treats underscore and dash header names as
+equivalent, an unauthenticated attacker can send spoofed trust context to the
+auth service. Protected routes may then be authorized as if the request came
+through a trusted scheme, host, prefix, or proxy path.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik &amp;lt;=1.7.34&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> no fixed v1 release listed; migrate to a fixed v2/v3 release or
+isolate with compensating controls.&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v2 &amp;lt;2.11.43&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v2 2.11.43+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 &amp;gt;=3.0.0-beta1, &amp;lt;3.6.14&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 3.6.14+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 &amp;gt;=3.7.0-ea.1, &amp;lt;3.7.0-rc.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 3.7.0-rc.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, embeds, or deploys Traefik in an affected
+version through Go modules, container images, Helm charts, compose files,
+Kubernetes manifests, Terraform, Ansible, or platform runbooks.&lt;/li>
+&lt;li>Traefik protects routes with &lt;code>ForwardAuth&lt;/code> or ingress-nginx snippet-style
+authentication middleware.&lt;/li>
+&lt;li>The authentication service uses forwarded request metadata such as scheme,
+host, original URI, client IP, prefix, or trusted proxy headers in its
+authorization decision.&lt;/li>
+&lt;li>The auth service, framework, proxy, or gateway normalizes underscore and dash
+header forms equivalently.&lt;/li>
+&lt;li>Public or tenant-controlled traffic can reach the protected Traefik entrypoint.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;traefik|ForwardAuth|forwardAuth|authRequestHeaders|X-Forwarded|X_Forwarded|snippet&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;traefik:v|traefik/traefik|github.com/traefik/traefik&amp;#34;&lt;/span> go.mod go.sum Dockerfile* docker-compose*.yml charts deploy k8s terraform ansible .github
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/traefik/traefik&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">helm template . 2&amp;gt;/dev/null &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;traefik|forwardAuth|X-Forwarded|X_Forwarded&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade all Traefik v2 deployments to &lt;code>2.11.43+&lt;/code>.&lt;/li>
+&lt;li>Upgrade all Traefik v3 &lt;code>3.0.0-beta1&lt;/code> through &lt;code>3.6.x&lt;/code> deployments to
+&lt;code>3.6.14+&lt;/code>.&lt;/li>
+&lt;li>Upgrade all Traefik v3 &lt;code>3.7.0-ea.*&lt;/code> deployments to &lt;code>3.7.0-rc.2+&lt;/code>, or move to
+the repository&amp;rsquo;s approved stable v3 release line if available.&lt;/li>
+&lt;li>Do not leave Traefik v1 as-is. GitHub lists no patched v1 release for this
+advisory, so migrate to a fixed v2/v3 release or document an operator-owned
+isolation plan.&lt;/li>
+&lt;li>Pin container image tags by digest where the repository controls deployment
+artifacts.&lt;/li>
+&lt;li>Add a strict &lt;code>authRequestHeaders&lt;/code> allow-list for ForwardAuth where compatible,
+and do not forward client-controlled &lt;code>X_Forwarded_*&lt;/code> aliases to auth services.&lt;/li>
+&lt;li>Add edge or ingress policy that denies or strips underscore-form aliases of
+forwarded headers while the upgrade rolls out.&lt;/li>
+&lt;li>Add non-production regression checks that spoof &lt;code>X_Forwarded_Proto&lt;/code>,
+&lt;code>X_Forwarded_Host&lt;/code>, and related aliases and verify protected routes remain
+denied.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39858 (Traefik ForwardAuth forwarded-header alias
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">spoofing authentication bypass). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or migrates affected Traefik
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployments and adds practical verification, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own Traefik deployment artifacts or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-39858.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not make unrelated proxy, router, identity provider, or application auth
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> changes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not test exploit requests against production or external systems.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log cookies, bearer tokens, auth service responses, private headers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client IP lists, or user identity claims.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Traefik reference in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Go modules and vendor trees;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> container image tags and digests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Helm charts, values, lock files, Kustomize overlays, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Docker Compose files, Terraform, Ansible, CI, and runbooks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated deployment manifests, SBOMs, and image metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployable target resolves to a vulnerable version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik &amp;lt;=1.7.34`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v2 &amp;lt;2.11.43`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v3 &amp;gt;=3.0.0-beta1, &amp;lt;3.6.14`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v3 &amp;gt;=3.7.0-ea.1, &amp;lt;3.7.0-rc.2`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check whether the target uses &lt;span class="sb">`ForwardAuth`&lt;/span> or snippet-based authentication
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> middleware and whether auth services rely on forwarded headers such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scheme, host, URI, prefix, or client IP.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Patch every vulnerable target:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v2: upgrade to &lt;span class="sb">`2.11.43+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v3 stable/beta line: upgrade to &lt;span class="sb">`3.6.14+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v3 early-access/RC line: upgrade to &lt;span class="sb">`3.7.0-rc.2+`&lt;/span> or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository&amp;#39;s approved fixed stable line;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v1: migrate to a fixed v2/v3 release or stop with TRIAGE.md
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documenting why no patched v1 release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Regenerate dependency locks, Helm locks, rendered manifests, image metadata,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, and digest pins according to the repository&amp;#39;s normal workflow.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add or tighten safe containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set &lt;span class="sb">`authRequestHeaders`&lt;/span> to an explicit allow-list when compatible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny or strip underscore-form forwarded aliases such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`X_Forwarded_Proto`&lt;/span>, &lt;span class="sb">`X_Forwarded_Host`&lt;/span>, &lt;span class="sb">`X_Forwarded_For`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`X_Forwarded_Port`&lt;/span>, &lt;span class="sb">`X_Forwarded_Prefix`&lt;/span>, and &lt;span class="sb">`X_Forwarded_Uri`&lt;/span> at the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> outer edge;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document that auth backends must not trust client-supplied forwarded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add non-production verification that a protected route stays denied when a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request includes underscore-form forwarded aliases. Use synthetic headers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> only, avoid real credentials, and keep the check in tests, local compose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> smoke tests, or operator runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-39858 exposure and rollout`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> each Traefik target and resolved version before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`ForwardAuth`&lt;/span> or snippet-based auth is configured;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether strict &lt;span class="sb">`authRequestHeaders`&lt;/span> or edge header-deny policy was added;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which non-production spoofed-header check was run;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any required operator rollout or config reload actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Run the relevant validation: Go tests if Traefik is embedded, dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolution, Helm/template rendering, compose config validation, Kubernetes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> schema validation, image build, and security/dependency scans available in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-39858 in Traefik`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not own Traefik dependencies, images, or deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Traefik v1 is deployed and cannot be migrated within this change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The target requires a broader proxy or identity-provider migration before a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed Traefik release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification requires attacking production or exposing real credentials.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable target remains on Traefik v2 &lt;code>&amp;lt;2.11.43&lt;/code>, v3 &lt;code>&amp;lt;3.6.14&lt;/code>, affected
+&lt;code>3.7.0-ea.*&lt;/code> builds, or unsupported vulnerable v1.&lt;/li>
+&lt;li>The change updates the real delivery path: image tags/digests, Helm values,
+compose files, Kubernetes manifests, Go modules, generated manifests, and
+SBOMs where applicable.&lt;/li>
+&lt;li>&lt;code>ForwardAuth&lt;/code> or snippet-based auth exposure is explicitly recorded in the PR
+body.&lt;/li>
+&lt;li>Regression or smoke-test evidence shows spoofed &lt;code>X_Forwarded_*&lt;/code> headers do
+not authorize protected routes in non-production.&lt;/li>
+&lt;li>Builds, dependency resolution, manifest rendering, and security scans pass or
+unrelated failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading only to &lt;code>2.11.42&lt;/code>, &lt;code>3.6.12&lt;/code>, or &lt;code>3.7.0-ea.3&lt;/code>; those fixed earlier
+Traefik auth issues but not this advisory.&lt;/li>
+&lt;li>Floating image tags such as &lt;code>traefik:v3&lt;/code> that make the patch non-reproducible.&lt;/li>
+&lt;li>Auth services that normalize underscores to dashes even after Traefik is
+patched.&lt;/li>
+&lt;li>Middleware chains that also need the same release for nearby Traefik auth
+bypass advisories, especially CVE-2026-35051 and CVE-2026-40912.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5m6w-wvh7-57vm"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5m6w-wvh7-57vm&lt;/a>&lt;/li>
+&lt;li>Traefik security announcement: &lt;a href="https://community.traefik.io/t/new-security-update-for-traefik-2-11-2-11-43-3-6-3-6-14-and-3-7-3-7-0-rc-2/29834"target="_blank" rel="noopener">https://community.traefik.io/t/new-security-update-for-traefik-2-11-2-11-43-3-6-3-6-14-and-3-7-3-7-0-rc-2/29834&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v2.11.43&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v2.11.43"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v2.11.43&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v3.6.14&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v3.6.14"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v3.6.14&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v3.7.0-rc.2&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v3.7.0-rc.2"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v3.7.0-rc.2&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-40884 - goshs empty-username SFTP authentication bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-40884-goshs-empty-username-sftp-auth-bypass/</link><pubDate>Sun, 03 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-40884-goshs-empty-username-sftp-auth-bypass/</guid><description>
+&lt;p>goshs can expose its SFTP service without authentication when it is started
+with SFTP enabled and the documented empty-username basic-auth form
+&lt;code>-b ':pass'&lt;/code>. The configuration is accepted, but affected versions do not
+install an SFTP password handler for the empty username case. A remote
+unauthenticated attacker can then connect to the SFTP service and read,
+upload, rename, or delete files under the configured SFTP root, subject to the
+server mode and filesystem permissions.&lt;/p>
+&lt;p>This is an agentic-context risk because file servers often hold build
+artifacts, deployment bundles, logs, support uploads, and generated evidence.
+The fix is not only &amp;ldquo;bump a Go module.&amp;rdquo; Production remediation needs to prove
+that no deploy path still launches vulnerable goshs with &lt;code>-sftp -b ':pass'&lt;/code>,
+and that any exposed SFTP root is treated as potentially modified or read.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/patrickhener/goshs &amp;lt;=1.1.4&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Patched in GHAD:&lt;/strong> no patched version listed for the v1 module line&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/patrickhener/goshs/v2 &amp;lt;2.0.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/patrickhener/goshs/v2 2.0.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Beta-line fix:&lt;/strong> &lt;code>v2.0.0-beta.6+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Highest-risk condition:&lt;/strong> SFTP is enabled and goshs is launched with
+empty-user basic auth such as &lt;code>-b ':pass'&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, packages, deploys, or configures goshs.&lt;/li>
+&lt;li>A deployable target resolves to &lt;code>github.com/patrickhener/goshs &amp;lt;=1.1.4&lt;/code>,
+&lt;code>github.com/patrickhener/goshs/v2 &amp;lt;2.0.0&lt;/code>, or a beta release before
+&lt;code>v2.0.0-beta.6&lt;/code>.&lt;/li>
+&lt;li>Runtime config, service units, containers, charts, scripts, docs, or
+examples enable &lt;code>-sftp&lt;/code>.&lt;/li>
+&lt;li>Launch flags, environment variables, config templates, runbooks, or tests
+use &lt;code>-b ':pass'&lt;/code>, &lt;code>--basic-auth ':pass'&lt;/code>, an empty username with a password,
+or derived variables that can render to an empty username.&lt;/li>
+&lt;li>The exposed SFTP root stores release artifacts, logs, backups, generated
+evidence, customer uploads, deployment manifests, credentials, or other
+security-sensitive context.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># macOS / Linux&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;patrickhener/goshs|goshs|go install .*goshs|docker.*goshs|nixpkgs.*goshs&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n -- &lt;span class="s2">&amp;#34;-sftp|--sftp-port|--sftp-keyfile|\\s-b\\s*[&amp;#39;\\\&amp;#34;]?:|--basic-auth\\s*[&amp;#39;\\\&amp;#34;]?:&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;SFTP|sftp|basic.?auth|GOSHS|goshs&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml .github charts deploy k8s nix flake.* systemd scripts docs 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s2">&amp;#34;github.com/patrickhener/goshs&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Windows PowerShell&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;patrickhener/goshs|goshs|go install .*goshs|docker.*goshs|nixpkgs.*goshs&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;-sftp|--sftp-port|--sftp-keyfile|\\s-b\\s*[&amp;#39;\\\&amp;#34;]?:|--basic-auth\\s*[&amp;#39;\\\&amp;#34;]?:&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File -Include Dockerfile*,docker-compose*.yml,*.yaml,*.yml,*.nix,flake.*,*.service,*.sh,*.ps1,*.md &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;SFTP|sftp|basic.?auth|GOSHS|goshs&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> Select-String &lt;span class="s2">&amp;#34;github.com/patrickhener/goshs&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade goshs to &lt;code>v2.0.0+&lt;/code> or at least &lt;code>v2.0.0-beta.6+&lt;/code> where beta
+releases are intentionally used.&lt;/li>
+&lt;li>Migrate away from the unpatched v1 module line when the repository controls
+Go dependencies or package metadata.&lt;/li>
+&lt;li>Remove empty-username SFTP password auth from every launch path. Use a
+non-empty username with password auth, an approved SFTP key file, or disable
+SFTP when it is not required.&lt;/li>
+&lt;li>Add validation that rejects SFTP launches where password auth has an empty
+username.&lt;/li>
+&lt;li>Add a synthetic integration test that starts goshs with a temp root and
+proves unauthenticated SFTP sessions are rejected. Do not use production
+file roots.&lt;/li>
+&lt;li>If exposure was possible, review and quarantine the SFTP root contents,
+compare against trusted source of truth, and rotate credentials or release
+artifacts that may have been read or modified.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-40884 (goshs empty-username SFTP authentication
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">bypass). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or removes vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> goshs usage, blocks empty-username SFTP auth, adds safe verification, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected goshs deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package, fork, launch path, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-40884 / GHSA-c29w-qq4m-2gcv and directly related goshs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SFTP launch hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SFTP roots, uploaded files, release artifacts, logs, backups, CI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts, deployment bundles, customer uploads, SSH keys, passwords, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated evidence as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not connect to production or shared SFTP services to prove exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not download, print, commit, or attach real files from an SFTP root.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve &lt;span class="sb">`-sftp -b &amp;#39;:pass&amp;#39;`&lt;/span> behavior as a supported deployment mode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every goshs reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go manifests and lock data, vendored source, forks, Dockerfiles, compose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> files, Helm charts, Kubernetes manifests, Terraform, Nix files, release
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> automation, package recipes, systemd units, shell scripts, examples,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runbooks, SBOMs, and generated deployment artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved goshs version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/patrickhener/goshs &amp;lt;=1.1.4`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/patrickhener/goshs/v2 &amp;lt;2.0.0`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any beta release before &lt;span class="sb">`v2.0.0-beta.6`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search every launch path for SFTP enablement and empty-username auth:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`-sftp`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`--sftp-port`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`--sftp-keyfile`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`-b &amp;#39;:pass&amp;#39;`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`--basic-auth &amp;#39;:pass&amp;#39;`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> variables or templates where the username can render empty.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not build, package, deploy, fork, or configure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> goshs, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the files checked, the likely runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner if known, and the fixed target &lt;span class="sb">`goshs v2.0.0+`&lt;/span> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`v2.0.0-beta.6+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every controlled goshs dependency, binary source, package recipe,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image, SBOM, checksum, and generated deployment artifact to a fixed release.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Prefer stable &lt;span class="sb">`v2.0.0+`&lt;/span>; use &lt;span class="sb">`v2.0.0-beta.6+`&lt;/span> only when this repository
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> intentionally tracks beta releases.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Remove empty-username SFTP password auth from every controlled launch path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> replace &lt;span class="sb">`-b &amp;#39;:pass&amp;#39;`&lt;/span> with a non-empty service username and secret
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reference;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> or switch to an approved &lt;span class="sb">`--sftp-keyfile`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> or disable SFTP when the workflow does not require it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add fail-closed validation where this repository owns wrappers, charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operators, templates, or config generation:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject SFTP config when basic-auth username is empty;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require either a non-empty username/password pair or an approved key file;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> render a clear config error without logging secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add safe verification:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency checks proving no vulnerable goshs version remains;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> static checks proving no generated launch path contains &lt;span class="sb">`-sftp -b &amp;#39;:`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a synthetic test using a temporary local root that attempts unauthenticated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SFTP and expects rejection;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret scanning proving no SFTP passwords or root files were committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-40884 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> goshs versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether SFTP was enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether empty-username basic auth was configured;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every SFTP root path or storage location that may require integrity
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> review;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether uploaded artifacts, release files, logs, backups, or credentials
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> need quarantine, rebuild, or rotation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which access logs should be reviewed for anonymous or unexpected SFTP
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sessions during the vulnerable window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: Go tests, dependency resolution, container build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm/Kustomize/Terraform render, Nix/package build, SBOM refresh, policy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, secret scan, and any SFTP wrapper integration tests available in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-40884 in goshs SFTP auth`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No goshs dependency, binary, package recipe, fork, container, deployment, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> launch path is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> All controlled goshs targets already resolve to a fixed release and no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> launch path enables empty-username SFTP auth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Upgrading goshs requires a platform migration outside this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require connecting to a production SFTP service or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reading real files from an SFTP root.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The SFTP root may contain modified release artifacts or credentials; stop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> after documenting quarantine and human operator review.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Go module, package recipe, binary source, container, SBOM, or
+generated artifact resolves to a vulnerable goshs version.&lt;/li>
+&lt;li>No runtime launch path can render &lt;code>-sftp&lt;/code> with an empty basic-auth username.&lt;/li>
+&lt;li>Config validation fails closed without logging passwords or SFTP root
+contents.&lt;/li>
+&lt;li>Synthetic SFTP tests use disposable local files and prove unauthenticated
+sessions are rejected.&lt;/li>
+&lt;li>Operator actions address SFTP root integrity, artifact quarantine, and
+credential rotation when exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>go.mod&lt;/code> while Dockerfiles, package recipes, Nix pins, or generated
+deployment manifests still install an older goshs binary.&lt;/li>
+&lt;li>Fixing examples or docs while service units and chart templates still render
+&lt;code>-b ':pass'&lt;/code>.&lt;/li>
+&lt;li>Treating SFTP as internal-only and skipping network policy or firewall
+review.&lt;/li>
+&lt;li>Tests that prove the vulnerability by connecting to shared infrastructure or
+reading real uploaded files.&lt;/li>
+&lt;li>Logging the replacement SFTP password while adding validation.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-c29w-qq4m-2gcv"target="_blank" rel="noopener">https://github.com/advisories/GHSA-c29w-qq4m-2gcv&lt;/a>&lt;/li>
+&lt;li>goshs security advisory: &lt;a href="https://github.com/patrickhener/goshs/security/advisories/GHSA-c29w-qq4m-2gcv"target="_blank" rel="noopener">https://github.com/patrickhener/goshs/security/advisories/GHSA-c29w-qq4m-2gcv&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-40884"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-40884&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-41589 - Wish SCP path traversal</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41589-wish-scp-path-traversal/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41589-wish-scp-path-traversal/</guid><description>
+&lt;p>Wish SCP middleware failed to keep SCP file operations inside the configured
+filesystem root. A malicious SCP client could send paths containing traversal
+segments or glob metacharacters and cause the server to read files, write
+files, create directories, or enumerate paths outside the intended root.&lt;/p>
+&lt;p>This is critical for SSH-backed developer tools, hosted sandboxes, internal
+automation planes, and agent workspaces. If the Wish server process can access
+repository checkouts, SSH keys, package tokens, cloud credentials, generated
+artifacts, or deployment files, a path escape can become credential disclosure,
+arbitrary file write, or remote code execution through files that the process
+or host later consumes.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>charm.land/wish/v2 &amp;lt;2.0.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>charm.land/wish/v2 2.0.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Legacy module:&lt;/strong> &lt;code>github.com/charmbracelet/wish &amp;lt;=1.4.7&lt;/code> is called out by
+the advisory as sharing the vulnerable pattern and has no patched release.&lt;/li>
+&lt;li>&lt;strong>Affected component:&lt;/strong> &lt;code>scp.NewFileSystemHandler&lt;/code> used with
+&lt;code>scp.Middleware&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository imports &lt;code>charm.land/wish/v2/scp&lt;/code> or
+&lt;code>github.com/charmbracelet/wish/scp&lt;/code>.&lt;/li>
+&lt;li>The service enables &lt;code>scp.Middleware&lt;/code> with a filesystem-backed handler.&lt;/li>
+&lt;li>SSH or SCP access is reachable from untrusted users, tenants, CI jobs,
+browser-launched local processes, partner networks, or agent sessions.&lt;/li>
+&lt;li>The server process can read or write sensitive material outside the SCP root.&lt;/li>
+&lt;li>The implementation normalizes paths with &lt;code>filepath.Clean&lt;/code> or joins paths to a
+root without proving that the final resolved path remains inside that root.&lt;/li>
+&lt;li>SCP filenames, requested paths, or glob patterns are accepted from a client.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;charm.land/wish|github.com/charmbracelet/wish|scp\\.Middleware|NewFileSystemHandler|prefixed\\(|filepath\\.Clean|filepath\\.Join|filepath\\.Glob&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;charm.land/wish|github.com/charmbracelet/wish&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;ssh|scp|wish|agent workspace|workspace|sandbox|authorized_keys|known_hosts|deploy key|package token|cloud credential&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm systemd .github .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled &lt;code>charm.land/wish/v2&lt;/code> dependency to &lt;code>2.0.1+&lt;/code>.&lt;/li>
+&lt;li>Remove or isolate legacy &lt;code>github.com/charmbracelet/wish&lt;/code> v1 SCP middleware;
+do not treat it as patched unless the repository owns and verifies an
+equivalent containment fix.&lt;/li>
+&lt;li>Validate SCP paths through a single helper that canonicalizes against the
+configured root and rejects any final path outside that root.&lt;/li>
+&lt;li>Reject uploaded filenames containing path separators, &lt;code>.&lt;/code> segments, &lt;code>..&lt;/code>
+segments, absolute paths, Windows drive prefixes, UNC paths, symlink escape
+attempts, and unsupported glob patterns.&lt;/li>
+&lt;li>Add regression tests for read, write, mkdir, and glob attempts that would
+escape the root. The tests should run only against temporary directories.&lt;/li>
+&lt;li>Run the Wish server with least privilege and keep SCP roots separated from
+credentials, repositories, host configuration, and executable startup paths.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41589 / GHSA-xjvp-7243-rg9h (Wish SCP path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">traversal). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Wish or removes the unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SCP filesystem path handling, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator actions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Wish SCP deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41589 / GHSA-xjvp-7243-rg9h.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat repository files, SSH keys, deploy keys, package tokens, cloud
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials, agent workspace files, environment variables, and SCP transfer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads, raw SCP protocol payloads, or file writes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> against production, staging, shared dev, shared CI, or real user workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely on string-prefix checks, escaping-only fixes, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`filepath.Clean`&lt;/span> by itself as the containment boundary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Wish SCP use controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go manifests, &lt;span class="sb">`go.sum`&lt;/span>, vendored modules, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm/Kubernetes manifests, Terraform, systemd units, CI images, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runbooks, examples, and generated deployment artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any resolved module is vulnerable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`charm.land/wish/v2 &amp;lt;2.0.1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/charmbracelet/wish &amp;lt;=1.4.7`&lt;/span> when SCP middleware is enabled.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search for SCP middleware and path handling:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`scp.Middleware`&lt;/span>, &lt;span class="sb">`scp.NewFileSystemHandler`&lt;/span>, &lt;span class="sb">`prefixed`&lt;/span>, &lt;span class="sb">`filepath.Clean`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`filepath.Join`&lt;/span>, &lt;span class="sb">`filepath.Glob`&lt;/span>, &lt;span class="sb">`Mkdir`&lt;/span>, &lt;span class="sb">`Write`&lt;/span>, &lt;span class="sb">`NewFileEntry`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`NewDirEntry`&lt;/span>, and SSH command parsing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine exposure without exploit testing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> who can reach SSH/SCP;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> what root directory SCP is supposed to confine access to;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which files the server process can read or write outside that root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether the server runs in an agent, CI, sandbox, desktop, localhost, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> multi-tenant context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading &lt;span class="sb">`charm.land/wish/v2`&lt;/span> to &lt;span class="sb">`2.0.1+`&lt;/span>. Regenerate &lt;span class="sb">`go.sum`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor metadata, SBOMs, image metadata, and rendered deployment manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If this repository owns a fork, legacy v1 deployment, or local equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path handler, implement root containment:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve candidate paths against the configured root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject any final path whose canonical form is not inside the root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject absolute paths, drive-qualified paths, UNC paths, symlink escapes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`.`&lt;/span> and &lt;span class="sb">`..`&lt;/span> traversal, and uploaded filenames with path separators;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid applying glob expansion to user-controlled input unless each match
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is independently proven inside the root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> return safe errors that do not disclose host filesystem layout.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests using temporary directories only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SCP read outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SCP write outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> directory creation outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> glob enumeration outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> symlink and platform-specific path forms cannot escape the root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> valid in-root transfers still work.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add operational hardening where this repository owns deployment:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run the Wish process as a least-privilege user;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> mount SCP roots separately from application code, credentials, and host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny default unauthenticated SSH/SCP access unless the product explicitly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requires it and the trust boundary is documented;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rotate credentials if logs or filesystem evidence show possible exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41589 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> vulnerable and fixed Wish module versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SCP endpoints and trust boundaries before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> root directories protected by the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> files or credential classes that could have been exposed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> logs to inspect for traversal-like SCP paths or glob requests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any credential rotation, workspace quarantine, or tenant notification that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> remains operator-owned.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: &lt;span class="sb">`go test ./...`&lt;/span>, dependency/security scan, SBOM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refresh, image build, deployment render, route/integration tests, and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SSH/SCP tests available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate Wish SCP path traversal`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Wish SCP runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The project is pinned to legacy &lt;span class="sb">`github.com/charmbracelet/wish`&lt;/span> and cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upgrade or patch without a broader SSH/SCP migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product behavior requires arbitrary host filesystem access through SCP.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require touching real user files or real credentials.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail for unrelated pre-existing reasons; document them instead of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Go module, vendor tree, SBOM, image, or deployment target
+resolves &lt;code>charm.land/wish/v2 &amp;lt;2.0.1&lt;/code>.&lt;/li>
+&lt;li>Legacy Wish v1 SCP usage is removed, replaced, or guarded by an equivalent
+reviewed root-containment fix.&lt;/li>
+&lt;li>SCP read, write, mkdir, glob, symlink, and platform-path regression tests
+prove the final resolved path cannot escape the configured root.&lt;/li>
+&lt;li>Deployment hardening separates SCP roots from credentials and runs the
+service with least privilege.&lt;/li>
+&lt;li>Operator actions cover log review and credential rotation when exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Prefix checks that are bypassed by sibling directories with similar names.&lt;/li>
+&lt;li>Sanitizing upload filenames while leaving read paths or glob paths unsafe.&lt;/li>
+&lt;li>Checking Unix traversal forms but missing Windows drive or UNC paths.&lt;/li>
+&lt;li>Letting symlinks inside the SCP root point back to sensitive host paths.&lt;/li>
+&lt;li>Treating localhost SSH/SCP as safe when browsers, agents, extensions, or
+other local processes can reach it.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-xjvp-7243-rg9h"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xjvp-7243-rg9h&lt;/a>&lt;/li>
+&lt;li>Wish project: &lt;a href="https://github.com/charmbracelet/wish"target="_blank" rel="noopener">https://github.com/charmbracelet/wish&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42461 - Arcane Compose template secret disclosure</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42461-arcane-compose-template-secret-disclosure/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42461-arcane-compose-template-secret-disclosure/</guid><description>
+&lt;p>Arcane versions before &lt;code>1.18.0&lt;/code> register several custom template read
+endpoints without an authentication requirement. An unauthenticated network
+client can list templates and read stored Compose YAML plus associated &lt;code>.env&lt;/code>
+content from the Arcane instance.&lt;/p>
+&lt;p>The vulnerable flow matters because Arcane&amp;rsquo;s &amp;ldquo;Save as Template&amp;rdquo; feature can
+persist operator-provided environment values verbatim. In real deployments,
+template &lt;code>envContent&lt;/code> can contain database passwords, registry credentials,
+OIDC client secrets, Sentry DSNs, payment provider keys, internal hostnames, and
+other deployment context that should never be returned to unauthenticated
+callers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/getarcaneapp/arcane/backend &amp;lt;1.18.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/getarcaneapp/arcane/backend 1.18.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoint family:&lt;/strong> &lt;code>GET /api/templates*&lt;/code>, including template list,
+individual template, and template content reads.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, deploys, vendors, or pins Arcane before &lt;code>1.18.0&lt;/code>.&lt;/li>
+&lt;li>The Arcane API is reachable by users, tenants, internal networks, VPN users,
+reverse proxies, or automation without path-level authentication.&lt;/li>
+&lt;li>Custom templates are enabled or the deployment has saved templates derived
+from real Compose projects, swarm stacks, or GitOps project definitions.&lt;/li>
+&lt;li>Stored template rows or backup data include Compose YAML, &lt;code>.env&lt;/code> text,
+parsed environment key/value pairs, registry metadata, service names, or
+internal host references.&lt;/li>
+&lt;li>API logs show unauthenticated &lt;code>GET&lt;/code> requests to &lt;code>/api/templates&lt;/code>,
+&lt;code>/api/templates/all&lt;/code>, &lt;code>/api/templates/{id}&lt;/code>, or
+&lt;code>/api/templates/{id}/content&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;getarcaneapp/arcane|arcane/backend|RegisterTemplates|ListTemplates|GetAllTemplates|GetTemplateContent|/api/templates|BearerAuth|ApiKeyAuth&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/getarcaneapp/arcane&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;envContent|ComposeTemplate|Save as Template|PROTECTED_PREFIXES|templates/\\{id\\}/content|parseSecurityRequirements&amp;#34;&lt;/span> backend frontend charts deploy docker-compose*.yml Dockerfile* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Arcane to &lt;code>1.18.0+&lt;/code> everywhere this repository controls binary,
+container, Helm, compose, GitOps, or module selection.&lt;/li>
+&lt;li>If the repository owns a fork or vendored Arcane code, require the same
+&lt;code>BearerAuth&lt;/code> or &lt;code>ApiKeyAuth&lt;/code> policy on every custom template read endpoint
+that template writes already require.&lt;/li>
+&lt;li>Prefer fail-closed API registration defaults: endpoint handlers should be
+unauthenticated only when they explicitly opt out for a documented public
+route.&lt;/li>
+&lt;li>Add regression tests that unauthenticated callers receive &lt;code>401&lt;/code> or &lt;code>403&lt;/code> for
+template list and template content reads, and authenticated users can only
+access templates they are authorized to view.&lt;/li>
+&lt;li>Treat all stored template &lt;code>.env&lt;/code> values as exposed if the vulnerable API was
+reachable. Rotate secrets, invalidate sessions or API keys derived from those
+values, and review access logs before relying on containment.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42461 (Arcane unauthenticated disclosure of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">custom Compose templates and &lt;span class="sb">`.env`&lt;/span> secrets). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or patches Arcane, verifies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template-read authorization, and documents operator secret cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Arcane deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42461.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Compose YAML, &lt;span class="sb">`.env`&lt;/span> values, registry tokens, database passwords, OIDC
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, API keys, internal hostnames, template names, and Arcane API keys as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, commit, or copy real template content or secret values
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> while testing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not prove exposure by fetching production template content.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve unauthenticated template reads for compatibility.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Arcane reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`go.mod`&lt;/span>, &lt;span class="sb">`go.sum`&lt;/span>, vendor trees, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, GitOps overlays, SBOMs, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency manifests, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every deployed or buildable Arcane version. A target is vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if it resolves to &lt;span class="sb">`github.com/getarcaneapp/arcane/backend &amp;lt;1.18.0`&lt;/span> or an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Arcane container/image tag before &lt;span class="sb">`1.18.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether the vulnerable template-read paths are reachable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/all`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/{id}`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/{id}/content`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any reverse-proxy rewrite, generated API client, or UI path that maps to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> those handlers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether custom templates can contain real deployment secrets:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Compose &lt;span class="sb">`.env`&lt;/span> files, swarm-stack variables, registry credentials, database
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DSNs, OAuth/OIDC settings, webhook tokens, cloud keys, or third-party API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository only contains an Arcane client or unrelated docs, stop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owner, files checked, affected version evidence,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and required fixed version &lt;span class="sb">`1.18.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade every controlled Arcane deployment to &lt;span class="sb">`1.18.0+`&lt;/span>. Regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, image digests, SBOMs, deployment render output, and dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If this repository owns a fork or vendored patch instead of a pure upgrade,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> update template read route registration so each affected &lt;span class="sb">`GET`&lt;/span> operation has
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the same security requirement used by template create/update/delete routes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`BearerAuth`&lt;/span>, &lt;span class="sb">`ApiKeyAuth`&lt;/span>, or the repository&amp;#39;s equivalent authenticated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> principal requirement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add an explicit fail-closed route registration test or policy check:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unauthenticated routes must be declared through an allow-list of public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operations, and template operations must not appear in that allow-list.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe tests using synthetic template fixtures only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unauthenticated requests to every affected template read path return &lt;span class="sb">`401`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or &lt;span class="sb">`403`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authenticated callers can read allowed templates;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unauthorized callers cannot read another tenant, environment, or team
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template if the product has ownership boundaries;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> response bodies for denied requests never include Compose YAML, parsed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment variables, or template metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add deployment containment where this repository controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> block unauthenticated &lt;span class="sb">`GET /api/templates*`&lt;/span> at the reverse proxy, API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway, service mesh, or ingress during rollout, especially when the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Arcane API is reachable from shared internal networks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42461 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Arcane versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether custom templates were enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether unauthenticated network paths could reach &lt;span class="sb">`/api/templates*`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secret classes may have existed in stored template &lt;span class="sb">`.env`&lt;/span> content;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which API keys, registry credentials, database passwords, OAuth/OIDC
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, webhook tokens, or cloud credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which access logs should be reviewed for unauthenticated template reads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Run relevant validation: Go tests, route/authz tests, frontend API contract
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests if present, lint/typecheck, image build, deployment render diff, SBOM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42461 in Arcane templates`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Arcane deployment, package, image, fork, or template API path is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository cannot consume Arcane &lt;span class="sb">`1.18.0+`&lt;/span> without a larger platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Template ownership or tenant boundaries are unclear and changing them could
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expose or hide customer data incorrectly; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Secret rotation requires production access or customer approval outside the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository; document the exact operator action instead of inventing a local
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Arcane package, image, Helm value, compose file, SBOM, or
+deployment manifest remains pinned before &lt;code>1.18.0&lt;/code>.&lt;/li>
+&lt;li>Every custom template read endpoint requires authentication and any applicable
+ownership or tenant authorization.&lt;/li>
+&lt;li>Tests cover unauthenticated denial for list, all, single-template, and
+content-read endpoints.&lt;/li>
+&lt;li>Denied responses do not leak template names, Compose YAML, &lt;code>.env&lt;/code> content, or
+parsed environment variables.&lt;/li>
+&lt;li>Operator actions clearly state whether secret rotation and log review are
+required for the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating the application image while a Helm chart, compose file, GitOps
+overlay, or backup/restore runbook still deploys an older Arcane tag.&lt;/li>
+&lt;li>Adding authentication to the UI while generated API routes or direct backend
+calls remain unauthenticated.&lt;/li>
+&lt;li>Tests that assert &lt;code>200&lt;/code> for public template reads because the old API
+contract accidentally treated templates as public catalogue data.&lt;/li>
+&lt;li>Logging real &lt;code>.env&lt;/code> content while adding regression tests or incident
+inventory.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-cxx3-hr75-4q96"target="_blank" rel="noopener">https://github.com/advisories/GHSA-cxx3-hr75-4q96&lt;/a>&lt;/li>
+&lt;li>Arcane &lt;code>v1.18.0&lt;/code> release: &lt;a href="https://github.com/getarcaneapp/arcane/releases/tag/v1.18.0"target="_blank" rel="noopener">https://github.com/getarcaneapp/arcane/releases/tag/v1.18.0&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-74m3 - zrok WebDAV DriveRoot symlink escape</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-74m3-zrok-webdav-symlink-drive-root-escape/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-74m3-zrok-webdav-symlink-drive-root-escape/</guid><description>
+&lt;p>&lt;code>zrok&lt;/code> WebDAV drive shares are vulnerable to a DriveRoot boundary escape when a
+symbolic link already exists inside the shared root and points outside that
+root. The advisory describes lexical path normalization in the WebDAV backend,
+but not enough protection against symlink following. A remote WebDAV consumer
+can use the public share endpoint to read files through the symlink and, where
+the zrok process has filesystem permission, overwrite symlink targets outside
+the intended shared directory.&lt;/p>
+&lt;p>For SecurityRecipes and production MCP deployments, the important lesson is
+direct: a context root is not a boundary if path checks happen before symlink
+resolution. Treat WebDAV shares, agent artifact shares, and temporary context
+exports as sensitive execution surfaces, not convenience file browsers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable v1 module:&lt;/strong> &lt;code>github.com/openziti/zrok &amp;lt;=1.1.11&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed v1 module:&lt;/strong> no patched version is listed for the v1 module&lt;/li>
+&lt;li>&lt;strong>Vulnerable v2 module:&lt;/strong> &lt;code>github.com/openziti/zrok/v2 &amp;lt;2.0.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed v2 module:&lt;/strong> &lt;code>github.com/openziti/zrok/v2 2.0.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>The GitHub advisory has no assigned CVE at the time this recipe was written.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, deploys, or documents &lt;code>zrok&lt;/code> drive shares.&lt;/li>
+&lt;li>A service runs &lt;code>zrok share public --backend-mode drive&lt;/code> or equivalent
+WebDAV drive backend configuration.&lt;/li>
+&lt;li>The shared DriveRoot can contain symlinks, including symlinks created by
+developers, CI jobs, build tools, unpacked archives, agent workspaces, or
+runtime tasks.&lt;/li>
+&lt;li>The zrok process can read secrets, source code, SSH material, service config,
+build outputs, home directories, mounted volumes, or other files outside the
+intended DriveRoot.&lt;/li>
+&lt;li>The zrok process can write to host paths outside the intended DriveRoot.&lt;/li>
+&lt;li>WebDAV shares are unauthenticated, public, shared with broad audiences, or
+reachable by an agent, browser, CI worker, partner system, or customer.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zrok|openziti/zrok|backend-mode[ =]drive|DriveRoot|WebDAV|webdav|davServer|share public&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m -json all &lt;span class="p">|&lt;/span> jq -r &lt;span class="s1">&amp;#39;select(.Path|test(&amp;#34;^github.com/openziti/zrok(/v2)?$&amp;#34;))&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zrok.*share|share.*zrok|backend-mode|drive&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm systemd .github .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -type l -ls&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled &lt;code>github.com/openziti/zrok/v2&lt;/code> dependency, binary,
+image, and deployment to &lt;code>2.0.2+&lt;/code>.&lt;/li>
+&lt;li>Remove or replace &lt;code>github.com/openziti/zrok &amp;lt;=1.1.11&lt;/code> drive shares unless a
+vendor-supported fixed v1 build is explicitly verified.&lt;/li>
+&lt;li>Disable public unauthenticated drive shares where they are not required.&lt;/li>
+&lt;li>Move DriveRoot to a dedicated, empty, low-sensitivity directory owned by the
+zrok service account; do not point it at source trees, home directories,
+shared build workspaces, mounted host roots, or MCP context stores.&lt;/li>
+&lt;li>Remove symlinks from DriveRoot before publishing a share, and add a startup
+or CI guard that fails if symlinks are present.&lt;/li>
+&lt;li>Run zrok with a low-privilege OS identity, restricted filesystem access,
+read-only mounts where possible, and no access to SSH keys, cloud
+credentials, package tokens, model credentials, or production config.&lt;/li>
+&lt;li>If this repository owns a fork or wrapper, enforce a real resolved-path
+boundary: reject symlinks, validate every path component, and ensure the
+final opened file remains under DriveRoot at the moment it is opened.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-74m3-9qvm-rp9h in zrok WebDAV drive shares. Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades, disables, or safely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> contains affected zrok drive shares and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected zrok runtime or cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-74m3-9qvm-rp9h.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH keys, cloud credentials, model/API tokens, repository contents,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> build artifacts, user files, hostnames, and WebDAV share URLs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not probe public zrok shares, production shares, customer shares, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shared developer machines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create proof-of-concept overwrites outside a temporary test directory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not treat lexical path cleaning as sufficient protection.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every zrok asset controlled by this repository: Go modules,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, vendored code, binary download scripts, Dockerfiles, compose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> files, Helm charts, Kubernetes manifests, Terraform, systemd units, CI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workflows, runbooks, SBOMs, and MCP or agent context-export docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any controlled target uses:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/openziti/zrok &amp;lt;=1.1.11`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/openziti/zrok/v2 &amp;lt;2.0.2`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a zrok binary or image below the fixed v2 release;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`zrok share public --backend-mode drive`&lt;/span> or equivalent WebDAV drive mode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine exposure without contacting real shares:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Is the share public or unauthenticated?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Can DriveRoot contain symlinks from source trees, build outputs, archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> extraction, developer workspaces, agent workspaces, or mounted volumes?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Can the zrok process read or write outside the intended DriveRoot?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Could agents or MCP workflows use the share as a context or artifact root?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If zrok is absent or only appears in unrelated documentation, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the likely runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer removal or disablement for any drive share that is not explicitly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> required. Remove server registrations, startup commands, manifests, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> references, and runbook steps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If zrok/v2 is required, upgrade to &lt;span class="sb">`2.0.2+`&lt;/span>, regenerate Go module state,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> images, SBOMs, deployment render output, and runtime docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If a v1 drive share is present, replace it with a supported fixed v2 path or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document why the repository cannot safely remediate it in &lt;span class="sb">`TRIAGE.md`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Harden controlled deployments:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> use a dedicated empty DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail startup if DriveRoot contains symlinks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run zrok as a low-privilege service account;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove access to home directories, SSH keys, cloud credentials, package
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tokens, model credentials, and production config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer read-only mounts unless write access is an explicit requirement;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid public unauthenticated shares for agent or MCP context roots.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> If this repository owns a fork, wrapper, or WebDAV backend code, add a safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> filesystem boundary helper:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject symlinks in every path component;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve paths relative to a canonical DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> check the final target remains under DriveRoot after resolution;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid time-of-check/time-of-use gaps for open, stat, mkdir, remove, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> write operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> use platform safe-open primitives where available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add safe tests using temporary directories only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a symlink inside DriveRoot pointing outside is rejected for read;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> the same symlink target is rejected for write/truncate;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> stat, mkdir, remove, and recursive remove cannot cross DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> normal files and directories inside DriveRoot still work;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tests do not contact real zrok infrastructure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-74m3 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every zrok version, binary, image, and drive share before and after;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether shares were public, unauthenticated, agent-facing, or MCP-facing;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether DriveRoot could contain symlinks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which credentials, files, or host paths were reachable by the zrok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> process;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which share access logs, filesystem audit logs, and deployment logs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be reviewed for the exposure window;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets or keys should be rotated if exposure existed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Run relevant validation: Go dependency resolution, unit tests, lint,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container build, deployment render, SBOM refresh, security scan, and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> zrok configuration validation available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate zrok WebDAV DriveRoot symlink escape`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No zrok dependency, binary, image, drive share, or deployment target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository uses unsupported zrok v1 drive shares and cannot move to a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed v2 runtime without an owner decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only verification path would require probing a real public share or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> overwriting files outside a temporary test directory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on sharing a source tree, home directory, or MCP
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> context store that can contain symlinks; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security/product decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled &lt;code>zrok&lt;/code> v2 runtime resolves below &lt;code>2.0.2&lt;/code>.&lt;/li>
+&lt;li>No controlled unsupported v1 drive share remains without a documented owner
+decision and containment plan.&lt;/li>
+&lt;li>Public drive shares are removed or use a dedicated low-sensitivity DriveRoot.&lt;/li>
+&lt;li>Symlinks in DriveRoot are rejected by startup checks, CI checks, or backend
+tests.&lt;/li>
+&lt;li>Regression tests prove reads, writes, stats, directory creation, and removal
+cannot cross DriveRoot through symlinks.&lt;/li>
+&lt;li>Operator actions identify exposed share URLs, logs to review, and credentials
+or host paths that may require rotation or cleanup.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating Go modules while old zrok binaries or images remain pinned in
+deployment manifests.&lt;/li>
+&lt;li>Sharing a repository checkout, build workspace, home directory, mounted host
+root, or MCP context directory as DriveRoot.&lt;/li>
+&lt;li>Checking only &lt;code>..&lt;/code> traversal and missing symlink traversal.&lt;/li>
+&lt;li>Removing symlinks once manually but failing to add a repeatable guard.&lt;/li>
+&lt;li>Keeping public unauthenticated WebDAV shares for agent artifacts without
+explicit data classification and access policy.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-74m3-9qvm-rp9h&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-74m3-9qvm-rp9h"target="_blank" rel="noopener">https://github.com/advisories/GHSA-74m3-9qvm-rp9h&lt;/a>&lt;/li>
+&lt;li>zrok project: &lt;a href="https://github.com/openziti/zrok"target="_blank" rel="noopener">https://github.com/openziti/zrok&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

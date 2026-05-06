@@ -1,0 +1,242 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Sysdump</title><link>https://security-recipes.ai/tags/sysdump/</link><description>Recent content in Sysdump on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 03 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/sysdump/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41520 - Cilium bugtool WireGuard private key disclosure</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41520-cilium-bugtool-wireguard-key-disclosure/</link><pubDate>Sun, 03 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41520-cilium-bugtool-wireguard-key-disclosure/</guid><description>
+&lt;p>Cilium deployments using WireGuard transparent encryption can leak sensitive
+node encryption material into &lt;code>cilium-bugtool&lt;/code> and Cilium CLI &lt;code>cilium sysdump&lt;/code>
+debug archives. The sensitive file is the WireGuard private key
+&lt;code>cilium_wg0.key&lt;/code>, which is used for node-to-node encrypted communication.&lt;/p>
+&lt;p>The bugtool path is normally operator-invoked, not part of steady-state Cilium
+traffic processing. The practical risk appears when a team collects sysdumps
+from WireGuard-enabled nodes and then uploads those archives into support
+tickets, CI artifacts, chat, object storage, incident workspaces, vendor
+portals, or long-lived evidence stores. In those cases, the remediation is a
+cluster upgrade plus evidence handling: old debug archives may need purging and
+WireGuard keys may need rotation.&lt;/p>
+&lt;p>This matters to SecurityRecipes because debug archives are context. A secure
+context layer cannot treat troubleshooting bundles as harmless logs when they
+can contain private keys, tokens, or other live control-plane material.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Cilium &lt;code>&amp;lt;1.17.15&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Cilium &lt;code>1.17.15+&lt;/code> on the 1.17 line&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Cilium &lt;code>&amp;gt;=1.18.0, &amp;lt;1.18.9&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Cilium &lt;code>1.18.9+&lt;/code> on the 1.18 line&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Cilium &lt;code>&amp;gt;=1.19.0, &amp;lt;1.19.3&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Cilium &lt;code>1.19.3+&lt;/code> on the 1.19 line&lt;/li>
+&lt;li>&lt;strong>Highest-risk condition:&lt;/strong> WireGuard transparent encryption is enabled and
+bugtool or sysdump archives have been shared outside tightly controlled
+operator custody.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or configures Cilium through Helm, Cilium CLI,
+Kustomize, raw Kubernetes manifests, Terraform, Flux, Argo CD, Cluster API,
+platform bootstrap scripts, images, or SBOMs.&lt;/li>
+&lt;li>A controlled target resolves to Cilium &lt;code>&amp;lt;1.17.15&lt;/code>, &lt;code>&amp;gt;=1.18.0, &amp;lt;1.18.9&lt;/code>, or
+&lt;code>&amp;gt;=1.19.0, &amp;lt;1.19.3&lt;/code>.&lt;/li>
+&lt;li>WireGuard is enabled with Helm values such as &lt;code>encryption.enabled=true&lt;/code> and
+&lt;code>encryption.type=wireguard&lt;/code>, or with ConfigMap settings such as
+&lt;code>enable-wireguard: true&lt;/code>.&lt;/li>
+&lt;li>Runbooks, scripts, CI jobs, support workflows, or incident procedures invoke
+&lt;code>cilium-bugtool&lt;/code>, &lt;code>cilium sysdump&lt;/code>, &lt;code>cilium-dbg&lt;/code>, or archive collection from
+Cilium pods.&lt;/li>
+&lt;li>Prior bugtool or sysdump archives were uploaded to issue trackers, support
+cases, object storage, CI artifacts, shared folders, chat, vendor portals, or
+long-retention evidence systems.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;cilium|quay\\.io/cilium/cilium|cilium/cilium|encryption\\.enabled|encryption\\.type|enable-wireguard|wireguard|cilium-bugtool|cilium sysdump|sysdump|cilium_wg0\\.key&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;cilium-bugtool|cilium sysdump|sysdump|bugtool|support bundle|debug archive|artifact retention|evidence store&amp;#34;&lt;/span> docs runbooks scripts .github deploy k8s helm terraform 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">helm list -A &lt;span class="p">|&lt;/span> grep -Ei &lt;span class="s1">&amp;#39;cilium&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl -n kube-system get ds,deploy,pods -l k8s-app&lt;span class="o">=&lt;/span>cilium -o wide
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl -n kube-system get cm cilium-config -o yaml &lt;span class="p">|&lt;/span> grep -Ei &lt;span class="s1">&amp;#39;enable-wireguard|encryption&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Cilium deployment to &lt;code>1.17.15+&lt;/code>, &lt;code>1.18.9+&lt;/code>, or
+&lt;code>1.19.3+&lt;/code> on its supported release line. Prefer the latest supported patch
+release for the deployed minor line.&lt;/li>
+&lt;li>Regenerate Helm locks, rendered manifests, Kustomize output, image digests,
+SBOMs, GitOps bootstrap artifacts, and deployment evidence.&lt;/li>
+&lt;li>Treat existing Cilium bugtool/sysdump archives from WireGuard-enabled nodes
+as secret-bearing evidence until proven otherwise.&lt;/li>
+&lt;li>Purge or quarantine old archives that may contain &lt;code>cilium_wg0.key&lt;/code> from
+support tickets, CI artifacts, object stores, shared folders, and vendor
+portals where this repository owns the process or policy.&lt;/li>
+&lt;li>Add a guardrail to support and incident workflows that blocks publication of
+Cilium debug archives containing &lt;code>cilium_wg0.key&lt;/code> or other private-key
+material.&lt;/li>
+&lt;li>If affected archives were previously shared, coordinate WireGuard key
+rotation with the cluster owner. The GitHub advisory directs operators to
+delete the key file and restart the Cilium agent so a new key pair is
+generated; run that only through an approved cluster operation.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41520 (Cilium bugtool/sysdump WireGuard private
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">key disclosure). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Cilium, prevents future
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secret-bearing debug archive publication, adds verification, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Cilium deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sysdump workflow, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41520 / GHSA-gj49-89wh-h4gj and directly related Cilium
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> debug-archive handling.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat &lt;span class="sb">`cilium_wg0.key`&lt;/span>, WireGuard private keys, kubeconfigs, service account
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tokens, cluster credentials, sysdump archives, bugtool archives, Cilium logs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Hubble credentials, and incident evidence as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, decode, upload, snapshot, commit, or attach real private keys
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or complete debug archives to the PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run &lt;span class="sb">`cilium sysdump`&lt;/span> or &lt;span class="sb">`cilium-bugtool`&lt;/span> against production or shared
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> clusters unless this repository explicitly owns the approved operational
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runbook for that action.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rotate live cluster keys, delete node files, restart Cilium agents, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disrupt networking from an agent session unless an approved human operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> action is already encoded in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not disable WireGuard encryption as a remediation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Cilium asset controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm charts, &lt;span class="sb">`Chart.lock`&lt;/span>, values files, Cilium CLI install commands,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kustomize overlays, raw manifests, Terraform, Flux/Argo CD applications,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Cluster API/bootstrap scripts, image tags/digests, SBOMs, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests, support runbooks, CI jobs, incident procedures, and artifact
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> retention rules.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Cilium version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;lt;1.17.15`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;gt;=1.18.0, &amp;lt;1.18.9`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;gt;=1.19.0, &amp;lt;1.19.3`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether WireGuard is enabled in any controlled target:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Helm values &lt;span class="sb">`encryption.enabled=true`&lt;/span> and &lt;span class="sb">`encryption.type=wireguard`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ConfigMap setting &lt;span class="sb">`enable-wireguard: true`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Cilium CLI install flags enabling WireGuard or node-to-node encryption;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rendered manifests or runtime inventory proving WireGuard use.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Search for debug archive generation and sharing paths:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`cilium-bugtool`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`cilium sysdump`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`cilium-dbg debuginfo`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> CI artifact upload/download steps;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> support bundle collection;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> incident evidence storage;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> vendor-support upload instructions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> object-store or ticket-retention policies.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not deploy Cilium and does not control Cilium debug
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> archive handling, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the files checked, the likely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime owner, the vulnerable version ranges, and the required fixed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade Cilium to a fixed version using the repository&amp;#39;s normal delivery
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> mechanism. Regenerate locks, rendered manifests, image digests, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> GitOps app manifests, deployment evidence, and version inventory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add debug archive safeguards where this repository controls the workflow:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> mark Cilium bugtool/sysdump archives as secret-bearing evidence;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block or fail artifact publication when an archive contains
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`cilium_wg0.key`&lt;/span>, &lt;span class="sb">`PrivateKey`&lt;/span>, or obvious kube credential material;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> redact or remove the sensitive file before any archive leaves operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> custody;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict retention and access for historical archives;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document approved handling for vendor support upload.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add operator cleanup guidance named &lt;span class="sb">`CVE-2026-41520 operator actions`&lt;/span> to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR body or &lt;span class="sb">`TRIAGE.md`&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Cilium versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether WireGuard was enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> where bugtool or sysdump archives may have been stored;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which tickets, CI artifacts, object stores, shared drives, or vendor cases
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be searched for old Cilium archives;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`cilium_wg0.key`&lt;/span> may have left operator custody;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether WireGuard key rotation is required, and which human owner must
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> approve deleting key files and restarting Cilium agents;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which audit, support, and artifact-retention logs should be reviewed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe verification:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> static version checks proving no controlled target resolves to a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable Cilium version;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Helm/Kustomize/Terraform/render checks for upgraded manifests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SBOM or dependency scan output when available;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a synthetic archive fixture test that proves &lt;span class="sb">`cilium_wg0.key`&lt;/span> is detected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or rejected without using real cluster material;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret-scan checks proving no private key or complete sysdump was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run the relevant validation: Helm dependency update, Helm template,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kustomize build, Terraform plan, policy tests, CI workflow tests, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> build, SBOM refresh, secret scanning, and dependency/security scans
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41520 in Cilium sysdump handling`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Cilium deployment, Cilium image, Cilium Helm chart, Cilium CLI install
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> command, or Cilium debug archive workflow is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> All controlled Cilium targets already resolve to fixed versions and rendered
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts prove no vulnerable target remains.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository can upgrade Cilium but historical debug archive search,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> quarantine, or key rotation belongs to a separate platform or incident team.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require collecting, opening, printing, or sharing a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> real production sysdump or private key.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Key rotation would require live cluster disruption without an approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Helm chart, Cilium CLI command, image digest, rendered
+manifest, SBOM, GitOps artifact, or deployment target resolves to Cilium
+&lt;code>&amp;lt;1.17.15&lt;/code>, &lt;code>&amp;gt;=1.18.0, &amp;lt;1.18.9&lt;/code>, or &lt;code>&amp;gt;=1.19.0, &amp;lt;1.19.3&lt;/code>.&lt;/li>
+&lt;li>WireGuard enablement is explicitly assessed, not assumed from package
+presence alone.&lt;/li>
+&lt;li>Debug archive handling treats Cilium bugtool/sysdump output as
+secret-bearing evidence.&lt;/li>
+&lt;li>Historical archive cleanup and WireGuard key rotation are documented for the
+human operator when prior sharing was possible.&lt;/li>
+&lt;li>Tests use synthetic fixtures and do not commit real sysdump archives or key
+material.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating only one Cilium install path while app-of-apps manifests, rendered
+YAML, image digests, or SBOMs still point to vulnerable versions.&lt;/li>
+&lt;li>Treating the issue as &amp;ldquo;local only&amp;rdquo; and skipping cleanup of support tickets,
+vendor uploads, CI artifacts, or object-store archives.&lt;/li>
+&lt;li>Disabling WireGuard encryption to avoid the vulnerable path instead of
+upgrading and cleaning up evidence.&lt;/li>
+&lt;li>Proving the finding by collecting a fresh production sysdump and attaching it
+to a PR.&lt;/li>
+&lt;li>Key rotation steps that restart Cilium agents without a cluster owner,
+maintenance window, rollback plan, and communication path.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-gj49-89wh-h4gj"target="_blank" rel="noopener">https://github.com/advisories/GHSA-gj49-89wh-h4gj&lt;/a>&lt;/li>
+&lt;li>Cilium WireGuard transparent encryption documentation: &lt;a href="https://docs.cilium.io/en/stable/security/network/encryption-wireguard/"target="_blank" rel="noopener">https://docs.cilium.io/en/stable/security/network/encryption-wireguard/&lt;/a>&lt;/li>
+&lt;li>Cilium release &lt;code>v1.17.15&lt;/code>: &lt;a href="https://github.com/cilium/cilium/releases/tag/v1.17.15"target="_blank" rel="noopener">https://github.com/cilium/cilium/releases/tag/v1.17.15&lt;/a>&lt;/li>
+&lt;li>Cilium release &lt;code>v1.18.9&lt;/code>: &lt;a href="https://github.com/cilium/cilium/releases/tag/v1.18.9"target="_blank" rel="noopener">https://github.com/cilium/cilium/releases/tag/v1.18.9&lt;/a>&lt;/li>
+&lt;li>Cilium release &lt;code>v1.19.3&lt;/code>: &lt;a href="https://github.com/cilium/cilium/releases/tag/v1.19.3"target="_blank" rel="noopener">https://github.com/cilium/cilium/releases/tag/v1.19.3&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

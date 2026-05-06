@@ -1,0 +1,186 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Csp</title><link>https://security-recipes.ai/tags/csp/</link><description>Recent content in Csp on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/csp/index.xml" rel="self" type="application/rss+xml"/><item><title>JavaScript `eval()` / `new Function()` on untrusted input</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/eval-and-function-constructor/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/eval-and-function-constructor/</guid><description>
+&lt;p>&lt;code>eval()&lt;/code>, &lt;code>new Function()&lt;/code>, &lt;code>setTimeout(&amp;quot;...&amp;quot;, n)&lt;/code> with a
+string body, and &lt;code>setInterval(&amp;quot;...&amp;quot;, n)&lt;/code> with a string body all
+execute code parsed at runtime. When any of those strings
+includes user input, the application is one cleverly-shaped
+character away from arbitrary execution. The fix is rarely
+&amp;ldquo;escape better&amp;rdquo; — it&amp;rsquo;s &amp;ldquo;stop using a code parser as a data
+parser.&amp;rdquo;&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>eval(input)&lt;/code>, &lt;code>eval(&amp;quot;...&amp;quot; + input + &amp;quot;...&amp;quot;)&lt;/code>,
+&lt;code>new Function(input)&lt;/code>, &lt;code>new Function(&amp;quot;...&amp;quot;, input)&lt;/code>.&lt;/li>
+&lt;li>&lt;code>setTimeout(input, n)&lt;/code>, &lt;code>setInterval(input, n)&lt;/code> where the
+first argument is a string (passing a function reference is
+fine).&lt;/li>
+&lt;li>&lt;code>vm.runInNewContext(input)&lt;/code> (Node) without a sandbox or
+with a leaky one.&lt;/li>
+&lt;li>Template engines that compile templates from user-supplied
+strings (&lt;code>pug.compile&lt;/code>, &lt;code>handlebars.compile&lt;/code> on user input,
+&lt;code>lodash.template&lt;/code> on user input).&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A &amp;ldquo;math expression&amp;rdquo; feature, a &amp;ldquo;let users compute totals&amp;rdquo;
+feature, a &amp;ldquo;let users write rules&amp;rdquo; feature — all classic
+shapes where a developer reaches for &lt;code>eval&lt;/code> because writing a
+parser felt like overkill. It&amp;rsquo;s not overkill; it&amp;rsquo;s the safe
+shape.&lt;/p>
+&lt;h2>Mitigation — restricted evaluator&lt;span class="hx:absolute hx:-mt-20" id="mitigation--restricted-evaluator">&lt;/span>
+&lt;a href="#mitigation--restricted-evaluator" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the codebase truly needs runtime expression evaluation
+(business rules, formula fields, calculator features), replace
+&lt;code>eval&lt;/code> with a restricted evaluator that only supports the
+operations the use case requires:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>expr-eval&lt;/strong> (npm) — arithmetic + a small set of named
+functions, no JavaScript globals.&lt;/li>
+&lt;li>&lt;strong>mathjs&lt;/strong> with an explicit function allowlist — strong
+scope-control, careful with &lt;code>import&lt;/code>/&lt;code>evaluate&lt;/code>.&lt;/li>
+&lt;li>A purpose-built parser (Jison, Chevrotain, Nearley) that
+outputs an AST you walk yourself with no &lt;code>eval&lt;/code> in sight.&lt;/li>
+&lt;/ul>
+&lt;h2>Uplift — replace with the right parser&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-with-the-right-parser">&lt;/span>
+&lt;a href="#uplift--replace-with-the-right-parser" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The shape depends on what the input was actually for:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>JSON-shaped data:&lt;/strong> &lt;code>JSON.parse&lt;/code>. Always.&lt;/li>
+&lt;li>&lt;strong>A formula language:&lt;/strong> a parser library, not &lt;code>eval&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>A configuration DSL:&lt;/strong> YAML (&lt;code>safe_load&lt;/code>) or JSON, not
+JavaScript.&lt;/li>
+&lt;li>&lt;strong>Dynamic UI rules:&lt;/strong> a structured-rule object the
+client sends as JSON, evaluated by a typed interpreter.&lt;/li>
+&lt;li>&lt;strong>Templates from user input:&lt;/strong> &lt;em>do not&lt;/em>. Compile templates
+from trusted source only. If users need to &amp;ldquo;customize,&amp;rdquo; give
+them a typed schema with named placeholders.&lt;/li>
+&lt;/ul>
+&lt;h2>Mitigation — CSP &lt;code>unsafe-eval&lt;/code> ban&lt;span class="hx:absolute hx:-mt-20" id="mitigation--csp-unsafe-eval-ban">&lt;/span>
+&lt;a href="#mitigation--csp-unsafe-eval-ban" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For browser code, the page-level mitigation is the
+Content-Security-Policy header. &lt;code>script-src 'self'&lt;/code> (without
+&lt;code>'unsafe-eval'&lt;/code>) makes &lt;code>eval&lt;/code>, &lt;code>new Function&lt;/code>, and the
+string-body &lt;code>setTimeout&lt;/code>/&lt;code>setInterval&lt;/code> &lt;em>throw&lt;/em> at the browser
+level, regardless of what the JavaScript code says.&lt;/p>
+&lt;p>This is a strong control — but it breaks any legitimate
+&lt;code>eval&lt;/code>-using library you ship. Audit before deploying.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every &lt;code>eval&lt;/code>, &lt;code>new Function&lt;/code>, string-body
+&lt;code>setTimeout&lt;/code>/&lt;code>setInterval&lt;/code>, &lt;code>vm.runInNewContext&lt;/code>,
+template-compile-on-user-input.&lt;/li>
+&lt;li>&lt;strong>Use-case classification&lt;/strong> — what each call site was
+actually trying to do.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating &lt;span class="sb">`eval`&lt;/span>-shape call sites in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Grep for &lt;span class="sb">`eval(`&lt;/span>, &lt;span class="sb">`new Function(`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`setTimeout(&amp;#34;`&lt;/span>, &lt;span class="sb">`setInterval(&amp;#34;`&lt;/span>, &lt;span class="sb">`vm.runInNewContext`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`pug.compile`&lt;/span>, &lt;span class="sb">`handlebars.compile`&lt;/span>, &lt;span class="sb">`lodash.template`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`_.template`&lt;/span>, &lt;span class="sb">`Function(`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each call, classify the use case: parsing JSON,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> evaluating a formula, dynamic configuration, template
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, or &amp;#34;unknown / sketchy.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the replacement per call site
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **JSON-shaped:** &lt;span class="sb">`JSON.parse`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Formula:** restricted evaluator (&lt;span class="sb">`expr-eval`&lt;/span>, &lt;span class="sb">`mathjs`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with allowlist) or a real parser.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Configuration:** load YAML/JSON instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Templates:** compile only trusted templates; for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> user-customization, switch to a typed-placeholder schema.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **String-body &lt;span class="sb">`setTimeout`&lt;/span>/&lt;span class="sb">`setInterval`&lt;/span>:** pass a function
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reference instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Unknown / sketchy:** triage. Do not auto-replace.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Apply the replacement
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace each call site.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For formula evaluation, register the allowlist of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> functions the use case actually needs. Default deny.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> For template rendering, the source of the template must be
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a static file or a constant — not a user-supplied string.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each replaced call, add tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A representative legitimate input produces the same result
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as the old code (behaviour preservation).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> An input designed to escape (&lt;span class="sb">`&amp;#39;; require(&amp;#34;child_process&amp;#34;).exec(&amp;#34;...&amp;#34;)&amp;#39;`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;#34;constructor.constructor(&amp;#39;return process&amp;#39;)()&amp;#34;`&lt;/span>) is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejected by the new parser.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Add the CSP header (browser code)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the application has a browser front-end:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add &lt;span class="sb">`script-src &amp;#39;self&amp;#39;`&lt;/span> (without &lt;span class="sb">`&amp;#39;unsafe-eval&amp;#39;`&lt;/span>) to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Content-Security-Policy`&lt;/span> response header.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add a CSP-violation reporting endpoint and watch for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`unsafe-eval`&lt;/span> violations from third-party scripts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Roll out behind report-only mode first when uncertain about
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> third-party usage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/eval-uplift-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][eval] replace eval-shape calls in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: per-call-site classification, replacement chosen,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests added, CSP header changes (if any).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A call site classified as &amp;#34;unknown / sketchy&amp;#34; — triage,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> don&amp;#39;t auto-replace.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The replacement requires a parser library that&amp;#39;s not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available on the project&amp;#39;s runtime version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The CSP header would break a third-party library the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application depends on; defer the CSP change until that&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolved.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the allowlist of functions a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> restricted evaluator exposes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not commit the CSP change without report-only validation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if there&amp;#39;s third-party JS in the application.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>Function.prototype.constructor.constructor&lt;/code>.&lt;/strong> A
+classic restricted-evaluator bypass. The replacement parser
+needs to reject access to &lt;code>constructor&lt;/code>, &lt;code>__proto__&lt;/code>, and
+&lt;code>prototype&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Template engines that read from a database.&lt;/strong> If the
+template content is dynamic but stored in a &amp;ldquo;safe&amp;rdquo; place
+(database, S3), an attacker who can write there can
+compromise the page. Compiling templates from any
+user-controlled storage is the same shape as &lt;code>eval&lt;/code> on user
+input.&lt;/li>
+&lt;li>&lt;strong>&lt;code>vm&lt;/code> module sandboxes leaking.&lt;/strong> Node&amp;rsquo;s &lt;code>vm&lt;/code> module is
+not a security boundary. Use a real isolate (&lt;code>isolated-vm&lt;/code>)
+if isolation is the goal.&lt;/li>
+&lt;li>&lt;strong>Server-side &lt;code>eval&lt;/code> in JSON-Schema validators.&lt;/strong> Some
+schema-validation libraries compile schemas via &lt;code>new Function&lt;/code>. Check the validator&amp;rsquo;s release notes.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/prototype-pollution-merge/">Prototype pollution merges&lt;/a>
+— companion JS pattern.&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,214 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Http-Client</title><link>https://security-recipes.ai/tags/http-client/</link><description>Recent content in Http-Client on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/http-client/index.xml" rel="self" type="application/rss+xml"/><item><title>Disabled TLS verification — `verify=False` and friends</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/requests-verify-false/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/requests-verify-false/</guid><description>
+&lt;p>&lt;code>requests.get(url, verify=False)&lt;/code> is the line of Python that
+disables TLS certificate verification. It&amp;rsquo;s also one of the
+most-copy-pasted lines on Stack Overflow. Equivalent lines exist
+in every language&amp;rsquo;s HTTP client. Each of them transforms a
+secure channel into a man-in-the-middleable one. There is no
+patch coming; the fix is &amp;ldquo;stop disabling verification, configure
+the client correctly.&amp;rdquo;&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Python.&lt;/strong> &lt;code>requests.get(url, verify=False)&lt;/code>,
+&lt;code>urllib3.disable_warnings()&lt;/code>, &lt;code>httpx.Client(verify=False)&lt;/code>,
+&lt;code>aiohttp.ClientSession(connector=TCPConnector(ssl=False))&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Node.&lt;/strong> &lt;code>https.Agent({ rejectUnauthorized: false })&lt;/code>,
+&lt;code>axios.create({ httpsAgent: new https.Agent({...}) })&lt;/code>,
+&lt;code>process.env.NODE_TLS_REJECT_UNAUTHORIZED = &amp;quot;0&amp;quot;&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Java.&lt;/strong>
+&lt;code>HttpsURLConnection.setDefaultHostnameVerifier((h, s) -&amp;gt; true)&lt;/code>,
+&lt;code>SSLContext&lt;/code> with a trust-all &lt;code>TrustManager&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Go.&lt;/strong> &lt;code>&amp;amp;tls.Config{InsecureSkipVerify: true}&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>curl.&lt;/strong> &lt;code>--insecure&lt;/code> / &lt;code>-k&lt;/code> baked into shell scripts and
+CI steps.&lt;/li>
+&lt;li>&lt;strong>Environment overrides.&lt;/strong> &lt;code>PYTHONHTTPSVERIFY=0&lt;/code>,
+&lt;code>GIT_SSL_NO_VERIFY=true&lt;/code>, &lt;code>HTTPS_PROXY&lt;/code> pointing to a proxy
+with cert-stripping.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Disabled verification means an attacker on the network path
+can substitute their own certificate, decrypt the traffic, and
+re-encrypt to the real endpoint. The application sees a normal
+response. Credentials, tokens, and personal data flow in the
+clear to the attacker. The CVE shelf is not where this lives;
+it lives in incident reports.&lt;/p>
+&lt;h2>Mitigation — fail-closed monkey patch&lt;span class="hx:absolute hx:-mt-20" id="mitigation--fail-closed-monkey-patch">&lt;/span>
+&lt;a href="#mitigation--fail-closed-monkey-patch" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For the cases where the codebase has many &lt;code>verify=False&lt;/code> calls
+and a coordinated cleanup is impractical, install an
+import-time shim that refuses to honour &lt;code>verify=False&lt;/code> outside
+of an opt-in test environment:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Python&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">os&lt;/span>&lt;span class="o">,&lt;/span> &lt;span class="nn">requests&lt;/span>&lt;span class="o">,&lt;/span> &lt;span class="nn">ssl&lt;/span>&lt;span class="o">,&lt;/span> &lt;span class="nn">warnings&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="n">os&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">environ&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;ENV&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;dev-local&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;test&amp;#34;&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">_orig_request&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Session&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">request&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">def&lt;/span> &lt;span class="nf">_safe_request&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="bp">self&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">method&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">url&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">True&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kw&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">verify&lt;/span> &lt;span class="ow">is&lt;/span> &lt;span class="kc">False&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">raise&lt;/span> &lt;span class="n">ssl&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">SSLError&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;TLS verification is required (request to &lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">url&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">)&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_request&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="bp">self&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">method&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">url&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">verify&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">verify&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kw&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">requests&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Session&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">request&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">_safe_request&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Equivalent shims exist for &lt;code>httpx&lt;/code>, &lt;code>aiohttp&lt;/code>, the Node
+&lt;code>https&lt;/code> module, and Java&amp;rsquo;s &lt;code>SSLContext&lt;/code> factories. Install at
+the application&amp;rsquo;s entry point.&lt;/p>
+&lt;h2>Uplift — configure the trust store correctly&lt;span class="hx:absolute hx:-mt-20" id="uplift--configure-the-trust-store-correctly">&lt;/span>
+&lt;a href="#uplift--configure-the-trust-store-correctly" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Most &lt;code>verify=False&lt;/code> calls are present because the developer
+hit a TLS error and disabling was the fastest fix. The right
+fix:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Self-signed cert in dev / staging:&lt;/strong> install the cert into
+the system trust store, or pass &lt;code>verify=&amp;quot;/path/to/ca-bundle&amp;quot;&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Internal CA:&lt;/strong> install the org&amp;rsquo;s CA into the application&amp;rsquo;s
+trust bundle (&lt;code>certifi&lt;/code>-merged in Python, &lt;code>truststore&lt;/code> for
+system trust, JVM &lt;code>cacerts&lt;/code> for Java).&lt;/li>
+&lt;li>&lt;strong>Cert pinning:&lt;/strong> use the framework&amp;rsquo;s pinning API rather than
+disabling verification. &lt;code>urllib3&lt;/code> exposes &lt;code>assert_fingerprint&lt;/code>;
+Java has pin-based &lt;code>TrustManager&lt;/code> patterns.&lt;/li>
+&lt;li>&lt;strong>Proxy with TLS interception:&lt;/strong> point the application at the
+org&amp;rsquo;s TLS-intercepting proxy &lt;em>with&lt;/em> the proxy&amp;rsquo;s CA installed
+in the trust store. Don&amp;rsquo;t disable verification just because
+the proxy is in the path.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every disabled-TLS call.&lt;/li>
+&lt;li>&lt;strong>Reason classification&lt;/strong> — why was verification disabled at
+each site?&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating disabled-TLS-verification call sites.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Grep for &lt;span class="sb">`verify=False`&lt;/span>, &lt;span class="sb">`verify = False`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`rejectUnauthorized: false`&lt;/span>, &lt;span class="sb">`InsecureSkipVerify: true`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`HostnameVerifier((h,s)-&amp;gt;true)`&lt;/span>, &lt;span class="sb">`setDefaultHostnameVerifier`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TrustManager`&lt;/span> overrides, &lt;span class="sb">`--insecure`&lt;/span> / &lt;span class="sb">`-k`&lt;/span> curl flags,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the env-var overrides listed in the recipe.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each call site, classify the reason: self-signed cert
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in dev, internal CA missing, broken cert chain, proxy in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path, or unknown.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy per call site
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Self-signed dev cert / internal CA:** uplift — install
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the CA into the application&amp;#39;s trust bundle.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Broken cert chain:** uplift — fix the chain (intermediate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cert missing).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Proxy in path:** uplift — install the proxy&amp;#39;s CA into the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> trust store; do not disable verification.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Unknown:** triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Uplift
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each call site, do the language-appropriate fix:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Python:** pass &lt;span class="sb">`verify=&amp;#34;/path/to/ca-bundle&amp;#34;`&lt;/span> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`verify=True`&lt;/span> with the CA installed via &lt;span class="sb">`certifi.where()`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> + a startup script that merges in the org CA.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Node:** load the CA via `tls.createSecureContext({ ca:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ... })&lt;span class="sb">` and pass that as the agent&amp;#39;s secure context.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- **Java:** load the CA into the JVM `&lt;/span>cacerts&lt;span class="sb">` keystore (or
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> application-specific keystore) and remove trust-all
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> TrustManagers.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- **Go:** populate `&lt;/span>RootCAs&lt;span class="sb">` on the TLS config; remove
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> `&lt;/span>InsecureSkipVerify&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- **curl:** install the CA via `&lt;/span>--cacert&lt;span class="sb">` or set
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> `&lt;/span>CURL_CA_BUNDLE&lt;span class="sb">`; remove `&lt;/span>--insecure&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Step 3 — Install the fail-closed shim (when chosen)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">For codebases with many call sites, install the import-time
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">shim at the application entry point. The shim should:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">1. Allow `&lt;/span>verify=False&lt;span class="sb">` only when an explicit
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> `&lt;/span>ENV=dev-local&lt;span class="sb">` (or equivalent) environment variable is
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> set.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">2. Otherwise raise `&lt;/span>SSLError&lt;span class="sb">` immediately.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">3. Log every shim activation so test environments are
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> visible in audit.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Step 4 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">Add tests:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- A request to a server with a valid certificate succeeds.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- A request to a server with a self-signed certificate (in
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> test env) succeeds *only* when an explicit `&lt;/span>verify=...&lt;span class="sb">`
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> argument names that cert.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- In a non-test environment, a `&lt;/span>verify=False&lt;span class="sb">` call raises.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Branch: `&lt;/span>remediate/tls-verify-&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">module-slug&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Title: `&lt;/span>[Security][TLS] re-enable verification across &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">module&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Body: call-site inventory, reason per site, uplift chosen,
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> shim installation, test additions.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Label: `&lt;/span>sec-auto-remediation&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- A genuinely insecure-by-design integration (e.g., a legacy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> partner endpoint that has no valid cert and cannot get one).
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> Do not auto-disable verification — flag and triage; the
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> right path is a network-isolated proxy.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- The reason a site disabled verification cannot be
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> classified.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- A test infrastructure depends on `&lt;/span>verify=False` and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent cannot reshape it without touching test infra.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify CI test infrastructure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not silently widen the shim&amp;#39;s &amp;#34;allowed in dev&amp;#34; scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>urllib3.disable_warnings&lt;/code>.&lt;/strong> Often paired with
+&lt;code>verify=False&lt;/code>. Removing the warning suppression doesn&amp;rsquo;t fix
+the bug; the warnings exist &lt;em>because&lt;/em> the bug exists.&lt;/li>
+&lt;li>&lt;strong>&lt;code>NODE_TLS_REJECT_UNAUTHORIZED=0&lt;/code> baked into Dockerfiles.&lt;/strong>
+Easy to miss when reviewing application code.&lt;/li>
+&lt;li>&lt;strong>&lt;code>GIT_SSL_NO_VERIFY=true&lt;/code>&lt;/strong> baked into CI to clone
+internal git over a self-signed proxy. Same fix: install the
+proxy&amp;rsquo;s CA, don&amp;rsquo;t disable verification.&lt;/li>
+&lt;li>&lt;strong>Trust-all &lt;code>TrustManager&lt;/code> registered globally&lt;/strong> in older
+Java apps — affects every HTTPS call in the JVM. The shim
+has to override the registration, not just the call sites.&lt;/li>
+&lt;li>&lt;strong>TLS pin churn.&lt;/strong> Pinning is a strong control but a deploy
+burden. Don&amp;rsquo;t pin without a documented rotation playbook.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) → A02 Cryptographic Failures&lt;/a>
+— broader crypto-failure pattern.&lt;/li>
+&lt;/ul></description></item></channel></rss>

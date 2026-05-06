@@ -1,0 +1,604 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Javascript</title><link>https://security-recipes.ai/tags/javascript/</link><description>Recent content in Javascript on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/javascript/index.xml" rel="self" type="application/rss+xml"/><item><title>JavaScript `eval()` / `new Function()` on untrusted input</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/eval-and-function-constructor/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/eval-and-function-constructor/</guid><description>
+&lt;p>&lt;code>eval()&lt;/code>, &lt;code>new Function()&lt;/code>, &lt;code>setTimeout(&amp;quot;...&amp;quot;, n)&lt;/code> with a
+string body, and &lt;code>setInterval(&amp;quot;...&amp;quot;, n)&lt;/code> with a string body all
+execute code parsed at runtime. When any of those strings
+includes user input, the application is one cleverly-shaped
+character away from arbitrary execution. The fix is rarely
+&amp;ldquo;escape better&amp;rdquo; — it&amp;rsquo;s &amp;ldquo;stop using a code parser as a data
+parser.&amp;rdquo;&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>eval(input)&lt;/code>, &lt;code>eval(&amp;quot;...&amp;quot; + input + &amp;quot;...&amp;quot;)&lt;/code>,
+&lt;code>new Function(input)&lt;/code>, &lt;code>new Function(&amp;quot;...&amp;quot;, input)&lt;/code>.&lt;/li>
+&lt;li>&lt;code>setTimeout(input, n)&lt;/code>, &lt;code>setInterval(input, n)&lt;/code> where the
+first argument is a string (passing a function reference is
+fine).&lt;/li>
+&lt;li>&lt;code>vm.runInNewContext(input)&lt;/code> (Node) without a sandbox or
+with a leaky one.&lt;/li>
+&lt;li>Template engines that compile templates from user-supplied
+strings (&lt;code>pug.compile&lt;/code>, &lt;code>handlebars.compile&lt;/code> on user input,
+&lt;code>lodash.template&lt;/code> on user input).&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A &amp;ldquo;math expression&amp;rdquo; feature, a &amp;ldquo;let users compute totals&amp;rdquo;
+feature, a &amp;ldquo;let users write rules&amp;rdquo; feature — all classic
+shapes where a developer reaches for &lt;code>eval&lt;/code> because writing a
+parser felt like overkill. It&amp;rsquo;s not overkill; it&amp;rsquo;s the safe
+shape.&lt;/p>
+&lt;h2>Mitigation — restricted evaluator&lt;span class="hx:absolute hx:-mt-20" id="mitigation--restricted-evaluator">&lt;/span>
+&lt;a href="#mitigation--restricted-evaluator" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the codebase truly needs runtime expression evaluation
+(business rules, formula fields, calculator features), replace
+&lt;code>eval&lt;/code> with a restricted evaluator that only supports the
+operations the use case requires:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>expr-eval&lt;/strong> (npm) — arithmetic + a small set of named
+functions, no JavaScript globals.&lt;/li>
+&lt;li>&lt;strong>mathjs&lt;/strong> with an explicit function allowlist — strong
+scope-control, careful with &lt;code>import&lt;/code>/&lt;code>evaluate&lt;/code>.&lt;/li>
+&lt;li>A purpose-built parser (Jison, Chevrotain, Nearley) that
+outputs an AST you walk yourself with no &lt;code>eval&lt;/code> in sight.&lt;/li>
+&lt;/ul>
+&lt;h2>Uplift — replace with the right parser&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-with-the-right-parser">&lt;/span>
+&lt;a href="#uplift--replace-with-the-right-parser" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The shape depends on what the input was actually for:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>JSON-shaped data:&lt;/strong> &lt;code>JSON.parse&lt;/code>. Always.&lt;/li>
+&lt;li>&lt;strong>A formula language:&lt;/strong> a parser library, not &lt;code>eval&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>A configuration DSL:&lt;/strong> YAML (&lt;code>safe_load&lt;/code>) or JSON, not
+JavaScript.&lt;/li>
+&lt;li>&lt;strong>Dynamic UI rules:&lt;/strong> a structured-rule object the
+client sends as JSON, evaluated by a typed interpreter.&lt;/li>
+&lt;li>&lt;strong>Templates from user input:&lt;/strong> &lt;em>do not&lt;/em>. Compile templates
+from trusted source only. If users need to &amp;ldquo;customize,&amp;rdquo; give
+them a typed schema with named placeholders.&lt;/li>
+&lt;/ul>
+&lt;h2>Mitigation — CSP &lt;code>unsafe-eval&lt;/code> ban&lt;span class="hx:absolute hx:-mt-20" id="mitigation--csp-unsafe-eval-ban">&lt;/span>
+&lt;a href="#mitigation--csp-unsafe-eval-ban" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For browser code, the page-level mitigation is the
+Content-Security-Policy header. &lt;code>script-src 'self'&lt;/code> (without
+&lt;code>'unsafe-eval'&lt;/code>) makes &lt;code>eval&lt;/code>, &lt;code>new Function&lt;/code>, and the
+string-body &lt;code>setTimeout&lt;/code>/&lt;code>setInterval&lt;/code> &lt;em>throw&lt;/em> at the browser
+level, regardless of what the JavaScript code says.&lt;/p>
+&lt;p>This is a strong control — but it breaks any legitimate
+&lt;code>eval&lt;/code>-using library you ship. Audit before deploying.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every &lt;code>eval&lt;/code>, &lt;code>new Function&lt;/code>, string-body
+&lt;code>setTimeout&lt;/code>/&lt;code>setInterval&lt;/code>, &lt;code>vm.runInNewContext&lt;/code>,
+template-compile-on-user-input.&lt;/li>
+&lt;li>&lt;strong>Use-case classification&lt;/strong> — what each call site was
+actually trying to do.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating &lt;span class="sb">`eval`&lt;/span>-shape call sites in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Grep for &lt;span class="sb">`eval(`&lt;/span>, &lt;span class="sb">`new Function(`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`setTimeout(&amp;#34;`&lt;/span>, &lt;span class="sb">`setInterval(&amp;#34;`&lt;/span>, &lt;span class="sb">`vm.runInNewContext`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`pug.compile`&lt;/span>, &lt;span class="sb">`handlebars.compile`&lt;/span>, &lt;span class="sb">`lodash.template`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`_.template`&lt;/span>, &lt;span class="sb">`Function(`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each call, classify the use case: parsing JSON,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> evaluating a formula, dynamic configuration, template
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, or &amp;#34;unknown / sketchy.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the replacement per call site
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **JSON-shaped:** &lt;span class="sb">`JSON.parse`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Formula:** restricted evaluator (&lt;span class="sb">`expr-eval`&lt;/span>, &lt;span class="sb">`mathjs`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with allowlist) or a real parser.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Configuration:** load YAML/JSON instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Templates:** compile only trusted templates; for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> user-customization, switch to a typed-placeholder schema.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **String-body &lt;span class="sb">`setTimeout`&lt;/span>/&lt;span class="sb">`setInterval`&lt;/span>:** pass a function
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reference instead.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Unknown / sketchy:** triage. Do not auto-replace.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Apply the replacement
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace each call site.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For formula evaluation, register the allowlist of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> functions the use case actually needs. Default deny.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> For template rendering, the source of the template must be
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a static file or a constant — not a user-supplied string.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each replaced call, add tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A representative legitimate input produces the same result
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as the old code (behaviour preservation).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> An input designed to escape (&lt;span class="sb">`&amp;#39;; require(&amp;#34;child_process&amp;#34;).exec(&amp;#34;...&amp;#34;)&amp;#39;`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;#34;constructor.constructor(&amp;#39;return process&amp;#39;)()&amp;#34;`&lt;/span>) is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejected by the new parser.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Add the CSP header (browser code)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the application has a browser front-end:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add &lt;span class="sb">`script-src &amp;#39;self&amp;#39;`&lt;/span> (without &lt;span class="sb">`&amp;#39;unsafe-eval&amp;#39;`&lt;/span>) to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Content-Security-Policy`&lt;/span> response header.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add a CSP-violation reporting endpoint and watch for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`unsafe-eval`&lt;/span> violations from third-party scripts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Roll out behind report-only mode first when uncertain about
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> third-party usage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/eval-uplift-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][eval] replace eval-shape calls in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: per-call-site classification, replacement chosen,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests added, CSP header changes (if any).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A call site classified as &amp;#34;unknown / sketchy&amp;#34; — triage,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> don&amp;#39;t auto-replace.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The replacement requires a parser library that&amp;#39;s not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available on the project&amp;#39;s runtime version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The CSP header would break a third-party library the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application depends on; defer the CSP change until that&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolved.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the allowlist of functions a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> restricted evaluator exposes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not commit the CSP change without report-only validation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if there&amp;#39;s third-party JS in the application.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>Function.prototype.constructor.constructor&lt;/code>.&lt;/strong> A
+classic restricted-evaluator bypass. The replacement parser
+needs to reject access to &lt;code>constructor&lt;/code>, &lt;code>__proto__&lt;/code>, and
+&lt;code>prototype&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Template engines that read from a database.&lt;/strong> If the
+template content is dynamic but stored in a &amp;ldquo;safe&amp;rdquo; place
+(database, S3), an attacker who can write there can
+compromise the page. Compiling templates from any
+user-controlled storage is the same shape as &lt;code>eval&lt;/code> on user
+input.&lt;/li>
+&lt;li>&lt;strong>&lt;code>vm&lt;/code> module sandboxes leaking.&lt;/strong> Node&amp;rsquo;s &lt;code>vm&lt;/code> module is
+not a security boundary. Use a real isolate (&lt;code>isolated-vm&lt;/code>)
+if isolation is the goal.&lt;/li>
+&lt;li>&lt;strong>Server-side &lt;code>eval&lt;/code> in JSON-Schema validators.&lt;/strong> Some
+schema-validation libraries compile schemas via &lt;code>new Function&lt;/code>. Check the validator&amp;rsquo;s release notes.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/prototype-pollution-merge/">Prototype pollution merges&lt;/a>
+— companion JS pattern.&lt;/li>
+&lt;/ul></description></item><item><title>Prototype pollution — `merge`, `assign`, and friends</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/prototype-pollution-merge/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/prototype-pollution-merge/</guid><description>
+&lt;p>JavaScript objects inherit from &lt;code>Object.prototype&lt;/code>. A function
+that recursively merges a user-controlled JSON payload into an
+internal object can — if it doesn&amp;rsquo;t filter &lt;code>__proto__&lt;/code>,
+&lt;code>constructor&lt;/code>, or &lt;code>prototype&lt;/code> keys — &lt;em>modify&lt;/em> the prototype,
+which then leaks into every other object in the runtime. The
+attack vector is decades old; the unsafe shape is still the
+default in many homemade &lt;code>merge&lt;/code> and &lt;code>extend&lt;/code> utilities.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The vulnerable shape:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">function&lt;/span> &lt;span class="nx">merge&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">target&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nx">source&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kr">const&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="k">in&lt;/span> &lt;span class="nx">source&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="k">typeof&lt;/span> &lt;span class="nx">source&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s2">&amp;#34;object&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">target&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">target&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="p">{};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">merge&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">target&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="nx">source&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">]);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span> &lt;span class="k">else&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">target&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">source&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">target&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nx">merge&lt;/span>&lt;span class="p">({},&lt;/span> &lt;span class="nx">JSON&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">parse&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">userInput&lt;/span>&lt;span class="p">));&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>A &lt;code>userInput&lt;/code> of &lt;code>{&amp;quot;__proto__&amp;quot;: {&amp;quot;isAdmin&amp;quot;: true}}&lt;/code> makes
+&lt;em>every&lt;/em> object in the runtime suddenly have &lt;code>isAdmin: true&lt;/code>.&lt;/p>
+&lt;p>Equivalent shapes appear in:&lt;/p>
+&lt;ul>
+&lt;li>Hand-rolled &lt;code>merge&lt;/code> / &lt;code>extend&lt;/code> / &lt;code>assign&lt;/code> / &lt;code>set&lt;/code> /
+&lt;code>setProperty&lt;/code> utilities.&lt;/li>
+&lt;li>Some old versions of &lt;code>lodash.merge&lt;/code>, &lt;code>lodash.set&lt;/code>,
+&lt;code>lodash.defaultsDeep&lt;/code> (patched, but pinned-old versions
+still appear in repos).&lt;/li>
+&lt;li>Express middleware that maps query strings or request bodies
+directly into options objects.&lt;/li>
+&lt;li>Form-handling libraries that build nested objects from
+&lt;code>nested[a][b]&lt;/code> form keys without filtering.&lt;/li>
+&lt;li>React state-update reducers that spread user-controlled
+payloads.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A polluted prototype changes the behaviour of code far away
+from the call site. The classic exploit is making
+authorization checks return true; subtler ones change
+default-handling in libraries, set unexpected event handlers,
+or break framework invariants. SAST scanners catch only the
+most obvious shapes.&lt;/p>
+&lt;h2>Mitigation — key filter at the boundary&lt;span class="hx:absolute hx:-mt-20" id="mitigation--key-filter-at-the-boundary">&lt;/span>
+&lt;a href="#mitigation--key-filter-at-the-boundary" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Add a global filter that strips &lt;code>__proto__&lt;/code>, &lt;code>constructor&lt;/code>,
+and &lt;code>prototype&lt;/code> keys from every parsed user payload before it
+reaches application code:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-javascript" data-lang="javascript">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">function&lt;/span> &lt;span class="nx">stripDangerousKeys&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">value&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nb">Array&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">isArray&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">value&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="k">return&lt;/span> &lt;span class="nx">value&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">map&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">stripDangerousKeys&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">value&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="k">typeof&lt;/span> &lt;span class="nx">value&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s2">&amp;#34;object&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="kr">const&lt;/span> &lt;span class="nx">out&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nb">Object&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">create&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">null&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kr">const&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="k">of&lt;/span> &lt;span class="nb">Object&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">keys&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">value&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="nx">key&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s2">&amp;#34;__proto__&amp;#34;&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s2">&amp;#34;constructor&amp;#34;&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="nx">key&lt;/span> &lt;span class="o">===&lt;/span> &lt;span class="s2">&amp;#34;prototype&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">continue&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">out&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">stripDangerousKeys&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nx">value&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="nx">key&lt;/span>&lt;span class="p">]);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">out&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nx">value&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Wrap the application&amp;rsquo;s body-parser, query-parser, and
+JSON.parse boundary so every external object passes through
+the filter once.&lt;/p>
+&lt;p>For Node, &lt;code>Object.freeze(Object.prototype)&lt;/code> at startup is a
+nuclear-grade defence — but it breaks libraries that
+legitimately mutate the prototype. Test before deploying.&lt;/p>
+&lt;h2>Uplift — replace home-rolled merge with vetted utilities&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-home-rolled-merge-with-vetted-utilities">&lt;/span>
+&lt;a href="#uplift--replace-home-rolled-merge-with-vetted-utilities" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vetted merge libraries:&lt;/strong> &lt;code>deepmerge&lt;/code> (current versions
+filter), &lt;code>merge-deep&lt;/code> (current versions), &lt;code>lodash.merge&lt;/code>
+(post-4.17.20). Pin to the patched version and pin
+forward.&lt;/li>
+&lt;li>&lt;strong>Null-prototype objects:&lt;/strong> &lt;code>Object.create(null)&lt;/code> for any
+object built from user input — it has no prototype to
+pollute.&lt;/li>
+&lt;li>&lt;strong>&lt;code>structuredClone&lt;/code>:&lt;/strong> for cases where the merge can be
+replaced with &amp;ldquo;clone the user input and overlay it onto a
+fresh defaults object,&amp;rdquo; &lt;code>structuredClone&lt;/code> (Node 17+,
+modern browsers) is a safe primitive.&lt;/li>
+&lt;li>&lt;strong>&lt;code>Object.assign&lt;/code> is fine&lt;/strong> — it doesn&amp;rsquo;t recurse, so
+prototype-pollution payloads don&amp;rsquo;t propagate. Many
+hand-rolled &lt;code>merge&lt;/code> functions are used where &lt;code>Object.assign&lt;/code>
+would be enough.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every hand-rolled merge / extend / set
+function and every entry-point that maps user input into
+nested objects.&lt;/li>
+&lt;li>&lt;strong>Library versions&lt;/strong> — for any merge utility, the pinned
+version.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating prototype-pollution surface in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">JavaScript / TypeScript repo. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Grep for hand-rolled merge functions: &lt;span class="sb">`function merge(`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`function extend(`&lt;/span>, &lt;span class="sb">`function deepMerge(`&lt;/span>, recursive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`for-in`&lt;/span> loops that assign into nested objects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Identify every entry-point that parses user input into
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> nested objects: &lt;span class="sb">`body-parser`&lt;/span>, &lt;span class="sb">`qs.parse`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`allowPrototypes`&lt;/span>, form-data parsers, GraphQL resolvers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that spread untyped variables.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check pinned versions of &lt;span class="sb">`lodash`&lt;/span>, &lt;span class="sb">`deepmerge`&lt;/span>, &lt;span class="sb">`hoek`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`merge-deep`&lt;/span>, &lt;span class="sb">`defaults-deep`&lt;/span>. Anything pinned old is a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> suspect.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Hand-rolled merge:** uplift to a vetted library, &lt;span class="ge">*and*&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install the boundary filter for defence-in-depth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Old-pinned vetted library:** bump to the patched version,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install the boundary filter.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Boundary parsers without filtering:** install the boundary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> filter.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Install the boundary filter
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add the &lt;span class="sb">`stripDangerousKeys`&lt;/span> utility (or import a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> maintained equivalent) at a stable module path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Wrap every parsed-from-user-input boundary:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Express &lt;span class="sb">`body-parser`&lt;/span>: replace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`app.use(express.json())`&lt;/span> with a wrapper that filters
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> after parse.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Form parsers: filter after parse.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`JSON.parse(req.body)`&lt;/span>: wrap with the filter.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Use &lt;span class="sb">`Object.create(null)`&lt;/span> for any object built from user
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> input where the application logic doesn&amp;#39;t depend on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Object.prototype`&lt;/span> methods being inherited.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Replace hand-rolled merges
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each hand-rolled merge:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Identify the closest vetted equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`Object.assign`&lt;/span>, &lt;span class="sb">`lodash.merge`&lt;/span>&lt;span class="ni">@latest&lt;/span>, &lt;span class="sb">`deepmerge`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`structuredClone`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Replace the hand-rolled function. Delete the old one if
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> no callers remain.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the hand-rolled merge had application-specific
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> behaviour (e.g., array concatenation rules), encode that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> behaviour in the vetted library&amp;#39;s options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`__proto__`&lt;/span> payload: the merge does not set
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Object.prototype.&amp;lt;key&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`constructor.prototype`&lt;/span> payload: same assertion.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A normal nested payload: the merge produces the expected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> object (behaviour preservation).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> After the request returns, &lt;span class="sb">`({}).polluted`&lt;/span> is &lt;span class="sb">`undefined`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (no leakage to other objects in the runtime).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/proto-pollution-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][prototype-pollution] filter dangerous keys at &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: call-site inventory, library bumps, boundary filter
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> installation, tests added.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The codebase legitimately uses &lt;span class="sb">`__proto__`&lt;/span> as a property
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> name (rare; if so, document and triage).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A merge utility&amp;#39;s behaviour-preservation test fails on a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> normal payload after the swap. Triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`Object.freeze(Object.prototype)`&lt;/span> would break
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> load-bearing libraries; defer that mitigation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the boundary filter to permit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dangerous keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not delete hand-rolled merges that are still called by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code outside this PR&amp;#39;s scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>Object.assign&lt;/code> mistaken for the unsafe pattern.&lt;/strong> It
+isn&amp;rsquo;t — &lt;code>Object.assign&lt;/code> does shallow assignment and ignores
+&lt;code>__proto__&lt;/code> as a key (it&amp;rsquo;s a getter, not a writable
+property on plain objects). The audit should keep it.&lt;/li>
+&lt;li>&lt;strong>&lt;code>qs.parse&lt;/code> with &lt;code>allowPrototypes: true&lt;/code>.&lt;/strong> Some legacy
+Express apps set this. Remove.&lt;/li>
+&lt;li>&lt;strong>&lt;code>Object.create(null)&lt;/code> breaking libraries that expect
+&lt;code>.hasOwnProperty&lt;/code>.&lt;/strong> Use &lt;code>Object.prototype.hasOwnProperty.call(obj, k)&lt;/code>
+instead.&lt;/li>
+&lt;li>&lt;strong>GraphQL variables.&lt;/strong> Mapping untyped GraphQL variables
+into nested option objects is a common entry-point.&lt;/li>
+&lt;li>&lt;strong>TypeScript doesn&amp;rsquo;t save you.&lt;/strong> A type assertion on a
+parsed JSON payload is not a runtime check. The boundary
+filter is.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/eval-and-function-constructor/">eval and Function constructor&lt;/a>
+— companion JavaScript pattern.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-41507 - math-codegen string literal RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41507-math-codegen-string-literal-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41507-math-codegen-string-literal-rce/</guid><description>
+&lt;p>&lt;code>math-codegen&lt;/code> versions before &lt;code>0.4.3&lt;/code> can inject string literal content passed
+to &lt;code>cg.parse()&lt;/code> into a generated &lt;code>new Function()&lt;/code> body. When untrusted input
+reaches the parser, an attacker can turn formula or expression evaluation into
+server-side JavaScript code execution.&lt;/p>
+&lt;p>This class of vulnerability is especially relevant for agentic systems that
+accept user, ticket, spreadsheet, or tool-output expressions and evaluate them
+inside automation workers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>math-codegen &amp;lt;0.4.3&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>math-codegen 0.4.3+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected API:&lt;/strong> &lt;code>cg.parse()&lt;/code> when untrusted string literals reach generated
+code.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on &lt;code>math-codegen&lt;/code> directly or transitively.&lt;/li>
+&lt;li>Application code calls &lt;code>cg.parse()&lt;/code>, &lt;code>parse()&lt;/code>, generated expression
+functions, or wrappers around math/formula evaluation.&lt;/li>
+&lt;li>Users, tenants, spreadsheets, workflow YAML, tickets, LLM outputs, tool
+outputs, dashboards, rules, or API requests can supply expressions.&lt;/li>
+&lt;li>Expression evaluation runs in a server, worker, CI job, MCP tool, browser
+automation host, or privileged background process.&lt;/li>
+&lt;li>The process has access to credentials, source code, customer data, internal
+network routes, build artifacts, or writable deployment state.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;math-codegen|cg\\.parse|codegen.*parse|new Function|formula|expression.*parse|evaluate.*expression&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls math-codegen
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why math-codegen
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why math-codegen
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;formula|expression|rule|calculator|spreadsheet|ticket|tool output|LLM output|workflow.*input&amp;#34;&lt;/span> src server packages apps&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>math-codegen&lt;/code> to &lt;code>0.4.3+&lt;/code> everywhere this repository controls
+manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Block untrusted expression parsing until patched if the upgrade cannot be
+deployed atomically.&lt;/li>
+&lt;li>Add validation around expression features this product actually supports;
+reject strings, identifiers, or syntax that are not required.&lt;/li>
+&lt;li>Run expression evaluation in the least-privilege runtime available. Do not
+give formula evaluators ambient access to &lt;code>process&lt;/code>, filesystem APIs, network
+APIs, package tokens, or cloud credentials.&lt;/li>
+&lt;li>Prefer a non-code-generating expression evaluator for untrusted inputs when
+product requirements allow it.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41507 (math-codegen string literal code injection
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">leading to remote code execution). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades math-codegen, contains
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted expression evaluation, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected runtime or cannot make
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41507 / GHSA-p6x5-p4xf-cc4r.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat expression inputs, generated code, credentials, customer data, worker
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment values, source code, and logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads, shell commands, reverse shells, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> attacker-controlled generated functions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely on ad hoc escaping as the only fix when a patched package is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every &lt;span class="sb">`math-codegen`&lt;/span> reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, vendored code, Dockerfiles, CI images, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment manifests, generated bundles, and docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`math-codegen`&lt;/span> version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves below &lt;span class="sb">`0.4.3`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search for expression evaluation paths:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`cg.parse()`&lt;/span> or wrappers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> formula, rule, calculator, spreadsheet, dashboard, workflow, ticket, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tool-output parsing;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> LLM-generated expressions or agent-supplied tool arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether untrusted input can reach the parser. Include request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bodies, tenant settings, workflow YAML, uploaded files, spreadsheet cells,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ticket text, database records, webhook payloads, LLM output, and MCP tool
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> results.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If &lt;span class="sb">`math-codegen`&lt;/span> is absent or only used in non-deployable tests, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was checked and why the runtime is not exposed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade to &lt;span class="sb">`math-codegen 0.4.3+`&lt;/span>. Regenerate lockfiles, image digests, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bundled assets, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add containment for non-atomic rollouts:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable untrusted formula/expression evaluation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject string literals if the product does not need them;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject expressions from LLM/tool output unless explicitly approved;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run evaluators in a constrained worker with no secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> malicious-looking string literals are treated as inert data;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated function source does not contain raw string literal content;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> untrusted expression inputs cannot reach &lt;span class="sb">`new Function`&lt;/span> without the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched parser;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency policy rejects &lt;span class="sb">`math-codegen &amp;lt;0.4.3`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41507 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> math-codegen versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every untrusted expression entry point reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether formula evaluation was public, tenant reachable, or agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether worker credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for suspicious expression parse failures.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package install, lockfile checks, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integration tests for expression features, lint/typecheck, image build, SBOM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41507 in math-codegen`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected &lt;span class="sb">`math-codegen`&lt;/span> runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The product intentionally requires arbitrary code-generating expressions from
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted users; document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled generated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>math-codegen &amp;lt;0.4.3&lt;/code>.&lt;/li>
+&lt;li>Untrusted expression entry points are inventoried and either patched,
+disabled, or constrained.&lt;/li>
+&lt;li>Tests prove string literals remain data and cannot alter generated JavaScript
+syntax.&lt;/li>
+&lt;li>Expression evaluation does not run with broad credentials or ambient access.&lt;/li>
+&lt;li>Operator actions identify credential rotation and log review if exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating only direct dependencies while a bundle, workspace package, or image
+layer still carries &lt;code>math-codegen &amp;lt;0.4.3&lt;/code>.&lt;/li>
+&lt;li>Treating formulas from LLM output as trusted because they were generated by an
+internal agent.&lt;/li>
+&lt;li>Tests that assert parser output by executing the generated exploit-like
+function.&lt;/li>
+&lt;li>Manual escaping that fails on alternate string literal forms.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-p6x5-p4xf-cc4r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-p6x5-p4xf-cc4r&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41507"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41507&lt;/a>&lt;/li>
+&lt;li>math-codegen project: &lt;a href="https://github.com/mauriciopoppe/math-codegen"target="_blank" rel="noopener">https://github.com/mauriciopoppe/math-codegen&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

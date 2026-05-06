@@ -1,0 +1,1194 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Authorization</title><link>https://security-recipes.ai/tags/authorization/</link><description>Recent content in Authorization on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Mon, 04 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/authorization/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-23902 — Apache DolphinScheduler authorization bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-23902-apache-dolphinscheduler/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-23902-apache-dolphinscheduler/</guid><description>
+&lt;p>Apache DolphinScheduler before &lt;code>3.4.1&lt;/code> allows authenticated users with platform
+login permissions to use tenants not defined on the platform during workflow
+execution. This is an authorization flaw with multi-tenant isolation impact.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> DolphinScheduler &lt;code>&amp;lt; 3.4.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> DolphinScheduler &lt;code>&amp;gt;= 3.4.1&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>DolphinScheduler version is below &lt;code>3.4.1&lt;/code>.&lt;/li>
+&lt;li>Instance is multi-tenant and users can submit workflow runs.&lt;/li>
+&lt;li>Tenant scoping is relied on for separation of duties or billing/security
+boundaries.&lt;/li>
+&lt;/ul>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade to &lt;code>3.4.1&lt;/code> or newer.&lt;/li>
+&lt;li>Revalidate tenant authorization controls after upgrade.&lt;/li>
+&lt;li>Review workflow execution logs for suspicious cross-tenant usage before fix.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-23902 in an Apache DolphinScheduler deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce either:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A PR/change request upgrading DolphinScheduler to 3.4.1+ and adding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification steps, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if upgrade is blocked.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Required workflow
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Identify current DolphinScheduler version from deployment manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container tags, Helm values, or Maven coordinates.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If version is &lt;span class="sb">`&amp;lt;3.4.1`&lt;/span>, apply minimal upgrade to &lt;span class="sb">`3.4.1+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a post-deploy verification checklist:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authenticated non-admin user cannot execute workflow with undefined tenant;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> expected tenant-scoped workflows still function.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Include audit task to inspect execution logs in exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Keep changes scoped; do not bundle unrelated upgrades.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Version already fixed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Deployment source does not pin DolphinScheduler version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Upgrade would require unsupported platform leap.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Deployment now references &lt;code>3.4.1+&lt;/code>.&lt;/li>
+&lt;li>Verification checklist is concrete and executable.&lt;/li>
+&lt;li>PR body documents any observed tenant-boundary anomalies and next actions.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Apache disclosure (oss-security): &lt;a href="https://www.openwall.com/lists/oss-security/2026/04/24/1"target="_blank" rel="noopener">https://www.openwall.com/lists/oss-security/2026/04/24/1&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-23902"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-23902&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-29200 - Comet Backup tenant impersonation IDOR</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-29200-comet-backup-tenant-idor/</link><pubDate>Mon, 04 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-29200-comet-backup-tenant-idor/</guid><description>
+&lt;p>Comet Backup contains a critical tenant-impersonation authorization flaw. The
+NVD record says Comet Backup versions from &lt;code>20.11.0&lt;/code> through &lt;code>26.1.1&lt;/code>, plus
+&lt;code>26.2.1&lt;/code>, allow a tenant administrator to impersonate end-user accounts from
+other tenants on the same server through a vulnerable API call.&lt;/p>
+&lt;p>That makes this a control-plane boundary issue, not just a routine application
+bug. A vulnerable multi-tenant backup server can expose backup metadata,
+restore capabilities, and tenant-owned account context to an administrator who
+should only control their own tenant.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Comet Backup &lt;code>&amp;gt;=20.11.0, &amp;lt;=26.1.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Also vulnerable:&lt;/strong> Comet Backup &lt;code>26.2.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Confirm the currently patched version from Comet&amp;rsquo;s vendor
+advisory or release channel before deployment. Treat &lt;code>26.1.1&lt;/code> and &lt;code>26.2.1&lt;/code>
+as unsafe even if they appear newer than local baselines.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns a Comet Backup server deployment, package pin, image,
+installer bundle, Helm chart, Terraform module, Ansible role, runbook, or
+SBOM.&lt;/li>
+&lt;li>A deployable Comet Backup server resolves to a version in the affected range.&lt;/li>
+&lt;li>The Comet Backup server is multi-tenant or grants tenant administrators the
+ability to manage end-user accounts.&lt;/li>
+&lt;li>Public or internal network paths expose the Comet Backup admin/API surface to
+tenant administrators.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;comet|cometbackup|Comet Backup|COMET&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;20\\.11\\.0|26\\.1\\.1|26\\.2\\.1|comet-server|cometd&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -maxdepth &lt;span class="m">5&lt;/span> -type f &lt;span class="se">\(&lt;/span> -iname &lt;span class="s2">&amp;#34;*comet*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*backup*&amp;#34;&lt;/span> &lt;span class="se">\)&lt;/span> -print&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every Comet Backup server past the affected release line using the
+vendor-supported patched release for the deployment channel.&lt;/li>
+&lt;li>Regenerate package locks, image digests, SBOMs, rendered manifests, and
+deployment evidence that prove the patched server version is the one that
+will actually run.&lt;/li>
+&lt;li>Until upgrade is complete, restrict tenant-admin network access to the
+Comet Backup API/admin surface and disable or block the vulnerable
+impersonation workflow if the repository controls a reverse proxy, WAF, or
+gateway policy.&lt;/li>
+&lt;li>Rotate Comet Backup web sessions, tenant-admin API tokens, and any support
+impersonation credentials after patching.&lt;/li>
+&lt;li>Audit Comet Backup logs for tenant-admin actions that accessed or
+impersonated users outside the actor&amp;rsquo;s tenant boundary.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-29200 (Comet Backup tenant impersonation IDOR).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or contains the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Comet Backup deployment and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not control a Comet Backup deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot safely make the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-29200.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat backup metadata, tenant IDs, user IDs, backup paths, encryption keys,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> API tokens, session cookies, and restore destinations as sensitive. Do not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> print real values in logs, test fixtures, screenshots, or PR text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not attempt live impersonation against production tenants.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not delete backup sets, restore data, change retention policy, rotate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customer encryption keys, or modify tenant ownership automatically.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not invent an API endpoint name. Use repository configuration, vendor
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory text, release notes, or existing Comet admin/API documentation to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> identify the controlled surface.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory Comet Backup ownership in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Dockerfiles, image tags, installer URLs, package pins, checksums, SBOMs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Helm/Kubernetes manifests, Compose files, Terraform, Ansible, Packer, AMIs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway, reverse proxy, WAF, or firewall policy that exposes Comet admin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or API routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> operational runbooks for tenant administration, support impersonation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> backup restore, or API token management.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repository does not deploy or configure Comet Backup, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> listing every path checked and the likely runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine the resolved Comet Backup server version for every deployable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment. Treat &lt;span class="sb">`&amp;gt;=20.11.0, &amp;lt;=26.1.1`&lt;/span> and &lt;span class="sb">`26.2.1`&lt;/span> as vulnerable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Upgrade each vulnerable server to the latest vendor-supported patched
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> release. If the vendor maintains separate stable and latest tracks, choose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the patched track already used by the repository unless security policy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requires the latest channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, Helm render output, deployment manifests, golden
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, checksum allowlists, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add temporary containment if the patched release cannot be deployed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> immediately:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict tenant-admin access to Comet admin/API routes by VPN, allowlist,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> identity-aware proxy, or equivalent gateway control;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block the documented impersonation route or workflow at the edge if the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository controls that policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable support impersonation features where configuration allows;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add an emergency runbook requiring tenant boundary log review and token
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation after patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-29200 operator actions`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> confirming production now runs a patched Comet Backup version;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> invalidating Comet Backup web sessions and tenant-admin API tokens;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reviewing audit logs for tenant-admin impersonation or cross-tenant user
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> preserving suspicious logs for incident response;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> validating backup and restore workflows after the upgrade without exposing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customer backup data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add or update verification that proves the deployed artifact is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`20.11.0`&lt;/span> through &lt;span class="sb">`26.1.1`&lt;/span> and is not &lt;span class="sb">`26.2.1`&lt;/span>. Prefer a version assertion
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in deployment tests, image metadata checks, SBOM policy, or runbook smoke
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Run the repository&amp;#39;s relevant validation: image build, IaC plan/render,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment schema validation, SBOM generation, package checksum checks, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security scan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-29200 in Comet Backup`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Comet Backup deployment, image, runbook, or infrastructure path is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved Comet Backup version can only be determined from production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access that the agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The vendor-patched release is not available through the repository&amp;#39;s allowed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would delete or restore backup data, alter tenant
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ownership, rotate customer-held encryption keys, or expose tenant identifiers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable Comet Backup server artifact resolves to &lt;code>20.11.0&lt;/code> through
+&lt;code>26.1.1&lt;/code>, or to &lt;code>26.2.1&lt;/code>.&lt;/li>
+&lt;li>The actual delivery path was changed: package pin, installer checksum, image
+digest, deployment manifest, SBOM, or operational runbook.&lt;/li>
+&lt;li>Temporary containment is present when a full upgrade is blocked.&lt;/li>
+&lt;li>Operator actions cover session/API-token invalidation and cross-tenant audit
+review.&lt;/li>
+&lt;li>Tests, image builds, IaC renders, and security scans pass or unrelated
+failures are explicitly documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Repositories that update documentation but leave base images or installer
+URLs pinned to a vulnerable Comet version.&lt;/li>
+&lt;li>Multiple Comet deployment tracks where one environment uses the &lt;code>26.1.x&lt;/code>
+branch and another uses &lt;code>26.2.1&lt;/code>.&lt;/li>
+&lt;li>PRs that prove a package version changed but do not prove the rebuilt image or
+rendered deployment references the patched artifact.&lt;/li>
+&lt;li>Incident-response work that requires live tenant data. Keep code changes and
+production investigation clearly separated.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database critical listing: &lt;a href="https://github.com/advisories?query=severity%3Acritical"target="_blank" rel="noopener">https://github.com/advisories?query=severity%3Acritical&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-29200"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-29200&lt;/a>&lt;/li>
+&lt;li>Comet vendor advisory: &lt;a href="https://support.cometbackup.com/hc/en-us/articles/40090945484823--CVE-2026-29200-%D0%A1ritical-IDOR-vulnerability-in-Comet-Backup"target="_blank" rel="noopener">https://support.cometbackup.com/hc/en-us/articles/40090945484823--CVE-2026-29200-%D0%A1ritical-IDOR-vulnerability-in-Comet-Backup&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-3xx2/GHSA-47wq - Paperclip agent key tenant-boundary bypass</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-3xx2-47wq-paperclip-agent-key-tenant-boundary/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-3xx2-47wq-paperclip-agent-key-tenant-boundary/</guid><description>
+&lt;p>Two critical Paperclip advisories describe the same tenant-boundary failure in
+agent API key routes. The &lt;code>GET&lt;/code>, &lt;code>POST&lt;/code>, and &lt;code>DELETE&lt;/code> handlers for
+&lt;code>/agents/:id/keys&lt;/code> accepted a board-type session but did not verify that the
+caller belonged to the company owning the target agent.&lt;/p>
+&lt;p>An authenticated board user could supply another company&amp;rsquo;s agent UUID, list or
+revoke that agent&amp;rsquo;s keys, and mint a new plaintext agent token bound to the
+victim tenant. For an agent platform, that is a full cross-tenant control-plane
+compromise.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>@paperclipai/server 2026.416.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected routes:&lt;/strong>
+&lt;ul>
+&lt;li>&lt;code>GET /agents/:id/keys&lt;/code>&lt;/li>
+&lt;li>&lt;code>POST /agents/:id/keys&lt;/code>&lt;/li>
+&lt;li>&lt;code>DELETE /agents/:id/keys/:keyId&lt;/code>&lt;/li>
+&lt;li>equivalent &lt;code>/api/agents/:id/keys&lt;/code> deployments or reverse-proxy prefixes.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or packages &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>.&lt;/li>
+&lt;li>The Paperclip deployment is multi-tenant or has more than one company,
+workspace, board, customer, or organization.&lt;/li>
+&lt;li>Board users can authenticate without being instance administrators.&lt;/li>
+&lt;li>Agent IDs are visible in URLs, logs, exported data, webhooks, frontend state,
+or predictable test fixtures.&lt;/li>
+&lt;li>Agent API tokens can call downstream endpoints that rely on token-bound
+&lt;code>companyId&lt;/code> for authorization.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;@paperclipai/server|paperclip|/agents/:id/keys|agents/.*/keys|assertBoard|assertCompanyAccess|createApiKey|listKeys|revokeKey&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;agentApiKeys|companyId|instance_admin|board|agent token|pcp_&amp;#34;&lt;/span> server src packages Dockerfile* docker-compose*.yml charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>@paperclipai/server&lt;/code> to &lt;code>2026.416.0+&lt;/code> everywhere this repository
+controls package manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Require company access for all agent-key list, create, and revoke paths:
+fetch the target agent first, then call the product&amp;rsquo;s company-access helper
+using the agent&amp;rsquo;s company ID.&lt;/li>
+&lt;li>Enforce tenant checks in the service layer as well as route handlers so future
+routes cannot bypass the boundary by calling &lt;code>createApiKey&lt;/code>, &lt;code>listKeys&lt;/code>, or
+&lt;code>revokeKey&lt;/code> directly.&lt;/li>
+&lt;li>Make revocation scoped to both key ID and agent/company, not key ID alone.&lt;/li>
+&lt;li>Rotate agent API tokens and review audit logs if unauthorized board users
+could access the key routes.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating Paperclip agent API key tenant-boundary advisories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Paperclip or patches the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenant authorization boundary, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Paperclip deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat agent API tokens, key hashes, tenant IDs, company IDs, session cookies,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> audit logs, and customer data as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not mint, print, commit, or attach real agent API tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not fix only the frontend. The server-side route and service boundary must
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enforce tenant ownership.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Paperclip runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, CI images, deployment docs, SBOMs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored server code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`@paperclipai/server`&lt;/span> version. A target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves below &lt;span class="sb">`2026.416.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search route and service code for agent-key operations:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /agents/:id/keys`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /agents/:id/keys`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`DELETE /agents/:id/keys/:keyId`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`/api/agents/:id/keys`&lt;/span> aliases;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`assertBoard`&lt;/span>, &lt;span class="sb">`assertCompanyAccess`&lt;/span>, &lt;span class="sb">`createApiKey`&lt;/span>, &lt;span class="sb">`listKeys`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`revokeKey`&lt;/span>, and &lt;span class="sb">`agentApiKeys`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository only deploys a fixed hosted Paperclip service or does not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> own Paperclip, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading to &lt;span class="sb">`@paperclipai/server 2026.416.0+`&lt;/span>. Regenerate lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If the repository owns a fork or vendored patch path, patch authorization:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fetch the target agent before key list/create/revoke;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> call &lt;span class="sb">`assertCompanyAccess(req, agent.companyId)`&lt;/span> or equivalent before any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> key operation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow instance-admin override only through the existing reviewed helper;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> pass actor/company context into service-layer key functions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scope revoke by key ID plus agent ID/company ID;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> never return plaintext tokens except immediately after an authorized
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> create operation in the caller&amp;#39;s own tenant.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Company A board user gets 403 for Company B key list/create/revoke;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> zero-membership board user gets 403;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> instance admin behavior matches the intended product policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authorized same-company users can still create and revoke keys;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> service-layer calls cannot create or revoke cross-tenant keys without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actor/company context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add audit and operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> log key-management actor, target agent, company, and decision without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plaintext tokens;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rate-limit key creation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> alert on cross-company key-management denials;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document token rotation for the exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`Paperclip agent key operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected Paperclip versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether multiple companies or self-service board accounts existed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether agent IDs were discoverable by non-member users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether agent API keys were listed, minted, or revoked by suspicious
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actors;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which agent tokens must be rotated and which audit logs must be reviewed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package install, lockfile checks, route tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> service tests, authorization integration tests, lint/typecheck, image build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOM refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): enforce tenant access on Paperclip agent keys`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Paperclip server deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Paperclip version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The tenant ownership model is unclear or intentionally allows cross-company
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> board administration; document the risk and require a product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require exposing real agent tokens or customer data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>@paperclipai/server&lt;/code> below &lt;code>2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Every agent-key route checks access to the company that owns the target agent.&lt;/li>
+&lt;li>Service functions cannot list, create, or revoke keys without actor/company
+context.&lt;/li>
+&lt;li>Cross-tenant regression tests cover list, create, and revoke.&lt;/li>
+&lt;li>Operator actions cover token rotation and audit-log review without exposing
+plaintext tokens.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Adding &lt;code>assertCompanyAccess&lt;/code> only to &lt;code>POST&lt;/code> while &lt;code>GET&lt;/code> or &lt;code>DELETE&lt;/code> remains
+tenant-blind.&lt;/li>
+&lt;li>Fetching the agent after creating or revoking the key.&lt;/li>
+&lt;li>Revoking by key ID alone when key IDs are globally unique and guessable from
+logs or frontend state.&lt;/li>
+&lt;li>Logging plaintext &lt;code>pcp_*&lt;/code> tokens in tests, audit events, or PR comments.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-3xx2-mqjm-hg9x&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-3xx2-mqjm-hg9x"target="_blank" rel="noopener">https://github.com/advisories/GHSA-3xx2-mqjm-hg9x&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-47wq-cj9q-wpmp&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-47wq-cj9q-wpmp"target="_blank" rel="noopener">https://github.com/advisories/GHSA-47wq-cj9q-wpmp&lt;/a>&lt;/li>
+&lt;li>Paperclip project: &lt;a href="https://github.com/paperclipai/paperclip"target="_blank" rel="noopener">https://github.com/paperclipai/paperclip&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42461 - Arcane Compose template secret disclosure</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42461-arcane-compose-template-secret-disclosure/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42461-arcane-compose-template-secret-disclosure/</guid><description>
+&lt;p>Arcane versions before &lt;code>1.18.0&lt;/code> register several custom template read
+endpoints without an authentication requirement. An unauthenticated network
+client can list templates and read stored Compose YAML plus associated &lt;code>.env&lt;/code>
+content from the Arcane instance.&lt;/p>
+&lt;p>The vulnerable flow matters because Arcane&amp;rsquo;s &amp;ldquo;Save as Template&amp;rdquo; feature can
+persist operator-provided environment values verbatim. In real deployments,
+template &lt;code>envContent&lt;/code> can contain database passwords, registry credentials,
+OIDC client secrets, Sentry DSNs, payment provider keys, internal hostnames, and
+other deployment context that should never be returned to unauthenticated
+callers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/getarcaneapp/arcane/backend &amp;lt;1.18.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/getarcaneapp/arcane/backend 1.18.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoint family:&lt;/strong> &lt;code>GET /api/templates*&lt;/code>, including template list,
+individual template, and template content reads.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, deploys, vendors, or pins Arcane before &lt;code>1.18.0&lt;/code>.&lt;/li>
+&lt;li>The Arcane API is reachable by users, tenants, internal networks, VPN users,
+reverse proxies, or automation without path-level authentication.&lt;/li>
+&lt;li>Custom templates are enabled or the deployment has saved templates derived
+from real Compose projects, swarm stacks, or GitOps project definitions.&lt;/li>
+&lt;li>Stored template rows or backup data include Compose YAML, &lt;code>.env&lt;/code> text,
+parsed environment key/value pairs, registry metadata, service names, or
+internal host references.&lt;/li>
+&lt;li>API logs show unauthenticated &lt;code>GET&lt;/code> requests to &lt;code>/api/templates&lt;/code>,
+&lt;code>/api/templates/all&lt;/code>, &lt;code>/api/templates/{id}&lt;/code>, or
+&lt;code>/api/templates/{id}/content&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;getarcaneapp/arcane|arcane/backend|RegisterTemplates|ListTemplates|GetAllTemplates|GetTemplateContent|/api/templates|BearerAuth|ApiKeyAuth&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/getarcaneapp/arcane&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;envContent|ComposeTemplate|Save as Template|PROTECTED_PREFIXES|templates/\\{id\\}/content|parseSecurityRequirements&amp;#34;&lt;/span> backend frontend charts deploy docker-compose*.yml Dockerfile* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Arcane to &lt;code>1.18.0+&lt;/code> everywhere this repository controls binary,
+container, Helm, compose, GitOps, or module selection.&lt;/li>
+&lt;li>If the repository owns a fork or vendored Arcane code, require the same
+&lt;code>BearerAuth&lt;/code> or &lt;code>ApiKeyAuth&lt;/code> policy on every custom template read endpoint
+that template writes already require.&lt;/li>
+&lt;li>Prefer fail-closed API registration defaults: endpoint handlers should be
+unauthenticated only when they explicitly opt out for a documented public
+route.&lt;/li>
+&lt;li>Add regression tests that unauthenticated callers receive &lt;code>401&lt;/code> or &lt;code>403&lt;/code> for
+template list and template content reads, and authenticated users can only
+access templates they are authorized to view.&lt;/li>
+&lt;li>Treat all stored template &lt;code>.env&lt;/code> values as exposed if the vulnerable API was
+reachable. Rotate secrets, invalidate sessions or API keys derived from those
+values, and review access logs before relying on containment.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42461 (Arcane unauthenticated disclosure of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">custom Compose templates and &lt;span class="sb">`.env`&lt;/span> secrets). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or patches Arcane, verifies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template-read authorization, and documents operator secret cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Arcane deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42461.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Compose YAML, &lt;span class="sb">`.env`&lt;/span> values, registry tokens, database passwords, OIDC
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, API keys, internal hostnames, template names, and Arcane API keys as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, commit, or copy real template content or secret values
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> while testing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not prove exposure by fetching production template content.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve unauthenticated template reads for compatibility.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Arcane reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`go.mod`&lt;/span>, &lt;span class="sb">`go.sum`&lt;/span>, vendor trees, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, GitOps overlays, SBOMs, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency manifests, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every deployed or buildable Arcane version. A target is vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if it resolves to &lt;span class="sb">`github.com/getarcaneapp/arcane/backend &amp;lt;1.18.0`&lt;/span> or an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Arcane container/image tag before &lt;span class="sb">`1.18.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether the vulnerable template-read paths are reachable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/all`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/{id}`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/{id}/content`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any reverse-proxy rewrite, generated API client, or UI path that maps to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> those handlers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether custom templates can contain real deployment secrets:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Compose &lt;span class="sb">`.env`&lt;/span> files, swarm-stack variables, registry credentials, database
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DSNs, OAuth/OIDC settings, webhook tokens, cloud keys, or third-party API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository only contains an Arcane client or unrelated docs, stop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owner, files checked, affected version evidence,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and required fixed version &lt;span class="sb">`1.18.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade every controlled Arcane deployment to &lt;span class="sb">`1.18.0+`&lt;/span>. Regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, image digests, SBOMs, deployment render output, and dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If this repository owns a fork or vendored patch instead of a pure upgrade,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> update template read route registration so each affected &lt;span class="sb">`GET`&lt;/span> operation has
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the same security requirement used by template create/update/delete routes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`BearerAuth`&lt;/span>, &lt;span class="sb">`ApiKeyAuth`&lt;/span>, or the repository&amp;#39;s equivalent authenticated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> principal requirement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add an explicit fail-closed route registration test or policy check:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unauthenticated routes must be declared through an allow-list of public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operations, and template operations must not appear in that allow-list.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe tests using synthetic template fixtures only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unauthenticated requests to every affected template read path return &lt;span class="sb">`401`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or &lt;span class="sb">`403`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authenticated callers can read allowed templates;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unauthorized callers cannot read another tenant, environment, or team
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template if the product has ownership boundaries;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> response bodies for denied requests never include Compose YAML, parsed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment variables, or template metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add deployment containment where this repository controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> block unauthenticated &lt;span class="sb">`GET /api/templates*`&lt;/span> at the reverse proxy, API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway, service mesh, or ingress during rollout, especially when the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Arcane API is reachable from shared internal networks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42461 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Arcane versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether custom templates were enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether unauthenticated network paths could reach &lt;span class="sb">`/api/templates*`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secret classes may have existed in stored template &lt;span class="sb">`.env`&lt;/span> content;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which API keys, registry credentials, database passwords, OAuth/OIDC
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, webhook tokens, or cloud credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which access logs should be reviewed for unauthenticated template reads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Run relevant validation: Go tests, route/authz tests, frontend API contract
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests if present, lint/typecheck, image build, deployment render diff, SBOM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42461 in Arcane templates`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Arcane deployment, package, image, fork, or template API path is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository cannot consume Arcane &lt;span class="sb">`1.18.0+`&lt;/span> without a larger platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Template ownership or tenant boundaries are unclear and changing them could
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expose or hide customer data incorrectly; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Secret rotation requires production access or customer approval outside the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository; document the exact operator action instead of inventing a local
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Arcane package, image, Helm value, compose file, SBOM, or
+deployment manifest remains pinned before &lt;code>1.18.0&lt;/code>.&lt;/li>
+&lt;li>Every custom template read endpoint requires authentication and any applicable
+ownership or tenant authorization.&lt;/li>
+&lt;li>Tests cover unauthenticated denial for list, all, single-template, and
+content-read endpoints.&lt;/li>
+&lt;li>Denied responses do not leak template names, Compose YAML, &lt;code>.env&lt;/code> content, or
+parsed environment variables.&lt;/li>
+&lt;li>Operator actions clearly state whether secret rotation and log review are
+required for the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating the application image while a Helm chart, compose file, GitOps
+overlay, or backup/restore runbook still deploys an older Arcane tag.&lt;/li>
+&lt;li>Adding authentication to the UI while generated API routes or direct backend
+calls remain unauthenticated.&lt;/li>
+&lt;li>Tests that assert &lt;code>200&lt;/code> for public template reads because the old API
+contract accidentally treated templates as public catalogue data.&lt;/li>
+&lt;li>Logging real &lt;code>.env&lt;/code> content while adding regression tests or incident
+inventory.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-cxx3-hr75-4q96"target="_blank" rel="noopener">https://github.com/advisories/GHSA-cxx3-hr75-4q96&lt;/a>&lt;/li>
+&lt;li>Arcane &lt;code>v1.18.0&lt;/code> release: &lt;a href="https://github.com/getarcaneapp/arcane/releases/tag/v1.18.0"target="_blank" rel="noopener">https://github.com/getarcaneapp/arcane/releases/tag/v1.18.0&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42349 - Clerk combined authorization bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42349-clerk-combined-authorization-bypass/</link><pubDate>Sun, 03 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42349-clerk-combined-authorization-bypass/</guid><description>
+&lt;p>Clerk SDK authorization predicates can return an allow decision for some
+multi-condition checks even when the user does not satisfy every requested
+condition. The bug affects combined uses of &lt;code>has()&lt;/code> and &lt;code>auth.protect()&lt;/code> that
+mix authorization dimensions such as organization role, permission, billing
+plan, feature entitlement, or reverification.&lt;/p>
+&lt;p>Authentication and token verification are not the broken boundary. The risk is
+that a route, server action, API handler, billing-gated feature, admin action,
+or agent-control surface may proceed because a combined predicate returned true
+when one of the component checks should have failed.&lt;/p>
+&lt;p>This is especially relevant for agentic SaaS products: organization admin
+actions, paid-plan controls, high-risk tool enablement, connector approvals,
+and reverified operations should fail closed when any required dimension is
+missing.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Patch the Clerk framework package the application actually consumes, and patch
+direct &lt;code>@clerk/shared&lt;/code> / &lt;code>@clerk/clerk-js&lt;/code> pins where present.&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Package&lt;/th>
+&lt;th>Vulnerable versions&lt;/th>
+&lt;th>Fixed versions&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>@clerk/astro&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=2.0.0, &amp;lt;=2.17.10&lt;/code>; &lt;code>&amp;gt;=3.0.0, &amp;lt;=3.0.17&lt;/code>&lt;/td>
+&lt;td>&lt;code>2.17.11&lt;/code>, &lt;code>3.0.18&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/backend&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=2.0.0, &amp;lt;=2.33.2&lt;/code>; &lt;code>&amp;gt;=3.0.0, &amp;lt;=3.2.13&lt;/code>&lt;/td>
+&lt;td>&lt;code>2.33.3&lt;/code>, &lt;code>3.2.14&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/chrome-extension&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=1.3.5, &amp;lt;=2.9.14&lt;/code>; &lt;code>&amp;gt;=3.0.0, &amp;lt;=3.1.14&lt;/code>&lt;/td>
+&lt;td>&lt;code>2.9.15&lt;/code>, &lt;code>3.1.15&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/clerk-expo&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=2.2.11, &amp;lt;=2.19.35&lt;/code>&lt;/td>
+&lt;td>&lt;code>2.19.36&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/clerk-js&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=5.22.0, &amp;lt;=5.125.9&lt;/code>; &lt;code>&amp;gt;=6.0.0, &amp;lt;=6.7.4&lt;/code>&lt;/td>
+&lt;td>&lt;code>5.125.10&lt;/code>, &lt;code>6.7.5&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/clerk-react&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=5.9.0, &amp;lt;=5.61.5&lt;/code>&lt;/td>
+&lt;td>&lt;code>5.61.6&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/expo&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=3.0.0, &amp;lt;=3.2.1&lt;/code>&lt;/td>
+&lt;td>&lt;code>3.2.2&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/express&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=0.1.0, &amp;lt;=1.7.78&lt;/code>; &lt;code>&amp;gt;=2.0.0, &amp;lt;=2.1.5&lt;/code>&lt;/td>
+&lt;td>&lt;code>1.7.79&lt;/code>, &lt;code>2.1.6&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/fastify&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=1.0.42, &amp;lt;=2.6.30&lt;/code>; &lt;code>&amp;gt;=3.0.0, &amp;lt;=3.1.15&lt;/code>&lt;/td>
+&lt;td>&lt;code>2.6.31&lt;/code>, &lt;code>3.1.16&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/hono&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=0.0.2, &amp;lt;=0.1.15&lt;/code>&lt;/td>
+&lt;td>&lt;code>0.1.16&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/nextjs&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=6.0.0, &amp;lt;=6.39.2&lt;/code>; &lt;code>&amp;gt;=7.0.0, &amp;lt;=7.2.3&lt;/code>&lt;/td>
+&lt;td>&lt;code>6.39.3&lt;/code>, &lt;code>7.2.4&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/nuxt&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=1.0.0, &amp;lt;=1.13.28&lt;/code>; &lt;code>&amp;gt;=2.0.0, &amp;lt;=2.2.4&lt;/code>&lt;/td>
+&lt;td>&lt;code>1.13.29&lt;/code>, &lt;code>2.2.5&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/react&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=6.0.0, &amp;lt;=6.4.2&lt;/code>&lt;/td>
+&lt;td>&lt;code>6.4.3&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/react-router&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=0.0.1, &amp;lt;=2.4.12&lt;/code>; &lt;code>&amp;gt;=3.0.0, &amp;lt;=3.1.3&lt;/code>&lt;/td>
+&lt;td>&lt;code>2.4.13&lt;/code>, &lt;code>3.1.4&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/shared&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=3.0.0, &amp;lt;=3.47.4&lt;/code>; &lt;code>&amp;gt;=4.0.0, &amp;lt;=4.8.2&lt;/code>&lt;/td>
+&lt;td>&lt;code>3.47.5&lt;/code>, &lt;code>4.8.3&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/tanstack-react-start&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=0.0.1, &amp;lt;=0.29.10&lt;/code>; &lt;code>&amp;gt;=1.0.0, &amp;lt;=1.1.3&lt;/code>&lt;/td>
+&lt;td>&lt;code>0.29.11&lt;/code>, &lt;code>1.1.4&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>@clerk/vue&lt;/code>&lt;/td>
+&lt;td>&lt;code>&amp;gt;=1.0.0, &amp;lt;=1.17.20&lt;/code>; &lt;code>&amp;gt;=2.0.0, &amp;lt;=2.0.15&lt;/code>&lt;/td>
+&lt;td>&lt;code>1.17.21&lt;/code>, &lt;code>2.0.16&lt;/code>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on any affected Clerk package through npm, pnpm, Yarn,
+Bun, a lockfile, Docker image, generated dependency manifest, or SBOM.&lt;/li>
+&lt;li>Application code calls &lt;code>has()&lt;/code> or &lt;code>auth.protect()&lt;/code> with more than one
+authorization dimension in the same predicate object.&lt;/li>
+&lt;li>Combined checks include &lt;code>reverification&lt;/code> plus &lt;code>role&lt;/code>, &lt;code>permission&lt;/code>,
+&lt;code>feature&lt;/code>, or &lt;code>plan&lt;/code>.&lt;/li>
+&lt;li>Combined checks include a billing dimension (&lt;code>feature&lt;/code> or &lt;code>plan&lt;/code>) plus
+&lt;code>role&lt;/code> or &lt;code>permission&lt;/code>.&lt;/li>
+&lt;li>&lt;code>@clerk/nextjs&lt;/code> code calls &lt;code>auth.protect()&lt;/code> with authorization parameters
+in the same object as redirect or token options such as &lt;code>unauthenticatedUrl&lt;/code>,
+&lt;code>unauthorizedUrl&lt;/code>, or &lt;code>token&lt;/code>.&lt;/li>
+&lt;li>Sensitive actions depend on those predicates: organization administration,
+invite/member management, billing-plan features, connector approval, tool
+enablement, key rotation, data export, destructive actions, or agent workflow
+promotion.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;@clerk/|from [&amp;#39;\&amp;#34;]@clerk|has\\(|auth\\.protect\\(|reverification|unauthenticatedUrl|unauthorizedUrl|feature:|plan:|permission:|role:&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @clerk/shared @clerk/nextjs @clerk/backend @clerk/clerk-js
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @clerk/shared @clerk/nextjs @clerk/backend @clerk/clerk-js
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @clerk/shared @clerk/nextjs @clerk/backend @clerk/clerk-js&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade the Clerk framework SDK on the application&amp;rsquo;s current major line to
+the fixed version listed above. Regenerate lockfiles and rebuild deployment
+artifacts.&lt;/li>
+&lt;li>Upgrade direct &lt;code>@clerk/shared&lt;/code> and &lt;code>@clerk/clerk-js&lt;/code> pins when present.&lt;/li>
+&lt;li>During rollout, split combined &lt;code>has()&lt;/code> or &lt;code>auth.protect()&lt;/code> checks into
+sequential single-condition checks so each condition fails closed on its own.&lt;/li>
+&lt;li>For &lt;code>@clerk/nextjs&lt;/code>, keep authorization checks separate from redirect or
+token options unless the upgraded package has already been deployed.&lt;/li>
+&lt;li>Add regression tests for the application&amp;rsquo;s most sensitive gates, especially
+checks that combine organization permission, admin role, plan/feature
+entitlement, and reverification.&lt;/li>
+&lt;li>Review logs for sensitive actions that were authorized through affected
+combined predicates during the vulnerable window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42349 (Clerk combined authorization predicate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">bypass). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades affected Clerk packages,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> removes reachable combined-predicate bypass risk, adds regression coverage,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and documents operator review, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Clerk application or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42349 and directly related Clerk authorization checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not weaken authentication, organization authorization, billing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> entitlement, feature entitlement, reverification, or redirect behavior to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> preserve compatibility.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log Clerk session tokens, JWTs, cookies, OAuth tokens, organization
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, API keys, billing data, or user PII.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely only on dependency updates if sensitive combined authorization
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> predicates are present and untested.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Clerk dependency in package manifests, lockfiles, workspace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests, Dockerfiles, deployment images, generated dependency manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and SBOMs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any resolved package is in an affected CVE-2026-42349
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> range, especially:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@clerk/nextjs`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@clerk/backend`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@clerk/shared`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@clerk/clerk-js`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> framework wrappers such as Astro, Express, Fastify, Hono, Nuxt, React
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Router, TanStack React Start, Vue, Expo, and Chrome Extension packages.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search application code for Clerk authorization predicates:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`has(...)`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`auth.protect(...)`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`createCheckAuthorization`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`reverification`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`role`&lt;/span>, &lt;span class="sb">`permission`&lt;/span>, &lt;span class="sb">`feature`&lt;/span>, and &lt;span class="sb">`plan`&lt;/span> checks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`unauthenticatedUrl`&lt;/span>, &lt;span class="sb">`unauthorizedUrl`&lt;/span>, or &lt;span class="sb">`token`&lt;/span> passed to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`auth.protect()`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Identify sensitive routes, server actions, API handlers, webhooks, jobs, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent-control paths protected by combined predicate objects. Treat these as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> high priority when they guard organization administration, billing-gated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> features, connector/tool approval, secret access, key rotation, data export,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> destructive operations, or workflow promotion.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade affected Clerk packages to the fixed release for the current major
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> line. Regenerate lockfiles, workspace metadata, SBOMs, image metadata, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment artifacts controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If any sensitive gate uses a combined &lt;span class="sb">`has()`&lt;/span> or &lt;span class="sb">`auth.protect()`&lt;/span> object,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> either:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rewrite it as sequential single-condition checks that deny when any check
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fails, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> preserve the API shape only after adding regression coverage that proves
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> missing role, missing permission, missing plan/feature, and missing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reverification each deny access on the fixed SDK.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> For &lt;span class="sb">`@clerk/nextjs`&lt;/span>, ensure &lt;span class="sb">`auth.protect()`&lt;/span> authorization parameters are
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> not silently bypassed when redirect or token options are present. Prefer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> separate authorization enforcement and redirect handling where the codebase
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pattern allows it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests with fake users/sessions/claims that prove denial for:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> correct role but missing reverification;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> correct reverification but missing permission;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> correct billing plan or feature but missing role or permission;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> redirect/token options present without satisfying authorization;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any project-specific admin, billing, connector, or agent-control gate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42349 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Clerk packages and versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which combined authorization predicates were found;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which sensitive actions they protected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any temporary sequential-check mitigation was added;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which audit logs should be reviewed for sensitive actions during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable window;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any tenant, organization, billing, or entitlement state requires
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manual review.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run the relevant validation: package-manager install check, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> route/action authorization tests, integration tests, lint/typecheck, build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency scan, and any policy or E2E checks available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42349 in Clerk authorization`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not depend on Clerk packages and does not deploy a Clerk
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> All resolved Clerk packages are already fixed and no generated deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifact remains vulnerable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The project uses only single-condition Clerk checks and tests prove no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> affected combined predicate object protects sensitive actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A package upgrade is blocked by a framework or product migration outside
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository; document the owner, required fixed versions, and temporary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sequential-check mitigation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verifying exposure would require using production sessions, real customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> identities, billing data, organization secrets, or live tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package manifest, lockfile, image, SBOM, or deployment artifact
+resolves an affected Clerk SDK version.&lt;/li>
+&lt;li>Sensitive gates that combine role, permission, billing, feature, plan, or
+reverification checks either use fixed Clerk packages with regression tests
+or have been split into sequential fail-closed checks.&lt;/li>
+&lt;li>&lt;code>@clerk/nextjs&lt;/code> &lt;code>auth.protect()&lt;/code> calls do not drop authorization behavior
+when redirect or token options are present.&lt;/li>
+&lt;li>Tests cover negative authorization cases, not only happy-path admin access.&lt;/li>
+&lt;li>The PR names any audit-log review or manual tenant/org/billing review needed
+for actions performed during the vulnerable window.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>package.json&lt;/code> while lockfiles, workspaces, Docker layers, or SBOMs
+still resolve vulnerable Clerk packages.&lt;/li>
+&lt;li>Fixing &lt;code>@clerk/nextjs&lt;/code> but leaving a vulnerable direct &lt;code>@clerk/shared&lt;/code> or
+&lt;code>@clerk/clerk-js&lt;/code> pin in the same workspace.&lt;/li>
+&lt;li>Wrapper helpers that hide combined &lt;code>has()&lt;/code> calls behind names like
+&lt;code>requireAdmin&lt;/code>, &lt;code>requirePremium&lt;/code>, &lt;code>assertOrgPermission&lt;/code>, or &lt;code>protectRoute&lt;/code>.&lt;/li>
+&lt;li>Tests that only assert authorized users are allowed and never assert that
+partially qualified users are denied.&lt;/li>
+&lt;li>Agentic admin surfaces where billing plan, org role, connector approval, and
+reverification are combined into a single high-impact gate.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-w24r-5266-9c3c"target="_blank" rel="noopener">https://github.com/advisories/GHSA-w24r-5266-9c3c&lt;/a>&lt;/li>
+&lt;li>Clerk security advisory: &lt;a href="https://github.com/clerk/javascript/security/advisories/GHSA-w24r-5266-9c3c"target="_blank" rel="noopener">https://github.com/clerk/javascript/security/advisories/GHSA-w24r-5266-9c3c&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-xh72/GHSA-xmxx - OpenClaw agent-surface fail-closed bypasses</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-xh72-openclaw-agent-surface-fail-closed/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-xh72-openclaw-agent-surface-fail-closed/</guid><description>
+&lt;p>OpenClaw published a cluster of GitHub-reviewed High/Critical advisories around
+external agent inputs and runtime authorization boundaries. They matter because
+they sit exactly where agentic systems are most exposed: chat/webhook ingress,
+gateway bearer auth, chat-room command authorization, and tool-result media
+normalization.&lt;/p>
+&lt;p>The four advisories covered by this recipe are:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>GHSA-xh72-v6v9-mwhc&lt;/code> (Critical): Feishu webhook mode and card-action
+callbacks could fail open when signing configuration or callback tokens were
+missing or blank, allowing unauthenticated traffic to reach command dispatch.&lt;/li>
+&lt;li>&lt;code>GHSA-xmxx-7p24-h892&lt;/code> (High): gateway HTTP and WebSocket handlers could keep
+accepting an old bearer token after SecretRef rotation because auth was
+resolved at server startup instead of per request.&lt;/li>
+&lt;li>&lt;code>GHSA-2gvc-4f3c-2855&lt;/code> (High): Matrix room control-command authorization could
+trust sender IDs learned from the DM pairing store, crossing the DM/room
+command boundary.&lt;/li>
+&lt;li>&lt;code>GHSA-mr34-9552-qr95&lt;/code> (High): webchat tool-result media handling could pass
+local or UNC-style paths into host-side embedding before enforcing
+&lt;code>localRoots&lt;/code>, risking host file reads or Windows network credential exposure.&lt;/li>
+&lt;/ul>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>OpenClaw Feishu webhook/card-action validation:&lt;/strong>
+&lt;code>openclaw &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw gateway bearer auth re-resolution:&lt;/strong>
+&lt;code>openclaw &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw Matrix room control-command authorization:&lt;/strong>
+&lt;code>openclaw &amp;gt;2026.3.28, &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw webchat media local-root containment:&lt;/strong>
+&lt;code>openclaw &amp;gt;=2026.4.7, &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, builds, deploys, vendors, or documents
+&lt;code>openclaw&lt;/code> before &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>Feishu webhook mode is enabled, especially if &lt;code>encryptKey&lt;/code> is optional,
+missing, read from a SecretRef, or configured differently per environment.&lt;/li>
+&lt;li>Feishu card-action callbacks are accepted, and blank or malformed lifecycle
+callback tokens can reach action dispatch.&lt;/li>
+&lt;li>Gateway bearer tokens are provided through SecretRef or another dynamic
+secret source, and operators expect rotation to revoke old tokens without a
+process restart.&lt;/li>
+&lt;li>Matrix integration is enabled, room control commands are available, and DM
+pairing is used for the same bot account.&lt;/li>
+&lt;li>Webchat renders tool-result media, especially if agents, tools, or users can
+submit &lt;code>file://&lt;/code>, local filesystem, Windows drive, or UNC-style media paths.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;openclaw|@openclaw|OPENCLAW|Feishu|encryptKey|card-action|SecretRef|bearer|Matrix|commandAllowFrom|pairing|webchat|localRoots|file://|UNC&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;openclaw|feishu|matrix|gateway|webchat|localRoots|SecretRef|bearer&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm .github config* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled OpenClaw package, image, deployment manifest, and
+generated SBOM to &lt;code>2026.4.15+&lt;/code>.&lt;/li>
+&lt;li>Fail closed for Feishu ingress: webhook mode must not start without
+&lt;code>encryptKey&lt;/code>, missing signing config must be invalid, invalid signatures must
+return &lt;code>401&lt;/code>, and blank card-action callback tokens must be rejected before
+dispatch.&lt;/li>
+&lt;li>Re-resolve gateway bearer authentication from the current runtime secret
+snapshot on every HTTP request and WebSocket upgrade.&lt;/li>
+&lt;li>Enforce separate Matrix authorization boundaries: DM pairing-store entries
+must not authorize room control commands.&lt;/li>
+&lt;li>Reject remote-host &lt;code>file://&lt;/code> URLs, Windows network paths, and local-root
+bypasses before any media &lt;code>stat&lt;/code>, read, transform, or embed operation.&lt;/li>
+&lt;li>Until the fixed build is live, disable Feishu webhook/card-action ingress,
+disable Matrix room control commands, block local-file media embedding, and
+rotate/restart gateway bearer-token consumers where old tokens may remain
+accepted.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating the OpenClaw 2026.4.15 agent-surface advisory cluster:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-xh72-v6v9-mwhc, GHSA-xmxx-7p24-h892, GHSA-2gvc-4f3c-2855, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-mr34-9552-qr95. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades OpenClaw, adds containment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for exposed agent ingress, adds trust-boundary regression tests, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected OpenClaw runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only the four OpenClaw advisories named above.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Feishu signing keys, callback tokens, Matrix access tokens, gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bearer tokens, SecretRefs, tool-result media paths, local file paths, prompt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> logs, command logs, and workspace paths as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not send forged webhook traffic, room commands, WebSocket upgrades, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> file-read payloads to production, staging, shared dev, or real customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenants.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep any fail-open behavior because an integration was historically
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> optional.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every OpenClaw runtime controlled by this repository: npm manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, Dockerfiles, compose files, Helm charts, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, CI images, SBOMs, gateway config, chat integration config,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exported agent/workflow definitions, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`openclaw`&lt;/span> version. Treat any controlled runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> below &lt;span class="sb">`2026.4.15`&lt;/span> as vulnerable to at least one advisory in this cluster.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Map exposure by integration:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Feishu webhook mode, &lt;span class="sb">`encryptKey`&lt;/span>, signature validation, replay protection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and card-action lifecycle token handling;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway HTTP and WebSocket bearer auth, especially dynamic SecretRef
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation behavior;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Matrix room control commands, DM pairing-store use, room allowlists, group
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlists, and configured sender IDs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> webchat tool-result media embedding, &lt;span class="sb">`localRoots`&lt;/span>, &lt;span class="sb">`file://`&lt;/span> handling,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Windows drive paths, and UNC/network paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the repository does not deploy OpenClaw or only contains unrelated client
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, affected advisory IDs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every controlled OpenClaw package, image, and deployment target to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`2026.4.15+`&lt;/span>. Regenerate lockfiles, image digests, SBOMs, deployment render
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add Feishu fail-closed controls where this repository owns config or code:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> refuse webhook mode when &lt;span class="sb">`encryptKey`&lt;/span> is absent;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> return invalid/unauthorized for missing signing config and invalid
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> signatures;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject blank card-action callback tokens before any handler dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add explicit startup or policy checks so unsafe config cannot ship.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add gateway bearer-token rotation controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve auth from the current runtime secret snapshot per request and per
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WebSocket upgrade;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject old bearer tokens after SecretRef rotation without requiring a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> process restart;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add a readiness or probe test that demonstrates old-token rejection.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add Matrix room authorization controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ensure room command authorizers use configured room senders, room members,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and group allowlists only;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> exclude DM pairing-store sender IDs from room command authorization;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> skip DM pairing-store reads for room traffic where practical.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add webchat media containment controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject remote-host &lt;span class="sb">`file://`&lt;/span> URLs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject Windows UNC/network paths and Windows drive paths outside
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configured roots;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> call local-root containment checks before any filesystem &lt;span class="sb">`stat`&lt;/span>, read,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> transform, embed, or metadata probe;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed when media path type cannot be classified safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add regression tests that do not read real sensitive files or call real chat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> providers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> missing Feishu &lt;span class="sb">`encryptKey`&lt;/span> fails startup or policy validation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> invalid Feishu signatures return unauthorized before JSON/action dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> blank card-action tokens are rejected before handler dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> old gateway bearer tokens fail immediately after SecretRef rotation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> DM-paired Matrix senders cannot authorize room control commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remote-host &lt;span class="sb">`file://`&lt;/span>, UNC, and local-root bypass media paths are rejected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> before filesystem access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add temporary containment for any rollout that is not atomic:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Feishu webhook/card-action routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Matrix room control commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block local-file webchat media embedding;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restart gateway pods after bearer-token rotation until per-request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> re-resolution is verified.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Add a PR body section named &lt;span class="sb">`OpenClaw operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> OpenClaw versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which integrations were enabled and externally or tenant reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which tokens or signing keys should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether process restarts are required during rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which webhook, gateway, Matrix, command-dispatch, and media logs should
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> be reviewed for suspicious activity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Run relevant validation: package install, lockfile integrity, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integration tests with mocked providers, policy checks, gateway/ingress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render tests, image build, deployment diff, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">14.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate OpenClaw agent-surface advisories`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected OpenClaw deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed OpenClaw version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally depend on fail-open webhook auth, stale
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bearer-token validity, DM-to-room command trust, or host-file media embedding;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require forged traffic against real integrations or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reading sensitive host files.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves OpenClaw
+below &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>Feishu webhook mode fails closed when signing configuration is absent or
+invalid, and blank card-action tokens cannot reach dispatch.&lt;/li>
+&lt;li>Gateway bearer auth is resolved from the current secret snapshot per request
+and per WebSocket upgrade.&lt;/li>
+&lt;li>Matrix DM pairing-store entries cannot authorize room control commands.&lt;/li>
+&lt;li>Webchat media containment rejects &lt;code>file://&lt;/code>, UNC, and local-root bypass paths
+before filesystem access.&lt;/li>
+&lt;li>Operator actions cover token/key rotation, log review, temporary route
+blocks, and rollout restarts where exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading the main package while old OpenClaw images or globally installed
+CLI/runtime packages remain in deployment manifests.&lt;/li>
+&lt;li>Testing only normal Feishu signed messages and missing missing-config,
+invalid-signature, blank-token, and malformed-callback paths.&lt;/li>
+&lt;li>Rotating a SecretRef while the running gateway still holds startup-time auth.&lt;/li>
+&lt;li>Treating Matrix DM pairing as equivalent to room command authorization.&lt;/li>
+&lt;li>Checking local-root containment after &lt;code>stat&lt;/code>, preview generation, or media
+metadata probing has already touched the path.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-xh72-v6v9-mwhc&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-xh72-v6v9-mwhc"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xh72-v6v9-mwhc&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-xmxx-7p24-h892&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-xmxx-7p24-h892"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xmxx-7p24-h892&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-2gvc-4f3c-2855&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-2gvc-4f3c-2855"target="_blank" rel="noopener">https://github.com/advisories/GHSA-2gvc-4f3c-2855&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-mr34-9552-qr95&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-mr34-9552-qr95"target="_blank" rel="noopener">https://github.com/advisories/GHSA-mr34-9552-qr95&lt;/a>&lt;/li>
+&lt;li>OpenClaw project: &lt;a href="https://github.com/openclaw/openclaw"target="_blank" rel="noopener">https://github.com/openclaw/openclaw&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

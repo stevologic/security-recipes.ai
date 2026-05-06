@@ -1,0 +1,99 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Toctou</title><link>https://security-recipes.ai/tags/toctou/</link><description>Recent content in Toctou on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/toctou/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41651 — PackageKit local root exploit</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41651-packagekit-pack2theroot/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41651-packagekit-pack2theroot/</guid><description>
+&lt;p>PackageKit &lt;code>&amp;lt;=1.3.4&lt;/code> contains a time-of-check/time-of-use flaw that can let a
+local user install or remove arbitrary packages, yielding local root privilege
+escalation on many Linux systems.&lt;/p>
+&lt;p>The vulnerability disclosure and fix release were announced on &lt;strong>2026-04-22&lt;/strong>,
+including &lt;code>1.3.5&lt;/code> as the fixed upstream release.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> PackageKit &lt;code>&amp;lt;=1.3.4&lt;/code> (unless distro-backported patch exists)&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> PackageKit &lt;code>1.3.5+&lt;/code> or distro package with equivalent backport&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Host has PackageKit installed at vulnerable version.&lt;/li>
+&lt;li>Untrusted local users can execute local code (multi-user desktop, shared host,
+or shell access for low-privileged users).&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">pkcon --version &lt;span class="o">||&lt;/span> packagekitd --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">apt-cache policy packagekit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dnf info PackageKit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rpm -q PackageKit&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade PackageKit to &lt;code>1.3.5+&lt;/code> or distro-patched package.&lt;/li>
+&lt;li>Reboot or restart PackageKit-related services after patching.&lt;/li>
+&lt;li>For sensitive systems, reduce local untrusted execution paths until all hosts
+are patched.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41651 (PackageKit TOCTOU local root exploit).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR/change request that upgrades PackageKit to a fixed release and includes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator actions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if upgrade cannot currently be completed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Constraints
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only this CVE.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Respect distro-specific backports; do not assume upstream version string is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the only truth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Detect PackageKit version on target image/host build recipe.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Check distro advisory/package metadata for a patched build.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If vulnerable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Update package source/version to patched PackageKit (&lt;span class="sb">`&amp;gt;=1.3.5`&lt;/span> or distro
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Include required service restart/reboot instructions for operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a short risk note if host is multi-user and was exposed to untrusted
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> local users.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Validate provisioning scripts or image build succeeds.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41651 (PackageKit)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No patched package is available in the target distro channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Target system does not include PackageKit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Build/test failures are unrelated and pre-existing.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Target package now resolves to patched PackageKit build.&lt;/li>
+&lt;li>Build/deploy pipeline for image or host config still passes.&lt;/li>
+&lt;li>PR body documents restart/reboot action and local-user risk context.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Disclosure thread (oss-security): &lt;a href="https://www.openwall.com/lists/oss-security/2026/04/22/6"target="_blank" rel="noopener">https://www.openwall.com/lists/oss-security/2026/04/22/6&lt;/a>&lt;/li>
+&lt;li>Upstream patch commit: &lt;a href="https://github.com/PackageKit/PackageKit/commit/76cfb675fb31acc3ad5595d4380bfff56d2a8697"target="_blank" rel="noopener">https://github.com/PackageKit/PackageKit/commit/76cfb675fb31acc3ad5595d4380bfff56d2a8697&lt;/a>&lt;/li>
+&lt;li>Upstream GHSA: &lt;a href="https://github.com/PackageKit/PackageKit/security/advisories/GHSA-f55j-vvr9-69xv"target="_blank" rel="noopener">https://github.com/PackageKit/PackageKit/security/advisories/GHSA-f55j-vvr9-69xv&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

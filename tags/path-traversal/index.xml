@@ -1,0 +1,403 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Path-Traversal</title><link>https://security-recipes.ai/tags/path-traversal/</link><description>Recent content in Path-Traversal on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/path-traversal/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41589 - Wish SCP path traversal</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41589-wish-scp-path-traversal/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41589-wish-scp-path-traversal/</guid><description>
+&lt;p>Wish SCP middleware failed to keep SCP file operations inside the configured
+filesystem root. A malicious SCP client could send paths containing traversal
+segments or glob metacharacters and cause the server to read files, write
+files, create directories, or enumerate paths outside the intended root.&lt;/p>
+&lt;p>This is critical for SSH-backed developer tools, hosted sandboxes, internal
+automation planes, and agent workspaces. If the Wish server process can access
+repository checkouts, SSH keys, package tokens, cloud credentials, generated
+artifacts, or deployment files, a path escape can become credential disclosure,
+arbitrary file write, or remote code execution through files that the process
+or host later consumes.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>charm.land/wish/v2 &amp;lt;2.0.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>charm.land/wish/v2 2.0.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Legacy module:&lt;/strong> &lt;code>github.com/charmbracelet/wish &amp;lt;=1.4.7&lt;/code> is called out by
+the advisory as sharing the vulnerable pattern and has no patched release.&lt;/li>
+&lt;li>&lt;strong>Affected component:&lt;/strong> &lt;code>scp.NewFileSystemHandler&lt;/code> used with
+&lt;code>scp.Middleware&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository imports &lt;code>charm.land/wish/v2/scp&lt;/code> or
+&lt;code>github.com/charmbracelet/wish/scp&lt;/code>.&lt;/li>
+&lt;li>The service enables &lt;code>scp.Middleware&lt;/code> with a filesystem-backed handler.&lt;/li>
+&lt;li>SSH or SCP access is reachable from untrusted users, tenants, CI jobs,
+browser-launched local processes, partner networks, or agent sessions.&lt;/li>
+&lt;li>The server process can read or write sensitive material outside the SCP root.&lt;/li>
+&lt;li>The implementation normalizes paths with &lt;code>filepath.Clean&lt;/code> or joins paths to a
+root without proving that the final resolved path remains inside that root.&lt;/li>
+&lt;li>SCP filenames, requested paths, or glob patterns are accepted from a client.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;charm.land/wish|github.com/charmbracelet/wish|scp\\.Middleware|NewFileSystemHandler|prefixed\\(|filepath\\.Clean|filepath\\.Join|filepath\\.Glob&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;charm.land/wish|github.com/charmbracelet/wish&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;ssh|scp|wish|agent workspace|workspace|sandbox|authorized_keys|known_hosts|deploy key|package token|cloud credential&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm systemd .github .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled &lt;code>charm.land/wish/v2&lt;/code> dependency to &lt;code>2.0.1+&lt;/code>.&lt;/li>
+&lt;li>Remove or isolate legacy &lt;code>github.com/charmbracelet/wish&lt;/code> v1 SCP middleware;
+do not treat it as patched unless the repository owns and verifies an
+equivalent containment fix.&lt;/li>
+&lt;li>Validate SCP paths through a single helper that canonicalizes against the
+configured root and rejects any final path outside that root.&lt;/li>
+&lt;li>Reject uploaded filenames containing path separators, &lt;code>.&lt;/code> segments, &lt;code>..&lt;/code>
+segments, absolute paths, Windows drive prefixes, UNC paths, symlink escape
+attempts, and unsupported glob patterns.&lt;/li>
+&lt;li>Add regression tests for read, write, mkdir, and glob attempts that would
+escape the root. The tests should run only against temporary directories.&lt;/li>
+&lt;li>Run the Wish server with least privilege and keep SCP roots separated from
+credentials, repositories, host configuration, and executable startup paths.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41589 / GHSA-xjvp-7243-rg9h (Wish SCP path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">traversal). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Wish or removes the unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SCP filesystem path handling, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator actions, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Wish SCP deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41589 / GHSA-xjvp-7243-rg9h.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat repository files, SSH keys, deploy keys, package tokens, cloud
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials, agent workspace files, environment variables, and SCP transfer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads, raw SCP protocol payloads, or file writes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> against production, staging, shared dev, shared CI, or real user workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely on string-prefix checks, escaping-only fixes, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`filepath.Clean`&lt;/span> by itself as the containment boundary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Wish SCP use controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go manifests, &lt;span class="sb">`go.sum`&lt;/span>, vendored modules, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm/Kubernetes manifests, Terraform, systemd units, CI images, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runbooks, examples, and generated deployment artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any resolved module is vulnerable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`charm.land/wish/v2 &amp;lt;2.0.1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/charmbracelet/wish &amp;lt;=1.4.7`&lt;/span> when SCP middleware is enabled.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search for SCP middleware and path handling:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`scp.Middleware`&lt;/span>, &lt;span class="sb">`scp.NewFileSystemHandler`&lt;/span>, &lt;span class="sb">`prefixed`&lt;/span>, &lt;span class="sb">`filepath.Clean`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`filepath.Join`&lt;/span>, &lt;span class="sb">`filepath.Glob`&lt;/span>, &lt;span class="sb">`Mkdir`&lt;/span>, &lt;span class="sb">`Write`&lt;/span>, &lt;span class="sb">`NewFileEntry`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`NewDirEntry`&lt;/span>, and SSH command parsing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine exposure without exploit testing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> who can reach SSH/SCP;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> what root directory SCP is supposed to confine access to;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which files the server process can read or write outside that root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether the server runs in an agent, CI, sandbox, desktop, localhost, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> multi-tenant context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading &lt;span class="sb">`charm.land/wish/v2`&lt;/span> to &lt;span class="sb">`2.0.1+`&lt;/span>. Regenerate &lt;span class="sb">`go.sum`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor metadata, SBOMs, image metadata, and rendered deployment manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If this repository owns a fork, legacy v1 deployment, or local equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path handler, implement root containment:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve candidate paths against the configured root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject any final path whose canonical form is not inside the root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject absolute paths, drive-qualified paths, UNC paths, symlink escapes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`.`&lt;/span> and &lt;span class="sb">`..`&lt;/span> traversal, and uploaded filenames with path separators;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid applying glob expansion to user-controlled input unless each match
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is independently proven inside the root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> return safe errors that do not disclose host filesystem layout.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests using temporary directories only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SCP read outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SCP write outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> directory creation outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> glob enumeration outside the root is denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> symlink and platform-specific path forms cannot escape the root;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> valid in-root transfers still work.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add operational hardening where this repository owns deployment:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run the Wish process as a least-privilege user;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> mount SCP roots separately from application code, credentials, and host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny default unauthenticated SSH/SCP access unless the product explicitly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requires it and the trust boundary is documented;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rotate credentials if logs or filesystem evidence show possible exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41589 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> vulnerable and fixed Wish module versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SCP endpoints and trust boundaries before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> root directories protected by the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> files or credential classes that could have been exposed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> logs to inspect for traversal-like SCP paths or glob requests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any credential rotation, workspace quarantine, or tenant notification that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> remains operator-owned.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: &lt;span class="sb">`go test ./...`&lt;/span>, dependency/security scan, SBOM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refresh, image build, deployment render, route/integration tests, and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SSH/SCP tests available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate Wish SCP path traversal`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Wish SCP runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The project is pinned to legacy &lt;span class="sb">`github.com/charmbracelet/wish`&lt;/span> and cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upgrade or patch without a broader SSH/SCP migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product behavior requires arbitrary host filesystem access through SCP.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require touching real user files or real credentials.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail for unrelated pre-existing reasons; document them instead of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Go module, vendor tree, SBOM, image, or deployment target
+resolves &lt;code>charm.land/wish/v2 &amp;lt;2.0.1&lt;/code>.&lt;/li>
+&lt;li>Legacy Wish v1 SCP usage is removed, replaced, or guarded by an equivalent
+reviewed root-containment fix.&lt;/li>
+&lt;li>SCP read, write, mkdir, glob, symlink, and platform-path regression tests
+prove the final resolved path cannot escape the configured root.&lt;/li>
+&lt;li>Deployment hardening separates SCP roots from credentials and runs the
+service with least privilege.&lt;/li>
+&lt;li>Operator actions cover log review and credential rotation when exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Prefix checks that are bypassed by sibling directories with similar names.&lt;/li>
+&lt;li>Sanitizing upload filenames while leaving read paths or glob paths unsafe.&lt;/li>
+&lt;li>Checking Unix traversal forms but missing Windows drive or UNC paths.&lt;/li>
+&lt;li>Letting symlinks inside the SCP root point back to sensitive host paths.&lt;/li>
+&lt;li>Treating localhost SSH/SCP as safe when browsers, agents, extensions, or
+other local processes can reach it.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-xjvp-7243-rg9h"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xjvp-7243-rg9h&lt;/a>&lt;/li>
+&lt;li>Wish project: &lt;a href="https://github.com/charmbracelet/wish"target="_blank" rel="noopener">https://github.com/charmbracelet/wish&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-74m3 - zrok WebDAV DriveRoot symlink escape</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-74m3-zrok-webdav-symlink-drive-root-escape/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-74m3-zrok-webdav-symlink-drive-root-escape/</guid><description>
+&lt;p>&lt;code>zrok&lt;/code> WebDAV drive shares are vulnerable to a DriveRoot boundary escape when a
+symbolic link already exists inside the shared root and points outside that
+root. The advisory describes lexical path normalization in the WebDAV backend,
+but not enough protection against symlink following. A remote WebDAV consumer
+can use the public share endpoint to read files through the symlink and, where
+the zrok process has filesystem permission, overwrite symlink targets outside
+the intended shared directory.&lt;/p>
+&lt;p>For SecurityRecipes and production MCP deployments, the important lesson is
+direct: a context root is not a boundary if path checks happen before symlink
+resolution. Treat WebDAV shares, agent artifact shares, and temporary context
+exports as sensitive execution surfaces, not convenience file browsers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable v1 module:&lt;/strong> &lt;code>github.com/openziti/zrok &amp;lt;=1.1.11&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed v1 module:&lt;/strong> no patched version is listed for the v1 module&lt;/li>
+&lt;li>&lt;strong>Vulnerable v2 module:&lt;/strong> &lt;code>github.com/openziti/zrok/v2 &amp;lt;2.0.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed v2 module:&lt;/strong> &lt;code>github.com/openziti/zrok/v2 2.0.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>The GitHub advisory has no assigned CVE at the time this recipe was written.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, deploys, or documents &lt;code>zrok&lt;/code> drive shares.&lt;/li>
+&lt;li>A service runs &lt;code>zrok share public --backend-mode drive&lt;/code> or equivalent
+WebDAV drive backend configuration.&lt;/li>
+&lt;li>The shared DriveRoot can contain symlinks, including symlinks created by
+developers, CI jobs, build tools, unpacked archives, agent workspaces, or
+runtime tasks.&lt;/li>
+&lt;li>The zrok process can read secrets, source code, SSH material, service config,
+build outputs, home directories, mounted volumes, or other files outside the
+intended DriveRoot.&lt;/li>
+&lt;li>The zrok process can write to host paths outside the intended DriveRoot.&lt;/li>
+&lt;li>WebDAV shares are unauthenticated, public, shared with broad audiences, or
+reachable by an agent, browser, CI worker, partner system, or customer.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zrok|openziti/zrok|backend-mode[ =]drive|DriveRoot|WebDAV|webdav|davServer|share public&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m -json all &lt;span class="p">|&lt;/span> jq -r &lt;span class="s1">&amp;#39;select(.Path|test(&amp;#34;^github.com/openziti/zrok(/v2)?$&amp;#34;))&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zrok.*share|share.*zrok|backend-mode|drive&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm systemd .github .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -type l -ls&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled &lt;code>github.com/openziti/zrok/v2&lt;/code> dependency, binary,
+image, and deployment to &lt;code>2.0.2+&lt;/code>.&lt;/li>
+&lt;li>Remove or replace &lt;code>github.com/openziti/zrok &amp;lt;=1.1.11&lt;/code> drive shares unless a
+vendor-supported fixed v1 build is explicitly verified.&lt;/li>
+&lt;li>Disable public unauthenticated drive shares where they are not required.&lt;/li>
+&lt;li>Move DriveRoot to a dedicated, empty, low-sensitivity directory owned by the
+zrok service account; do not point it at source trees, home directories,
+shared build workspaces, mounted host roots, or MCP context stores.&lt;/li>
+&lt;li>Remove symlinks from DriveRoot before publishing a share, and add a startup
+or CI guard that fails if symlinks are present.&lt;/li>
+&lt;li>Run zrok with a low-privilege OS identity, restricted filesystem access,
+read-only mounts where possible, and no access to SSH keys, cloud
+credentials, package tokens, model credentials, or production config.&lt;/li>
+&lt;li>If this repository owns a fork or wrapper, enforce a real resolved-path
+boundary: reject symlinks, validate every path component, and ensure the
+final opened file remains under DriveRoot at the moment it is opened.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-74m3-9qvm-rp9h in zrok WebDAV drive shares. Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades, disables, or safely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> contains affected zrok drive shares and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected zrok runtime or cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-74m3-9qvm-rp9h.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH keys, cloud credentials, model/API tokens, repository contents,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> build artifacts, user files, hostnames, and WebDAV share URLs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not probe public zrok shares, production shares, customer shares, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shared developer machines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create proof-of-concept overwrites outside a temporary test directory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not treat lexical path cleaning as sufficient protection.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every zrok asset controlled by this repository: Go modules,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, vendored code, binary download scripts, Dockerfiles, compose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> files, Helm charts, Kubernetes manifests, Terraform, systemd units, CI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workflows, runbooks, SBOMs, and MCP or agent context-export docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any controlled target uses:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/openziti/zrok &amp;lt;=1.1.11`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/openziti/zrok/v2 &amp;lt;2.0.2`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a zrok binary or image below the fixed v2 release;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`zrok share public --backend-mode drive`&lt;/span> or equivalent WebDAV drive mode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine exposure without contacting real shares:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Is the share public or unauthenticated?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Can DriveRoot contain symlinks from source trees, build outputs, archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> extraction, developer workspaces, agent workspaces, or mounted volumes?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Can the zrok process read or write outside the intended DriveRoot?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Could agents or MCP workflows use the share as a context or artifact root?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If zrok is absent or only appears in unrelated documentation, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the likely runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer removal or disablement for any drive share that is not explicitly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> required. Remove server registrations, startup commands, manifests, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> references, and runbook steps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If zrok/v2 is required, upgrade to &lt;span class="sb">`2.0.2+`&lt;/span>, regenerate Go module state,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> images, SBOMs, deployment render output, and runtime docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If a v1 drive share is present, replace it with a supported fixed v2 path or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document why the repository cannot safely remediate it in &lt;span class="sb">`TRIAGE.md`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Harden controlled deployments:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> use a dedicated empty DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail startup if DriveRoot contains symlinks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run zrok as a low-privilege service account;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove access to home directories, SSH keys, cloud credentials, package
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tokens, model credentials, and production config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer read-only mounts unless write access is an explicit requirement;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid public unauthenticated shares for agent or MCP context roots.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> If this repository owns a fork, wrapper, or WebDAV backend code, add a safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> filesystem boundary helper:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject symlinks in every path component;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve paths relative to a canonical DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> check the final target remains under DriveRoot after resolution;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid time-of-check/time-of-use gaps for open, stat, mkdir, remove, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> write operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> use platform safe-open primitives where available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add safe tests using temporary directories only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a symlink inside DriveRoot pointing outside is rejected for read;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> the same symlink target is rejected for write/truncate;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> stat, mkdir, remove, and recursive remove cannot cross DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> normal files and directories inside DriveRoot still work;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tests do not contact real zrok infrastructure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-74m3 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every zrok version, binary, image, and drive share before and after;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether shares were public, unauthenticated, agent-facing, or MCP-facing;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether DriveRoot could contain symlinks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which credentials, files, or host paths were reachable by the zrok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> process;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which share access logs, filesystem audit logs, and deployment logs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be reviewed for the exposure window;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets or keys should be rotated if exposure existed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Run relevant validation: Go dependency resolution, unit tests, lint,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container build, deployment render, SBOM refresh, security scan, and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> zrok configuration validation available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate zrok WebDAV DriveRoot symlink escape`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No zrok dependency, binary, image, drive share, or deployment target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository uses unsupported zrok v1 drive shares and cannot move to a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed v2 runtime without an owner decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only verification path would require probing a real public share or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> overwriting files outside a temporary test directory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on sharing a source tree, home directory, or MCP
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> context store that can contain symlinks; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security/product decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled &lt;code>zrok&lt;/code> v2 runtime resolves below &lt;code>2.0.2&lt;/code>.&lt;/li>
+&lt;li>No controlled unsupported v1 drive share remains without a documented owner
+decision and containment plan.&lt;/li>
+&lt;li>Public drive shares are removed or use a dedicated low-sensitivity DriveRoot.&lt;/li>
+&lt;li>Symlinks in DriveRoot are rejected by startup checks, CI checks, or backend
+tests.&lt;/li>
+&lt;li>Regression tests prove reads, writes, stats, directory creation, and removal
+cannot cross DriveRoot through symlinks.&lt;/li>
+&lt;li>Operator actions identify exposed share URLs, logs to review, and credentials
+or host paths that may require rotation or cleanup.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating Go modules while old zrok binaries or images remain pinned in
+deployment manifests.&lt;/li>
+&lt;li>Sharing a repository checkout, build workspace, home directory, mounted host
+root, or MCP context directory as DriveRoot.&lt;/li>
+&lt;li>Checking only &lt;code>..&lt;/code> traversal and missing symlink traversal.&lt;/li>
+&lt;li>Removing symlinks once manually but failing to add a repeatable guard.&lt;/li>
+&lt;li>Keeping public unauthenticated WebDAV shares for agent artifacts without
+explicit data classification and access policy.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-74m3-9qvm-rp9h&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-74m3-9qvm-rp9h"target="_blank" rel="noopener">https://github.com/advisories/GHSA-74m3-9qvm-rp9h&lt;/a>&lt;/li>
+&lt;li>zrok project: &lt;a href="https://github.com/openziti/zrok"target="_blank" rel="noopener">https://github.com/openziti/zrok&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

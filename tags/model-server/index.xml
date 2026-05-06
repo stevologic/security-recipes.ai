@@ -1,0 +1,232 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Model-Server</title><link>https://security-recipes.ai/tags/model-server/</link><description>Recent content in Model-Server on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 05 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/model-server/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-7482 - Ollama GGUF memory disclosure</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-7482-ollama-gguf-memory-disclosure/</link><pubDate>Tue, 05 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-7482-ollama-gguf-memory-disclosure/</guid><description>
+&lt;p>Ollama before &lt;code>0.17.1&lt;/code> contains a heap out-of-bounds read in GGUF model
+loading. A malicious GGUF file can declare tensor offsets and sizes that exceed
+the actual file length. When the vulnerable server processes that model during
+creation or quantization, it can read beyond the intended heap buffer.&lt;/p>
+&lt;p>This is a secure-context issue, not only a model-server dependency issue.
+GitHub&amp;rsquo;s advisory notes that exposed memory may include environment variables,
+API keys, system prompts, and other users&amp;rsquo; conversation data. The same
+deployment often also gives the server a model push path, so the remediation
+needs to address both the vulnerable version and unauthenticated access to
+model creation and push endpoints.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Ollama &lt;code>&amp;lt;0.17.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Ollama &lt;code>0.17.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>High-risk exposure:&lt;/strong> Ollama is reachable by untrusted users and permits
+unauthenticated or weakly authenticated access to model creation or push
+routes, especially when &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> or equivalent bind settings
+expose the service beyond loopback.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, installs, packages, configures, or deploys Ollama.&lt;/li>
+&lt;li>A deployable binary, container image, package pin, installer, or SBOM resolves
+Ollama &lt;code>&amp;lt;0.17.1&lt;/code>.&lt;/li>
+&lt;li>Docker, Compose, Kubernetes, systemd, Terraform, Ansible, Nix, shell scripts,
+or runbooks set &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code>, publish the Ollama port, or place
+Ollama behind an ingress, reverse proxy, agent gateway, workspace gateway, or
+MCP-adjacent service.&lt;/li>
+&lt;li>Untrusted users, agents, notebooks, CI jobs, web applications, or automation
+can reach model creation, model import, or model push workflows.&lt;/li>
+&lt;li>The Ollama process has environment variables or mounted files containing
+model-provider keys, registry tokens, internal service credentials, system
+prompts, tenant context, or conversation data.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># macOS / Linux&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;ollama|OLLAMA_HOST|/api/create|/api/push|GGUF|Modelfile|ollama/ollama&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;0\\.17\\.0|0\\.16\\.|0\\.15\\.|ollama[:/@]|OLLAMA_HOST=0\\.0\\.0\\.0&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml .github charts deploy k8s manifests systemd scripts docs 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ollama --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s2">&amp;#34;ollama&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Windows PowerShell&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;ollama|OLLAMA_HOST|/api/create|/api/push|GGUF|Modelfile|ollama/ollama&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File -Include Dockerfile*,docker-compose*.yml,*.yaml,*.yml,*.ps1,*.md &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;0\.17\.0|0\.16\.|0\.15\.|ollama[:/@]|OLLAMA_HOST=0\.0\.0\.0&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ollama --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> Select-String &lt;span class="s2">&amp;#34;ollama&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Ollama install, image, package recipe, base image,
+workstation bootstrap, and deployment manifest to &lt;code>0.17.1+&lt;/code>; prefer the
+latest available patched release.&lt;/li>
+&lt;li>Regenerate lockfiles, image digests, SBOMs, checksums, rendered manifests,
+golden deployment output, and version evidence for every path that ships
+Ollama.&lt;/li>
+&lt;li>Bind Ollama to loopback or private service networks by default. Do not expose
+&lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> to untrusted networks without an authenticated gateway,
+allow-list, and explicit route policy.&lt;/li>
+&lt;li>Restrict model creation, model import, and model push workflows to trusted
+administrators or controlled automation. Block unauthenticated access to
+&lt;code>/api/create&lt;/code>, &lt;code>/api/push&lt;/code>, and any equivalent proxy route.&lt;/li>
+&lt;li>Allow-list trusted model sources and registries. Prefer digest-pinned models
+and signed or provenance-checked model artifacts for production deployments.&lt;/li>
+&lt;li>If exposure was possible, rotate model-provider keys, model registry tokens,
+service credentials, API keys, and other secrets present in the Ollama
+process environment. Treat untrusted model artifacts created during the
+window as suspect.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-7482 / GHSA-x8qc-fggm-mpqg (Ollama GGUF
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">out-of-bounds read that may disclose server process memory). Produce exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Ollama, restricts model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> creation and push exposure, adds verification, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Ollama deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install path, image, gateway policy, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-7482 and directly related Ollama exposure hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat environment variables, API keys, model registry tokens, provider
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials, system prompts, conversation data, tenant context, model files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and Ollama logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create or commit a malicious GGUF file, exploit payload, heap-memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disclosure artifact, or proof that attempts to read process memory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not push models or test artifacts to external registries.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not expose a local Ollama service publicly to reproduce the issue.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Ollama reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, base images, Compose files, Helm charts, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, Nix, package recipes, workstation bootstrap scripts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> systemd units, CI jobs, developer-container config, gateway/proxy policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> MCP or agent runtime config, SBOMs, checksums, docs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Ollama version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;lt;0.17.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine every exposure path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind address and &lt;span class="sb">`OLLAMA_HOST`&lt;/span> value;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> published ports, ingress routes, reverse proxy rules, service mesh policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> firewall rules, workspace gateway routes, and agent gateway routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reachability of &lt;span class="sb">`/api/create`&lt;/span>, &lt;span class="sb">`/api/push`&lt;/span>, and equivalent proxy or UI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether callers are authenticated and authorized before model creation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> model import, or model push.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy, package, configure, or route traffic to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Ollama, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, likely runtime owner,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed target &lt;span class="sb">`Ollama 0.17.1+`&lt;/span>, and operator actions the owner must perform.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade all controlled Ollama targets to &lt;span class="sb">`0.17.1+`&lt;/span>, preferably the latest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched release available through the repository&amp;#39;s normal distribution
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, checksum allowlists, rendered manifests, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, package metadata, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add fail-closed exposure controls where this repository owns routing or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime configuration:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind Ollama to loopback or a private service network by default;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication and admin authorization for model creation, model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> import, and model push;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block unauthenticated or tenant-user access to &lt;span class="sb">`/api/create`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/api/push`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove &lt;span class="sb">`OLLAMA_HOST=0.0.0.0`&lt;/span> unless a documented gateway policy protects
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the service;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add network policy or firewall constraints for non-public deployments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add model-source controls where this repository owns model supply:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow-list trusted model registries, buckets, or artifact repositories;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer digest-pinned model artifacts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document how model provenance or signatures are checked before production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> use;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject arbitrary user-supplied GGUF uploads unless a human-reviewed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ingestion path exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe verification without exploiting memory disclosure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency/image/SBOM assertions prove every Ollama target is &lt;span class="sb">`&amp;gt;=0.17.1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway or policy tests prove unauthenticated callers cannot reach
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/api/create`&lt;/span> or &lt;span class="sb">`/api/push`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> render tests prove public ingress does not expose Ollama without auth;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> config tests fail if &lt;span class="sb">`OLLAMA_HOST=0.0.0.0`&lt;/span> is set without an approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret scanning proves no real tokens, prompts, logs, or model files were
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-7482 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Ollama versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether Ollama was bound to loopback, private network, or public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> interfaces;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`/api/create`&lt;/span> or &lt;span class="sb">`/api/push`&lt;/span> was reachable by untrusted callers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which model artifacts or registries need quarantine or review;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which environment variables, provider keys, registry tokens, or service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which access logs should be reviewed for model creation, import, or push
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> activity during the vulnerable window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency resolution, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render, gateway policy tests, unit/integration tests, SBOM refresh, secret
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scan, and security scan available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-7482 in Ollama`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Ollama deployment, install path, image, package recipe, gateway route, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime config is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved Ollama version can only be confirmed from production access the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Ollama release cannot be consumed through the allowed distribution
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> channel without a broader platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require a malicious GGUF file, reading process memory,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exfiltrating model artifacts, or exposing a service to an untrusted network.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing product requirements intentionally allow untrusted users or agents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to create and push arbitrary models; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Ollama binary, package, image, SBOM, deployment manifest, or
+bootstrap path resolves to &lt;code>&amp;lt;0.17.1&lt;/code>.&lt;/li>
+&lt;li>Unauthenticated or tenant-level callers cannot reach model creation or model
+push routes.&lt;/li>
+&lt;li>Public or shared-network exposure of &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> is removed or
+protected by explicit gateway authorization and network policy.&lt;/li>
+&lt;li>Model-source controls prevent arbitrary untrusted GGUF ingestion in
+production.&lt;/li>
+&lt;li>Operator actions cover secret rotation, model artifact review, and access-log
+review when exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating a developer install script while production containers or Helm values
+still pin an older Ollama image.&lt;/li>
+&lt;li>Treating loopback defaults as proof of safety when deployment manifests set
+&lt;code>OLLAMA_HOST=0.0.0.0&lt;/code>.&lt;/li>
+&lt;li>Blocking &lt;code>/api/create&lt;/code> but leaving &lt;code>/api/push&lt;/code> or a proxy alias reachable.&lt;/li>
+&lt;li>Adding tests that create exploit-like GGUF payloads or commit model binaries.&lt;/li>
+&lt;li>Logging environment variables, prompts, model metadata, or conversation
+content while adding verification.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-x8qc-fggm-mpqg"target="_blank" rel="noopener">https://github.com/advisories/GHSA-x8qc-fggm-mpqg&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-7482"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-7482&lt;/a>&lt;/li>
+&lt;li>Ollama release &lt;code>v0.17.1&lt;/code>: &lt;a href="https://github.com/ollama/ollama/releases/tag/v0.17.1"target="_blank" rel="noopener">https://github.com/ollama/ollama/releases/tag/v0.17.1&lt;/a>&lt;/li>
+&lt;li>Ollama fix PR: &lt;a href="https://github.com/ollama/ollama/pull/14406"target="_blank" rel="noopener">https://github.com/ollama/ollama/pull/14406&lt;/a>&lt;/li>
+&lt;li>Ollama fix commit: &lt;a href="https://github.com/ollama/ollama/commit/88d57d0483cca907e0b23a968c83627a20b21047"target="_blank" rel="noopener">https://github.com/ollama/ollama/commit/88d57d0483cca907e0b23a968c83627a20b21047&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

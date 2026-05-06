@@ -1,0 +1,752 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Scanning</title><link>https://security-recipes.ai/tags/scanning/</link><description>Recent content in Scanning on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 03 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/scanning/index.xml" rel="self" type="application/rss+xml"/><item><title>Control Plane Marketplace</title><link>https://security-recipes.ai/docs/control-plane-marketplace/</link><pubDate>Sun, 03 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/docs/control-plane-marketplace/</guid><description>
+&lt;h1>Control Plane Marketplace&lt;/h1>&lt;p>SecurityRecipes now treats the browser workbench as a small &lt;strong>client-side control plane&lt;/strong>:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Input channels&lt;/strong> pull context into the session.&lt;/li>
+&lt;li>&lt;strong>Recipes&lt;/strong> sit in the middle and shape the agent&amp;rsquo;s bounded job.&lt;/li>
+&lt;li>&lt;strong>Report profiles&lt;/strong> define the output contract.&lt;/li>
+&lt;li>&lt;strong>Output channels&lt;/strong> hand the result downstream.&lt;/li>
+&lt;/ol>
+&lt;p>The goal is to let a team run useful AI security work in the browser with &lt;strong>bring-your-own tokens&lt;/strong>, while still keeping the integration shape explicit, reviewable, and forkable.&lt;/p>
+&lt;p>Routing policies now sit alongside that path. They turn severity, owner, workflow, source, and asset criticality into consistent downstream defaults before a case, ticket, or webhook leaves the browser.&lt;/p>
+&lt;p>The browser workbench now also includes a &lt;strong>Reports desk&lt;/strong> that bridges those layers: take a saved case, an exposure queue item, or a grouped browser-local investigation session, apply a report profile plus output route, and turn it into a reusable handoff packet without leaving the browser shell.&lt;/p>
+&lt;p>The &lt;strong>Agents&lt;/strong> planner now also includes a &lt;strong>Launch readiness&lt;/strong> lane. It audits the active run for missing provider credentials, weak target anchoring, selected-source freshness gaps, workflow-pack review blockers, and route prerequisites before the operator generates a plan or attempts downstream delivery.&lt;/p>
+&lt;p>Captured cases and generated reports now preserve that readiness packet so downstream reviewers can see whether a run was live-ready, review-ready, or still blocked when the artifact was produced.&lt;/p>
+&lt;p>The Reports desk, Caseboard, Router, and daily ops brief now also derive a
+&lt;strong>handoff drift&lt;/strong> view that compares a saved case&amp;rsquo;s captured readiness
+against the current browser handoff context before the operator routes
+anything downstream.&lt;/p>
+&lt;h2>Why this exists&lt;span class="hx:absolute hx:-mt-20" id="why-this-exists">&lt;/span>
+&lt;a href="#why-this-exists" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Recent market signals point in the same direction:&lt;/p>
+&lt;ul>
+&lt;li>Integration breadth matters, but only when it is governed. Airia&amp;rsquo;s February 26, 2026 MCP update emphasized change detection, version pinning, and audit logging across a large connector catalog.&lt;/li>
+&lt;li>Security teams want AI outputs to fit existing pipelines. Command Zero&amp;rsquo;s April 29, 2026 API and MCP release explicitly positioned AI investigations as something to embed into existing SecOps flows.&lt;/li>
+&lt;li>The market has moved from experimentation to integration. Wiz&amp;rsquo;s April 29, 2026 State of AI in the Cloud recap framed 2026 as &amp;ldquo;the year of integration&amp;rdquo; and called out agents plus MCP servers as a new control-plane attack surface.&lt;/li>
+&lt;li>Security teams still lose too much time to manual handoffs. Tines&amp;rsquo; January 28, 2026 Voice of Security report highlighted persistent repetitive work, which is exactly the gap structured workflow templates and normalized report bundles should close.&lt;/li>
+&lt;li>APIs, MCP servers, and data access now behave like one attack surface. Salt Security&amp;rsquo;s April 8, 2026 report framed the agentic stack as LLMs, MCP servers, APIs, and data operating together.&lt;/li>
+&lt;li>The browser is now a real AI operating surface. The March 6, 2026 browser security report highlighted widespread AI tool use, sensitive inputs, and extension risk inside the browser itself.&lt;/li>
+&lt;li>Setup visibility is now part of the product, not just admin plumbing. Microsoft&amp;rsquo;s &lt;a href="https://learn.microsoft.com/en-us/copilot/security/use-plugins"target="_blank" rel="noopener">Use plugins in Security Copilot&lt;/a> page, last updated October 20, 2025, explicitly calls out plugin state filters and per-plugin personalization settings, and its &lt;a href="https://learn.microsoft.com/en-us/copilot/security/workflows-overview"target="_blank" rel="noopener">Security Copilot workflows overview&lt;/a>, last updated March 18, 2026, frames plugin configuration and agent success review as part of the same operator workflow.&lt;/li>
+&lt;li>Workflow customization is now part of the product baseline. &lt;a href="https://explained.tines.com/en/articles/12709787-templates-in-tines"target="_blank" rel="noopener">Tines&lt;/a> now distinguishes public and private templates, &lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8.7/Cortex-XSOAR-On-prem-Documentation/Cortex-Marketplace"target="_blank" rel="noopener">Cortex XSOAR&lt;/a> continues to center its marketplace on contributed content packs and playbooks, and &lt;a href="https://torq.io/hyperautomation/"target="_blank" rel="noopener">Torq&lt;/a> is pushing AI-generated workflows and integrations.&lt;/li>
+&lt;li>SecOps products are collapsing cases and automation into one operating surface. &lt;a href="https://www.elastic.co/blog/workflows-soar"target="_blank" rel="noopener">Elastic&amp;rsquo;s March 23, 2026 Workflows launch&lt;/a> framed alert triage, investigation, and response as one native flow instead of separate tools.&lt;/li>
+&lt;li>Operators increasingly expect delivery state to stay traceable after the run. &lt;a href="https://learn.microsoft.com/en-us/copilot/security/"target="_blank" rel="noopener">Microsoft Security Copilot documentation&lt;/a> now exposes both audit-log guidance and admin activity export APIs, &lt;a href="https://www.crowdstrike.com/en-us/platform/ai-security/"target="_blank" rel="noopener">CrowdStrike Charlotte AI&lt;/a> positions traceable answers and user-authorized actions as part of safe agent deployment, and &lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8/Cortex-XSOAR-SaaS-Documentation/Use-the-War-Room-in-an-investigation"target="_blank" rel="noopener">Cortex XSOAR War Room&lt;/a> keeps automatic and manual investigation actions in one audit trail.&lt;/li>
+&lt;/ul>
+&lt;p>This marketplace is SecurityRecipes&amp;rsquo; answer: &lt;strong>keep the integration plane visible, typed, and client-owned&lt;/strong>.&lt;/p>
+&lt;h2>Contribution model&lt;span class="hx:absolute hx:-mt-20" id="contribution-model">&lt;/span>
+&lt;a href="#contribution-model" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Marketplace entries are designed to be submitted the same way recipes are:&lt;/p>
+&lt;ul>
+&lt;li>Add or edit JSON under &lt;code>data/marketplace/&lt;/code>&lt;/li>
+&lt;li>Add or update docs that explain the intended operator workflow&lt;/li>
+&lt;li>Open a pull request for review&lt;/li>
+&lt;/ul>
+&lt;p>The marketplace is intentionally split into five catalogs:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>catalog.json&lt;/code>: positioning, runtime model, and market signals&lt;/li>
+&lt;li>&lt;code>input_channels.json&lt;/code>: context and finding sources&lt;/li>
+&lt;li>&lt;code>output_channels.json&lt;/code>: downstream delivery routes&lt;/li>
+&lt;li>&lt;code>report_profiles.json&lt;/code>: report shapes and evidence contracts&lt;/li>
+&lt;li>&lt;code>workflow_templates.json&lt;/code>: opinionated bundles that stitch the other pieces together&lt;/li>
+&lt;/ul>
+&lt;p>Contribution packets and browser-local drafts now also support a shared
+&lt;strong>pack governance&lt;/strong> block: version, owner, review date, review cadence,
+docs link, capability tags, and explicit pack-to-pack dependency
+references.&lt;/p>
+&lt;p>The Hugo home build now also emits public JSON feeds for those same contracts at the site root, including a combined &lt;code>marketplace-control-plane.json&lt;/code> manifest. That gives external tools a stable discovery surface without changing the BYO-token browser runtime model.&lt;/p>
+&lt;p>Routing policies are intentionally separate from those public catalogs. Most teams treat assignment, approval, and ticket-project defaults as tenant-local operating policy, so SecurityRecipes keeps them browser-local while still publishing portable schemas for review and handoff.&lt;/p>
+&lt;p>The public docs surface now also publishes a derived
+&lt;code>/marketplace-readiness.json&lt;/code> feed and a gallery-side readiness matrix
+that explains the current requirement and blocker model for each input
+or output pack. The goal is to make &amp;ldquo;why is this still only
+live-or-copy?&amp;rdquo; or &amp;ldquo;what is still blocking this route from becoming
+browser-live?&amp;rdquo; answerable without opening the chatbot shell.&lt;/p>
+&lt;p>The Router and Asset portfolio preview now sit one layer above that
+readiness model: they derive a browser-local portfolio coverage snapshot
+that scores each service portfolio by owner capture, case coverage,
+routing coverage, and live-delivery blockers. That same JSON now travels
+inside normalized report bundles so downstream review can see which
+business services are still unrouted, blocked, or only handoff-ready.&lt;/p>
+&lt;h2>Major-vendor starter catalog&lt;span class="hx:absolute hx:-mt-20" id="major-vendor-starter-catalog">&lt;/span>
+&lt;a href="#major-vendor-starter-catalog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The public marketplace now ships a broader starter catalog so the workbench feels more like a complete client-side security application instead of a narrow chat surface.&lt;/p>
+&lt;p>The current catalog now covers starter packs for:&lt;/p>
+&lt;ul>
+&lt;li>code and issue systems such as GitHub, GitLab, and Azure DevOps&lt;/li>
+&lt;li>scanner and incident sources such as SARIF, SBOM, Snyk, Security Hub, Defender XDR, Sentinel, CrowdStrike, Tenable, DefectDojo, Prisma Cloud, and Google Cloud SCC&lt;/li>
+&lt;li>downstream routes such as ServiceNow, Jira, Linear, GitLab Issues, Azure DevOps Work Items, Splunk, Elastic, PagerDuty, Teams, Google Chat, Cortex XSOAR, IBM SOAR, and generic webhooks&lt;/li>
+&lt;/ul>
+&lt;p>That does &lt;strong>not&lt;/strong> mean every route is live in the browser today.
+The contract model stays explicit:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>live&lt;/code> or &lt;code>live_or_copy&lt;/code> means the browser workbench can already drive it with browser-local credentials&lt;/li>
+&lt;li>&lt;code>planned&lt;/code> means the repo now ships a reviewed starter contract so operators can inspect, fork, and extend the shape before a live browser implementation lands&lt;/li>
+&lt;li>report profiles and workflow packs remain first-class reusable contracts in the middle so teams can standardize output even when they swap inputs or destinations&lt;/li>
+&lt;/ul>
+&lt;h2>Workflow Pack Lab&lt;span class="hx:absolute hx:-mt-20" id="workflow-pack-lab">&lt;/span>
+&lt;a href="#workflow-pack-lab" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now includes a &lt;strong>Workflow Pack Lab&lt;/strong> inside the Control Plane tab.&lt;/p>
+&lt;p>It fills the gap between &amp;ldquo;the marketplace is public&amp;rdquo; and &amp;ldquo;operators can actually contribute&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>clone a curated or community pack as a starting point&lt;/li>
+&lt;li>capture the current agent planner configuration as a reusable pack&lt;/li>
+&lt;li>save private workflow packs in browser storage without introducing a server dependency&lt;/li>
+&lt;li>apply those local packs back into the agent planner&lt;/li>
+&lt;li>copy a contribution-ready JSON packet for &lt;code>data/marketplace/workflow_templates.json&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>This keeps the runtime honest and client-side:&lt;/p>
+&lt;ul>
+&lt;li>local packs stay private until the operator chooses to export them&lt;/li>
+&lt;li>the public site still comes from Hugo data files and pull requests&lt;/li>
+&lt;li>contribution export stays aligned to the same workflow-template contract the site already publishes&lt;/li>
+&lt;/ul>
+&lt;h2>Report Profile Lab&lt;span class="hx:absolute hx:-mt-20" id="report-profile-lab">&lt;/span>
+&lt;a href="#report-profile-lab" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The Control Plane tab now also includes a &lt;strong>Report Profile Lab&lt;/strong> for
+browser-local authoring of normalized report and evidence contracts.&lt;/p>
+&lt;p>It closes the next gap between &amp;ldquo;we can route a result&amp;rdquo; and &amp;ldquo;the result
+shape itself is reusable and reviewable&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>clone or author a report profile locally in browser storage&lt;/li>
+&lt;li>capture the intended format, sections, and example JSON payload in one place&lt;/li>
+&lt;li>apply a local report profile back into the Agents planner before a run&lt;/li>
+&lt;li>copy a contribution-ready JSON packet for &lt;code>data/marketplace/report_profiles.json&lt;/code>&lt;/li>
+&lt;li>let local workflow packs and routing policies reference browser-local report contracts before anything is made public&lt;/li>
+&lt;/ul>
+&lt;p>This follows the direction visible in current security products:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-5.x-Documentation/Run-or-schedule-reports"target="_blank" rel="noopener">Cortex XDR report templates&lt;/a>
+now treat report templates as importable and exportable JSON artifacts,
+which supports making report profiles first-class portable contracts
+instead of leaving them as fixed built-ins&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/defender-xdr/security-copilot-m365d-create-incident-report"target="_blank" rel="noopener">Microsoft Defender incident reports&lt;/a>
+position AI-generated incident reporting as a first-class operator
+surface, which supports keeping report structure explicit alongside
+prompts, cases, and downstream routes&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same shape, but stays honest to the BYO-token
+browser model:&lt;/p>
+&lt;ul>
+&lt;li>local report profiles stay private until the operator chooses to export them&lt;/li>
+&lt;li>workflow packs, routing policies, and agent runs can reuse the same local report contract&lt;/li>
+&lt;li>the public marketplace source of truth remains Hugo data files plus pull requests&lt;/li>
+&lt;/ul>
+&lt;h2>Integration Pack Lab and local library export&lt;span class="hx:absolute hx:-mt-20" id="integration-pack-lab-and-local-library-export">&lt;/span>
+&lt;a href="#integration-pack-lab-and-local-library-export" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The Control Plane tab now also includes an &lt;strong>Integration Pack Lab&lt;/strong> for
+browser-local authoring of input-channel and output-channel contracts.&lt;/p>
+&lt;p>It fills the next gap in the marketplace story:&lt;/p>
+&lt;ul>
+&lt;li>clone an existing input or output pack as a starting point&lt;/li>
+&lt;li>author a private input or output contract in browser storage&lt;/li>
+&lt;li>capture auth modes, runtime support, delivery expectations, and JSON config in one place&lt;/li>
+&lt;li>copy a contribution-ready JSON packet for &lt;code>data/marketplace/input_channels.json&lt;/code> or &lt;code>data/marketplace/output_channels.json&lt;/code>&lt;/li>
+&lt;li>export or import the entire local marketplace library so private input, output, report, and workflow contracts can move between browser profiles before they become public PRs&lt;/li>
+&lt;/ul>
+&lt;p>This is directly aligned with how the market is now describing automation
+content:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://explained.tines.com/en/articles/12709787-templates-in-tines"target="_blank" rel="noopener">Tines&lt;/a>
+explicitly distinguishes public and private reusable templates&lt;/li>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8.10/Cortex-XSOAR-On-prem-Documentation/Content-pack-contributions"target="_blank" rel="noopener">Cortex XSOAR&lt;/a>
+documents reviewed content-pack contributions and Git-friendly export paths&lt;/li>
+&lt;li>&lt;a href="https://kb.torq.io/en/articles/10662506-integration-builder-create-custom-integrations"target="_blank" rel="noopener">Torq&lt;/a>
+documents custom integration builders with auth parameters, docs references,
+and test setup&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same shape, but stays honest to the BYO-token
+browser model:&lt;/p>
+&lt;ul>
+&lt;li>author locally first&lt;/li>
+&lt;li>keep secrets and draft contracts in browser storage&lt;/li>
+&lt;li>export only when an operator is ready to open a pull request&lt;/li>
+&lt;li>keep the public marketplace source of truth in Hugo data files&lt;/li>
+&lt;/ul>
+&lt;h2>Public schemas and in-browser validation&lt;span class="hx:absolute hx:-mt-20" id="public-schemas-and-in-browser-validation">&lt;/span>
+&lt;a href="#public-schemas-and-in-browser-validation" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The control plane now publishes first-class schema files for the browser
+authoring flow:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>/marketplace-schemas/index.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/input-channel-contribution.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/output-channel-contribution.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/report-profile-contribution.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/workflow-template-contribution.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/local-library.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/case-file.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/case-library.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/asset-library.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/operations-history.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/operations-session.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/routing-policy.schema.json&lt;/code>&lt;/li>
+&lt;li>&lt;code>/marketplace-schemas/routing-library.schema.json&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>That closes an important gap between &amp;ldquo;the browser can export JSON&amp;rdquo; and
+&amp;ldquo;the browser is producing contribution-ready contracts&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>workflow, report, and integration drafts can now be validated in the browser before the operator copies a submission packet into a Hugo pull request&lt;/li>
+&lt;li>local marketplace-library export now validates before copy/download, and local library import validates before anything is merged into browser storage&lt;/li>
+&lt;li>the root &lt;code>marketplace-control-plane.json&lt;/code> manifest now advertises the schema URLs so downstream tooling can discover both the data feeds and the authoring contracts from one place&lt;/li>
+&lt;/ul>
+&lt;p>This mirrors how mature marketplace systems are now handling contribution
+quality:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8.10/Cortex-XSOAR-On-prem-Documentation/Content-pack-contributions"target="_blank" rel="noopener">Cortex XSOAR&lt;/a>
+validates contributions before submit or download and exposes raw JSON
+error output when validation fails&lt;/li>
+&lt;li>&lt;a href="https://kb.torq.io/en/articles/10662506-integration-builder-create-custom-integrations"target="_blank" rel="noopener">Torq&lt;/a>
+treats documentation links, auth parameters, and test setup as
+first-class parts of integration authoring rather than hidden
+implementation details&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same pattern, but stays BYO-token and
+client-side:&lt;/p>
+&lt;ul>
+&lt;li>validate locally&lt;/li>
+&lt;li>keep draft contracts in browser storage until the operator chooses to export them&lt;/li>
+&lt;li>publish only the reviewed Hugo data files plus the generated public feeds and schemas&lt;/li>
+&lt;/ul>
+&lt;h2>Pack governance and dependency health&lt;span class="hx:absolute hx:-mt-20" id="pack-governance-and-dependency-health">&lt;/span>
+&lt;a href="#pack-governance-and-dependency-health" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The marketplace now treats contributed packs more like real security
+content bundles instead of flat connector stubs.&lt;/p>
+&lt;p>Every input pack, output pack, report profile, and workflow pack can now
+carry:&lt;/p>
+&lt;ul>
+&lt;li>a version token such as &lt;code>1.0.0&lt;/code>&lt;/li>
+&lt;li>an owner field for the team or operator responsible for the contract&lt;/li>
+&lt;li>a reviewed-at date plus review cadence in days&lt;/li>
+&lt;li>a docs link that points back to the operating explanation&lt;/li>
+&lt;li>explicit required or optional pack references for compatibility checks&lt;/li>
+&lt;/ul>
+&lt;p>That closes the gap between &amp;ldquo;a pack exists&amp;rdquo; and &amp;ldquo;a team can promote or
+reuse it safely&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>the browser Control Plane now shows overdue review cadence and missing
+required-pack references before a pack is reused&lt;/li>
+&lt;li>workflow packs now expose their pack graph more honestly, which is
+useful when one route, report profile, or input source is still only a
+starter contract&lt;/li>
+&lt;li>contribution packets can now carry the same ownership and dependency
+metadata that mature security marketplaces expect during review&lt;/li>
+&lt;/ul>
+&lt;p>This follows current product direction in the market:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8/Cortex-XSOAR-Administrator-Guide/Content-Pack-Installation"target="_blank" rel="noopener">Cortex XSOAR&amp;rsquo;s January 28, 2026 content-pack installation guidance&lt;/a>
+explicitly calls out version history plus required and optional pack
+dependencies as first-class install concerns&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/copilot/security/plugin-overview"target="_blank" rel="noopener">Microsoft Security Copilot&amp;rsquo;s plugin overview&lt;/a>
+continues to frame tools and plugins as explicit operator-visible
+capability catalogs rather than invisible implementation details&lt;/li>
+&lt;li>&lt;a href="https://explained.tines.com/en/articles/12709787-templates-in-tines"target="_blank" rel="noopener">Tines templates&lt;/a>
+continue to distinguish reusable private and public building blocks,
+which makes ownership and review metadata part of the normal workflow&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same shape, but stays honest to the browser
+runtime:&lt;/p>
+&lt;ul>
+&lt;li>pack governance metadata is portable JSON, not server-side hidden state&lt;/li>
+&lt;li>review cadence stays visible before a run or export happens&lt;/li>
+&lt;li>dependency checks stay explicit so a workflow cannot quietly depend on
+a private local pack that never shipped with the rest of the library&lt;/li>
+&lt;/ul>
+&lt;h2>Operations Ledger&lt;span class="hx:absolute hx:-mt-20" id="operations-ledger">&lt;/span>
+&lt;a href="#operations-ledger" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The navigator now also keeps a browser-local &lt;strong>operations ledger&lt;/strong>.&lt;/p>
+&lt;p>It fills the gap between &amp;ldquo;the browser can do the work&amp;rdquo; and &amp;ldquo;an operator can explain what just happened&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>record source refreshes, browser chat sessions, agent runs, case saves/status changes, and report or brief exports in one local history&lt;/li>
+&lt;li>group correlated source pulls, agent runs, case captures, and handoff exports into browser-local investigation sessions that can be inspected or exported as one JSON contract&lt;/li>
+&lt;li>surface that history inside Navigator as both a process-log view and an investigation-session explorer instead of leaving state changes buried across tabs&lt;/li>
+&lt;li>filter the ledger by category, state, or free-text; inspect one record as JSON; and jump back into the linked source, queue, case, or planner surface from the same navigator flow&lt;/li>
+&lt;li>export either the full ledger as markdown or JSON, or one grouped investigation session as JSON when a reviewer, auditor, or downstream tool needs the exact correlated run context&lt;/li>
+&lt;li>keep the history private to the browser profile until the operator explicitly copies or downloads it&lt;/li>
+&lt;/ul>
+&lt;p>This aligns with where the market is moving:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/copilot/security/navigating-security-copilot"target="_blank" rel="noopener">Microsoft Security Copilot navigation and prompting docs&lt;/a> now treat process logs and session history as first-class workflow surfaces&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/copilot/security/audit-log"target="_blank" rel="noopener">Microsoft Security Copilot audit log guidance&lt;/a> explicitly frames prompt, response, and activity metadata as audit artifacts&lt;/li>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/6.11/Cortex-XSOAR-Administrator-Guide/Incident-Management"target="_blank" rel="noopener">Cortex XSOAR incident management docs&lt;/a> continue to position the incident investigation surface as the place to review status, timeline, and escalations together&lt;/li>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8/Cortex-XSOAR-SaaS-Documentation/Use-the-War-Room-in-an-investigation"target="_blank" rel="noopener">Cortex XSOAR War Room docs&lt;/a> continue to position the incident timeline as the place to document automatic and manual actions in one source&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/ai/attack-discovery"target="_blank" rel="noopener">Elastic Attack Discovery docs&lt;/a> now emphasize saving discoveries for later review, reporting, tracking, and search/filter operations instead of treating AI findings as one-shot output&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same direction, but stays honest to the BYO-token browser model:&lt;/p>
+&lt;ul>
+&lt;li>history stays in browser storage&lt;/li>
+&lt;li>export is operator-triggered&lt;/li>
+&lt;li>the public schema makes the handoff contract explicit without introducing server-side state&lt;/li>
+&lt;/ul>
+&lt;h2>Asset and Ownership Board&lt;span class="hx:absolute hx:-mt-20" id="asset-and-ownership-board">&lt;/span>
+&lt;a href="#asset-and-ownership-board" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now also includes an &lt;strong>Asset and Ownership Board&lt;/strong>.&lt;/p>
+&lt;p>It closes the gap between &amp;ldquo;we have a queue&amp;rdquo; and &amp;ldquo;we know who should own
+the fix&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>register repositories, services, hosts, APIs, tenants, or cloud resources locally in the browser&lt;/li>
+&lt;li>capture owner team, owner contact, environment, aliases, and business criticality on one portable contract&lt;/li>
+&lt;li>import or export a full asset library as JSON, or ingest a quick CSV/TSV inventory the same way other SecOps tools bulk-load criticality&lt;/li>
+&lt;li>enrich Exposure Board items and Caseboard entries with matched asset context before a ticket, webhook, or reviewer handoff leaves the browser&lt;/li>
+&lt;li>group repositories, services, APIs, data stores, or cloud resources into browser-local service portfolios so the queue can roll up to something a real SecOps team owns&lt;/li>
+&lt;li>capture lightweight related-asset links so the Router can surface a small service-map view instead of treating every repository or hostname as an island&lt;/li>
+&lt;/ul>
+&lt;p>This follows how current exposure and SecOps platforms are describing the
+problem:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://www.wiz.io/solutions/asm"target="_blank" rel="noopener">Wiz ASM&lt;/a> now positions exposure
+management around what is exploitable, what the business impact is, and
+who owns the fix&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/security-exposure-management/microsoft-security-exposure-management"target="_blank" rel="noopener">Microsoft Security Exposure Management&lt;/a>
+frames the product around a unified view across assets and workloads plus
+protection of critical assets&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/advanced-entity-analytics/asset-criticality"target="_blank" rel="noopener">Elastic Asset Criticality&lt;/a>
+supports bulk criticality assignment from inventory files so downstream
+alerts can inherit business priority&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same product direction, but remains honest to
+the browser-first runtime:&lt;/p>
+&lt;ul>
+&lt;li>the asset register stays in browser storage until the operator exports or deletes it&lt;/li>
+&lt;li>the import/export contract is schema-backed and machine-readable&lt;/li>
+&lt;li>asset enrichment affects local queueing and case context; it does not imply that any external CMDB or ticketing system was updated&lt;/li>
+&lt;/ul>
+&lt;h2>Routing Policy Lab&lt;span class="hx:absolute hx:-mt-20" id="routing-policy-lab">&lt;/span>
+&lt;a href="#routing-policy-lab" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The Control Plane now also includes a &lt;strong>Routing Policy Lab&lt;/strong>.&lt;/p>
+&lt;p>It closes the gap between &amp;ldquo;we know the owner&amp;rdquo; and &amp;ldquo;the correct downstream path is chosen consistently&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>author browser-local routing policies that match on severity threshold, asset criticality, workflow value, source channel, owner team, or environment&lt;/li>
+&lt;li>match on service portfolio IDs when one business service spans multiple repositories, APIs, or backing stores&lt;/li>
+&lt;li>recommend the downstream output route, report profile, approval gate, context pack, cadence, and ticket/project defaults before the operator delivers anything&lt;/li>
+&lt;li>apply the same routing decision from the Exposure Board, Caseboard, and Agents planner so triage and delivery share one local rule set&lt;/li>
+&lt;li>export or import single policies or full routing libraries on published schema contracts&lt;/li>
+&lt;/ul>
+&lt;p>This follows the direction visible in current SecOps platforms:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/azure/sentinel/automate-incident-handling-with-automation-rules"target="_blank" rel="noopener">Microsoft Sentinel automation rules&lt;/a> center triggers, conditions, ordered actions, incident owner assignment, severity changes, and playbook execution in one rule surface&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/explore-analyze/workflows/use-cases/security"target="_blank" rel="noopener">Elastic Security workflows&lt;/a> now describe security workflows as a place to respond automatically, create and populate cases, route notifications by severity, and investigate with AI assistance&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/investigate/security-cases"target="_blank" rel="noopener">Elastic Security cases&lt;/a> keep external escalation tied to case context and connectors such as Jira and ServiceNow, which supports pre-filling downstream destination metadata instead of leaving every handoff manual&lt;/li>
+&lt;li>&lt;a href="https://www.servicenow.com/docs/r/it-operations-management/service-mapping/cmdb-based-mapping.html"target="_blank" rel="noopener">ServiceNow CMDB-based mapping&lt;/a> maps application services from related host and dependency context, which supports carrying a light service-map layer into browser-local routing instead of routing only on one asset at a time&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same product shape, but remains honest to the
+browser-first runtime:&lt;/p>
+&lt;ul>
+&lt;li>routing rules stay in browser storage unless the operator explicitly copies or downloads them&lt;/li>
+&lt;li>a routing recommendation does not send data anywhere; it only preconfigures the planner or case handoff&lt;/li>
+&lt;li>operators can still override a recommendation before any live connector runs&lt;/li>
+&lt;/ul>
+&lt;h2>Routing explainability and auditability&lt;span class="hx:absolute hx:-mt-20" id="routing-explainability-and-auditability">&lt;/span>
+&lt;a href="#routing-explainability-and-auditability" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now surfaces the routing decision itself instead of
+treating policy matches as hidden glue:&lt;/p>
+&lt;ul>
+&lt;li>the &lt;strong>Agents&lt;/strong> tab now shows a routing explainability panel with the
+matched policy, candidate signals, recommended route/report/review
+defaults, integration defaults, and current planner divergence&lt;/li>
+&lt;li>the &lt;strong>Router&lt;/strong> tab now shows a planner routing audit card so an
+operator can see the same decision without leaving the orchestration
+surface&lt;/li>
+&lt;li>normalized report bundles and delivery envelopes now carry the same
+routing analysis JSON, so downstream review can inspect the decision
+context instead of trusting a silent route selection&lt;/li>
+&lt;/ul>
+&lt;p>That direction lines up with how the market is describing governed
+automation now:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/azure/sentinel/automate-incident-handling-with-automation-rules"target="_blank" rel="noopener">Microsoft Sentinel automation rules&lt;/a>
+emphasize ordered conditions, actions, and escalation logic in one
+surface&lt;/li>
+&lt;li>&lt;a href="https://www.servicenow.com/docs/r/build-workflows/workflow-studio/flow-execution-details.html?contentId=TQmEZT4017Q7XcTIkebtNA"target="_blank" rel="noopener">ServiceNow flow execution details&lt;/a>
+exposes runtime state, values, and logs directly in the workflow UI&lt;/li>
+&lt;li>&lt;a href="https://www.tines.com/"target="_blank" rel="noopener">Tines&lt;/a> now explicitly positions deterministic
+workflows as the right place for triage, routing, and explainability&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same governance goal, but remains browser-first:&lt;/p>
+&lt;ul>
+&lt;li>the routing analysis is local unless the operator copies or downloads it&lt;/li>
+&lt;li>divergence is visible before any external write happens&lt;/li>
+&lt;li>route readiness is explicit, including missing browser-held integration
+settings for live or live-or-copy routes&lt;/li>
+&lt;/ul>
+&lt;p>The new public readiness matrix pushes that visibility one step further:&lt;/p>
+&lt;ul>
+&lt;li>the site can now explain the auth pattern, runtime requirement, and
+current platform blocker for each published input or output contract&lt;/li>
+&lt;li>external tools can consume the same explanation through
+&lt;code>/marketplace-readiness.json&lt;/code> instead of scraping badge text out of the
+docs page&lt;/li>
+&lt;li>the in-app Control Plane cards now reuse the same readiness model so
+the browser shell and the public gallery no longer drift&lt;/li>
+&lt;/ul>
+&lt;p>The browser &lt;strong>Security navigator&lt;/strong> now adds a source-sync layer on top
+of that readiness story:&lt;/p>
+&lt;ul>
+&lt;li>the navigator home view includes a source freshness watch that shows
+which browser-local snapshots are current, which ones are stale, and
+which planner-selected sources were never loaded successfully&lt;/li>
+&lt;li>the navigator now also adds a source recovery hub that classifies
+credential rejects, browser fetch blockers, setup gaps, and file
+format issues, then gives the operator copyable diagnostics plus
+direct retry or setup actions&lt;/li>
+&lt;li>GitHub, deps.dev, Snyk, and Confluence can now be refreshed inline
+from that surface without bouncing back into settings first&lt;/li>
+&lt;li>SARIF and SBOM stay honest to the browser sandbox: the navigator sends
+those channels back to the local upload surface instead of pretending
+the browser can silently re-open files&lt;/li>
+&lt;li>bulk &amp;ldquo;refresh due sources&amp;rdquo; runs stay explicit and BYO-token: they only
+re-pull browser-safe API sources that are already in scope for the
+current workbench state&lt;/li>
+&lt;/ul>
+&lt;p>That moves the workbench closer to the way mature SecOps products now
+surface ingestion health:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://docs.cloud.google.com/chronicle/docs/reports/data-health-monitoring-and-troubleshooting-dashboard"target="_blank" rel="noopener">Google SecOps Health Hub&lt;/a>
+centralizes failed sources and remediation context for data pipelines&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/security-exposure-management/prerequisites"target="_blank" rel="noopener">Microsoft Security Exposure Management prerequisites&lt;/a>
+call out explicit freshness windows and current-snapshot behavior for
+connector-driven graph data&lt;/li>
+&lt;/ul>
+&lt;h2>Mission control and daily ops brief&lt;span class="hx:absolute hx:-mt-20" id="mission-control-and-daily-ops-brief">&lt;/span>
+&lt;a href="#mission-control-and-daily-ops-brief" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The navigator home now also includes a &lt;strong>Mission control&lt;/strong> layer so the
+workbench feels like an operator console instead of a set of separate
+browser panels:&lt;/p>
+&lt;ul>
+&lt;li>surface due, failed, running, and generated browser-scheduled agent actions&lt;/li>
+&lt;li>let an operator run a due scheduled action immediately from the navigator instead of hunting for it in the queue&lt;/li>
+&lt;li>summarize the current queue head, open cases, source issues, and top portfolio coverage gap in one place&lt;/li>
+&lt;li>highlight saved cases whose current handoff context has drifted from the captured run so they can be revalidated before delivery&lt;/li>
+&lt;li>export a browser-local daily ops brief as markdown for copy/paste or JSON for downstream review and automation&lt;/li>
+&lt;/ul>
+&lt;p>That direction lines up with the current product baseline in larger
+security platforms:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/copilot/security/prompting-security-copilot"target="_blank" rel="noopener">Microsoft Security Copilot prompting and promptbooks&lt;/a>
+now position promptbooks as reusable role-based task flows that are
+surfaced directly from the home screen&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/ai/attack-discovery"target="_blank" rel="noopener">Elastic Attack Discovery&lt;/a>
+now supports scheduled discoveries, saved review state, shareable
+results, and connector-based notifications from the same operating
+surface&lt;/li>
+&lt;li>&lt;a href="https://docs.cloud.google.com/chronicle/docs/reports/data-health-monitoring-and-troubleshooting-dashboard"target="_blank" rel="noopener">Google SecOps Health Hub&lt;/a>
+centralizes source-health, failure, and remediation context instead of
+leaving ingestion troubleshooting scattered across setup pages&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same operational shape, but stays honest to the
+browser-first BYO-token runtime:&lt;/p>
+&lt;ul>
+&lt;li>the mission board is derived entirely from browser-local schedules,
+queue state, cases, routes, and source health&lt;/li>
+&lt;li>running a scheduled action from the navigator still requires the tab to
+be open and uses the saved browser-local provider credential&lt;/li>
+&lt;li>the exported daily ops brief is local until the operator copies,
+downloads, or routes it downstream&lt;/li>
+&lt;/ul>
+&lt;p>The next governance layer is service coverage itself:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-gb/security-exposure-management/security-metrics"target="_blank" rel="noopener">Microsoft Security Exposure Management initiative metrics&lt;/a>
+measure exposure for a scoped set of assets and call out state,
+progress, affected assets, weight, and associated recommendations&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/advanced-entity-analytics/entity-risk-scoring"target="_blank" rel="noopener">Elastic entity risk scoring&lt;/a>
+combines alerts and asset criticality into a recurring score so
+operators can prioritize the entities that are drifting upward&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes now mirrors that pattern locally:&lt;/p>
+&lt;ul>
+&lt;li>the &lt;strong>Router&lt;/strong> and &lt;strong>Assets&lt;/strong> tabs show a per-portfolio coverage state
+and score instead of treating the service map as passive reference data&lt;/li>
+&lt;li>coverage snapshots call out owner gaps, unrouted exposures,
+starter-contract routes, and live configuration blockers&lt;/li>
+&lt;li>linked assets now derive upstream and downstream portfolio fan-out so
+the browser can show which service dependencies still widen blast
+radius when one route or owner gap remains unresolved&lt;/li>
+&lt;li>normalized report bundles now carry &lt;code>portfolio_coverage_analysis&lt;/code>
+alongside routing analysis so exported review packets explain which
+services are still uncovered and why&lt;/li>
+&lt;/ul>
+&lt;p>That exported &lt;code>portfolio_coverage_analysis&lt;/code> contract now sits on a
+published schema at &lt;code>/marketplace-schemas/portfolio-coverage.schema.json&lt;/code>
+so downstream consumers can validate the dependency-aware snapshot
+instead of treating the Router copy action as an undocumented blob.&lt;/p>
+&lt;h2>Exposure Board&lt;span class="hx:absolute hx:-mt-20" id="exposure-board">&lt;/span>
+&lt;a href="#exposure-board" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now also includes an &lt;strong>Exposure Board&lt;/strong>.&lt;/p>
+&lt;p>It fills the next gap between &amp;ldquo;bounded context is available&amp;rdquo; and &amp;ldquo;an
+analyst has a real queue to work&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>turn cached SARIF, SBOM, Snyk, Defender XDR, and Sentinel summaries already in the browser into a small prioritized queue&lt;/li>
+&lt;li>group findings into actionable clusters instead of leaving them buried inside raw JSON previews&lt;/li>
+&lt;li>recommend the most likely remediation workflow and workflow pack for each queue item&lt;/li>
+&lt;li>show whether a queue item is still untracked or already related to a local case&lt;/li>
+&lt;li>load a selected queue item directly into the Agents planner or capture it as a new local case file&lt;/li>
+&lt;/ul>
+&lt;p>The shape is intentional and tracks how current exposure-management tools
+differentiate:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://www.wiz.io/solutions/exposure-management"target="_blank" rel="noopener">Wiz Exposure Management&lt;/a>
+emphasizes unifying findings across scanners, removing alert silos,
+enriching with context, and turning ownership into action&lt;/li>
+&lt;li>&lt;a href="https://www.wiz.io/lp/wiz-security-graph"target="_blank" rel="noopener">Wiz Security Graph&lt;/a>
+frames risk prioritization around connected code, cloud, runtime,
+identity, and blast-radius context rather than isolated findings&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/investigate/security-cases"target="_blank" rel="noopener">Elastic Security Cases&lt;/a>
+and &lt;a href="https://learn.microsoft.com/en-us/azure/sentinel/incident-investigation"target="_blank" rel="noopener">Microsoft Sentinel incident investigation&lt;/a>
+both position the analyst workflow as queue, investigation, case, and
+escalation in one surface&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same direction, but stays honest to the
+browser-first model:&lt;/p>
+&lt;ul>
+&lt;li>the queue is built only from bounded summaries already present in browser storage&lt;/li>
+&lt;li>nothing is fetched or sent unless the operator explicitly enabled that source&lt;/li>
+&lt;li>loading a queue item into Agents or Caseboard does not imply that any external system was modified&lt;/li>
+&lt;/ul>
+&lt;h2>Local Caseboard&lt;span class="hx:absolute hx:-mt-20" id="local-caseboard">&lt;/span>
+&lt;a href="#local-caseboard" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now also includes a &lt;strong>Local Caseboard&lt;/strong>.&lt;/p>
+&lt;p>It closes another gap between &amp;ldquo;useful AI helper&amp;rdquo; and &amp;ldquo;complete security
+application&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>capture the latest reviewed agent run as a reusable browser-local case file&lt;/li>
+&lt;li>keep the scope, selected inputs, normalized report bundle, output contract, and generated response together&lt;/li>
+&lt;li>preserve the captured launch-readiness packet alongside the case timeline so reviewers can see what setup, freshness, or route blockers existed at save time&lt;/li>
+&lt;li>retain a small timeline of key events such as capture, status change, and delivery outcome&lt;/li>
+&lt;li>replay the saved planner state back into the Agents tab without re-entering context by hand&lt;/li>
+&lt;li>copy or download the full case JSON for downstream review, evidence retention, or customer-specific routing&lt;/li>
+&lt;li>validate a selected case file against the published case schema before it leaves the browser&lt;/li>
+&lt;li>export or import the full local Caseboard library on a stable schema-backed contract so saved investigations can move between browser profiles&lt;/li>
+&lt;/ul>
+&lt;p>This is consistent with how current SecOps products keep investigations
+grounded:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/investigate/security-cases"target="_blank" rel="noopener">Elastic Security Cases&lt;/a>
+centers investigation context, metrics, attachments, timelines, and
+connector-based escalation in one place&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/azure/sentinel/incident-investigation"target="_blank" rel="noopener">Microsoft Sentinel incident investigation&lt;/a>
+frames the incident page as a complete case-management surface with an
+always-updated chronology of evidence and actions&lt;/li>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XSOAR/8/Cortex-XSOAR-SaaS-Documentation/Use-the-War-Room-in-an-investigation"target="_blank" rel="noopener">Cortex XSOAR&amp;rsquo;s War Room&lt;/a>
+still emphasizes the audit trail of manual and automated actions inside
+each incident&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same product shape, but remains honest to the
+browser-first runtime:&lt;/p>
+&lt;ul>
+&lt;li>the case file stays in browser storage until the operator deletes or exports it&lt;/li>
+&lt;li>the portable library stays in browser storage until the operator explicitly copies, downloads, or imports it&lt;/li>
+&lt;li>there is no hidden server-side state or ticket database&lt;/li>
+&lt;li>downstream delivery still happens only when the operator explicitly runs an output route&lt;/li>
+&lt;li>replaying a case back into the planner does not claim that any external system was modified&lt;/li>
+&lt;/ul>
+&lt;h2>Report Desk&lt;span class="hx:absolute hx:-mt-20" id="report-desk">&lt;/span>
+&lt;a href="#report-desk" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now also includes a &lt;strong>Reports desk&lt;/strong>.&lt;/p>
+&lt;p>It closes the gap between &amp;ldquo;we captured a useful artifact&amp;rdquo; and &amp;ldquo;we can hand it to another system in a consistent shape&amp;rdquo;:&lt;/p>
+&lt;ul>
+&lt;li>seed a downstream-ready report from a saved Caseboard case, an Exposure Board queue item, or a grouped browser-local investigation session&lt;/li>
+&lt;li>switch the report profile and output channel without redoing the underlying case capture or queue triage&lt;/li>
+&lt;li>keep analyst notes, the selected report contract, and the selected output route together in one browser-local workspace&lt;/li>
+&lt;li>carry the current launch-readiness packet, and any source-case readiness packet, into exported JSON so reviewers can compare capture-time and delivery-time posture&lt;/li>
+&lt;li>copy or download the normalized JSON packet directly from the same surface&lt;/li>
+&lt;li>reuse the existing browser delivery routes for case- and exposure-backed reports when the chosen route is live or live-or-copy&lt;/li>
+&lt;/ul>
+&lt;p>This mirrors current platform direction:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-5.x-Documentation/Run-or-schedule-reports"target="_blank" rel="noopener">Cortex XDR report templates&lt;/a> now treat report templates as first-class JSON artifacts that can be imported, exported, scheduled, and shared&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/copilot/security/activity-export-api"target="_blank" rel="noopener">Microsoft Security Copilot&amp;rsquo;s Export Activity API&lt;/a> now treats prompt and session export as an explicit contract instead of disposable UI state&lt;/li>
+&lt;li>&lt;a href="https://www.elastic.co/docs/solutions/security/investigate/security-cases"target="_blank" rel="noopener">Elastic Security cases&lt;/a> keep evidence, connectors, and escalation in one case surface, which supports generating the report from the same saved local artifact instead of from a separate reporting tool&lt;/li>
+&lt;/ul>
+&lt;p>SecurityRecipes keeps the same product shape, but remains honest to the
+browser-first runtime:&lt;/p>
+&lt;ul>
+&lt;li>case- and exposure-backed reports can reuse the existing browser delivery path&lt;/li>
+&lt;li>investigation-session packets stay export-first unless the operator promotes the work into a case or another explicit handoff artifact&lt;/li>
+&lt;li>the selected report, analyst notes, and downloaded JSON stay local to the browser profile until the operator copies, downloads, or routes them downstream&lt;/li>
+&lt;/ul>
+&lt;h2>Runtime model&lt;span class="hx:absolute hx:-mt-20" id="runtime-model">&lt;/span>
+&lt;a href="#runtime-model" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench follows four operating modes:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>live&lt;/code>: the browser can call the source or destination directly right now&lt;/li>
+&lt;li>&lt;code>live_or_copy&lt;/code>: the browser can write directly, or fall back to a local handoff&lt;/li>
+&lt;li>&lt;code>copy_only&lt;/code>: the browser generates the packet locally and does not write externally&lt;/li>
+&lt;li>&lt;code>config_only&lt;/code> / &lt;code>planned&lt;/code>: the repo ships the JSON contract now, while live execution waits for an approved connector or relay&lt;/li>
+&lt;/ul>
+&lt;p>That keeps the product honest. A template can be present in the marketplace before the corresponding connector is promoted to live browser execution.&lt;/p>
+&lt;h2>Live local scanner intake&lt;span class="hx:absolute hx:-mt-20" id="live-local-scanner-intake">&lt;/span>
+&lt;a href="#live-local-scanner-intake" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now promotes two scanner-oriented input channels from template-only contracts to live local runtime support:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>sarif-manual-import&lt;/code>: upload a SARIF 2.1.0 JSON file in the browser and attach a bounded findings summary to chat prompts or agent runs&lt;/li>
+&lt;li>&lt;code>sbom-manual-import&lt;/code>: upload a CycloneDX or SPDX JSON SBOM and attach a bounded dependency and package inventory summary&lt;/li>
+&lt;/ul>
+&lt;p>This is still browser-first and BYO-token:&lt;/p>
+&lt;ul>
+&lt;li>the raw file stays local to the browser session&lt;/li>
+&lt;li>the app stores only a bounded normalized summary in browser storage&lt;/li>
+&lt;li>nothing is sent to a model unless the operator enables the channel and sends a prompt or agent run&lt;/li>
+&lt;/ul>
+&lt;p>The standards choice is deliberate:&lt;/p>
+&lt;ul>
+&lt;li>&lt;a href="https://docs.github.com/en/enterprise-cloud@latest/code-security/concepts/code-scanning/sarif-files"target="_blank" rel="noopener">GitHub documents SARIF&lt;/a> as the interchange format for code scanning uploads&lt;/li>
+&lt;li>&lt;a href="https://developer.harness.io/docs/security-testing-orchestration/custom-scanning/ingest-sarif-data"target="_blank" rel="noopener">Harness STO documents SARIF 2.1.0 ingestion&lt;/a> as the generic path for many third-party scanners&lt;/li>
+&lt;li>&lt;a href="https://cyclonedx.org/docs/1.7/json/"target="_blank" rel="noopener">CycloneDX JSON&lt;/a> and &lt;a href="https://spdx.github.io/spdx-spec/v2.3/"target="_blank" rel="noopener">SPDX&lt;/a> remain the two most practical JSON shapes for package and dependency inventory exchange&lt;/li>
+&lt;/ul>
+&lt;h2>Live SaaS and incident intake&lt;span class="hx:absolute hx:-mt-20" id="live-saas-and-incident-intake">&lt;/span>
+&lt;a href="#live-saas-and-incident-intake" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now promotes four hosted sources from template-only
+contracts to live runtime support:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>snyk-issues-api&lt;/code>: pull a bounded first page of organization issues directly from the &lt;a href="https://docs.snyk.io/snyk-api/reference/issues"target="_blank" rel="noopener">Snyk REST Issues API&lt;/a>&lt;/li>
+&lt;li>&lt;code>confluence-knowledge&lt;/code>: search &lt;a href="https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-search/"target="_blank" rel="noopener">Confluence Cloud content&lt;/a> for runbooks and exception notes using browser-local credentials&lt;/li>
+&lt;li>&lt;code>microsoft-defender-xdr-incidents&lt;/code>: pull a bounded browser-side incident sample from the &lt;a href="https://learn.microsoft.com/en-us/defender-xdr/api-list-incidents"target="_blank" rel="noopener">Microsoft Defender XDR incidents API&lt;/a>&lt;/li>
+&lt;li>&lt;code>microsoft-sentinel-incidents&lt;/code>: pull a bounded workspace-scoped incident sample from the &lt;a href="https://learn.microsoft.com/en-us/rest/api/securityinsights/incidents/list"target="_blank" rel="noopener">Microsoft Sentinel incidents REST API&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>The intent is to keep the &amp;ldquo;all in one AppSec remediation surface&amp;rdquo; promise without breaking the BYO-token model:&lt;/p>
+&lt;ul>
+&lt;li>tokens remain in browser storage&lt;/li>
+&lt;li>Microsoft workspace identifiers remain in browser storage alongside the token and are never relayed to a server component&lt;/li>
+&lt;li>the fetch is explicit and operator-triggered&lt;/li>
+&lt;li>only a bounded normalized summary is attached to prompts and agent runs&lt;/li>
+&lt;li>the resulting report bundle stays inspectable and exportable&lt;/li>
+&lt;/ul>
+&lt;p>The capability choice is grounded in current vendor guidance:&lt;/p>
+&lt;ul>
+&lt;li>Snyk&amp;rsquo;s REST API is versioned by date and supports org-level issue retrieval with severity and status filters, which makes it a good fit for bounded browser-side intake&lt;/li>
+&lt;li>Atlassian documents both Confluence Cloud search scopes and API-token-based basic auth for script-style REST clients, which maps well to a user-operated browser workbench&lt;/li>
+&lt;li>Microsoft documents Defender XDR incident listing through &lt;code>GET /api/incidents&lt;/code> with delegated incident-read permissions, which fits the browser-local BYO-token fetch model when analysts already have a scoped bearer token&lt;/li>
+&lt;li>Microsoft documents Sentinel incident listing through the Azure Resource Manager SecurityInsights incidents route, which fits a browser-local workspace pull so long as the operator supplies the workspace coordinates and bearer token explicitly&lt;/li>
+&lt;/ul>
+&lt;h2>Live GitLab intake&lt;span class="hx:absolute hx:-mt-20" id="live-gitlab-intake">&lt;/span>
+&lt;a href="#live-gitlab-intake" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now also promotes two GitLab-centered input channels from starter contracts to live browser runtime support:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>gitlab-project-context&lt;/code>: pull bounded project metadata plus selected repository files, open issues, and open merge requests through the &lt;a href="https://docs.gitlab.com/api/projects/"target="_blank" rel="noopener">Projects API&lt;/a>, &lt;a href="https://docs.gitlab.com/api/issues/"target="_blank" rel="noopener">Issues API&lt;/a>, and &lt;a href="https://docs.gitlab.com/api/merge_requests/"target="_blank" rel="noopener">Merge Requests API&lt;/a>&lt;/li>
+&lt;li>&lt;code>gitlab-vulnerability-findings&lt;/code>: pull a bounded first page of project findings through the &lt;a href="https://docs.gitlab.com/ee/api/vulnerability_findings.html"target="_blank" rel="noopener">Vulnerability Findings API&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>The runtime stays honest to the current GitLab contract:&lt;/p>
+&lt;ul>
+&lt;li>public project metadata can load without auth where GitLab allows it, but private project context and all vulnerability-findings calls depend on a browser-local token&lt;/li>
+&lt;li>GitLab explicitly documents the vulnerability-findings REST surface as unstable and recommends GraphQL longer-term, so SecurityRecipes keeps the browser result bounded, sampled, and reviewer-visible instead of pretending it is a durable bulk-export API&lt;/li>
+&lt;li>project-level security access still matters: if the token cannot use the Project Security Dashboard, findings intake will fail fast and surface that state in the navigator recovery flow&lt;/li>
+&lt;/ul>
+&lt;h2>Live Azure DevOps repository intake&lt;span class="hx:absolute hx:-mt-20" id="live-azure-devops-repository-intake">&lt;/span>
+&lt;a href="#live-azure-devops-repository-intake" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now also promotes &lt;code>azure-devops-repository&lt;/code> from a starter contract to live browser runtime support:&lt;/p>
+&lt;ul>
+&lt;li>resolve the target repository through the &lt;a href="https://learn.microsoft.com/en-us/rest/api/azure/devops/git/repositories/list?view=azure-devops-rest-7.1"target="_blank" rel="noopener">Git Repositories API&lt;/a>&lt;/li>
+&lt;li>load bounded repository files through the &lt;a href="https://learn.microsoft.com/en-us/rest/api/azure/devops/git/items/get?view=azure-devops-rest-7.1"target="_blank" rel="noopener">Git Items API&lt;/a>&lt;/li>
+&lt;li>sample active pull requests through the &lt;a href="https://learn.microsoft.com/en-us/rest/api/azure/devops/git/pull-requests/get-pull-requests?view=azure-devops-rest-7.1"target="_blank" rel="noopener">Pull Requests API&lt;/a>&lt;/li>
+&lt;li>sample recent non-closed work items through &lt;a href="https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/wiql?view=azure-devops-rest-7.1"target="_blank" rel="noopener">WIQL&lt;/a> plus the &lt;a href="https://learn.microsoft.com/en-us/rest/api/azure/devops/wit/work-items/list?view=azure-devops-rest-7.1"target="_blank" rel="noopener">Work Items API&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;p>The runtime stays honest to the current Azure DevOps platform posture:&lt;/p>
+&lt;ul>
+&lt;li>organization, project, repository, and token values stay in browser storage until the operator clears them&lt;/li>
+&lt;li>&lt;a href="https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/rest/samples?view=azure-devops"target="_blank" rel="noopener">Microsoft&amp;rsquo;s current REST guidance&lt;/a> recommends Microsoft Entra tokens for production while still allowing PAT-backed script access, which fits the BYO-token browser model&lt;/li>
+&lt;li>Microsoft&amp;rsquo;s &lt;a href="https://learn.microsoft.com/en-us/azure/devops/organizations/projects/public-projects-retirement?view=azure-devops"target="_blank" rel="noopener">public-project retirement guidance&lt;/a>, last updated May 1, 2026, says public projects are retired and remaining public projects convert to private in 2027, so SecurityRecipes treats Azure DevOps as an authenticated enterprise source rather than an anonymous repository feed&lt;/li>
+&lt;/ul>
+&lt;h2>Live normalized scan bundle export&lt;span class="hx:absolute hx:-mt-20" id="live-normalized-scan-bundle-export">&lt;/span>
+&lt;a href="#live-normalized-scan-bundle-export" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Imported scanner context is now useful beyond prompt stuffing.&lt;/p>
+&lt;p>When the operator selects the &lt;code>scan-findings-bundle&lt;/code> report profile, the browser workbench can now generate a first-class JSON bundle that includes:&lt;/p>
+&lt;ul>
+&lt;li>report metadata and runtime details&lt;/li>
+&lt;li>the selected input-channel contract&lt;/li>
+&lt;li>normalized SARIF severity counts and sample findings&lt;/li>
+&lt;li>SBOM component, package, dependency, and vulnerability summaries&lt;/li>
+&lt;li>recommended remediation workflows inferred from the imported evidence&lt;/li>
+&lt;li>the generated agent output that explains what to do next&lt;/li>
+&lt;/ul>
+&lt;p>That matters for the product shape:&lt;/p>
+&lt;ul>
+&lt;li>the browser stays the execution surface&lt;/li>
+&lt;li>secrets still stay local&lt;/li>
+&lt;li>the result becomes a reusable JSON artifact that can be copied, downloaded, or fed into downstream relays and integrations&lt;/li>
+&lt;/ul>
+&lt;p>This is the path from &amp;ldquo;AI chatbot&amp;rdquo; to &amp;ldquo;actual security application&amp;rdquo;: every run should leave behind a bounded contract that another system or reviewer can consume.&lt;/p>
+&lt;h2>Live downstream delivery expanded&lt;span class="hx:absolute hx:-mt-20" id="live-downstream-delivery-expanded">&lt;/span>
+&lt;a href="#live-downstream-delivery-expanded" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The browser workbench now treats several major output routes as &lt;code>live_or_copy&lt;/code> instead of template-only:&lt;/p>
+&lt;ul>
+&lt;li>Microsoft Teams through a Workflows webhook&lt;/li>
+&lt;li>ServiceNow incident or task records through the Table API&lt;/li>
+&lt;li>Linear issues through the GraphQL API&lt;/li>
+&lt;li>GitLab issues through the project Issues API with browser-local token storage&lt;/li>
+&lt;li>Azure DevOps work items through the Work Item Tracking create endpoint with browser-local PAT or bearer token storage&lt;/li>
+&lt;li>Splunk HEC events for SIEM and analytics&lt;/li>
+&lt;li>Elastic Security cases through the Kibana Cases API&lt;/li>
+&lt;li>generic webhooks for customer-specific relays&lt;/li>
+&lt;/ul>
+&lt;p>This keeps the product aligned with the BYO-token promise:&lt;/p>
+&lt;ul>
+&lt;li>operator secrets stay in browser storage&lt;/li>
+&lt;li>delivery still happens only when the user explicitly configures the route&lt;/li>
+&lt;li>copy/download remains available when CORS, auth scope, or target policy blocks direct browser delivery&lt;/li>
+&lt;/ul>
+&lt;p>If you want the public inventory instead of the narrative explanation, use the
+&lt;a href="https://security-recipes.ai/docs/marketplace-gallery/">Marketplace and Workflow Gallery&lt;/a>.&lt;/p>
+&lt;h2>Example output channel contract&lt;span class="hx:absolute hx:-mt-20" id="example-output-channel-contract">&lt;/span>
+&lt;a href="#example-output-channel-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;id&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;slack-webhook&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;driver&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;slack&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;runtime_support&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;live&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;browser_delivery&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kc">true&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;config&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;type&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;slack_webhook&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;webhook_url&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;https://hooks.slack.com/services/...&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;message_format&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;mrkdwn&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Example input channel contract&lt;span class="hx:absolute hx:-mt-20" id="example-input-channel-contract">&lt;/span>
+&lt;a href="#example-input-channel-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;id&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;github-repository&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;runtime_support&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;live&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;auth_modes&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;public&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;pat&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;oauth&amp;#34;&lt;/span>&lt;span class="p">],&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;config&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;type&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;github_repository&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;repository&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;owner/repo&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;include&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;readme&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;security&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;manifests&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;issues&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;pull_requests&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Example workflow template contract&lt;span class="hx:absolute hx:-mt-20" id="example-workflow-template-contract">&lt;/span>
+&lt;a href="#example-workflow-template-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-json" data-lang="json">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;id&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;github-dependency-pr-handoff&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;workflow_value&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;dependency&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;default_report_profile_id&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;remediation-pr-packet&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;default_output_channel_id&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;draft-pr-packet&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nt">&amp;#34;default_input_channel_ids&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;page-context&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;recipe-index&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;github-repository&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;deps-dev-advisories&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Product direction&lt;span class="hx:absolute hx:-mt-20" id="product-direction">&lt;/span>
+&lt;a href="#product-direction" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>This marketplace is intentionally opinionated:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Browser-first&lt;/strong>: credentials stay local whenever possible.&lt;/li>
+&lt;li>&lt;strong>Recipe-centered&lt;/strong>: the marketplace wraps the remediation knowledge base instead of replacing it.&lt;/li>
+&lt;li>&lt;strong>Report-driven&lt;/strong>: every scan or remediation action should produce a reusable downstream contract.&lt;/li>
+&lt;li>&lt;strong>Honest about maturity&lt;/strong>: not every template is live; some are scaffolds for future connectors or customer-specific relays.&lt;/li>
+&lt;li>&lt;strong>Private before public&lt;/strong>: operators should be able to prove a workflow locally in the browser before turning it into contributed marketplace content.&lt;/li>
+&lt;li>&lt;strong>Portable local draft state&lt;/strong>: private packs should be exportable and importable between browsers before they are promoted into public site data.&lt;/li>
+&lt;/ul>
+&lt;p>The near-term expansion path is straightforward:&lt;/p>
+&lt;ul>
+&lt;li>more scanner source templates&lt;/li>
+&lt;li>more downstream ticketing and SIEM payloads&lt;/li>
+&lt;li>more external consumers of the public marketplace JSON feeds&lt;/li>
+&lt;li>direct SaaS scanner and incident API intake beyond Snyk, Defender XDR, Sentinel, and Confluence where browser-safe auth and CORS make it practical&lt;/li>
+&lt;li>richer report packs for trust-center and governance uses&lt;/li>
+&lt;li>user-submitted workflow templates that bundle the above into repeatable operating motions&lt;/li>
+&lt;/ul></description></item></channel></rss>

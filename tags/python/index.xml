@@ -1,0 +1,1717 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Python</title><link>https://security-recipes.ai/tags/python/</link><description>Recent content in Python on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 06 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/python/index.xml" rel="self" type="application/rss+xml"/><item><title>Python pickle / dill on untrusted input</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/</guid><description>
+&lt;p>&lt;code>pickle.load&lt;/code>, &lt;code>pickle.loads&lt;/code>, &lt;code>cPickle.load&lt;/code>, &lt;code>dill.load&lt;/code>, and
+their friends are &lt;strong>arbitrary-code-execution primitives&lt;/strong> when
+fed untrusted input. The Python docs say so plainly. The CVE
+trail is decades long. The unsafe behaviour is &lt;em>the design&lt;/em> —
+pickle is meant to reconstruct any Python object, including
+ones whose &lt;code>__reduce__&lt;/code> runs code.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Any of:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>pickle.load(f)&lt;/code>, &lt;code>pickle.loads(s)&lt;/code>,
+&lt;code>cPickle.load(f)&lt;/code>, &lt;code>cPickle.loads(s)&lt;/code>.&lt;/li>
+&lt;li>&lt;code>dill.load(f)&lt;/code>, &lt;code>dill.loads(s)&lt;/code> (same problem, larger
+surface).&lt;/li>
+&lt;li>&lt;code>joblib.load(path)&lt;/code> when the path is user-controlled.&lt;/li>
+&lt;li>&lt;code>numpy.load(allow_pickle=True)&lt;/code> on user files (silent default
+before 1.16.3 was unsafe; current default is safe but the
+flag is often re-enabled in legacy code).&lt;/li>
+&lt;li>&lt;code>torch.load(path)&lt;/code> (Python 2.6+ pickling underneath; safer
+options now exist as of PyTorch 2.5+).&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A pickled payload can carry a &lt;code>__reduce__&lt;/code> that returns
+&lt;code>(os.system, (&amp;quot;rm -rf /&amp;quot;,))&lt;/code> — &lt;code>pickle.load&lt;/code> happily executes
+it. There is no patch coming. Reading attacker-controlled
+pickles is RCE.&lt;/p>
+&lt;h2>Mitigation — restricted unpickler&lt;span class="hx:absolute hx:-mt-20" id="mitigation--restricted-unpickler">&lt;/span>
+&lt;a href="#mitigation--restricted-unpickler" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the call is on a backwards-compat read path (a legacy
+checkpoint format, an old persistence file), wrap the
+unpickler:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">pickle&lt;/span>&lt;span class="o">,&lt;/span> &lt;span class="nn">io&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">class&lt;/span> &lt;span class="nc">SafeUnpickler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pickle&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Unpickler&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ALLOWED&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;dict&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;list&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;set&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;tuple&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># Add only the application-specific classes&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># that legitimately round-trip through pickle.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">def&lt;/span> &lt;span class="nf">find_class&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="bp">self&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">ALLOWED&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nb">super&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">find_class&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">raise&lt;/span> &lt;span class="n">pickle&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">UnpicklingError&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;forbidden: &lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">.&lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">safe_loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nb">bytes&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">SafeUnpickler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">io&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">BytesIO&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span>&lt;span class="p">()&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Every rejection logs at WARN. The allowlist is the policy; it is
+narrow on purpose.&lt;/p>
+&lt;h2>Uplift — replace pickle entirely&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-pickle-entirely">&lt;/span>
+&lt;a href="#uplift--replace-pickle-entirely" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Default replacement choices:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>JSON&lt;/strong> (&lt;code>json.dumps&lt;/code> / &lt;code>json.loads&lt;/code>) — when the data is
+already a tree of primitives.&lt;/li>
+&lt;li>&lt;strong>msgpack&lt;/strong> — when binary payload size matters.&lt;/li>
+&lt;li>&lt;strong>protobuf&lt;/strong> / &lt;strong>pydantic JSON&lt;/strong> — when the data has a schema
+worth declaring.&lt;/li>
+&lt;li>For ML-shaped state: &lt;strong>safetensors&lt;/strong> for weights, JSON for
+metadata.&lt;/li>
+&lt;/ul>
+&lt;p>Behaviour preservation: round-trip a representative payload
+through the old &lt;code>pickle.dumps&lt;/code> and the new serializer; assert
+the in-memory shape matches.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call site&lt;/strong> — file + line range.&lt;/li>
+&lt;li>&lt;strong>Data path&lt;/strong> — where the input comes from (file, network,
+user-uploaded, intra-process).&lt;/li>
+&lt;li>&lt;strong>Replacement strategy&lt;/strong> — uplift / mitigate / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating one Python pickle call site. Output a PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the call site and trace input
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the function containing the pickle call. Identify the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> input source (file handle, bytes, network payload).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the input is provably trusted-only (e.g., a file written
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the same process, never read across a trust boundary),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop and write a triage note documenting the trust
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boundary — do not auto-replace.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If the call is on a backwards-compat read path with active
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> callers reading legacy data, do &lt;span class="gs">**mitigate**&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Otherwise do &lt;span class="gs">**uplift**&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> For checkpoint loaders that take user-supplied paths, do
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="gs">**both**&lt;/span> — mitigate the legacy path, uplift the write path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Mitigate (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add a &lt;span class="sb">`SafeUnpickler`&lt;/span> subclass with an explicit class
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlist scoped to the classes that legitimately round-trip
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> here. Log rejections at WARN.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Replace the &lt;span class="sb">`pickle.load(f)`&lt;/span> call with the safe wrapper.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a unit test that loads a known-good payload (passes)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and a payload referencing &lt;span class="sb">`os.system`&lt;/span> (raises
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`UnpicklingError`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Uplift (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Choose the replacement format from this list, in order:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> JSON if the payload is primitives, msgpack if binary size
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matters, protobuf/pydantic if schema is worth declaring,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safetensors+JSON for ML weights.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add a writer that emits the new format, and a reader that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> parses it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If old data exists, add a one-time migration that reads the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pickle (via the SafeUnpickler from Step 2) and writes the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> new format. The migration is its own commit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a behaviour-preservation test that asserts the in-memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shape after uplift matches what the old pickle would have
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> produced.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/pickle-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][pickle] replace untrusted-input pickle in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body must include: input-source analysis, strategy chosen,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test plan, legacy data migration plan if any, and a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> follow-up checklist for adjacent pickle call sites that this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR did not touch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Input source cannot be classified as untrusted vs. trusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replacement requires a coordinated migration across repos.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Test coverage on the call path is too thin to detect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regressions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch other pickle call sites in the repo. One per
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the SafeUnpickler allowlist beyond
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the classes the local code actually uses.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not remove the legacy read-path without a documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data migration.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>__reduce__&lt;/code> in tests.&lt;/strong> Some test suites legitimately
+pickle and unpickle custom classes. Don&amp;rsquo;t break those — add
+the classes to the allowlist explicitly.&lt;/li>
+&lt;li>&lt;strong>&lt;code>numpy.load(allow_pickle=True)&lt;/code> left enabled.&lt;/strong> Often a
+copy-paste from a stack-overflow answer. The default is safe
+now; flip it back.&lt;/li>
+&lt;li>&lt;strong>&lt;code>torch.load&lt;/code> on a user-supplied path.&lt;/strong> The mitigation
+shape depends on the PyTorch version; check the loader&amp;rsquo;s
+&lt;code>weights_only&lt;/code> parameter (PyTorch 2.5+ defaults it true).&lt;/li>
+&lt;li>&lt;strong>Cross-version pickles.&lt;/strong> A pickle written by Python 3.11
+may not round-trip cleanly on 3.9. The behaviour-preservation
+test catches this.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+— sibling pattern with a different fix.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">Java ObjectInputStream&lt;/a>
+— same pattern in Java.&lt;/li>
+&lt;/ul></description></item><item><title>PyYAML `yaml.load` without a safe Loader</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/</guid><description>
+&lt;p>&lt;code>yaml.load(s)&lt;/code> — without an explicit &lt;code>Loader=&lt;/code> — was unsafe by
+default for over a decade. The default loader resolves
+&lt;code>!!python/object&lt;/code> tags, which is the YAML equivalent of pickle:
+arbitrary code execution on untrusted input. PyYAML 5.1 added a
+warning, 6.0 made the warning louder; the call shape is still
+out there in repos by the thousands.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>yaml.load(s)&lt;/code> — no &lt;code>Loader=&lt;/code> argument.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.Loader)&lt;/code> — explicit unsafe loader.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.UnsafeLoader)&lt;/code> — same, named.&lt;/li>
+&lt;li>&lt;code>yaml.full_load(s)&lt;/code> — looser than &lt;code>safe_load&lt;/code>; resolves
+arbitrary types, just not arbitrary Python.&lt;/li>
+&lt;/ul>
+&lt;p>The safe shapes:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>yaml.safe_load(s)&lt;/code> — refuses every Python tag. Almost
+always the right answer.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.SafeLoader)&lt;/code> — same thing, more
+verbose.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="cp">!!python/object/apply:os.system&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;rm -rf /&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>…is a payload &lt;code>yaml.load&lt;/code> will happily execute. There is no
+patch coming; &lt;code>safe_load&lt;/code> is the patch.&lt;/p>
+&lt;h2>Mitigation — monkey-patch at import&lt;span class="hx:absolute hx:-mt-20" id="mitigation--monkey-patch-at-import">&lt;/span>
+&lt;a href="#mitigation--monkey-patch-at-import" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the repo has dozens of call sites, replacing every one in
+a single PR is risky. The mitigation is a one-line shim that
+makes the unsafe loader behave like the safe one:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># importable as e.g. `import myapp.yaml_safety_shim`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">yaml&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">warnings&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">_orig_load&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">_safe_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">Loader&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Loader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">UnsafeLoader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">FullLoader&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">warnings&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">warn&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;yaml.load shimmed to SafeLoader&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">stacklevel&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">SafeLoader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">Loader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">_safe_load&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Import this shim once at the application&amp;rsquo;s entry point. Every
+unsafe call now warns at runtime and decodes safely.&lt;/p>
+&lt;h2>Uplift — replace each call&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-each-call">&lt;/span>
+&lt;a href="#uplift--replace-each-call" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The clean fix: replace every &lt;code>yaml.load(s)&lt;/code> with
+&lt;code>yaml.safe_load(s)&lt;/code>. Mechanical change. A repo-wide search and
+a sed-equivalent is enough for most cases — but the agent
+inspects each call to confirm the data flow and adds a
+behaviour-preservation test.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — list of files / lines where &lt;code>yaml.load&lt;/code>
+appears.&lt;/li>
+&lt;li>&lt;strong>Strategy&lt;/strong> — uplift each / install shim / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating PyYAML &lt;span class="sb">`yaml.load`&lt;/span> call sites that resolve
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">unsafe tags. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every &lt;span class="sb">`yaml.load`&lt;/span>, &lt;span class="sb">`yaml.full_load`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.Loader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.UnsafeLoader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.FullLoader)`&lt;/span> call in the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each call, record whether the input is untrusted (file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> uploaded by a user, fetched from a URL, parsed from a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request body) or trusted-only (a config file written by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the same process).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **≤5 call sites or all in application code:** uplift each
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> call site directly to &lt;span class="sb">`yaml.safe_load`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Many call sites or the codebase imports through helpers:**
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install the import-time shim &lt;span class="ge">*and*&lt;/span> still uplift the call
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sites that legitimately need a non-default loader.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Trusted-only call sites:** still uplift; the safe loader
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> costs nothing on trusted input.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Uplift
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace &lt;span class="sb">`yaml.load(s)`&lt;/span> with &lt;span class="sb">`yaml.safe_load(s)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Replace &lt;span class="sb">`yaml.load(s, Loader=yaml.Loader)`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.safe_load(s)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the call truly needs a non-Safe loader (e.g., the YAML
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> carries a custom tag this codebase legitimately registers),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keep the explicit loader and document why in a comment with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a &lt;span class="sb">`# noqa: yaml-load-policy`&lt;/span> marker.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a unit test: a payload containing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`!!python/object/apply:os.system [&amp;#34;echo pwned&amp;#34;]`&lt;/span> must raise
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.constructor.ConstructorError`&lt;/span> after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Install the shim (when chosen)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add the shim module at a stable import path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`&amp;lt;package&amp;gt;/_yaml_safety_shim.py`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Import the shim from the application&amp;#39;s entry point(s).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a unit test that imports the shim, calls &lt;span class="sb">`yaml.load`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without a Loader, and confirms the SafeLoader was used.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/yaml-safe-load-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][yaml] use safe_load on untrusted YAML`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: per-call-site analysis, strategy chosen, test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> additions, the &lt;span class="sb">`# noqa`&lt;/span> exceptions if any.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The codebase relies on a custom YAML tag that requires
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.Loader`&lt;/span> and the agent can&amp;#39;t determine whether the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> custom tag&amp;#39;s resolver is itself safe.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail because of a legitimate behaviour change in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unrelated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change YAML files themselves.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not add new YAML tags.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle in unrelated refactors.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>yaml.load(s, Loader=Loader)&lt;/code> where &lt;code>Loader&lt;/code> is a custom
+subclass.&lt;/strong> Custom loaders may already be safe. Read the
+subclass before swapping.&lt;/li>
+&lt;li>&lt;strong>&lt;code>yaml.load_all&lt;/code> and &lt;code>yaml.full_load_all&lt;/code>.&lt;/strong> Same problem,
+same fix — &lt;code>yaml.safe_load_all&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>The shim breaking custom-tag YAML&lt;/strong> in the repo&amp;rsquo;s own
+config files. The shim opts out only when an explicit
+Loader is passed; verify all legitimate custom-tag callers
+pass an explicit Loader.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">Python pickle&lt;/a>
+— same risk class, different syntax.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2025-60455 — Modular Max Serve unsafe deserialization</title><link>https://security-recipes.ai/prompt-library/cve/cve-2025-60455-modular-max-serve/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2025-60455-modular-max-serve/</guid><description>
+&lt;p>&lt;code>modular&lt;/code> versions earlier than &lt;code>25.6.0&lt;/code> are vulnerable to
+unsafe deserialization in Max Serve. If deployed with
+&lt;code>--experimental-enable-kvcache-agent&lt;/code>, this can become remote
+code execution.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>modular (PyPI)&lt;/strong>: &lt;code>&amp;gt;=0, &amp;lt;25.6.0&lt;/code> — vulnerable.&lt;/li>
+&lt;li>&lt;strong>modular (PyPI)&lt;/strong>: &lt;code>25.6.0+&lt;/code> — patched.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Exposure requires all of the following:&lt;/p>
+&lt;ul>
+&lt;li>The deployed package version resolves to &lt;code>&amp;lt;25.6.0&lt;/code>.&lt;/li>
+&lt;li>Max Serve is started with
+&lt;code>--experimental-enable-kvcache-agent&lt;/code>.&lt;/li>
+&lt;li>Untrusted or cross-tenant input reaches that path.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show modular
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ps aux &lt;span class="p">|&lt;/span> grep -E &lt;span class="s1">&amp;#39;max serve|kvcache|experimental-enable-kvcache-agent&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Upgrade&lt;/strong> to &lt;code>modular&amp;gt;=25.6.0&lt;/code> everywhere
+(&lt;code>requirements.txt&lt;/code>, lockfiles, image build manifests).&lt;/li>
+&lt;li>&lt;strong>Disable&lt;/strong> &lt;code>--experimental-enable-kvcache-agent&lt;/code> by default
+until upgrade rollout and validation are complete.&lt;/li>
+&lt;li>&lt;strong>Redeploy&lt;/strong> services and rotate secrets reachable by affected
+processes if there is any suspicion of exploitation.&lt;/li>
+&lt;li>&lt;strong>Review runtime logs&lt;/strong> during the exposure window for
+suspicious requests or crashes.&lt;/li>
+&lt;/ol>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2025-60455 (Modular Max Serve unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deserialization).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR upgrading to modular 25.6.0+ and removing risky runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> flag usage, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md when a safe upgrade cannot be shipped now.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Find every direct/transitive &lt;span class="sb">`modular`&lt;/span> dependency and lockfile.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm runtime invocations for Max Serve and detect use of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`--experimental-enable-kvcache-agent`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Remediate
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Bump all manifests/locks to &lt;span class="sb">`modular&amp;gt;=25.6.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Remove or hard-disable &lt;span class="sb">`--experimental-enable-kvcache-agent`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> from production runtime profiles.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Update deployment artifacts and operational runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Dependency graph resolves to &lt;span class="sb">`modular 25.6.0+`&lt;/span> in all targets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Startup/config output confirms the experimental flag is absent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> from production workloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> CI tests and smoke checks pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Upgrade causes unresolved dependency conflicts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Service functionality depends on the experimental flag and no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compensating control exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You cannot determine production runtime flags with confidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If any stop condition is met, produce TRIAGE.md with blockers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">containment actions, owner, and follow-up date.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No manifest or lockfile keeps &lt;code>modular&lt;/code> below &lt;code>25.6.0&lt;/code>.&lt;/li>
+&lt;li>Production runtime configs no longer enable the experimental
+kvcache agent.&lt;/li>
+&lt;li>Build/test/deploy checks pass after the dependency change.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Hidden second copies of &lt;code>modular&lt;/code> in transitive lockfiles.&lt;/li>
+&lt;li>Rollback artifacts still launching with the experimental flag.&lt;/li>
+&lt;li>Environment drift between development and production configs.&lt;/li>
+&lt;/ul>
+&lt;h2>Sources&lt;span class="hx:absolute hx:-mt-20" id="sources">&lt;/span>
+&lt;a href="#sources" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;code>GHSA-7xcv-9j6c-2fmc&lt;/code>&lt;/li>
+&lt;li>CVE: &lt;code>CVE-2025-60455&lt;/code>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2017-18342 — PyYAML default `load` resolves arbitrary tags</title><link>https://security-recipes.ai/prompt-library/cve/cve-2017-18342-pyyaml/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2017-18342-pyyaml/</guid><description>
+&lt;p>PyYAML&amp;rsquo;s &lt;code>yaml.load()&lt;/code> resolved &lt;code>!!python/object&lt;/code> and friends
+without an explicit safe loader, making any
+attacker-controlled YAML a code-execution primitive. The CVE
+is the formal advisory; the &lt;em>behaviour&lt;/em> predates the CVE by
+the better part of a decade. PyYAML 5.1 added a deprecation
+warning when &lt;code>Loader=&lt;/code> was omitted; PyYAML 6.0 made the
+omission a &lt;code>TypeError&lt;/code>. Most repos have call sites that
+predate either change.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>PyYAML&lt;/strong> ≤ 3.13 — vulnerable, no warning.&lt;/li>
+&lt;li>&lt;strong>PyYAML&lt;/strong> 4.x — never released widely.&lt;/li>
+&lt;li>&lt;strong>PyYAML&lt;/strong> 5.1+ — emits a &lt;code>YAMLLoadWarning&lt;/code> when
+&lt;code>Loader=&lt;/code> is omitted; still resolves unsafe tags by
+default.&lt;/li>
+&lt;li>&lt;strong>PyYAML&lt;/strong> 6.0+ — &lt;code>yaml.load()&lt;/code> raises &lt;code>TypeError&lt;/code>
+without an explicit &lt;code>Loader&lt;/code>. The behaviour was made safe
+by removal.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Any call site of &lt;code>yaml.load(...)&lt;/code> (without &lt;code>Loader=&lt;/code>),
+&lt;code>yaml.load(..., Loader=yaml.Loader)&lt;/code>,
+&lt;code>yaml.load(..., Loader=yaml.UnsafeLoader)&lt;/code>, or
+&lt;code>yaml.full_load(...)&lt;/code> on untrusted input.&lt;/p>
+&lt;p>Detection:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">git grep -n &lt;span class="s2">&amp;#34;yaml\\.load\\b\\|yaml\\.full_load\\b\\|Loader=yaml\\.\\(Loader\\|UnsafeLoader\\|FullLoader\\)&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Whether the call is &lt;em>exposed&lt;/em> depends on the data flow:
+attacker-controlled YAML (file upload, HTTP body, partner
+feed) is exposure; a trusted application config file is
+not — though the safe shape costs nothing on trusted input
+either.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>This CVE has a generic recipe that covers it directly:&lt;/p>
+&lt;ul>
+&lt;li>See &lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">Classic Vulnerable Defaults → PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+for the durable fix pattern.&lt;/li>
+&lt;/ul>
+&lt;p>This per-CVE recipe overlays the broader generic recipe with
+two CVE-specific actions:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Pin&lt;/strong> PyYAML to ≥6.0 (or ≥5.1 with &lt;code>Loader=yaml.SafeLoader&lt;/code>
+on every call) to lock in the safe-default behaviour at the
+library level.&lt;/li>
+&lt;li>&lt;strong>Re-scan&lt;/strong> with the SCA tool to confirm CVE-2017-18342 is
+no longer reported against the post-fix lockfile.&lt;/li>
+&lt;/ol>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2017-18342 (PyYAML default-loader
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">RCE) in this repository. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every &lt;span class="sb">`yaml.load`&lt;/span>, &lt;span class="sb">`yaml.full_load`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.Loader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.UnsafeLoader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.FullLoader)`&lt;/span> call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the lockfile and confirm the pinned PyYAML version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Apply the generic fix pattern
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Follow the recipe at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">[/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">end-to-end. Replace every unsafe call with &lt;span class="sb">`yaml.safe_load`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or install the import-time shim, or both.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Pin PyYAML
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Pin PyYAML to ≥6.0 in the lockfile / requirements file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Run the project&amp;#39;s test suite to surface any breakage from
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the 5.x → 6.x bump.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the project depends on a transitive consumer of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PyYAML &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">6&lt;/span> &lt;span class="err">(&lt;/span>&lt;span class="sb">`pip-tools`&lt;/span> &lt;span class="na">resolves&lt;/span> &lt;span class="na">a&lt;/span> &lt;span class="na">downgrade&lt;/span>&lt;span class="err">),&lt;/span> &lt;span class="na">document&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">the&lt;/span> &lt;span class="na">constraint&lt;/span> &lt;span class="na">in&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">PR&lt;/span> &lt;span class="na">body&lt;/span>&lt;span class="err">.&lt;/span> &lt;span class="na">The&lt;/span> &lt;span class="na">agent&lt;/span> &lt;span class="na">does&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">silently&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">downgrade&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="na">Re-run&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">SCA&lt;/span> &lt;span class="na">scanner&lt;/span>&lt;span class="err">.&lt;/span> &lt;span class="na">CVE-2017-18342&lt;/span> &lt;span class="na">must&lt;/span> &lt;span class="na">show&lt;/span> &lt;span class="na">as&lt;/span> &lt;span class="na">fixed&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">or&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">present&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> &lt;span class="na">Add&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">standard&lt;/span> &lt;span class="na">PyYAML&lt;/span> &lt;span class="na">safe-load&lt;/span> &lt;span class="na">test&lt;/span> &lt;span class="na">from&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">generic&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">recipe&lt;/span> &lt;span class="err">(&lt;/span>&lt;span class="na">a&lt;/span> &lt;span class="na">payload&lt;/span> &lt;span class="na">with&lt;/span> &lt;span class="sb">`!!python/object/apply:os.system`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">raises&lt;/span> &lt;span class="sb">`yaml.constructor.ConstructorError`&lt;/span>&lt;span class="err">).&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Branch:&lt;/span> &lt;span class="sb">`remediate/cve-2017-18342-pyyaml`&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Title:&lt;/span> &lt;span class="sb">`[Security][CVE-2017-18342] safe_load + pin PyYAML ≥6`&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Body:&lt;/span> &lt;span class="na">per-call-site&lt;/span> &lt;span class="na">list&lt;/span>&lt;span class="err">,&lt;/span> &lt;span class="na">lockfile&lt;/span> &lt;span class="na">diff&lt;/span>&lt;span class="err">,&lt;/span> &lt;span class="na">SCA&lt;/span> &lt;span class="na">before&lt;/span>&lt;span class="err">/&lt;/span>&lt;span class="na">after&lt;/span>&lt;span class="err">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">test&lt;/span> &lt;span class="na">addition&lt;/span>&lt;span class="err">,&lt;/span> &lt;span class="na">any&lt;/span> &lt;span class="na">downstream&lt;/span> &lt;span class="na">pin&lt;/span> &lt;span class="na">notes&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Label:&lt;/span> &lt;span class="sb">`sec-auto-remediation`&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">A&lt;/span> &lt;span class="na">transitive&lt;/span> &lt;span class="na">dependency&lt;/span> &lt;span class="na">requires&lt;/span> &lt;span class="na">PyYAML&lt;/span> &lt;span class="err">&amp;lt;&lt;/span>&lt;span class="na">6&lt;/span> &lt;span class="na">and&lt;/span> &lt;span class="na">cannot&lt;/span> &lt;span class="na">be&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">upgraded&lt;/span> &lt;span class="na">without&lt;/span> &lt;span class="na">a&lt;/span> &lt;span class="na">coordinated&lt;/span> &lt;span class="na">cross-repo&lt;/span> &lt;span class="na">change&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">A&lt;/span> &lt;span class="na">custom&lt;/span> &lt;span class="na">YAML&lt;/span> &lt;span class="na">tag&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">codebase&lt;/span> &lt;span class="na">legitimately&lt;/span> &lt;span class="na">uses&lt;/span> &lt;span class="na">requires&lt;/span> &lt;span class="na">a&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">non-Safe&lt;/span> &lt;span class="na">loader&lt;/span> &lt;span class="na">and&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">agent&lt;/span> &lt;span class="na">cannot&lt;/span> &lt;span class="na">determine&lt;/span> &lt;span class="na">whether&lt;/span> &lt;span class="na">the&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">tag&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="na">s&lt;/span> &lt;span class="na">resolver&lt;/span> &lt;span class="na">is&lt;/span> &lt;span class="na">itself&lt;/span> &lt;span class="na">safe&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Do&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">bundle&lt;/span> &lt;span class="na">unrelated&lt;/span> &lt;span class="na">CVEs&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">-&lt;/span> &lt;span class="na">Do&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">silently&lt;/span> &lt;span class="na">re-pin&lt;/span> &lt;span class="na">downstream&lt;/span> &lt;span class="na">constraints&lt;/span>&lt;span class="err">.&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Every call site touched, or shim installed, with a clear
+rationale per call.&lt;/li>
+&lt;li>PyYAML pinned to ≥6.0.&lt;/li>
+&lt;li>SCA output shows CVE-2017-18342 cleared.&lt;/li>
+&lt;li>Behaviour-preservation test for any custom YAML tag the
+codebase uses.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>yaml.load_all&lt;/code> and &lt;code>yaml.full_load_all&lt;/code>.&lt;/strong> Same problem,
+same fix.&lt;/li>
+&lt;li>&lt;strong>Indirect callers.&lt;/strong> Some libraries ship their own
+&lt;code>yaml.load(...)&lt;/code> wrapper — fix the library or pin it past
+the patched version.&lt;/li>
+&lt;li>&lt;strong>PyYAML 6.x parser changes.&lt;/strong> A handful of edge-case
+documents parse differently in 6.x (octal-number rules,
+some boolean shortcuts). Run the project&amp;rsquo;s tests.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">Classic Vulnerable Defaults → PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+— the durable, tool-agnostic recipe this overlays.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— the generic workflow.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">Python pickle&lt;/a>
+— sibling Python deserialization risk.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-39987 — Marimo pre-auth RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39987-marimo-preauth-rce/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39987-marimo-preauth-rce/</guid><description>
+&lt;p>&lt;code>marimo&lt;/code> before &lt;code>0.23.0&lt;/code> exposes a pre-auth remote code execution path on
+&lt;code>/terminal/ws&lt;/code>. The endpoint accepted WebSocket connections without validating
+authentication, allowing an unauthenticated attacker to obtain a PTY shell and
+run arbitrary commands.&lt;/p>
+&lt;p>NVD shows this CVE was added to CISA&amp;rsquo;s KEV catalog on &lt;strong>2026-04-23&lt;/strong>, which
+means active exploitation evidence exists and remediation should be expedited.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>marimo&lt;/code> &lt;code>&amp;lt; 0.23.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>marimo&lt;/code> &lt;code>&amp;gt;= 0.23.0&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>marimo&lt;/code> is installed at a vulnerable version.&lt;/li>
+&lt;li>The service is reachable from untrusted networks.&lt;/li>
+&lt;li>Notebook or terminal functionality is exposed to shared users / internet.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show marimo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python - &lt;span class="s">&amp;lt;&amp;lt;&amp;#39;PY&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">import marimo
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">print(marimo.__version__)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">PY&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ss -lntp &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;:2718|:8080|:80|:443&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade immediately to &lt;code>marimo&amp;gt;=0.23.0&lt;/code>.&lt;/li>
+&lt;li>Place the service behind strong authentication and reverse-proxy policy.&lt;/li>
+&lt;li>Restrict network reachability (VPN / private subnet / IP allow-list).&lt;/li>
+&lt;li>Rotate credentials and secrets available to the marimo runtime if exposure
+was internet-facing.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39987 (Marimo pre-auth RCE) in this repository or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">runtime image. Produce exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A reviewer-ready PR that upgrades marimo to a fixed version and adds basic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hardening controls.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if no safe patch path exists in this codebase.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Fix only CVE-2026-39987 scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer the smallest safe version bump to &lt;span class="sb">`&amp;gt;=0.23.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If internet-exposed runtime was vulnerable, include an incident-response
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checklist in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Detect current marimo version from lockfiles + environment metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If marimo is absent or already &lt;span class="sb">`&amp;gt;=0.23.0`&lt;/span>, stop with a short triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Update dependency manifests and lockfiles to a fixed marimo version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Search for marimo launch points and add a hardening note (auth + network
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boundary) in ops docs or deployment manifest comments, without unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run project tests/lint.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> PR title: &lt;span class="sb">`fix(sec): remediate CVE-2026-39987 in marimo`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> PR body must include: affected version, fixed version, test output summary,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and operator follow-ups (credential rotation if exposed).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Patch would require unsupported major stack migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No lockfile / deterministic dependency mechanism exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Tests fail due to unrelated pre-existing failures.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Lockfile and manifest pin &lt;code>marimo&lt;/code> to &lt;code>&amp;gt;=0.23.0&lt;/code>.&lt;/li>
+&lt;li>No vulnerable marimo version remains in dependency tree.&lt;/li>
+&lt;li>Tests/lint are green or failures are clearly pre-existing.&lt;/li>
+&lt;li>PR includes runtime hardening follow-ups if service was internet-reachable.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NVD entry: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-39987"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-39987&lt;/a>&lt;/li>
+&lt;li>GHSA advisory: &lt;a href="https://github.com/marimo-team/marimo/security/advisories/GHSA-2679-6mx9-h9xc"target="_blank" rel="noopener">https://github.com/marimo-team/marimo/security/advisories/GHSA-2679-6mx9-h9xc&lt;/a>&lt;/li>
+&lt;li>Patch commit: &lt;a href="https://github.com/marimo-team/marimo/commit/c24d4806398f30be6b12acd6c60d1d7c68cfd12a"target="_blank" rel="noopener">https://github.com/marimo-team/marimo/commit/c24d4806398f30be6b12acd6c60d1d7c68cfd12a&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-41497 - PraisonAI MCP command injection incomplete fix</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41497-praisonai-mcp-command-injection-incomplete-fix/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41497-praisonai-mcp-command-injection-incomplete-fix/</guid><description>
+&lt;p>PraisonAI versions &lt;code>4.5.148&lt;/code> and earlier contain an incomplete fix for earlier
+MCP command handling. The vulnerable path parses MCP server command strings and
+passes the resulting executable and arguments toward subprocess execution
+without enough validation.&lt;/p>
+&lt;p>The follow-up advisory highlights missing controls that matter for production
+MCP server launchers: no strict executable allow-list, no basename validation to
+prevent path-based executable injection, and no argument inspection to reject
+shell metacharacters or interpreter inline-execution flags. In practice, MCP
+configuration becomes a code execution surface.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>praisonai &amp;lt;=4.5.148&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>praisonai 4.5.149+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected path:&lt;/strong> &lt;code>MCPHandler.parse_mcp_command()&lt;/code> in PraisonAI MCP command
+handling.&lt;/li>
+&lt;li>&lt;strong>Related context:&lt;/strong> Incomplete fix for &lt;code>CVE-2026-34935&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on or deploys PraisonAI &lt;code>&amp;lt;=4.5.148&lt;/code>.&lt;/li>
+&lt;li>MCP servers can be configured through user input, project files, workflow
+YAML, agent instructions, environment variables, database records, or remote
+control-plane config.&lt;/li>
+&lt;li>PraisonAI launches MCP servers from command strings instead of a vetted server
+registry.&lt;/li>
+&lt;li>Allowed MCP server commands include shells, interpreters with inline code
+flags, arbitrary paths, package-manager scripts, or pipe/download execution.&lt;/li>
+&lt;li>The PraisonAI process has access to model provider credentials, cloud
+credentials, source repositories, customer data, or internal network routes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;praisonai|parse_mcp_command|MCPHandler|mcp.*command|mcp.*server|stdio|uvx|npx|python -c|bash -c|/bin/sh|subprocess&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show praisonai
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^praisonai==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;mcpServers|mcp_servers|command\\s*:|args\\s*:|stdio&amp;#34;&lt;/span> .mcp* config* settings* Dockerfile* docker-compose*.yml charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade PraisonAI to &lt;code>4.5.149+&lt;/code> everywhere this repository controls package
+manifests, lockfiles, constraints, images, or deployment manifests.&lt;/li>
+&lt;li>Replace free-form MCP command strings with a governed MCP server registry:
+approved server ID, fixed executable, fixed transport, typed arguments, and
+explicit environment-variable bindings.&lt;/li>
+&lt;li>Reject path-qualified executables unless they resolve to an approved absolute
+path owned by the deployment.&lt;/li>
+&lt;li>Block shells and interpreter inline-execution patterns such as &lt;code>sh -c&lt;/code>,
+&lt;code>bash -c&lt;/code>, &lt;code>python -c&lt;/code>, &lt;code>node -e&lt;/code>, pipes, redirects, command substitution,
+backticks, and downloader-to-shell chains.&lt;/li>
+&lt;li>Launch MCP servers with least-privilege identities, redacted environment
+values, egress restrictions, and audit logging of server IDs rather than raw
+secret-bearing command lines.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41497 (PraisonAI incomplete fix for MCP command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades PraisonAI, removes unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> MCP command-string launch paths, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected PraisonAI runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41497 / GHSA-9qhq-v63v-fv3j and the related
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CVE-2026-34935 MCP command-handling fix path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat MCP server environment variables, API keys, model provider tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud credentials, source code, subprocess output, and agent logs as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit commands, shell payloads, downloader pipelines,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reverse shells, or arbitrary MCP server commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep caller-controlled command strings as the long-term MCP launch
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> interface.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every PraisonAI reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requirements files, pyproject files, lockfiles, constraints, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CI images, deployment manifests, MCP config, agent templates, runbooks, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`praisonai`&lt;/span> version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;lt;=4.5.148`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search all MCP server launch configuration for free-form &lt;span class="sb">`command`&lt;/span> strings,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`args`&lt;/span>, stdio transports, shell snippets, environment interpolation, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> project/user-controlled MCP definitions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy PraisonAI or only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade PraisonAI to &lt;span class="sb">`4.5.149+`&lt;/span>. Regenerate lockfiles, constraints, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Replace unsafe MCP command-string handling where this repo controls config or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wrappers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> define approved MCP server IDs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> map each ID to a fixed executable and transport;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow only typed, validated arguments;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind environment variables by approved names only;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject unknown executables, path traversal, path-qualified binaries, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell or interpreter inline execution.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add a shared MCP launch validator if the repository owns PraisonAI wrappers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or generated config. The validator must run after parsing and normalization,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> not only on the raw string.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`bash -c`&lt;/span>, &lt;span class="sb">`/bin/sh -c`&lt;/span>, &lt;span class="sb">`python -c`&lt;/span>, &lt;span class="sb">`node -e`&lt;/span>, backticks, &lt;span class="sb">`$()`&lt;/span>, pipes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> redirects, semicolons, &lt;span class="sb">`curl | sh`&lt;/span>, and path-qualified executables are
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> approved MCP server IDs map to expected executable/argument arrays;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secrets are redacted from validation errors and audit logs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> legacy command-string config fails closed unless explicitly migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add deployment containment:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run PraisonAI with least-privilege service accounts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate MCP server working directories;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict egress for agent and MCP processes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable untrusted project-level MCP config until migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41497 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> PraisonAI versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every MCP server launch source reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether untrusted users or projects could define MCP commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which MCP, model provider, cloud, or repository credentials should be
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for shell/interpreter launch attempts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, lockfile checks, MCP config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> validation, unit tests, lint/typecheck, container build, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41497 in PraisonAI MCP command handling`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected PraisonAI runtime or MCP launch path is controlled by this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed PraisonAI version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally allow arbitrary user-provided MCP command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> strings; document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves PraisonAI
+to &lt;code>&amp;lt;=4.5.148&lt;/code>.&lt;/li>
+&lt;li>MCP server launch configuration is registry-backed or otherwise allow-listed,
+not arbitrary command-string execution.&lt;/li>
+&lt;li>Tests reject shells, interpreter inline-code flags, path-qualified binaries,
+shell metacharacters, and downloader pipelines without executing them.&lt;/li>
+&lt;li>Logs and errors do not expose MCP environment values or tokens.&lt;/li>
+&lt;li>Operator actions identify credential rotation and log review if untrusted MCP
+config was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>praisonai&lt;/code> while generated MCP config, examples, or project
+templates still teach free-form command strings.&lt;/li>
+&lt;li>Allowing &lt;code>python&lt;/code> or &lt;code>node&lt;/code> generally but forgetting to block &lt;code>-c&lt;/code>, &lt;code>-m&lt;/code>,
+&lt;code>-e&lt;/code>, preload hooks, package scripts, or equivalent execution features.&lt;/li>
+&lt;li>Validating the raw command string before shell-like parsing and
+normalization.&lt;/li>
+&lt;li>Logging full command lines with embedded secrets.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-9qhq-v63v-fv3j"target="_blank" rel="noopener">https://github.com/advisories/GHSA-9qhq-v63v-fv3j&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41497"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41497&lt;/a>&lt;/li>
+&lt;li>PraisonAI project: &lt;a href="https://github.com/MervinPraison/PraisonAI"target="_blank" rel="noopener">https://github.com/MervinPraison/PraisonAI&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42354 - Sentry SAML SSO identity linking</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42354-sentry-saml-sso-identity-linking/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42354-sentry-saml-sso-identity-linking/</guid><description>
+&lt;p>Self-hosted Sentry versions &lt;code>21.12.0&lt;/code> through &lt;code>26.4.0&lt;/code> contain a critical SAML
+SSO authentication flaw in multi-organization deployments. A malicious user who
+can configure SAML SSO for one organization on the same Sentry instance can use
+a malicious identity provider and a known victim email address to link into the
+victim&amp;rsquo;s user account.&lt;/p>
+&lt;p>The highest-risk shape is a shared self-hosted Sentry installation with multiple
+organizations, organization-managed SAML settings, and users who do not enforce
+account-level two-factor authentication. Sentry SaaS was patched by the vendor;
+ordinary application use of Sentry SDKs is not this CVE.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>sentry &amp;gt;=21.12.0, &amp;lt;=26.4.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>sentry &amp;gt;=26.4.1&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns or deploys a self-hosted Sentry server, not just a Sentry
+SDK, DSN, or integration.&lt;/li>
+&lt;li>Sentry resolves to a vulnerable &lt;code>sentry&lt;/code> Python package version or a
+vulnerable self-hosted Sentry release/container tag.&lt;/li>
+&lt;li>Multi-organization mode is enabled, such as &lt;code>SENTRY_SINGLE_ORGANIZATION = False&lt;/code>.&lt;/li>
+&lt;li>SAML SSO is enabled for one or more organizations, and organization owners can
+modify SSO identity provider configuration.&lt;/li>
+&lt;li>Account-level 2FA is not required for all users.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;getsentry|sentry.*self-hosted|SENTRY_SINGLE_ORGANIZATION|SAML|saml2|sso&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;sentry==|sentry[&amp;lt;=&amp;gt;]|getsentry/sentry|self-hosted&amp;#34;&lt;/span> requirements*.txt pyproject.toml poetry.lock Pipfile.lock Dockerfile* docker-compose*.yml .github deploy helm charts k8s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;getsentry|sentry&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade self-hosted Sentry to &lt;code>26.4.1+&lt;/code>, including Python package pins,
+container images, Helm/chart values, compose files, and self-hosted release
+manifests controlled by the repository.&lt;/li>
+&lt;li>If the instance is intended to be single-organization only, set and verify
+&lt;code>SENTRY_SINGLE_ORGANIZATION = True&lt;/code> as a compensating exposure reduction.&lt;/li>
+&lt;li>Require user account-level 2FA for Sentry users, especially administrators and
+users in organizations with SAML SSO enabled.&lt;/li>
+&lt;li>Inventory organization SAML providers and identity links after patching. If
+suspicious links or IdP changes are found, expire sessions and require a
+human-reviewed account recovery plan.&lt;/li>
+&lt;li>Do not treat Sentry SDK dependency updates as remediation unless this repo
+actually builds or deploys the Sentry server.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42354 (Sentry SAML SSO identity linking account
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">takeover) in this repository or deployment source. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades self-hosted Sentry and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents required operator validation, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a self-hosted Sentry server or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42354.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinguish self-hosted Sentry server deployments from ordinary Sentry SDK,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DSN, logging, CI, or monitoring integrations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change unrelated identity provider settings, organization ownership,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> user emails, or account links automatically.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log SAML assertions, cookies, session tokens, IdP secrets, private
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys, DSNs, or user secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory Sentry server ownership:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Python package pins for &lt;span class="sb">`sentry`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`getsentry/sentry`&lt;/span> or self-hosted release images;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Docker Compose, Helm, Kubernetes, Terraform, Ansible, or release manifests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> internal runbooks that pin self-hosted Sentry versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repo only uses Sentry SDKs, DSNs, source-map uploaders, alerting
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integrations, or Sentry SaaS, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining why this CVE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is not patchable here.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether any self-hosted Sentry server version resolves to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;gt;=21.12.0, &amp;lt;=26.4.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Check exposure-relevant configuration and record it in the PR body:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`SENTRY_SINGLE_ORGANIZATION`&lt;/span> effective value;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether SAML SSO is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether organization owners can modify SSO provider settings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether account-level 2FA is required for administrators and SAML users.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every vulnerable self-hosted Sentry reference to &lt;span class="sb">`26.4.1+`&lt;/span> on the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository&amp;#39;s normal release line. Regenerate lockfiles, image metadata,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm lock files, SBOMs, and deployment render output where applicable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add or update a short operator runbook section named
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`CVE-2026-42354 operator checks`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> verification that the deployed Sentry version is &lt;span class="sb">`26.4.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of recent SAML IdP configuration changes across organizations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of unexpected SAML identity links for privileged users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> session expiration and account recovery steps if suspicious links exist;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> enforcement or rollout tracking for user account-level 2FA.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If upgrade cannot be deployed immediately, add the safest temporary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment available in this repo, such as forcing single-organization mode
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for single-tenant deployments, disabling organization-managed SAML setup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> behind a feature flag, restricting Sentry admin access, or documenting an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> emergency 2FA requirement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Run available validation: dependency resolution, image build or manifest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, configuration tests, and any auth/SSO tests this repo provides.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42354 in self-hosted Sentry`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not deploy a self-hosted Sentry server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only Sentry references are SDKs, DSNs, logging exporters, source-map
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upload tooling, or SaaS integrations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed self-hosted Sentry version cannot be consumed without a larger
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The patch would automatically alter SAML identity links, organization
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ownership, or user accounts without operator approval.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No self-hosted Sentry server reference remains on &lt;code>21.12.0&lt;/code> through &lt;code>26.4.0&lt;/code>.&lt;/li>
+&lt;li>The change updates the actual deployment source, not only a development or SDK
+dependency.&lt;/li>
+&lt;li>The PR body records multi-organization, SAML, and 2FA exposure status.&lt;/li>
+&lt;li>Operator checks cover SAML IdP changes, suspicious identity links, session
+expiry, and human-reviewed account recovery.&lt;/li>
+&lt;li>Build, dependency, image, and deployment-render checks pass or unrelated
+failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Repositories that contain both Sentry SDKs and a self-hosted Sentry deployment;
+only the server side is relevant to this CVE.&lt;/li>
+&lt;li>Floating image tags that make the patch non-reproducible.&lt;/li>
+&lt;li>Assuming organization-level SAML controls can enforce account-level 2FA for
+every user; the workaround depends on users having account 2FA enabled.&lt;/li>
+&lt;li>Confusing this advisory with earlier Sentry SAML identity-linking advisories
+that have different fixed versions.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-rcmw-7mc7-3rj7"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rcmw-7mc7-3rj7&lt;/a>&lt;/li>
+&lt;li>Sentry security advisory: &lt;a href="https://github.com/getsentry/sentry/security/advisories/GHSA-rcmw-7mc7-3rj7"target="_blank" rel="noopener">https://github.com/getsentry/sentry/security/advisories/GHSA-rcmw-7mc7-3rj7&lt;/a>&lt;/li>
+&lt;li>Sentry fix PR: &lt;a href="https://github.com/getsentry/sentry/pull/113720"target="_blank" rel="noopener">https://github.com/getsentry/sentry/pull/113720&lt;/a>&lt;/li>
+&lt;li>Sentry &lt;code>26.4.1&lt;/code> release: &lt;a href="https://github.com/getsentry/sentry/releases/tag/26.4.1"target="_blank" rel="noopener">https://github.com/getsentry/sentry/releases/tag/26.4.1&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42601 - ArchiveBox AddView config override RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42601-archivebox-addview-config-rce/</link><pubDate>Wed, 06 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42601-archivebox-addview-config-rce/</guid><description>
+&lt;p>ArchiveBox &lt;code>AddView&lt;/code> accepts a per-crawl &lt;code>config&lt;/code> value from the &lt;code>/add/&lt;/code>
+workflow and affected releases merge that user-controlled data into crawl
+configuration without enough validation. The merged configuration is later
+exported to archive worker environment variables, where downloader plugins can
+consume values such as extra argument lists or binary paths. An attacker who can
+submit to the add endpoint can turn a URL ingestion request into command
+argument injection and remote code execution on the ArchiveBox host.&lt;/p>
+&lt;p>The highest-risk deployment is an ArchiveBox web UI with &lt;code>PUBLIC_ADD_VIEW=True&lt;/code>.
+In that mode the add endpoint is intentionally reachable for public or
+bookmarklet-style submissions, and the GitHub advisory notes the affected path
+can be exploitable without authentication. This is also an agentic-context risk:
+ArchiveBox often stores private research, compliance evidence, crawler output,
+browser captures, and datasets later consumed by retrieval systems or agents.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>GitHub Advisory Database patched-version metadata:&lt;/strong> none listed at time of
+review&lt;/li>
+&lt;li>&lt;strong>Fixed/upgrade target from package intelligence:&lt;/strong> &lt;code>archivebox 0.8.6rc3+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Highest-risk condition:&lt;/strong> the ArchiveBox web app exposes &lt;code>/add/&lt;/code> to
+untrusted callers, especially with &lt;code>PUBLIC_ADD_VIEW=True&lt;/code>, and archive worker
+plugins that consume &lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or equivalent command
+configuration remain enabled.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, packages, deploys, or configures ArchiveBox.&lt;/li>
+&lt;li>A deployable target resolves &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code> through pip, uv, Poetry,
+Docker, Compose, Helm, Ansible, Nix, systemd, or a vendored image.&lt;/li>
+&lt;li>ArchiveBox is run as a web app, not only as a local one-shot CLI.&lt;/li>
+&lt;li>&lt;code>PUBLIC_ADD_VIEW=True&lt;/code>, public URL submission, bookmarklet-style submission,
+unauthenticated API ingress, or reverse-proxy routing exposes &lt;code>/add/&lt;/code>.&lt;/li>
+&lt;li>Archive worker plugins such as yt-dlp, gallery-dl, wget, git, SingleFile,
+readability, mercury, or custom extractors accept extra arguments, binary
+paths, environment-derived command options, or user-controlled crawl config.&lt;/li>
+&lt;li>The archive stores sensitive customer pages, research, private URLs,
+compliance evidence, authenticated browser captures, cookies, API tokens, or
+material later fed into a RAG/agent pipeline.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># macOS / Linux&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;archivebox|ArchiveBox|PUBLIC_ADD_VIEW|/add/|YTDLP_ARGS_EXTRA|GALLERYDL_ARGS_EXTRA|_ARGS_EXTRA|_BINARY&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;0\\.8\\.6rc0|archivebox==|archivebox/archivebox|pip install .*archivebox|uvx .*archivebox&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -maxdepth &lt;span class="m">5&lt;/span> -type f &lt;span class="se">\(&lt;/span> -iname &lt;span class="s2">&amp;#34;*archivebox*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;docker-compose*.yml&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;Dockerfile*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*.service&amp;#34;&lt;/span> &lt;span class="se">\)&lt;/span> -print
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Windows PowerShell&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;archivebox|ArchiveBox|PUBLIC_ADD_VIEW|/add/|YTDLP_ARGS_EXTRA|GALLERYDL_ARGS_EXTRA|_ARGS_EXTRA|_BINARY&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;0\.8\.6rc0|archivebox==|archivebox/archivebox|pip install .*archivebox|uvx .*archivebox&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File -Include *archivebox*,Dockerfile*,docker-compose*.yml,*.yaml,*.yml,*.service,*.ps1,*.sh&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled ArchiveBox package, image, installer, bootstrap
+script, and deployment manifest to &lt;code>0.8.6rc3+&lt;/code> or the newest vendor-published
+release that contains the fix. If a scanner still reports GHAD as having no
+patched version, document the release evidence used and keep containment in
+place until the metadata catches up.&lt;/li>
+&lt;li>Regenerate lockfiles, image digests, SBOMs, checksums, rendered manifests,
+deployment snapshots, and version evidence for every path that can run
+ArchiveBox.&lt;/li>
+&lt;li>Disable &lt;code>PUBLIC_ADD_VIEW&lt;/code> unless the business explicitly requires anonymous
+submissions. Require authentication and authorization for URL ingestion in
+production.&lt;/li>
+&lt;li>Add fail-closed validation for any repository-owned wrapper, proxy, form,
+operator, or extension that passes user crawl config into ArchiveBox. Reject
+user-controlled command argument keys such as &lt;code>*_ARGS_EXTRA&lt;/code>, executable path
+keys such as &lt;code>*_BINARY&lt;/code>, and environment overrides not explicitly allow-listed.&lt;/li>
+&lt;li>Restrict archive workers with least privilege: non-root users, read/write
+limits to the archive data directory, no Docker socket, no cloud metadata
+access, and no broad secrets in process environment variables.&lt;/li>
+&lt;li>If exposure was possible, rotate secrets available to the ArchiveBox process,
+review submitted URLs/config fields and worker execution logs, quarantine
+suspicious snapshots, and separate incident review from the code-change PR.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42601 / GHSA-3h23-7824-pj8r (ArchiveBox AddView
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">per-crawl config override leading to command argument injection and RCE).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or contains the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ArchiveBox deployment, blocks unsafe public add/config override paths, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected ArchiveBox deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install path, image, add-route policy, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42601 and directly related ArchiveBox ingestion and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> archive-worker hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat archived pages, private URLs, cookies, browser profiles, API tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SSH keys, cloud credentials, webhook secrets, compliance evidence, crawler
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output, and agent/RAG datasets as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not submit a real exploit payload to any shared or production ArchiveBox
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create a proof-of-concept that runs commands, writes marker files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> opens shells, downloads payloads, exfiltrates environment variables, or reads
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> archive contents.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print or commit real ArchiveBox snapshots, submitted URLs, cookies,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, logs, or command environments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every ArchiveBox reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Python manifests and lockfiles, uv/Poetry/pip-tools config, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Compose files, Helm charts, Kubernetes manifests, Terraform, Ansible, Nix,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> systemd units, bootstrap scripts, CI jobs, image digests, SBOMs, reverse
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> proxy rules, web-app route policy, docs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved ArchiveBox version. Treat &lt;span class="sb">`archivebox &amp;lt;=0.8.6rc0`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as vulnerable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine every &lt;span class="sb">`/add/`&lt;/span> exposure path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> and related public submission settings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ingress, reverse-proxy, gateway, service-mesh, or firewall rules;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bookmarklet, browser-extension, API, webhook, or agent integration paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether callers are authenticated and authorized before adding URLs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Identify every user-controlled config path that can reach archive workers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> per-crawl config fields, form fields, JSON APIs, environment overrides,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wrapper scripts, plugin options, &lt;span class="sb">`*_ARGS_EXTRA`&lt;/span>, &lt;span class="sb">`*_BINARY`&lt;/span>, and custom
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> extractor settings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not deploy, package, configure, or route traffic to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ArchiveBox, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, the likely runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner, the vulnerable range &lt;span class="sb">`archivebox &amp;lt;=0.8.6rc0`&lt;/span>, and the target
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`archivebox 0.8.6rc3+`&lt;/span> or latest fixed release.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade every controlled ArchiveBox target to &lt;span class="sb">`0.8.6rc3+`&lt;/span> or the newest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-published fixed release available through the repository&amp;#39;s normal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distribution channel. If GHAD metadata still shows no patched version,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> include release/package evidence in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, checksum allowlists, rendered manifests, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, package metadata, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add fail-closed containment where this repository owns configuration or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> routing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set &lt;span class="sb">`PUBLIC_ADD_VIEW=False`&lt;/span> by default for production;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication and authorization for &lt;span class="sb">`/add/`&lt;/span> and equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ingestion routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block untrusted per-crawl config keys that influence command arguments,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> executable paths, worker environment variables, or plugin enablement;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow-list only documented safe per-crawl fields;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prevent public ingress from reaching &lt;span class="sb">`/add/`&lt;/span> without explicit approval;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run archive workers without broad secrets, root privileges, Docker socket
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access, or cloud metadata access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe verification without executing commands through ArchiveBox:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency/image/SBOM assertions prove every ArchiveBox target is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;lt;=0.8.6rc0`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> config tests prove production &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> is false or protected by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an authenticated gateway;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> route/policy tests prove unauthenticated callers cannot reach &lt;span class="sb">`/add/`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unit tests or static checks prove user-provided crawl config cannot set
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`*_ARGS_EXTRA`&lt;/span>, &lt;span class="sb">`*_BINARY`&lt;/span>, or other command-affecting keys;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret scanning proves no snapshots, cookies, worker env, or archive data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> were committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42601 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ArchiveBox versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`/add/`&lt;/span> was publicly reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> was enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which worker plugins could consume extra arguments or binary paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets available to the ArchiveBox process should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which submitted URLs, per-crawl config records, worker logs, and archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots require review or quarantine;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any downstream agent/RAG datasets built from affected archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output should be revalidated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency resolution, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render, route/gateway policy tests, unit tests, SBOM refresh, secret scan,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and security scan available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42601 in ArchiveBox`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No ArchiveBox deployment, install path, image, package recipe, route policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or runtime config is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved ArchiveBox version can only be confirmed from production access
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed ArchiveBox release cannot be consumed through the allowed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distribution channel without a broader platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require command execution, reading archive contents,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> printing worker environment variables, or submitting payloads to a shared or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production ArchiveBox server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally allow unauthenticated public submissions
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with arbitrary per-crawl config; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing snapshots or logs indicate possible command execution; stop after
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> preserving evidence and documenting incident-response handoff.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled ArchiveBox package, image, SBOM, deployment manifest, or
+bootstrap path resolves to &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code>.&lt;/li>
+&lt;li>The real delivery path changed: dependency pin, lockfile, image digest,
+install script, rendered deployment, or runbook.&lt;/li>
+&lt;li>Public &lt;code>/add/&lt;/code> exposure is disabled or protected by explicit authentication,
+authorization, and route policy.&lt;/li>
+&lt;li>User-controlled crawl config cannot set command-affecting keys such as
+&lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or equivalent plugin execution options.&lt;/li>
+&lt;li>Verification does not include a working exploit payload or command execution
+proof.&lt;/li>
+&lt;li>Operator actions address secret rotation, snapshot/log review, archive
+quarantine, and downstream agent/RAG dataset revalidation when exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating pip requirements while Docker, Compose, Helm, or package images
+still pull an older ArchiveBox release.&lt;/li>
+&lt;li>Treating &lt;code>PUBLIC_ADD_VIEW&lt;/code> as harmless because the archive is &amp;ldquo;internal&amp;rdquo; but
+exposing it through a shared workspace, agent gateway, webhook, or bookmarklet
+path.&lt;/li>
+&lt;li>Blocking &lt;code>YTDLP_ARGS_EXTRA&lt;/code> but leaving other &lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or
+custom extractor options reachable.&lt;/li>
+&lt;li>Tests that prove safety by running a command through ArchiveBox. Use static
+checks, config tests, and route tests instead.&lt;/li>
+&lt;li>Logging worker environments while trying to inspect whether secrets were
+exposed.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-3h23-7824-pj8r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-3h23-7824-pj8r&lt;/a>&lt;/li>
+&lt;li>ArchiveBox security advisory: &lt;a href="https://github.com/ArchiveBox/ArchiveBox/security/advisories/GHSA-3h23-7824-pj8r"target="_blank" rel="noopener">https://github.com/ArchiveBox/ArchiveBox/security/advisories/GHSA-3h23-7824-pj8r&lt;/a>&lt;/li>
+&lt;li>Safety advisory: &lt;a href="https://getsafety.com/vulnerabilities/95898/"target="_blank" rel="noopener">https://getsafety.com/vulnerabilities/95898/&lt;/a>&lt;/li>
+&lt;li>PyPI release &lt;code>archivebox 0.8.6rc3&lt;/code>: &lt;a href="https://pypi.org/project/archivebox/0.8.6rc3/"target="_blank" rel="noopener">https://pypi.org/project/archivebox/0.8.6rc3/&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-42601"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-42601&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-v4p8-mg3p-g94g - LiteLLM MCP stdio command execution</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-v4p8-mg3p-g94g-litellm-mcp-stdio-command-execution/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-v4p8-mg3p-g94g-litellm-mcp-stdio-command-execution/</guid><description>
+&lt;p>LiteLLM proxy versions &lt;code>1.74.2&lt;/code> through &lt;code>1.83.6&lt;/code> allowed authenticated command
+execution through MCP REST preview endpoints. The affected endpoints accepted a
+full MCP server configuration, including stdio transport fields such as
+&lt;code>command&lt;/code>, &lt;code>args&lt;/code>, and &lt;code>env&lt;/code>, then attempted to connect to that server.&lt;/p>
+&lt;p>Because the endpoints only required a valid proxy API key and did not require
+the &lt;code>PROXY_ADMIN&lt;/code> role, a low-privilege authenticated user could submit a stdio
+configuration that spawned an arbitrary subprocess on the LiteLLM proxy host.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>litellm &amp;gt;=1.74.2, &amp;lt;1.83.7&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>litellm 1.83.7+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoints:&lt;/strong>
+&lt;ul>
+&lt;li>&lt;code>POST /mcp-rest/test/connection&lt;/code>&lt;/li>
+&lt;li>&lt;code>POST /mcp-rest/test/tools/list&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds or deploys a LiteLLM proxy on &lt;code>&amp;gt;=1.74.2, &amp;lt;1.83.7&lt;/code>.&lt;/li>
+&lt;li>MCP server management or preview functionality is enabled.&lt;/li>
+&lt;li>Non-admin proxy API keys can reach either affected endpoint.&lt;/li>
+&lt;li>The proxy process can spawn subprocesses and has access to model provider
+credentials, cloud credentials, internal network routes, or tenant data.&lt;/li>
+&lt;li>Reverse proxy, API gateway, or ingress rules expose &lt;code>/mcp-rest/test/*&lt;/code> beyond
+a tightly controlled admin network.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;litellm|LiteLLM|mcp-rest|test/tools/list|test/connection|PROXY_ADMIN|proxy_server&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show litellm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^litellm==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;/mcp-rest/test/(connection|tools/list)|mcp.*stdio|\&amp;#34;command\&amp;#34;.*\&amp;#34;args\&amp;#34;|PROXY_ADMIN&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s nginx* traefik* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade LiteLLM to &lt;code>1.83.7+&lt;/code> everywhere the repository controls dependencies,
+images, or deployment manifests.&lt;/li>
+&lt;li>Until the patched version is deployed, block
+&lt;code>POST /mcp-rest/test/connection&lt;/code> and &lt;code>POST /mcp-rest/test/tools/list&lt;/code> at the
+reverse proxy, API gateway, WAF, or service mesh.&lt;/li>
+&lt;li>Verify only &lt;code>PROXY_ADMIN&lt;/code> users can preview or save MCP server
+configurations.&lt;/li>
+&lt;li>Treat stdio MCP server definitions as code execution requests. Require admin
+approval, command allow-lists, environment redaction, and audit logging.&lt;/li>
+&lt;li>Rotate LiteLLM proxy keys and provider credentials if low-privilege users
+could access the endpoints during the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-v4p8-mg3p-g94g (LiteLLM authenticated command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">execution via MCP stdio test endpoints). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades LiteLLM, restricts MCP test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoints, adds verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected LiteLLM proxy or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-v4p8-mg3p-g94g.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat LiteLLM API keys, model provider keys, MCP server environment values,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenant data, subprocess output, and proxy logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run arbitrary commands through the affected endpoints to prove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve low-privilege access to stdio MCP preview behavior.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every LiteLLM reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Python manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, reverse proxy config, API gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy, MCP server registry config, generated SBOMs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`litellm`&lt;/span> version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;gt;=1.74.2, &amp;lt;1.83.7`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether the affected endpoints are reachable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /mcp-rest/test/connection`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /mcp-rest/test/tools/list`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any route alias, proxy rewrite, or admin UI action that calls those paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether non-admin proxy API keys can reach the endpoints. Search
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> auth policy, role mapping, seeded users, integration tests, and gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rules for &lt;span class="sb">`PROXY_ADMIN`&lt;/span>, internal-user keys, and MCP admin permissions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not deploy a LiteLLM proxy or only contains client
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owner, files checked, and required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed version &lt;span class="sb">`litellm 1.83.7+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade all controlled LiteLLM deployments to &lt;span class="sb">`1.83.7+`&lt;/span>. Regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, image digests, SBOMs, deployment render output, and dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add temporary or permanent gateway containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny &lt;span class="sb">`POST /mcp-rest/test/connection`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`POST /mcp-rest/test/tools/list`&lt;/span> unless the caller is admin;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require &lt;span class="sb">`PROXY_ADMIN`&lt;/span> for MCP preview and save operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed for stdio transport previews if role context is unavailable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add safe tests or policy checks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> low-privilege/internal-user keys receive 403 for both affected endpoints;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`PROXY_ADMIN`&lt;/span> remains required for stdio MCP test and save paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> stdio configs with &lt;span class="sb">`command`&lt;/span>, &lt;span class="sb">`args`&lt;/span>, or &lt;span class="sb">`env`&lt;/span> are never executed during
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unauthorized tests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway render output contains the deny or admin-only rule.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add operator hardening for MCP stdio definitions:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> command allow-list or approved MCP server registry;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> environment variable redaction;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> subprocess audit logs without secret values;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> least-privilege runtime identity for the proxy process.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-v4p8-mg3p-g94g operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> LiteLLM versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether affected endpoints were externally or tenant reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which roles could call them before the patch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether proxy API keys, provider keys, or MCP environment secrets should
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for stdio configs or unexpected child
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> processes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, unit/API tests, authz tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway/ingress rendering, container build, deployment diff, SBOM refresh,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate GHSA-v4p8 in LiteLLM MCP endpoints`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected LiteLLM proxy deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed LiteLLM version cannot be consumed without a broader proxy migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Endpoint reachability cannot be verified without executing attacker-supplied
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing product requirements intentionally allow non-admin users to create
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stdio MCP command definitions; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled dependency, lockfile, image, SBOM, or deployment target resolves
+&lt;code>litellm &amp;gt;=1.74.2, &amp;lt;1.83.7&lt;/code>.&lt;/li>
+&lt;li>Low-privilege/internal-user keys cannot access either affected MCP test
+endpoint.&lt;/li>
+&lt;li>Gateway or service policy blocks the endpoints during rollout if the upgrade
+is not atomic.&lt;/li>
+&lt;li>Tests prove stdio MCP configs are not executed for unauthorized callers.&lt;/li>
+&lt;li>Operator actions cover key rotation and log review when exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating Python lockfiles while a Docker image, Helm value, or hosted proxy
+still pins an older LiteLLM release.&lt;/li>
+&lt;li>Treating a valid proxy key as sufficient authorization for subprocess-capable
+MCP actions.&lt;/li>
+&lt;li>Logging MCP &lt;code>env&lt;/code> fields or provider credentials while adding tests.&lt;/li>
+&lt;li>Allowing preview endpoints to bypass stricter controls used by the save path.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-v4p8-mg3p-g94g"target="_blank" rel="noopener">https://github.com/advisories/GHSA-v4p8-mg3p-g94g&lt;/a>&lt;/li>
+&lt;li>LiteLLM &lt;code>v1.83.7-stable&lt;/code> release: &lt;a href="https://github.com/BerriAI/litellm/releases/tag/v1.83.7-stable"target="_blank" rel="noopener">https://github.com/BerriAI/litellm/releases/tag/v1.83.7-stable&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-rpm5/GHSA-x2qx - GitPython command injection</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection/</guid><description>
+&lt;p>Two high-severity GitPython advisories affect applications that let untrusted
+input shape Git operation options:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>: unsafe Git option checks can be bypassed with Python
+kwargs such as &lt;code>upload_pack&lt;/code> and &lt;code>receive_pack&lt;/code>, which normalize into
+dangerous Git flags.&lt;/li>
+&lt;li>&lt;code>GHSA-x2qx-6953-8485&lt;/code>: &lt;code>multi_options&lt;/code> validation happens before
+&lt;code>shlex.split()&lt;/code>, allowing a seemingly safe option string to split into unsafe
+flags such as &lt;code>--config core.hooksPath=...&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>For agentic coding systems, CI workers, repository importers, and internal
+automation bots, the practical risk is code execution on the worker handling
+repo clone/fetch/pull/push operations.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>GitPython &amp;gt;=3.1.30, &amp;lt;3.1.47&lt;/code> for
+&lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>GitPython &amp;lt;3.1.47&lt;/code> for &lt;code>GHSA-x2qx-6953-8485&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>GitPython 3.1.47+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on GitPython directly or transitively.&lt;/li>
+&lt;li>Application code calls &lt;code>Repo.clone_from()&lt;/code>, &lt;code>Repo.clone()&lt;/code>,
+&lt;code>Remote.fetch()&lt;/code>, &lt;code>Remote.pull()&lt;/code>, &lt;code>Remote.push()&lt;/code>, or &lt;code>Submodule.update()&lt;/code>.&lt;/li>
+&lt;li>Users, tenants, webhooks, workflow YAML, job definitions, repository metadata,
+or LLM/tool inputs can influence &lt;code>kwargs&lt;/code>, &lt;code>multi_options&lt;/code>,
+&lt;code>clone_multi_options&lt;/code>, or &amp;ldquo;extra git options.&amp;rdquo;&lt;/li>
+&lt;li>The process performing Git operations has access to SSH keys, cloud
+credentials, package publishing tokens, source code, build artifacts, or
+internal network routes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;GitPython|from git import Repo|import git|Repo\.clone_from|Repo\.clone\(|\.fetch\(|\.pull\(|\.push\(|multi_options|clone_multi_options|upload_pack|receive_pack|allow_unsafe&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show GitPython
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^GitPython==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;extra.*git|git.*options|clone.*options|repo.*import|repository.*sync|webhook.*clone|workflow.*clone&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade GitPython to &lt;code>3.1.47+&lt;/code> everywhere this repository controls manifests,
+lockfiles, images, or runtime packaging.&lt;/li>
+&lt;li>Remove user-controlled pass-through of Git kwargs and &lt;code>multi_options&lt;/code>.&lt;/li>
+&lt;li>Replace free-form Git option input with a strict allow-list of product
+features, represented as typed fields rather than raw flags.&lt;/li>
+&lt;li>Block &lt;code>upload_pack&lt;/code>, &lt;code>receive_pack&lt;/code>, &lt;code>exec&lt;/code>, &lt;code>config&lt;/code>, &lt;code>c&lt;/code>, &lt;code>core.hooksPath&lt;/code>,
+and any option that can choose helper commands, hooks, config, protocol
+behavior, or SSH commands.&lt;/li>
+&lt;li>Run repo-ingest workers with least privilege, isolated workspaces, disabled
+hooks where possible, and credentials scoped to the one repository operation.&lt;/li>
+&lt;li>Review worker logs and credential access if untrusted users could control Git
+options during the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GitPython command injection advisories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades GitPython, removes unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> option pass-through, adds regression coverage, and documents operator cleanup,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected GitPython runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH keys, deploy keys, package tokens, cloud credentials, source code,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repo URLs, and worker environment values as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads, helper commands, custom hooks, reverse
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shells, or attacker-controlled Git options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep a free-form &amp;#34;extra Git options&amp;#34; feature for untrusted callers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every GitPython dependency controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requirements files, pyproject files, lockfiles, constraints, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> base images, CI images, worker images, SBOMs, vendored code, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved GitPython version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves below &lt;span class="sb">`3.1.47`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search code paths that perform repository operations:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Repo.clone_from()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Repo.clone()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.fetch()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.pull()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Remote.push()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`Submodule.update()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> wrappers around repository import, mirror, sync, CI checkout, or agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workspace preparation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether untrusted input can reach GitPython options:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request bodies, webhook payloads, tenant settings, workflow YAML, job config,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> LLM/tool arguments, database records, environment variables, or &amp;#34;advanced
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> options&amp;#34; fields.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If GitPython is absent or only used in non-deployable tooling, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was checked and why the runtime is not exposed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade GitPython to &lt;span class="sb">`3.1.47+`&lt;/span> on the smallest compatible release line.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Regenerate lockfiles, constraints, images, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Remove unsafe option pass-through:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> do not pass user dictionaries directly as &lt;span class="sb">`**kwargs`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> do not pass user strings to &lt;span class="sb">`multi_options`&lt;/span> or &lt;span class="sb">`clone_multi_options`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject &lt;span class="sb">`upload_pack`&lt;/span>, &lt;span class="sb">`receive_pack`&lt;/span>, &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`config`&lt;/span>, &lt;span class="sb">`c`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`core.hooksPath`&lt;/span>, &lt;span class="sb">`GIT_SSH_COMMAND`&lt;/span>, and equivalent normalized spellings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> represent supported behavior as typed fields, then map to a finite
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allow-list of safe GitPython arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`upload_pack`&lt;/span> and &lt;span class="sb">`receive_pack`&lt;/span> kwargs from untrusted input are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> hyphen, underscore, and mixed-normalization forms are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`multi_options`&lt;/span> strings containing embedded unsafe flags are rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`clone_multi_options`&lt;/span> for submodules uses the same validator;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> validation happens after parsing/normalization, not only before it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Harden repo-ingest execution where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run workers as unprivileged users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate workspaces per job;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scrub environment variables before Git operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scope SSH/deploy keys to the target repo and operation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Git hooks or run with safe hook policy where supported.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GitPython advisory operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected GitPython versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which repo-operation paths were reachable by untrusted input;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether free-form Git option features were removed or restricted;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which worker credentials should be rotated if exposure existed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for suspicious helper, hook, config, or SSH
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> command options.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, unit tests, integration tests
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for repository import/sync, lint/typecheck, image build, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate GitPython command injection advisories`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No deployable GitPython runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed GitPython version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on arbitrary caller-controlled Git options;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled hooks or helper
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves GitPython
+below &lt;code>3.1.47&lt;/code>.&lt;/li>
+&lt;li>User-controlled dictionaries, strings, workflow fields, or LLM/tool arguments
+cannot become raw GitPython kwargs, &lt;code>multi_options&lt;/code>, or
+&lt;code>clone_multi_options&lt;/code>.&lt;/li>
+&lt;li>Regression tests cover normalized option names and post-parse validation.&lt;/li>
+&lt;li>Repo-ingest workers do not run with broad credentials or reusable shared
+workspaces.&lt;/li>
+&lt;li>The PR identifies whether credential rotation and log review are required.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating application requirements while CI, worker, or agent images still
+carry an older GitPython version.&lt;/li>
+&lt;li>Blocking only literal &lt;code>--upload-pack&lt;/code> while allowing &lt;code>upload_pack&lt;/code>.&lt;/li>
+&lt;li>Validating &lt;code>multi_options&lt;/code> before splitting or normalization.&lt;/li>
+&lt;li>Treating repository URLs as the only untrusted input and missing workflow
+fields that configure clone/fetch behavior.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-rpm5-65cw-6hj4&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-rpm5-65cw-6hj4"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rpm5-65cw-6hj4&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-x2qx-6953-8485&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-x2qx-6953-8485"target="_blank" rel="noopener">https://github.com/advisories/GHSA-x2qx-6953-8485&lt;/a>&lt;/li>
+&lt;li>GitPython project: &lt;a href="https://github.com/gitpython-developers/GitPython"target="_blank" rel="noopener">https://github.com/gitpython-developers/GitPython&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

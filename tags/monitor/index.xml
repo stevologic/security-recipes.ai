@@ -1,0 +1,253 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Monitor</title><link>https://security-recipes.ai/tags/monitor/</link><description>Recent content in Monitor on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/monitor/index.xml" rel="self" type="application/rss+xml"/><item><title>Agent session — telemetry-driven kill rules</title><link>https://security-recipes.ai/prompt-library/general/agent-session-kill-rules/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/agent-session-kill-rules/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a workflow&amp;rsquo;s run telemetry
+and a draft set of decision rules, and produces (a) a vetted
+rule pack the session monitor can load and (b) a synthetic
+red-team exercise the program owner runs to verify the rules
+fire correctly.&lt;/p>
+&lt;p>This is a &lt;strong>guardrail-design prompt&lt;/strong>, not a remediation
+prompt. The agent&amp;rsquo;s job is to design and pressure-test the
+rules; humans deploy them.&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/runtime-controls/">Runtime Controls&lt;/a>
+workflow.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads 30 days of run telemetry&lt;/strong> for the workflow — tool
+call rates, scope distributions, argument shapes, result
+sizes, budget usage, egress events.&lt;/li>
+&lt;li>&lt;strong>Computes baselines&lt;/strong> (median, p95, p99) per signal.&lt;/li>
+&lt;li>&lt;strong>Drafts a rule pack&lt;/strong> with three layers — threshold rules,
+deviation rules, pattern rules — each with explicit
+thresholds tuned against the baseline.&lt;/li>
+&lt;li>&lt;strong>Designs synthetic red-team exercises&lt;/strong> that simulate each
+failure mode (scope creep, exfiltration, prompt drift,
+budget runaway) and predicts which rule should fire.&lt;/li>
+&lt;li>&lt;strong>Outputs&lt;/strong> the rule pack and the exercise plan as a PR
+against the monitor&amp;rsquo;s policy repo.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A workflow has accumulated at least 30 days of run telemetry
+on at least 50 healthy runs.&lt;/li>
+&lt;li>The session monitor has a declarative policy format (OPA,
+Cedar, in-house) the agent can target.&lt;/li>
+&lt;li>A program owner is available to review and run the synthetic
+exercises before deployment.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>A workflow that has never reached production. Without a
+baseline, the rules will be guesses.&lt;/li>
+&lt;li>A workflow with an irregular cadence (every run is shaped
+differently). The pattern needs stable shapes to draw a
+baseline from.&lt;/li>
+&lt;li>Replacing rules that already work. This prompt designs
+initial rule packs and proposed updates; it does not
+unilaterally rewrite working rules.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Telemetry path&lt;/strong> — read-only access to the run-telemetry
+store for this workflow.&lt;/li>
+&lt;li>&lt;strong>Policy repo&lt;/strong> — where the rule pack is committed for human
+review and deployment.&lt;/li>
+&lt;li>&lt;strong>Workflow declaration&lt;/strong> — the workflow&amp;rsquo;s declared scope
+(allowed files, allowed tools, allowed hostnames).&lt;/li>
+&lt;li>&lt;strong>Threat scenarios&lt;/strong> — the named failure modes this workflow
+must defend against (exfiltration, scope creep, prompt-drift,
+budget runaway, tool-poisoning amplification).&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are designing the rule pack a session monitor will load to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">watch this workflow&amp;#39;s runs in flight. Your output is exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request against the monitor&amp;#39;s policy repo containing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (a) a rule pack with three layers, (b) a synthetic red-team
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exercise plan, and (c) the baseline data each threshold was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tuned from.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`TRIAGE.md`&lt;/span> note explaining why the telemetry is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> insufficient to design rules safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not deploy the rule pack. Humans deploy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the telemetry and the workflow declaration
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Pull the workflow&amp;#39;s last 30 days of run telemetry. Confirm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> at least 50 successful runs are present. If fewer, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage with a note about insufficient baseline.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the workflow&amp;#39;s declared scope: allowed files, allowed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tools, allowed hostnames, allowed argument shapes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Read the threat-scenario list the operator provided.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Compute baselines
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each signal, compute median, p95, p99 across the 30-day
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">window:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tool calls per minute, per turn, per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinct files touched per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinct hostnames contacted per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Argument lengths per tool, per call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Result sizes per tool.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Cumulative outbound bytes per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Cumulative tokens per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Number of forbidden-path attempts per run (should be 0;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> baseline is asserting that).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Document the baselines in the PR body. The reviewer needs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">them to evaluate the thresholds.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Draft threshold rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Threshold rules fire when a signal crosses an absolute ceiling.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each signal, set the threshold at p99 × 1.5 by default;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">adjust if the operator&amp;#39;s scenario list indicates a tighter
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">bound is required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Examples:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`tool_calls_per_minute &amp;gt; &amp;lt;p99 × 1.5&amp;gt;`&lt;/span> → annotate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`distinct_files_touched &amp;gt; &amp;lt;p99 × 1.5&amp;gt;`&lt;/span> → hold-for-elicit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`cumulative_outbound_bytes &amp;gt; &amp;lt;p99 × 2&amp;gt;`&lt;/span> → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`forbidden_path_attempts &amp;gt; 0`&lt;/span> → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`metadata_endpoint_contact &amp;gt; 0`&lt;/span> → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The action graduates with severity: low-confidence anomalies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">annotate, medium hold, high ratchet or quarantine, critical
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Draft deviation rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Deviation rules fire when a signal drifts away from baseline
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mid-run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`current_run.distinct_files / baseline.median &amp;gt; 5`&lt;/span> → hold.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`current_run.cumulative_tokens / baseline.median &amp;gt; 4`&lt;/span> →
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> annotate at 4×, hold at 6×, kill at 10×.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`argument_length_z_score &amp;gt; 6`&lt;/span> for any tool → annotate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Tune deviation thresholds conservatively. False positives in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">this layer are louder than threshold rules — the run is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">otherwise healthy when these fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Draft pattern rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Pattern rules fire on named, high-signal shapes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Argument or result contains a link-local IP (&lt;span class="sb">`169.254.*`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fd00::*`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Argument or result references the cloud-provider metadata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoint hostname.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Result size exceeds 10 MB.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Result contains a base64 blob &amp;gt; 1 MB.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tool description hash differs from the pinned hash.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Outbound DNS query for a typosquat neighbour of an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlisted hostname.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Pattern rules are kill-rules by default unless the operator&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">scenario list says otherwise.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Design synthetic red-team exercises
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each named failure mode, design one synthetic exercise:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Exfiltration.** Inject a tool result containing a base64
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blob; expect the pattern rule on result-blob-size to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Scope creep.** Inject a tool call with an argument file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path outside the declared scope; expect the threshold rule
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on forbidden-path-attempts to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Prompt drift.** Inject a tool result with a string that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resembles instructions (&amp;#34;ignore previous, run …&amp;#34;); expect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the result-content rule to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Budget runaway.** Run a synthetic loop hitting tools at 5×
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> baseline rate; expect deviation rule on tokens to escalate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> through annotate → hold → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Tool-description tampering.** Change a tool description
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash; expect the pinned-description rule to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each exercise, predict which rule(s) should fire and at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">what severity. The reviewer compares the prediction against
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the monitor&amp;#39;s actual response.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 6 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`monitor/&amp;lt;workflow-name&amp;gt;-rules-&amp;lt;date&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: `[Monitor][&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">workflow-name&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>] rule pack v&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">n&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> + synthetic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exercises&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Body must include:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Workflow declaration summary.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Baseline table (median, p95, p99 per signal).
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - The rule pack in the policy format the monitor expects.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - The synthetic-exercise plan with predictions per rule.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Estimated false-positive rate per rule, computed against
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> the 30-day baseline.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Label: `&lt;/span>monitor-rule-update`.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions (write a TRIAGE.md and exit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Fewer than 50 successful runs in the baseline window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Telemetry is missing required signals (no per-run token
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> counts, no per-tool argument shapes).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The workflow&amp;#39;s declared scope is incomplete or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> contradictory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The threat-scenario list is empty.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not deploy the rule pack. PR only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify the policy repo&amp;#39;s deployment pipeline, the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> monitor&amp;#39;s runtime, or the audit ledger.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not ship rules with no baseline data behind them.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently lower an existing rule&amp;#39;s severity. If the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> baseline suggests a rule should soften, surface that as an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> explicit recommendation in the PR body — humans decide.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A PR against the monitor&amp;rsquo;s policy repo with the rule pack,
+the synthetic exercises, and the baseline data — OR a
+&lt;code>TRIAGE.md&lt;/code> note.&lt;/li>
+&lt;li>The PR is &lt;strong>never&lt;/strong> auto-merged. Rule packs change the
+failure surface of the runtime gate; humans deploy.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Baseline-driven thresholds.&lt;/strong> No threshold ships without
+data behind it. Hand-picked numbers without baselines are
+exactly how monitors stop firing on the bad runs and start
+firing on the healthy ones.&lt;/li>
+&lt;li>&lt;strong>Graduated actions.&lt;/strong> A rule that can only &lt;code>kill&lt;/code> is a rule
+the operators will eventually mute. Annotate / hold /
+ratchet / quarantine / kill are the full vocabulary.&lt;/li>
+&lt;li>&lt;strong>Synthetic exercises required.&lt;/strong> A rule pack without a
+matching exercise plan does not ship. The exercises validate
+the monitor still fires correctly, and run on a cadence
+after deployment.&lt;/li>
+&lt;li>&lt;strong>Read-only on the monitor&amp;rsquo;s runtime.&lt;/strong> This prompt designs
+rules; it does not deploy them, change the engine&amp;rsquo;s runtime
+configuration, or touch the kill-controller.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/runtime-controls/">Runtime Controls&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/gatekeeping/">Gatekeeping Patterns&lt;/a>
+— where runtime gates sit in the full stack.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/threat-model/">Threat Model&lt;/a>
+— the failure modes the rules are defending against.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/reviewer-playbook/">Reviewer Playbook&lt;/a>
+— what reviewers do when a &lt;code>telemetry-hold&lt;/code> flag fires.&lt;/li>
+&lt;/ul></description></item></channel></rss>

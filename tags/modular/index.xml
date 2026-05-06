@@ -1,0 +1,108 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Modular</title><link>https://security-recipes.ai/tags/modular/</link><description>Recent content in Modular on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 26 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/modular/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2025-60455 — Modular Max Serve unsafe deserialization</title><link>https://security-recipes.ai/prompt-library/cve/cve-2025-60455-modular-max-serve/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2025-60455-modular-max-serve/</guid><description>
+&lt;p>&lt;code>modular&lt;/code> versions earlier than &lt;code>25.6.0&lt;/code> are vulnerable to
+unsafe deserialization in Max Serve. If deployed with
+&lt;code>--experimental-enable-kvcache-agent&lt;/code>, this can become remote
+code execution.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>modular (PyPI)&lt;/strong>: &lt;code>&amp;gt;=0, &amp;lt;25.6.0&lt;/code> — vulnerable.&lt;/li>
+&lt;li>&lt;strong>modular (PyPI)&lt;/strong>: &lt;code>25.6.0+&lt;/code> — patched.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Exposure requires all of the following:&lt;/p>
+&lt;ul>
+&lt;li>The deployed package version resolves to &lt;code>&amp;lt;25.6.0&lt;/code>.&lt;/li>
+&lt;li>Max Serve is started with
+&lt;code>--experimental-enable-kvcache-agent&lt;/code>.&lt;/li>
+&lt;li>Untrusted or cross-tenant input reaches that path.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show modular
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ps aux &lt;span class="p">|&lt;/span> grep -E &lt;span class="s1">&amp;#39;max serve|kvcache|experimental-enable-kvcache-agent&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Upgrade&lt;/strong> to &lt;code>modular&amp;gt;=25.6.0&lt;/code> everywhere
+(&lt;code>requirements.txt&lt;/code>, lockfiles, image build manifests).&lt;/li>
+&lt;li>&lt;strong>Disable&lt;/strong> &lt;code>--experimental-enable-kvcache-agent&lt;/code> by default
+until upgrade rollout and validation are complete.&lt;/li>
+&lt;li>&lt;strong>Redeploy&lt;/strong> services and rotate secrets reachable by affected
+processes if there is any suspicion of exploitation.&lt;/li>
+&lt;li>&lt;strong>Review runtime logs&lt;/strong> during the exposure window for
+suspicious requests or crashes.&lt;/li>
+&lt;/ol>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2025-60455 (Modular Max Serve unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deserialization).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR upgrading to modular 25.6.0+ and removing risky runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> flag usage, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md when a safe upgrade cannot be shipped now.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Find every direct/transitive &lt;span class="sb">`modular`&lt;/span> dependency and lockfile.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm runtime invocations for Max Serve and detect use of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`--experimental-enable-kvcache-agent`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Remediate
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Bump all manifests/locks to &lt;span class="sb">`modular&amp;gt;=25.6.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Remove or hard-disable &lt;span class="sb">`--experimental-enable-kvcache-agent`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> from production runtime profiles.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Update deployment artifacts and operational runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Dependency graph resolves to &lt;span class="sb">`modular 25.6.0+`&lt;/span> in all targets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Startup/config output confirms the experimental flag is absent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> from production workloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> CI tests and smoke checks pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Upgrade causes unresolved dependency conflicts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Service functionality depends on the experimental flag and no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compensating control exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You cannot determine production runtime flags with confidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If any stop condition is met, produce TRIAGE.md with blockers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">containment actions, owner, and follow-up date.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No manifest or lockfile keeps &lt;code>modular&lt;/code> below &lt;code>25.6.0&lt;/code>.&lt;/li>
+&lt;li>Production runtime configs no longer enable the experimental
+kvcache agent.&lt;/li>
+&lt;li>Build/test/deploy checks pass after the dependency change.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Hidden second copies of &lt;code>modular&lt;/code> in transitive lockfiles.&lt;/li>
+&lt;li>Rollback artifacts still launching with the experimental flag.&lt;/li>
+&lt;li>Environment drift between development and production configs.&lt;/li>
+&lt;/ul>
+&lt;h2>Sources&lt;span class="hx:absolute hx:-mt-20" id="sources">&lt;/span>
+&lt;a href="#sources" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;code>GHSA-7xcv-9j6c-2fmc&lt;/code>&lt;/li>
+&lt;li>CVE: &lt;code>CVE-2025-60455&lt;/code>&lt;/li>
+&lt;/ul></description></item></channel></rss>

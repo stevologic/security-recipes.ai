@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/routing-policy.schema.json",
+  "title": "SecurityRecipes browser-local routing policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "exported_at",
+    "browser_model",
+    "policy"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.routing-policy.v1"
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "browser_model": {
+      "const": "client_side_byo_token"
+    },
+    "policy": {
+      "$ref": "#/$defs/policyRecord"
+    }
+  },
+  "$defs": {
+    "policyId": {
+      "type": "string",
+      "pattern": "^routing-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "severityThreshold": {
+      "type": "string",
+      "enum": ["any", "critical", "high", "medium", "low", "info"]
+    },
+    "assetCriticalityThreshold": {
+      "type": "string",
+      "enum": ["any", "critical", "high", "medium", "low", "unassigned"]
+    },
+    "marketplaceId": {
+      "type": "string",
+      "pattern": "^(?:local-)?[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "workflowValue": {
+      "type": "string",
+      "enum": ["dependency", "sast", "sensitive-data", "mcp-guardrail", "base-image", "recipe-runbook"]
+    },
+    "integrationDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "jira_project",
+        "linear_team_id",
+        "service_now_table",
+        "elastic_owner",
+        "splunk_index"
+      ],
+      "properties": {
+        "jira_project": {
+          "type": "string",
+          "maxLength": 32
+        },
+        "linear_team_id": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "service_now_table": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "elastic_owner": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "splunk_index": {
+          "type": "string",
+          "maxLength": 80
+        }
+      }
+    },
+    "policyRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "match",
+        "route",
+        "notes",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/policyId"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "match": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "severity_min",
+            "asset_criticality_min",
+            "workflow_values",
+            "source_ids",
+            "owner_teams",
+            "environments"
+          ],
+          "properties": {
+            "severity_min": {
+              "$ref": "#/$defs/severityThreshold"
+            },
+            "asset_criticality_min": {
+              "$ref": "#/$defs/assetCriticalityThreshold"
+            },
+            "workflow_values": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/workflowValue"
+              }
+            },
+            "source_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/marketplaceId"
+              }
+            },
+            "owner_teams": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              }
+            },
+            "portfolio_ids": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^portfolio-[a-z0-9]+(?:-[a-z0-9]+)*$"
+              }
+            },
+            "environments": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              }
+            }
+          }
+        },
+        "route": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output_channel_id",
+            "report_profile_id",
+            "approval_gate",
+            "context_pack",
+            "cadence",
+            "integration_defaults"
+          ],
+          "properties": {
+            "output_channel_id": {
+              "$ref": "#/$defs/marketplaceId"
+            },
+            "report_profile_id": {
+              "$ref": "#/$defs/marketplaceId"
+            },
+            "approval_gate": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "context_pack": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "cadence": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "integration_defaults": {
+              "$ref": "#/$defs/integrationDefaults"
+            }
+          }
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

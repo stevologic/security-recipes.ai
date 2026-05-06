@@ -1,0 +1,203 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Docker-Compose</title><link>https://security-recipes.ai/tags/docker-compose/</link><description>Recent content in Docker-Compose on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/docker-compose/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-42461 - Arcane Compose template secret disclosure</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42461-arcane-compose-template-secret-disclosure/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42461-arcane-compose-template-secret-disclosure/</guid><description>
+&lt;p>Arcane versions before &lt;code>1.18.0&lt;/code> register several custom template read
+endpoints without an authentication requirement. An unauthenticated network
+client can list templates and read stored Compose YAML plus associated &lt;code>.env&lt;/code>
+content from the Arcane instance.&lt;/p>
+&lt;p>The vulnerable flow matters because Arcane&amp;rsquo;s &amp;ldquo;Save as Template&amp;rdquo; feature can
+persist operator-provided environment values verbatim. In real deployments,
+template &lt;code>envContent&lt;/code> can contain database passwords, registry credentials,
+OIDC client secrets, Sentry DSNs, payment provider keys, internal hostnames, and
+other deployment context that should never be returned to unauthenticated
+callers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/getarcaneapp/arcane/backend &amp;lt;1.18.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/getarcaneapp/arcane/backend 1.18.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoint family:&lt;/strong> &lt;code>GET /api/templates*&lt;/code>, including template list,
+individual template, and template content reads.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, deploys, vendors, or pins Arcane before &lt;code>1.18.0&lt;/code>.&lt;/li>
+&lt;li>The Arcane API is reachable by users, tenants, internal networks, VPN users,
+reverse proxies, or automation without path-level authentication.&lt;/li>
+&lt;li>Custom templates are enabled or the deployment has saved templates derived
+from real Compose projects, swarm stacks, or GitOps project definitions.&lt;/li>
+&lt;li>Stored template rows or backup data include Compose YAML, &lt;code>.env&lt;/code> text,
+parsed environment key/value pairs, registry metadata, service names, or
+internal host references.&lt;/li>
+&lt;li>API logs show unauthenticated &lt;code>GET&lt;/code> requests to &lt;code>/api/templates&lt;/code>,
+&lt;code>/api/templates/all&lt;/code>, &lt;code>/api/templates/{id}&lt;/code>, or
+&lt;code>/api/templates/{id}/content&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;getarcaneapp/arcane|arcane/backend|RegisterTemplates|ListTemplates|GetAllTemplates|GetTemplateContent|/api/templates|BearerAuth|ApiKeyAuth&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/getarcaneapp/arcane&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;envContent|ComposeTemplate|Save as Template|PROTECTED_PREFIXES|templates/\\{id\\}/content|parseSecurityRequirements&amp;#34;&lt;/span> backend frontend charts deploy docker-compose*.yml Dockerfile* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Arcane to &lt;code>1.18.0+&lt;/code> everywhere this repository controls binary,
+container, Helm, compose, GitOps, or module selection.&lt;/li>
+&lt;li>If the repository owns a fork or vendored Arcane code, require the same
+&lt;code>BearerAuth&lt;/code> or &lt;code>ApiKeyAuth&lt;/code> policy on every custom template read endpoint
+that template writes already require.&lt;/li>
+&lt;li>Prefer fail-closed API registration defaults: endpoint handlers should be
+unauthenticated only when they explicitly opt out for a documented public
+route.&lt;/li>
+&lt;li>Add regression tests that unauthenticated callers receive &lt;code>401&lt;/code> or &lt;code>403&lt;/code> for
+template list and template content reads, and authenticated users can only
+access templates they are authorized to view.&lt;/li>
+&lt;li>Treat all stored template &lt;code>.env&lt;/code> values as exposed if the vulnerable API was
+reachable. Rotate secrets, invalidate sessions or API keys derived from those
+values, and review access logs before relying on containment.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42461 (Arcane unauthenticated disclosure of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">custom Compose templates and &lt;span class="sb">`.env`&lt;/span> secrets). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or patches Arcane, verifies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template-read authorization, and documents operator secret cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Arcane deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42461.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Compose YAML, &lt;span class="sb">`.env`&lt;/span> values, registry tokens, database passwords, OIDC
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, API keys, internal hostnames, template names, and Arcane API keys as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, commit, or copy real template content or secret values
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> while testing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not prove exposure by fetching production template content.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve unauthenticated template reads for compatibility.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Arcane reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`go.mod`&lt;/span>, &lt;span class="sb">`go.sum`&lt;/span>, vendor trees, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, GitOps overlays, SBOMs, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency manifests, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every deployed or buildable Arcane version. A target is vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if it resolves to &lt;span class="sb">`github.com/getarcaneapp/arcane/backend &amp;lt;1.18.0`&lt;/span> or an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Arcane container/image tag before &lt;span class="sb">`1.18.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether the vulnerable template-read paths are reachable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/all`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/{id}`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /api/templates/{id}/content`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any reverse-proxy rewrite, generated API client, or UI path that maps to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> those handlers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether custom templates can contain real deployment secrets:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Compose &lt;span class="sb">`.env`&lt;/span> files, swarm-stack variables, registry credentials, database
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DSNs, OAuth/OIDC settings, webhook tokens, cloud keys, or third-party API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository only contains an Arcane client or unrelated docs, stop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owner, files checked, affected version evidence,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and required fixed version &lt;span class="sb">`1.18.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade every controlled Arcane deployment to &lt;span class="sb">`1.18.0+`&lt;/span>. Regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, image digests, SBOMs, deployment render output, and dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If this repository owns a fork or vendored patch instead of a pure upgrade,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> update template read route registration so each affected &lt;span class="sb">`GET`&lt;/span> operation has
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the same security requirement used by template create/update/delete routes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`BearerAuth`&lt;/span>, &lt;span class="sb">`ApiKeyAuth`&lt;/span>, or the repository&amp;#39;s equivalent authenticated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> principal requirement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add an explicit fail-closed route registration test or policy check:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unauthenticated routes must be declared through an allow-list of public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operations, and template operations must not appear in that allow-list.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe tests using synthetic template fixtures only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unauthenticated requests to every affected template read path return &lt;span class="sb">`401`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or &lt;span class="sb">`403`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authenticated callers can read allowed templates;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unauthorized callers cannot read another tenant, environment, or team
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template if the product has ownership boundaries;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> response bodies for denied requests never include Compose YAML, parsed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment variables, or template metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add deployment containment where this repository controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> block unauthenticated &lt;span class="sb">`GET /api/templates*`&lt;/span> at the reverse proxy, API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway, service mesh, or ingress during rollout, especially when the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Arcane API is reachable from shared internal networks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42461 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Arcane versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether custom templates were enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether unauthenticated network paths could reach &lt;span class="sb">`/api/templates*`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secret classes may have existed in stored template &lt;span class="sb">`.env`&lt;/span> content;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which API keys, registry credentials, database passwords, OAuth/OIDC
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, webhook tokens, or cloud credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which access logs should be reviewed for unauthenticated template reads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Run relevant validation: Go tests, route/authz tests, frontend API contract
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests if present, lint/typecheck, image build, deployment render diff, SBOM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42461 in Arcane templates`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Arcane deployment, package, image, fork, or template API path is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository cannot consume Arcane &lt;span class="sb">`1.18.0+`&lt;/span> without a larger platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Template ownership or tenant boundaries are unclear and changing them could
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expose or hide customer data incorrectly; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Secret rotation requires production access or customer approval outside the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository; document the exact operator action instead of inventing a local
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Arcane package, image, Helm value, compose file, SBOM, or
+deployment manifest remains pinned before &lt;code>1.18.0&lt;/code>.&lt;/li>
+&lt;li>Every custom template read endpoint requires authentication and any applicable
+ownership or tenant authorization.&lt;/li>
+&lt;li>Tests cover unauthenticated denial for list, all, single-template, and
+content-read endpoints.&lt;/li>
+&lt;li>Denied responses do not leak template names, Compose YAML, &lt;code>.env&lt;/code> content, or
+parsed environment variables.&lt;/li>
+&lt;li>Operator actions clearly state whether secret rotation and log review are
+required for the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating the application image while a Helm chart, compose file, GitOps
+overlay, or backup/restore runbook still deploys an older Arcane tag.&lt;/li>
+&lt;li>Adding authentication to the UI while generated API routes or direct backend
+calls remain unauthenticated.&lt;/li>
+&lt;li>Tests that assert &lt;code>200&lt;/code> for public template reads because the old API
+contract accidentally treated templates as public catalogue data.&lt;/li>
+&lt;li>Logging real &lt;code>.env&lt;/code> content while adding regression tests or incident
+inventory.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-cxx3-hr75-4q96"target="_blank" rel="noopener">https://github.com/advisories/GHSA-cxx3-hr75-4q96&lt;/a>&lt;/li>
+&lt;li>Arcane &lt;code>v1.18.0&lt;/code> release: &lt;a href="https://github.com/getarcaneapp/arcane/releases/tag/v1.18.0"target="_blank" rel="noopener">https://github.com/getarcaneapp/arcane/releases/tag/v1.18.0&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

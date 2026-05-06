@@ -1,0 +1,339 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/portfolio-coverage.schema.json",
+  "title": "SecurityRecipes browser-local portfolio coverage snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "browser_model",
+    "summary",
+    "portfolios"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.portfolio-coverage.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "browser_model": {
+      "const": "client_side_byo_token"
+    },
+    "summary": {
+      "$ref": "#/$defs/summaryRecord"
+    },
+    "portfolios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/portfolioRecord"
+      }
+    }
+  },
+  "$defs": {
+    "assetId": {
+      "type": "string",
+      "pattern": "^asset-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "portfolioId": {
+      "type": "string",
+      "pattern": "^portfolio-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "assetCriticality": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "unassigned"]
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "info"]
+    },
+    "coverageState": {
+      "type": "string",
+      "enum": ["ready", "partial", "action_needed", "tracked"]
+    },
+    "routeCoverageState": {
+      "type": "string",
+      "enum": ["live_ready", "handoff_only", "mixed", "manual_only", "tracked"]
+    },
+    "routeCoverageToken": {
+      "type": "string",
+      "enum": ["ready", "copy_only", "needs_config", "blocked", "template"]
+    },
+    "workflowValue": {
+      "type": "string",
+      "enum": ["dependency", "sast", "sensitive-data", "mcp-guardrail", "base-image", "recipe-runbook"]
+    },
+    "routeStateCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ready", "copy_only", "needs_config", "template", "blocked", "manual"],
+      "properties": {
+        "ready": { "type": "integer", "minimum": 0 },
+        "copy_only": { "type": "integer", "minimum": 0 },
+        "needs_config": { "type": "integer", "minimum": 0 },
+        "template": { "type": "integer", "minimum": 0 },
+        "blocked": { "type": "integer", "minimum": 0 },
+        "manual": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "summaryRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_portfolios",
+        "ready_count",
+        "partial_count",
+        "action_needed_count",
+        "tracked_count",
+        "live_ready_portfolio_count",
+        "owner_gap_count",
+        "environment_gap_count",
+        "relationship_gap_count",
+        "exposure_count",
+        "unrouted_exposure_count",
+        "blocked_exposure_count",
+        "needs_config_exposure_count",
+        "template_exposure_count",
+        "open_case_count",
+        "needs_case_count",
+        "dependency_edge_count",
+        "handoff_only_portfolio_count",
+        "manual_route_portfolio_count",
+        "mixed_route_portfolio_count",
+        "dependency_gap_portfolio_count",
+        "downstream_gap_portfolio_count",
+        "top_portfolio_id",
+        "top_portfolio_label",
+        "overall_state",
+        "label",
+        "description",
+        "top_portfolio_action"
+      ],
+      "properties": {
+        "total_portfolios": { "type": "integer", "minimum": 0 },
+        "ready_count": { "type": "integer", "minimum": 0 },
+        "partial_count": { "type": "integer", "minimum": 0 },
+        "action_needed_count": { "type": "integer", "minimum": 0 },
+        "tracked_count": { "type": "integer", "minimum": 0 },
+        "live_ready_portfolio_count": { "type": "integer", "minimum": 0 },
+        "owner_gap_count": { "type": "integer", "minimum": 0 },
+        "environment_gap_count": { "type": "integer", "minimum": 0 },
+        "relationship_gap_count": { "type": "integer", "minimum": 0 },
+        "exposure_count": { "type": "integer", "minimum": 0 },
+        "unrouted_exposure_count": { "type": "integer", "minimum": 0 },
+        "blocked_exposure_count": { "type": "integer", "minimum": 0 },
+        "needs_config_exposure_count": { "type": "integer", "minimum": 0 },
+        "template_exposure_count": { "type": "integer", "minimum": 0 },
+        "open_case_count": { "type": "integer", "minimum": 0 },
+        "needs_case_count": { "type": "integer", "minimum": 0 },
+        "dependency_edge_count": { "type": "integer", "minimum": 0 },
+        "handoff_only_portfolio_count": { "type": "integer", "minimum": 0 },
+        "manual_route_portfolio_count": { "type": "integer", "minimum": 0 },
+        "mixed_route_portfolio_count": { "type": "integer", "minimum": 0 },
+        "dependency_gap_portfolio_count": { "type": "integer", "minimum": 0 },
+        "downstream_gap_portfolio_count": { "type": "integer", "minimum": 0 },
+        "top_portfolio_id": { "type": "string", "maxLength": 80 },
+        "top_portfolio_label": { "type": "string", "maxLength": 120 },
+        "overall_state": { "$ref": "#/$defs/coverageState" },
+        "label": { "type": "string", "maxLength": 80 },
+        "description": { "type": "string", "maxLength": 240 },
+        "top_portfolio_action": { "type": "string", "maxLength": 240 }
+      }
+    },
+    "portfolioRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "asset_ids",
+        "asset_names",
+        "owner_teams",
+        "owner_names",
+        "environments",
+        "linked_asset_ids",
+        "relationship_count",
+        "asset_count",
+        "critical_asset_count",
+        "highest_criticality",
+        "exposure_count",
+        "needs_case_count",
+        "tracked_exposure_count",
+        "open_case_count",
+        "highest_severity",
+        "workflow_values",
+        "route_labels",
+        "policy_ids",
+        "policy_labels",
+        "policy_count",
+        "route_blockers",
+        "route_state_counts",
+        "live_ready_exposure_count",
+        "local_handoff_exposure_count",
+        "needs_config_exposure_count",
+        "template_exposure_count",
+        "blocked_exposure_count",
+        "manual_exposure_count",
+        "routed_exposure_count",
+        "owner_missing",
+        "environment_missing",
+        "relationship_gap",
+        "coverage_score",
+        "coverage_state",
+        "coverage_label",
+        "route_coverage_state",
+        "route_coverage_label",
+        "route_coverage_token",
+        "coverage_summary",
+        "route_coverage_summary",
+        "recommended_actions",
+        "dependency_portfolio_ids",
+        "dependency_portfolio_labels",
+        "dependency_count",
+        "dependency_gap_count",
+        "dependency_live_ready_count",
+        "dependency_handoff_count",
+        "dependency_manual_count",
+        "dependency_route_blockers",
+        "dependent_portfolio_ids",
+        "dependent_portfolio_labels",
+        "dependent_count",
+        "dependent_gap_count",
+        "dependent_exposure_count",
+        "dependency_summary"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/portfolioId" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "asset_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/assetId" }
+        },
+        "asset_names": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 140 }
+        },
+        "owner_teams": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "owner_names": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "environments": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 60 }
+        },
+        "linked_asset_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/assetId" }
+        },
+        "relationship_count": { "type": "integer", "minimum": 0 },
+        "asset_count": { "type": "integer", "minimum": 0 },
+        "critical_asset_count": { "type": "integer", "minimum": 0 },
+        "highest_criticality": { "$ref": "#/$defs/assetCriticality" },
+        "exposure_count": { "type": "integer", "minimum": 0 },
+        "needs_case_count": { "type": "integer", "minimum": 0 },
+        "tracked_exposure_count": { "type": "integer", "minimum": 0 },
+        "open_case_count": { "type": "integer", "minimum": 0 },
+        "highest_severity": { "$ref": "#/$defs/severity" },
+        "workflow_values": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/workflowValue" }
+        },
+        "route_labels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "policy_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^routing-[a-z0-9]+(?:-[a-z0-9]+)*$"
+          }
+        },
+        "policy_labels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "policy_count": { "type": "integer", "minimum": 0 },
+        "route_blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+        },
+        "route_state_counts": { "$ref": "#/$defs/routeStateCounts" },
+        "live_ready_exposure_count": { "type": "integer", "minimum": 0 },
+        "local_handoff_exposure_count": { "type": "integer", "minimum": 0 },
+        "needs_config_exposure_count": { "type": "integer", "minimum": 0 },
+        "template_exposure_count": { "type": "integer", "minimum": 0 },
+        "blocked_exposure_count": { "type": "integer", "minimum": 0 },
+        "manual_exposure_count": { "type": "integer", "minimum": 0 },
+        "routed_exposure_count": { "type": "integer", "minimum": 0 },
+        "owner_missing": { "type": "boolean" },
+        "environment_missing": { "type": "boolean" },
+        "relationship_gap": { "type": "boolean" },
+        "coverage_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "coverage_state": { "$ref": "#/$defs/coverageState" },
+        "coverage_label": { "type": "string", "maxLength": 80 },
+        "route_coverage_state": { "$ref": "#/$defs/routeCoverageState" },
+        "route_coverage_label": { "type": "string", "maxLength": 80 },
+        "route_coverage_token": { "$ref": "#/$defs/routeCoverageToken" },
+        "coverage_summary": { "type": "string", "maxLength": 240 },
+        "route_coverage_summary": { "type": "string", "maxLength": 320 },
+        "recommended_actions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 240 }
+        },
+        "dependency_portfolio_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/portfolioId" }
+        },
+        "dependency_portfolio_labels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "dependency_count": { "type": "integer", "minimum": 0 },
+        "dependency_gap_count": { "type": "integer", "minimum": 0 },
+        "dependency_live_ready_count": { "type": "integer", "minimum": 0 },
+        "dependency_handoff_count": { "type": "integer", "minimum": 0 },
+        "dependency_manual_count": { "type": "integer", "minimum": 0 },
+        "dependency_route_blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 160 }
+        },
+        "dependent_portfolio_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/portfolioId" }
+        },
+        "dependent_portfolio_labels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 120 }
+        },
+        "dependent_count": { "type": "integer", "minimum": 0 },
+        "dependent_gap_count": { "type": "integer", "minimum": 0 },
+        "dependent_exposure_count": { "type": "integer", "minimum": 0 },
+        "dependency_summary": { "type": "string", "maxLength": 320 }
+      }
+    }
+  }
+}

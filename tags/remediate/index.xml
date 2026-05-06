@@ -1,0 +1,621 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Remediate</title><link>https://security-recipes.ai/tags/remediate/</link><description>Recent content in Remediate on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/remediate/index.xml" rel="self" type="application/rss+xml"/><item><title>OWASP Top 10 (2026) — remediate</title><link>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/</link><pubDate>Wed, 22 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/</guid><description>
+&lt;p>A tool-agnostic &lt;strong>remediation prompt&lt;/strong> that takes a single finding
+from an OWASP Top 10 (2026) audit — or any equivalent source — and
+turns it into a reviewer-ready pull request. Includes category-specific
+&amp;ldquo;how to fix this well&amp;rdquo; guidance so the agent doesn&amp;rsquo;t apply a naive
+patch that looks right and isn&amp;rsquo;t.&lt;/p>
+&lt;p>Works with the hunt side at
+&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/">OWASP Top 10 (2026) — audit&lt;/a>,
+but does not require it — any clear finding (SAST result, pen-test
+note, internal review comment) is a valid input.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reproduces&lt;/strong> the finding — confirms the weakness exists on the
+specified file and lines.&lt;/li>
+&lt;li>&lt;strong>Plans&lt;/strong> a fix using the category-appropriate pattern.&lt;/li>
+&lt;li>&lt;strong>Applies&lt;/strong> the fix on a new branch with small, reviewable commits.&lt;/li>
+&lt;li>&lt;strong>Adds tests&lt;/strong> that would have caught the original weakness.&lt;/li>
+&lt;li>&lt;strong>Opens a PR&lt;/strong> with blast-radius notes, before/after snippets, and
+a link back to the finding.&lt;/li>
+&lt;/ol>
+&lt;p>If the fix is out of scope for a safe agent change — needs a data
+migration, API contract change, or cross-repo coordination — the
+agent writes a triage note and stops.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>You have a specific finding with a file + category + fix direction.&lt;/li>
+&lt;li>The fix is a code change in the repo the agent has access to.&lt;/li>
+&lt;li>A human will review the PR before merge.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Runtime-only fixes (WAF rules, IAM policies in a separate repo).&lt;/li>
+&lt;li>Findings that require behavioural changes in a downstream consumer.&lt;/li>
+&lt;li>Anything labelled &amp;ldquo;critical, exploit in the wild&amp;rdquo; — go straight to
+your incident playbook.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Infer what you can from the session; prompt only when ambiguous.&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Finding&lt;/strong> — category (e.g., &lt;code>A01 — Broken Access Control&lt;/code>), file
+path, line range, and a short description. If the user only pasted
+a finding title and a file, that is enough; do not refuse.&lt;/li>
+&lt;li>&lt;strong>Recommended fix&lt;/strong> — optional. If present, treat it as a starting
+point, not a mandate.&lt;/li>
+&lt;li>&lt;strong>Repo&lt;/strong> — the working directory the agent is running in.&lt;/li>
+&lt;li>&lt;strong>Test runner&lt;/strong> — infer from the repo (&lt;code>pytest&lt;/code>, &lt;code>go test&lt;/code>, &lt;code>npm test&lt;/code>, etc.). If there is no test setup, note it and proceed with
+manual verification only.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating a single OWASP Top 10 (2026) finding in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">repository. Open one reviewer-ready PR or write a triage note. Do
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Reproduce and confirm
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the file and surrounding context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the weakness is present as described. If it is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reproducible (e.g., the code has been refactored), write a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> one-paragraph note and stop — do not invent a different finding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to remediate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify the minimum scope required to fix it. If the scope
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expands beyond ~200 lines or multiple unrelated files, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Apply the category-appropriate pattern
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not default to &amp;#34;add a check and ship it.&amp;#34; Use the pattern that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">fits the category.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A01 Broken Access Control** — Add authorization at the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controller/handler layer, not the view layer. Prefer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> centralized middleware / policy objects over ad-hoc &lt;span class="sb">`if`&lt;/span> checks
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scattered across routes. Verify the check runs on every code
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path, including error and retry paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A02 Cryptographic Failures** — Replace weak primitives with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the library&amp;#39;s current recommended default. Never roll your own.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> For password hashing, use argon2id or bcrypt with current cost
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> parameters. For data-at-rest, prefer envelope encryption with a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> KMS-managed key. Remove the old cipher path — do not leave a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fallback.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A03 Injection** — Parameterize. For SQL, use prepared
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> statements or the ORM&amp;#39;s parameter binding. For shell, prefer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`execFile`&lt;/span>/&lt;span class="sb">`subprocess.run(args=[...])`&lt;/span> with an explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlist over string concatenation. For templates, escape at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render time, not at input time. For LLM prompt injection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> treat model output as untrusted and keep untrusted text out of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> system prompts and tool-call arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A04 Insecure Design** — If the fix is design-level (missing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rate limit, enumeration oracle), add the minimum control:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server-side rate limit keyed on account + IP, uniform response
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for valid and invalid enumerable inputs, etc. Flag the larger
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> design gap in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A05 Security Misconfiguration** — Turn the defaults right.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Tighten CORS to explicit origins, disable debug in production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> paths, add the standard security headers (CSP, HSTS,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> X-Content-Type-Options, Referrer-Policy). If the config is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment-specific, fix the &lt;span class="ge">*default*&lt;/span> and override only where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> needed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A06 Vulnerable and Outdated Components** — Bump to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lowest non-vulnerable version that keeps the repo&amp;#39;s major /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> minor contract. Run tests. If a transitive dep is the problem
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the direct dep cannot be bumped, add a resolution/override
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if the ecosystem supports one; otherwise triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A07 Authentication Failures** — Add the missing control
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (MFA requirement on sensitive op, account lockout on repeated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> failures, secure session cookie flags). Invalidate existing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sessions if the old behaviour made them trust-on-first-use.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A08 Software/Data Integrity Failures** — Pin third-party CI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions by SHA, require signatures on release artifacts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> replace &lt;span class="sb">`pickle`&lt;/span>/&lt;span class="sb">`unsafe-eval`&lt;/span>/&lt;span class="sb">`Marshal`&lt;/span> on untrusted input
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with a safe serialization format.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A09 Logging/Monitoring Failures** — Add structured audit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> events for sensitive operations (auth, authz, privilege
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> escalation, data export). Scrub PII and secrets from the log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pipeline — not from the log statement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A10 SSRF** — Validate and allowlist outbound URLs against a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deny-by-default list. Block link-local and metadata-endpoint
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IPs. Resolve the hostname once, then connect to the resolved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IP — do not pass a hostname that could resolve differently on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> second lookup.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the 2026 list introduces or renames a category, apply the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">nearest fitting pattern above and note the category name in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PR description.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Tests that would have caught this
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add at least one test that &lt;span class="ge">*fails against the old code*&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="ge">*passes against the new code*&lt;/span>. If the project has no test setup,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">add a minimal one; do not skip the test step silently.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Commit and open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/owasp-&amp;lt;category&amp;gt;-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Small commits that tell a story: reproduction test, fix, any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> supporting refactor, docstring/config updates.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> PR title: &lt;span class="sb">`[Security][&amp;lt;category&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> PR body must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> OWASP category and link to the source finding.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Summary of the weakness and the exploitation path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> What was changed, per file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Blast radius — who and what this PR affects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A &amp;#34;how to verify&amp;#34; section with the commands a reviewer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should run locally.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Out-of-scope items discovered along the way, as checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> items for follow-up.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not merge. Label as &lt;span class="sb">`security-review`&lt;/span> (or the repo&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Stop and write a triage note at &lt;span class="sb">`TRIAGE.md`&lt;/span> (and ping the PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">reviewer channel) instead of forcing a PR if:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix requires a data migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix changes an externally-observable API contract.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The finding turns out to be a false positive (explain briefly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> why).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail and you cannot fix them without touching unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix requires credentials or infra you do not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch files outside the direct fix and its tests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite unrelated code &amp;#34;while you&amp;#39;re in there.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not update dependencies other than the one the finding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> targets (if any).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not modify CI pipelines, release automation, or secrets.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (happy path) with the structure above, or a
+&lt;code>TRIAGE.md&lt;/code> note (stop condition) with a short justification and
+a recommendation for the human next step.&lt;/li>
+&lt;li>No auto-merge. Ever.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Single-finding scope.&lt;/strong> One finding → one PR. If the agent
+notices adjacent issues, it lists them in the PR body&amp;rsquo;s
+follow-up checklist — it does not quietly fix them.&lt;/li>
+&lt;li>&lt;strong>Tests-before-ship.&lt;/strong> A PR without a new or updated test is an
+automatic block. If no test framework exists, the PR adds one
+minimally.&lt;/li>
+&lt;li>&lt;strong>Sensitive-data handling.&lt;/strong> The agent must never include
+secrets, keys, or PII in the PR description, commits, or test
+fixtures. Use obvious dummies.&lt;/li>
+&lt;li>&lt;strong>Reversibility.&lt;/strong> Every change should be reversible via a
+single revert. No data migrations bundled in.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/">OWASP Top 10 (2026) — audit&lt;/a> — the hunt side&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/">Fundamentals&lt;/a> — vocabulary used
+in the PR body&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/">Agentic Security Remediation&lt;/a>
+— how a security team runs prompts like this in production&lt;/li>
+&lt;/ul></description></item><item><title>SAST finding — triage and fix</title><link>https://security-recipes.ai/prompt-library/general/sast-finding-triage-and-fix/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/sast-finding-triage-and-fix/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a single SAST finding and
+either opens a reviewer-ready PR (true positive, fixable),
+opens a suppression PR with justification and an expiry
+(confirmed false positive), or writes a triage note (uncertain
+or out-of-scope).&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/sast-findings/">SAST Finding Remediation&lt;/a>
+workflow, where the SAST scanner is the source of truth and
+the agent is bounded to a named catalogue of fix shapes.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the finding&lt;/strong> — rule ID, file, line range, data flow.&lt;/li>
+&lt;li>&lt;strong>Reproduces the data flow&lt;/strong> locally — confirms the source,
+the sink, and the path between them on the current code.&lt;/li>
+&lt;li>&lt;strong>Classifies&lt;/strong> the finding as true positive / false positive /
+uncertain. Defaults to true-positive under doubt.&lt;/li>
+&lt;li>&lt;strong>For true positives&lt;/strong>, picks a fix shape from the workflow&amp;rsquo;s
+pre-approved catalogue and applies it. Adds a test that fails
+on the old code and passes on the new code. Re-runs the
+scanner and confirms the finding is gone.&lt;/li>
+&lt;li>&lt;strong>For false positives&lt;/strong>, opens a &lt;em>suppression PR&lt;/em> with an
+inline comment explaining the data flow that makes the finding
+benign and an explicit expiry date (default 6 months).&lt;/li>
+&lt;li>&lt;strong>For everything else&lt;/strong>, writes a triage note and stops.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A SAST scanner has produced a structured finding (Semgrep,
+CodeQL, SonarQube, Snyk Code, etc.) with a stable rule ID.&lt;/li>
+&lt;li>The repo has a passing CI pipeline and a test target.&lt;/li>
+&lt;li>The finding&amp;rsquo;s data flow is local — confined to one function
+or one module.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Findings where the data flow crosses a module boundary.&lt;/li>
+&lt;li>Findings whose fix would require an API contract change, a
+schema migration, or new infrastructure.&lt;/li>
+&lt;li>Vendored or generated code.&lt;/li>
+&lt;li>Findings labelled &amp;ldquo;exploit available, in the wild&amp;rdquo; — those go
+through your incident playbook, not this prompt.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Infer from session where possible.&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Finding&lt;/strong> — rule ID, file path, line range, data-flow
+description.&lt;/li>
+&lt;li>&lt;strong>Catalogue path&lt;/strong> — the path in this repo (or a sibling)
+where the workflow&amp;rsquo;s fix-shape catalogue lives. The agent
+reads it but does not edit it.&lt;/li>
+&lt;li>&lt;strong>Test runner&lt;/strong> — inferred from repo (&lt;code>pytest&lt;/code>, &lt;code>npm test&lt;/code>,
+&lt;code>go test&lt;/code>, etc.).&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are triaging and (when appropriate) fixing a single SAST
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">finding in this repository. Your output is exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request with a fix and a regression test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request that adds a scoped suppression with a written
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> justification and an expiry date.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A triage note (&lt;span class="sb">`TRIAGE.md`&lt;/span>) explaining why neither option is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe and what a human should do next.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not auto-merge. Do not bundle multiple findings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the finding and the catalogue
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the rule ID, the affected file, the line range, and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data flow the scanner emitted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the fix-shape catalogue at the path the operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provided. The catalogue maps rule IDs (or rule families) to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> named fix shapes, each with an edit pattern and a test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template. &lt;span class="gs">**The catalogue is the policy.**&lt;/span> If no shape
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matches, treat the finding as out-of-scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Reproduce the data flow
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Open the file and trace the data flow described by the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scanner against the current code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the code has been refactored such that the flow no longer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exists, classify as a stale finding and stop with a triage
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> note (do not invent a new finding to fix).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Confirm the source, the sink, and any sanitizers / validators
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the path. Note any confidence-reducing facts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Pick exactly one:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **True positive.** The data flow is real, the sanitization is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> insufficient or absent, and a fix shape from the catalogue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matches. Continue to Step 3a.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **True positive, no shape.** The flow is real but the catalogue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> has no shape for it. Stop and write a triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **False positive.** A sanitizer / validator / type constraint
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on the path makes the flow safe in practice. Continue to Step
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 3b. Default to true-positive under any doubt.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Cross-module flow.** The flow leaves this function/module.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Uncertain.** Stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3a — Apply the fix shape
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Apply the catalogue&amp;#39;s edit pattern to the file. Stay within
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the function boundary unless the catalogue explicitly says
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> otherwise.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Instantiate the catalogue&amp;#39;s test template against this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding. The test must fail on the old code and pass on the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> new code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Run the repo&amp;#39;s test target. If anything unrelated breaks,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> revert and triage — do not fix unrelated breakage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Re-run the SAST scanner against the sandbox. The original
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding must be gone, and no new finding may have appeared
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the same file. If a new finding appears, revert and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Open a PR (do not merge):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/sast-&amp;lt;rule-id-slug&amp;gt;-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][SAST][&amp;lt;rule-id&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body: rule ID, fix shape applied, before/after snippet,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blast radius, &amp;#34;how to verify locally,&amp;#34; follow-up checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for adjacent issues you noticed but did not fix.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span> (or your repo&amp;#39;s equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3b — Suppress with justification (false positive)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add an inline suppression comment in the syntax the scanner
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expects (e.g., &lt;span class="sb">`# nosem: &amp;lt;rule-id&amp;gt;`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`// codeql[js/sql-injection]: ignore`&lt;/span>, &lt;span class="sb">`// NOSONAR`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> The comment &lt;span class="gs">**must**&lt;/span> include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The rule ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A one-paragraph explanation of the data flow that makes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the finding benign.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The link to the data-flow trace you walked in Step 1.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> An explicit expiry date 6 months from today, written as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`expires: YYYY-MM-DD`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Open a PR (do not merge):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/sast-suppress-&amp;lt;rule-id-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][SAST][suppress][&amp;lt;rule-id&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body: rule ID, why this is a false positive, the expiry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> date, and a link to the workflow page.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Tag with the auto-remediation label.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions (write a TRIAGE.md and exit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The data flow crosses a module boundary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No catalogue fix shape matches the rule ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix would require an API change, a schema migration, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a credential / infra change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The scanner re-run after your fix shows new findings in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> same file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You cannot make tests pass without editing unrelated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The finding looks like a logic bug rather than the syntactic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pattern the rule fires on.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch files outside the affected function and its
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle multiple findings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not invent new fix shapes — only use the catalogue.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the suppression scope (e.g.,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> file-level when the finding is line-level).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not modify CI, secrets, or release pipelines.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (fix or suppression) with the structure above, or a
+&lt;code>TRIAGE.md&lt;/code> note. Never an auto-merge.&lt;/li>
+&lt;li>Suppression PRs always include an explicit expiry; the workflow&amp;rsquo;s
+expiry-sweep job re-fires findings whose suppressions have aged
+out.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Catalogue-only fixes.&lt;/strong> The agent will never apply an edit
+pattern that isn&amp;rsquo;t in the catalogue, even when it knows one
+that &amp;ldquo;would work.&amp;rdquo;&lt;/li>
+&lt;li>&lt;strong>Default to true-positive.&lt;/strong> False-negative cost (real bug
+marked benign) is much higher than false-positive cost (a
+human looks at a real false positive). The prompt is biased
+accordingly.&lt;/li>
+&lt;li>&lt;strong>Re-scan required.&lt;/strong> No PR opens without a clean re-scan of
+the patched sandbox.&lt;/li>
+&lt;li>&lt;strong>One finding, one PR.&lt;/strong> Never bundle. Each PR is independently
+revertible.&lt;/li>
+&lt;li>&lt;strong>Suppression has a half-life.&lt;/strong> No &lt;code>forever&lt;/code> suppressions.
+Every suppression is dated and re-fires.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/sast-findings/">SAST Finding Remediation&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/reviewer-playbook/">Reviewer Playbook&lt;/a>
+— what the reviewer reads before approving.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/emerging-patterns/#ai-assisted-sast-triage">Emerging Patterns → AI-assisted SAST triage&lt;/a>
+— the pattern this prompt implements.&lt;/li>
+&lt;/ul></description></item><item><title>Base image — bump and rebuild</title><link>https://security-recipes.ai/prompt-library/general/base-image-bump/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/base-image-bump/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a CVE finding scoped to a
+base image or an OS-package layer, and produces a reviewer-ready
+PR that bumps the &lt;code>FROM&lt;/code> line (or the package install layer),
+rebuilds the image, runs the smoke test, and confirms the CVE
+is gone — or stops cleanly with a triage note.&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+workflow.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the finding&lt;/strong> — the affected image, the CVE, the
+package, the patched version (or the patched image tag).&lt;/li>
+&lt;li>&lt;strong>Locates the affected layer&lt;/strong> — the &lt;code>FROM&lt;/code> line, the
+&lt;code>apt-get install&lt;/code> line, or the &lt;code>RUN apt-get upgrade&lt;/code> step
+that introduces the vulnerable package.&lt;/li>
+&lt;li>&lt;strong>Picks a bump strategy&lt;/strong> — tag bump, digest pin update,
+package upgrade, or curated-base bump — from the workflow&amp;rsquo;s
+declared policy.&lt;/li>
+&lt;li>&lt;strong>Edits the Dockerfile&lt;/strong>, rebuilds the image with
+&lt;code>--no-cache&lt;/code> for the affected layer, runs the repo&amp;rsquo;s smoke
+test.&lt;/li>
+&lt;li>&lt;strong>Re-scans the rebuilt image&lt;/strong> and confirms the CVE is gone
+and no new CVEs were introduced.&lt;/li>
+&lt;li>&lt;strong>Opens a PR&lt;/strong> with a structured body — affected images,
+affected services, rollout shape, rollback plan.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A container image scanner has produced a structured CVE finding
+scoped to the base image or to a package the Dockerfile
+installs.&lt;/li>
+&lt;li>The repo owns the Dockerfile (CODEOWNERS resolves cleanly).&lt;/li>
+&lt;li>The repo&amp;rsquo;s CI builds the image and exposes a smoke test the
+agent can invoke.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Application-package CVEs (npm, pip, Go modules, etc.) — those
+go through the &lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">vulnerable-dependency workflow&lt;/a>.&lt;/li>
+&lt;li>Curated-base creation, distroless rebases, or OS-family changes
+— those are human-driven.&lt;/li>
+&lt;li>Images built outside the repo.&lt;/li>
+&lt;li>CVEs in the kernel or host runtime.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>CVE&lt;/strong> — ID, affected package, fixed version (or fixed image
+tag).&lt;/li>
+&lt;li>&lt;strong>Image&lt;/strong> — registry path, current tag, current digest.&lt;/li>
+&lt;li>&lt;strong>Dockerfile path&lt;/strong> — repo-relative path.&lt;/li>
+&lt;li>&lt;strong>Smoke test command&lt;/strong> — inferred from CI (&lt;code>make smoke&lt;/code>, &lt;code>docker run … &amp;amp;&amp;amp; curl /health&lt;/code>, etc.).&lt;/li>
+&lt;li>&lt;strong>Policy file&lt;/strong> — &lt;code>.sec-auto-remediation.yml&lt;/code> declaring which
+bump magnitudes (patch / minor / major) are auto-eligible.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating a single base-image or OS-package CVE in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">this repository. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR with a Dockerfile edit and a successful rebuild + scan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`TRIAGE.md`&lt;/span> note explaining why the bump is unsafe or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ineffective.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not auto-merge. Do not bundle multiple CVEs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the finding and the policy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the CVE ID, the affected package, the fixed version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (or fixed image tag), and the image coordinate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the policy file. Confirm the bump magnitude implied by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the fix is auto-eligible. If the policy says &amp;#34;human only&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for this magnitude, stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Locate the affected layer
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the Dockerfile. Identify the &lt;span class="sb">`FROM`&lt;/span> line(s) and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package-install layers (&lt;span class="sb">`apt-get install`&lt;/span>, &lt;span class="sb">`apk add`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`dnf install`&lt;/span>, &lt;span class="sb">`microdnf install`&lt;/span>, &lt;span class="sb">`yum install`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine which layer introduces the vulnerable package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Multi-stage builds may have multiple &lt;span class="sb">`FROM`&lt;/span> lines; identify
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> only the one(s) affected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the image derives from an internal curated base
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`internal/...:tag`&lt;/span>), confirm the curated base has been
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bumped upstream first. If not, stop and triage with a link
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to the upstream-bump request.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Pick the bump strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Choose exactly one (and only one):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Tag bump.** Edit the &lt;span class="sb">`FROM`&lt;/span> line to the patched tag.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Digest pin update.** When the repo pins to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`image@sha256:…`&lt;/span>, edit the digest to the registry&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> current tag-resolved digest for the same logical version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Package upgrade.** Edit the package-install line to pin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the patched version (preferred) or add an explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`apt-get upgrade &amp;lt;pkg&amp;gt;`&lt;/span> step before the install.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Curated base bump.** Edit the &lt;span class="sb">`FROM`&lt;/span> tag to the new
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> curated tag and link the upstream curated-base PR in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not refactor the Dockerfile. Do not &amp;#34;clean up while you&amp;#39;re
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">in there.&amp;#34; If a clean fix requires more than the bump, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Rebuild
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Rebuild the image with &lt;span class="sb">`--no-cache`&lt;/span> for the affected layer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> If the cache state is uncertain, rebuild the whole image.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Capture the new digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Run the repo&amp;#39;s smoke test against the rebuilt image. The
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image must start, the health check must pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the smoke test fails, revert and stop with a triage note
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that includes the failure log.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Rescan
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Re-run the image scanner against the rebuilt image.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> The original CVE must be gone.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> The total CVE count must not have increased. If new CVEs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> appeared, list them in the PR body — do not silently ship.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the original CVE is still present (e.g., the patched
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> version was not actually fixed in the new tag), stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/cve-&amp;lt;cve-id&amp;gt;-&amp;lt;image-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][CVE-XXXX-YYYYY] bump &amp;lt;image&amp;gt; for &amp;lt;pkg&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **CVE summary** — ID, package, severity, link to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Strategy used** — which of the four bump shapes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Affected images** — the registry paths that will rebuild.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Affected services** — the manifests / Helm values /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kustomize overlays that pin to those images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Rollout shape** — canary, blue/green, rolling.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Rollback plan** — the previous tag/digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **New CVEs introduced (if any)** — listed with severity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **How to verify locally** — exact build + smoke commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Bump magnitude is not auto-eligible per policy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo&amp;#39;s CI does not have a smoke test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The Dockerfile uses &lt;span class="sb">`latest`&lt;/span>, a moving major-version tag, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a missing tag (flag and triage; do not silently pin).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rebuilt image fails the smoke test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Re-scan still shows the original CVE or shows new CVEs the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy treats as blocking.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix would require a multi-stage refactor or an OS-family
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not edit application source.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not edit CI, deploy manifests (the reviewer drives those),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or release pipelines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not push to the registry — the agent&amp;#39;s credentials are
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pull-only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle multiple CVEs.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (happy path) with a successfully rebuilt and
+rescanned image, or a &lt;code>TRIAGE.md&lt;/code> note (stop condition).&lt;/li>
+&lt;li>Audit record includes the new digest, the scanner output, and
+the smoke-test result.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>One CVE, one image, one PR.&lt;/strong> Bundling masks regressions.&lt;/li>
+&lt;li>&lt;strong>Rescan required.&lt;/strong> No PR opens until the rebuilt image
+scans clean for the target CVE.&lt;/li>
+&lt;li>&lt;strong>Smoke test required.&lt;/strong> &amp;ldquo;It builds&amp;rdquo; is not &amp;ldquo;it works.&amp;rdquo;&lt;/li>
+&lt;li>&lt;strong>Layer cache is not a fix.&lt;/strong> Rebuild with &lt;code>--no-cache&lt;/code> for
+the affected layer.&lt;/li>
+&lt;li>&lt;strong>No &lt;code>latest&lt;/code>.&lt;/strong> The agent never introduces or relies on a
+moving tag.&lt;/li>
+&lt;li>&lt;strong>Pull-only credentials.&lt;/strong> Push happens from CI, not from
+the agent.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— the lockfile-shaped sibling.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+— when the bump is the wrong fix because the &lt;em>publisher&lt;/em> is
+compromised.&lt;/li>
+&lt;/ul></description></item></channel></rss>

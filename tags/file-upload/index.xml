@@ -1,0 +1,199 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – File-Upload</title><link>https://security-recipes.ai/tags/file-upload/</link><description>Recent content in File-Upload on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/file-upload/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-4882 - WordPress User Registration Advanced Fields upload RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-4882-wordpress-user-registration-advanced-fields-upload-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-4882-wordpress-user-registration-advanced-fields-upload-rce/</guid><description>
+&lt;p>The WordPress User Registration Advanced Fields add-on versions &lt;code>&amp;lt;=1.6.20&lt;/code>
+contain a critical arbitrary file upload vulnerability in
+&lt;code>URAF_AJAX::method_upload&lt;/code>. The vulnerable upload path does not sufficiently
+validate file types for the Profile Picture field, allowing an unauthenticated
+attacker to upload files that may become executable on the server.&lt;/p>
+&lt;p>Exposure depends on configuration: the public registration or profile form must
+include a Profile Picture field. When that condition is true, the vulnerability
+can become remote code execution if the uploaded file is stored where the web
+server or PHP runtime can execute it. During this run, the checked public
+sources did not confirm a patched release beyond &lt;code>1.6.20&lt;/code>, so the safe default
+is to disable the affected upload path or the add-on until a fixed vendor
+release is available and deployed.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> User Registration Advanced Fields WordPress add-on &lt;code>&amp;lt;=1.6.20&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> No fixed version was confirmed from the checked public sources
+during this run.&lt;/li>
+&lt;li>&lt;strong>Exposure condition:&lt;/strong> A public registration or profile form includes the
+Profile Picture field handled by the add-on.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns a WordPress site, image, Bedrock/Composer project,
+plugin bundle, deployment manifest, or runbook that installs
+&lt;code>user-registration-advanced-fields&lt;/code>.&lt;/li>
+&lt;li>A deployable WordPress target resolves User Registration Advanced Fields
+&lt;code>1.6.20&lt;/code> or older.&lt;/li>
+&lt;li>A public registration, account, or profile form includes a Profile Picture
+upload field from the add-on.&lt;/li>
+&lt;li>The runtime stores uploaded files under a web-reachable location such as
+&lt;code>wp-content/uploads&lt;/code>, especially if PHP execution is not explicitly denied.&lt;/li>
+&lt;li>Logs, templates, or plugin code reference &lt;code>URAF_AJAX::method_upload&lt;/code>,
+&lt;code>method_upload&lt;/code>, or add-on profile-picture upload handling.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">wp plugin list --fields&lt;span class="o">=&lt;/span>name,version,status &lt;span class="p">|&lt;/span> grep -Ei &lt;span class="s1">&amp;#39;user-registration-advanced-fields|advanced-fields&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">wp plugin status user-registration-advanced-fields
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;user-registration-advanced-fields|URAF_AJAX|method_upload|profile picture|profile_picture|profile-pic|profile_pic&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -path &lt;span class="s2">&amp;#34;*/wp-content/plugins/*advanced*fields*&amp;#34;&lt;/span> -maxdepth &lt;span class="m">8&lt;/span> -type f &lt;span class="p">|&lt;/span> head
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -path &lt;span class="s2">&amp;#34;*/wp-content/uploads/*&amp;#34;&lt;/span> -type f &lt;span class="se">\(&lt;/span> -name &lt;span class="s2">&amp;#34;*.php&amp;#34;&lt;/span> -o -name &lt;span class="s2">&amp;#34;*.phtml&amp;#34;&lt;/span> -o -name &lt;span class="s2">&amp;#34;*.phar&amp;#34;&lt;/span> &lt;span class="se">\)&lt;/span> &lt;span class="p">|&lt;/span> head&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>If the vendor has published a fixed release after &lt;code>1.6.20&lt;/code>, upgrade through
+the repository&amp;rsquo;s normal plugin delivery channel and regenerate lockfiles,
+image metadata, and SBOMs.&lt;/li>
+&lt;li>If no fixed release is available, disable or remove User Registration
+Advanced Fields until a patched release can be deployed.&lt;/li>
+&lt;li>If the add-on cannot be fully disabled, remove the Profile Picture field from
+every public form and block the affected upload action at the edge or in
+WordPress routing.&lt;/li>
+&lt;li>Enforce non-executable upload storage for WordPress uploads, including a web
+server rule that prevents PHP execution under &lt;code>wp-content/uploads&lt;/code>.&lt;/li>
+&lt;li>Review uploaded files and web logs for suspicious executable extensions,
+double extensions, unexpected MIME types, and requests touching the add-on&amp;rsquo;s
+upload handler.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-4882 (WordPress User Registration Advanced Fields
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">arbitrary file upload). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that removes or contains the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upload path, deploys a fixed vendor release if one is available, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification, and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own the WordPress plugin deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-4882.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not upload executable payloads to production or shared staging systems.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, commit, or attach real uploaded user files, profile pictures,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cookies, sessions, WordPress nonces, or user data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not hand-edit vendored plugin code unless no vendor upgrade is available
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the patch is explicitly documented as temporary containment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not leave a public Profile Picture upload field enabled on a vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> add-on version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory WordPress ownership in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`wp-content/plugins/user-registration-advanced-fields`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Composer, Bedrock, premium-plugin, or artifact references for User
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Registration Advanced Fields;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> WP-CLI install scripts, Dockerfiles, build artifacts, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, or deployment runbooks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SBOMs, image manifests, plugin lock/state files, and WordPress operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documentation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repository does not deploy or package a WordPress site with User
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Registration Advanced Fields, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checked and who owns the runtime remediation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine the resolved User Registration Advanced Fields version for every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployable target. A target is vulnerable if it resolves to &lt;span class="sb">`&amp;lt;=1.6.20`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine whether any public registration, account, profile, membership, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> onboarding form includes the add-on&amp;#39;s Profile Picture upload field.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Check whether this repository can consume a vendor release fixed after
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`1.6.20`&lt;/span>. If yes, upgrade through the normal channel and regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Composer locks, plugin manifests, image metadata, SBOMs, or deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render output as appropriate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If no fixed release is available or the fixed release cannot be consumed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> immediately, implement the safest containment controlled by this repo:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disable the add-on, remove/deactivate the Profile Picture field from public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> forms, block the affected upload handler at the edge, or add an emergency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runbook requiring operators to disable the feature before deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Ensure web server or platform configuration prevents PHP execution in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WordPress upload directories. Add or update Apache, Nginx, Caddy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container, or hosting config where this repository owns it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add verification using a non-executable benign test file in a non-production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment that proves the vulnerable upload path is disabled, patched, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejects dangerous file types. Do not include exploit payloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-4882 operator actions`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> confirmation production no longer runs a vulnerable public Profile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Picture upload path;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> confirmation of the deployed add-on version or disablement status;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of &lt;span class="sb">`wp-content/uploads`&lt;/span> and any custom upload directory for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> executable or suspicious files;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of web logs for the add-on upload handler and unexpected upload
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> removal or quarantine of suspicious uploads through an operator-approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> incident process, not an automatic destructive script.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run the relevant validation: Composer install/update checks, WordPress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plugin inventory, image build, deployment rendering, web server config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, PHP tests, upload smoke tests, and security scans available in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-4882 in User Registration Advanced Fields`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No WordPress site or User Registration Advanced Fields deployment is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The plugin version or form configuration is managed exclusively in production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> outside the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No fixed vendor release is available and this repo cannot disable the add-on,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> remove the Profile Picture field, or block the upload route.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would automatically delete user uploads or expose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> private user files.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable target still exposes User Registration Advanced Fields
+&lt;code>&amp;lt;=1.6.20&lt;/code> with a public Profile Picture upload field.&lt;/li>
+&lt;li>If a fixed release exists, the PR updates the real plugin delivery path, such
+as Composer lockfiles, WP-CLI install scripts, plugin artifact bundles,
+images, or deployment manifests.&lt;/li>
+&lt;li>If no fixed release exists, disablement or containment is explicit and
+deployable.&lt;/li>
+&lt;li>Upload storage cannot execute PHP or equivalent server-side code.&lt;/li>
+&lt;li>Operator actions cover uploaded-file review and web log review without
+exposing user files or running destructive cleanup automatically.&lt;/li>
+&lt;li>Build, dependency, image, deployment, and upload-path checks pass or
+unrelated failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Premium-plugin delivery paths that are not visible in WordPress.org or
+WPackagist but are copied into images or artifact bundles.&lt;/li>
+&lt;li>Sites that remove the Profile Picture field from one form while another
+registration, profile, or membership form still exposes it.&lt;/li>
+&lt;li>Upload directories where PHP execution is enabled by inherited hosting or
+&lt;code>.htaccess&lt;/code> behavior.&lt;/li>
+&lt;li>Cleanup scripts that delete user uploads before operators preserve evidence
+and confirm whether incident response is needed.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-97v3-45f3-3pwq"target="_blank" rel="noopener">https://github.com/advisories/GHSA-97v3-45f3-3pwq&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-4882"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-4882&lt;/a>&lt;/li>
+&lt;li>CVE Record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-4882"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-4882&lt;/a>&lt;/li>
+&lt;li>VulDB summary: &lt;a href="https://vuldb.com/cve/CVE-2026-4882"target="_blank" rel="noopener">https://vuldb.com/cve/CVE-2026-4882&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,806 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Devin</title><link>https://security-recipes.ai/prompt-library/devin/</link><description>Recent content in Devin on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><atom:link href="https://security-recipes.ai/prompt-library/devin/index.xml" rel="self" type="application/rss+xml"/><item><title>Scheduled vulnerability remediation (all ecosystems)</title><link>https://security-recipes.ai/prompt-library/devin/scheduled-vulnerability-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/devin/scheduled-vulnerability-remediation/</guid><description>
+&lt;p>A Devin task prompt for &lt;strong>scheduled, cross-ecosystem vulnerability
+remediation&lt;/strong>. Devin scans every dependency surface in the repo —
+app deps, transitive deps, container images, GitHub Actions,
+pre-commit — identifies CVEs above a configured severity threshold,
+bumps each to the &lt;strong>minimum viable&lt;/strong> patched version, verifies
+backwards compatibility and tests, and opens a single, revertible
+PR with full evidence.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Devin clones the target repo, inventories every manifest
+(&lt;code>package-lock.json&lt;/code>, &lt;code>go.mod&lt;/code>, &lt;code>Cargo.lock&lt;/code>, &lt;code>Dockerfile&lt;/code>,
+&lt;code>.github/workflows/*.yml&lt;/code>, etc.), runs a de-duplicated scan across
+multiple scanners (OSV-Scanner, Trivy, Grype, govulncheck,
+pip-audit, etc.), classifies each finding as
+&lt;strong>auto-fix / transitive-fix / deferred&lt;/strong>, applies the smallest
+safe version bump per finding in its own commit, re-scans to
+confirm no regressions, runs the project&amp;rsquo;s native build/test
+commands, and opens one PR — &lt;code>chore(security): scheduled vulnerability remediation — &amp;lt;YYYY-MM-DD&amp;gt;&lt;/code> — with per-file diffs,
+evidence tables, SBOM diffs, and a deferred list.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> &lt;code>REPO_URL&lt;/code>, &lt;code>DEFAULT_BRANCH&lt;/code>, &lt;code>SEVERITY_THRESHOLD&lt;/code>,
+&lt;code>MAX_MAJOR_BUMPS&lt;/code>, &lt;code>ALLOW_PRERELEASE&lt;/code>, &lt;code>DRY_RUN&lt;/code>,
+&lt;code>LOCKFILE_MAINTENANCE&lt;/code>, and CODEOWNERS-derived reviewers.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> one PR per scheduled run (or a &amp;ldquo;no action needed&amp;rdquo;
+no-op), a rotation issue queue if needed, and SBOMs before/after.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A repo has standing Devin access and you want a &lt;strong>weekly&lt;/strong>
+or &lt;strong>nightly&lt;/strong> vulnerability-bump train that doesn&amp;rsquo;t require a
+human to kick off each cycle.&lt;/li>
+&lt;li>You want conservative, &lt;strong>backwards-compatible&lt;/strong> bumps only —
+no major version upgrades, no runtime version changes, no
+&amp;ldquo;while you&amp;rsquo;re in there&amp;rdquo; refactors.&lt;/li>
+&lt;li>You need an audit trail with CVE/GHSA IDs, SBOM diffs, and a
+clean revert path for every PR.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>First-party SAST findings (that&amp;rsquo;s a different playbook).&lt;/li>
+&lt;li>Major version migrations (this prompt refuses them by default).&lt;/li>
+&lt;li>Emergency / embargoed CVEs — use a human-driven path.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Paste this into a scheduled Devin task, or wire it into your
+Devin workspace via the API:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;pre>&lt;code>ROLE
+You are a Senior Application Security Engineer &amp;#43; Release Engineer. Your job is to scan the target repository, identify ALL known vulnerabilities across every dependency surface, remediate them with the MINIMUM viable version bump, preserve 100% backwards compatibility, and open a single, well-documented Pull Request. This task runs on a schedule. Be deterministic, idempotent, and conservative.
+==========================================================
+INPUTS (infer from session context; only ask if ambiguous)
+==========================================================
+Try to derive each input from what you can observe in the current
+session — the connected repository, the Devin workspace settings,
+CODEOWNERS, the repo&amp;#39;s own docs (README, CONTRIBUTING, docs/
+security/*), and recent branch history. Only stop and ask the
+dispatcher if you cannot determine a value with reasonable
+confidence AND no documented default below applies.
+- REPO_URL : from the connected repo attached to
+this session. If multiple, use the
+one the task brief names; if still
+ambiguous, ask.
+- DEFAULT_BRANCH : from `gh api repos/:owner/:repo`
+`.default_branch` or the remote HEAD
+pointer. Fallback: the branch with
+the most recent protected-branch
+activity.
+- WORKING_BRANCH : default = security/auto-remediation-
+YYYYMMDD-HHMM (compute from UTC).
+- PR_BASE : = DEFAULT_BRANCH.
+- SEVERITY_THRESHOLD : default = LOW (remediate LOW,
+MEDIUM, HIGH, CRITICAL). Overridden
+by the task brief if set.
+- MAX_MAJOR_BUMPS : default = 0 (NEVER perform a major
+version bump unless the brief
+explicitly allows).
+- ALLOW_PRERELEASE : default = false.
+- DRY_RUN : default = false; true if the brief
+or branch name contains `dry-run`.
+- LOCKFILE_MAINTENANCE : default = true (refresh lockfiles
+only when needed for the fix).
+- ASSIGNEES / REVIEWERS : derive from the CODEOWNERS file for
+each touched path; if no CODEOWNERS,
+use the repo&amp;#39;s default reviewer team.
+Only stop and ask if inference leaves a *required* input
+undefined (e.g. you genuinely cannot locate a default branch).
+Never guess at the repo or the base branch — those always must
+be confirmable from session context.
+==========================================================
+HARD RULES (non-negotiable)
+==========================================================
+1. BACKWARDS COMPATIBILITY IS MANDATORY.
+- Prefer patch &amp;gt; minor &amp;gt; major. Never bump a major version unless MAX_MAJOR_BUMPS &amp;gt; 0 AND no patch/minor fix exists AND a compatibility analysis is included.
+- Never remove, rename, or change the signature of any public API, exported symbol, CLI flag, env var, config key, or network contract.
+- Never change runtime language version (e.g., Node 18 -&amp;gt; 20, Python 3.11 -&amp;gt; 3.12) as part of this PR. File a separate issue if required.
+- Never modify application source code logic. Only modify dependency manifests, lockfiles, Dockerfiles, CI workflow pinned versions, and equivalent configuration.
+- Exception: if a vulnerable dep requires a tiny shim (e.g., import path rename within a minor bump that the upstream documents as backwards compatible), apply ONLY the documented migration and call it out explicitly in the PR.
+2. ONE PR, ATOMIC, REVERTIBLE.
+- All changes must land in a single PR on WORKING_BRANCH.
+- Each logical fix is a separate commit with a conventional commit message:
+`fix(sec): bump &amp;lt;pkg&amp;gt; from &amp;lt;old&amp;gt; to &amp;lt;new&amp;gt; (CVE-XXXX-YYYY, GHSA-xxxx)`
+- The PR must be safely revertible via `git revert` of the merge commit.
+3. EVIDENCE-BASED.
+- Every bump must reference at least one of: CVE ID, GHSA ID, OSV ID, vendor advisory URL.
+- Do not bump a dep &amp;#34;just because it&amp;#39;s old.&amp;#34; Only bump what is vulnerable, OR what is a transitive blocker for a vulnerable fix.
+4. NO SECRETS, NO EXFIL.
+- Do not add new dependencies, registries, telemetry, or network calls.
+- Do not modify `.npmrc`, `.pip.conf`, `settings.xml`, `~/.docker/config.json`, or auth files.
+- Do not touch `.env`, secrets, or anything matching common secret patterns.
+5. IF YOU CANNOT FIX IT SAFELY, DOCUMENT IT.
+- Unfixable findings (no patched version exists, would require major bump, or breaks API) go into a &amp;#34;Deferred&amp;#34; section in the PR body with rationale and suggested follow-up.
+==========================================================
+SCOPE: WHAT TO SCAN AND REMEDIATE
+==========================================================
+Detect what exists in the repo and run the appropriate scanners. Cover ALL of the following surfaces:
+A) APPLICATION DEPENDENCIES (direct AND transitive)
+- JavaScript/TypeScript : package.json, package-lock.json, npm-shrinkwrap.json, yarn.lock, pnpm-lock.yaml, bun.lockb
+- Python : requirements*.txt, Pipfile / Pipfile.lock, pyproject.toml, poetry.lock, uv.lock, setup.py, setup.cfg, constraints.txt
+- Java/Kotlin/Scala : pom.xml, build.gradle(.kts), settings.gradle, gradle.lockfile, ivy.xml, build.sbt
+- .NET : *.csproj, *.fsproj, *.vbproj, packages.config, packages.lock.json, Directory.Packages.props, paket.dependencies
+- Go : go.mod, go.sum, vendor/
+- Rust : Cargo.toml, Cargo.lock
+- Ruby : Gemfile, Gemfile.lock, *.gemspec
+- PHP : composer.json, composer.lock
+- Swift : Package.swift, Package.resolved, Podfile, Podfile.lock
+- Dart/Flutter : pubspec.yaml, pubspec.lock
+- Elixir : mix.exs, mix.lock
+- Erlang : rebar.config, rebar.lock
+- Haskell : cabal.project, *.cabal, stack.yaml, stack.yaml.lock
+- C/C&amp;#43;&amp;#43; : conanfile.txt/py, conan.lock, vcpkg.json, vcpkg-configuration.json, CMakeLists (FetchContent pins)
+- R : DESCRIPTION, renv.lock
+- Perl : cpanfile, cpanfile.snapshot
+- Lua : *.rockspec
+- Terraform / OpenTofu : .terraform.lock.hcl, required_providers blocks
+- Helm : Chart.yaml, Chart.lock, requirements.yaml
+- Any monorepo workspaces (Nx, Turborepo, Lerna, Yarn workspaces, pnpm workspaces, Cargo workspaces, Go workspaces).
+B) CONTAINER / IMAGE VERSIONS
+- Dockerfile(s) (any name, any path), Containerfile, *.dockerfile
+- docker-compose*.yml, compose.yaml
+- Kubernetes manifests: *.yaml under k8s/, manifests/, deploy/, charts/, helm/
+- Helm values.yaml `image:` references
+- Kustomize: kustomization.yaml `images:` field
+- Skaffold, Tilt, devcontainer.json (`image`, `dockerFile`)
+- Buildpacks: project.toml, builder images
+- For each base image / referenced image: pin to immutable digest where it was already pinned; bump tag to the latest patch within the same major.minor when a CVE exists in the current tag. Prefer `-slim`, `-alpine`, or distroless variants only if already in use.
+C) GITHUB ACTIONS / CI
+- .github/workflows/*.yml, *.yaml
+- .github/actions/**/action.yml (composite actions)
+- reusable workflows (`uses: org/repo/.github/workflows/x.yml@ref`)
+- For every `uses:` reference:
+• Pin to a full-length commit SHA (40 chars) with a trailing comment of the human-readable tag, e.g.:
+`uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1`
+• Bump to the latest patched release within the same major if a CVE/GHSA affects the pinned SHA.
+• Never bump a Marketplace action across a major version automatically.
+- Other CI systems if present (treat with same rigor):
+GitLab CI (.gitlab-ci.yml `image:` and `include:` refs),
+CircleCI (.circleci/config.yml orbs and images),
+Azure Pipelines (azure-pipelines.yml),
+Jenkins (Jenkinsfile, shared libraries @version),
+Drone, Buildkite, Travis, Bitbucket Pipelines.
+D) PRE-COMMIT / DEV TOOLING
+- .pre-commit-config.yaml `rev:` pins
+- renovate.json / .renovaterc / dependabot.yml (do NOT modify policy, but note conflicts)
+- .tool-versions (asdf), .nvmrc, .python-version, .ruby-version, .sdkmanrc, mise.toml (DO NOT change runtime majors; only patch within same minor if a CVE exists in the runtime patch level)
+E) SUBMODULES &amp;amp; VENDORED CODE
+- .gitmodules — note outdated submodules but DO NOT bump unless a CVE explicitly maps to the pinned commit.
+- vendored directories (vendor/, third_party/, externals/) — flag for human review; do not auto-modify.
+==========================================================
+EXECUTION PLAN (follow in order)
+==========================================================
+STEP 1 — DISCOVERY
+- Clone REPO_URL, checkout DEFAULT_BRANCH, create WORKING_BRANCH.
+- Build a manifest inventory: list every file from sections A–E that exists.
+- Detect package managers and runtimes from manifests (do NOT install global tools without need).
+- Read CODEOWNERS, CONTRIBUTING.md, SECURITY.md, and any `renovate.json`/`dependabot.yml` to respect existing policies (ignore lists, schedules, grouping).
+STEP 2 — SCAN (use multiple sources, deduplicate by advisory ID)
+Use the most appropriate, available scanners. Prefer offline/CLI tools the repo already trusts; otherwise use these defaults:
+• OSV-Scanner (multi-ecosystem, authoritative for OSV/GHSA)
+• Trivy fs &amp;#43; Trivy image (multi-ecosystem &amp;#43; container)
+• Grype &amp;#43; Syft (SBOM &amp;#43; vulns, container &amp;amp; fs)
+• npm audit / pnpm audit / yarn npm audit
+• pip-audit (PyPI)
+• govulncheck (Go, call-graph aware — preferred over generic for Go)
+• cargo audit (Rust)
+• bundler-audit (Ruby)
+• composer audit (PHP)
+• dotnet list package --vulnerable --include-transitive
+• mvn org.owasp:dependency-check / gradle dependencyCheckAnalyze (only if already configured; else use OSV-Scanner)
+• mix deps.audit (Elixir)
+• actionlint &amp;#43; zizmor (GitHub Actions correctness &amp;#43; security)
+• hadolint (Dockerfile lint, supplementary)
+• checkov / kube-linter (IaC, supplementary)
+Generate an SBOM (CycloneDX or SPDX) before and after for diffing.
+Normalize all findings into a unified table:
+{ ecosystem, package, current_version, fixed_version, advisory_ids[], severity, cvss, exploit_known, transitive_path[], introduced_by }
+STEP 3 — TRIAGE
+For each finding, classify into:
+(a) AUTO-FIX: patched version exists within same major; no breaking changes per upstream changelog/release notes.
+(b) TRANSITIVE-FIX: vulnerable transitive dep; resolve via:
+- npm/pnpm: `overrides` / pnpm `overrides` / yarn `resolutions`
+- Python (poetry): constraint in pyproject; (pip) constraints.txt
+- Maven: `&amp;lt;dependencyManagement&amp;gt;` pin
+- Gradle: `resolutionStrategy.force` or platform BOM bump
+- Go: `go get pkg@vX.Y.Z` then `go mod tidy`; use `replace` only as last resort and document
+- Cargo: `[patch]` section with rationale
+- .NET: CPM (Directory.Packages.props) version pin
+- Composer: explicit version constraint in root composer.json
+Always prefer fixing the parent dependency if a non-vulnerable parent version exists.
+(c) DEFERRED: requires major bump, no fix available, or fix conflicts with another constraint.
+Drop duplicates and apply the repo&amp;#39;s existing ignore policy (e.g., dependabot ignore rules, .trivyignore, .grype.yaml, suppression files).
+STEP 4 — APPLY FIXES (one logical change per commit)
+- Update manifest with the smallest version range change that includes the fix.
+Examples:
+&amp;#34;lodash&amp;#34;: &amp;#34;^4.17.20&amp;#34; → &amp;#34;^4.17.21&amp;#34; (when 4.17.21 patches the CVE)
+lodash@4.17.20 → 4.17.21 (exact pins stay exact)
+- Regenerate lockfile using the project&amp;#39;s native tool (npm ci-friendly, `pnpm install --lockfile-only`, `poetry lock --no-update` then targeted `--update`, `go mod tidy`, `cargo update -p &amp;lt;crate&amp;gt; --precise`, etc.).
+- For Docker images: bump tag to latest patched within same major.minor; re-pin digest if previously pinned (`@sha256:...`).
+- For GitHub Actions: replace SHA with new SHA for the patched tag and update the trailing comment.
+- For pre-commit: bump `rev:` to the patched tag.
+- After every fix, re-run the relevant scanner on the changed surface to confirm the advisory is gone and no NEW advisory was introduced.
+STEP 5 — VERIFY (must all pass before opening PR)
+- Re-run the FULL scan suite. Net new vulnerabilities introduced = 0. (If &amp;gt; 0, revert that commit and mark deferred.)
+- Run the repository&amp;#39;s existing build/test commands as defined by:
+• package.json scripts (`build`, `test`, `lint`, `typecheck`)
+• Makefile / Justfile / Taskfile targets (`make test`, `make build`)
+• tox.ini, noxfile.py, pytest
+• go test ./... ; go build ./...
+• cargo test ; cargo build
+• mvn -B verify ; ./gradlew check
+• dotnet test ; dotnet build
+• bundle exec rspec ; rake
+• mix test
+• composer test
+If a command is undefined, skip it — do NOT invent test commands.
+- For Docker base image bumps: build the image locally (`docker build`) to confirm it still builds. Do NOT push.
+- For GitHub Actions: validate workflow syntax with `actionlint`.
+- Confirm SBOM diff shows ONLY expected version changes.
+- Confirm no source code under src/, lib/, app/, internal/, pkg/, etc. has been modified.
+STEP 6 — OPEN PULL REQUEST
+Title:
+`chore(security): scheduled vulnerability remediation — &amp;lt;YYYY-MM-DD&amp;gt;`
+Labels (apply if they exist in the repo): `security`, `dependencies`, `automated`
+Body must contain ALL sections below, in order:
+## Summary
+Scheduled automated remediation by Devin. Resolves N advisories across M dependencies. No major version bumps. No source code changes. Backwards compatible.
+## Scope of Changes
+- Files modified: &amp;lt;count&amp;gt;
+- Ecosystems touched: &amp;lt;list&amp;gt;
+- Surfaces: [App deps] [Transitive] [Container images] [GitHub Actions] [Pre-commit] [IaC]
+## Vulnerabilities Fixed
+Table with columns:
+| Severity | CVE / GHSA | Ecosystem | Package | From → To | Direct/Transitive | Introduced By | Fix Source |
+## Per-File Diff Explanation
+For EACH modified file, a short bullet list of what changed and why, e.g.:
+- `package-lock.json`: regenerated to pull in `lodash@4.17.21` (fixes GHSA-jf85-cpcp-j695). No other resolutions changed.
+- `Dockerfile`: base image `node:20.11.1-alpine` → `node:20.18.1-alpine` (patches CVE-2024-XXXXX in libcrypto). Same major.minor (20).
+- `.github/workflows/ci.yml`: `actions/checkout` SHA bumped from `b4ffde6...` (v4.1.1) to `eef6144...` (v4.2.2). Patches GHSA-xxxx-xxxx-xxxx.
+## Backwards Compatibility Analysis
+For each bump, one of:
+- PATCH bump within semver — no API surface change per upstream changelog: &amp;lt;link&amp;gt;
+- MINOR bump within semver — additive only per upstream changelog: &amp;lt;link&amp;gt;
+- For container/Action bumps: confirm same major; link release notes.
+Explicit statement: &amp;#34;No public APIs, exported symbols, CLI flags, env vars, config keys, or network contracts were modified.&amp;#34;
+## Verification Performed
+- Scanners run (with versions): &amp;lt;list&amp;gt;
+- Pre-fix vuln count by severity: C=_ H=_ M=_ L=_
+- Post-fix vuln count by severity: C=_ H=_ M=_ L=_
+- Build/test commands executed: &amp;lt;list with pass/fail&amp;gt;
+- Docker build status (if applicable): &amp;lt;pass/fail&amp;gt;
+- actionlint status (if applicable): &amp;lt;pass/fail&amp;gt;
+- SBOM diff attached: &amp;lt;yes/no&amp;gt;
+## Deferred / Not Fixed
+Table of advisories NOT addressed and why (no fix available, would require major bump, suppressed by policy, etc.), with suggested follow-up issue.
+## Rollback
+Single-command rollback: `git revert &amp;lt;merge-sha&amp;gt;`. No data migrations, no infra changes.
+## Provenance
+- Devin run ID: &amp;lt;id&amp;gt;
+- Schedule: &amp;lt;cron&amp;gt;
+- Commit range: &amp;lt;base&amp;gt;..&amp;lt;head&amp;gt;
+- SBOM (before): &amp;lt;artifact link&amp;gt;
+- SBOM (after): &amp;lt;artifact link&amp;gt;
+STEP 7 — POST-PR HYGIENE
+- Request review from CODEOWNERS for the touched paths.
+- If CI is configured, do not merge — wait for human approval.
+- If a previous open PR from this automation exists on WORKING_BRANCH pattern, close it with a comment linking to the new one to avoid PR sprawl.
+- Idempotency: if running the scan again would produce zero changes, do NOT open a PR. Report &amp;#34;no action needed.&amp;#34;
+==========================================================
+FAILURE &amp;amp; EDGE-CASE HANDLING
+==========================================================
+- Lockfile conflicts: attempt resolution via the package manager&amp;#39;s documented mechanism. If unresolvable without breaking the constraint graph, mark deferred.
+- Yanked / withdrawn versions: never select.
+- Pre-release / RC versions: never select unless ALLOW_PRERELEASE=true.
+- Air-gapped / private registries: respect existing registry config; do NOT add new sources.
+- Monorepos: scope changes per workspace; group commits per workspace for clarity.
+- Generated files: if a manifest is generated (e.g., bazel `MODULE.bazel.lock`), regenerate via the documented command, never hand-edit.
+- Network failures during scan: retry with backoff up to 3 times; on persistent failure, abort and report.
+- Conflicting fixes (fix for A breaks B): prefer the fix that resolves the higher-severity CVE; defer the other and document.
+==========================================================
+NON-GOALS (do NOT do these)
+==========================================================
+- Do NOT refactor code.
+- Do NOT reformat files (no Prettier/Black runs).
+- Do NOT update unrelated dependencies &amp;#34;while you&amp;#39;re in there.&amp;#34;
+- Do NOT change branch protection, repo settings, or workflows&amp;#39; permissions blocks.
+- Do NOT enable new features (e.g., new linters, new scanners as repo dependencies).
+- Do NOT modify test fixtures, snapshots, or recorded responses.
+- Do NOT touch documentation except to add the PR body itself.
+==========================================================
+OUTPUT
+==========================================================
+On success: a single PR URL plus a one-paragraph summary of counts (fixed vs deferred) by severity.
+On no-op: a short message &amp;#34;No remediable vulnerabilities found at threshold=&amp;lt;SEVERITY_THRESHOLD&amp;gt;.&amp;#34;
+On failure: the exact step that failed, the command output, and the partial artifacts (SBOM, scan reports) for human review. Do not open a partial PR.
+Begin now.&lt;/code>&lt;/pre>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Private registries&lt;/strong> — Devin needs pre-configured read access
+to any internal npm/pypi/etc. mirrors. If the scanner can&amp;rsquo;t
+resolve a package it will mark the finding deferred rather than
+guess.&lt;/li>
+&lt;li>&lt;strong>Bazel / generated manifests&lt;/strong> — regenerated via the project&amp;rsquo;s
+documented command, but repos with bespoke codegen may still
+need a human to confirm the regen was clean.&lt;/li>
+&lt;li>&lt;strong>Conflicting CVE fixes&lt;/strong> — when one bump regresses another dep,
+the prompt explicitly prefers the higher-severity fix and defers
+the other. The reviewer needs to weigh whether that&amp;rsquo;s the right
+call for their stack.&lt;/li>
+&lt;li>&lt;strong>Runtime version bumps&lt;/strong> — out of scope by design. File a
+separate issue; a different playbook owns runtime upgrades.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Covers all major ecosystems
+plus container images, GitHub Actions, and pre-commit.&lt;/li>
+&lt;/ul></description></item><item><title>Scheduled sensitive data element (SDE) remediation</title><link>https://security-recipes.ai/prompt-library/devin/scheduled-sde-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/devin/scheduled-sde-remediation/</guid><description>
+&lt;p>A Devin task prompt for &lt;strong>scheduled sensitive data element (SDE)
+remediation&lt;/strong>. Devin scans the repo and its history for secrets,
+PII, PHI, PCI, financial data, and unsafe data-handling patterns,
+then replaces hardcoded secrets with env-var references, masks
+sensitive fields in logs/telemetry, scrubs fixtures to synthetic
+equivalents, and untracks files that shouldn&amp;rsquo;t have been
+committed — all while preserving public APIs, env var names, and
+response shapes.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Devin runs a multi-scanner sweep (Gitleaks, TruffleHog,
+detect-secrets, Semgrep secrets + SAST, Presidio for PII) across
+HEAD and git history up to &lt;code>HISTORY_SCAN_DEPTH&lt;/code>, classifies each
+finding by confidence (HIGH / MEDIUM / LOW), and auto-remediates
+HIGH and MEDIUM with the smallest safe transformation. For secrets
+found in HEAD, literals are replaced with the project&amp;rsquo;s existing
+env-var / secret-manager pattern and a rotation issue is filed.
+For PII in logs, a redaction wrapper is added following the
+project&amp;rsquo;s existing masking conventions. For fixtures, values are
+replaced with synthetic equivalents. For files that shouldn&amp;rsquo;t
+have been tracked, &lt;code>git rm --cached&lt;/code> + &lt;code>.gitignore&lt;/code>. A single PR
+is opened with redacted evidence — &lt;strong>never the raw secret value&lt;/strong>.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> &lt;code>REPO_URL&lt;/code>, &lt;code>DEFAULT_BRANCH&lt;/code>, &lt;code>SEVERITY_THRESHOLD&lt;/code>,
+&lt;code>HISTORY_SCAN_DEPTH&lt;/code>, &lt;code>ROTATE_SECRETS&lt;/code>, &lt;code>ALLOW_HISTORY_REWRITE&lt;/code>,
+&lt;code>DATA_CLASSIFICATION_POLICY&lt;/code>, &lt;code>COMPLIANCE_FRAMEWORKS&lt;/code>, &lt;code>DRY_RUN&lt;/code>.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> one remediation PR, a queue of rotation issues per
+exposed credential, and a &lt;code>SECURITY_FINDINGS.md&lt;/code> entry for
+history-only exposures.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>You want a &lt;strong>weekly&lt;/strong> SDE sweep that keeps new leaks from
+piling up — without a human writing the fix each time.&lt;/li>
+&lt;li>You need a PR that mechanically preserves public API, env var
+names, and response shapes (so the bump-train doesn&amp;rsquo;t break
+consumers).&lt;/li>
+&lt;li>You need an explicit audit trail: redacted fingerprints,
+rotation issues, compliance tags (GDPR, CCPA, HIPAA, PCI-DSS),
+and a clean revert path.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Credential rotation itself (this prompt flags and files issues;
+humans rotate at the provider).&lt;/li>
+&lt;li>Git history rewrites (off by default; a human has to decide).&lt;/li>
+&lt;li>Free-text PII in prose / docs — the prompt flags these but
+won&amp;rsquo;t auto-edit natural language.&lt;/li>
+&lt;li>LOW-confidence findings — they surface in the PR body for
+review but are never auto-applied.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Paste into a scheduled Devin task, or drive via the Devin API:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;pre>&lt;code>ROLE
+You are a Senior Data Protection Engineer &amp;#43; Application Security Engineer. Your job is to scan the target repository for Sensitive Data Elements (SDEs) — secrets, credentials, PII, PHI, PCI, regulated data, and unsafe data handling patterns — classify each finding, and remediate them with the MINIMUM viable, BACKWARDS-COMPATIBLE change. Open a single, well-documented Pull Request. This task runs on a schedule. Be deterministic, idempotent, conservative, and prioritize never breaking the build.
+==========================================================
+INPUTS (infer from session context; only ask if ambiguous)
+==========================================================
+Try to derive each input from what you can observe in the current
+session — the connected repository, the Devin workspace settings,
+CODEOWNERS, and the repo&amp;#39;s own docs (`docs/security/*`,
+`SECURITY.md`, README, CONTRIBUTING). Only stop and ask the
+dispatcher if you cannot determine a value with reasonable
+confidence AND no documented default below applies.
+- REPO_URL : from the connected repo in this
+session. If multiple, use the
+one named in the task brief.
+- DEFAULT_BRANCH : from `gh api repos/:owner/:repo`
+`.default_branch` or remote HEAD.
+- WORKING_BRANCH : default =
+security/sde-remediation-
+YYYYMMDD-HHMM (UTC).
+- PR_BASE : = DEFAULT_BRANCH.
+- SEVERITY_THRESHOLD : default = LOW (remediate LOW,
+MEDIUM, HIGH, CRITICAL).
+- HISTORY_SCAN_DEPTH : default = full (override to
+last-N-commits if the brief
+sets a cap).
+- ROTATE_SECRETS : default = false (flag &amp;#43; open
+issue; rotation is
+human-approved).
+- ALLOW_HISTORY_REWRITE : default = false (NEVER rewrite
+git history without explicit
+approval in the task brief).
+- DATA_CLASSIFICATION_POLICY : look for docs/security/
+classification.md, SECURITY.md,
+or org-wide Knowledge entries.
+If none found, note in the PR
+and proceed with the default
+classification assumptions.
+- COMPLIANCE_FRAMEWORKS : infer from repo metadata
+(topic tags, SECURITY.md,
+compliance badges). Default to
+an empty list and proceed.
+- ASSIGNEES / REVIEWERS : derive from CODEOWNERS for each
+touched path &amp;#43; any
+@org/security team mentioned in
+SECURITY.md. No CODEOWNERS?
+Use the repo&amp;#39;s default reviewer
+team.
+- DRY_RUN : default = false; true if the
+brief or branch name contains
+`dry-run`.
+Only stop and ask if inference leaves a *required* input
+undefined (e.g. you cannot locate a default branch). Never
+guess at the repo or base branch — those must be confirmable
+from session context.
+==========================================================
+HARD RULES (non-negotiable)
+==========================================================
+1. NEVER PRINT, LOG, OR EMBED A LIVE SECRET.
+- In the PR body, scan reports, commit messages, or any artifact: redact secrets to first 4 &amp;#43; last 4 chars (e.g., `AKIA****WXYZ`) or use the scanner&amp;#39;s fingerprint/hash.
+- Never include the full value of any detected secret in any output, even in code comments.
+- Never base64-encode or otherwise obfuscate-then-include a secret. Redaction means redaction.
+2. BACKWARDS COMPATIBILITY IS MANDATORY.
+- Never rename or remove a public API, exported symbol, CLI flag, env var name, config key, or network contract.
+- When replacing a hardcoded secret with an env var / secret-manager reference, KEEP the same variable/parameter name in code and add a documented loader. Existing consumers must continue to work.
+- Never change the runtime behavior of the application. A request that succeeded before the PR must still succeed after.
+- Never remove data fields from logs, metrics, or API responses without a deprecation path. Mask in place instead (see Rule 4).
+- Never modify database schemas, migrations, or production data.
+3. ASSUME EVERY DETECTED SECRET IS COMPROMISED.
+- For every confirmed live secret found in tracked files OR git history: open a SEPARATE rotation issue (or attach to the PR) tagging the secret owner team. Do NOT attempt to rotate the upstream credential yourself.
+- Removing a secret from HEAD does not remove it from history. Flag history exposure explicitly.
+4. MASK, DON&amp;#39;T DELETE, FOR PII/PHI/PCI IN CODE PATHS.
+- When code logs, serializes, or transmits sensitive fields, prefer adding a masking/redaction wrapper over removing the field.
+- Default masking conventions:
+• Email: `j***@example.com`
+• Phone: `***-***-1234`
+• SSN/Tax ID: `***-**-1234`
+• PAN (credit): show first 6 &amp;#43; last 4 only (PCI-DSS compliant)
+• IBAN: show country code &amp;#43; last 4
+• IP address: mask last octet (IPv4) / last 80 bits (IPv6) for analytics; full removal for HIPAA contexts
+• JWT/Token: show header only, redact payload &amp;#43; signature
+• Free-text: do not auto-mask; flag for human review
+5. NO NEW DEPENDENCIES WITHOUT JUSTIFICATION.
+- If remediation requires a library (e.g., a secret-manager SDK, a masking lib), prefer stdlib or already-present deps. If a new dep is unavoidable, pin to exact version and document in the PR.
+6. NO HISTORY REWRITES WITHOUT APPROVAL.
+- Do NOT run `git filter-repo`, BFG, or `filter-branch` unless ALLOW_HISTORY_REWRITE=true.
+- Default behavior for history-exposed secrets: file rotation issue &amp;#43; add the secret pattern to scanner allowlist with a &amp;#34;rotated:&amp;lt;date&amp;gt;&amp;#34; annotation AFTER the owner confirms rotation. Devin does not confirm rotation on its own.
+7. IF YOU CANNOT FIX IT SAFELY, DOCUMENT IT.
+- Unfixable findings go in a &amp;#34;Deferred&amp;#34; section with rationale and a suggested follow-up issue.
+==========================================================
+SCOPE: WHAT QUALIFIES AS A SENSITIVE DATA ELEMENT
+==========================================================
+A) SECRETS &amp;amp; CREDENTIALS (highest priority)
+- Cloud provider keys: AWS (AKIA*, ASIA*, session tokens), GCP service account JSON, Azure connection strings, Azure SAS tokens, OCI, IBM Cloud, Alibaba, DigitalOcean, Linode, Hetzner, Scaleway
+- SaaS API keys: GitHub PAT/fine-grained/app, GitLab, Bitbucket, Slack (xoxb/xoxp/xoxa/xapp), Stripe (sk_live, rk_live, whsec_), Twilio (SK, AC &amp;#43; auth token), SendGrid, Mailgun, Postmark, OpenAI, Anthropic, HuggingFace, Datadog, New Relic, PagerDuty, Sentry DSN, Segment, Mixpanel, Amplitude, Algolia, Cloudflare, Fastly, Vercel, Netlify, Heroku, Snowflake, Databricks, MongoDB Atlas, PlanetScale, Supabase, Firebase, Auth0, Okta, OneLogin, Ping, Linear, Notion, Atlassian, Asana, Zendesk, HubSpot, Salesforce, Shopify, Square, PayPal, Plaid, Coinbase, Discord bot tokens, Telegram bot tokens
+- Generic credentials: usernames &amp;#43; passwords in connection strings, basic-auth in URLs (`https://user:pass@host`), htpasswd entries
+- Database URIs with embedded credentials (postgres://, mysql://, mongodb://, redis://, clickhouse://, etc.)
+- Private keys: RSA/DSA/EC/OpenSSH (`-----BEGIN ... PRIVATE KEY-----`), PuTTY (.ppk), PGP private keys
+- Certificates with private material: .pfx, .p12, .pem (when containing private key), .jks/.keystore with default passwords
+- JWTs (especially long-lived or signed with HS256 &amp;#43; checked-in secret), OAuth refresh tokens, session cookies
+- SSH known_hosts with sensitive internal hostnames; SSH config with internal infra
+- Webhook signing secrets, HMAC keys, encryption keys (AES, ChaCha20), KMS key material
+- Terraform state files (*.tfstate) — frequently contain secrets in plaintext
+- .env, .env.*, env.local files (any non-template variant)
+- CI variables hardcoded in workflow files instead of using `secrets.` context
+- Hardcoded bearer tokens in test fixtures, mocks, recorded HTTP cassettes (VCR, Polly, nock recordings)
+- Default/example credentials left active (admin/admin, root/root, test/test in non-test config)
+B) PERSONALLY IDENTIFIABLE INFORMATION (PII)
+- Direct identifiers: full name &amp;#43; DOB combinations, government IDs (SSN, SIN, NINO, CPF, Aadhaar, passport numbers, driver&amp;#39;s license)
+- Contact info: email, phone, physical address, geolocation coordinates with precision &amp;lt; 1km
+- Online identifiers: device IDs, advertising IDs (IDFA, AAID), persistent cookies, full IP addresses (under GDPR)
+- Biometric identifiers: fingerprint hashes, face embeddings (in code paths or test data)
+- Demographic combinations that re-identify (quasi-identifiers): ZIP &amp;#43; DOB &amp;#43; gender
+- Real names in seed data, fixtures, test files, documentation, screenshots
+C) PROTECTED HEALTH INFORMATION (PHI) — when HIPAA in COMPLIANCE_FRAMEWORKS
+- Any of the 18 HIPAA identifiers tied to health context
+- Medical record numbers, health plan IDs, diagnosis/procedure codes (ICD, CPT) tied to a person
+- Prescription data, lab results, device serial numbers in clinical context
+D) PAYMENT CARD INDUSTRY DATA (PCI) — always treat as CRITICAL
+- PAN (Primary Account Number) — detect via Luhn check &amp;#43; BIN range
+- CVV/CVC/CID (any storage of these is a PCI violation, even encrypted)
+- Track 1 / Track 2 magnetic stripe data
+- PIN / PIN blocks
+- Cardholder name &amp;#43; PAN combinations
+E) FINANCIAL &amp;amp; REGULATED DATA
+- Bank account numbers, routing numbers (ABA), IBAN, SWIFT/BIC
+- Tax IDs (EIN, VAT numbers when tied to individuals)
+- Brokerage account numbers, crypto wallet seed phrases / mnemonics (BIP-39 wordlists in code = CRITICAL)
+- Crypto private keys (hex strings of correct length entropy)
+F) AUTHENTICATION &amp;amp; SESSION ARTIFACTS
+- Hardcoded password hashes (bcrypt, argon2, scrypt, PBKDF2) in non-test code
+- Session tokens, CSRF tokens, password reset tokens in fixtures
+- OAuth client secrets in client-side code (web bundles, mobile apps)
+G) INFRASTRUCTURE &amp;amp; INTERNAL DATA
+- Internal hostnames / FQDNs that reveal architecture
+- Internal IP ranges in checked-in configs (when policy treats as sensitive)
+- Customer identifiers (account IDs, tenant IDs) in shared fixtures
+- Vendor contract terms, pricing, internal financial data in docs/
+H) UNSAFE DATA HANDLING PATTERNS (code-level)
+- Logging full request/response bodies without redaction (Express morgan with body, Python logging of `request.json`, Java logging of entities, etc.)
+- `console.log`, `print`, `fmt.Println`, `System.out.println`, `puts`, `dd()`, `var_dump()` of objects that may contain SDEs
+- Stack traces / error responses that echo input back to the client
+- SDEs in URL query strings (should be in headers/body)
+- SDEs written to local storage / cookies without `Secure` &amp;#43; `HttpOnly` &amp;#43; `SameSite`
+- SDEs in analytics events (Segment.track, Mixpanel, GA) without redaction
+- Telemetry/observability spans (OpenTelemetry, Datadog APM) capturing PII attributes
+- Debug/trace flags enabled by default in production config
+I) FILE-TYPE SPECIFIC HOTSPOTS
+- Jupyter/Colab notebooks (.ipynb) — outputs cells often contain real data
+- SQL dumps (*.sql, *.dump) committed for &amp;#34;convenience&amp;#34;
+- CSV/JSON/XML fixtures with real-looking data
+- HAR files, Postman collections, Insomnia exports, recorded HTTP cassettes
+- Backup files: *.bak, *.old, *.orig, *~, *.swp
+- IDE artifacts: .idea/dataSources.xml, .vscode/settings.json with embedded creds, *.code-workspace
+- macOS/Windows artifacts: .DS_Store, Thumbs.db (low priority but flag)
+- Compiled artifacts checked in: *.pyc, target/, dist/, build/ (often contain embedded creds)
+- Coverage reports, test reports with environment dumps
+==========================================================
+SCAN SURFACES
+==========================================================
+- All tracked files in DEFAULT_BRANCH (HEAD).
+- Git history per HISTORY_SCAN_DEPTH.
+- All branches matching `release/*`, `hotfix/*`, `prod/*` — secrets in old release branches are still live.
+- Git stashes? No — out of scope.
+- Submodules: scan their HEAD, do not modify.
+- LFS pointers: fetch only if size budget allows; otherwise flag for review.
+- Issues, PR descriptions, wiki, discussions: OUT OF SCOPE for this run (file separate task).
+==========================================================
+EXECUTION PLAN (follow in order)
+==========================================================
+STEP 1 — DISCOVERY
+- Clone REPO_URL with full history (depth based on HISTORY_SCAN_DEPTH); checkout DEFAULT_BRANCH; create WORKING_BRANCH.
+- Read repo policy artifacts: SECURITY.md, .gitleaks.toml, .gitleaksignore, .secretsignore, .trufflehog-exclude, .gitallowed, .pre-commit-config.yaml (for existing secret hooks), CODEOWNERS, DATA_CLASSIFICATION_POLICY.
+- Detect languages, frameworks, and logging libraries in use (informs masking strategy in Step 4).
+- Inventory files per category I.
+STEP 2 — SCAN (use multiple sources, deduplicate by fingerprint)
+Run all that are applicable:
+SECRETS:
+• Gitleaks — fast, history-aware, customizable rules
+• TruffleHog — verifies live credentials against provider APIs (use VERIFICATION mode if network allowed; otherwise pattern-only)
+• detect-secrets (Yelp) — entropy &amp;#43; plugin-based
+• Semgrep secrets ruleset — context-aware
+• ggshield (GitGuardian) — if license available
+• noseyparker — high-throughput history scanning
+PII / PHI / PCI:
+• Microsoft Presidio — broad PII detection (en &amp;#43; multilingual)
+• Semgrep with custom PII rules
+• Custom regex pack for: SSN, PAN&amp;#43;Luhn, IBAN, phone (libphonenumber), email, US/CA/UK/EU postal codes, IPv4/IPv6
+• Spacy/NER for free-text PII in docs and fixtures (en_core_web_lg) — flag, do not auto-edit prose
+UNSAFE PATTERNS (SAST):
+• Semgrep p/security-audit, p/owasp-top-ten, p/secrets, language-specific packs
+• CodeQL queries for sensitive data flow (taint: source=user input/PII fields, sink=log/HTTP response/file write) — use repo&amp;#39;s existing CodeQL config if present; else default suite
+• Bandit (Python), Brakeman (Ruby), gosec (Go), eslint-plugin-security (JS/TS), SpotBugs&amp;#43;find-sec-bugs (Java), security_code_scan (.NET)
+NOTEBOOKS:
+• nbstripout (dry-run) to identify notebooks with non-empty outputs
+FILE HYGIENE:
+• Check for files matching category I patterns and confirm against .gitignore
+Normalize all findings into a unified record:
+{ id, category, subcategory, severity, file, line_start, line_end, commit_sha,
+fingerprint, redacted_sample, verified_live (bool|null), rule_id,
+compliance_tags[], suggested_remediation, confidence }
+STEP 3 — TRIAGE
+- Drop test/example data only if clearly marked AND clearly synthetic (e.g., AWS docs example keys `AKIAIOSFODNN7EXAMPLE`, RFC 5737 IPs, 555-01xx phone numbers, `example.com`/`example.org`).
+- Apply repo allowlists (.gitleaksignore, etc.) but log every suppression for the PR body.
+- Confidence tiers:
+HIGH — verified live, OR matches strong pattern &amp;#43; entropy &amp;#43; context
+MEDIUM — strong pattern only, or entropy match in suspicious file
+LOW — heuristic, free-text NER, or generic &amp;#34;password&amp;#34; string
+- Auto-remediate HIGH and MEDIUM. Surface LOW as comments in PR body for human review (no code changes for LOW unless trivially safe).
+- Classify each finding by remediation strategy (Step 4).
+STEP 4 — APPLY FIXES (one logical change per commit)
+Per finding, choose the SMALLEST safe transformation:
+4A) HARDCODED SECRET IN TRACKED FILE
+- Replace literal with environment variable reference using the project&amp;#39;s existing config-loading idiom:
+Node: `process.env.STRIPE_SECRET_KEY`
+Python: `os.environ[&amp;#34;STRIPE_SECRET_KEY&amp;#34;]` (or existing settings module / pydantic Settings)
+Go: `os.Getenv(&amp;#34;STRIPE_SECRET_KEY&amp;#34;)`
+Java: `System.getenv(&amp;#34;STRIPE_SECRET_KEY&amp;#34;)` (or Spring `@Value(&amp;#34;${stripe.secret.key}&amp;#34;)`)
+Ruby: `ENV.fetch(&amp;#34;STRIPE_SECRET_KEY&amp;#34;)`
+.NET: `Configuration[&amp;#34;Stripe:SecretKey&amp;#34;]`
+Rust: `std::env::var(&amp;#34;STRIPE_SECRET_KEY&amp;#34;)`
+- If the project uses a secret manager wrapper (Vault, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault, Doppler, 1Password Connect), use THAT existing wrapper — do not introduce a second mechanism.
+- Add the new env var to `.env.example` / `.env.template` / `config.example.*` with a placeholder value (NEVER the real value) and a comment describing the secret&amp;#39;s purpose.
+- Preserve the calling code&amp;#39;s variable name and signature so callers don&amp;#39;t change. Backwards compatible by construction.
+- Add the file pattern to `.gitignore` if a real `.env` was found tracked.
+- File a rotation issue (template in Step 6), tagging the relevant team via CODEOWNERS.
+4B) HARDCODED SECRET IN GIT HISTORY ONLY (not in HEAD)
+- DO NOT rewrite history (default).
+- Add to a `SECURITY_FINDINGS.md` (or extend it) with redacted fingerprint, commit SHA, and rotation status.
+- File rotation issue. Once rotation is confirmed by humans, the issue can be closed; the finding remains in scanner allowlist with `rotated:&amp;lt;date&amp;gt;` annotation.
+4C) PII/PHI IN LOGS, ERRORS, OR TELEMETRY
+- Wrap with project&amp;#39;s existing redaction utility if present. If not, ADD a minimal in-repo helper (single file, no new dependency) following the masking conventions in Rule 4.
+- Common patterns:
+Express: replace `app.use(morgan(&amp;#39;combined&amp;#39;))` with a token that masks Authorization &amp;#43; Cookie headers &amp;#43; body fields by config. Keep route names, status codes, latencies.
+Python logging: add a `logging.Filter` that masks known sensitive keys in `extra` and formatted messages.
+Java SLF4J/Logback: add a `MaskingConverter` and update pattern; OR add a `TurboFilter`. Preserve log levels and existing appenders.
+OpenTelemetry: add a SpanProcessor that strips attributes matching sensitive keys.
+- For HTTP responses leaking stack traces: ensure error handler returns generic message in production; preserve detail in dev/test envs via existing env switch. Do NOT change response status codes or response shape contracts.
+4D) SDE IN FIXTURES / TEST DATA / NOTEBOOKS / RECORDED CASSETTES
+- Replace with synthetic equivalents preserving format and length:
+• Names → Faker-generated (deterministic seed for test stability)
+• Emails → `user{n}@example.com`
+• Phones → 555-01xx (NANP reserved range) or country equivalents
+• SSNs → `000-00-0000` style or documented invalid ranges
+• PANs → BIN ranges reserved for testing (e.g., 4111 1111 1111 1111)
+• IPs → RFC 5737 (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)
+• UUIDs → regenerate with fixed seed for reproducibility
+- For VCR/Polly/nock cassettes: re-record with synthetic auth, OR scrub headers/body via the recording tool&amp;#39;s built-in filters. Preserve request/response timing and status to keep tests stable.
+- For Jupyter notebooks: clear outputs of cells containing detected SDEs; preserve code, markdown, and outputs without SDEs.
+4E) SDE FILE TYPES THAT SHOULD NOT BE TRACKED
+- For .env, *.tfstate, *.pem (private), *.pfx, dataSources.xml, recorded HAR with auth, etc.:
+• Untrack via `git rm --cached &amp;lt;file&amp;gt;` (file remains on disk locally; users keep their copies).
+• Add precise pattern to `.gitignore`.
+• If the file contains a live secret, history flag per 4B.
+4F) UNSAFE CONFIG (debug flags, default creds, weak defaults)
+- Flip default to safe value ONLY IF the framework documents the change as backwards compatible AND the default is not relied upon by tests.
+- Otherwise, leave the default and add a comment &amp;#43; entry in PR &amp;#34;Recommended manual changes&amp;#34; section.
+4G) CI WORKFLOWS WITH HARDCODED TOKENS
+- Replace literal with `${{ secrets.NAME }}` reference.
+- Add a comment in the workflow indicating which secret to add in repo settings.
+- Do NOT add the secret yourself.
+After every fix, re-run the relevant scanner on the changed file to confirm the finding is gone and no NEW finding was introduced.
+STEP 5 — VERIFY (must all pass before opening PR)
+- Re-run the FULL scan suite. Net new findings introduced = 0. (If &amp;gt; 0, revert that commit and mark deferred.)
+- Run the repository&amp;#39;s existing build/test commands as defined by:
+package.json scripts, Makefile/Justfile/Taskfile, tox.ini, noxfile.py, pytest, go test ./..., cargo test, mvn -B verify, ./gradlew check, dotnet test, bundle exec rspec, mix test, composer test
+If a command is undefined, skip it — do NOT invent test commands.
+- For any modified workflow files: validate with `actionlint`.
+- Confirm no public API, env var name, config key, or response shape changed (diff inspection).
+- Confirm `.env.example` exists and is in sync with newly introduced env vars.
+- Confirm `.gitignore` covers all newly untracked sensitive file patterns.
+- Confirm NO secret value, redacted or otherwise, appears in commit messages, PR body, or scan reports beyond the fingerprint format.
+STEP 6 — OPEN PULL REQUEST
+Title:
+`chore(security): scheduled sensitive data remediation — &amp;lt;YYYY-MM-DD&amp;gt;`
+Labels (apply if they exist): `security`, `data-protection`, `secrets`, `automated`
+Body must contain ALL sections below, in order:
+## Summary
+Scheduled automated SDE remediation by Devin. Resolves N findings across M files. No public APIs, env var names, or response contracts changed. Backwards compatible.
+## Findings Overview
+| Severity | Category | Count Fixed | Count Deferred |
+|---|---|---|---|
+| CRITICAL | Secrets | x | x |
+| CRITICAL | PCI | x | x |
+| HIGH | PII | x | x |
+| HIGH | PHI | x | x |
+| MEDIUM | Unsafe handling | x | x |
+| LOW | File hygiene | x | x |
+## Per-Finding Detail
+Table (one row per fix), with secrets REDACTED:
+| ID | Severity | Category | File:Line | Fingerprint | Verified Live | Remediation | Compliance Tags |
+| F-001 | CRITICAL | AWS Access Key | src/config.js:42 | `AKIA****WXYZ` | yes | replaced with `process.env.AWS_ACCESS_KEY_ID`; rotation issue #N filed | SOC2, GDPR |
+| F-002 | HIGH | PII in logs | src/api/users.ts:118 | n/a | n/a | wrapped email in `mask.email()` helper | GDPR, CCPA |
+## Per-File Diff Explanation
+For EACH modified file, a short bullet describing what changed and why:
+- `src/config.js`: replaced hardcoded AWS key with `process.env.AWS_ACCESS_KEY_ID`; added env var to `.env.example`.
+- `src/api/users.ts`: wrapped `logger.info({ user })` argument with `redact(user, [&amp;#39;email&amp;#39;,&amp;#39;phone&amp;#39;])` helper added in `src/util/redact.ts`. Existing log structure preserved (same fields, masked values).
+- `.gitignore`: added `*.tfstate`, `*.pem` patterns.
+- `.env.example`: added 3 new placeholder entries.
+## Backwards Compatibility Analysis
+Explicit statement per change:
+- No env var names were renamed.
+- No public function signatures were changed.
+- No HTTP response shapes were changed.
+- Log line structure preserved; only sensitive field VALUES are now masked.
+- No database schemas, migrations, or production data touched.
+- All masking helpers added are additive (new files / new internal utilities).
+## Rotation Required (HUMAN ACTION)
+For every secret found (in HEAD or history):
+- [ ] Rotate `&amp;lt;secret name&amp;gt;` in `&amp;lt;provider&amp;gt;` (issue #N)
+- [ ] Confirm propagation to all environments
+- [ ] Update secret in `&amp;lt;secret manager&amp;gt;` / GitHub Actions secrets
+- [ ] Close rotation issue
+Do NOT merge this PR before rotation begins. The exposed credential is considered compromised.
+## History Exposure
+List of secrets found ONLY in git history (not HEAD):
+| Fingerprint | First seen commit | File at that commit | Rotation issue |
+Recommendation: rotate. History rewrite NOT performed (ALLOW_HISTORY_REWRITE=false).
+## Verification Performed
+- Scanners run (with versions): &amp;lt;list&amp;gt;
+- Pre-fix counts by severity: C=_ H=_ M=_ L=_
+- Post-fix counts by severity: C=_ H=_ M=_ L=_
+- Build/test commands executed: &amp;lt;list with pass/fail&amp;gt;
+- actionlint status (if applicable): &amp;lt;pass/fail&amp;gt;
+- No new dependencies added: &amp;lt;true/false; if false, list and justify&amp;gt;
+## Deferred / Not Auto-Fixed
+Table of findings NOT addressed and why (low confidence requiring human judgment, ambiguous test data, would change response contract, etc.), with suggested follow-up.
+## Recommended Manual Changes
+Items requiring human decision (e.g., flipping a debug flag default, adding a secret to GitHub Actions, rewriting git history).
+## Rollback
+Single-command rollback: `git revert &amp;lt;merge-sha&amp;gt;`. No data migrations, no infra changes, no rotated credentials are reverted by this rollback (rotation must be tracked separately).
+## Provenance
+- Devin run ID: &amp;lt;id&amp;gt;
+- Schedule: &amp;lt;cron&amp;gt;
+- Commit range: &amp;lt;base&amp;gt;..&amp;lt;head&amp;gt;
+- Scan reports (redacted): &amp;lt;artifact links&amp;gt;
+STEP 7 — POST-PR HYGIENE
+- Open rotation issues for every confirmed-live or high-confidence secret. Title format:
+`[security] Rotate &amp;lt;provider&amp;gt; credential exposed in &amp;lt;repo&amp;gt; — fingerprint &amp;lt;id&amp;gt;`
+Body: redacted fingerprint, file path, commit SHA, suggested rotation steps for that provider, link to PR.
+- Request review from CODEOWNERS for touched paths AND from the security team.
+- Do NOT enable auto-merge. Secret remediation requires human verification.
+- If a previous open PR from this automation exists, close it with a link to the new one.
+- Idempotency: if re-running would produce zero changes, do NOT open a PR. Report &amp;#34;no action needed.&amp;#34;
+==========================================================
+FAILURE &amp;amp; EDGE-CASE HANDLING
+==========================================================
+- Scanner false positives: defer to human review; document in PR with rationale; suggest allowlist entry.
+- Verification API rate limits (TruffleHog live verify): degrade gracefully to pattern-only mode; mark `verified_live: null`.
+- Massive history (&amp;gt;10GB): scan HEAD &amp;#43; last 1000 commits; flag as partial scan in PR body; recommend separate deep-history scan.
+- Encrypted files (sops, git-crypt, age, BlackBox): SKIP; do not attempt decryption. Note presence in PR body.
+- Binary files: skip content scan unless filetype-specific tool exists (e.g., for keystores, check for default passwords).
+- Generated/vendored code: skip if path matches common generated patterns (`generated/`, `vendor/`, `node_modules/`, `__generated__/`, `*.pb.go`, `*_pb2.py`); flag any secrets found there as upstream issues.
+- Conflicting redactions (a fix for finding A would mask data needed for finding B&amp;#39;s audit trail): prefer privacy; document trade-off.
+- Network failures: retry with backoff up to 3 times; on persistent failure, abort and report.
+- A finding&amp;#39;s &amp;#34;fix&amp;#34; would change a response contract or env var name: defer to human, do not auto-apply.
+==========================================================
+NON-GOALS (do NOT do these)
+==========================================================
+- Do NOT rotate credentials at the provider.
+- Do NOT rewrite git history (unless ALLOW_HISTORY_REWRITE=true).
+- Do NOT add new SaaS scanners as repo dependencies.
+- Do NOT modify production data, databases, or run migrations.
+- Do NOT change application logic, business rules, or feature behavior.
+- Do NOT reformat files outside the lines you change.
+- Do NOT change package versions or dependency manifests (that&amp;#39;s the vulnerability remediation job, not this one).
+- Do NOT scan or modify issues, wikis, discussions, or external systems.
+- Do NOT auto-fix LOW-confidence findings.
+- Do NOT include any unredacted secret value in any output, ever.
+==========================================================
+OUTPUT
+==========================================================
+On success: a single PR URL plus a one-paragraph summary of counts (fixed vs deferred) by severity and category, plus a list of rotation issue URLs.
+On no-op: a short message &amp;#34;No remediable sensitive data findings at threshold=&amp;lt;SEVERITY_THRESHOLD&amp;gt;.&amp;#34;
+On failure: the exact step that failed, redacted command output, and partial artifacts for human review. Do not open a partial PR.
+Begin now.&lt;/code>&lt;/pre>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Free-text PII&lt;/strong> — the prompt won&amp;rsquo;t auto-edit prose. Real-name
+mentions in docs are surfaced for a human to handle.&lt;/li>
+&lt;li>&lt;strong>Live-verify rate limits&lt;/strong> — TruffleHog&amp;rsquo;s live verification
+degrades to pattern-only under rate limits, so &lt;code>verified_live&lt;/code>
+will be &lt;code>null&lt;/code> for some HIGH findings. Treat those with the same
+urgency as verified ones.&lt;/li>
+&lt;li>&lt;strong>Massive history&lt;/strong> — repos over ~10 GB get a partial scan
+(HEAD + last 1000 commits) with a flag in the PR body. A deep
+scan is a separate, manually-scheduled task.&lt;/li>
+&lt;li>&lt;strong>Encrypted files&lt;/strong> (sops, git-crypt, age) — skipped entirely;
+the prompt won&amp;rsquo;t attempt decryption. If something sensitive is
+inside, that&amp;rsquo;s an owner problem.&lt;/li>
+&lt;li>&lt;strong>Rotation&lt;/strong> — explicitly out of scope. The prompt files the
+rotation issue; humans rotate the credential at the provider.&lt;/li>
+&lt;li>&lt;strong>LOW-confidence findings&lt;/strong> — surfaced in the PR body for
+review but never auto-applied.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Covers secrets, PII, PHI,
+PCI, financial data, and unsafe data-handling patterns across
+all major languages and CI systems.&lt;/li>
+&lt;/ul></description></item></channel></rss>

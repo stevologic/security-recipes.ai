@@ -1,0 +1,513 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Codex</title><link>https://security-recipes.ai/prompt-library/codex/</link><description>Recent content in Codex on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><atom:link href="https://security-recipes.ai/prompt-library/codex/index.xml" rel="self" type="application/rss+xml"/><item><title>Vulnerable dependency remediation (non-interactive)</title><link>https://security-recipes.ai/prompt-library/codex/vulnerable-dep-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/codex/vulnerable-dep-remediation/</guid><description>
+&lt;p>A Codex CLI prompt designed for &lt;strong>non-interactive, CI-driven&lt;/strong> runs
+(&lt;code>codex exec --full-auto --json&lt;/code>). It picks up a single CVE /
+advisory id, locates the affected dependency in the repo&amp;rsquo;s
+manifest + lockfile, applies the minimum viable patched version,
+runs the project&amp;rsquo;s tests, and either opens a PR or writes a
+structured triage note. It is intentionally narrow: one finding,
+one commit, one PR — so the output is easy to review and easy to
+revert.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Codex loads the finding from the environment, inspects the repo&amp;rsquo;s
+manifests (&lt;code>package.json&lt;/code> + lockfile, &lt;code>go.mod&lt;/code>/&lt;code>go.sum&lt;/code>,
+&lt;code>requirements.txt&lt;/code>/&lt;code>uv.lock&lt;/code>, &lt;code>Cargo.toml&lt;/code>/&lt;code>Cargo.lock&lt;/code>,
+&lt;code>pyproject.toml&lt;/code>, &lt;code>Gemfile.lock&lt;/code>), picks the smallest safe bump
+(no major-version changes), regenerates the lockfile with the
+native package manager, runs the project&amp;rsquo;s standard test command,
+and if green: opens a PR linked to the finding. If the bump is
+blocked (major boundary, transitive-only, tests fail, no patch
+available) Codex writes a machine-readable &lt;code>TRIAGE.md&lt;/code> to the
+working branch and exits non-zero so the surrounding CI job
+surfaces it.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> &lt;code>FINDING_ID&lt;/code>, &lt;code>AFFECTED_PACKAGE&lt;/code> (optional hint),
+&lt;code>REPO&lt;/code> (auto-detected), &lt;code>BASE_BRANCH&lt;/code> (default &lt;code>main&lt;/code>).&lt;br/>
+&lt;strong>Outputs:&lt;/strong> one PR (happy path) &lt;strong>or&lt;/strong> a &lt;code>TRIAGE.md&lt;/code> on a
+&lt;code>triage/&amp;lt;FINDING_ID&amp;gt;&lt;/code> branch plus a non-zero exit code.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>You&amp;rsquo;re running Codex from a GitHub Actions / GitLab CI job
+triggered by &lt;code>dependabot_alert&lt;/code>, a Snyk webhook, or a nightly
+schedule.&lt;/li>
+&lt;li>You need &lt;code>--json&lt;/code> output so downstream steps (Slack notifier,
+ticket updater) can parse the run result.&lt;/li>
+&lt;li>Your reviewers want one PR per finding, not a &amp;ldquo;bundle of bumps&amp;rdquo;
+— the narrow scope keeps reverts clean.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Major version migrations — the prompt refuses by default.&lt;/li>
+&lt;li>First-party SAST findings — use the SDE remediation recipe
+instead.&lt;/li>
+&lt;li>Interactive investigations — use &lt;code>codex&lt;/code> (not &lt;code>codex exec&lt;/code>) for
+those; this prompt is specifically shaped for headless runs.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Invoke as:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">codex &lt;span class="nb">exec&lt;/span> --full-auto --model gpt-5.3-codex --json &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="k">$(&lt;/span>envsubst &amp;lt; prompts/remediate-dep.md&lt;span class="k">)&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &amp;gt; &lt;span class="s2">&amp;#34;/tmp/codex-&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nv">FINDING_ID&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">.jsonl&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Where &lt;code>prompts/remediate-dep.md&lt;/code> contains:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">ROLE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are a senior application-security engineer + release engineer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are running headlessly inside CI. Be deterministic, idempotent,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">and conservative. Produce either a single, revertible pull request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or a structured triage note — never both, never partial progress.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INPUTS (infer from session context first; ask only if ambiguous)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Prefer what you can observe in the repo / CI event / prompt body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">over strictly requiring an environment variable. If an input is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">genuinely ambiguous AND no documented default applies, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">summarize what you need — do not guess.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> FINDING_ID Optional. Look in this order: the prompt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> body (CVE- / GHSA- pattern),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`${FINDING_ID}`&lt;/span> env, the triggering issue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> title/body, the branch name, the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dependabot alert payload. If nothing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> surfaces an id AND no scanner MCP is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wired in, drop into the discovery path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> below and self-select a finding.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> AFFECTED_PACKAGE (optional hint) Infer from the advisory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or the scanner payload. Use only as a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lookup hint — the lockfile is the source
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> of truth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> REPO Detect via &lt;span class="sb">`git config --get remote.origin.url`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or the GitHub event payload. Avoid asking.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> BASE_BRANCH Detect via &lt;span class="sb">`git symbolic-ref refs/remotes/origin/HEAD`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or &lt;span class="sb">`gh api repos/:owner/:repo .default_branch`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Fallback: &lt;span class="sb">`main`&lt;/span>, then &lt;span class="sb">`master`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> WORKING_BRANCH Default: &lt;span class="sb">`fix/&amp;lt;finding-id&amp;gt;`&lt;/span>. If that branch
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exists, append &lt;span class="sb">`-N`&lt;/span> to keep it unique.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TEST_CMD / LINT_CMD Read in this order: the prompt body,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`AGENTS.md`&lt;/span>, &lt;span class="sb">`CONTRIBUTING.md`&lt;/span>, README&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;Development&amp;#34; section, &lt;span class="sb">`package.json`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scripts, &lt;span class="sb">`Makefile`&lt;/span> targets. Proceed with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the best match and note the choice in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> SEVERITY_THRESHOLD Default: HIGH (overridden by the prompt).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> MAX_MAJOR_BUMPS Default: 0. Override only if the prompt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> explicitly permits majors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> ALLOW_PRERELEASE Default: false.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> DRY_RUN Default: false; true if the prompt body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or branch name contains &lt;span class="sb">`dry-run`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PROCEDURE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">0.&lt;/span> Discovery (only if FINDING_ID was not provided).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Run the lightest-weight local scanner available, in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> order: &lt;span class="sb">`osv-scanner scan source .`&lt;/span>, &lt;span class="sb">`npm audit --json`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (Node), &lt;span class="sb">`pip-audit`&lt;/span> (Python), &lt;span class="sb">`govulncheck ./...`&lt;/span> (Go),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`cargo audit`&lt;/span> (Rust), &lt;span class="sb">`bundle audit`&lt;/span> (Ruby), &lt;span class="sb">`trivy fs
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> --scanners vuln .`&lt;/span> as a multi-ecosystem fallback.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If none are installed, query GitHub Advisory Database via
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`gh api /repos/{owner}/{repo}/vulnerability-alerts`&lt;/span> or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public &lt;span class="sb">`gh api /advisories?affects=&amp;lt;pkg&amp;gt;`&lt;/span> endpoint using
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package names from the manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Pick the highest-severity fixable finding that meets the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rules below (≥ SEVERITY_THRESHOLD, non-major bump,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> non-prerelease fix). Use its CVE / GHSA id as FINDING_ID
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and note in the PR body that it was self-discovered by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ${discovery-source}.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If no scanner is available AND the Advisory-DB query
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> returns nothing, write TRIAGE.md reason &amp;#34;no-discovery-
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tooling&amp;#34; and exit 2.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Checkout ${BASE_BRANCH}. Create ${WORKING_BRANCH}.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Identify the advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Query the GitHub Advisory Database for ${FINDING_ID} (or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> OSV mirror if GHSA is unavailable).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Record: advisory title, published date, severity, affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ecosystem, affected version range, patched version range,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CWE / CVSS if present.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If the advisory&amp;#39;s severity is below ${SEVERITY_THRESHOLD},
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop and write TRIAGE.md with reason &amp;#34;below-threshold&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Inventory the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Detect manifest(s): package.json, pnpm-workspace.yaml,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> go.mod, Cargo.toml, pyproject.toml, requirements*.txt,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Gemfile, composer.json, etc.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Detect package manager by the corresponding lockfile.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If no lockfile exists, stop and triage with reason
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;missing-lockfile&amp;#34; — a bump without a lockfile isn&amp;#39;t
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deterministic.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Locate the affected package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Use AFFECTED_PACKAGE if provided; otherwise the advisory&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reported package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Walk the resolved dependency tree (not the manifest) — the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package may be transitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If not present at any depth, stop and write TRIAGE.md with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reason &amp;#34;not-installed&amp;#34;. The repo is not vulnerable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Determine the fix version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Pick the lowest version in the advisory&amp;#39;s patched range.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If that version crosses a major boundary from the currently
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> installed version AND MAX_MAJOR_BUMPS == 0:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> if the package is a DIRECT dep, stop and write
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> TRIAGE.md with reason &amp;#34;major-bump-required&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> if the package is TRANSITIVE, prefer a minimum bump of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the direct parent that pulls in a fixed transitive. If
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that too requires a major bump, stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If the fix is a pre-release and ALLOW_PRERELEASE == false,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop and triage with reason &amp;#34;prerelease-only&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Apply the bump.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Use the native package manager:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Node: pnpm / npm / yarn update &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> --save-exact (match repo idiom).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go: go get &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>@&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> &lt;span class="err">&amp;amp;&amp;amp;&lt;/span> go mod tidy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Python: uv add &amp;#34;&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>==&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>&amp;#34; OR pip-compile with updated constraint.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Rust: cargo update -p &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> --precise &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Ruby: bundle update &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> --conservative --patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> One commit, message: &amp;#34;fix(sec): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> from &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">old&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">new&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (${FINDING_ID})&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Do not touch any file outside the manifest + lockfile
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> except where the package manager rewrites a peer file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Verify.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Run ${LINT_CMD}. If it fails with changes attributable to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the bump, revert and triage with reason &amp;#34;lint-regression&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Run ${TEST_CMD}. If it fails, revert and triage with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reason &amp;#34;test-regression&amp;#34; and copy-paste (do not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> paraphrase) the first failing test&amp;#39;s output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Re-scan the lockfile (osv-scanner / grype / trivy fs —
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> whichever is available). If the same finding still appears,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage with reason &amp;#34;fix-did-not-resolve&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Happy path — open a PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Title: &amp;#34;fix(sec): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (${FINDING_ID})&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Finding id + link to advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Old → new version; direct vs transitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Test command + pass / fail.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &amp;#34;Revert: &lt;span class="sb">`git revert &amp;lt;commit&amp;gt;`&lt;/span> — no other files touched.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Labels: &lt;span class="sb">`security`&lt;/span>, &lt;span class="sb">`auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> DO NOT merge. DO NOT enable auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Triage path — write TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Fields (YAML frontmatter):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding_id: ${FINDING_ID}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> severity: &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">from&lt;/span> &lt;span class="na">advisory&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reason: one of {below-threshold, missing-lockfile,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> not-installed, major-bump-required,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> prerelease-only, lint-regression,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test-regression, fix-did-not-resolve}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package: &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">name&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> current_version: &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched_range: &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">range&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> next_owner: &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">team&lt;/span> &lt;span class="na">or&lt;/span> &lt;span class="na">CODEOWNERS&lt;/span> &lt;span class="na">group&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body: copy-pasted evidence (command output, test failures).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Commit TRIAGE.md on ${WORKING_BRANCH}, push, and exit 2.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">OUTPUT CONTRACT (for --json consumers)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> On success: emit a final assistant message whose first line is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`RESULT: ok`&lt;/span> followed by a JSON object with keys
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`{pr_url, commit, pkg, old_version, new_version}`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> On triage: &lt;span class="sb">`RESULT: triage`&lt;/span> followed by the same YAML
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> frontmatter as TRIAGE.md, serialized to a single JSON object.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GUARDRAILS
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER disable a test or add skip markers to make CI green.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER edit code outside the manifest / lockfile and TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER push to ${BASE_BRANCH}.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER merge a PR you opened.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER amend commits on branches you did not create.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If MAX_MAJOR_BUMPS == 0 and the only fix is a major bump, you
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> must triage. Do not rationalize the bump.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Monorepos with many lockfiles.&lt;/strong> The prompt stops at the
+first manifest. For workspaces, run one invocation per
+workspace package, or extend step 3 to iterate.&lt;/li>
+&lt;li>&lt;strong>Advisory metadata gaps.&lt;/strong> GHSA entries occasionally lack a
+precise patched range; the prompt will refuse rather than
+guess. Keep an advisory-source fallback (OSV, ecosystem
+security team) ready.&lt;/li>
+&lt;li>&lt;strong>Non-SemVer ecosystems.&lt;/strong> Maven / Go pseudo-versions / CocoaPods
+require ecosystem-specific bump logic; step 6 is a sketch, not
+a complete solution for those.&lt;/li>
+&lt;li>&lt;strong>Re-scan requires a scanner on the runner.&lt;/strong> Step 7&amp;rsquo;s re-scan
+depends on &lt;code>osv-scanner&lt;/code> / &lt;code>grype&lt;/code> / &lt;code>trivy&lt;/code> being installed;
+if none are, the prompt will note &amp;ldquo;re-scan skipped&amp;rdquo; in the PR
+body and the reviewer should verify manually.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Shaped for &lt;code>codex exec --full-auto --json&lt;/code>. Handles Node / Python / Go / Rust / Ruby;
+monorepo + Maven handling deferred to v2.&lt;/li>
+&lt;/ul></description></item><item><title>Sensitive data element remediation (non-interactive)</title><link>https://security-recipes.ai/prompt-library/codex/sensitive-data-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/codex/sensitive-data-remediation/</guid><description>
+&lt;p>A Codex CLI prompt for &lt;strong>headless SDE remediation&lt;/strong> — hard-coded
+secrets, PII in logs, credentials committed to source — wired for
+&lt;code>codex exec --full-auto --json&lt;/code> so it can be dispatched from a
+scanner webhook or scheduled CI job. It remediates only
+pre-exposure findings; exposed SDEs (anything already pushed to a
+shared remote, public log, or build artifact) are routed straight
+to triage + rotation.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Codex loads a single SDE finding from env vars, confirms the
+literal value is present in the working tree, classifies the
+exposure scope, and — if pre-exposure — replaces the literal with
+a reference to the approved secret store (or redaction helper for
+PII). It adds a regression-guard test, runs lint + tests, and
+opens a PR. If the SDE has already been exposed, Codex refuses to
+touch the code, writes a &lt;code>TRIAGE.md&lt;/code> with a rotation +
+disclosure checklist, and exits non-zero so the surrounding CI
+job pages the right team.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> &lt;code>FINDING_ID&lt;/code>, &lt;code>SDE_CLASS&lt;/code> (one of &lt;code>secret&lt;/code>, &lt;code>token&lt;/code>,
+&lt;code>pii&lt;/code>, &lt;code>pci&lt;/code>, &lt;code>phi&lt;/code>), optional &lt;code>FILE_PATH&lt;/code> + &lt;code>LINE&lt;/code>.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> a PR (pre-exposure path) or a &lt;code>TRIAGE.md&lt;/code> on a
+&lt;code>sde-triage/&amp;lt;FINDING_ID&amp;gt;&lt;/code> branch (exposed path) plus a
+machine-readable JSON result for &lt;code>--json&lt;/code> consumers.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A scanner (GitHub push protection, GitLeaks, TruffleHog, Wiz,
+Snyk IaC) fires a webhook and your dispatcher hands the
+finding to Codex.&lt;/li>
+&lt;li>You want a scripted, reviewable audit trail — the &lt;code>--json&lt;/code>
+output makes the run consumable by downstream notifiers.&lt;/li>
+&lt;li>The team already has an approved secret store and a redaction
+helper the prompt can reference.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Cleaning committed history — the rotation runbook is the right
+place. This prompt refuses.&lt;/li>
+&lt;li>Ad-hoc secret scanning across a monorepo — run it per-finding,
+after your scanner has de-duplicated.&lt;/li>
+&lt;li>Binary artifact sanitization (images, packaged bundles).&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Invoke as:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">codex &lt;span class="nb">exec&lt;/span> --full-auto --model gpt-5.3-codex --json &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="k">$(&lt;/span>envsubst &amp;lt; prompts/remediate-sde.md&lt;span class="k">)&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span> &lt;span class="se">\
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="se">&lt;/span> &amp;gt; &lt;span class="s2">&amp;#34;/tmp/codex-&lt;/span>&lt;span class="si">${&lt;/span>&lt;span class="nv">FINDING_ID&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">.jsonl&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Where &lt;code>prompts/remediate-sde.md&lt;/code> contains:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">ROLE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are a senior application-security engineer running headlessly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">in CI. You remediate one sensitive-data-element finding per
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">invocation, and you never attempt to remediate an already-exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">SDE by editing source — rotation is the primary fix for those.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">INPUTS (infer from session context first; ask only if ambiguous)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Prefer what you can observe in the repo / CI event / prompt body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">over strictly requiring an environment variable. If an input is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">genuinely ambiguous AND no documented default applies, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">summarize what you need — do not guess.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> FINDING_ID Optional. Look in: the prompt body,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`${FINDING_ID}`&lt;/span> env, the triggering issue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> title/body, the branch name, the scanner
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> webhook payload. If nothing surfaces an id
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> AND no scanner MCP is wired in, drop into
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the discovery path below.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> SDE_CLASS Take from the prompt body, the scanner
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> payload (&lt;span class="sb">`secret`&lt;/span> | &lt;span class="sb">`token`&lt;/span> | &lt;span class="sb">`pii`&lt;/span> | &lt;span class="sb">`pci`&lt;/span> |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`phi`&lt;/span>), or classify from the finding&amp;#39;s rule
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> id (e.g. an AWS-access-key rule implies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`secret`&lt;/span>). If discovery produced the finding,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> classify from its rule id.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> REPO Detect via &lt;span class="sb">`git config --get remote.origin.url`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or the GitHub event payload.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> FILE_PATH / LINE Take from the scanner payload or prompt body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> first. If absent, stop and ask — do NOT grep
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the repo for the literal. (This prompt never
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> searches for a secret value directly.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> BASE_BRANCH Detect via &lt;span class="sb">`git symbolic-ref refs/remotes/origin/HEAD`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or &lt;span class="sb">`gh api repos/:owner/:repo .default_branch`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Fallback: &lt;span class="sb">`main`&lt;/span>, then &lt;span class="sb">`master`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> WORKING_BRANCH Default: &lt;span class="sb">`fix/&amp;lt;finding-id&amp;gt;`&lt;/span>. If it exists,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> append &lt;span class="sb">`-N`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TEST_CMD / LINT_CMD Read in this order: the prompt body,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`AGENTS.md`&lt;/span>, &lt;span class="sb">`CONTRIBUTING.md`&lt;/span>, README
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;Development&amp;#34; section, &lt;span class="sb">`package.json`&lt;/span> scripts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Makefile`&lt;/span> targets. Note the choice in the PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> SECRETS_DOC Look for &lt;span class="sb">`docs/security/secrets.md`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`SECURITY.md`&lt;/span>, &lt;span class="sb">`CONTRIBUTING.md`&lt;/span> &amp;#34;Secrets&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> section, or a root-level &lt;span class="sb">`.env.example`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a commented store hint. If none found, treat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the replacement pattern as unknown and triage
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with reason &amp;#34;no-approved-secret-store&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PROCEDURE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">0.&lt;/span> Discovery (only if FINDING_ID + FILE_PATH were not provided).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Run the lightest-weight secret/PII scanner available, in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this order: &lt;span class="sb">`gitleaks detect --source . --no-banner
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> --report-format json --report-path /tmp/gl.json`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`trufflehog filesystem . --json`&lt;/span>, &lt;span class="sb">`detect-secrets scan
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> --all-files`&lt;/span>, &lt;span class="sb">`trivy fs --scanners secret .`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Restrict to the WORKING TREE only — do not scan commit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> history. Exposed SDEs are a rotation problem and handled
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> by step 7.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Pick the highest-confidence finding. Synthesize a local
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> id: &lt;span class="sb">`LOCAL-&amp;lt;scanner&amp;gt;-&amp;lt;rule&amp;gt;-&amp;lt;short-sha&amp;gt;`&lt;/span> and use it as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FINDING_ID. Populate FILE_PATH / LINE from the scanner
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output. Classify SDE_CLASS from the rule id.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Note in the PR body that the finding was self-discovered
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and which scanner produced it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If no scanner is installed, write TRIAGE.md reason
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;no-discovery-tooling&amp;#34; listing the tools that would be
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> needed, and exit 2.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Checkout ${BASE_BRANCH}. Create ${WORKING_BRANCH}.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the literal is present in the working tree.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If FILE_PATH + LINE are provided, read that location and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verify the SDE literal appears there.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If not provided, refuse — ask the dispatcher to include
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> them. Do not grep history.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If the literal is NOT present (already fixed, or stale
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding), write TRIAGE.md reason &amp;#34;not-reproduced&amp;#34; and exit 2.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Classify the exposure scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Run &lt;span class="sb">`git log --all --source -S &amp;#39;&amp;lt;literal&amp;gt;&amp;#39; -- ${FILE_PATH}`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (Use a hash of the literal in logs — never echo it.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If any commit other than the current workspace contains the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> literal, OR the repo is public, OR the finding source says
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the literal appeared in CI logs or a build artifact:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> mark as EXPOSED and go to step 7.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Otherwise PRE-EXPOSURE; continue to step 4.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Pick the replacement pattern.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret / token:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Read ${SECRETS_DOC} to identify the project&amp;#39;s approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secret store client (Vault, AWS Secrets Manager, GCP
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Secret Manager, 1Password, etc.). If ${SECRETS_DOC} does
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> not exist OR names no client, stop and triage with reason
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;no-approved-secret-store&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> pii / pci / phi:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Grep for an existing redaction helper (&lt;span class="sb">`redact(`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Redactor`&lt;/span>, &lt;span class="sb">`mask_pii`&lt;/span>, &lt;span class="sb">`scrubPII`&lt;/span>). If none found, stop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and triage with reason &amp;#34;no-redaction-helper&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Apply the replacement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Minimal edit: delete the literal, insert the reference /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> redaction call, and fix any resulting compile / syntax
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> errors in the smallest scope possible.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Never rename files. Never reformat unrelated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If the file is a test fixture containing real user data,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> replace with a Faker-style synthetic value and add a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> comment citing FINDING_ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add a regression guard + verify.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Add a unit test or linter rule that fails if the original
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> literal (or a close variant) reappears. For repos using
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`gitleaks`&lt;/span> / &lt;span class="sb">`trufflehog`&lt;/span> / &lt;span class="sb">`detect-secrets`&lt;/span>, add a config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rule instead (allowlist the synthetic fixture only).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Run ${LINT_CMD}. Run ${TEST_CMD}. If either fails and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> failure is attributable to the edit, revert and triage with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reason &amp;#34;test-regression&amp;#34; or &amp;#34;lint-regression&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Commit message:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fix(sec): remove ${SDE_CLASS} ${FINDING_ID}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Open a PR:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Title: &amp;#34;fix(sec): remove ${SDE_CLASS} from &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">file&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (${FINDING_ID})&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Body: finding id, exposure scope (= &amp;#34;pre-exposure&amp;#34;),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> replacement pattern used, test pass evidence,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;Revert: &lt;span class="sb">`git revert &amp;lt;commit&amp;gt;`&lt;/span>&amp;#34;.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Labels: security, sde-remediation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> EXPOSED path — do NOT edit the offending file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Write TRIAGE.md on ${WORKING_BRANCH} with YAML frontmatter:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding_id: ${FINDING_ID}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sde_class: ${SDE_CLASS}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure_scope: one of {public-repo, shared-remote, ci-log, artifact}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> first_seen_commit: &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">sha&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> first_seen_date: &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">iso&lt;/span> &lt;span class="na">date&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body includes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Rotation checklist (markdown checkboxes):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">- [ ]&lt;/span> Revoke credential at issuer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">- [ ]&lt;/span> Rotate in approved secret store.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">- [ ]&lt;/span> Re-deploy consumers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">- [ ]&lt;/span> Invalidate cached sessions / tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Disclosure checklist:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">- [ ]&lt;/span> Open incident in IR tracker.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">- [ ]&lt;/span> Notify service owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">- [ ]&lt;/span> Route to legal for notification assessment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Commit, push, exit 2.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">OUTPUT CONTRACT (for --json consumers)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Pre-exposure success: final assistant message starting with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`RESULT: ok`&lt;/span> followed by JSON:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> {pr_url, commit, file, sde_class, pattern_used}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Triage: &lt;span class="sb">`RESULT: triage`&lt;/span> followed by the TRIAGE.md frontmatter
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> serialized to JSON.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GUARDRAILS
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER echo the SDE literal into commit messages, logs, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell output. When you need to refer to it, hash it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER rewrite git history. History cleanup requires the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation runbook + a human.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER disable scanner rules broadly — only allowlist the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> synthetic-fixture path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> NEVER commit &lt;span class="sb">`.env`&lt;/span> / &lt;span class="sb">`credentials.json`&lt;/span> files, even to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> delete them; those require &lt;span class="sb">`git filter-repo`&lt;/span> and a documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runbook.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- NEVER merge the PR you opened.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>History cleanup is out of scope&lt;/strong> on purpose. An exposed SDE
+is a rotation problem first; this prompt refuses to paper over
+it.&lt;/li>
+&lt;li>&lt;strong>Redaction-helper detection is grep-shaped.&lt;/strong> Teams using
+non-obvious helper names will hit &amp;ldquo;no-redaction-helper&amp;rdquo; and be
+forced to triage until they document the helper in
+${SECRETS_DOC}.&lt;/li>
+&lt;li>&lt;strong>False-positive scanners&lt;/strong> (broad &lt;code>api_key&lt;/code> regexes) send the
+prompt to triage frequently. Tune scanner rules upstream so
+Codex isn&amp;rsquo;t asked to fix noise.&lt;/li>
+&lt;li>&lt;strong>Non-text artifacts&lt;/strong> (binaries, vendored zips) cannot be
+inspected safely — the prompt refuses.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Handles secret / token /
+pii / pci / phi classes. History rewrite path deliberately
+deferred to rotation runbook.&lt;/li>
+&lt;/ul></description></item></channel></rss>

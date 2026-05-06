@@ -1,0 +1,635 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Xml</title><link>https://security-recipes.ai/tags/xml/</link><description>Recent content in Xml on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/xml/index.xml" rel="self" type="application/rss+xml"/><item><title>XML external entities (XXE) — parser defaults</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/xxe-xml-defaults/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/xxe-xml-defaults/</guid><description>
+&lt;p>XML parsers in most languages historically defaulted to
+&lt;em>resolving external entities&lt;/em>. A single XML payload can read
+local files, exfiltrate data over DNS, hang the parser on a
+billion-laughs payload, or pivot through SSRF. Most parsers
+have safer modes; few default to them. The fix is to set the
+right flags everywhere — every parser, every library, every
+vendored XML toolkit.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Python.&lt;/strong> &lt;code>xml.etree.ElementTree.parse&lt;/code>,
+&lt;code>xml.dom.minidom.parse&lt;/code>, &lt;code>xml.sax.parse&lt;/code>, &lt;code>lxml.etree.parse&lt;/code>
+with default options.&lt;/li>
+&lt;li>&lt;strong>Java.&lt;/strong> &lt;code>DocumentBuilderFactory&lt;/code>, &lt;code>SAXParserFactory&lt;/code>,
+&lt;code>XMLInputFactory&lt;/code>, &lt;code>TransformerFactory&lt;/code>, &lt;code>SchemaFactory&lt;/code> —
+all entity-resolving by default.&lt;/li>
+&lt;li>&lt;strong>PHP.&lt;/strong> &lt;code>simplexml_load_string&lt;/code>, &lt;code>DOMDocument::loadXML&lt;/code> with
+default options; &lt;code>libxml_disable_entity_loader&lt;/code> global flag
+was the historical mitigation but its semantics changed in
+PHP 8.&lt;/li>
+&lt;li>&lt;strong>.NET.&lt;/strong> &lt;code>XmlDocument&lt;/code>, &lt;code>XmlReader&lt;/code> defaults pre-4.5.2
+resolved entities; current defaults are safer but
+application code often re-enables them.&lt;/li>
+&lt;li>&lt;strong>Ruby.&lt;/strong> &lt;code>Nokogiri::XML(input)&lt;/code> with default options —
+&lt;code>noent: true&lt;/code> is the dangerous flag.&lt;/li>
+&lt;li>&lt;strong>Go.&lt;/strong> &lt;code>encoding/xml&lt;/code> does not resolve entities (good); but
+third-party XML libraries vary.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The classic XXE payload reads a local file:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-xml" data-lang="xml">&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&amp;lt;?xml version=&amp;#34;1.0&amp;#34;?&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&amp;lt;!DOCTYPE foo [&amp;lt;!ENTITY x SYSTEM &amp;#34;file:///etc/passwd&amp;#34;&amp;gt;&lt;/span>]&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nt">&amp;lt;foo&amp;gt;&lt;/span>&lt;span class="ni">&amp;amp;x;&lt;/span>&lt;span class="nt">&amp;lt;/foo&amp;gt;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>…and your parser returns the contents in the response body, or
+in an error message, or via a side-channel DNS lookup. There is
+no patch coming for &amp;ldquo;the XML spec allows this&amp;rdquo; — the fix is to
+configure the parser to refuse.&lt;/p>
+&lt;h2>Mitigation — disable entity resolution and DTD loading&lt;span class="hx:absolute hx:-mt-20" id="mitigation--disable-entity-resolution-and-dtd-loading">&lt;/span>
+&lt;a href="#mitigation--disable-entity-resolution-and-dtd-loading" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Per language, the right flags:&lt;/p>
+&lt;p>&lt;strong>Python (uplift to &lt;code>defusedxml&lt;/code>).&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Replace&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># import xml.etree.ElementTree as ET&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">defusedxml.ElementTree&lt;/span> &lt;span class="k">as&lt;/span> &lt;span class="nn">ET&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># All ET.* calls now refuse external entities, DTDs, and&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># entity-expansion attacks.&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>&lt;code>defusedxml&lt;/code> has wrappers for &lt;code>ElementTree&lt;/code>, &lt;code>minidom&lt;/code>, &lt;code>sax&lt;/code>,
+&lt;code>lxml&lt;/code>, &lt;code>pulldom&lt;/code>, and &lt;code>xmlrpc&lt;/code>. Replacing the import is the
+fix.&lt;/p>
+&lt;p>&lt;strong>Java.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">DocumentBuilderFactory&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">DocumentBuilderFactory&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">newInstance&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://apache.org/xml/features/disallow-doctype-decl&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://xml.org/sax/features/external-general-entities&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://xml.org/sax/features/external-parameter-entities&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://apache.org/xml/features/nonvalidating/load-external-dtd&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setXIncludeAware&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setExpandEntityReferences&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Equivalent flag-sets exist for &lt;code>SAXParserFactory&lt;/code>,
+&lt;code>XMLInputFactory&lt;/code> (&lt;code>IS_SUPPORTING_EXTERNAL_ENTITIES&lt;/code>,
+&lt;code>SUPPORT_DTD&lt;/code>), and &lt;code>TransformerFactory&lt;/code>
+(&lt;code>XMLConstants.ACCESS_EXTERNAL_DTD&lt;/code>,
+&lt;code>ACCESS_EXTERNAL_STYLESHEET&lt;/code>).&lt;/p>
+&lt;p>&lt;strong>PHP.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-php" data-lang="php">&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$dom&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nx">DOMDocument&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$dom&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="na">loadXML&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nv">$input&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">LIBXML_NONET&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="nx">LIBXML_NOENT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">?&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="c1">// default safe in PHP 8+; verify with phpunit
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="c1">// explicitly no LIBXML_NOENT, no LIBXML_DTDLOAD
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>PHP 8 changed &lt;code>libxml_disable_entity_loader&lt;/code> semantics; the
+correct shape is now flag-based at the load call.&lt;/p>
+&lt;p>&lt;strong>.NET.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-csharp" data-lang="csharp">&lt;span class="line">&lt;span class="cl">&lt;span class="kt">var&lt;/span> &lt;span class="n">settings&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">XmlReaderSettings&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DtdProcessing&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">DtdProcessing&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">Prohibit&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">XmlResolver&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">null&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">using&lt;/span> &lt;span class="nn">var&lt;/span> &lt;span class="n">reader&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">XmlReader&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">Create&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">input&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">settings&lt;/span>&lt;span class="p">);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Never use &lt;code>XmlDocument.Load(stream)&lt;/code> directly without setting
+&lt;code>XmlResolver = null&lt;/code> and &lt;code>DtdProcessing = Prohibit&lt;/code>.&lt;/p>
+&lt;p>&lt;strong>Ruby.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ruby" data-lang="ruby">&lt;span class="line">&lt;span class="cl">&lt;span class="n">doc&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="no">Nokogiri&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="no">XML&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">input&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">do&lt;/span> &lt;span class="o">|&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="o">|&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">config&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">strict&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">nonet&lt;/span> &lt;span class="c1"># no network, no DTD loading&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Uplift — replace XML where possible&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-xml-where-possible">&lt;/span>
+&lt;a href="#uplift--replace-xml-where-possible" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For new APIs and config files, prefer JSON, YAML (with
+&lt;code>safe_load&lt;/code>), or protobuf. XML&amp;rsquo;s parser-level vulnerabilities
+are not a fixable category; the only real fix is to stop
+parsing XML where the format isn&amp;rsquo;t required.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every XML-parser instantiation in the repo.&lt;/li>
+&lt;li>&lt;strong>Languages and parsers&lt;/strong> in scope.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating XML-parser defaults across this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every XML-parser instantiation: &lt;span class="sb">`ElementTree.parse`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`DocumentBuilderFactory.newInstance`&lt;/span>, &lt;span class="sb">`XmlDocument`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Nokogiri::XML`&lt;/span>, &lt;span class="sb">`simplexml_load_string`&lt;/span>, etc.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each, identify whether the input is untrusted (request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> body, uploaded file, partner data feed) or trusted (a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bundled config file).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Flag any code path that returns parsed XML content in an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> HTTP response (XXE exfiltration surface) and any path that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> logs parsed content.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Mitigate per language
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Apply the language-specific configuration from the recipe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">body:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Python:** swap imports to &lt;span class="sb">`defusedxml`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Java:** set the &lt;span class="sb">`disallow-doctype-decl`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`external-general-entities`&lt;/span>, &lt;span class="sb">`external-parameter-entities`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`load-external-dtd`&lt;/span> features to safe values on every parser
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> factory, plus &lt;span class="sb">`setXIncludeAware(false)`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`setExpandEntityReferences(false)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **PHP:** pass safe libxml flags to every parser; remove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`LIBXML_NOENT`&lt;/span> and &lt;span class="sb">`LIBXML_DTDLOAD`&lt;/span> everywhere.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **.NET:** set &lt;span class="sb">`DtdProcessing = Prohibit`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`XmlResolver = null`&lt;/span> on every reader.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Ruby:** use &lt;span class="sb">`nonet`&lt;/span>, &lt;span class="sb">`noent: false`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Uplift the API surface (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If a public API takes XML and the agent has authority to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">introduce a JSON endpoint side-by-side, do it. Mark XML
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">endpoints deprecated; keep them serving (with the mitigated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">parser) until clients migrate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For every language touched, add a test:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> The classic XXE payload (referencing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`file:///etc/passwd`&lt;/span> or a local DTD) is rejected without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolving the entity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> A billion-laughs / quadratic-blowup payload is rejected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without exhausting memory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> A normal XML payload still parses correctly (behaviour
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> preservation).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/xxe-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][XXE] harden XML parsers in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: per-language summary, call-site list, test additions,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> any deprecation notices.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A parser configuration option changes the schema-validation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> semantics in a way that breaks legitimate inputs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail in unrelated code that depends on XInclude or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DTD resolution for a real reason. Triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A vendored XML library has no exposed safe-mode flag. Flag
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and triage; consider replacing the library.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change XML schemas (XSDs). The fix is parser
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration, not schema content.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not silently re-enable any flag the recipe disables.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>DTD-using legitimate inputs.&lt;/strong> Some partner integrations
+ship inline DTDs. The mitigation breaks them. Identify
+before deploying; allowlist the partner-DTD path explicitly
+rather than globally re-enabling DTDs.&lt;/li>
+&lt;li>&lt;strong>Logging the parsed payload.&lt;/strong> Even with entities disabled,
+logging unparsed XML can leak data via log-injection. Log
+the payload&amp;rsquo;s hash, not its content.&lt;/li>
+&lt;li>&lt;strong>Dependency-injected parsers.&lt;/strong> A framework that injects a
+parser bean (Spring, Symfony, Rails) needs the parser bean
+reconfigured at construction. Find and fix the bean
+definition, not just the call sites.&lt;/li>
+&lt;li>&lt;strong>Schema validation feature-flags re-enabling DTDs.&lt;/strong> Some
+XSD validators re-resolve external schemas; double-check
+&lt;code>SchemaFactory&lt;/code> settings.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">Java ObjectInputStream&lt;/a>
+— sibling Java deserialization pattern.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42231 - n8n XML webhook prototype pollution RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42231-n8n-xml-webhook-prototype-pollution-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42231-n8n-xml-webhook-prototype-pollution-rce/</guid><description>
+&lt;p>n8n&amp;rsquo;s XML webhook body parser can be abused with crafted XML to pollute the
+JavaScript object prototype. In vulnerable deployments, an attacker who can
+create or modify workflows can chain that polluted prototype through Git-node
+SSH behavior and reach remote code execution on the n8n host.&lt;/p>
+&lt;p>This is a server/runtime deployment issue for n8n itself. Repositories that
+only call an external n8n instance through an API client are not directly
+patching this CVE, but they may need to route the finding to the owner of the
+n8n deployment.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>n8n &amp;lt;1.123.32&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>n8n &amp;gt;=2.17.0, &amp;lt;2.17.4&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>n8n &amp;gt;=2.18.0, &amp;lt;2.18.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>n8n 1.123.32&lt;/code>, &lt;code>2.17.4&lt;/code>, &lt;code>2.18.1&lt;/code>, or later on the selected
+release line&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or packages the &lt;code>n8n&lt;/code> server, not only an n8n client,
+SDK, workflow export, or integration.&lt;/li>
+&lt;li>A deployable n8n runtime resolves to one of the affected versions through npm,
+Docker images, Helm charts, compose files, Terraform, Ansible, or other
+release manifests.&lt;/li>
+&lt;li>n8n webhook endpoints are reachable by untrusted users or by workflows that
+process untrusted XML request bodies.&lt;/li>
+&lt;li>Non-fully-trusted users can create or modify workflows, especially workflows
+containing webhook, XML, Git, SSH, command, or file-system-capable nodes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;n8n|N8N_VERSION|n8nio/n8n|NODES_EXCLUDE|webhook|xml|git&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls n8n
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why n8n
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why n8n
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;n8n|n8nio&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled n8n runtime to &lt;code>1.123.32+&lt;/code>, &lt;code>2.17.4+&lt;/code>, or &lt;code>2.18.1+&lt;/code>
+on the repository&amp;rsquo;s selected release line.&lt;/li>
+&lt;li>Regenerate lockfiles, deployment manifests, SBOMs, and image references so the
+resolved runtime is patched, not only the declared manifest.&lt;/li>
+&lt;li>Until the upgrade is deployed, limit workflow creation and editing to fully
+trusted administrators. Treat this as temporary containment only.&lt;/li>
+&lt;li>Review workflows that combine webhook/XML processing with Git, SSH, shell,
+file-system, or other host-interacting nodes.&lt;/li>
+&lt;li>Rotate credentials exposed to vulnerable workflows if exploitation is
+suspected, especially SSH keys, Git credentials, n8n credentials, and secrets
+stored in workflow-accessible environments.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42231 (n8n XML webhook prototype pollution leading
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">to RCE). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades n8n, preserves the intended
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> release line, adds deployment/operator checks, and documents short-term
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected n8n runtime or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42231.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinguish n8n server deployments from n8n API clients, SDK wrappers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workflow exports, or documentation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute proof-of-concept payloads, Git-node SSH operations, shell
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands, or webhook calls against production n8n instances.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, or commit n8n credentials, webhook tokens, SSH keys,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Git credentials, workflow secrets, cookies, or environment secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all n8n runtime references in package manifests, lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, compose files, Helm values, Kubernetes manifests, Terraform,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Ansible, release scripts, SBOMs, generated dependency manifests, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployable n8n runtime resolves to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8n &amp;lt;1.123.32`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8n &amp;gt;=2.17.0, &amp;lt;2.17.4`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8n &amp;gt;=2.18.0, &amp;lt;2.18.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the repository only calls an externally owned n8n service, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owning service, the evidence found, and the required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Upgrade the vulnerable runtime on its existing release line:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`1.x`&lt;/span> deployments to &lt;span class="sb">`1.123.32+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`2.17.x`&lt;/span> deployments to &lt;span class="sb">`2.17.4+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`2.18.x`&lt;/span> deployments to &lt;span class="sb">`2.18.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> floating tags to an explicit patched tag or digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Regenerate the repository&amp;#39;s normal dependency and deployment artifacts:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, rendered Helm/Kubernetes manifests, container metadata, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, and generated dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Search workflows and configuration for XML webhooks and host-interacting
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> follow-on nodes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> webhook nodes accepting XML request bodies;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> XML node usage near webhook input;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Git, SSH, command, file-system, code, or execute-command nodes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> workflow author roles or tenant settings that allow untrusted editing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add a short operator runbook or PR body section named
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`CVE-2026-42231 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which n8n version line was upgraded;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether workflow creation/editing is limited to trusted users until
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rollout completes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether XML webhook workflows exist;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether risky XML-to-Git/SSH/host-interacting workflow chains were found;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether credential rotation or incident review is required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> If the upgrade cannot deploy immediately, add temporary containment where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict workflow creation and editing to trusted administrators;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable or quarantine XML webhook workflows that process untrusted input;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reduce network/file-system privileges for n8n workers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document residual risk because containment does not fully remediate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Run available validation: package-manager install check, lockfile integrity,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unit tests, workflow import/export tests, lint/typecheck, image build, deploy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, and dependency/security scans.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42231 in n8n`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not deploy or package n8n.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The n8n runtime is owned by another team or vendor and cannot be patched here.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed version cannot be consumed without a larger n8n migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validating the exploit path would require running live RCE-like payloads,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SSH operations, or production webhook probes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable n8n runtime remains below &lt;code>1.123.32&lt;/code>, in &lt;code>2.17.0&lt;/code> through
+&lt;code>2.17.3&lt;/code>, or on &lt;code>2.18.0&lt;/code>.&lt;/li>
+&lt;li>Lockfiles, image tags/digests, SBOMs, and rendered deployment manifests all
+resolve to the patched release line.&lt;/li>
+&lt;li>The PR states whether XML webhook workflows and risky Git/SSH/host-interacting
+chains exist.&lt;/li>
+&lt;li>Temporary workflow-author restrictions are documented if rollout is not yet
+complete.&lt;/li>
+&lt;li>Tests, build, deployment rendering, and dependency scans pass or unrelated
+failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating package manifests while leaving Docker tags, Helm values, or lockfiles
+on vulnerable versions.&lt;/li>
+&lt;li>Treating workflow author restrictions as a permanent fix.&lt;/li>
+&lt;li>Assuming internal-only n8n instances are safe when self-service workflow
+editing is enabled for semi-trusted users.&lt;/li>
+&lt;li>Workflow exports or fixtures that reintroduce XML webhook paths after runtime
+patching.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-q5f4-99jv-pgg5"target="_blank" rel="noopener">https://github.com/advisories/GHSA-q5f4-99jv-pgg5&lt;/a>&lt;/li>
+&lt;li>n8n repository: &lt;a href="https://github.com/n8n-io/n8n"target="_blank" rel="noopener">https://github.com/n8n-io/n8n&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42232 - n8n XML node prototype pollution RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42232-n8n-xml-node-prototype-pollution-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42232-n8n-xml-node-prototype-pollution-rce/</guid><description>
+&lt;p>n8n&amp;rsquo;s XML node can allow global JavaScript prototype pollution when an
+authenticated workflow author supplies crafted XML. The polluted prototype can
+then be chained with other nodes that act on polluted properties, producing
+remote code execution in vulnerable n8n hosts.&lt;/p>
+&lt;p>The highest-risk deployments let semi-trusted users create or edit workflows and
+run XML-processing workflows in the same environment as host-interacting nodes
+such as Git, SSH, command, file-system, code, or credentialed integration nodes.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>n8n &amp;lt;1.123.32&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>n8n &amp;gt;=2.17.0, &amp;lt;2.17.4&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>n8n &amp;gt;=2.18.0, &amp;lt;2.18.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>n8n 1.123.32&lt;/code>, &lt;code>2.17.4&lt;/code>, &lt;code>2.18.1&lt;/code>, or later on the selected
+release line&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, deploys, or pins the &lt;code>n8n&lt;/code> server/runtime.&lt;/li>
+&lt;li>The resolved runtime is in one of the affected version ranges through npm,
+container images, Helm charts, compose files, IaC, or release manifests.&lt;/li>
+&lt;li>Authenticated users outside the core admin/operator group can create or modify
+workflows.&lt;/li>
+&lt;li>XML node usage is enabled, or &lt;code>NODES_EXCLUDE&lt;/code> does not exclude
+&lt;code>n8n-nodes-base.xml&lt;/code>.&lt;/li>
+&lt;li>Workflows can combine XML processing with nodes that access host resources,
+credentials, source control, SSH, shell execution, or external systems.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;n8n|N8N_VERSION|n8nio/n8n|NODES_EXCLUDE|n8n-nodes-base.xml|XML|xml&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls n8n
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why n8n
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why n8n
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;n8n|n8nio&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade all controlled n8n runtimes to &lt;code>1.123.32+&lt;/code>, &lt;code>2.17.4+&lt;/code>, or &lt;code>2.18.1+&lt;/code>.&lt;/li>
+&lt;li>Pin explicit patched image tags or digests instead of floating vulnerable
+tags.&lt;/li>
+&lt;li>If upgrade is delayed, temporarily restrict workflow creation and editing to
+fully trusted users and disable the XML node by adding &lt;code>n8n-nodes-base.xml&lt;/code> to
+&lt;code>NODES_EXCLUDE&lt;/code>.&lt;/li>
+&lt;li>Review workflow exports and production workflows for XML node chains that feed
+host-interacting nodes.&lt;/li>
+&lt;li>Rotate credentials available to vulnerable workflows if suspicious workflow
+edits, XML payloads, or execution traces are found.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42232 (n8n XML node prototype pollution leading to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">RCE). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades n8n, preserves the intended
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> release line, adds regression/deployment checks, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected n8n runtime or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42232.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinguish n8n server/runtime deployments from n8n API clients, workflow
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exports, SDK wrappers, or documentation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit payloads or live workflow chains to prove RCE.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, or commit n8n credentials, webhook tokens, SSH keys,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Git credentials, workflow secrets, cookies, execution data, or environment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every n8n runtime reference controlled by the repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm values,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, release scripts, SBOMs, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency manifests, workflow bundles, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployable n8n runtime resolves to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8n &amp;lt;1.123.32`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8n &amp;gt;=2.17.0, &amp;lt;2.17.4`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8n &amp;gt;=2.18.0, &amp;lt;2.18.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the repository only stores workflow exports or talks to an externally
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owned n8n instance, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owner, evidence, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> required patched versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Upgrade vulnerable runtimes on their existing release line:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`1.x`&lt;/span> to &lt;span class="sb">`1.123.32+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`2.17.x`&lt;/span> to &lt;span class="sb">`2.17.4+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`2.18.x`&lt;/span> to &lt;span class="sb">`2.18.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> floating image tags to explicit patched tags or digests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Regenerate lockfiles, rendered deploy manifests, container metadata, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated dependency reports, and image digests as appropriate for this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Search configuration and workflow assets for XML node exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8n-nodes-base.xml`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> XML nodes or XML parsing;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`NODES_EXCLUDE`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> workflow author/editor roles;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Git, SSH, command, code, file-system, or other host-interacting nodes near
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> XML-processing paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add or update a test, policy check, or deployment-render assertion that proves
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the resolved n8n version is patched. If this repo manages node exclusions,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> also test that emergency &lt;span class="sb">`NODES_EXCLUDE`&lt;/span> configuration renders correctly when
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enabled.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42232 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which n8n release line was upgraded;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether XML node usage exists;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether workflow authoring is limited to trusted users during rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`NODES_EXCLUDE=n8n-nodes-base.xml`&lt;/span> is needed as temporary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether credential rotation or incident review is required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> If immediate upgrade is blocked, add temporary containment where this repo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict workflow creation and editing to trusted administrators;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable the XML node with &lt;span class="sb">`NODES_EXCLUDE`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reduce n8n worker privileges and network/file-system reach;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document residual risk because containment does not fully remediate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run available validation: package-manager install check, lockfile integrity,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unit tests, workflow import/export checks, lint/typecheck, image build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deploy rendering, and dependency/security scans.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42232 in n8n`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not deploy or package n8n.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The n8n runtime is owned by another team or vendor and cannot be patched here.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed version cannot be consumed without a larger n8n migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verifying exposure would require running exploit-like XML payloads or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> host-command workflow chains.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable n8n runtime remains below &lt;code>1.123.32&lt;/code>, in &lt;code>2.17.0&lt;/code> through
+&lt;code>2.17.3&lt;/code>, or on &lt;code>2.18.0&lt;/code>.&lt;/li>
+&lt;li>Lockfiles, image tags/digests, SBOMs, and rendered deployment manifests all
+resolve to a patched release.&lt;/li>
+&lt;li>XML node exposure, workflow authoring permissions, and temporary
+&lt;code>NODES_EXCLUDE&lt;/code> containment are explicitly addressed.&lt;/li>
+&lt;li>The change avoids exploit execution and does not expose workflow secrets or
+credentials in logs.&lt;/li>
+&lt;li>Tests, builds, deployment rendering, and dependency scans pass or unrelated
+failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Repositories that pin n8n in multiple places, especially chart values plus
+Docker images plus lockfiles.&lt;/li>
+&lt;li>Treating &lt;code>NODES_EXCLUDE&lt;/code> as sufficient remediation instead of a short-term
+control.&lt;/li>
+&lt;li>Workflow authors with broad edit rights in otherwise &amp;ldquo;internal&amp;rdquo; instances.&lt;/li>
+&lt;li>Workflow fixtures or exports that keep XML node chains hidden outside normal
+dependency scanning.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-hqr4-h3xv-9m3r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-hqr4-h3xv-9m3r&lt;/a>&lt;/li>
+&lt;li>n8n repository: &lt;a href="https://github.com/n8n-io/n8n"target="_blank" rel="noopener">https://github.com/n8n-io/n8n&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

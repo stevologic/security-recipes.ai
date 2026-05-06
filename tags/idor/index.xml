@@ -1,0 +1,375 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Idor</title><link>https://security-recipes.ai/tags/idor/</link><description>Recent content in Idor on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Mon, 04 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/idor/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-29200 - Comet Backup tenant impersonation IDOR</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-29200-comet-backup-tenant-idor/</link><pubDate>Mon, 04 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-29200-comet-backup-tenant-idor/</guid><description>
+&lt;p>Comet Backup contains a critical tenant-impersonation authorization flaw. The
+NVD record says Comet Backup versions from &lt;code>20.11.0&lt;/code> through &lt;code>26.1.1&lt;/code>, plus
+&lt;code>26.2.1&lt;/code>, allow a tenant administrator to impersonate end-user accounts from
+other tenants on the same server through a vulnerable API call.&lt;/p>
+&lt;p>That makes this a control-plane boundary issue, not just a routine application
+bug. A vulnerable multi-tenant backup server can expose backup metadata,
+restore capabilities, and tenant-owned account context to an administrator who
+should only control their own tenant.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Comet Backup &lt;code>&amp;gt;=20.11.0, &amp;lt;=26.1.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Also vulnerable:&lt;/strong> Comet Backup &lt;code>26.2.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Confirm the currently patched version from Comet&amp;rsquo;s vendor
+advisory or release channel before deployment. Treat &lt;code>26.1.1&lt;/code> and &lt;code>26.2.1&lt;/code>
+as unsafe even if they appear newer than local baselines.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns a Comet Backup server deployment, package pin, image,
+installer bundle, Helm chart, Terraform module, Ansible role, runbook, or
+SBOM.&lt;/li>
+&lt;li>A deployable Comet Backup server resolves to a version in the affected range.&lt;/li>
+&lt;li>The Comet Backup server is multi-tenant or grants tenant administrators the
+ability to manage end-user accounts.&lt;/li>
+&lt;li>Public or internal network paths expose the Comet Backup admin/API surface to
+tenant administrators.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;comet|cometbackup|Comet Backup|COMET&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;20\\.11\\.0|26\\.1\\.1|26\\.2\\.1|comet-server|cometd&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -maxdepth &lt;span class="m">5&lt;/span> -type f &lt;span class="se">\(&lt;/span> -iname &lt;span class="s2">&amp;#34;*comet*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*backup*&amp;#34;&lt;/span> &lt;span class="se">\)&lt;/span> -print&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every Comet Backup server past the affected release line using the
+vendor-supported patched release for the deployment channel.&lt;/li>
+&lt;li>Regenerate package locks, image digests, SBOMs, rendered manifests, and
+deployment evidence that prove the patched server version is the one that
+will actually run.&lt;/li>
+&lt;li>Until upgrade is complete, restrict tenant-admin network access to the
+Comet Backup API/admin surface and disable or block the vulnerable
+impersonation workflow if the repository controls a reverse proxy, WAF, or
+gateway policy.&lt;/li>
+&lt;li>Rotate Comet Backup web sessions, tenant-admin API tokens, and any support
+impersonation credentials after patching.&lt;/li>
+&lt;li>Audit Comet Backup logs for tenant-admin actions that accessed or
+impersonated users outside the actor&amp;rsquo;s tenant boundary.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-29200 (Comet Backup tenant impersonation IDOR).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or contains the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Comet Backup deployment and documents required operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not control a Comet Backup deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot safely make the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-29200.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat backup metadata, tenant IDs, user IDs, backup paths, encryption keys,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> API tokens, session cookies, and restore destinations as sensitive. Do not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> print real values in logs, test fixtures, screenshots, or PR text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not attempt live impersonation against production tenants.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not delete backup sets, restore data, change retention policy, rotate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customer encryption keys, or modify tenant ownership automatically.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not invent an API endpoint name. Use repository configuration, vendor
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory text, release notes, or existing Comet admin/API documentation to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> identify the controlled surface.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory Comet Backup ownership in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Dockerfiles, image tags, installer URLs, package pins, checksums, SBOMs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Helm/Kubernetes manifests, Compose files, Terraform, Ansible, Packer, AMIs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway, reverse proxy, WAF, or firewall policy that exposes Comet admin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or API routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> operational runbooks for tenant administration, support impersonation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> backup restore, or API token management.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repository does not deploy or configure Comet Backup, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> listing every path checked and the likely runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine the resolved Comet Backup server version for every deployable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment. Treat &lt;span class="sb">`&amp;gt;=20.11.0, &amp;lt;=26.1.1`&lt;/span> and &lt;span class="sb">`26.2.1`&lt;/span> as vulnerable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Upgrade each vulnerable server to the latest vendor-supported patched
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> release. If the vendor maintains separate stable and latest tracks, choose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the patched track already used by the repository unless security policy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requires the latest channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, Helm render output, deployment manifests, golden
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, checksum allowlists, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add temporary containment if the patched release cannot be deployed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> immediately:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict tenant-admin access to Comet admin/API routes by VPN, allowlist,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> identity-aware proxy, or equivalent gateway control;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block the documented impersonation route or workflow at the edge if the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository controls that policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable support impersonation features where configuration allows;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add an emergency runbook requiring tenant boundary log review and token
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation after patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-29200 operator actions`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> confirming production now runs a patched Comet Backup version;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> invalidating Comet Backup web sessions and tenant-admin API tokens;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reviewing audit logs for tenant-admin impersonation or cross-tenant user
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> preserving suspicious logs for incident response;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> validating backup and restore workflows after the upgrade without exposing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customer backup data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add or update verification that proves the deployed artifact is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`20.11.0`&lt;/span> through &lt;span class="sb">`26.1.1`&lt;/span> and is not &lt;span class="sb">`26.2.1`&lt;/span>. Prefer a version assertion
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in deployment tests, image metadata checks, SBOM policy, or runbook smoke
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Run the repository&amp;#39;s relevant validation: image build, IaC plan/render,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment schema validation, SBOM generation, package checksum checks, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security scan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-29200 in Comet Backup`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Comet Backup deployment, image, runbook, or infrastructure path is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved Comet Backup version can only be determined from production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access that the agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The vendor-patched release is not available through the repository&amp;#39;s allowed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would delete or restore backup data, alter tenant
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ownership, rotate customer-held encryption keys, or expose tenant identifiers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable Comet Backup server artifact resolves to &lt;code>20.11.0&lt;/code> through
+&lt;code>26.1.1&lt;/code>, or to &lt;code>26.2.1&lt;/code>.&lt;/li>
+&lt;li>The actual delivery path was changed: package pin, installer checksum, image
+digest, deployment manifest, SBOM, or operational runbook.&lt;/li>
+&lt;li>Temporary containment is present when a full upgrade is blocked.&lt;/li>
+&lt;li>Operator actions cover session/API-token invalidation and cross-tenant audit
+review.&lt;/li>
+&lt;li>Tests, image builds, IaC renders, and security scans pass or unrelated
+failures are explicitly documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Repositories that update documentation but leave base images or installer
+URLs pinned to a vulnerable Comet version.&lt;/li>
+&lt;li>Multiple Comet deployment tracks where one environment uses the &lt;code>26.1.x&lt;/code>
+branch and another uses &lt;code>26.2.1&lt;/code>.&lt;/li>
+&lt;li>PRs that prove a package version changed but do not prove the rebuilt image or
+rendered deployment references the patched artifact.&lt;/li>
+&lt;li>Incident-response work that requires live tenant data. Keep code changes and
+production investigation clearly separated.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database critical listing: &lt;a href="https://github.com/advisories?query=severity%3Acritical"target="_blank" rel="noopener">https://github.com/advisories?query=severity%3Acritical&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-29200"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-29200&lt;/a>&lt;/li>
+&lt;li>Comet vendor advisory: &lt;a href="https://support.cometbackup.com/hc/en-us/articles/40090945484823--CVE-2026-29200-%D0%A1ritical-IDOR-vulnerability-in-Comet-Backup"target="_blank" rel="noopener">https://support.cometbackup.com/hc/en-us/articles/40090945484823--CVE-2026-29200-%D0%A1ritical-IDOR-vulnerability-in-Comet-Backup&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-3xx2/GHSA-47wq - Paperclip agent key tenant-boundary bypass</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-3xx2-47wq-paperclip-agent-key-tenant-boundary/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-3xx2-47wq-paperclip-agent-key-tenant-boundary/</guid><description>
+&lt;p>Two critical Paperclip advisories describe the same tenant-boundary failure in
+agent API key routes. The &lt;code>GET&lt;/code>, &lt;code>POST&lt;/code>, and &lt;code>DELETE&lt;/code> handlers for
+&lt;code>/agents/:id/keys&lt;/code> accepted a board-type session but did not verify that the
+caller belonged to the company owning the target agent.&lt;/p>
+&lt;p>An authenticated board user could supply another company&amp;rsquo;s agent UUID, list or
+revoke that agent&amp;rsquo;s keys, and mint a new plaintext agent token bound to the
+victim tenant. For an agent platform, that is a full cross-tenant control-plane
+compromise.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>@paperclipai/server 2026.416.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected routes:&lt;/strong>
+&lt;ul>
+&lt;li>&lt;code>GET /agents/:id/keys&lt;/code>&lt;/li>
+&lt;li>&lt;code>POST /agents/:id/keys&lt;/code>&lt;/li>
+&lt;li>&lt;code>DELETE /agents/:id/keys/:keyId&lt;/code>&lt;/li>
+&lt;li>equivalent &lt;code>/api/agents/:id/keys&lt;/code> deployments or reverse-proxy prefixes.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or packages &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>.&lt;/li>
+&lt;li>The Paperclip deployment is multi-tenant or has more than one company,
+workspace, board, customer, or organization.&lt;/li>
+&lt;li>Board users can authenticate without being instance administrators.&lt;/li>
+&lt;li>Agent IDs are visible in URLs, logs, exported data, webhooks, frontend state,
+or predictable test fixtures.&lt;/li>
+&lt;li>Agent API tokens can call downstream endpoints that rely on token-bound
+&lt;code>companyId&lt;/code> for authorization.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;@paperclipai/server|paperclip|/agents/:id/keys|agents/.*/keys|assertBoard|assertCompanyAccess|createApiKey|listKeys|revokeKey&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;agentApiKeys|companyId|instance_admin|board|agent token|pcp_&amp;#34;&lt;/span> server src packages Dockerfile* docker-compose*.yml charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>@paperclipai/server&lt;/code> to &lt;code>2026.416.0+&lt;/code> everywhere this repository
+controls package manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Require company access for all agent-key list, create, and revoke paths:
+fetch the target agent first, then call the product&amp;rsquo;s company-access helper
+using the agent&amp;rsquo;s company ID.&lt;/li>
+&lt;li>Enforce tenant checks in the service layer as well as route handlers so future
+routes cannot bypass the boundary by calling &lt;code>createApiKey&lt;/code>, &lt;code>listKeys&lt;/code>, or
+&lt;code>revokeKey&lt;/code> directly.&lt;/li>
+&lt;li>Make revocation scoped to both key ID and agent/company, not key ID alone.&lt;/li>
+&lt;li>Rotate agent API tokens and review audit logs if unauthorized board users
+could access the key routes.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating Paperclip agent API key tenant-boundary advisories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Paperclip or patches the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenant authorization boundary, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Paperclip deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat agent API tokens, key hashes, tenant IDs, company IDs, session cookies,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> audit logs, and customer data as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not mint, print, commit, or attach real agent API tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not fix only the frontend. The server-side route and service boundary must
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enforce tenant ownership.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Paperclip runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, CI images, deployment docs, SBOMs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored server code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`@paperclipai/server`&lt;/span> version. A target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves below &lt;span class="sb">`2026.416.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search route and service code for agent-key operations:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /agents/:id/keys`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /agents/:id/keys`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`DELETE /agents/:id/keys/:keyId`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`/api/agents/:id/keys`&lt;/span> aliases;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`assertBoard`&lt;/span>, &lt;span class="sb">`assertCompanyAccess`&lt;/span>, &lt;span class="sb">`createApiKey`&lt;/span>, &lt;span class="sb">`listKeys`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`revokeKey`&lt;/span>, and &lt;span class="sb">`agentApiKeys`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository only deploys a fixed hosted Paperclip service or does not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> own Paperclip, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading to &lt;span class="sb">`@paperclipai/server 2026.416.0+`&lt;/span>. Regenerate lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If the repository owns a fork or vendored patch path, patch authorization:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fetch the target agent before key list/create/revoke;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> call &lt;span class="sb">`assertCompanyAccess(req, agent.companyId)`&lt;/span> or equivalent before any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> key operation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow instance-admin override only through the existing reviewed helper;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> pass actor/company context into service-layer key functions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scope revoke by key ID plus agent ID/company ID;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> never return plaintext tokens except immediately after an authorized
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> create operation in the caller&amp;#39;s own tenant.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Company A board user gets 403 for Company B key list/create/revoke;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> zero-membership board user gets 403;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> instance admin behavior matches the intended product policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authorized same-company users can still create and revoke keys;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> service-layer calls cannot create or revoke cross-tenant keys without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actor/company context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add audit and operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> log key-management actor, target agent, company, and decision without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plaintext tokens;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rate-limit key creation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> alert on cross-company key-management denials;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document token rotation for the exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`Paperclip agent key operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected Paperclip versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether multiple companies or self-service board accounts existed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether agent IDs were discoverable by non-member users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether agent API keys were listed, minted, or revoked by suspicious
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actors;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which agent tokens must be rotated and which audit logs must be reviewed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package install, lockfile checks, route tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> service tests, authorization integration tests, lint/typecheck, image build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOM refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): enforce tenant access on Paperclip agent keys`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Paperclip server deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Paperclip version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The tenant ownership model is unclear or intentionally allows cross-company
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> board administration; document the risk and require a product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require exposing real agent tokens or customer data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>@paperclipai/server&lt;/code> below &lt;code>2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Every agent-key route checks access to the company that owns the target agent.&lt;/li>
+&lt;li>Service functions cannot list, create, or revoke keys without actor/company
+context.&lt;/li>
+&lt;li>Cross-tenant regression tests cover list, create, and revoke.&lt;/li>
+&lt;li>Operator actions cover token rotation and audit-log review without exposing
+plaintext tokens.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Adding &lt;code>assertCompanyAccess&lt;/code> only to &lt;code>POST&lt;/code> while &lt;code>GET&lt;/code> or &lt;code>DELETE&lt;/code> remains
+tenant-blind.&lt;/li>
+&lt;li>Fetching the agent after creating or revoking the key.&lt;/li>
+&lt;li>Revoking by key ID alone when key IDs are globally unique and guessable from
+logs or frontend state.&lt;/li>
+&lt;li>Logging plaintext &lt;code>pcp_*&lt;/code> tokens in tests, audit events, or PR comments.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-3xx2-mqjm-hg9x&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-3xx2-mqjm-hg9x"target="_blank" rel="noopener">https://github.com/advisories/GHSA-3xx2-mqjm-hg9x&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-47wq-cj9q-wpmp&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-47wq-cj9q-wpmp"target="_blank" rel="noopener">https://github.com/advisories/GHSA-47wq-cj9q-wpmp&lt;/a>&lt;/li>
+&lt;li>Paperclip project: &lt;a href="https://github.com/paperclipai/paperclip"target="_blank" rel="noopener">https://github.com/paperclipai/paperclip&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

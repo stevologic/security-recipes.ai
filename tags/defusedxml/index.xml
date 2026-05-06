@@ -1,0 +1,276 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Defusedxml</title><link>https://security-recipes.ai/tags/defusedxml/</link><description>Recent content in Defusedxml on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/defusedxml/index.xml" rel="self" type="application/rss+xml"/><item><title>XML external entities (XXE) — parser defaults</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/xxe-xml-defaults/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/xxe-xml-defaults/</guid><description>
+&lt;p>XML parsers in most languages historically defaulted to
+&lt;em>resolving external entities&lt;/em>. A single XML payload can read
+local files, exfiltrate data over DNS, hang the parser on a
+billion-laughs payload, or pivot through SSRF. Most parsers
+have safer modes; few default to them. The fix is to set the
+right flags everywhere — every parser, every library, every
+vendored XML toolkit.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Python.&lt;/strong> &lt;code>xml.etree.ElementTree.parse&lt;/code>,
+&lt;code>xml.dom.minidom.parse&lt;/code>, &lt;code>xml.sax.parse&lt;/code>, &lt;code>lxml.etree.parse&lt;/code>
+with default options.&lt;/li>
+&lt;li>&lt;strong>Java.&lt;/strong> &lt;code>DocumentBuilderFactory&lt;/code>, &lt;code>SAXParserFactory&lt;/code>,
+&lt;code>XMLInputFactory&lt;/code>, &lt;code>TransformerFactory&lt;/code>, &lt;code>SchemaFactory&lt;/code> —
+all entity-resolving by default.&lt;/li>
+&lt;li>&lt;strong>PHP.&lt;/strong> &lt;code>simplexml_load_string&lt;/code>, &lt;code>DOMDocument::loadXML&lt;/code> with
+default options; &lt;code>libxml_disable_entity_loader&lt;/code> global flag
+was the historical mitigation but its semantics changed in
+PHP 8.&lt;/li>
+&lt;li>&lt;strong>.NET.&lt;/strong> &lt;code>XmlDocument&lt;/code>, &lt;code>XmlReader&lt;/code> defaults pre-4.5.2
+resolved entities; current defaults are safer but
+application code often re-enables them.&lt;/li>
+&lt;li>&lt;strong>Ruby.&lt;/strong> &lt;code>Nokogiri::XML(input)&lt;/code> with default options —
+&lt;code>noent: true&lt;/code> is the dangerous flag.&lt;/li>
+&lt;li>&lt;strong>Go.&lt;/strong> &lt;code>encoding/xml&lt;/code> does not resolve entities (good); but
+third-party XML libraries vary.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The classic XXE payload reads a local file:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-xml" data-lang="xml">&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&amp;lt;?xml version=&amp;#34;1.0&amp;#34;?&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="cp">&amp;lt;!DOCTYPE foo [&amp;lt;!ENTITY x SYSTEM &amp;#34;file:///etc/passwd&amp;#34;&amp;gt;&lt;/span>]&amp;gt;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nt">&amp;lt;foo&amp;gt;&lt;/span>&lt;span class="ni">&amp;amp;x;&lt;/span>&lt;span class="nt">&amp;lt;/foo&amp;gt;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>…and your parser returns the contents in the response body, or
+in an error message, or via a side-channel DNS lookup. There is
+no patch coming for &amp;ldquo;the XML spec allows this&amp;rdquo; — the fix is to
+configure the parser to refuse.&lt;/p>
+&lt;h2>Mitigation — disable entity resolution and DTD loading&lt;span class="hx:absolute hx:-mt-20" id="mitigation--disable-entity-resolution-and-dtd-loading">&lt;/span>
+&lt;a href="#mitigation--disable-entity-resolution-and-dtd-loading" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Per language, the right flags:&lt;/p>
+&lt;p>&lt;strong>Python (uplift to &lt;code>defusedxml&lt;/code>).&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Replace&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># import xml.etree.ElementTree as ET&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">defusedxml.ElementTree&lt;/span> &lt;span class="k">as&lt;/span> &lt;span class="nn">ET&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># All ET.* calls now refuse external entities, DTDs, and&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># entity-expansion attacks.&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>&lt;code>defusedxml&lt;/code> has wrappers for &lt;code>ElementTree&lt;/code>, &lt;code>minidom&lt;/code>, &lt;code>sax&lt;/code>,
+&lt;code>lxml&lt;/code>, &lt;code>pulldom&lt;/code>, and &lt;code>xmlrpc&lt;/code>. Replacing the import is the
+fix.&lt;/p>
+&lt;p>&lt;strong>Java.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">DocumentBuilderFactory&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">DocumentBuilderFactory&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">newInstance&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://apache.org/xml/features/disallow-doctype-decl&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">true&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://xml.org/sax/features/external-general-entities&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://xml.org/sax/features/external-parameter-entities&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setFeature&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#34;http://apache.org/xml/features/nonvalidating/load-external-dtd&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setXIncludeAware&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="n">dbf&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setExpandEntityReferences&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="kc">false&lt;/span>&lt;span class="p">);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Equivalent flag-sets exist for &lt;code>SAXParserFactory&lt;/code>,
+&lt;code>XMLInputFactory&lt;/code> (&lt;code>IS_SUPPORTING_EXTERNAL_ENTITIES&lt;/code>,
+&lt;code>SUPPORT_DTD&lt;/code>), and &lt;code>TransformerFactory&lt;/code>
+(&lt;code>XMLConstants.ACCESS_EXTERNAL_DTD&lt;/code>,
+&lt;code>ACCESS_EXTERNAL_STYLESHEET&lt;/code>).&lt;/p>
+&lt;p>&lt;strong>PHP.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-php" data-lang="php">&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$dom&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="nx">DOMDocument&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$dom&lt;/span>&lt;span class="o">-&amp;gt;&lt;/span>&lt;span class="na">loadXML&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nv">$input&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">LIBXML_NONET&lt;/span> &lt;span class="o">|&lt;/span> &lt;span class="nx">LIBXML_NOENT&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="o">?&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="c1">// default safe in PHP 8+; verify with phpunit
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="o">:&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="c1">// explicitly no LIBXML_NOENT, no LIBXML_DTDLOAD
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>PHP 8 changed &lt;code>libxml_disable_entity_loader&lt;/code> semantics; the
+correct shape is now flag-based at the load call.&lt;/p>
+&lt;p>&lt;strong>.NET.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-csharp" data-lang="csharp">&lt;span class="line">&lt;span class="cl">&lt;span class="kt">var&lt;/span> &lt;span class="n">settings&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">XmlReaderSettings&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">DtdProcessing&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">DtdProcessing&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">Prohibit&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">XmlResolver&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="kc">null&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">};&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">using&lt;/span> &lt;span class="nn">var&lt;/span> &lt;span class="n">reader&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">XmlReader&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">Create&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">input&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">settings&lt;/span>&lt;span class="p">);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Never use &lt;code>XmlDocument.Load(stream)&lt;/code> directly without setting
+&lt;code>XmlResolver = null&lt;/code> and &lt;code>DtdProcessing = Prohibit&lt;/code>.&lt;/p>
+&lt;p>&lt;strong>Ruby.&lt;/strong>&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ruby" data-lang="ruby">&lt;span class="line">&lt;span class="cl">&lt;span class="n">doc&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="no">Nokogiri&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="no">XML&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">input&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="k">do&lt;/span> &lt;span class="o">|&lt;/span>&lt;span class="n">config&lt;/span>&lt;span class="o">|&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">config&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">strict&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">nonet&lt;/span> &lt;span class="c1"># no network, no DTD loading&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Uplift — replace XML where possible&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-xml-where-possible">&lt;/span>
+&lt;a href="#uplift--replace-xml-where-possible" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For new APIs and config files, prefer JSON, YAML (with
+&lt;code>safe_load&lt;/code>), or protobuf. XML&amp;rsquo;s parser-level vulnerabilities
+are not a fixable category; the only real fix is to stop
+parsing XML where the format isn&amp;rsquo;t required.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every XML-parser instantiation in the repo.&lt;/li>
+&lt;li>&lt;strong>Languages and parsers&lt;/strong> in scope.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating XML-parser defaults across this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every XML-parser instantiation: &lt;span class="sb">`ElementTree.parse`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`DocumentBuilderFactory.newInstance`&lt;/span>, &lt;span class="sb">`XmlDocument`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Nokogiri::XML`&lt;/span>, &lt;span class="sb">`simplexml_load_string`&lt;/span>, etc.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each, identify whether the input is untrusted (request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> body, uploaded file, partner data feed) or trusted (a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bundled config file).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Flag any code path that returns parsed XML content in an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> HTTP response (XXE exfiltration surface) and any path that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> logs parsed content.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Mitigate per language
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Apply the language-specific configuration from the recipe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">body:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Python:** swap imports to &lt;span class="sb">`defusedxml`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Java:** set the &lt;span class="sb">`disallow-doctype-decl`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`external-general-entities`&lt;/span>, &lt;span class="sb">`external-parameter-entities`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`load-external-dtd`&lt;/span> features to safe values on every parser
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> factory, plus &lt;span class="sb">`setXIncludeAware(false)`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`setExpandEntityReferences(false)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **PHP:** pass safe libxml flags to every parser; remove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`LIBXML_NOENT`&lt;/span> and &lt;span class="sb">`LIBXML_DTDLOAD`&lt;/span> everywhere.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **.NET:** set &lt;span class="sb">`DtdProcessing = Prohibit`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`XmlResolver = null`&lt;/span> on every reader.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Ruby:** use &lt;span class="sb">`nonet`&lt;/span>, &lt;span class="sb">`noent: false`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Uplift the API surface (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If a public API takes XML and the agent has authority to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">introduce a JSON endpoint side-by-side, do it. Mark XML
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">endpoints deprecated; keep them serving (with the mitigated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">parser) until clients migrate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For every language touched, add a test:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> The classic XXE payload (referencing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`file:///etc/passwd`&lt;/span> or a local DTD) is rejected without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolving the entity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> A billion-laughs / quadratic-blowup payload is rejected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without exhausting memory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> A normal XML payload still parses correctly (behaviour
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> preservation).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/xxe-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][XXE] harden XML parsers in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: per-language summary, call-site list, test additions,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> any deprecation notices.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A parser configuration option changes the schema-validation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> semantics in a way that breaks legitimate inputs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail in unrelated code that depends on XInclude or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DTD resolution for a real reason. Triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A vendored XML library has no exposed safe-mode flag. Flag
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and triage; consider replacing the library.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change XML schemas (XSDs). The fix is parser
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration, not schema content.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not silently re-enable any flag the recipe disables.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>DTD-using legitimate inputs.&lt;/strong> Some partner integrations
+ship inline DTDs. The mitigation breaks them. Identify
+before deploying; allowlist the partner-DTD path explicitly
+rather than globally re-enabling DTDs.&lt;/li>
+&lt;li>&lt;strong>Logging the parsed payload.&lt;/strong> Even with entities disabled,
+logging unparsed XML can leak data via log-injection. Log
+the payload&amp;rsquo;s hash, not its content.&lt;/li>
+&lt;li>&lt;strong>Dependency-injected parsers.&lt;/strong> A framework that injects a
+parser bean (Spring, Symfony, Rails) needs the parser bean
+reconfigured at construction. Find and fix the bean
+definition, not just the call sites.&lt;/li>
+&lt;li>&lt;strong>Schema validation feature-flags re-enabling DTDs.&lt;/strong> Some
+XSD validators re-resolve external schemas; double-check
+&lt;code>SchemaFactory&lt;/code> settings.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">Java ObjectInputStream&lt;/a>
+— sibling Java deserialization pattern.&lt;/li>
+&lt;/ul></description></item></channel></rss>

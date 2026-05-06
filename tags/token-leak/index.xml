@@ -1,0 +1,220 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Token-Leak</title><link>https://security-recipes.ai/tags/token-leak/</link><description>Recent content in Token-Leak on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 03 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/token-leak/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-40903 - goshs ArtiPACKED GitHub Actions token leakage</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-40903-goshs-artipacked-github-token-leakage/</link><pubDate>Sun, 03 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-40903-goshs-artipacked-github-token-leakage/</guid><description>
+&lt;p>goshs was assigned CVE-2026-40903 for an ArtiPACKED-style GitHub Actions
+credential exposure. The vulnerable pattern occurs when workflow checkout
+credentials are persisted into &lt;code>.git/config&lt;/code> and a later artifact upload can
+include the workspace or &lt;code>.git&lt;/code> directory while the short-lived &lt;code>GITHUB_TOKEN&lt;/code>
+is still valid. A downloader who retrieves that artifact during the job window
+can potentially use the token to push code, alter releases, or tamper with the
+software supply chain.&lt;/p>
+&lt;p>For downstream users, this is a provenance and artifact-trust issue as much as
+a package-version issue. Repositories that build, fork, package, mirror, or
+consume goshs should upgrade away from affected releases and verify that
+release artifacts, checksums, workflow artifacts, and GitHub Actions
+permissions do not preserve the vulnerable pattern.&lt;/p>
+&lt;p>This belongs in SecurityRecipes because CI artifacts are context. A secure
+context layer for agentic AI must treat generated artifacts, hidden Git config,
+release bundles, and workflow logs as controlled evidence, not harmless build
+byproducts.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> goshs before &lt;code>v2.0.0-beta.6&lt;/code> according to the CVE record&lt;/li>
+&lt;li>&lt;strong>Explicitly called out by the upstream advisory:&lt;/strong> &lt;code>v2.0.0-beta.5&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>v2.0.0-beta.6+&lt;/code>; prefer stable &lt;code>v2.0.0+&lt;/code> where possible&lt;/li>
+&lt;li>&lt;strong>Highest-risk condition:&lt;/strong> a goshs fork, package, release workflow, or
+related repository uses &lt;code>actions/checkout&lt;/code> with persisted credentials and
+uploads artifacts that can include &lt;code>.git&lt;/code>, the full workspace, or credential
+bearing metadata.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, packages, forks, mirrors, vendors, deploys, or
+verifies goshs.&lt;/li>
+&lt;li>A dependency, binary, package recipe, container, SBOM, or checksum resolves
+to goshs before &lt;code>v2.0.0-beta.6&lt;/code>.&lt;/li>
+&lt;li>GitHub Actions workflows use &lt;code>actions/checkout&lt;/code> without
+&lt;code>persist-credentials: false&lt;/code>.&lt;/li>
+&lt;li>Workflows upload the whole workspace, source tree, test output collected
+from repository root, release directories, build caches, debug bundles, or
+arbitrary paths that may include &lt;code>.git&lt;/code>.&lt;/li>
+&lt;li>Workflow &lt;code>permissions&lt;/code> grant broad write access when only read access is
+needed.&lt;/li>
+&lt;li>Release or package provenance depends on artifacts created during the
+affected upstream window.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;patrickhener/goshs|goshs|v2\\.0\\.0-beta\\.[0-5]|github.com/patrickhener/goshs&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;actions/checkout|upload-artifact|download-artifact|artifact|persist-credentials|permissions:&amp;#34;&lt;/span> .github/workflows
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;\\.git|github-token|GITHUB_TOKEN|workspace|path:\\s*\\.|path:\\s*\\&lt;/span>$&lt;span class="s2">\\{\\{ github.workspace \\}\\}&amp;#34;&lt;/span> .github/workflows scripts Makefile* justfile* 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s2">&amp;#34;github.com/patrickhener/goshs&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade goshs references to &lt;code>v2.0.0+&lt;/code> or at least &lt;code>v2.0.0-beta.6+&lt;/code> where
+beta tracking is intentional.&lt;/li>
+&lt;li>Refresh checksums, SBOMs, provenance attestations, package recipes, and
+release metadata that include goshs.&lt;/li>
+&lt;li>In GitHub Actions workflows that build, package, mirror, or publish goshs,
+set &lt;code>persist-credentials: false&lt;/code> on checkout steps unless a job truly needs
+authenticated git pushes.&lt;/li>
+&lt;li>Scope &lt;code>GITHUB_TOKEN&lt;/code> with explicit least-privilege &lt;code>permissions&lt;/code>.&lt;/li>
+&lt;li>Ensure uploaded artifacts exclude &lt;code>.git&lt;/code>, hidden credential files, full
+workspaces, caches with repository metadata, and logs containing tokens.&lt;/li>
+&lt;li>If vulnerable artifacts were public or broadly accessible, expire artifacts,
+rotate exposed credentials or release tokens, review audit logs, and rebuild
+release artifacts from trusted sources.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-40903 (goshs ArtiPACKED GitHub Actions token
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">leakage). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades goshs, hardens GitHub
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Actions artifact handling, adds verification, and documents token/artifact
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own affected goshs usage, goshs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> packaging/release automation, or a safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-40903 / GHSA-hpxj-9fgp-fhhf and directly related goshs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifact, provenance, and GitHub Actions hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat &lt;span class="sb">`GITHUB_TOKEN`&lt;/span>, PATs, deploy keys, release tokens, &lt;span class="sb">`.git/config`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workflow logs, release artifacts, package checksums, SBOMs, provenance
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> attestations, and build caches as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not download, inspect, print, or attach historical artifacts that may
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> contain live or previously live credentials.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not add broad workflow permissions to compensate for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`persist-credentials: false`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite unrelated CI/CD architecture.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory goshs ownership in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go manifests, vendored source, forks, package recipes, Nix files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, release checksums, SBOMs, provenance attestations, mirrors,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment manifests, build scripts, and generated artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Inventory GitHub Actions workflow exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`actions/checkout`&lt;/span> steps;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether checkout sets &lt;span class="sb">`persist-credentials: false`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`actions/upload-artifact`&lt;/span> and custom artifact upload commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> artifact paths that include &lt;span class="sb">`.`&lt;/span>, &lt;span class="sb">`${{ github.workspace }}`&lt;/span>, source root,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`.git`&lt;/span>, build caches, logs, release directories, or debug bundles;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> job and workflow-level &lt;span class="sb">`permissions`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> release/publish jobs that can write tags, releases, packages, images, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine every resolved goshs version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to any version before &lt;span class="sb">`v2.0.0-beta.6`&lt;/span>; prefer remediation to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stable &lt;span class="sb">`v2.0.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not use, package, fork, mirror, deploy, or verify
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> goshs, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the files checked, why downstream
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure is not owned here, and the fixed target &lt;span class="sb">`goshs v2.0.0+`&lt;/span> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`v2.0.0-beta.6+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade goshs references and regenerate every derived artifact this repo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controls: lockfiles, checksums, SBOMs, package metadata, image tags/digests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provenance attestations, release manifests, and deployment evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Harden GitHub Actions workflows that build, package, mirror, or publish
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> goshs:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add &lt;span class="sb">`persist-credentials: false`&lt;/span> to checkout steps unless an explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> authenticated push is required;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set explicit least-privilege &lt;span class="sb">`permissions`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> split read-only build jobs from release-writing jobs where practical;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prevent artifact uploads from including &lt;span class="sb">`.git`&lt;/span>, full workspaces, hidden
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials, caches with repository metadata, or token-bearing logs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer narrow artifact paths such as &lt;span class="sb">`dist/*.tar.gz`&lt;/span>, &lt;span class="sb">`coverage/*.xml`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or generated reports with known contents.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add workflow policy tests or static checks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> checkout in artifact-producing jobs must set &lt;span class="sb">`persist-credentials: false`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> artifact upload paths must not include &lt;span class="sb">`.git`&lt;/span>, &lt;span class="sb">`.`&lt;/span>, workspace root, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unrestricted globs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> write permissions are absent from non-release jobs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> release jobs document why write permissions are required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add safe artifact verification:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> create a synthetic fixture or dry-run artifact manifest that proves &lt;span class="sb">`.git`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is excluded;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run secret scanning against generated artifacts when the repository has a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe local build path;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> verify no real token values are printed in logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-40903 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> goshs versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which workflows used checkout credential persistence;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which artifacts could have included &lt;span class="sb">`.git`&lt;/span> or workspace metadata;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether historical artifacts should be expired or restricted;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether repository tokens, deploy keys, release tokens, package tokens, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> downstream release artifacts need rotation or rebuild;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which GitHub audit logs, workflow run logs, artifact download logs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> release events should be reviewed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: dependency resolution, package build, container
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> build, workflow linting, static artifact-policy checks, SBOM refresh,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checksum regeneration, provenance generation, secret scan, and any release
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dry-run available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-40903 in goshs artifacts`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No goshs dependency, package, fork, mirror, release path, or deployment is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> This repository only consumes a fixed goshs release and does not depend on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> affected upstream artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Historical artifact inspection would require downloading or printing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credential-bearing artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A release job genuinely needs credential persistence; document the need and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> isolate it from artifact-producing paths instead of silently accepting risk.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Token rotation or artifact expiry requires repository-owner privileges not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available to the agent; document the exact human action required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled dependency, package recipe, SBOM, checksum, image, or release
+manifest points at a vulnerable goshs version.&lt;/li>
+&lt;li>Artifact-producing workflow jobs use checkout without persisted credentials
+or have a documented reason and compensating containment.&lt;/li>
+&lt;li>Artifact upload paths cannot include &lt;code>.git&lt;/code>, repository root, hidden
+credential files, or broad workspace dumps.&lt;/li>
+&lt;li>Workflow permissions are explicit and least privilege.&lt;/li>
+&lt;li>Operator actions address artifact expiry, audit review, token rotation, and
+release rebuilds when exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating goshs versions while keeping old checksums, SBOM entries, package
+recipes, mirrors, or provenance attestations.&lt;/li>
+&lt;li>Adding &lt;code>persist-credentials: false&lt;/code> to one checkout step while another
+artifact-producing job still uses the default.&lt;/li>
+&lt;li>Uploading &lt;code>.&lt;/code> or &lt;code>${{ github.workspace }}&lt;/code> as a convenience artifact.&lt;/li>
+&lt;li>Treating &lt;code>GITHUB_TOKEN&lt;/code> as harmless because it expires; the attack window is
+during the workflow run.&lt;/li>
+&lt;li>Printing &lt;code>.git/config&lt;/code> or artifact contents in logs while proving the fix.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub security advisory: &lt;a href="https://github.com/patrickhener/goshs/security/advisories/GHSA-hpxj-9fgp-fhhf"target="_blank" rel="noopener">https://github.com/patrickhener/goshs/security/advisories/GHSA-hpxj-9fgp-fhhf&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-40903"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-40903&lt;/a>&lt;/li>
+&lt;li>Unit 42 ArtiPACKED research: &lt;a href="https://unit42.paloaltonetworks.com/github-repo-artifacts-leak-tokens/"target="_blank" rel="noopener">https://unit42.paloaltonetworks.com/github-repo-artifacts-leak-tokens/&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/operations-history.schema.json",
+  "title": "SecurityRecipes browser-local operations history",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "exported_at",
+    "browser_model",
+    "summary",
+    "records"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.operations-history.v1"
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "browser_model": {
+      "const": "client_side_byo_token"
+    },
+    "summary": {
+      "$ref": "#/$defs/summaryRecord"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/activityRecord"
+      }
+    }
+  },
+  "$defs": {
+    "activityCategory": {
+      "type": "string",
+      "enum": ["agent", "chat", "source", "case", "report", "schedule", "router", "asset", "control"]
+    },
+    "activityStatus": {
+      "type": "string",
+      "enum": ["started", "running", "queued", "saved", "copied", "downloaded", "cleared", "ok", "error", "info"]
+    },
+    "summaryRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_records",
+        "success_count",
+        "error_count",
+        "running_count",
+        "source_event_count",
+        "agent_event_count",
+        "case_event_count",
+        "report_event_count",
+        "last_activity_at"
+      ],
+      "properties": {
+        "total_records": { "type": "integer", "minimum": 0 },
+        "success_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "running_count": { "type": "integer", "minimum": 0 },
+        "source_event_count": { "type": "integer", "minimum": 0 },
+        "agent_event_count": { "type": "integer", "minimum": 0 },
+        "case_event_count": { "type": "integer", "minimum": 0 },
+        "report_event_count": { "type": "integer", "minimum": 0 },
+        "last_activity_at": {
+          "type": "string",
+          "maxLength": 40
+        }
+      }
+    },
+    "activityRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "createdAt",
+        "category",
+        "eventType",
+        "status",
+        "title",
+        "summary",
+        "detail",
+        "targetId",
+        "targetLabel",
+        "durationMs",
+        "badges"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^activity-[a-z0-9-]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "category": {
+          "$ref": "#/$defs/activityCategory"
+        },
+        "eventType": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$",
+          "maxLength": 64
+        },
+        "status": {
+          "$ref": "#/$defs/activityStatus"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 280
+        },
+        "detail": {
+          "type": "string",
+          "maxLength": 600
+        },
+        "targetId": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "targetLabel": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sessionId": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "sessionLabel": {
+          "type": "string",
+          "maxLength": 140
+        },
+        "sessionKind": {
+          "type": "string",
+          "enum": ["", "agent_run", "chat_session", "source_sync", "case_handoff", "report_export", "schedule_run", "asset_update", "workbench"]
+        },
+        "badges": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "maxItems": 6
+        }
+      }
+    }
+  }
+}

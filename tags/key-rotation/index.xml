@@ -1,0 +1,208 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Key-Rotation</title><link>https://security-recipes.ai/tags/key-rotation/</link><description>Recent content in Key-Rotation on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/key-rotation/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2014-0160 — Heartbleed</title><link>https://security-recipes.ai/prompt-library/cve/cve-2014-0160-heartbleed/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2014-0160-heartbleed/</guid><description>
+&lt;p>A missing length check in OpenSSL&amp;rsquo;s TLS heartbeat extension
+let an attacker request up to 64KB of process memory per
+heartbeat — keys, session tokens, decrypted plaintext, anything
+the OpenSSL process happened to have in its address space.
+The &amp;ldquo;we patched it&amp;rdquo; announcement is what most people remember;
+the durable lesson is that &lt;strong>patching wasn&amp;rsquo;t the fix&lt;/strong>.
+Rotating every key and revoking every cert that lived through
+the vulnerable window was the fix. A decade later this is still
+the most-cited reason post-incident playbooks demand key
+rotation, not just patching.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>OpenSSL&lt;/strong> 1.0.1 through 1.0.1f — vulnerable.&lt;/li>
+&lt;li>&lt;strong>OpenSSL&lt;/strong> 1.0.1g+ — patched.&lt;/li>
+&lt;li>&lt;strong>OpenSSL&lt;/strong> ≤1.0.0 / ≥1.0.2 — not affected.&lt;/li>
+&lt;li>LibreSSL, BoringSSL, Java&amp;rsquo;s JSSE, Go&amp;rsquo;s &lt;code>crypto/tls&lt;/code>,
+Microsoft Schannel — not affected (different stacks).&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The system was exposed if it ran OpenSSL in the affected
+range &lt;em>and&lt;/em> had the heartbeat extension enabled (the default
+for affected versions). Detection commands:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">openssl version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># or, for an installed binary:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">strings /usr/bin/openssl &lt;span class="p">|&lt;/span> grep -i &lt;span class="s1">&amp;#39;OpenSSL 1\.0\.1&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>For services: any TLS-terminating daemon (HTTPS server,
+mail server, VPN) compiled against affected OpenSSL was
+exposed. A heartbeat scan
+(&lt;code>openssl s_client -connect host:443 -tlsextdebug | grep heartbeat&lt;/code>) confirms whether the server still negotiated the
+extension.&lt;/p>
+&lt;p>This CVE is over a decade old. Any system still in the
+affected range today is also missing a decade of unrelated
+patches; treat the finding as a tip-of-the-iceberg signal,
+not just a single-CVE fix.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Upgrade&lt;/strong> to a current OpenSSL (the 3.x branch by 2026).
+1.0.1g was the immediate patch; the durable answer is
+current.&lt;/li>
+&lt;li>&lt;strong>Disable&lt;/strong> the TLS heartbeat extension in any service that
+doesn&amp;rsquo;t actively use it (most don&amp;rsquo;t). Defence-in-depth.&lt;/li>
+&lt;li>&lt;strong>Rotate&lt;/strong> every private key, session secret, API token, and
+password whose plaintext could have been in the process
+memory of an affected daemon during the exposure window.&lt;/li>
+&lt;li>&lt;strong>Revoke&lt;/strong> every TLS certificate generated using a private
+key that was on an affected host.&lt;/li>
+&lt;li>&lt;strong>Audit&lt;/strong> for unexplained authentication sessions during the
+exposure window.&lt;/li>
+&lt;/ul>
+&lt;p>For systems running OpenSSL 1.0.1 today: this is not a
+single-CVE fix. The right shape is a runtime upgrade. Treat
+this recipe as the &lt;em>trigger&lt;/em>; the workflow is broader.&lt;/p>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2014-0160 (Heartbleed) on this host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or in this system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request upgrading the OpenSSL runtime, plus
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an incident-response checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the host has been running an affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> OpenSSL with public exposure for an extended period.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This recipe is &lt;span class="gs">**not**&lt;/span> a routine package bump. If exposure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">is confirmed, do not auto-remediate; produce the incident
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">checklist and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the OpenSSL version: &lt;span class="sb">`openssl version`&lt;/span>. Read every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> service binary&amp;#39;s linked OpenSSL: &lt;span class="sb">`ldd &amp;lt;binary&amp;gt; | grep ssl`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> then &lt;span class="sb">`strings &amp;lt;libssl&amp;gt; | grep -i &amp;#39;OpenSSL 1\\.0\\.&amp;#39;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For every TLS-terminating service on the host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (HTTPS server, mail, VPN, internal RPC), test for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> heartbeat extension:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`openssl s_client -connect host:port -tlsextdebug 2&amp;gt;&amp;amp;1 | grep -i heartbeat`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine the host&amp;#39;s exposure window (when the affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> OpenSSL was first installed; when network-exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> services using it were started).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Never network-exposed during exposure window:** Upgrade
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the package, rotate any local keys, document.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Network-exposed during exposure window:** Treat as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compromised. Write the IR checklist; do not auto-remediate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the keys; only the package upgrade is in scope for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Upgrade
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> For modern distros, upgrade via the package manager:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`apt upgrade openssl libssl3 libssl1.1 libssl1.0.0`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`dnf upgrade openssl openssl-libs`&lt;/span>, etc. — to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> current 3.x branch on systems that support it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Restart every service that links the upgraded OpenSSL.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> The agent lists the services to restart in the PR body;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the operator runs the restart.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Re-run the heartbeat detection from Step 0 against every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> service. The extension should be absent or harmless on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched OpenSSL.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Disable the heartbeat extension (defence-in-depth)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For any TLS-terminating service that does not use heartbeats:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> nginx, Apache, HAProxy, etc. — set the OpenSSL ciphers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> list / disable heartbeats per the service&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration. Most modern configs already exclude it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — IR checklist (for compromised classification)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The TRIAGE.md must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate every TLS private key on the host.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Revoke and re-issue every certificate generated from those
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys. Confirm CRL / OCSP propagation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate every long-lived secret accessible from the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compromised process: DB passwords, API keys, OAuth
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client secrets, session-encryption keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Invalidate every session token that pre-dates the rotation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit the auth logs for unexplained sessions during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rebuild any artefacts produced on the host during the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> window if the build process touched secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The system runs an OpenSSL old enough to indicate broader
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patching gaps. Triage with a recommendation for a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> comprehensive runtime upgrade, not just OpenSSL.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A service depends on the heartbeat extension for a real
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reason (rare). Document and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s exposure window is unclear from available logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rotate keys or revoke certs — those are operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions on the IR checklist.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify TLS configurations outside the documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> defence-in-depth scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle unrelated CVE fixes.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The OpenSSL runtime version after upgrade is on the
+current 3.x branch (or the distro&amp;rsquo;s currently-supported
+branch).&lt;/li>
+&lt;li>Every service listed in the PR was restarted.&lt;/li>
+&lt;li>The heartbeat scan shows the extension absent or harmless
+on every service.&lt;/li>
+&lt;li>For compromised classification: the IR checklist was
+followed end-to-end. A package upgrade alone is not
+sufficient.&lt;/li>
+&lt;li>The PR includes an honest assessment of the exposure
+window and the artefacts/services that depended on
+potentially-leaked secrets.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Statically-linked OpenSSL.&lt;/strong> A package upgrade doesn&amp;rsquo;t
+fix a service that bakes its own OpenSSL into a static
+binary. Identify and rebuild every such binary.&lt;/li>
+&lt;li>&lt;strong>Bundled OpenSSL in language runtimes.&lt;/strong> Older Python /
+Ruby / Node distributions sometimes ship their own
+OpenSSL. Upgrade the runtime, not just the system package.&lt;/li>
+&lt;li>&lt;strong>Long-lived sessions.&lt;/strong> A web session minted during the
+exposure window could still be active. Force a global
+re-login if the application&amp;rsquo;s session lifetime is long.&lt;/li>
+&lt;li>&lt;strong>Certificate revocation in practice.&lt;/strong> CRLs and OCSP can
+be slow. Many clients ignore revocation entirely. The
+durable defence is short-lived certs (ACME with renewal),
+not relying on revocation propagation.&lt;/li>
+&lt;li>&lt;strong>Internal services.&lt;/strong> Heartbleed exposure on an internal
+service is still exposure. &amp;ldquo;Behind the firewall&amp;rdquo; is not
+a control if any compromised internal client could have
+scanned.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— generic CVE workflow.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— when OpenSSL is in a container base image.&lt;/li>
+&lt;/ul></description></item></channel></rss>

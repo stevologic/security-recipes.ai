@@ -1,0 +1,444 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Symlink</title><link>https://security-recipes.ai/tags/symlink/</link><description>Recent content in Symlink on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sun, 03 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/symlink/index.xml" rel="self" type="application/rss+xml"/><item><title>GHSA-rh99-wc69-c255 - Contrast CopyFile policy symlink subversion</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-rh99-wc69-c255-contrast-copyfile-policy-symlink/</link><pubDate>Sun, 03 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-rh99-wc69-c255-contrast-copyfile-policy-symlink/</guid><description>
+&lt;p>Contrast versions before &lt;code>1.19.1&lt;/code> generated Kata agent policies whose
+&lt;code>CopyFile&lt;/code> verification could be bypassed through symlinks. A malicious host
+process that can connect to the Kata agent VSOCK can issue &lt;code>CopyFile&lt;/code> requests
+that write to arbitrary paths inside the guest root filesystem. That can
+overwrite security-sensitive files, change binaries that the workload later
+executes, or create a path to disclose sensitive workload data.&lt;/p>
+&lt;p>This matters for confidential container and secure context deployments because
+the host is explicitly outside the trusted computing base. A generated policy
+that allows host-provided file content to cross into the guest without a real
+resolved-path boundary breaks the same assumption SecurityRecipes expects from
+an MCP context layer: untrusted infrastructure can provide evidence or bytes,
+but must not be able to rewrite trusted execution state.&lt;/p>
+&lt;p>The Contrast GitHub advisory has no assigned CVE at the time this recipe was
+written. The related upstream Kata Containers issue is
+&lt;code>CVE-2026-41326&lt;/code> / &lt;code>GHSA-q49m-57vm-c8cc&lt;/code>.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable Contrast module:&lt;/strong> &lt;code>github.com/edgelesssys/contrast &amp;lt;1.19.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed Contrast module:&lt;/strong> &lt;code>github.com/edgelesssys/contrast 1.19.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Related upstream Kata issue:&lt;/strong> Kata Containers &lt;code>&amp;gt;=3.4.0, &amp;lt;3.29.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed upstream Kata version:&lt;/strong> Kata Containers &lt;code>3.29.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>High-risk condition:&lt;/strong> generated Kata agent policies permit &lt;code>CopyFile&lt;/code>
+operations while a host-side process can reach the Kata agent VSOCK.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, pins, deploys, or documents Contrast before
+&lt;code>1.19.1&lt;/code>.&lt;/li>
+&lt;li>The repository runs &lt;code>contrast generate&lt;/code>, commits generated policies, or
+distributes initdata/manifests produced by an older Contrast CLI.&lt;/li>
+&lt;li>Kubernetes workloads use Contrast confidential containers, Kata Containers,
+CoCo, or host-to-guest policy enforcement where the host is untrusted.&lt;/li>
+&lt;li>Generated policy, Rego, manifest, or runtime config references &lt;code>CopyFile&lt;/code>,
+Kata agent policy, initdata, VSOCK, guest root filesystem paths, or
+host-provided content transfer.&lt;/li>
+&lt;li>Workloads keep secrets, model provider credentials, service mesh keys, data
+processing artifacts, or privileged binaries inside the guest filesystem.&lt;/li>
+&lt;li>Runtime ownership is split between platform, cluster, and application teams,
+making stale generated policies likely to survive a dependency-only upgrade.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;edgelesssys/contrast|contrast generate|Contrast|kata-agent|Kata agent|CopyFile|VSOCK|vsock|initdata|agent policy|policy\\.rego&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^github.com/edgelesssys/contrast&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;kata-containers|io.containerd.kata|confidential|cvm|sev-snp|tdx|contrast.*policy|copy_file|copyfile&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm terraform .github .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -iname &lt;span class="s2">&amp;#34;*policy*.rego&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*initdata*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*contrast*&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Contrast CLI, module, container, deployment, and
+generated-policy toolchain to &lt;code>1.19.1+&lt;/code>.&lt;/li>
+&lt;li>Regenerate Kata agent policies, initdata, manifests, SBOMs, and deployment
+evidence with the fixed Contrast release. Do not assume upgrading the CLI
+protects workloads that still run old generated policy artifacts.&lt;/li>
+&lt;li>If this repository directly manages Kata Containers outside Contrast, upgrade
+affected Kata runtimes to &lt;code>3.29.0+&lt;/code>.&lt;/li>
+&lt;li>If immediate Contrast upgrade is blocked, apply the upstream policy-only
+Rego workaround through &lt;code>contrast generate --policy&lt;/code> and document it as
+temporary containment until &lt;code>1.19.1+&lt;/code> is deployed.&lt;/li>
+&lt;li>Restrict host access to the Kata agent VSOCK and treat host-provided
+&lt;code>CopyFile&lt;/code> content as untrusted even after patching.&lt;/li>
+&lt;li>Re-attest and redeploy affected confidential workloads so the running guest
+state proves it consumed the regenerated policy.&lt;/li>
+&lt;li>Rotate secrets and rebuild affected workload images if host-side access to
+the agent was possible during the vulnerable window.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-rh99-wc69-c255 (Contrast-generated Kata agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">policies allow CopyFile policy subversion through symlinks). Produce exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or contains affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Contrast/Kata policy generation, regenerates trusted artifacts, adds safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Contrast or Kata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> confidential-container deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-rh99-wc69-c255 and the directly related upstream Kata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CopyFile symlink issue (&lt;span class="sb">`CVE-2026-41326`&lt;/span> / &lt;span class="sb">`GHSA-q49m-57vm-c8cc`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat guest filesystem contents, model/provider credentials, workload
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, service mesh keys, attestation evidence, generated policy bundles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> initdata, VSOCK endpoints, and host runtime logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not connect to a production or shared Kata agent VSOCK to prove exposure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not write test files into a real guest root filesystem, overwrite guest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> binaries, or exfiltrate workload data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not stop at updating &lt;span class="sb">`go.mod`&lt;/span> if generated policies, initdata, manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> images, or SBOMs remain stale.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Contrast and Kata asset controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Go modules, lockfiles, vendored code, Contrast CLI download pins,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, Helm charts, Kubernetes manifests, Terraform, GitOps overlays,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated Kata agent policies, Rego files, initdata, attestation manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, runbooks, and CI workflows.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Contrast version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`github.com/edgelesssys/contrast &amp;lt;1.19.1`&lt;/span> or uses a Contrast
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CLI/container/image before &lt;span class="sb">`1.19.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether this repository directly manages Kata Containers. A
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> direct Kata target is affected by the related upstream issue if it resolves
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to &lt;span class="sb">`&amp;gt;=3.4.0, &amp;lt;3.29.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Identify generated artifacts that must be refreshed, including committed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy bundles, initdata, rendered manifests, attestation reference values,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, deployment evidence, and docs that tell operators how to generate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Determine exposure without exploiting it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Could a host-side process connect to the Kata agent VSOCK?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Do generated policies permit &lt;span class="sb">`CopyFile`&lt;/span> requests?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Could &lt;span class="sb">`CopyFile`&lt;/span> write into guest root paths that contain binaries,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> startup scripts, service config, credentials, or model/runtime data?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Are workloads running in confidential VMs where the host is explicitly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Are old generated policies deployed after a dependency or CLI upgrade?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If the repository does not own Contrast/Kata deployment or generated policy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the files checked, the likely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime owner, the required Contrast fixed version &lt;span class="sb">`1.19.1+`&lt;/span>, and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> related Kata fixed version &lt;span class="sb">`3.29.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Upgrade controlled Contrast dependencies, CLIs, images, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> references to &lt;span class="sb">`1.19.1+`&lt;/span>. Regenerate Go module state, binary checksums,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container metadata, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Regenerate every controlled Kata agent policy, initdata artifact,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> attestation manifest, rendered Kubernetes manifest, and deployment evidence
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with the fixed Contrast toolchain.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> If direct Kata Containers are controlled here, upgrade to &lt;span class="sb">`3.29.0+`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regenerate runtime class, node image, operator, or containerd/Kata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> If the Contrast upgrade cannot land immediately, add temporary containment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> using the upstream policy-only Rego fix through &lt;span class="sb">`contrast generate --policy`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> block or restrict host access to the Kata agent VSOCK where this repository
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controls runtime policy, and mark the workaround as temporary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add safe verification:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> version checks prove Contrast resolves to &lt;span class="sb">`1.19.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated policy fixtures reject symlink-mediated &lt;span class="sb">`CopyFile`&lt;/span> paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> direct Kata targets resolve to &lt;span class="sb">`3.29.0+`&lt;/span> when applicable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rendered deployment artifacts no longer contain stale vulnerable policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tests use synthetic temporary fixtures and do not contact production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agents, CVMs, or host VSOCK endpoints.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-rh99-wc69-c255 operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Contrast versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether direct Kata Containers are present and their versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which generated policies, initdata, attestation manifests, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts were regenerated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any workload could have run with host-reachable Kata agent VSOCK;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which guest secrets, binaries, service configs, or model/runtime files
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> could have been affected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which node, runtime, VSOCK, workload, attestation, and deployment logs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets, service mesh credentials, images, or workloads require
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation, rebuild, or redeployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Run relevant validation: Go dependency resolution, unit tests, policy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, Rego tests, manifest rendering, attestation/reference-value
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generation, container build, SBOM refresh, and dependency/security scans
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">14.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate Contrast CopyFile policy symlink subversion`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Contrast, Kata Containers, confidential-container deployment, generated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy, initdata, or attestation artifact is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository only consumes a platform-managed runtime and cannot safely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upgrade or regenerate policy artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A safe fix requires changing the confidential-container trust model or host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime ownership boundaries; document the required product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require contacting a production Kata agent VSOCK,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> overwriting guest files, or reading real workload data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Contrast dependency, CLI, image, SBOM, or deployment artifact
+remains below &lt;code>1.19.1&lt;/code>.&lt;/li>
+&lt;li>Every controlled generated Kata agent policy, initdata artifact, attestation
+manifest, and rendered deployment artifact was regenerated after the upgrade.&lt;/li>
+&lt;li>Direct Kata Containers targets, if present, resolve to &lt;code>3.29.0+&lt;/code>.&lt;/li>
+&lt;li>Tests or policy checks reject symlink-mediated &lt;code>CopyFile&lt;/code> writes using only
+synthetic local fixtures.&lt;/li>
+&lt;li>Runtime containment addresses host access to the Kata agent VSOCK where this
+repository owns that boundary.&lt;/li>
+&lt;li>Operator actions identify stale deployments, possible guest takeover impact,
+logs to review, and credentials or workloads that may need rotation or
+rebuild.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating Contrast source dependencies while committed policy/initdata
+artifacts remain generated by a vulnerable CLI.&lt;/li>
+&lt;li>Regenerating policy locally but leaving GitOps, Helm, or rendered manifests
+pinned to older artifacts.&lt;/li>
+&lt;li>Treating confidential computing attestation as sufficient when the measured
+policy itself permits unsafe host-to-guest file writes.&lt;/li>
+&lt;li>Proving the issue by writing into real guest paths or collecting real
+workload data.&lt;/li>
+&lt;li>Missing direct Kata Containers runtime pins because the repository uses
+RuntimeClass, node images, operator config, or containerd templates instead
+of Go modules.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-rh99-wc69-c255"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rh99-wc69-c255&lt;/a>&lt;/li>
+&lt;li>Upstream Kata advisory: &lt;a href="https://github.com/kata-containers/kata-containers/security/advisories/GHSA-q49m-57vm-c8cc"target="_blank" rel="noopener">https://github.com/kata-containers/kata-containers/security/advisories/GHSA-q49m-57vm-c8cc&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41326"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41326&lt;/a>&lt;/li>
+&lt;li>Contrast &lt;code>v1.19.1&lt;/code> release: &lt;a href="https://github.com/edgelesssys/contrast/releases/tag/v1.19.1"target="_blank" rel="noopener">https://github.com/edgelesssys/contrast/releases/tag/v1.19.1&lt;/a>&lt;/li>
+&lt;li>Policy-only workaround: &lt;a href="https://gist.github.com/burgerdev/304dd0ab0fff1665b7c27e18a30cf96e"target="_blank" rel="noopener">https://gist.github.com/burgerdev/304dd0ab0fff1665b7c27e18a30cf96e&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-74m3 - zrok WebDAV DriveRoot symlink escape</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-74m3-zrok-webdav-symlink-drive-root-escape/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-74m3-zrok-webdav-symlink-drive-root-escape/</guid><description>
+&lt;p>&lt;code>zrok&lt;/code> WebDAV drive shares are vulnerable to a DriveRoot boundary escape when a
+symbolic link already exists inside the shared root and points outside that
+root. The advisory describes lexical path normalization in the WebDAV backend,
+but not enough protection against symlink following. A remote WebDAV consumer
+can use the public share endpoint to read files through the symlink and, where
+the zrok process has filesystem permission, overwrite symlink targets outside
+the intended shared directory.&lt;/p>
+&lt;p>For SecurityRecipes and production MCP deployments, the important lesson is
+direct: a context root is not a boundary if path checks happen before symlink
+resolution. Treat WebDAV shares, agent artifact shares, and temporary context
+exports as sensitive execution surfaces, not convenience file browsers.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable v1 module:&lt;/strong> &lt;code>github.com/openziti/zrok &amp;lt;=1.1.11&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed v1 module:&lt;/strong> no patched version is listed for the v1 module&lt;/li>
+&lt;li>&lt;strong>Vulnerable v2 module:&lt;/strong> &lt;code>github.com/openziti/zrok/v2 &amp;lt;2.0.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed v2 module:&lt;/strong> &lt;code>github.com/openziti/zrok/v2 2.0.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;p>The GitHub advisory has no assigned CVE at the time this recipe was written.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, deploys, or documents &lt;code>zrok&lt;/code> drive shares.&lt;/li>
+&lt;li>A service runs &lt;code>zrok share public --backend-mode drive&lt;/code> or equivalent
+WebDAV drive backend configuration.&lt;/li>
+&lt;li>The shared DriveRoot can contain symlinks, including symlinks created by
+developers, CI jobs, build tools, unpacked archives, agent workspaces, or
+runtime tasks.&lt;/li>
+&lt;li>The zrok process can read secrets, source code, SSH material, service config,
+build outputs, home directories, mounted volumes, or other files outside the
+intended DriveRoot.&lt;/li>
+&lt;li>The zrok process can write to host paths outside the intended DriveRoot.&lt;/li>
+&lt;li>WebDAV shares are unauthenticated, public, shared with broad audiences, or
+reachable by an agent, browser, CI worker, partner system, or customer.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zrok|openziti/zrok|backend-mode[ =]drive|DriveRoot|WebDAV|webdav|davServer|share public&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m -json all &lt;span class="p">|&lt;/span> jq -r &lt;span class="s1">&amp;#39;select(.Path|test(&amp;#34;^github.com/openziti/zrok(/v2)?$&amp;#34;))&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;zrok.*share|share.*zrok|backend-mode|drive&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm systemd .github .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -type l -ls&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled &lt;code>github.com/openziti/zrok/v2&lt;/code> dependency, binary,
+image, and deployment to &lt;code>2.0.2+&lt;/code>.&lt;/li>
+&lt;li>Remove or replace &lt;code>github.com/openziti/zrok &amp;lt;=1.1.11&lt;/code> drive shares unless a
+vendor-supported fixed v1 build is explicitly verified.&lt;/li>
+&lt;li>Disable public unauthenticated drive shares where they are not required.&lt;/li>
+&lt;li>Move DriveRoot to a dedicated, empty, low-sensitivity directory owned by the
+zrok service account; do not point it at source trees, home directories,
+shared build workspaces, mounted host roots, or MCP context stores.&lt;/li>
+&lt;li>Remove symlinks from DriveRoot before publishing a share, and add a startup
+or CI guard that fails if symlinks are present.&lt;/li>
+&lt;li>Run zrok with a low-privilege OS identity, restricted filesystem access,
+read-only mounts where possible, and no access to SSH keys, cloud
+credentials, package tokens, model credentials, or production config.&lt;/li>
+&lt;li>If this repository owns a fork or wrapper, enforce a real resolved-path
+boundary: reject symlinks, validate every path component, and ensure the
+final opened file remains under DriveRoot at the moment it is opened.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-74m3-9qvm-rp9h in zrok WebDAV drive shares. Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades, disables, or safely
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> contains affected zrok drive shares and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected zrok runtime or cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-74m3-9qvm-rp9h.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH keys, cloud credentials, model/API tokens, repository contents,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> build artifacts, user files, hostnames, and WebDAV share URLs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not probe public zrok shares, production shares, customer shares, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shared developer machines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create proof-of-concept overwrites outside a temporary test directory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not treat lexical path cleaning as sufficient protection.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every zrok asset controlled by this repository: Go modules,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, vendored code, binary download scripts, Dockerfiles, compose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> files, Helm charts, Kubernetes manifests, Terraform, systemd units, CI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workflows, runbooks, SBOMs, and MCP or agent context-export docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any controlled target uses:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/openziti/zrok &amp;lt;=1.1.11`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/openziti/zrok/v2 &amp;lt;2.0.2`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a zrok binary or image below the fixed v2 release;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`zrok share public --backend-mode drive`&lt;/span> or equivalent WebDAV drive mode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine exposure without contacting real shares:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Is the share public or unauthenticated?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Can DriveRoot contain symlinks from source trees, build outputs, archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> extraction, developer workspaces, agent workspaces, or mounted volumes?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Can the zrok process read or write outside the intended DriveRoot?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Could agents or MCP workflows use the share as a context or artifact root?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If zrok is absent or only appears in unrelated documentation, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the likely runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer removal or disablement for any drive share that is not explicitly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> required. Remove server registrations, startup commands, manifests, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> references, and runbook steps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If zrok/v2 is required, upgrade to &lt;span class="sb">`2.0.2+`&lt;/span>, regenerate Go module state,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> images, SBOMs, deployment render output, and runtime docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If a v1 drive share is present, replace it with a supported fixed v2 path or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document why the repository cannot safely remediate it in &lt;span class="sb">`TRIAGE.md`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Harden controlled deployments:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> use a dedicated empty DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail startup if DriveRoot contains symlinks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run zrok as a low-privilege service account;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove access to home directories, SSH keys, cloud credentials, package
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tokens, model credentials, and production config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer read-only mounts unless write access is an explicit requirement;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid public unauthenticated shares for agent or MCP context roots.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> If this repository owns a fork, wrapper, or WebDAV backend code, add a safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> filesystem boundary helper:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject symlinks in every path component;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve paths relative to a canonical DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> check the final target remains under DriveRoot after resolution;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid time-of-check/time-of-use gaps for open, stat, mkdir, remove, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> write operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> use platform safe-open primitives where available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add safe tests using temporary directories only:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a symlink inside DriveRoot pointing outside is rejected for read;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> the same symlink target is rejected for write/truncate;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> stat, mkdir, remove, and recursive remove cannot cross DriveRoot;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> normal files and directories inside DriveRoot still work;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tests do not contact real zrok infrastructure.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-74m3 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every zrok version, binary, image, and drive share before and after;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether shares were public, unauthenticated, agent-facing, or MCP-facing;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether DriveRoot could contain symlinks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which credentials, files, or host paths were reachable by the zrok
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> process;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which share access logs, filesystem audit logs, and deployment logs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be reviewed for the exposure window;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets or keys should be rotated if exposure existed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Run relevant validation: Go dependency resolution, unit tests, lint,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container build, deployment render, SBOM refresh, security scan, and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> zrok configuration validation available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate zrok WebDAV DriveRoot symlink escape`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No zrok dependency, binary, image, drive share, or deployment target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository uses unsupported zrok v1 drive shares and cannot move to a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed v2 runtime without an owner decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only verification path would require probing a real public share or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> overwriting files outside a temporary test directory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on sharing a source tree, home directory, or MCP
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> context store that can contain symlinks; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security/product decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled &lt;code>zrok&lt;/code> v2 runtime resolves below &lt;code>2.0.2&lt;/code>.&lt;/li>
+&lt;li>No controlled unsupported v1 drive share remains without a documented owner
+decision and containment plan.&lt;/li>
+&lt;li>Public drive shares are removed or use a dedicated low-sensitivity DriveRoot.&lt;/li>
+&lt;li>Symlinks in DriveRoot are rejected by startup checks, CI checks, or backend
+tests.&lt;/li>
+&lt;li>Regression tests prove reads, writes, stats, directory creation, and removal
+cannot cross DriveRoot through symlinks.&lt;/li>
+&lt;li>Operator actions identify exposed share URLs, logs to review, and credentials
+or host paths that may require rotation or cleanup.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating Go modules while old zrok binaries or images remain pinned in
+deployment manifests.&lt;/li>
+&lt;li>Sharing a repository checkout, build workspace, home directory, mounted host
+root, or MCP context directory as DriveRoot.&lt;/li>
+&lt;li>Checking only &lt;code>..&lt;/code> traversal and missing symlink traversal.&lt;/li>
+&lt;li>Removing symlinks once manually but failing to add a repeatable guard.&lt;/li>
+&lt;li>Keeping public unauthenticated WebDAV shares for agent artifacts without
+explicit data classification and access policy.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-74m3-9qvm-rp9h&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-74m3-9qvm-rp9h"target="_blank" rel="noopener">https://github.com/advisories/GHSA-74m3-9qvm-rp9h&lt;/a>&lt;/li>
+&lt;li>zrok project: &lt;a href="https://github.com/openziti/zrok"target="_blank" rel="noopener">https://github.com/openziti/zrok&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,1608 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – General</title><link>https://security-recipes.ai/prompt-library/general/</link><description>Recent content in General on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><atom:link href="https://security-recipes.ai/prompt-library/general/index.xml" rel="self" type="application/rss+xml"/><item><title>OWASP Top 10 (2026) — repo audit</title><link>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/</link><pubDate>Wed, 22 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/</guid><description>
+&lt;p>A tool-agnostic &lt;strong>hunt prompt&lt;/strong> that walks an agent through a structured
+audit of a repository against every category in the OWASP Top 10 (2026
+iteration). The output is a prioritised report with file-level pointers
+and concrete remediation recommendations — not a fix.&lt;/p>
+&lt;p>Pair this with the companion remediate prompt,
+&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) — remediate&lt;/a>,
+to take a single finding from the report to an open PR.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>It asks the agent to:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Enumerate the repo&lt;/strong> — language, framework, entry points, auth
+mechanism, data stores, external calls, secret-handling paths.&lt;/li>
+&lt;li>&lt;strong>Walk each OWASP Top 10 2026 category&lt;/strong> and look for concrete
+instances, not theoretical risk.&lt;/li>
+&lt;li>&lt;strong>Score and group findings&lt;/strong> by category, severity, and blast
+radius.&lt;/li>
+&lt;li>&lt;strong>Emit a structured report&lt;/strong> a reviewer can hand to product teams
+or feed into the remediate prompt.&lt;/li>
+&lt;/ol>
+&lt;p>Runs read-only. Does not edit files. No PRs.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Quarterly posture review of a service you own.&lt;/li>
+&lt;li>Diligence pass before a new service moves to production.&lt;/li>
+&lt;li>Follow-on after a pen-test report that only listed categories, not
+file paths.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Real-time exploit triage — too slow and too broad.&lt;/li>
+&lt;li>Replacing SAST/DAST — this is a structured LLM pass, not a
+vulnerability scanner. It catches design-level issues scanners miss
+and misses pattern-level issues scanners catch. Run both.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The agent should &lt;strong>infer&lt;/strong> as much as it can from the working session
+and prompt only when genuinely ambiguous:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Repo&lt;/strong> — the working directory the agent is running in.&lt;/li>
+&lt;li>&lt;strong>Scope&lt;/strong> — if the user mentions a specific directory or service,
+restrict to that. Otherwise, audit the whole repo.&lt;/li>
+&lt;li>&lt;strong>Deployment target&lt;/strong> — infer from &lt;code>Dockerfile&lt;/code> / &lt;code>k8s/&lt;/code> /
+&lt;code>terraform/&lt;/code> / CI config. If unknown, note it in the report.&lt;/li>
+&lt;li>&lt;strong>Auth / authz model&lt;/strong> — infer from routing + middleware + any
+&lt;code>auth/&lt;/code> module. If unclear, note it.&lt;/li>
+&lt;/ul>
+&lt;p>Do not refuse to run because an input is missing; produce the best
+report you can and flag the gaps.&lt;/p>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are performing a security posture audit of this repository against
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the OWASP Top 10 (2026). Run read-only. Do not edit files or run
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">destructive commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Repo orientation
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Before auditing, infer and record:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Primary language and framework.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Entry points (HTTP routes, gRPC services, queue consumers, CLI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> commands, scheduled jobs).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Authentication mechanism.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Data stores touched (databases, caches, object storage, message
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> queues).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> External services called.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Secret handling (env vars, secret managers, config files).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> CI / deployment pipeline — where is this run, how is it built.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Record these in a short &amp;#34;Context&amp;#34; section at the top of the report.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If any are unknown after a reasonable look, say so — do not guess.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Walk each OWASP Top 10 2026 category
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each category, answer three questions:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="gs">**What would this look like in this codebase?**&lt;/span> (The concrete
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shape the weakness would take, given the framework and entry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> points.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> &lt;span class="gs">**Did you find any instances?**&lt;/span> (File paths, line numbers, and a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> one-line excerpt for each.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> &lt;span class="gs">**What would fix or mitigate it?**&lt;/span> (Specific, actionable —
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;add authz check to route X&amp;#34; beats &amp;#34;improve access control&amp;#34;.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### Categories to cover
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Use the current OWASP Top 10 2026 naming. If the release is still
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">draft, note the version you are auditing against at the top of the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">report. Cover at minimum:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A01 — Broken Access Control.** Missing authz checks on routes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IDOR patterns, tenant-id trust from client, over-broad admin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoints.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A02 — Cryptographic Failures.** Weak/old ciphers, hard-coded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys, TLS verification disabled, plaintext-at-rest for sensitive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fields, bad password hashing (MD5/SHA1/unsalted).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A03 — Injection.** SQL/NoSQL/command/LDAP/XPath injection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unsafe template rendering, prompt injection paths for LLM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> features (untrusted text pasted into a system prompt or tool
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> call).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A04 — Insecure Design.** Missing rate limits on auth-adjacent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoints, enumeration oracles (login, password-reset,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> invite-by-email), trust boundaries crossed without validation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> features shipped without a threat model.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A05 — Security Misconfiguration.** Debug mode in production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> paths, permissive CORS, default credentials, verbose error
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pages, cloud resources without least-privilege IAM, missing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security headers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A06 — Vulnerable and Outdated Components.** Lockfile entries
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with known CVEs, unpinned or wildcard deps, abandoned upstreams,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored code without a clear origin.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A07 — Identification and Authentication Failures.** Weak
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> session handling, no MFA for sensitive ops, no account lockout
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or rate limiting on login, password policy gaps, tokens in URLs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A08 — Software and Data Integrity Failures.** Unsigned release
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts, CI pipelines that trust unverified third-party
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions, deserialization of untrusted data, auto-update paths
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without signature checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A09 — Security Logging and Monitoring Failures.** Sensitive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operations that emit no audit record, PII/secrets in logs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> missing correlation IDs, no alerting on auth anomalies.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A10 — Server-Side Request Forgery (SSRF).** Outbound HTTP
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> built from user input without allowlisting, webhook fetchers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> URL preview services, metadata-endpoint (169.254.169.254) not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blocked.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the published 2026 list adds or renames a category (for example,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">a standalone entry for LLM/agent-supply-chain risks), include it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">using the current OWASP wording and drop any category that was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">merged or retired.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Score and prioritise
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each finding, assign:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Severity** — critical / high / medium / low. Use CVSS-style
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reasoning; err low when exploitation requires already-privileged
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Blast radius** — scope of impact if exploited (one tenant, all
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenants, infra, etc.).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Confidence** — high / medium / low. Low confidence is fine;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> flag it so a reviewer can verify.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Sort the report by (severity, blast radius, confidence).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Emit the report
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Write the report to &lt;span class="sb">`SECURITY_AUDIT.md`&lt;/span> at the repo root (or print
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">to stdout if the session is read-only). Use this structure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```markdown
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span>&lt;span class="gh"># OWASP Top 10 (2026) audit — &amp;lt;repo name&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="ge">_Generated by &amp;lt;agent name&amp;gt; on &amp;lt;date&amp;gt;. OWASP version: &amp;lt;draft/final, date&amp;gt;._&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Context
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Language / framework: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Entry points: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Auth model: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Data stores: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Deploy target: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Gaps in context: ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Findings
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">### &amp;lt;Severity&amp;gt; — &amp;lt;A0X category&amp;gt; — &amp;lt;short title&amp;gt;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> **File:** &lt;span class="sb">`path/to/file.py:42`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Excerpt:** &lt;span class="sb">`...one line of code...`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Why it&amp;#39;s flagged:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Blast radius:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Confidence:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Recommended fix:** ...
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(repeat for each finding, sorted)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Categories with no findings
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> A0X — reasoning for why no instance was found (searched patterns,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> areas covered).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Gaps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Things the audit could not reach (e.g., &amp;#34;no access to the IAM
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> config for the deployed environment&amp;#34;).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Stop and write a note rather than guessing if:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo is larger than you can meaningfully audit in one pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Suggest splitting by module and re-running.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A category requires runtime context you do not have (for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> example, deploy configuration lives in another repo).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You find credentials, private keys, or unmistakable exploit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts — flag these to the top of the report immediately and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop; they are an incident, not an audit finding.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A single &lt;code>SECURITY_AUDIT.md&lt;/code> file with the structure above, or
+the same content on stdout if write access is not available.&lt;/li>
+&lt;li>No source file edits.&lt;/li>
+&lt;li>No PRs.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Read-only. The agent should not use any write tool.&lt;/li>
+&lt;li>Do not exfiltrate repo contents to external services. If the
+agent has web-search / fetch tools, restrict them to looking up
+CVE advisories and OWASP documentation.&lt;/li>
+&lt;li>Redact any credentials, tokens, or private keys the agent
+stumbles on while reading code — the report references them by
+file/line, never by value.&lt;/li>
+&lt;/ul>
+&lt;h2>How to hand off to remediation&lt;span class="hx:absolute hx:-mt-20" id="how-to-hand-off-to-remediation">&lt;/span>
+&lt;a href="#how-to-hand-off-to-remediation" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Pick the top finding.&lt;/li>
+&lt;li>Feed its file, line, category, and recommended fix into the
+companion prompt:
+&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) — remediate&lt;/a>.&lt;/li>
+&lt;li>Review the PR it opens.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/">Fundamentals&lt;/a> — vocabulary used in
+the report (SAST, SSRF, blast radius).&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/mcp-servers/">MCP Server Access&lt;/a> — wiring an
+agent to scanners so audits can cross-reference existing findings.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) — remediate&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>OWASP Top 10 (2026) — remediate</title><link>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/</link><pubDate>Wed, 22 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/</guid><description>
+&lt;p>A tool-agnostic &lt;strong>remediation prompt&lt;/strong> that takes a single finding
+from an OWASP Top 10 (2026) audit — or any equivalent source — and
+turns it into a reviewer-ready pull request. Includes category-specific
+&amp;ldquo;how to fix this well&amp;rdquo; guidance so the agent doesn&amp;rsquo;t apply a naive
+patch that looks right and isn&amp;rsquo;t.&lt;/p>
+&lt;p>Works with the hunt side at
+&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/">OWASP Top 10 (2026) — audit&lt;/a>,
+but does not require it — any clear finding (SAST result, pen-test
+note, internal review comment) is a valid input.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reproduces&lt;/strong> the finding — confirms the weakness exists on the
+specified file and lines.&lt;/li>
+&lt;li>&lt;strong>Plans&lt;/strong> a fix using the category-appropriate pattern.&lt;/li>
+&lt;li>&lt;strong>Applies&lt;/strong> the fix on a new branch with small, reviewable commits.&lt;/li>
+&lt;li>&lt;strong>Adds tests&lt;/strong> that would have caught the original weakness.&lt;/li>
+&lt;li>&lt;strong>Opens a PR&lt;/strong> with blast-radius notes, before/after snippets, and
+a link back to the finding.&lt;/li>
+&lt;/ol>
+&lt;p>If the fix is out of scope for a safe agent change — needs a data
+migration, API contract change, or cross-repo coordination — the
+agent writes a triage note and stops.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>You have a specific finding with a file + category + fix direction.&lt;/li>
+&lt;li>The fix is a code change in the repo the agent has access to.&lt;/li>
+&lt;li>A human will review the PR before merge.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Runtime-only fixes (WAF rules, IAM policies in a separate repo).&lt;/li>
+&lt;li>Findings that require behavioural changes in a downstream consumer.&lt;/li>
+&lt;li>Anything labelled &amp;ldquo;critical, exploit in the wild&amp;rdquo; — go straight to
+your incident playbook.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Infer what you can from the session; prompt only when ambiguous.&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Finding&lt;/strong> — category (e.g., &lt;code>A01 — Broken Access Control&lt;/code>), file
+path, line range, and a short description. If the user only pasted
+a finding title and a file, that is enough; do not refuse.&lt;/li>
+&lt;li>&lt;strong>Recommended fix&lt;/strong> — optional. If present, treat it as a starting
+point, not a mandate.&lt;/li>
+&lt;li>&lt;strong>Repo&lt;/strong> — the working directory the agent is running in.&lt;/li>
+&lt;li>&lt;strong>Test runner&lt;/strong> — infer from the repo (&lt;code>pytest&lt;/code>, &lt;code>go test&lt;/code>, &lt;code>npm test&lt;/code>, etc.). If there is no test setup, note it and proceed with
+manual verification only.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating a single OWASP Top 10 (2026) finding in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">repository. Open one reviewer-ready PR or write a triage note. Do
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Reproduce and confirm
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the file and surrounding context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the weakness is present as described. If it is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reproducible (e.g., the code has been refactored), write a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> one-paragraph note and stop — do not invent a different finding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to remediate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify the minimum scope required to fix it. If the scope
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expands beyond ~200 lines or multiple unrelated files, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Apply the category-appropriate pattern
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not default to &amp;#34;add a check and ship it.&amp;#34; Use the pattern that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">fits the category.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A01 Broken Access Control** — Add authorization at the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controller/handler layer, not the view layer. Prefer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> centralized middleware / policy objects over ad-hoc &lt;span class="sb">`if`&lt;/span> checks
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scattered across routes. Verify the check runs on every code
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path, including error and retry paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A02 Cryptographic Failures** — Replace weak primitives with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the library&amp;#39;s current recommended default. Never roll your own.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> For password hashing, use argon2id or bcrypt with current cost
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> parameters. For data-at-rest, prefer envelope encryption with a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> KMS-managed key. Remove the old cipher path — do not leave a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fallback.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A03 Injection** — Parameterize. For SQL, use prepared
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> statements or the ORM&amp;#39;s parameter binding. For shell, prefer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`execFile`&lt;/span>/&lt;span class="sb">`subprocess.run(args=[...])`&lt;/span> with an explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlist over string concatenation. For templates, escape at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render time, not at input time. For LLM prompt injection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> treat model output as untrusted and keep untrusted text out of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> system prompts and tool-call arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A04 Insecure Design** — If the fix is design-level (missing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rate limit, enumeration oracle), add the minimum control:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server-side rate limit keyed on account + IP, uniform response
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for valid and invalid enumerable inputs, etc. Flag the larger
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> design gap in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A05 Security Misconfiguration** — Turn the defaults right.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Tighten CORS to explicit origins, disable debug in production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> paths, add the standard security headers (CSP, HSTS,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> X-Content-Type-Options, Referrer-Policy). If the config is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment-specific, fix the &lt;span class="ge">*default*&lt;/span> and override only where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> needed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A06 Vulnerable and Outdated Components** — Bump to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lowest non-vulnerable version that keeps the repo&amp;#39;s major /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> minor contract. Run tests. If a transitive dep is the problem
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the direct dep cannot be bumped, add a resolution/override
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if the ecosystem supports one; otherwise triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A07 Authentication Failures** — Add the missing control
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (MFA requirement on sensitive op, account lockout on repeated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> failures, secure session cookie flags). Invalidate existing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sessions if the old behaviour made them trust-on-first-use.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A08 Software/Data Integrity Failures** — Pin third-party CI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions by SHA, require signatures on release artifacts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> replace &lt;span class="sb">`pickle`&lt;/span>/&lt;span class="sb">`unsafe-eval`&lt;/span>/&lt;span class="sb">`Marshal`&lt;/span> on untrusted input
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with a safe serialization format.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A09 Logging/Monitoring Failures** — Add structured audit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> events for sensitive operations (auth, authz, privilege
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> escalation, data export). Scrub PII and secrets from the log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pipeline — not from the log statement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **A10 SSRF** — Validate and allowlist outbound URLs against a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deny-by-default list. Block link-local and metadata-endpoint
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IPs. Resolve the hostname once, then connect to the resolved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IP — do not pass a hostname that could resolve differently on
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> second lookup.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the 2026 list introduces or renames a category, apply the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">nearest fitting pattern above and note the category name in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">PR description.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Tests that would have caught this
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add at least one test that &lt;span class="ge">*fails against the old code*&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="ge">*passes against the new code*&lt;/span>. If the project has no test setup,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">add a minimal one; do not skip the test step silently.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Commit and open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/owasp-&amp;lt;category&amp;gt;-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Small commits that tell a story: reproduction test, fix, any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> supporting refactor, docstring/config updates.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> PR title: &lt;span class="sb">`[Security][&amp;lt;category&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> PR body must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> OWASP category and link to the source finding.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Summary of the weakness and the exploitation path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> What was changed, per file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Blast radius — who and what this PR affects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A &amp;#34;how to verify&amp;#34; section with the commands a reviewer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should run locally.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Out-of-scope items discovered along the way, as checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> items for follow-up.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not merge. Label as &lt;span class="sb">`security-review`&lt;/span> (or the repo&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Stop and write a triage note at &lt;span class="sb">`TRIAGE.md`&lt;/span> (and ping the PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">reviewer channel) instead of forcing a PR if:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix requires a data migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix changes an externally-observable API contract.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The finding turns out to be a false positive (explain briefly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> why).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail and you cannot fix them without touching unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix requires credentials or infra you do not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch files outside the direct fix and its tests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rewrite unrelated code &amp;#34;while you&amp;#39;re in there.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not update dependencies other than the one the finding
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> targets (if any).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not modify CI pipelines, release automation, or secrets.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (happy path) with the structure above, or a
+&lt;code>TRIAGE.md&lt;/code> note (stop condition) with a short justification and
+a recommendation for the human next step.&lt;/li>
+&lt;li>No auto-merge. Ever.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Single-finding scope.&lt;/strong> One finding → one PR. If the agent
+notices adjacent issues, it lists them in the PR body&amp;rsquo;s
+follow-up checklist — it does not quietly fix them.&lt;/li>
+&lt;li>&lt;strong>Tests-before-ship.&lt;/strong> A PR without a new or updated test is an
+automatic block. If no test framework exists, the PR adds one
+minimally.&lt;/li>
+&lt;li>&lt;strong>Sensitive-data handling.&lt;/strong> The agent must never include
+secrets, keys, or PII in the PR description, commits, or test
+fixtures. Use obvious dummies.&lt;/li>
+&lt;li>&lt;strong>Reversibility.&lt;/strong> Every change should be reversible via a
+single revert. No data migrations bundled in.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-audit/">OWASP Top 10 (2026) — audit&lt;/a> — the hunt side&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/">Fundamentals&lt;/a> — vocabulary used
+in the PR body&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/">Agentic Security Remediation&lt;/a>
+— how a security team runs prompts like this in production&lt;/li>
+&lt;/ul></description></item><item><title>SAST finding — triage and fix</title><link>https://security-recipes.ai/prompt-library/general/sast-finding-triage-and-fix/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/sast-finding-triage-and-fix/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a single SAST finding and
+either opens a reviewer-ready PR (true positive, fixable),
+opens a suppression PR with justification and an expiry
+(confirmed false positive), or writes a triage note (uncertain
+or out-of-scope).&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/sast-findings/">SAST Finding Remediation&lt;/a>
+workflow, where the SAST scanner is the source of truth and
+the agent is bounded to a named catalogue of fix shapes.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the finding&lt;/strong> — rule ID, file, line range, data flow.&lt;/li>
+&lt;li>&lt;strong>Reproduces the data flow&lt;/strong> locally — confirms the source,
+the sink, and the path between them on the current code.&lt;/li>
+&lt;li>&lt;strong>Classifies&lt;/strong> the finding as true positive / false positive /
+uncertain. Defaults to true-positive under doubt.&lt;/li>
+&lt;li>&lt;strong>For true positives&lt;/strong>, picks a fix shape from the workflow&amp;rsquo;s
+pre-approved catalogue and applies it. Adds a test that fails
+on the old code and passes on the new code. Re-runs the
+scanner and confirms the finding is gone.&lt;/li>
+&lt;li>&lt;strong>For false positives&lt;/strong>, opens a &lt;em>suppression PR&lt;/em> with an
+inline comment explaining the data flow that makes the finding
+benign and an explicit expiry date (default 6 months).&lt;/li>
+&lt;li>&lt;strong>For everything else&lt;/strong>, writes a triage note and stops.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A SAST scanner has produced a structured finding (Semgrep,
+CodeQL, SonarQube, Snyk Code, etc.) with a stable rule ID.&lt;/li>
+&lt;li>The repo has a passing CI pipeline and a test target.&lt;/li>
+&lt;li>The finding&amp;rsquo;s data flow is local — confined to one function
+or one module.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Findings where the data flow crosses a module boundary.&lt;/li>
+&lt;li>Findings whose fix would require an API contract change, a
+schema migration, or new infrastructure.&lt;/li>
+&lt;li>Vendored or generated code.&lt;/li>
+&lt;li>Findings labelled &amp;ldquo;exploit available, in the wild&amp;rdquo; — those go
+through your incident playbook, not this prompt.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Infer from session where possible.&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Finding&lt;/strong> — rule ID, file path, line range, data-flow
+description.&lt;/li>
+&lt;li>&lt;strong>Catalogue path&lt;/strong> — the path in this repo (or a sibling)
+where the workflow&amp;rsquo;s fix-shape catalogue lives. The agent
+reads it but does not edit it.&lt;/li>
+&lt;li>&lt;strong>Test runner&lt;/strong> — inferred from repo (&lt;code>pytest&lt;/code>, &lt;code>npm test&lt;/code>,
+&lt;code>go test&lt;/code>, etc.).&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are triaging and (when appropriate) fixing a single SAST
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">finding in this repository. Your output is exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request with a fix and a regression test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request that adds a scoped suppression with a written
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> justification and an expiry date.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A triage note (&lt;span class="sb">`TRIAGE.md`&lt;/span>) explaining why neither option is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe and what a human should do next.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not auto-merge. Do not bundle multiple findings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the finding and the catalogue
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the rule ID, the affected file, the line range, and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data flow the scanner emitted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the fix-shape catalogue at the path the operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provided. The catalogue maps rule IDs (or rule families) to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> named fix shapes, each with an edit pattern and a test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template. &lt;span class="gs">**The catalogue is the policy.**&lt;/span> If no shape
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matches, treat the finding as out-of-scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Reproduce the data flow
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Open the file and trace the data flow described by the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scanner against the current code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the code has been refactored such that the flow no longer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exists, classify as a stale finding and stop with a triage
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> note (do not invent a new finding to fix).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Confirm the source, the sink, and any sanitizers / validators
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the path. Note any confidence-reducing facts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Pick exactly one:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **True positive.** The data flow is real, the sanitization is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> insufficient or absent, and a fix shape from the catalogue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matches. Continue to Step 3a.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **True positive, no shape.** The flow is real but the catalogue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> has no shape for it. Stop and write a triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **False positive.** A sanitizer / validator / type constraint
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on the path makes the flow safe in practice. Continue to Step
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 3b. Default to true-positive under any doubt.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Cross-module flow.** The flow leaves this function/module.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Uncertain.** Stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3a — Apply the fix shape
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Apply the catalogue&amp;#39;s edit pattern to the file. Stay within
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the function boundary unless the catalogue explicitly says
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> otherwise.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Instantiate the catalogue&amp;#39;s test template against this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding. The test must fail on the old code and pass on the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> new code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Run the repo&amp;#39;s test target. If anything unrelated breaks,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> revert and triage — do not fix unrelated breakage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Re-run the SAST scanner against the sandbox. The original
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding must be gone, and no new finding may have appeared
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the same file. If a new finding appears, revert and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Open a PR (do not merge):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/sast-&amp;lt;rule-id-slug&amp;gt;-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][SAST][&amp;lt;rule-id&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body: rule ID, fix shape applied, before/after snippet,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blast radius, &amp;#34;how to verify locally,&amp;#34; follow-up checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for adjacent issues you noticed but did not fix.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span> (or your repo&amp;#39;s equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3b — Suppress with justification (false positive)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add an inline suppression comment in the syntax the scanner
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expects (e.g., &lt;span class="sb">`# nosem: &amp;lt;rule-id&amp;gt;`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`// codeql[js/sql-injection]: ignore`&lt;/span>, &lt;span class="sb">`// NOSONAR`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> The comment &lt;span class="gs">**must**&lt;/span> include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The rule ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A one-paragraph explanation of the data flow that makes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the finding benign.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The link to the data-flow trace you walked in Step 1.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> An explicit expiry date 6 months from today, written as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`expires: YYYY-MM-DD`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Open a PR (do not merge):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/sast-suppress-&amp;lt;rule-id-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][SAST][suppress][&amp;lt;rule-id&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body: rule ID, why this is a false positive, the expiry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> date, and a link to the workflow page.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Tag with the auto-remediation label.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions (write a TRIAGE.md and exit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The data flow crosses a module boundary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No catalogue fix shape matches the rule ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix would require an API change, a schema migration, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a credential / infra change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The scanner re-run after your fix shows new findings in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> same file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You cannot make tests pass without editing unrelated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The finding looks like a logic bug rather than the syntactic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pattern the rule fires on.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch files outside the affected function and its
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle multiple findings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not invent new fix shapes — only use the catalogue.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the suppression scope (e.g.,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> file-level when the finding is line-level).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not modify CI, secrets, or release pipelines.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (fix or suppression) with the structure above, or a
+&lt;code>TRIAGE.md&lt;/code> note. Never an auto-merge.&lt;/li>
+&lt;li>Suppression PRs always include an explicit expiry; the workflow&amp;rsquo;s
+expiry-sweep job re-fires findings whose suppressions have aged
+out.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Catalogue-only fixes.&lt;/strong> The agent will never apply an edit
+pattern that isn&amp;rsquo;t in the catalogue, even when it knows one
+that &amp;ldquo;would work.&amp;rdquo;&lt;/li>
+&lt;li>&lt;strong>Default to true-positive.&lt;/strong> False-negative cost (real bug
+marked benign) is much higher than false-positive cost (a
+human looks at a real false positive). The prompt is biased
+accordingly.&lt;/li>
+&lt;li>&lt;strong>Re-scan required.&lt;/strong> No PR opens without a clean re-scan of
+the patched sandbox.&lt;/li>
+&lt;li>&lt;strong>One finding, one PR.&lt;/strong> Never bundle. Each PR is independently
+revertible.&lt;/li>
+&lt;li>&lt;strong>Suppression has a half-life.&lt;/strong> No &lt;code>forever&lt;/code> suppressions.
+Every suppression is dated and re-fires.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/sast-findings/">SAST Finding Remediation&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/reviewer-playbook/">Reviewer Playbook&lt;/a>
+— what the reviewer reads before approving.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/emerging-patterns/#ai-assisted-sast-triage">Emerging Patterns → AI-assisted SAST triage&lt;/a>
+— the pattern this prompt implements.&lt;/li>
+&lt;/ul></description></item><item><title>Base image — bump and rebuild</title><link>https://security-recipes.ai/prompt-library/general/base-image-bump/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/base-image-bump/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a CVE finding scoped to a
+base image or an OS-package layer, and produces a reviewer-ready
+PR that bumps the &lt;code>FROM&lt;/code> line (or the package install layer),
+rebuilds the image, runs the smoke test, and confirms the CVE
+is gone — or stops cleanly with a triage note.&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+workflow.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the finding&lt;/strong> — the affected image, the CVE, the
+package, the patched version (or the patched image tag).&lt;/li>
+&lt;li>&lt;strong>Locates the affected layer&lt;/strong> — the &lt;code>FROM&lt;/code> line, the
+&lt;code>apt-get install&lt;/code> line, or the &lt;code>RUN apt-get upgrade&lt;/code> step
+that introduces the vulnerable package.&lt;/li>
+&lt;li>&lt;strong>Picks a bump strategy&lt;/strong> — tag bump, digest pin update,
+package upgrade, or curated-base bump — from the workflow&amp;rsquo;s
+declared policy.&lt;/li>
+&lt;li>&lt;strong>Edits the Dockerfile&lt;/strong>, rebuilds the image with
+&lt;code>--no-cache&lt;/code> for the affected layer, runs the repo&amp;rsquo;s smoke
+test.&lt;/li>
+&lt;li>&lt;strong>Re-scans the rebuilt image&lt;/strong> and confirms the CVE is gone
+and no new CVEs were introduced.&lt;/li>
+&lt;li>&lt;strong>Opens a PR&lt;/strong> with a structured body — affected images,
+affected services, rollout shape, rollback plan.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A container image scanner has produced a structured CVE finding
+scoped to the base image or to a package the Dockerfile
+installs.&lt;/li>
+&lt;li>The repo owns the Dockerfile (CODEOWNERS resolves cleanly).&lt;/li>
+&lt;li>The repo&amp;rsquo;s CI builds the image and exposes a smoke test the
+agent can invoke.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Application-package CVEs (npm, pip, Go modules, etc.) — those
+go through the &lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">vulnerable-dependency workflow&lt;/a>.&lt;/li>
+&lt;li>Curated-base creation, distroless rebases, or OS-family changes
+— those are human-driven.&lt;/li>
+&lt;li>Images built outside the repo.&lt;/li>
+&lt;li>CVEs in the kernel or host runtime.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>CVE&lt;/strong> — ID, affected package, fixed version (or fixed image
+tag).&lt;/li>
+&lt;li>&lt;strong>Image&lt;/strong> — registry path, current tag, current digest.&lt;/li>
+&lt;li>&lt;strong>Dockerfile path&lt;/strong> — repo-relative path.&lt;/li>
+&lt;li>&lt;strong>Smoke test command&lt;/strong> — inferred from CI (&lt;code>make smoke&lt;/code>, &lt;code>docker run … &amp;amp;&amp;amp; curl /health&lt;/code>, etc.).&lt;/li>
+&lt;li>&lt;strong>Policy file&lt;/strong> — &lt;code>.sec-auto-remediation.yml&lt;/code> declaring which
+bump magnitudes (patch / minor / major) are auto-eligible.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating a single base-image or OS-package CVE in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">this repository. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR with a Dockerfile edit and a successful rebuild + scan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`TRIAGE.md`&lt;/span> note explaining why the bump is unsafe or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ineffective.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not auto-merge. Do not bundle multiple CVEs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the finding and the policy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the CVE ID, the affected package, the fixed version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (or fixed image tag), and the image coordinate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the policy file. Confirm the bump magnitude implied by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the fix is auto-eligible. If the policy says &amp;#34;human only&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for this magnitude, stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Locate the affected layer
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the Dockerfile. Identify the &lt;span class="sb">`FROM`&lt;/span> line(s) and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package-install layers (&lt;span class="sb">`apt-get install`&lt;/span>, &lt;span class="sb">`apk add`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`dnf install`&lt;/span>, &lt;span class="sb">`microdnf install`&lt;/span>, &lt;span class="sb">`yum install`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine which layer introduces the vulnerable package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Multi-stage builds may have multiple &lt;span class="sb">`FROM`&lt;/span> lines; identify
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> only the one(s) affected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the image derives from an internal curated base
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`internal/...:tag`&lt;/span>), confirm the curated base has been
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bumped upstream first. If not, stop and triage with a link
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to the upstream-bump request.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Pick the bump strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Choose exactly one (and only one):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Tag bump.** Edit the &lt;span class="sb">`FROM`&lt;/span> line to the patched tag.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Digest pin update.** When the repo pins to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`image@sha256:…`&lt;/span>, edit the digest to the registry&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> current tag-resolved digest for the same logical version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Package upgrade.** Edit the package-install line to pin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the patched version (preferred) or add an explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`apt-get upgrade &amp;lt;pkg&amp;gt;`&lt;/span> step before the install.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Curated base bump.** Edit the &lt;span class="sb">`FROM`&lt;/span> tag to the new
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> curated tag and link the upstream curated-base PR in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not refactor the Dockerfile. Do not &amp;#34;clean up while you&amp;#39;re
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">in there.&amp;#34; If a clean fix requires more than the bump, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Rebuild
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Rebuild the image with &lt;span class="sb">`--no-cache`&lt;/span> for the affected layer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> If the cache state is uncertain, rebuild the whole image.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Capture the new digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Run the repo&amp;#39;s smoke test against the rebuilt image. The
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image must start, the health check must pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the smoke test fails, revert and stop with a triage note
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that includes the failure log.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Rescan
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Re-run the image scanner against the rebuilt image.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> The original CVE must be gone.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> The total CVE count must not have increased. If new CVEs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> appeared, list them in the PR body — do not silently ship.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the original CVE is still present (e.g., the patched
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> version was not actually fixed in the new tag), stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/cve-&amp;lt;cve-id&amp;gt;-&amp;lt;image-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][CVE-XXXX-YYYYY] bump &amp;lt;image&amp;gt; for &amp;lt;pkg&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **CVE summary** — ID, package, severity, link to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Strategy used** — which of the four bump shapes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Affected images** — the registry paths that will rebuild.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Affected services** — the manifests / Helm values /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kustomize overlays that pin to those images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Rollout shape** — canary, blue/green, rolling.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Rollback plan** — the previous tag/digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **New CVEs introduced (if any)** — listed with severity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **How to verify locally** — exact build + smoke commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Bump magnitude is not auto-eligible per policy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo&amp;#39;s CI does not have a smoke test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The Dockerfile uses &lt;span class="sb">`latest`&lt;/span>, a moving major-version tag, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a missing tag (flag and triage; do not silently pin).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rebuilt image fails the smoke test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Re-scan still shows the original CVE or shows new CVEs the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy treats as blocking.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix would require a multi-stage refactor or an OS-family
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not edit application source.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not edit CI, deploy manifests (the reviewer drives those),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or release pipelines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not push to the registry — the agent&amp;#39;s credentials are
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pull-only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle multiple CVEs.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (happy path) with a successfully rebuilt and
+rescanned image, or a &lt;code>TRIAGE.md&lt;/code> note (stop condition).&lt;/li>
+&lt;li>Audit record includes the new digest, the scanner output, and
+the smoke-test result.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>One CVE, one image, one PR.&lt;/strong> Bundling masks regressions.&lt;/li>
+&lt;li>&lt;strong>Rescan required.&lt;/strong> No PR opens until the rebuilt image
+scans clean for the target CVE.&lt;/li>
+&lt;li>&lt;strong>Smoke test required.&lt;/strong> &amp;ldquo;It builds&amp;rdquo; is not &amp;ldquo;it works.&amp;rdquo;&lt;/li>
+&lt;li>&lt;strong>Layer cache is not a fix.&lt;/strong> Rebuild with &lt;code>--no-cache&lt;/code> for
+the affected layer.&lt;/li>
+&lt;li>&lt;strong>No &lt;code>latest&lt;/code>.&lt;/strong> The agent never introduces or relies on a
+moving tag.&lt;/li>
+&lt;li>&lt;strong>Pull-only credentials.&lt;/strong> Push happens from CI, not from
+the agent.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— the lockfile-shaped sibling.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+— when the bump is the wrong fix because the &lt;em>publisher&lt;/em> is
+compromised.&lt;/li>
+&lt;/ul></description></item><item><title>Compromised package — cache quarantine</title><link>https://security-recipes.ai/prompt-library/general/compromised-package-cache-quarantine/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/compromised-package-cache-quarantine/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a &amp;ldquo;this package is malicious&amp;rdquo;
+advisory and runs the eviction across the org&amp;rsquo;s registries,
+caches, and mirrors — quarantining the artifact, verifying the
+purge worked, and drafting the developer-machine broadcast a
+human will deliver.&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+workflow.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the advisory&lt;/strong> — the artifact coordinate, the
+versions, the registries to inspect.&lt;/li>
+&lt;li>&lt;strong>Inventories&lt;/strong> — for each registry / proxy / cache the agent
+has a connector for, lists matching versions or digests.&lt;/li>
+&lt;li>&lt;strong>Quarantines&lt;/strong> the matching versions (preferred) or
+deletes them where policy requires. Default action is
+reversible quarantine.&lt;/li>
+&lt;li>&lt;strong>Verifies&lt;/strong> by re-fetching the purged artifact and
+confirming the registry refuses to serve it.&lt;/li>
+&lt;li>&lt;strong>Drafts the developer-machine broadcast&lt;/strong> — paste-ready
+purge commands for &lt;code>npm&lt;/code>, &lt;code>pip&lt;/code>, &lt;code>go&lt;/code>, &lt;code>docker&lt;/code>, etc., plus
+verification commands.&lt;/li>
+&lt;li>&lt;strong>Records the audit entry&lt;/strong> — registry actions, verification
+results, restore commands, and the broadcast text.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>An advisory says a published artifact (package, image, chart)
+is malicious — maintainer takeover, poisoned release,
+supply-chain compromise.&lt;/li>
+&lt;li>The artifact is identifiable by a stable coordinate.&lt;/li>
+&lt;li>The org&amp;rsquo;s registries / proxies have agent-quarantine API
+access declared in policy.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Routine vulnerable-version advisories (use the
+&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">vulnerable-dependency workflow&lt;/a>).&lt;/li>
+&lt;li>Range-based or fuzzy advisories without a stable coordinate.&lt;/li>
+&lt;li>Air-gapped mirrors the agent has no network path to (the
+broadcast pattern applies).&lt;/li>
+&lt;li>Reaching into developer machines (the agent drafts
+broadcasts; humans deliver them).&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Advisory&lt;/strong> — ID, ecosystem, package name(s), affected
+versions, type (compromise vs. vulnerable).&lt;/li>
+&lt;li>&lt;strong>Registry list&lt;/strong> — which registry / proxy / cache connectors
+to use for this ecosystem.&lt;/li>
+&lt;li>&lt;strong>Policy&lt;/strong> — quarantine vs. hard delete; whether the
+developer-machine broadcast is required.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are running a cache-quarantine action across this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">organization&amp;#39;s registries in response to a compromise advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Your output is exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A complete audit record showing every registry purged, every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification passing, and a drafted developer-machine
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> broadcast text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`TRIAGE.md`&lt;/span> note explaining what could not be completed and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> what a human needs to do next.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not act on advisories that are not labelled
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`compromise`&lt;/span>/&lt;span class="sb">`malicious`&lt;/span>. Do not perform a hard delete unless
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the policy explicitly requires it for this advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Validate the input
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Confirm the advisory is labelled &lt;span class="sb">`compromise`&lt;/span> or &lt;span class="sb">`malicious`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> If it is a routine &lt;span class="sb">`vulnerable`&lt;/span> advisory, stop and route to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the vulnerable-dependency workflow.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the advisory provides a stable coordinate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`name@version`&lt;/span> for packages, &lt;span class="sb">`image:tag`&lt;/span> or &lt;span class="sb">`image@digest`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for containers). If the coordinate is fuzzy (range,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wildcard), stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each registry / proxy / cache connector you have access to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List all versions / digests matching the advisory&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> coordinate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Record the registry&amp;#39;s URL, the matching coordinates, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the version timestamps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the connector returns an empty list, record &amp;#34;not present
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in this registry&amp;#34; — do not preemptively block versions the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory does not name.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Quarantine
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each matching version on each registry:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Use the registry&amp;#39;s quarantine API to mark the version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> forbidden. Quarantine is the default; only hard-delete if
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the policy file flags this advisory as &lt;span class="sb">`delete-required`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Capture the registry&amp;#39;s response and the resulting state.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If a registry rejects the quarantine call (permission,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> API error, version not deletable), record the failure and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> continue with the rest — do not abort the whole run on one
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> registry&amp;#39;s failure. Failures show up in the audit and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each version you quarantined:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Make a fresh fetch attempt against the registry as a normal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client would (not the privileged quarantine endpoint).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the registry returns a 404 / forbidden / quarantine
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> response.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the registry still serves the artifact, **revert the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> quarantine** for that version, record the failure in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> audit, and add the registry to the triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Draft the developer-machine broadcast
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Write a paste-ready broadcast text containing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A one-paragraph summary of the advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The exact purge command(s) for each ecosystem in scope. For
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the most common cases:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> npm/pnpm/yarn: &lt;span class="sb">`npm cache clean --force`&lt;/span> and remove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matching entries from &lt;span class="sb">`~/.npm/_cacache`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> pip: &lt;span class="sb">`pip cache remove &amp;#39;&amp;lt;package&amp;gt;&amp;#39;`&lt;/span> (and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`~/.cache/pip/wheels`&lt;/span> removal if the wheel is matched).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Go: &lt;span class="sb">`go clean -modcache`&lt;/span> (note: removes everything; for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> targeted, &lt;span class="sb">`rm -rf ~/go/pkg/mod/&amp;lt;module&amp;gt;@&amp;lt;version&amp;gt;`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Maven: remove &lt;span class="sb">`~/.m2/repository/&amp;lt;group&amp;gt;/&amp;lt;artifact&amp;gt;/&amp;lt;version&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Docker / Podman: &lt;span class="sb">`docker rmi &amp;lt;image&amp;gt;:&amp;lt;tag&amp;gt;`&lt;/span> and prune by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A verify-clean command per ecosystem.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The contact channel for &amp;#34;I purged but the package still shows
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> up&amp;#34; reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The broadcast is &lt;span class="gs">**drafted, not delivered**&lt;/span>. The audit record
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">includes the text but the engineering team owns distribution.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Audit record
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Append a single audit entry containing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Advisory ID and link.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Coordinates targeted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Per-registry results (success / failure / not present).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Per-registry verification results.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Restore commands (the inverse of each quarantine action).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The drafted broadcast text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Run ID and timestamp.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions (write a TRIAGE.md and exit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Advisory is not a &lt;span class="sb">`compromise`&lt;/span> / &lt;span class="sb">`malicious`&lt;/span> shape.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Coordinate is fuzzy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> One or more registries refused quarantine and the advisory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy requires &amp;#34;all registries before declaring success.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification failed on a registry that does not support a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reliable revert path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A registry connector is missing entirely (do not silently
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> skip).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not act on registries not in the input list.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not delete unrelated versions of the same package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not publish, rotate upstream URLs, or change registry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration beyond version-state.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not SSH into developer machines, CI runners, or any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> laptop. The broadcast is the only output that targets dev
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> machines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently downgrade a hard-delete policy to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> quarantine.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A complete audit record with every registry&amp;rsquo;s state recorded
+and the broadcast text drafted, OR a &lt;code>TRIAGE.md&lt;/code> note.&lt;/li>
+&lt;li>Out-of-band notification to the security incident channel
+fires whether the run succeeds or fails — quiet purges are
+the wrong default.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Quarantine before delete.&lt;/strong> Default action is reversible.
+Hard deletes require an extra approval and are not in the
+agent&amp;rsquo;s default toolset.&lt;/li>
+&lt;li>&lt;strong>Per-registry scoped credentials.&lt;/strong> The agent&amp;rsquo;s credential
+on each registry can manage version-state on packages
+matching the advisory namespace, and nothing else.&lt;/li>
+&lt;li>&lt;strong>Coordinate match required.&lt;/strong> No fuzzy matches.&lt;/li>
+&lt;li>&lt;strong>Verification before success.&lt;/strong> No &amp;ldquo;purged&amp;rdquo; claim without a
+verifying re-fetch.&lt;/li>
+&lt;li>&lt;strong>Restore path documented.&lt;/strong> Every quarantine action&amp;rsquo;s audit
+record includes the inverse command.&lt;/li>
+&lt;li>&lt;strong>Dev machines = broadcast, not action.&lt;/strong> Always.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/#guardrails">Vulnerable Dependency Remediation → Malicious-package
+downgrade path&lt;/a>
+— the lockfile-shaped sibling.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/threat-model/#observed-real-world-patterns">Threat Model → Agent-infrastructure supply-chain compromise&lt;/a>
+— why this pattern is treated separately from routine CVEs.&lt;/li>
+&lt;/ul></description></item><item><title>Agent session — telemetry-driven kill rules</title><link>https://security-recipes.ai/prompt-library/general/agent-session-kill-rules/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/agent-session-kill-rules/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a workflow&amp;rsquo;s run telemetry
+and a draft set of decision rules, and produces (a) a vetted
+rule pack the session monitor can load and (b) a synthetic
+red-team exercise the program owner runs to verify the rules
+fire correctly.&lt;/p>
+&lt;p>This is a &lt;strong>guardrail-design prompt&lt;/strong>, not a remediation
+prompt. The agent&amp;rsquo;s job is to design and pressure-test the
+rules; humans deploy them.&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/runtime-controls/">Runtime Controls&lt;/a>
+workflow.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads 30 days of run telemetry&lt;/strong> for the workflow — tool
+call rates, scope distributions, argument shapes, result
+sizes, budget usage, egress events.&lt;/li>
+&lt;li>&lt;strong>Computes baselines&lt;/strong> (median, p95, p99) per signal.&lt;/li>
+&lt;li>&lt;strong>Drafts a rule pack&lt;/strong> with three layers — threshold rules,
+deviation rules, pattern rules — each with explicit
+thresholds tuned against the baseline.&lt;/li>
+&lt;li>&lt;strong>Designs synthetic red-team exercises&lt;/strong> that simulate each
+failure mode (scope creep, exfiltration, prompt drift,
+budget runaway) and predicts which rule should fire.&lt;/li>
+&lt;li>&lt;strong>Outputs&lt;/strong> the rule pack and the exercise plan as a PR
+against the monitor&amp;rsquo;s policy repo.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A workflow has accumulated at least 30 days of run telemetry
+on at least 50 healthy runs.&lt;/li>
+&lt;li>The session monitor has a declarative policy format (OPA,
+Cedar, in-house) the agent can target.&lt;/li>
+&lt;li>A program owner is available to review and run the synthetic
+exercises before deployment.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>A workflow that has never reached production. Without a
+baseline, the rules will be guesses.&lt;/li>
+&lt;li>A workflow with an irregular cadence (every run is shaped
+differently). The pattern needs stable shapes to draw a
+baseline from.&lt;/li>
+&lt;li>Replacing rules that already work. This prompt designs
+initial rule packs and proposed updates; it does not
+unilaterally rewrite working rules.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Telemetry path&lt;/strong> — read-only access to the run-telemetry
+store for this workflow.&lt;/li>
+&lt;li>&lt;strong>Policy repo&lt;/strong> — where the rule pack is committed for human
+review and deployment.&lt;/li>
+&lt;li>&lt;strong>Workflow declaration&lt;/strong> — the workflow&amp;rsquo;s declared scope
+(allowed files, allowed tools, allowed hostnames).&lt;/li>
+&lt;li>&lt;strong>Threat scenarios&lt;/strong> — the named failure modes this workflow
+must defend against (exfiltration, scope creep, prompt-drift,
+budget runaway, tool-poisoning amplification).&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are designing the rule pack a session monitor will load to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">watch this workflow&amp;#39;s runs in flight. Your output is exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request against the monitor&amp;#39;s policy repo containing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (a) a rule pack with three layers, (b) a synthetic red-team
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exercise plan, and (c) the baseline data each threshold was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tuned from.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`TRIAGE.md`&lt;/span> note explaining why the telemetry is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> insufficient to design rules safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not deploy the rule pack. Humans deploy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the telemetry and the workflow declaration
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Pull the workflow&amp;#39;s last 30 days of run telemetry. Confirm
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> at least 50 successful runs are present. If fewer, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage with a note about insufficient baseline.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the workflow&amp;#39;s declared scope: allowed files, allowed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tools, allowed hostnames, allowed argument shapes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Read the threat-scenario list the operator provided.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Compute baselines
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each signal, compute median, p95, p99 across the 30-day
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">window:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tool calls per minute, per turn, per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinct files touched per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinct hostnames contacted per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Argument lengths per tool, per call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Result sizes per tool.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Cumulative outbound bytes per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Cumulative tokens per run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Number of forbidden-path attempts per run (should be 0;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> baseline is asserting that).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Document the baselines in the PR body. The reviewer needs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">them to evaluate the thresholds.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Draft threshold rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Threshold rules fire when a signal crosses an absolute ceiling.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each signal, set the threshold at p99 × 1.5 by default;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">adjust if the operator&amp;#39;s scenario list indicates a tighter
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">bound is required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Examples:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`tool_calls_per_minute &amp;gt; &amp;lt;p99 × 1.5&amp;gt;`&lt;/span> → annotate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`distinct_files_touched &amp;gt; &amp;lt;p99 × 1.5&amp;gt;`&lt;/span> → hold-for-elicit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`cumulative_outbound_bytes &amp;gt; &amp;lt;p99 × 2&amp;gt;`&lt;/span> → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`forbidden_path_attempts &amp;gt; 0`&lt;/span> → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`metadata_endpoint_contact &amp;gt; 0`&lt;/span> → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The action graduates with severity: low-confidence anomalies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">annotate, medium hold, high ratchet or quarantine, critical
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Draft deviation rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Deviation rules fire when a signal drifts away from baseline
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mid-run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`current_run.distinct_files / baseline.median &amp;gt; 5`&lt;/span> → hold.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`current_run.cumulative_tokens / baseline.median &amp;gt; 4`&lt;/span> →
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> annotate at 4×, hold at 6×, kill at 10×.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`argument_length_z_score &amp;gt; 6`&lt;/span> for any tool → annotate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Tune deviation thresholds conservatively. False positives in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">this layer are louder than threshold rules — the run is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">otherwise healthy when these fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Draft pattern rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Pattern rules fire on named, high-signal shapes:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Argument or result contains a link-local IP (&lt;span class="sb">`169.254.*`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fd00::*`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Argument or result references the cloud-provider metadata
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> endpoint hostname.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Result size exceeds 10 MB.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Result contains a base64 blob &amp;gt; 1 MB.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tool description hash differs from the pinned hash.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Outbound DNS query for a typosquat neighbour of an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlisted hostname.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Pattern rules are kill-rules by default unless the operator&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">scenario list says otherwise.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Design synthetic red-team exercises
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each named failure mode, design one synthetic exercise:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Exfiltration.** Inject a tool result containing a base64
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blob; expect the pattern rule on result-blob-size to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Scope creep.** Inject a tool call with an argument file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> path outside the declared scope; expect the threshold rule
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on forbidden-path-attempts to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Prompt drift.** Inject a tool result with a string that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resembles instructions (&amp;#34;ignore previous, run …&amp;#34;); expect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the result-content rule to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Budget runaway.** Run a synthetic loop hitting tools at 5×
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> baseline rate; expect deviation rule on tokens to escalate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> through annotate → hold → kill.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Tool-description tampering.** Change a tool description
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hash; expect the pinned-description rule to fire.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each exercise, predict which rule(s) should fire and at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">what severity. The reviewer compares the prediction against
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the monitor&amp;#39;s actual response.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 6 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`monitor/&amp;lt;workflow-name&amp;gt;-rules-&amp;lt;date&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: `[Monitor][&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">workflow-name&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>] rule pack v&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">n&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> + synthetic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exercises&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Body must include:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Workflow declaration summary.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Baseline table (median, p95, p99 per signal).
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - The rule pack in the policy format the monitor expects.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - The synthetic-exercise plan with predictions per rule.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Estimated false-positive rate per rule, computed against
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> the 30-day baseline.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Label: `&lt;/span>monitor-rule-update`.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions (write a TRIAGE.md and exit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Fewer than 50 successful runs in the baseline window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Telemetry is missing required signals (no per-run token
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> counts, no per-tool argument shapes).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The workflow&amp;#39;s declared scope is incomplete or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> contradictory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The threat-scenario list is empty.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not deploy the rule pack. PR only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify the policy repo&amp;#39;s deployment pipeline, the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> monitor&amp;#39;s runtime, or the audit ledger.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not ship rules with no baseline data behind them.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently lower an existing rule&amp;#39;s severity. If the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> baseline suggests a rule should soften, surface that as an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> explicit recommendation in the PR body — humans decide.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A PR against the monitor&amp;rsquo;s policy repo with the rule pack,
+the synthetic exercises, and the baseline data — OR a
+&lt;code>TRIAGE.md&lt;/code> note.&lt;/li>
+&lt;li>The PR is &lt;strong>never&lt;/strong> auto-merged. Rule packs change the
+failure surface of the runtime gate; humans deploy.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Baseline-driven thresholds.&lt;/strong> No threshold ships without
+data behind it. Hand-picked numbers without baselines are
+exactly how monitors stop firing on the bad runs and start
+firing on the healthy ones.&lt;/li>
+&lt;li>&lt;strong>Graduated actions.&lt;/strong> A rule that can only &lt;code>kill&lt;/code> is a rule
+the operators will eventually mute. Annotate / hold /
+ratchet / quarantine / kill are the full vocabulary.&lt;/li>
+&lt;li>&lt;strong>Synthetic exercises required.&lt;/strong> A rule pack without a
+matching exercise plan does not ship. The exercises validate
+the monitor still fires correctly, and run on a cadence
+after deployment.&lt;/li>
+&lt;li>&lt;strong>Read-only on the monitor&amp;rsquo;s runtime.&lt;/strong> This prompt designs
+rules; it does not deploy them, change the engine&amp;rsquo;s runtime
+configuration, or touch the kill-controller.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/runtime-controls/">Runtime Controls&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/gatekeeping/">Gatekeeping Patterns&lt;/a>
+— where runtime gates sit in the full stack.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/threat-model/">Threat Model&lt;/a>
+— the failure modes the rules are defending against.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/reviewer-playbook/">Reviewer Playbook&lt;/a>
+— what reviewers do when a &lt;code>telemetry-hold&lt;/code> flag fires.&lt;/li>
+&lt;/ul></description></item><item><title>Classic Vulnerable Defaults</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/</guid><description>
+&lt;div class="hx:overflow-x-auto hx:mt-6 hx:flex hx:rounded-lg hx:border hx:py-2 hx:ltr:pr-4 hx:rtl:pl-4 hx:contrast-more:border-current hx:contrast-more:dark:border-current hx:border-blue-200 hx:bg-blue-100 hx:text-blue-900 hx:dark:border-blue-200/30 hx:dark:bg-blue-900/30 hx:dark:text-blue-200">
+&lt;div class="hx:ltr:pl-3 hx:ltr:pr-2 hx:rtl:pr-3 hx:rtl:pl-2">&lt;svg height=1.2em class="hx:inline-block hx:align-middle" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">&lt;path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>&lt;/svg>&lt;/div>
+&lt;div class="hx:w-full hx:min-w-0 hx:leading-7">
+&lt;div class="hx:mt-6 hx:leading-7 hx:first:mt-0">&lt;strong>Read &lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+first.&lt;/strong> It explains why these patterns belong in their own
+section, the mitigate-vs.-uplift decision, and the guardrails
+that apply across all of them. The prompts here are the
+executables; that page is the operating context.&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;p>Each prompt below is &lt;strong>agent-runnable&lt;/strong>: a developer, a
+security partner, or a security-team agentic workflow can pick
+it up against a single call site and produce a reviewer-ready
+PR (or a triage note). All of them follow the same outline —
+read the call site, classify, mitigate or uplift, prove
+behaviour preservation, open a PR.&lt;/p>
+&lt;h2>Anatomy of a recipe&lt;span class="hx:absolute hx:-mt-20" id="anatomy-of-a-recipe">&lt;/span>
+&lt;a href="#anatomy-of-a-recipe" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Every recipe has:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Pattern&lt;/strong> — the exact call shape it targets.&lt;/li>
+&lt;li>&lt;strong>Why it matters&lt;/strong> — what the unsafe default does to a real
+attack.&lt;/li>
+&lt;li>&lt;strong>Mitigation&lt;/strong> — how to harden the existing call without
+removing it (typically a monkey-patch, a config flag, or a
+filter).&lt;/li>
+&lt;li>&lt;strong>Uplift&lt;/strong> — how to replace the call with a safer
+construct.&lt;/li>
+&lt;li>&lt;strong>Behaviour-preservation test&lt;/strong> — the round-trip test the
+PR must include.&lt;/li>
+&lt;li>&lt;strong>The prompt&lt;/strong> — what the agent runs.&lt;/li>
+&lt;li>&lt;strong>Watch for&lt;/strong> — the failure modes to call out in the PR
+body.&lt;/li>
+&lt;/ul>
+&lt;h2>Catalogue&lt;span class="hx:absolute hx:-mt-20" id="catalogue">&lt;/span>
+&lt;a href="#catalogue" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The catalogue below is &lt;strong>auto-discovered&lt;/strong> from the recipe
+files in this section. Drop a new markdown file with the
+standard prompt frontmatter (&lt;code>title&lt;/code>, &lt;code>description&lt;/code>,
+&lt;code>maturity&lt;/code>, &lt;code>model&lt;/code>, &lt;code>tags&lt;/code>, &lt;code>team&lt;/code>, &lt;code>author&lt;/code>, &lt;code>weight&lt;/code>) and
+it will appear here on the next build — no edits to this
+hub or to &lt;code>hugo.yaml&lt;/code> required.&lt;/p>
+&lt;div class="prompt-toc">
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Python pickle / dill on untrusted input&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Replace pickle on untrusted input; mitigate via a restricted unpickler with an explicit class allowlist.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">python&lt;/span>&lt;span class="prompt-toc__tag">deserialization&lt;/span>&lt;span class="prompt-toc__tag">pickle&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">PyYAML `yaml.load` without a safe Loader&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Default to `yaml.safe_load`; install an import-time shim that defaults the loader for legacy callers.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">python&lt;/span>&lt;span class="prompt-toc__tag">yaml&lt;/span>&lt;span class="prompt-toc__tag">deserialization&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Java ObjectInputStream and friends&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Replace with JSON serializers; mitigate via JEP 290 deserialization filters with a strict class allowlist.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">java&lt;/span>&lt;span class="prompt-toc__tag">deserialization&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>&lt;span class="prompt-toc__tag">jep-290&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/xxe-xml-defaults/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">XML external entities (XXE) — parser defaults&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Per-language parser hardening: defusedxml for Python, factory feature flags for Java, libxml entity-loading off in PHP.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">xml&lt;/span>&lt;span class="prompt-toc__tag">xxe&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>&lt;span class="prompt-toc__tag">defusedxml&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/jwt-alg-none/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">JWT — `alg: none` and algorithm confusion&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Force an explicit algorithm allowlist on every verify call; reject `none` at the import boundary.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">jwt&lt;/span>&lt;span class="prompt-toc__tag">auth&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/eval-and-function-constructor/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">JavaScript `eval()` / `new Function()` on untrusted input&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Replace with parsers or restricted evaluators; add a CSP `script-src` ban on `unsafe-eval` for browser code.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">javascript&lt;/span>&lt;span class="prompt-toc__tag">eval&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>&lt;span class="prompt-toc__tag">csp&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/requests-verify-false/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Disabled TLS verification — `verify=False` and friends&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Install the right CA bundle; add a fail-closed shim that refuses `verify=False` outside an opt-in test environment.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">tls&lt;/span>&lt;span class="prompt-toc__tag">http-client&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/php-unserialize/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">PHP object deserialization — `unserialize` on untrusted data&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Replace unsafe `unserialize` usage with JSON or strict allowed-class deserialization; add tests that preserve payload behavior.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">php&lt;/span>&lt;span class="prompt-toc__tag">deserialization&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/prototype-pollution-merge/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Prototype pollution — `merge`, `assign`, and friends&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Filter `__proto__` / `constructor` / `prototype` keys at parse boundaries; replace hand-rolled merges with vetted utilities.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-25&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">javascript&lt;/span>&lt;span class="prompt-toc__tag">prototype-pollution&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/ruby-marshal-yaml-load/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Ruby unsafe deserialization — `Marshal.load` / `YAML.load`&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Replace `Marshal.load` and unsafe YAML loading with safe parsers, typed coercion, and strict migration tests.&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Stephen M Abbott&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>Opus 4.7&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">ruby&lt;/span>&lt;span class="prompt-toc__tag">deserialization&lt;/span>&lt;span class="prompt-toc__tag">yaml&lt;/span>&lt;span class="prompt-toc__tag">uplift&lt;/span>&lt;span class="prompt-toc__tag">mitigate&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;/div>
+&lt;p>This list grows. Submissions land via the same review path as
+any other prompt — see &lt;a href="https://security-recipes.ai/contribute/#contributing-a-prompt">Contribute&lt;/a>.&lt;/p>
+&lt;h2>When to use these prompts&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-these-prompts">&lt;/span>
+&lt;a href="#when-to-use-these-prompts" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A pattern hunt or manual review surfaced a call site of one
+of the catalogued shapes.&lt;/li>
+&lt;li>A SAST rule fired on the same shape (Semgrep / CodeQL rules
+for these defaults are well-established).&lt;/li>
+&lt;li>A new repo or migration brought legacy code into a project
+where the default used to be acceptable and is no longer.&lt;/li>
+&lt;li>An incident-response finding traced a breach back to one of
+these calls.&lt;/li>
+&lt;/ul>
+&lt;h2>When &lt;em>not&lt;/em> to use these prompts&lt;span class="hx:absolute hx:-mt-20" id="when-not-to-use-these-prompts">&lt;/span>
+&lt;a href="#when-not-to-use-these-prompts" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The unsafe call is on a path that genuinely consumes
+trusted-only data (a checkpoint loader for an internal
+training pipeline, a config parser run only on local files).
+Flag and document; don&amp;rsquo;t auto-replace.&lt;/li>
+&lt;li>The uplift would force a coordinated, multi-repo migration
+the program owner hasn&amp;rsquo;t sequenced. Mitigate now, schedule
+the uplift.&lt;/li>
+&lt;li>The repo has no test coverage on the call path. The PR
+needs a behaviour-preservation test before any change ships.&lt;/li>
+&lt;/ul>
+&lt;h2>Cross-cutting guardrails&lt;span class="hx:absolute hx:-mt-20" id="cross-cutting-guardrails">&lt;/span>
+&lt;a href="#cross-cutting-guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Behaviour-preservation test.&lt;/strong> Every PR adds a round-trip
+test that exercises the old payload format under the new
+code path. No test, no PR.&lt;/li>
+&lt;li>&lt;strong>No silent compat shims.&lt;/strong> When the uplift requires reading
+legacy data via the old call, the legacy read-path is named
+explicitly and dated for removal.&lt;/li>
+&lt;li>&lt;strong>Audit the rejections.&lt;/strong> Mitigations log every rejection so
+attackers and false-positives are both visible.&lt;/li>
+&lt;li>&lt;strong>One pattern, one PR.&lt;/strong> A repo with three different
+classic-default findings produces three PRs.&lt;/li>
+&lt;/ul></description></item><item><title>Crypto &amp; DeFi Security Recipes</title><link>https://security-recipes.ai/prompt-library/general/crypto-defi/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/crypto-defi/</guid><description>
+&lt;p>This catalog groups reusable prompts for &lt;strong>crypto payments&lt;/strong> and
+&lt;strong>DeFi blockchain security&lt;/strong>. The recipes are tool-agnostic and are
+intended for bounded, auditable workflows with human approval.&lt;/p>
+&lt;h2>Crypto payment recipes&lt;span class="hx:absolute hx:-mt-20" id="crypto-payment-recipes">&lt;/span>
+&lt;a href="#crypto-payment-recipes" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement/">Hot-wallet transaction policy enforcement&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/crypto-defi/crypto-payment-address-integrity-check/">Crypto payment address integrity checks&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge/">Seed phrase and key-material purge&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;h2>DeFi blockchain recipes&lt;span class="hx:absolute hx:-mt-20" id="defi-blockchain-recipes">&lt;/span>
+&lt;a href="#defi-blockchain-recipes" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review/">Smart-contract upgrade diff risk review&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails/">DeFi oracle manipulation guardrails&lt;/a>&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response/">Bridge &amp;amp; multisig emergency response&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;div class="prompt-toc">
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Hot-wallet transaction policy enforcement&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Use this prompt to harden a hot-wallet signing pipeline so unsafe transactions are blocked before they can be signed.
+Use when Payment services sign transfers from online wallets. …&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Security Recipes Maintainers&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>GPT-5.3-Codex&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">crypto&lt;/span>&lt;span class="prompt-toc__tag">wallet&lt;/span>&lt;span class="prompt-toc__tag">payments&lt;/span>&lt;span class="prompt-toc__tag">policy&lt;/span>&lt;span class="prompt-toc__tag">transaction-signing&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/crypto-defi/crypto-payment-address-integrity-check/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Crypto payment address integrity checks&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Use this prompt to prevent destination-address substitution and address-poisoning mistakes in crypto payment systems.
+Use when Users paste wallet addresses manually. Address books …&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Security Recipes Maintainers&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>GPT-5.3-Codex&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">crypto&lt;/span>&lt;span class="prompt-toc__tag">payments&lt;/span>&lt;span class="prompt-toc__tag">address&lt;/span>&lt;span class="prompt-toc__tag">poisoning&lt;/span>&lt;span class="prompt-toc__tag">validation&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Seed phrase and key-material purge&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Use this prompt to locate and remove exposed wallet seed phrases, private keys, and signing credentials from code and operational systems.
+Use when A scan found possible BIP-39 …&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Security Recipes Maintainers&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>GPT-5.3-Codex&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">crypto&lt;/span>&lt;span class="prompt-toc__tag">secrets&lt;/span>&lt;span class="prompt-toc__tag">seed-phrase&lt;/span>&lt;span class="prompt-toc__tag">private-key&lt;/span>&lt;span class="prompt-toc__tag">incident-response&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Smart-contract upgrade diff risk review&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Use this prompt to review upgrade diffs and enforce invariant checks before smart-contract changes are approved.
+Use when Proxy implementation contracts are changing. Storage …&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Security Recipes Maintainers&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>GPT-5.3-Codex&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">defi&lt;/span>&lt;span class="prompt-toc__tag">smart-contract&lt;/span>&lt;span class="prompt-toc__tag">upgrade&lt;/span>&lt;span class="prompt-toc__tag">proxy&lt;/span>&lt;span class="prompt-toc__tag">invariants&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">DeFi oracle manipulation guardrails&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Use this prompt to add and verify protections against oracle-based price manipulation in DeFi execution paths.
+Use when Liquidation and borrow limits rely on oracle prices. …&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Security Recipes Maintainers&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>GPT-5.3-Codex&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">defi&lt;/span>&lt;span class="prompt-toc__tag">oracle&lt;/span>&lt;span class="prompt-toc__tag">pricing&lt;/span>&lt;span class="prompt-toc__tag">manipulation&lt;/span>&lt;span class="prompt-toc__tag">risk-controls&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;a class="prompt-toc__card" href="https://security-recipes.ai/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response/">
+&lt;div class="prompt-toc__head">
+&lt;h3 class="prompt-toc__title">Bridge and multisig emergency response&lt;/h3>
+&lt;span class="prompt-toc__maturity prompt-toc__maturity--development">development&lt;/span>
+&lt;/div>
+&lt;p class="prompt-toc__desc">Use this prompt to codify emergency response for bridge and multisig incidents where rapid containment is required.
+Use when Bridge validator compromise is suspected. Multisig …&lt;/p>
+&lt;div class="prompt-toc__meta">&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">author&lt;/span> Security Recipes Maintainers&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">team&lt;/span> Security&lt;/span>&lt;span class="prompt-toc__meta-item prompt-toc__meta-item--model">&lt;span class="prompt-toc__meta-label">model used&lt;/span> &lt;code>GPT-5.3-Codex&lt;/code>&lt;/span>&lt;span class="prompt-toc__meta-item">&lt;span class="prompt-toc__meta-label">updated&lt;/span> 2026-04-26&lt;/span>
+&lt;/div>
+&lt;div class="prompt-toc__tags">&lt;span class="prompt-toc__tag">defi&lt;/span>&lt;span class="prompt-toc__tag">bridge&lt;/span>&lt;span class="prompt-toc__tag">multisig&lt;/span>&lt;span class="prompt-toc__tag">incident-response&lt;/span>&lt;span class="prompt-toc__tag">runbook&lt;/span>
+&lt;/div>
+&lt;/a>
+&lt;/div></description></item></channel></rss>

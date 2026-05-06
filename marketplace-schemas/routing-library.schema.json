@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/routing-library.schema.json",
+  "title": "SecurityRecipes browser-local routing policy library",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "exported_at",
+    "browser_model",
+    "policies"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.routing-library.v1"
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "browser_model": {
+      "const": "client_side_byo_token"
+    },
+    "policies": {
+      "type": "array",
+      "items": {
+        "$ref": "/marketplace-schemas/routing-policy.schema.json#/$defs/policyRecord"
+      }
+    }
+  }
+}

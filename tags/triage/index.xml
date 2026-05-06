@@ -1,0 +1,377 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Triage</title><link>https://security-recipes.ai/tags/triage/</link><description>Recent content in Triage on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/triage/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE triage skill</title><link>https://security-recipes.ai/prompt-library/claude/cve-triage-skill/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/claude/cve-triage-skill/</guid><description>
+&lt;p>A Claude Code &lt;strong>skill&lt;/strong> that turns a fresh CVE or Dependabot alert
+into either (a) a correctly-bumped dependency with passing tests,
+or (b) a short report explaining why this alert can&amp;rsquo;t be auto-fixed
+and what a human needs to do next.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Claude reads the CVE number from the issue or alert, looks up the
+affected package range, finds the vulnerable dep in the repo&amp;rsquo;s lock
+file, bumps it to the lowest non-vulnerable version, runs the
+project&amp;rsquo;s tests, and opens a PR. If the fix can&amp;rsquo;t be applied
+cleanly (transitive dep, major-version bump required, or tests
+fail), it writes a structured triage note instead and stops — it
+does &lt;em>not&lt;/em> force a patch through.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> CVE id + optional affected package hint.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> either a PR (happy path) or a triage note
+(&lt;code>TRIAGE.md&lt;/code> in the working branch).&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A new Dependabot PR landed and failed CI.&lt;/li>
+&lt;li>Someone pasted a CVE into the &lt;code>#security-triage&lt;/code> channel and
+asked for a first pass.&lt;/li>
+&lt;li>Nightly sweep of open advisories that haven&amp;rsquo;t been looked at in
+3+ days.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>CVEs affecting your own code (SAST findings) — this skill is
+for third-party dependencies only.&lt;/li>
+&lt;li>Multi-repo fanouts — invoke it per-repo so the guardrails apply.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Save as &lt;code>.claude/skills/cve-triage/SKILL.md&lt;/code> at the repo root:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">---
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">name: cve-triage
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">description: |
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Triage a CVE or Dependabot advisory against this repo&amp;#39;s lockfile.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> On success, bump the affected dependency to the lowest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> non-vulnerable version, verify tests pass, and open a PR. On
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> failure, write a TRIAGE.md note and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">---
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh"># CVE triage
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gh">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Inputs
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">All inputs are optional. Infer first from the current session —
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the chat message / slash-command arguments, a linked GitHub issue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">body, the Dependabot alert payload, the branch name. When nothing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">provides a finding id and no scanner MCP is wired in, discover
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">findings yourself using whatever local tooling is available.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`CVE_ID`&lt;/span> — e.g. &lt;span class="sb">`CVE-2025-12345`&lt;/span>. Optional. Search the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> prompt body and any linked issue for a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`CVE-`&lt;/span> / &lt;span class="sb">`GHSA-`&lt;/span> pattern; otherwise skip to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> discovery path in step 0 below.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`HINT`&lt;/span> — (optional) affected package name. Use it as a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lookup aid only; the lockfile is the source of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> truth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Discovery path (no CVE_ID provided)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">When no id is supplied and no scanner MCP is available:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory the repo&amp;#39;s lockfiles and manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Run the lightest-weight scanner available in the environment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in this order: &lt;span class="sb">`osv-scanner scan source .`&lt;/span>, &lt;span class="sb">`npm audit
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> --json`&lt;/span> (for Node), &lt;span class="sb">`pip-audit`&lt;/span> (for Python),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`govulncheck ./...`&lt;/span> (for Go), &lt;span class="sb">`cargo audit`&lt;/span> (for Rust),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`bundle audit`&lt;/span> (for Ruby), &lt;span class="sb">`trivy fs --scanners vuln .`&lt;/span> as a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> multi-ecosystem fallback.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If none are installed, query the GitHub Advisory Database via
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`gh api /repos/{owner}/{repo}/vulnerability-alerts`&lt;/span> or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public &lt;span class="sb">`gh api /advisories?affects=...`&lt;/span> endpoint using the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package names you found in step 1.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Pick the highest-severity open finding you can remediate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> under the rules below, and proceed as if its id was passed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as &lt;span class="sb">`CVE_ID`&lt;/span>. Note in the PR body that the finding was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> self-discovered and which scanner produced it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If no tooling is available AND no advisory can be fetched,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop and write a &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining what tools the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> environment is missing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Procedure
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="gs">**Identify the affected package.**&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Query the GitHub Advisory Database for &lt;span class="sb">`$CVE_ID`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If &lt;span class="sb">`HINT`&lt;/span> is set, prefer it; otherwise use the advisory&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reported package name.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If there are multiple matching packages in the lockfile, ask
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a human and stop — do not guess.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> &lt;span class="gs">**Confirm the package appears in the lockfile.**&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> For Node: &lt;span class="sb">`package-lock.json`&lt;/span> / &lt;span class="sb">`pnpm-lock.yaml`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> For Python: &lt;span class="sb">`poetry.lock`&lt;/span> / &lt;span class="sb">`uv.lock`&lt;/span> / &lt;span class="sb">`requirements.txt`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> For Go: &lt;span class="sb">`go.sum`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If not present, write &lt;span class="sb">`TRIAGE.md`&lt;/span> with &amp;#34;not vulnerable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package not in lockfile&amp;#34; and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> &lt;span class="gs">**Determine the fix version.**&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Lowest version ≥ the patched range reported by the advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If the only fix crosses a major-version boundary &lt;span class="gs">**and**&lt;/span> this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is a direct dep, stop and write a triage note. Major-version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bumps require a human.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> If it crosses a major-version boundary but is a transitive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dep, follow the project&amp;#39;s transitive-dep policy (see
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`docs/security/transitive-deps.md`&lt;/span> — if absent, stop).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> &lt;span class="gs">**Apply the bump.**&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Use the project&amp;#39;s package manager — do not hand-edit the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfile.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Commit in one change with message `chore(deps): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (fixes &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">CVE_ID&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">5. **Verify.**
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Run `&lt;/span>make test&lt;span class="sb">` (or the project&amp;#39;s equivalent). If tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> fail, do not force through — revert the bump, write
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> `&lt;/span>TRIAGE.md&lt;span class="sb">` with the failing test names, and stop.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">6. **Open a PR.**
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Title: `&lt;/span>fix(sec): bump &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">pkg&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> to &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">ver&lt;/span>&lt;span class="p">&amp;gt;&lt;/span> (&lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">CVE_ID&lt;/span>&lt;span class="p">&amp;gt;&lt;/span>)&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Body (template): see `&lt;/span>.github/PULL_REQUEST_TEMPLATE/sec-fix.md&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> - Add labels: `&lt;/span>security&lt;span class="sb">`, `&lt;/span>auto-remediation&lt;span class="sb">`.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Guardrails
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- **Never** edit code outside the lockfile and the PR body.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- **Never** bypass CI by adding skip tokens.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- **Never** amend commits on branches you didn&amp;#39;t create.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- If any `&lt;/span>PreToolUse&lt;span class="sb">` hook blocks a command, record the block in
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb"> `&lt;/span>TRIAGE.md&lt;span class="sb">` and stop — do not retry with different commands.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">## Outputs
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Success: a pushed branch + opened PR.
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">- Failure: a `&lt;/span>TRIAGE.md` on the working branch with:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> CVE id
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Affected package + current / patched versions
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Reason the automation stopped (copy-pasted, not paraphrased)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> - Suggested next owner (team or individual)&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Monorepos with multiple lockfiles&lt;/strong> — the skill stops and asks.
+Future work: extend step 2 to walk every lockfile in the repo.&lt;/li>
+&lt;li>&lt;strong>Native deps pinned to a specific ABI&lt;/strong> (Node &lt;code>node-gyp&lt;/code> native
+modules, Python wheels) — the bump may succeed and tests may
+still pass on the runner while failing in prod. Guardrail: the
+PR description template requires the author to confirm the
+package is pure-Python / pure-JS.&lt;/li>
+&lt;li>&lt;strong>Yanked versions&lt;/strong> — if the patched version is later yanked
+from the registry, the skill won&amp;rsquo;t detect it. Check the upstream
+release page in the review step.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Covers Node / Python / Go
+lockfiles. Monorepo handling d&lt;/li>
+&lt;/ul></description></item><item><title>SAST finding — triage and fix</title><link>https://security-recipes.ai/prompt-library/general/sast-finding-triage-and-fix/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/sast-finding-triage-and-fix/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a single SAST finding and
+either opens a reviewer-ready PR (true positive, fixable),
+opens a suppression PR with justification and an expiry
+(confirmed false positive), or writes a triage note (uncertain
+or out-of-scope).&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/sast-findings/">SAST Finding Remediation&lt;/a>
+workflow, where the SAST scanner is the source of truth and
+the agent is bounded to a named catalogue of fix shapes.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the finding&lt;/strong> — rule ID, file, line range, data flow.&lt;/li>
+&lt;li>&lt;strong>Reproduces the data flow&lt;/strong> locally — confirms the source,
+the sink, and the path between them on the current code.&lt;/li>
+&lt;li>&lt;strong>Classifies&lt;/strong> the finding as true positive / false positive /
+uncertain. Defaults to true-positive under doubt.&lt;/li>
+&lt;li>&lt;strong>For true positives&lt;/strong>, picks a fix shape from the workflow&amp;rsquo;s
+pre-approved catalogue and applies it. Adds a test that fails
+on the old code and passes on the new code. Re-runs the
+scanner and confirms the finding is gone.&lt;/li>
+&lt;li>&lt;strong>For false positives&lt;/strong>, opens a &lt;em>suppression PR&lt;/em> with an
+inline comment explaining the data flow that makes the finding
+benign and an explicit expiry date (default 6 months).&lt;/li>
+&lt;li>&lt;strong>For everything else&lt;/strong>, writes a triage note and stops.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A SAST scanner has produced a structured finding (Semgrep,
+CodeQL, SonarQube, Snyk Code, etc.) with a stable rule ID.&lt;/li>
+&lt;li>The repo has a passing CI pipeline and a test target.&lt;/li>
+&lt;li>The finding&amp;rsquo;s data flow is local — confined to one function
+or one module.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Findings where the data flow crosses a module boundary.&lt;/li>
+&lt;li>Findings whose fix would require an API contract change, a
+schema migration, or new infrastructure.&lt;/li>
+&lt;li>Vendored or generated code.&lt;/li>
+&lt;li>Findings labelled &amp;ldquo;exploit available, in the wild&amp;rdquo; — those go
+through your incident playbook, not this prompt.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Infer from session where possible.&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Finding&lt;/strong> — rule ID, file path, line range, data-flow
+description.&lt;/li>
+&lt;li>&lt;strong>Catalogue path&lt;/strong> — the path in this repo (or a sibling)
+where the workflow&amp;rsquo;s fix-shape catalogue lives. The agent
+reads it but does not edit it.&lt;/li>
+&lt;li>&lt;strong>Test runner&lt;/strong> — inferred from repo (&lt;code>pytest&lt;/code>, &lt;code>npm test&lt;/code>,
+&lt;code>go test&lt;/code>, etc.).&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are triaging and (when appropriate) fixing a single SAST
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">finding in this repository. Your output is exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request with a fix and a regression test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A pull request that adds a scoped suppression with a written
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> justification and an expiry date.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A triage note (&lt;span class="sb">`TRIAGE.md`&lt;/span>) explaining why neither option is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe and what a human should do next.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not auto-merge. Do not bundle multiple findings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the finding and the catalogue
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the rule ID, the affected file, the line range, and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data flow the scanner emitted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the fix-shape catalogue at the path the operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> provided. The catalogue maps rule IDs (or rule families) to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> named fix shapes, each with an edit pattern and a test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> template. &lt;span class="gs">**The catalogue is the policy.**&lt;/span> If no shape
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matches, treat the finding as out-of-scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Reproduce the data flow
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Open the file and trace the data flow described by the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scanner against the current code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the code has been refactored such that the flow no longer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exists, classify as a stale finding and stop with a triage
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> note (do not invent a new finding to fix).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Confirm the source, the sink, and any sanitizers / validators
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the path. Note any confidence-reducing facts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Pick exactly one:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **True positive.** The data flow is real, the sanitization is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> insufficient or absent, and a fix shape from the catalogue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matches. Continue to Step 3a.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **True positive, no shape.** The flow is real but the catalogue
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> has no shape for it. Stop and write a triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **False positive.** A sanitizer / validator / type constraint
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on the path makes the flow safe in practice. Continue to Step
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 3b. Default to true-positive under any doubt.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Cross-module flow.** The flow leaves this function/module.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Uncertain.** Stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3a — Apply the fix shape
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Apply the catalogue&amp;#39;s edit pattern to the file. Stay within
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the function boundary unless the catalogue explicitly says
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> otherwise.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Instantiate the catalogue&amp;#39;s test template against this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding. The test must fail on the old code and pass on the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> new code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Run the repo&amp;#39;s test target. If anything unrelated breaks,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> revert and triage — do not fix unrelated breakage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Re-run the SAST scanner against the sandbox. The original
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> finding must be gone, and no new finding may have appeared
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the same file. If a new finding appears, revert and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Open a PR (do not merge):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/sast-&amp;lt;rule-id-slug&amp;gt;-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][SAST][&amp;lt;rule-id&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body: rule ID, fix shape applied, before/after snippet,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> blast radius, &amp;#34;how to verify locally,&amp;#34; follow-up checklist
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for adjacent issues you noticed but did not fix.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span> (or your repo&amp;#39;s equivalent).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3b — Suppress with justification (false positive)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add an inline suppression comment in the syntax the scanner
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expects (e.g., &lt;span class="sb">`# nosem: &amp;lt;rule-id&amp;gt;`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`// codeql[js/sql-injection]: ignore`&lt;/span>, &lt;span class="sb">`// NOSONAR`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> The comment &lt;span class="gs">**must**&lt;/span> include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The rule ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A one-paragraph explanation of the data flow that makes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the finding benign.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> The link to the data-flow trace you walked in Step 1.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> An explicit expiry date 6 months from today, written as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`expires: YYYY-MM-DD`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Open a PR (do not merge):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/sast-suppress-&amp;lt;rule-id-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][SAST][suppress][&amp;lt;rule-id&amp;gt;] &amp;lt;short description&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Body: rule ID, why this is a false positive, the expiry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> date, and a link to the workflow page.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Tag with the auto-remediation label.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions (write a TRIAGE.md and exit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The data flow crosses a module boundary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No catalogue fix shape matches the rule ID.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix would require an API change, a schema migration, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a credential / infra change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The scanner re-run after your fix shows new findings in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> same file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You cannot make tests pass without editing unrelated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The finding looks like a logic bug rather than the syntactic
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pattern the rule fires on.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch files outside the affected function and its
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle multiple findings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not invent new fix shapes — only use the catalogue.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the suppression scope (e.g.,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> file-level when the finding is line-level).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not modify CI, secrets, or release pipelines.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (fix or suppression) with the structure above, or a
+&lt;code>TRIAGE.md&lt;/code> note. Never an auto-merge.&lt;/li>
+&lt;li>Suppression PRs always include an explicit expiry; the workflow&amp;rsquo;s
+expiry-sweep job re-fires findings whose suppressions have aged
+out.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Catalogue-only fixes.&lt;/strong> The agent will never apply an edit
+pattern that isn&amp;rsquo;t in the catalogue, even when it knows one
+that &amp;ldquo;would work.&amp;rdquo;&lt;/li>
+&lt;li>&lt;strong>Default to true-positive.&lt;/strong> False-negative cost (real bug
+marked benign) is much higher than false-positive cost (a
+human looks at a real false positive). The prompt is biased
+accordingly.&lt;/li>
+&lt;li>&lt;strong>Re-scan required.&lt;/strong> No PR opens without a clean re-scan of
+the patched sandbox.&lt;/li>
+&lt;li>&lt;strong>One finding, one PR.&lt;/strong> Never bundle. Each PR is independently
+revertible.&lt;/li>
+&lt;li>&lt;strong>Suppression has a half-life.&lt;/strong> No &lt;code>forever&lt;/code> suppressions.
+Every suppression is dated and re-fires.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/sast-findings/">SAST Finding Remediation&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/reviewer-playbook/">Reviewer Playbook&lt;/a>
+— what the reviewer reads before approving.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/emerging-patterns/#ai-assisted-sast-triage">Emerging Patterns → AI-assisted SAST triage&lt;/a>
+— the pattern this prompt implements.&lt;/li>
+&lt;/ul></description></item></channel></rss>

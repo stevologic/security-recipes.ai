@@ -1,0 +1,192 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Praisonai</title><link>https://security-recipes.ai/tags/praisonai/</link><description>Recent content in Praisonai on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/praisonai/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41497 - PraisonAI MCP command injection incomplete fix</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41497-praisonai-mcp-command-injection-incomplete-fix/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41497-praisonai-mcp-command-injection-incomplete-fix/</guid><description>
+&lt;p>PraisonAI versions &lt;code>4.5.148&lt;/code> and earlier contain an incomplete fix for earlier
+MCP command handling. The vulnerable path parses MCP server command strings and
+passes the resulting executable and arguments toward subprocess execution
+without enough validation.&lt;/p>
+&lt;p>The follow-up advisory highlights missing controls that matter for production
+MCP server launchers: no strict executable allow-list, no basename validation to
+prevent path-based executable injection, and no argument inspection to reject
+shell metacharacters or interpreter inline-execution flags. In practice, MCP
+configuration becomes a code execution surface.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>praisonai &amp;lt;=4.5.148&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>praisonai 4.5.149+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected path:&lt;/strong> &lt;code>MCPHandler.parse_mcp_command()&lt;/code> in PraisonAI MCP command
+handling.&lt;/li>
+&lt;li>&lt;strong>Related context:&lt;/strong> Incomplete fix for &lt;code>CVE-2026-34935&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on or deploys PraisonAI &lt;code>&amp;lt;=4.5.148&lt;/code>.&lt;/li>
+&lt;li>MCP servers can be configured through user input, project files, workflow
+YAML, agent instructions, environment variables, database records, or remote
+control-plane config.&lt;/li>
+&lt;li>PraisonAI launches MCP servers from command strings instead of a vetted server
+registry.&lt;/li>
+&lt;li>Allowed MCP server commands include shells, interpreters with inline code
+flags, arbitrary paths, package-manager scripts, or pipe/download execution.&lt;/li>
+&lt;li>The PraisonAI process has access to model provider credentials, cloud
+credentials, source repositories, customer data, or internal network routes.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;praisonai|parse_mcp_command|MCPHandler|mcp.*command|mcp.*server|stdio|uvx|npx|python -c|bash -c|/bin/sh|subprocess&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show praisonai
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;^praisonai==&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;mcpServers|mcp_servers|command\\s*:|args\\s*:|stdio&amp;#34;&lt;/span> .mcp* config* settings* Dockerfile* docker-compose*.yml charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade PraisonAI to &lt;code>4.5.149+&lt;/code> everywhere this repository controls package
+manifests, lockfiles, constraints, images, or deployment manifests.&lt;/li>
+&lt;li>Replace free-form MCP command strings with a governed MCP server registry:
+approved server ID, fixed executable, fixed transport, typed arguments, and
+explicit environment-variable bindings.&lt;/li>
+&lt;li>Reject path-qualified executables unless they resolve to an approved absolute
+path owned by the deployment.&lt;/li>
+&lt;li>Block shells and interpreter inline-execution patterns such as &lt;code>sh -c&lt;/code>,
+&lt;code>bash -c&lt;/code>, &lt;code>python -c&lt;/code>, &lt;code>node -e&lt;/code>, pipes, redirects, command substitution,
+backticks, and downloader-to-shell chains.&lt;/li>
+&lt;li>Launch MCP servers with least-privilege identities, redacted environment
+values, egress restrictions, and audit logging of server IDs rather than raw
+secret-bearing command lines.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41497 (PraisonAI incomplete fix for MCP command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades PraisonAI, removes unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> MCP command-string launch paths, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected PraisonAI runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41497 / GHSA-9qhq-v63v-fv3j and the related
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CVE-2026-34935 MCP command-handling fix path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat MCP server environment variables, API keys, model provider tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud credentials, source code, subprocess output, and agent logs as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not execute exploit commands, shell payloads, downloader pipelines,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reverse shells, or arbitrary MCP server commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep caller-controlled command strings as the long-term MCP launch
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> interface.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every PraisonAI reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> requirements files, pyproject files, lockfiles, constraints, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> CI images, deployment manifests, MCP config, agent templates, runbooks, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`praisonai`&lt;/span> version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;lt;=4.5.148`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search all MCP server launch configuration for free-form &lt;span class="sb">`command`&lt;/span> strings,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`args`&lt;/span>, stdio transports, shell snippets, environment interpolation, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> project/user-controlled MCP definitions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy PraisonAI or only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade PraisonAI to &lt;span class="sb">`4.5.149+`&lt;/span>. Regenerate lockfiles, constraints, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata, SBOMs, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Replace unsafe MCP command-string handling where this repo controls config or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wrappers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> define approved MCP server IDs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> map each ID to a fixed executable and transport;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow only typed, validated arguments;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind environment variables by approved names only;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject unknown executables, path traversal, path-qualified binaries, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell or interpreter inline execution.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add a shared MCP launch validator if the repository owns PraisonAI wrappers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or generated config. The validator must run after parsing and normalization,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> not only on the raw string.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests that do not execute commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`bash -c`&lt;/span>, &lt;span class="sb">`/bin/sh -c`&lt;/span>, &lt;span class="sb">`python -c`&lt;/span>, &lt;span class="sb">`node -e`&lt;/span>, backticks, &lt;span class="sb">`$()`&lt;/span>, pipes,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> redirects, semicolons, &lt;span class="sb">`curl | sh`&lt;/span>, and path-qualified executables are
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejected;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> approved MCP server IDs map to expected executable/argument arrays;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secrets are redacted from validation errors and audit logs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> legacy command-string config fails closed unless explicitly migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add deployment containment:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run PraisonAI with least-privilege service accounts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate MCP server working directories;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict egress for agent and MCP processes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable untrusted project-level MCP config until migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41497 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> PraisonAI versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every MCP server launch source reviewed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether untrusted users or projects could define MCP commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which MCP, model provider, cloud, or repository credentials should be
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for shell/interpreter launch attempts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency install, lockfile checks, MCP config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> validation, unit tests, lint/typecheck, container build, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41497 in PraisonAI MCP command handling`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected PraisonAI runtime or MCP launch path is controlled by this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed PraisonAI version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally allow arbitrary user-provided MCP command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> strings; document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves PraisonAI
+to &lt;code>&amp;lt;=4.5.148&lt;/code>.&lt;/li>
+&lt;li>MCP server launch configuration is registry-backed or otherwise allow-listed,
+not arbitrary command-string execution.&lt;/li>
+&lt;li>Tests reject shells, interpreter inline-code flags, path-qualified binaries,
+shell metacharacters, and downloader pipelines without executing them.&lt;/li>
+&lt;li>Logs and errors do not expose MCP environment values or tokens.&lt;/li>
+&lt;li>Operator actions identify credential rotation and log review if untrusted MCP
+config was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>praisonai&lt;/code> while generated MCP config, examples, or project
+templates still teach free-form command strings.&lt;/li>
+&lt;li>Allowing &lt;code>python&lt;/code> or &lt;code>node&lt;/code> generally but forgetting to block &lt;code>-c&lt;/code>, &lt;code>-m&lt;/code>,
+&lt;code>-e&lt;/code>, preload hooks, package scripts, or equivalent execution features.&lt;/li>
+&lt;li>Validating the raw command string before shell-like parsing and
+normalization.&lt;/li>
+&lt;li>Logging full command lines with embedded secrets.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-9qhq-v63v-fv3j"target="_blank" rel="noopener">https://github.com/advisories/GHSA-9qhq-v63v-fv3j&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41497"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41497&lt;/a>&lt;/li>
+&lt;li>PraisonAI project: &lt;a href="https://github.com/MervinPraison/PraisonAI"target="_blank" rel="noopener">https://github.com/MervinPraison/PraisonAI&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

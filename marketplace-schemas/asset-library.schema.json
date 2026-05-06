@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "/marketplace-schemas/asset-library.schema.json",
+  "title": "SecurityRecipes browser-local asset library",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "exported_at",
+    "browser_model",
+    "assets"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "securityrecipes.asset-library.v1"
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "browser_model": {
+      "const": "client_side_byo_token"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/assetRecord"
+      }
+    }
+  },
+  "$defs": {
+    "assetId": {
+      "type": "string",
+      "pattern": "^asset-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "assetType": {
+      "type": "string",
+      "enum": [
+        "repository",
+        "service",
+        "host",
+        "application",
+        "cloud-resource",
+        "identity",
+        "api",
+        "data-store",
+        "tenant"
+      ]
+    },
+    "portfolioId": {
+      "type": "string",
+      "pattern": "^portfolio-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "assetCriticality": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "unassigned"]
+    },
+    "assetRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "asset_type",
+        "criticality",
+        "aliases",
+        "owner_team",
+        "owner_name",
+        "owner_email",
+        "environment",
+        "notes",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/assetId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 140
+        },
+        "asset_type": {
+          "$ref": "#/$defs/assetType"
+        },
+        "criticality": {
+          "$ref": "#/$defs/assetCriticality"
+        },
+        "aliases": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "owner_team": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "owner_name": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "owner_email": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "environment": {
+          "type": "string",
+          "maxLength": 60
+        },
+        "portfolio_id": {
+          "$ref": "#/$defs/portfolioId"
+        },
+        "portfolio_label": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "linked_asset_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/assetId"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 320
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

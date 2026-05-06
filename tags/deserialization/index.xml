@@ -1,0 +1,1549 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Deserialization</title><link>https://security-recipes.ai/tags/deserialization/</link><description>Recent content in Deserialization on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/deserialization/index.xml" rel="self" type="application/rss+xml"/><item><title>Python pickle / dill on untrusted input</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/</guid><description>
+&lt;p>&lt;code>pickle.load&lt;/code>, &lt;code>pickle.loads&lt;/code>, &lt;code>cPickle.load&lt;/code>, &lt;code>dill.load&lt;/code>, and
+their friends are &lt;strong>arbitrary-code-execution primitives&lt;/strong> when
+fed untrusted input. The Python docs say so plainly. The CVE
+trail is decades long. The unsafe behaviour is &lt;em>the design&lt;/em> —
+pickle is meant to reconstruct any Python object, including
+ones whose &lt;code>__reduce__&lt;/code> runs code.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Any of:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>pickle.load(f)&lt;/code>, &lt;code>pickle.loads(s)&lt;/code>,
+&lt;code>cPickle.load(f)&lt;/code>, &lt;code>cPickle.loads(s)&lt;/code>.&lt;/li>
+&lt;li>&lt;code>dill.load(f)&lt;/code>, &lt;code>dill.loads(s)&lt;/code> (same problem, larger
+surface).&lt;/li>
+&lt;li>&lt;code>joblib.load(path)&lt;/code> when the path is user-controlled.&lt;/li>
+&lt;li>&lt;code>numpy.load(allow_pickle=True)&lt;/code> on user files (silent default
+before 1.16.3 was unsafe; current default is safe but the
+flag is often re-enabled in legacy code).&lt;/li>
+&lt;li>&lt;code>torch.load(path)&lt;/code> (Python 2.6+ pickling underneath; safer
+options now exist as of PyTorch 2.5+).&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A pickled payload can carry a &lt;code>__reduce__&lt;/code> that returns
+&lt;code>(os.system, (&amp;quot;rm -rf /&amp;quot;,))&lt;/code> — &lt;code>pickle.load&lt;/code> happily executes
+it. There is no patch coming. Reading attacker-controlled
+pickles is RCE.&lt;/p>
+&lt;h2>Mitigation — restricted unpickler&lt;span class="hx:absolute hx:-mt-20" id="mitigation--restricted-unpickler">&lt;/span>
+&lt;a href="#mitigation--restricted-unpickler" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the call is on a backwards-compat read path (a legacy
+checkpoint format, an old persistence file), wrap the
+unpickler:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">pickle&lt;/span>&lt;span class="o">,&lt;/span> &lt;span class="nn">io&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">class&lt;/span> &lt;span class="nc">SafeUnpickler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pickle&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Unpickler&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ALLOWED&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;dict&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;list&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;set&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;tuple&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># Add only the application-specific classes&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># that legitimately round-trip through pickle.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">def&lt;/span> &lt;span class="nf">find_class&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="bp">self&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">ALLOWED&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nb">super&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">find_class&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">raise&lt;/span> &lt;span class="n">pickle&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">UnpicklingError&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;forbidden: &lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">.&lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">safe_loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nb">bytes&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">SafeUnpickler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">io&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">BytesIO&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span>&lt;span class="p">()&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Every rejection logs at WARN. The allowlist is the policy; it is
+narrow on purpose.&lt;/p>
+&lt;h2>Uplift — replace pickle entirely&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-pickle-entirely">&lt;/span>
+&lt;a href="#uplift--replace-pickle-entirely" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Default replacement choices:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>JSON&lt;/strong> (&lt;code>json.dumps&lt;/code> / &lt;code>json.loads&lt;/code>) — when the data is
+already a tree of primitives.&lt;/li>
+&lt;li>&lt;strong>msgpack&lt;/strong> — when binary payload size matters.&lt;/li>
+&lt;li>&lt;strong>protobuf&lt;/strong> / &lt;strong>pydantic JSON&lt;/strong> — when the data has a schema
+worth declaring.&lt;/li>
+&lt;li>For ML-shaped state: &lt;strong>safetensors&lt;/strong> for weights, JSON for
+metadata.&lt;/li>
+&lt;/ul>
+&lt;p>Behaviour preservation: round-trip a representative payload
+through the old &lt;code>pickle.dumps&lt;/code> and the new serializer; assert
+the in-memory shape matches.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call site&lt;/strong> — file + line range.&lt;/li>
+&lt;li>&lt;strong>Data path&lt;/strong> — where the input comes from (file, network,
+user-uploaded, intra-process).&lt;/li>
+&lt;li>&lt;strong>Replacement strategy&lt;/strong> — uplift / mitigate / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating one Python pickle call site. Output a PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the call site and trace input
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the function containing the pickle call. Identify the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> input source (file handle, bytes, network payload).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the input is provably trusted-only (e.g., a file written
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the same process, never read across a trust boundary),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop and write a triage note documenting the trust
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boundary — do not auto-replace.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If the call is on a backwards-compat read path with active
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> callers reading legacy data, do &lt;span class="gs">**mitigate**&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Otherwise do &lt;span class="gs">**uplift**&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> For checkpoint loaders that take user-supplied paths, do
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="gs">**both**&lt;/span> — mitigate the legacy path, uplift the write path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Mitigate (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add a &lt;span class="sb">`SafeUnpickler`&lt;/span> subclass with an explicit class
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlist scoped to the classes that legitimately round-trip
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> here. Log rejections at WARN.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Replace the &lt;span class="sb">`pickle.load(f)`&lt;/span> call with the safe wrapper.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a unit test that loads a known-good payload (passes)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and a payload referencing &lt;span class="sb">`os.system`&lt;/span> (raises
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`UnpicklingError`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Uplift (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Choose the replacement format from this list, in order:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> JSON if the payload is primitives, msgpack if binary size
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matters, protobuf/pydantic if schema is worth declaring,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safetensors+JSON for ML weights.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add a writer that emits the new format, and a reader that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> parses it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If old data exists, add a one-time migration that reads the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pickle (via the SafeUnpickler from Step 2) and writes the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> new format. The migration is its own commit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a behaviour-preservation test that asserts the in-memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shape after uplift matches what the old pickle would have
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> produced.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/pickle-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][pickle] replace untrusted-input pickle in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body must include: input-source analysis, strategy chosen,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test plan, legacy data migration plan if any, and a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> follow-up checklist for adjacent pickle call sites that this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR did not touch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Input source cannot be classified as untrusted vs. trusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replacement requires a coordinated migration across repos.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Test coverage on the call path is too thin to detect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regressions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch other pickle call sites in the repo. One per
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the SafeUnpickler allowlist beyond
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the classes the local code actually uses.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not remove the legacy read-path without a documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data migration.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>__reduce__&lt;/code> in tests.&lt;/strong> Some test suites legitimately
+pickle and unpickle custom classes. Don&amp;rsquo;t break those — add
+the classes to the allowlist explicitly.&lt;/li>
+&lt;li>&lt;strong>&lt;code>numpy.load(allow_pickle=True)&lt;/code> left enabled.&lt;/strong> Often a
+copy-paste from a stack-overflow answer. The default is safe
+now; flip it back.&lt;/li>
+&lt;li>&lt;strong>&lt;code>torch.load&lt;/code> on a user-supplied path.&lt;/strong> The mitigation
+shape depends on the PyTorch version; check the loader&amp;rsquo;s
+&lt;code>weights_only&lt;/code> parameter (PyTorch 2.5+ defaults it true).&lt;/li>
+&lt;li>&lt;strong>Cross-version pickles.&lt;/strong> A pickle written by Python 3.11
+may not round-trip cleanly on 3.9. The behaviour-preservation
+test catches this.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+— sibling pattern with a different fix.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">Java ObjectInputStream&lt;/a>
+— same pattern in Java.&lt;/li>
+&lt;/ul></description></item><item><title>PyYAML `yaml.load` without a safe Loader</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/</guid><description>
+&lt;p>&lt;code>yaml.load(s)&lt;/code> — without an explicit &lt;code>Loader=&lt;/code> — was unsafe by
+default for over a decade. The default loader resolves
+&lt;code>!!python/object&lt;/code> tags, which is the YAML equivalent of pickle:
+arbitrary code execution on untrusted input. PyYAML 5.1 added a
+warning, 6.0 made the warning louder; the call shape is still
+out there in repos by the thousands.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>yaml.load(s)&lt;/code> — no &lt;code>Loader=&lt;/code> argument.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.Loader)&lt;/code> — explicit unsafe loader.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.UnsafeLoader)&lt;/code> — same, named.&lt;/li>
+&lt;li>&lt;code>yaml.full_load(s)&lt;/code> — looser than &lt;code>safe_load&lt;/code>; resolves
+arbitrary types, just not arbitrary Python.&lt;/li>
+&lt;/ul>
+&lt;p>The safe shapes:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>yaml.safe_load(s)&lt;/code> — refuses every Python tag. Almost
+always the right answer.&lt;/li>
+&lt;li>&lt;code>yaml.load(s, Loader=yaml.SafeLoader)&lt;/code> — same thing, more
+verbose.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-yaml" data-lang="yaml">&lt;span class="line">&lt;span class="cl">&lt;span class="cp">!!python/object/apply:os.system&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;rm -rf /&amp;#34;&lt;/span>&lt;span class="p">]&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>…is a payload &lt;code>yaml.load&lt;/code> will happily execute. There is no
+patch coming; &lt;code>safe_load&lt;/code> is the patch.&lt;/p>
+&lt;h2>Mitigation — monkey-patch at import&lt;span class="hx:absolute hx:-mt-20" id="mitigation--monkey-patch-at-import">&lt;/span>
+&lt;a href="#mitigation--monkey-patch-at-import" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the repo has dozens of call sites, replacing every one in
+a single PR is risky. The mitigation is a one-line shim that
+makes the unsafe loader behave like the safe one:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># importable as e.g. `import myapp.yaml_safety_shim`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">yaml&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">warnings&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">_orig_load&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">_safe_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">Loader&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Loader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">UnsafeLoader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">FullLoader&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">warnings&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">warn&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;yaml.load shimmed to SafeLoader&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">stacklevel&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">SafeLoader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">stream&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Loader&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">Loader&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kwargs&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">yaml&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">_safe_load&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Import this shim once at the application&amp;rsquo;s entry point. Every
+unsafe call now warns at runtime and decodes safely.&lt;/p>
+&lt;h2>Uplift — replace each call&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-each-call">&lt;/span>
+&lt;a href="#uplift--replace-each-call" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The clean fix: replace every &lt;code>yaml.load(s)&lt;/code> with
+&lt;code>yaml.safe_load(s)&lt;/code>. Mechanical change. A repo-wide search and
+a sed-equivalent is enough for most cases — but the agent
+inspects each call to confirm the data flow and adds a
+behaviour-preservation test.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — list of files / lines where &lt;code>yaml.load&lt;/code>
+appears.&lt;/li>
+&lt;li>&lt;strong>Strategy&lt;/strong> — uplift each / install shim / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating PyYAML &lt;span class="sb">`yaml.load`&lt;/span> call sites that resolve
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">unsafe tags. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every &lt;span class="sb">`yaml.load`&lt;/span>, &lt;span class="sb">`yaml.full_load`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.Loader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.UnsafeLoader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.FullLoader)`&lt;/span> call in the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each call, record whether the input is untrusted (file
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> uploaded by a user, fetched from a URL, parsed from a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request body) or trusted-only (a config file written by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the same process).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **≤5 call sites or all in application code:** uplift each
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> call site directly to &lt;span class="sb">`yaml.safe_load`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Many call sites or the codebase imports through helpers:**
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install the import-time shim &lt;span class="ge">*and*&lt;/span> still uplift the call
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sites that legitimately need a non-default loader.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Trusted-only call sites:** still uplift; the safe loader
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> costs nothing on trusted input.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Uplift
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace &lt;span class="sb">`yaml.load(s)`&lt;/span> with &lt;span class="sb">`yaml.safe_load(s)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Replace &lt;span class="sb">`yaml.load(s, Loader=yaml.Loader)`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.safe_load(s)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the call truly needs a non-Safe loader (e.g., the YAML
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> carries a custom tag this codebase legitimately registers),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keep the explicit loader and document why in a comment with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a &lt;span class="sb">`# noqa: yaml-load-policy`&lt;/span> marker.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a unit test: a payload containing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`!!python/object/apply:os.system [&amp;#34;echo pwned&amp;#34;]`&lt;/span> must raise
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.constructor.ConstructorError`&lt;/span> after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Install the shim (when chosen)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add the shim module at a stable import path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`&amp;lt;package&amp;gt;/_yaml_safety_shim.py`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Import the shim from the application&amp;#39;s entry point(s).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a unit test that imports the shim, calls &lt;span class="sb">`yaml.load`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> without a Loader, and confirms the SafeLoader was used.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/yaml-safe-load-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][yaml] use safe_load on untrusted YAML`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: per-call-site analysis, strategy chosen, test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> additions, the &lt;span class="sb">`# noqa`&lt;/span> exceptions if any.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The codebase relies on a custom YAML tag that requires
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.Loader`&lt;/span> and the agent can&amp;#39;t determine whether the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> custom tag&amp;#39;s resolver is itself safe.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests fail because of a legitimate behaviour change in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unrelated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change YAML files themselves.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not add new YAML tags.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle in unrelated refactors.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>yaml.load(s, Loader=Loader)&lt;/code> where &lt;code>Loader&lt;/code> is a custom
+subclass.&lt;/strong> Custom loaders may already be safe. Read the
+subclass before swapping.&lt;/li>
+&lt;li>&lt;strong>&lt;code>yaml.load_all&lt;/code> and &lt;code>yaml.full_load_all&lt;/code>.&lt;/strong> Same problem,
+same fix — &lt;code>yaml.safe_load_all&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>The shim breaking custom-tag YAML&lt;/strong> in the repo&amp;rsquo;s own
+config files. The shim opts out only when an explicit
+Loader is passed; verify all legitimate custom-tag callers
+pass an explicit Loader.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">Python pickle&lt;/a>
+— same risk class, different syntax.&lt;/li>
+&lt;/ul></description></item><item><title>Java ObjectInputStream and friends</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/</guid><description>
+&lt;p>&lt;code>ObjectInputStream.readObject()&lt;/code> is the Java equivalent of
+pickle: a payload of class metadata that the runtime
+&lt;em>reconstructs&lt;/em>, including invoking constructors, setting
+fields, and triggering &lt;code>readObject&lt;/code> / &lt;code>readResolve&lt;/code> /
+&lt;code>finalize&lt;/code> on every class in the graph. The &amp;ldquo;gadget chains&amp;rdquo;
+that make this exploitable have been written and re-written
+since 2015; the CVE shelf is full.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>new ObjectInputStream(...).readObject()&lt;/code> on any
+network / file / DB-blob input.&lt;/li>
+&lt;li>Frameworks that serialize via Java serialization under the
+hood: older RMI, JMS, JNDI lookup-with-RemoteObject paths,
+some session-replication backends.&lt;/li>
+&lt;li>Legacy uses of &lt;code>ObjectInputStream&lt;/code> for &amp;ldquo;convenient&amp;rdquo;
+same-VM persistence — still dangerous if the file ever
+reaches a different VM with different classpath assumptions.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A malicious payload using a known gadget chain (commons-
+collections, Spring, Groovy, the long-running Pwn-Twitter
+list) can RCE on &lt;code>readObject()&lt;/code> without the application code
+ever being entered. There is no patch coming; the design
+predates the threat model.&lt;/p>
+&lt;h2>Mitigation — JEP 290 deserialization filters&lt;span class="hx:absolute hx:-mt-20" id="mitigation--jep-290-deserialization-filters">&lt;/span>
+&lt;a href="#mitigation--jep-290-deserialization-filters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Java 9+ exposes
+&lt;code>ObjectInputFilter&lt;/code> / &lt;code>ObjectInputFilter.Config&lt;/code> (and the
+older &lt;code>setObjectInputFilter&lt;/code> API). Set a strict allowlist
+filter on every &lt;code>ObjectInputStream&lt;/code> the application creates:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">ObjectInputFilter&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">allowlist&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ObjectInputFilter&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Config&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">createFilter&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s">&amp;#34;com.example.Order;com.example.OrderItem;java.lang.Number;&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s">&amp;#34;java.util.ArrayList;java.util.HashMap;&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s">&amp;#34;!*&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c1">// reject everything else&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">try&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ObjectInputStream&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">in&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">new&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ObjectInputStream&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">input&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">in&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setObjectInputFilter&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">allowlist&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">Object&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">obj&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">in&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">readObject&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">// ...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Or set it globally at JVM start:
+&lt;code>-Djdk.serialFilter='com.example.*;java.lang.Number;!*'&lt;/code>. The
+filter rejects every class outside the allowlist before the
+class is loaded, before &lt;code>readObject&lt;/code> is invoked, before any
+gadget chain runs.&lt;/p>
+&lt;h2>Uplift — replace ObjectInputStream entirely&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-objectinputstream-entirely">&lt;/span>
+&lt;a href="#uplift--replace-objectinputstream-entirely" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For any new-write path, switch to a JSON serializer with
+explicit type handling:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Jackson&lt;/strong> with default-typing &lt;strong>disabled&lt;/strong> and
+&lt;code>@JsonTypeInfo(use=Id.NAME)&lt;/code> plus
+&lt;code>@JsonSubTypes({...})&lt;/code> enumerations on polymorphic fields,
+&lt;em>or&lt;/em> a &lt;code>BasicPolymorphicTypeValidator&lt;/code> allowlist if default
+typing genuinely cannot be removed.&lt;/li>
+&lt;li>&lt;strong>Gson&lt;/strong> with explicit &lt;code>TypeAdapter&lt;/code> / &lt;code>RuntimeTypeAdapterFactory&lt;/code>
+registrations.&lt;/li>
+&lt;li>&lt;strong>Protobuf&lt;/strong> when the data is structured enough to warrant a
+schema.&lt;/li>
+&lt;/ul>
+&lt;p>Read paths for legacy data: keep an &lt;code>ObjectInputStream&lt;/code> reader
+&lt;em>with the JEP 290 filter installed&lt;/em> until the persisted data
+has been migrated; then remove the reader.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every &lt;code>new ObjectInputStream(...)&lt;/code> and
+every framework call known to deserialize Java objects
+internally.&lt;/li>
+&lt;li>&lt;strong>Strategy&lt;/strong> — mitigate / uplift / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating Java deserialization call sites in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">repo. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every &lt;span class="sb">`new ObjectInputStream(...)`&lt;/span> in the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> List every framework usage that deserializes Java objects
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> internally — check for &lt;span class="sb">`ObjectMapper.readValue`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`enableDefaultTyping`&lt;/span>, RMI registrations, JMS message
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> listeners that trust message bodies, session-replication
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bindings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> For each, record whether the input crosses a trust
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boundary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **All call sites:** mitigate by adding a JEP 290 filter.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> This is required regardless of any uplift.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **New-write paths:** also uplift to JSON with explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> typing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Legacy read paths:** keep the filtered ObjectInputStream
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> until data is migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Mitigate
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Define a single allowlist filter as a constant in a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security utility class.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Apply the filter to every ObjectInputStream creation. If
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the codebase has many call sites, factor a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`safeObjectInputStream(InputStream)`&lt;/span> helper and migrate to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Optionally, add the global JEP 290 filter to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application&amp;#39;s JVM args / Dockerfile / launcher.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A payload containing an allowlisted class deserializes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> successfully.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A payload containing a non-allowlisted class
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`org.apache.commons.collections.functors.InvokerTransformer`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`java.lang.Runtime`&lt;/span>) is rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Uplift (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace &lt;span class="sb">`ObjectOutputStream`&lt;/span> writers with the chosen JSON
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> serializer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add a behaviour-preservation test that round-trips a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> representative object through the old binary format and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the new JSON format and asserts field-by-field equality.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the codebase persists data: add a one-time migration job
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that reads old binary files via the filtered ObjectInputStream
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and writes them as JSON. Document a removal date for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> legacy reader.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/java-deser-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][deserialization] add JEP 290 filter / uplift to JSON in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: call-site inventory, allowlist contents, test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> additions, migration plan if applicable, and the JVM-args
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> change if global filter applied.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A framework is doing the deserialization and the agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot inject a filter. (E.g., a third-party library that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposes no filter hook — flag and triage.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Default typing in Jackson is load-bearing for a feature the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent cannot reshape without an API change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Test coverage on the call path is too thin to detect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regressions safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle in unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the allowlist.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not remove the legacy reader without a documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Allowlist drift.&lt;/strong> A reviewer who adds a class to the
+allowlist next quarter without re-reading the gadget-chain
+list defeats the mitigation. Guard with a comment that says
+so explicitly, and re-review the allowlist quarterly.&lt;/li>
+&lt;li>&lt;strong>&lt;code>enableDefaultTyping&lt;/code> re-enabled.&lt;/strong> Jackson will resolve
+arbitrary classes if default typing is on. The Jackson
+recipe is a sibling pattern; if the codebase uses it, fix
+both at once.&lt;/li>
+&lt;li>&lt;strong>JNDI lookups in deserialized payloads.&lt;/strong> Even with a strict
+filter, some allowed classes can re-trigger lookups —
+validate the allowlist against the
+&lt;a href="https://security-recipes.ai/prompt-library/cve/">log4j-style JNDI lookups&lt;/a>
+threat surface.&lt;/li>
+&lt;li>&lt;strong>Globally setting the JVM filter&lt;/strong> can break other
+applications on the same JVM if any. Prefer per-stream
+filters when the JVM hosts multiple applications.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">Python pickle&lt;/a>
+— same risk class in Python.&lt;/li>
+&lt;/ul></description></item><item><title>PHP object deserialization — `unserialize` on untrusted data</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/php-unserialize/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/php-unserialize/</guid><description>
+&lt;p>&lt;code>unserialize($_POST[&amp;quot;data&amp;quot;])&lt;/code> is a long-lived PHP footgun.
+When attacker-controlled bytes hit &lt;code>unserialize&lt;/code>, PHP can
+instantiate gadget objects and trigger magic methods such as
+&lt;code>__wakeup&lt;/code> / &lt;code>__destruct&lt;/code>. That&amp;rsquo;s object-injection territory,
+with real-world RCE chains in common ecosystems.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>unserialize($input)&lt;/code> where &lt;code>$input&lt;/code> comes from HTTP,
+cookies, message queues, or user-editable DB fields.&lt;/li>
+&lt;li>Session or cache adapters that deserialize values from
+shared stores without strict provenance checks.&lt;/li>
+&lt;li>Framework wrappers that indirectly call &lt;code>unserialize&lt;/code>
+(custom middleware, queue/job payload handling).&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Unsafe deserialization in PHP is frequently exploitable via POP
+(property-oriented programming) chains. Even when no direct RCE
+exists, object injection can corrupt authorization state,
+overwrite files, or invoke network callbacks through gadget
+classes.&lt;/p>
+&lt;h2>Mitigation — constrain classes immediately&lt;span class="hx:absolute hx:-mt-20" id="mitigation--constrain-classes-immediately">&lt;/span>
+&lt;a href="#mitigation--constrain-classes-immediately" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>If a full migration cannot ship in one PR, use strict class
+allowlisting and fail closed:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-php" data-lang="php">&lt;span class="line">&lt;span class="cl">&lt;span class="o">&amp;lt;?&lt;/span>&lt;span class="nx">php&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$decoded&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">unserialize&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">$payload&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;allowed_classes&amp;#39;&lt;/span> &lt;span class="o">=&amp;gt;&lt;/span> &lt;span class="k">false&lt;/span>&lt;span class="p">]);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Or, where specific DTO classes are required:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-php" data-lang="php">&lt;span class="line">&lt;span class="cl">&lt;span class="o">&amp;lt;?&lt;/span>&lt;span class="nx">php&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">$decoded&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="nx">unserialize&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nv">$payload&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;allowed_classes&amp;#39;&lt;/span> &lt;span class="o">=&amp;gt;&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="nx">OrderDTO&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="na">class&lt;/span>&lt;span class="p">]]);&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Pair this with input provenance checks and rejection logging.&lt;/p>
+&lt;h2>Uplift — replace with JSON (or schema-validated format)&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-with-json-or-schema-validated-format">&lt;/span>
+&lt;a href="#uplift--replace-with-json-or-schema-validated-format" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Preferred uplift:&lt;/p>
+&lt;ul>
+&lt;li>Replace serialized object payloads with JSON arrays/maps.&lt;/li>
+&lt;li>Hydrate explicit DTOs from decoded arrays.&lt;/li>
+&lt;li>Validate shape and types at boundaries before use.&lt;/li>
+&lt;li>Keep a temporary legacy-read path only for migration windows,
+with telemetry and a removal date.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — all &lt;code>unserialize&lt;/code> invocations and wrappers.&lt;/li>
+&lt;li>&lt;strong>Trust boundary&lt;/strong> — where each payload originates.&lt;/li>
+&lt;li>&lt;strong>Compat constraints&lt;/strong> — which payload formats must continue
+to round-trip during migration.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating unsafe PHP deserialization call sites.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Search for &lt;span class="sb">`unserialize(`&lt;/span> and wrappers around payload decode.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each call site, record source of bytes and whether input
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> can be attacker-controlled.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Identify classes currently instantiated by deserialize paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Decide per call site
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Untrusted / ambiguous input:** uplift to JSON + DTO hydrate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Trusted-only legacy path with hard dependency:** mitigate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with &lt;span class="sb">`allowed_classes`&lt;/span> and explicit provenance checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Cannot classify trust boundary:** triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Implement
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For uplifted sites:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace &lt;span class="sb">`serialize`&lt;/span>/&lt;span class="sb">`unserialize`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`json_encode`&lt;/span>/&lt;span class="sb">`json_decode(..., true, flags)`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add boundary validation for required keys and value types.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Convert arrays into explicit DTO/value objects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For mitigated sites:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add &lt;span class="sb">`allowed_classes`&lt;/span> with the narrowest possible list
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`false`&lt;/span> whenever feasible).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Reject and log payloads that require disallowed classes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add behavior-preservation tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing valid payloads still decode to expected domain
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> values.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A payload requiring a disallowed class is rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Malformed payloads fail closed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/php-unserialize-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][PHP] remediate unserialize in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: inventory, trust-boundary classification, uplift vs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> mitigation, compatibility plan, tests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You cannot identify payload provenance.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Migration requires coordinated cross-service schema rollout
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> not feasible in one PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No test harness exists for the affected decode path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not expand allowed class lists beyond what tests require.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently keep legacy deserialize paths without a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dated removal note.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Framework internals&lt;/strong> that deserialize session/queue data;
+ensure your target call sites are truly app-controlled.&lt;/li>
+&lt;li>&lt;strong>Base64 wrappers&lt;/strong> around serialized bytes (easy to miss in
+grep).&lt;/li>
+&lt;li>&lt;strong>“Trusted DB” assumptions&lt;/strong> where user-controlled values are
+eventually written into that table.&lt;/li>
+&lt;li>&lt;strong>Over-broad allowlists&lt;/strong> that reintroduce gadget surfaces.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">Java ObjectInputStream&lt;/a>
+— analogous deserialization risk in JVM stacks.&lt;/li>
+&lt;/ul></description></item><item><title>Ruby unsafe deserialization — `Marshal.load` / `YAML.load`</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/ruby-marshal-yaml-load/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/ruby-marshal-yaml-load/</guid><description>
+&lt;p>&lt;code>Marshal.load&lt;/code> and permissive YAML loaders are durable Ruby
+security traps. If untrusted bytes reach these APIs, attacker
+payloads can instantiate arbitrary classes and trigger dangerous
+code paths. This pattern appears in Rails jobs, cache/session
+layers, signed-cookie migrations, and background workers.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>Marshal.load(payload)&lt;/code> where payload crosses trust
+boundaries (HTTP params, Redis, MQ, DB rows editable by users).&lt;/li>
+&lt;li>&lt;code>YAML.load&lt;/code> / &lt;code>Psych.load&lt;/code> on untrusted YAML.&lt;/li>
+&lt;li>&lt;code>YAML.unsafe_load&lt;/code> in modern Ruby/Psych.&lt;/li>
+&lt;li>Indirect wrappers that decode serialized data before model/job
+processing.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Unsafe Ruby deserialization can become RCE via gadget chains in
+application or gem classes. Even without direct execution,
+attackers can tamper with object state to bypass authz checks,
+poison jobs, or trigger SSRF/file operations.&lt;/p>
+&lt;h2>Mitigation — safe loader with strict class policy&lt;span class="hx:absolute hx:-mt-20" id="mitigation--safe-loader-with-strict-class-policy">&lt;/span>
+&lt;a href="#mitigation--safe-loader-with-strict-class-policy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For YAML, switch to &lt;code>safe_load&lt;/code> with explicit permitted classes:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-ruby" data-lang="ruby">&lt;span class="line">&lt;span class="cl">&lt;span class="n">parsed&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="no">YAML&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">safe_load&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">payload&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="ss">permitted_classes&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="o">[&lt;/span>&lt;span class="no">Date&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="no">Time&lt;/span>&lt;span class="o">]&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="ss">aliases&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kp">false&lt;/span>&lt;span class="p">)&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>For Marshal paths that cannot be removed immediately, enforce
+trusted provenance and fail-closed guards at ingress. Treat as a
+temporary bridge, not a steady state.&lt;/p>
+&lt;h2>Uplift — move to JSON + explicit coercion&lt;span class="hx:absolute hx:-mt-20" id="uplift--move-to-json--explicit-coercion">&lt;/span>
+&lt;a href="#uplift--move-to-json--explicit-coercion" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Preferred uplift:&lt;/p>
+&lt;ul>
+&lt;li>Replace Marshal/YAML object payloads with JSON hashes/arrays.&lt;/li>
+&lt;li>Perform explicit coercion into value objects/DTOs.&lt;/li>
+&lt;li>Validate required fields and types before business logic.&lt;/li>
+&lt;li>Keep temporary legacy decode only where required, with
+telemetry and a removal date.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every &lt;code>Marshal.load&lt;/code>, &lt;code>YAML.load&lt;/code>,
+&lt;code>Psych.load&lt;/code>, and &lt;code>unsafe_load&lt;/code> usage.&lt;/li>
+&lt;li>&lt;strong>Data provenance&lt;/strong> — where each payload originates.&lt;/li>
+&lt;li>&lt;strong>Compatibility needs&lt;/strong> — which historical payloads must
+continue to decode during migration.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating unsafe Ruby deserialization call sites.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Search for &lt;span class="sb">`Marshal.load`&lt;/span>, &lt;span class="sb">`YAML.load`&lt;/span>, &lt;span class="sb">`Psych.load`&lt;/span>, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`unsafe_load`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Classify each by trust boundary: trusted-only internal,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> external/untrusted, or unknown.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Map legacy payload producers/consumers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Choose remediation per site
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Untrusted or unknown:** uplift to JSON + explicit coercion.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Trusted-only temporary compatibility path:** mitigate with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> strict guards and bounded lifespan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Implement
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For YAML sites:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replace with &lt;span class="sb">`YAML.safe_load`&lt;/span> and minimal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`permitted_classes`&lt;/span> list.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Disable aliases unless explicitly required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For Marshal sites:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replace with JSON decode + schema/type validation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Remove &lt;span class="sb">`Marshal.load`&lt;/span> from runtime paths handling external
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> input.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For temporary compat paths:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Isolate in a clearly named legacy decoder module.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Add telemetry counters for legacy decode usage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Add TODO with owner and removal date.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add behavior-preservation tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Valid legacy payloads decode to equivalent domain values.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Untrusted crafted payloads are rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Unknown class tags / alias abuse fails closed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/ruby-deser-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][Ruby] remove unsafe deserialize in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: inventory, trust classification, uplift/mitigation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decisions, compatibility plan, test evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Trust boundary cannot be determined.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Required migration spans multiple services with no staged
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rollout plan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Critical path lacks tests and cannot be safely instrumented.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not ship unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not introduce broad &lt;span class="sb">`permitted_classes`&lt;/span> catch-alls.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not retain legacy decode paths without explicit expiry.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Rails cookie/session migrations&lt;/strong> where old serializers are
+still enabled.&lt;/li>
+&lt;li>&lt;strong>Background job payload formats&lt;/strong> shared across deploy waves.&lt;/li>
+&lt;li>&lt;strong>&lt;code>aliases: true&lt;/code>&lt;/strong> in YAML parsers reopening gadget vectors.&lt;/li>
+&lt;li>&lt;strong>Monkey patches in initializers&lt;/strong> that re-enable unsafe
+loading globally.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+— analogous unsafe YAML default in Python.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2025-60455 — Modular Max Serve unsafe deserialization</title><link>https://security-recipes.ai/prompt-library/cve/cve-2025-60455-modular-max-serve/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2025-60455-modular-max-serve/</guid><description>
+&lt;p>&lt;code>modular&lt;/code> versions earlier than &lt;code>25.6.0&lt;/code> are vulnerable to
+unsafe deserialization in Max Serve. If deployed with
+&lt;code>--experimental-enable-kvcache-agent&lt;/code>, this can become remote
+code execution.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>modular (PyPI)&lt;/strong>: &lt;code>&amp;gt;=0, &amp;lt;25.6.0&lt;/code> — vulnerable.&lt;/li>
+&lt;li>&lt;strong>modular (PyPI)&lt;/strong>: &lt;code>25.6.0+&lt;/code> — patched.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Exposure requires all of the following:&lt;/p>
+&lt;ul>
+&lt;li>The deployed package version resolves to &lt;code>&amp;lt;25.6.0&lt;/code>.&lt;/li>
+&lt;li>Max Serve is started with
+&lt;code>--experimental-enable-kvcache-agent&lt;/code>.&lt;/li>
+&lt;li>Untrusted or cross-tenant input reaches that path.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show modular
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ps aux &lt;span class="p">|&lt;/span> grep -E &lt;span class="s1">&amp;#39;max serve|kvcache|experimental-enable-kvcache-agent&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Upgrade&lt;/strong> to &lt;code>modular&amp;gt;=25.6.0&lt;/code> everywhere
+(&lt;code>requirements.txt&lt;/code>, lockfiles, image build manifests).&lt;/li>
+&lt;li>&lt;strong>Disable&lt;/strong> &lt;code>--experimental-enable-kvcache-agent&lt;/code> by default
+until upgrade rollout and validation are complete.&lt;/li>
+&lt;li>&lt;strong>Redeploy&lt;/strong> services and rotate secrets reachable by affected
+processes if there is any suspicion of exploitation.&lt;/li>
+&lt;li>&lt;strong>Review runtime logs&lt;/strong> during the exposure window for
+suspicious requests or crashes.&lt;/li>
+&lt;/ol>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2025-60455 (Modular Max Serve unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deserialization).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR upgrading to modular 25.6.0+ and removing risky runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> flag usage, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md when a safe upgrade cannot be shipped now.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Find every direct/transitive &lt;span class="sb">`modular`&lt;/span> dependency and lockfile.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm runtime invocations for Max Serve and detect use of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`--experimental-enable-kvcache-agent`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Remediate
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Bump all manifests/locks to &lt;span class="sb">`modular&amp;gt;=25.6.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Remove or hard-disable &lt;span class="sb">`--experimental-enable-kvcache-agent`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> from production runtime profiles.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Update deployment artifacts and operational runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">1.&lt;/span> Dependency graph resolves to &lt;span class="sb">`modular 25.6.0+`&lt;/span> in all targets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Startup/config output confirms the experimental flag is absent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> from production workloads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> CI tests and smoke checks pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>&lt;span class="k">-&lt;/span> Upgrade causes unresolved dependency conflicts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Service functionality depends on the experimental flag and no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compensating control exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> You cannot determine production runtime flags with confidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If any stop condition is met, produce TRIAGE.md with blockers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">containment actions, owner, and follow-up date.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No manifest or lockfile keeps &lt;code>modular&lt;/code> below &lt;code>25.6.0&lt;/code>.&lt;/li>
+&lt;li>Production runtime configs no longer enable the experimental
+kvcache agent.&lt;/li>
+&lt;li>Build/test/deploy checks pass after the dependency change.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Hidden second copies of &lt;code>modular&lt;/code> in transitive lockfiles.&lt;/li>
+&lt;li>Rollback artifacts still launching with the experimental flag.&lt;/li>
+&lt;li>Environment drift between development and production configs.&lt;/li>
+&lt;/ul>
+&lt;h2>Sources&lt;span class="hx:absolute hx:-mt-20" id="sources">&lt;/span>
+&lt;a href="#sources" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;code>GHSA-7xcv-9j6c-2fmc&lt;/code>&lt;/li>
+&lt;li>CVE: &lt;code>CVE-2025-60455&lt;/code>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2017-18342 — PyYAML default `load` resolves arbitrary tags</title><link>https://security-recipes.ai/prompt-library/cve/cve-2017-18342-pyyaml/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2017-18342-pyyaml/</guid><description>
+&lt;p>PyYAML&amp;rsquo;s &lt;code>yaml.load()&lt;/code> resolved &lt;code>!!python/object&lt;/code> and friends
+without an explicit safe loader, making any
+attacker-controlled YAML a code-execution primitive. The CVE
+is the formal advisory; the &lt;em>behaviour&lt;/em> predates the CVE by
+the better part of a decade. PyYAML 5.1 added a deprecation
+warning when &lt;code>Loader=&lt;/code> was omitted; PyYAML 6.0 made the
+omission a &lt;code>TypeError&lt;/code>. Most repos have call sites that
+predate either change.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>PyYAML&lt;/strong> ≤ 3.13 — vulnerable, no warning.&lt;/li>
+&lt;li>&lt;strong>PyYAML&lt;/strong> 4.x — never released widely.&lt;/li>
+&lt;li>&lt;strong>PyYAML&lt;/strong> 5.1+ — emits a &lt;code>YAMLLoadWarning&lt;/code> when
+&lt;code>Loader=&lt;/code> is omitted; still resolves unsafe tags by
+default.&lt;/li>
+&lt;li>&lt;strong>PyYAML&lt;/strong> 6.0+ — &lt;code>yaml.load()&lt;/code> raises &lt;code>TypeError&lt;/code>
+without an explicit &lt;code>Loader&lt;/code>. The behaviour was made safe
+by removal.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Any call site of &lt;code>yaml.load(...)&lt;/code> (without &lt;code>Loader=&lt;/code>),
+&lt;code>yaml.load(..., Loader=yaml.Loader)&lt;/code>,
+&lt;code>yaml.load(..., Loader=yaml.UnsafeLoader)&lt;/code>, or
+&lt;code>yaml.full_load(...)&lt;/code> on untrusted input.&lt;/p>
+&lt;p>Detection:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">git grep -n &lt;span class="s2">&amp;#34;yaml\\.load\\b\\|yaml\\.full_load\\b\\|Loader=yaml\\.\\(Loader\\|UnsafeLoader\\|FullLoader\\)&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Whether the call is &lt;em>exposed&lt;/em> depends on the data flow:
+attacker-controlled YAML (file upload, HTTP body, partner
+feed) is exposure; a trusted application config file is
+not — though the safe shape costs nothing on trusted input
+either.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>This CVE has a generic recipe that covers it directly:&lt;/p>
+&lt;ul>
+&lt;li>See &lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">Classic Vulnerable Defaults → PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+for the durable fix pattern.&lt;/li>
+&lt;/ul>
+&lt;p>This per-CVE recipe overlays the broader generic recipe with
+two CVE-specific actions:&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Pin&lt;/strong> PyYAML to ≥6.0 (or ≥5.1 with &lt;code>Loader=yaml.SafeLoader&lt;/code>
+on every call) to lock in the safe-default behaviour at the
+library level.&lt;/li>
+&lt;li>&lt;strong>Re-scan&lt;/strong> with the SCA tool to confirm CVE-2017-18342 is
+no longer reported against the post-fix lockfile.&lt;/li>
+&lt;/ol>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2017-18342 (PyYAML default-loader
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">RCE) in this repository. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every &lt;span class="sb">`yaml.load`&lt;/span>, &lt;span class="sb">`yaml.full_load`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.Loader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.UnsafeLoader)`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`yaml.load(..., Loader=yaml.FullLoader)`&lt;/span> call.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the lockfile and confirm the pinned PyYAML version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Apply the generic fix pattern
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Follow the recipe at
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">[/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">end-to-end. Replace every unsafe call with &lt;span class="sb">`yaml.safe_load`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or install the import-time shim, or both.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Pin PyYAML
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Pin PyYAML to ≥6.0 in the lockfile / requirements file.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Run the project&amp;#39;s test suite to surface any breakage from
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the 5.x → 6.x bump.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the project depends on a transitive consumer of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PyYAML &lt;span class="p">&amp;lt;&lt;/span>&lt;span class="nt">6&lt;/span> &lt;span class="err">(&lt;/span>&lt;span class="sb">`pip-tools`&lt;/span> &lt;span class="na">resolves&lt;/span> &lt;span class="na">a&lt;/span> &lt;span class="na">downgrade&lt;/span>&lt;span class="err">),&lt;/span> &lt;span class="na">document&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">the&lt;/span> &lt;span class="na">constraint&lt;/span> &lt;span class="na">in&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">PR&lt;/span> &lt;span class="na">body&lt;/span>&lt;span class="err">.&lt;/span> &lt;span class="na">The&lt;/span> &lt;span class="na">agent&lt;/span> &lt;span class="na">does&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">silently&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">downgrade&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="na">Re-run&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">SCA&lt;/span> &lt;span class="na">scanner&lt;/span>&lt;span class="err">.&lt;/span> &lt;span class="na">CVE-2017-18342&lt;/span> &lt;span class="na">must&lt;/span> &lt;span class="na">show&lt;/span> &lt;span class="na">as&lt;/span> &lt;span class="na">fixed&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">or&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">present&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> &lt;span class="na">Add&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">standard&lt;/span> &lt;span class="na">PyYAML&lt;/span> &lt;span class="na">safe-load&lt;/span> &lt;span class="na">test&lt;/span> &lt;span class="na">from&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">generic&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">recipe&lt;/span> &lt;span class="err">(&lt;/span>&lt;span class="na">a&lt;/span> &lt;span class="na">payload&lt;/span> &lt;span class="na">with&lt;/span> &lt;span class="sb">`!!python/object/apply:os.system`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">raises&lt;/span> &lt;span class="sb">`yaml.constructor.ConstructorError`&lt;/span>&lt;span class="err">).&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Branch:&lt;/span> &lt;span class="sb">`remediate/cve-2017-18342-pyyaml`&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Title:&lt;/span> &lt;span class="sb">`[Security][CVE-2017-18342] safe_load + pin PyYAML ≥6`&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Body:&lt;/span> &lt;span class="na">per-call-site&lt;/span> &lt;span class="na">list&lt;/span>&lt;span class="err">,&lt;/span> &lt;span class="na">lockfile&lt;/span> &lt;span class="na">diff&lt;/span>&lt;span class="err">,&lt;/span> &lt;span class="na">SCA&lt;/span> &lt;span class="na">before&lt;/span>&lt;span class="err">/&lt;/span>&lt;span class="na">after&lt;/span>&lt;span class="err">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">test&lt;/span> &lt;span class="na">addition&lt;/span>&lt;span class="err">,&lt;/span> &lt;span class="na">any&lt;/span> &lt;span class="na">downstream&lt;/span> &lt;span class="na">pin&lt;/span> &lt;span class="na">notes&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Label:&lt;/span> &lt;span class="sb">`sec-auto-remediation`&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">A&lt;/span> &lt;span class="na">transitive&lt;/span> &lt;span class="na">dependency&lt;/span> &lt;span class="na">requires&lt;/span> &lt;span class="na">PyYAML&lt;/span> &lt;span class="err">&amp;lt;&lt;/span>&lt;span class="na">6&lt;/span> &lt;span class="na">and&lt;/span> &lt;span class="na">cannot&lt;/span> &lt;span class="na">be&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">upgraded&lt;/span> &lt;span class="na">without&lt;/span> &lt;span class="na">a&lt;/span> &lt;span class="na">coordinated&lt;/span> &lt;span class="na">cross-repo&lt;/span> &lt;span class="na">change&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">A&lt;/span> &lt;span class="na">custom&lt;/span> &lt;span class="na">YAML&lt;/span> &lt;span class="na">tag&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">codebase&lt;/span> &lt;span class="na">legitimately&lt;/span> &lt;span class="na">uses&lt;/span> &lt;span class="na">requires&lt;/span> &lt;span class="na">a&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">non-Safe&lt;/span> &lt;span class="na">loader&lt;/span> &lt;span class="na">and&lt;/span> &lt;span class="na">the&lt;/span> &lt;span class="na">agent&lt;/span> &lt;span class="na">cannot&lt;/span> &lt;span class="na">determine&lt;/span> &lt;span class="na">whether&lt;/span> &lt;span class="na">the&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="na">tag&lt;/span>&lt;span class="err">&amp;#39;&lt;/span>&lt;span class="na">s&lt;/span> &lt;span class="na">resolver&lt;/span> &lt;span class="na">is&lt;/span> &lt;span class="na">itself&lt;/span> &lt;span class="na">safe&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="na">Do&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">bundle&lt;/span> &lt;span class="na">unrelated&lt;/span> &lt;span class="na">CVEs&lt;/span>&lt;span class="err">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="na">-&lt;/span> &lt;span class="na">Do&lt;/span> &lt;span class="na">not&lt;/span> &lt;span class="na">silently&lt;/span> &lt;span class="na">re-pin&lt;/span> &lt;span class="na">downstream&lt;/span> &lt;span class="na">constraints&lt;/span>&lt;span class="err">.&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Every call site touched, or shim installed, with a clear
+rationale per call.&lt;/li>
+&lt;li>PyYAML pinned to ≥6.0.&lt;/li>
+&lt;li>SCA output shows CVE-2017-18342 cleared.&lt;/li>
+&lt;li>Behaviour-preservation test for any custom YAML tag the
+codebase uses.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>yaml.load_all&lt;/code> and &lt;code>yaml.full_load_all&lt;/code>.&lt;/strong> Same problem,
+same fix.&lt;/li>
+&lt;li>&lt;strong>Indirect callers.&lt;/strong> Some libraries ship their own
+&lt;code>yaml.load(...)&lt;/code> wrapper — fix the library or pin it past
+the patched version.&lt;/li>
+&lt;li>&lt;strong>PyYAML 6.x parser changes.&lt;/strong> A handful of edge-case
+documents parse differently in 6.x (octal-number rules,
+some boolean shortcuts). Run the project&amp;rsquo;s tests.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">Classic Vulnerable Defaults → PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+— the durable, tool-agnostic recipe this overlays.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— the generic workflow.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">Python pickle&lt;/a>
+— sibling Python deserialization risk.&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-24159 — NVIDIA NeMo deserialization RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-24159-nvidia-nemo-deserialization-rce/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-24159-nvidia-nemo-deserialization-rce/</guid><description>
+&lt;p>CVE-2026-24159 is a NeMo Framework deserialization flaw (CWE-502) that can
+allow code execution when untrusted model/checkpoint content is processed.
+NVD currently scores this CVE as &lt;strong>9.8 (critical)&lt;/strong>, while NVIDIA&amp;rsquo;s CNA score
+is &lt;strong>7.8 (high)&lt;/strong>. Treat internet-reachable or shared training/inference
+pipelines as urgent remediation targets.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>nemo&lt;/code> versions earlier than &lt;code>2.6.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>nemo&amp;gt;=2.6.2&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NeMo is installed at a vulnerable version.&lt;/li>
+&lt;li>The environment ingests untrusted checkpoints/artifacts/datasets.&lt;/li>
+&lt;li>Jobs run with broad file-system or cloud credentials.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show nemo-toolkit &lt;span class="o">||&lt;/span> python -m pip show nemo
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python - &lt;span class="s">&amp;lt;&amp;lt;&amp;#39;PY&amp;#39;
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">import importlib
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">for name in (&amp;#34;nemo&amp;#34;, &amp;#34;nemo_toolkit&amp;#34;):
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> try:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> m = importlib.import_module(name)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> print(name, getattr(m, &amp;#34;__version__&amp;#34;, &amp;#34;unknown&amp;#34;))
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> except Exception:
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s"> pass
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">PY&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;torch\.load|pickle|checkpoint|nemo&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade NeMo to &lt;code>2.6.2&lt;/code> or later.&lt;/li>
+&lt;li>Do not deserialize untrusted checkpoint/model files.&lt;/li>
+&lt;li>Require provenance controls (trusted registry/bucket, checksums/signatures).&lt;/li>
+&lt;li>Run NeMo jobs with least-privilege IAM and restricted network egress.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-24159 (NVIDIA NeMo deserialization RCE). Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A reviewer-ready PR with code/config/docs updates, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if no safe patch path exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Stay strictly in CVE-2026-24159 scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer the smallest safe upgrade path to &lt;span class="sb">`nemo&amp;gt;=2.6.2`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Assume model/checkpoint artifacts are untrusted unless proven otherwise.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Detect NeMo usage in manifests, lockfiles, images, and runtime scripts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If NeMo absent or already fixed, create a brief triage note and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Upgrade NeMo dependency pins and regenerate lockfiles.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add one hardening update near NeMo load paths (or ops docs):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> enforce trusted artifact sources,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require checksum/signature validation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document least-privilege execution requirements.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run tests/build checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-24159 in nvidia nemo`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Upgrade causes unsupported framework/API break without safe short path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Dependency manager/lockfile process is missing and cannot be made
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deterministic in this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Failures are unrelated pre-existing issues.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Manifest/lockfile/image now resolves to &lt;code>nemo&amp;gt;=2.6.2&lt;/code>.&lt;/li>
+&lt;li>No vulnerable NeMo versions remain in dependency inventory.&lt;/li>
+&lt;li>PR includes one concrete control for untrusted artifact ingestion.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NVD entry: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-24159"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-24159&lt;/a>&lt;/li>
+&lt;li>NVIDIA bulletin (NeMo): &lt;a href="https://nvidia.custhelp.com/app/answers/detail/a_id/5800"target="_blank" rel="noopener">https://nvidia.custhelp.com/app/answers/detail/a_id/5800&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-24159"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-24159&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-24164 — NVIDIA BioNeMo deserialization RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-24164-nvidia-bionemo-deserialization-rce/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-24164-nvidia-bionemo-deserialization-rce/</guid><description>
+&lt;p>CVE-2026-24164 affects NVIDIA BioNeMo via deserialization of untrusted data
+(CWE-502). NVD currently rates the issue as &lt;strong>9.8 (critical)&lt;/strong> while the NVIDIA
+CNA vector is &lt;strong>8.8 (high)&lt;/strong>. Because BioNeMo often handles user-provided
+biological/model artifacts, deployments should treat this as high-priority.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> BioNeMo branches/versions that do &lt;strong>not&lt;/strong> include commit
+&lt;code>e5e58c8&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> any BioNeMo branch that includes commit &lt;code>e5e58c8&lt;/code> (or a later
+release containing that patch)&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>BioNeMo is present in runtime or build tooling.&lt;/li>
+&lt;li>Workflows deserialize external datasets/model artifacts/checkpoints.&lt;/li>
+&lt;li>Platform is reachable by untrusted users or shared tenant workloads.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">python -m pip show bionemo &lt;span class="o">||&lt;/span> &lt;span class="nb">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">git log --oneline --decorate -n &lt;span class="m">200&lt;/span> &lt;span class="p">|&lt;/span> rg e5e58c8 &lt;span class="o">||&lt;/span> &lt;span class="nb">true&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;pickle|torch\.load|yaml\.load|deserialize|bionemo&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Move to a BioNeMo revision that includes &lt;code>e5e58c8&lt;/code>.&lt;/li>
+&lt;li>Ensure loading paths reject or sandbox untrusted serialized content.&lt;/li>
+&lt;li>Restrict pipeline credentials and isolate workers handling imported artifacts.&lt;/li>
+&lt;li>Rebuild artifacts/images after patching.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-24164 (NVIDIA BioNeMo deserialization RCE).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> A reviewer-ready PR with minimal safe remediation, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> TRIAGE.md if no safe patch path exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-24164.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer applying/consuming the upstream fix commit &lt;span class="sb">`e5e58c8`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Keep changes minimal and deterministic.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Locate BioNeMo dependency source (pip, git submodule, vendored source,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container image).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Verify whether commit &lt;span class="sb">`e5e58c8`&lt;/span> is already present.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If missing, update version/ref to include it and regenerate lockfiles/images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add one control where deserialization occurs:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> trusted-source allow-list,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> explicit validation gate,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> or sandboxing/least-privilege execution note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run tests/build checks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Output PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-24164 in nvidia bionemo`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Upstream patch cannot be consumed without unsafe major migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> BioNeMo is not present in this repository/runtime.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Build/test failures are pre-existing and unrelated.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Dependency ref/release includes commit &lt;code>e5e58c8&lt;/code> or newer fixed release.&lt;/li>
+&lt;li>No vulnerable BioNeMo revision remains in lockfiles/images.&lt;/li>
+&lt;li>PR documents one concrete control for untrusted deserialization paths.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>NVD entry: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-24164"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-24164&lt;/a>&lt;/li>
+&lt;li>NVIDIA bulletin (BioNeMo): &lt;a href="https://nvidia.custhelp.com/app/answers/detail/a_id/5808"target="_blank" rel="noopener">https://nvidia.custhelp.com/app/answers/detail/a_id/5808&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-24164"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-24164&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42779 - Apache MINA resolveClass deserialization RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42779-apache-mina-resolveclass-deserialization-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42779-apache-mina-resolveclass-deserialization-rce/</guid><description>
+&lt;p>Apache MINA &lt;code>2.1.x&lt;/code> and &lt;code>2.2.x&lt;/code> releases carried an incomplete fix for a
+deserialization allowlist bypass. In affected versions,
+&lt;code>AbstractIoBuffer.resolveClass()&lt;/code> can resolve some class descriptors before the
+configured classname accept filter is enforced. Applications that deserialize
+client-controlled Java objects through &lt;code>IoBuffer.getObject()&lt;/code> or MINA object
+serialization codecs can therefore lose the expected class allowlist boundary.&lt;/p>
+&lt;p>The vulnerability is critical when a network-reachable MINA endpoint accepts
+serialized objects from untrusted or semi-trusted clients, especially when
+known Java deserialization gadget libraries are on the runtime classpath.
+Apache published MINA &lt;code>2.1.12&lt;/code> and &lt;code>2.2.7&lt;/code> as security releases for the missed
+2.1.x and 2.2.x branch fixes.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>org.apache.mina:mina-core &amp;gt;=2.1.0, &amp;lt;=2.1.11&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>org.apache.mina:mina-core &amp;gt;=2.1.12&lt;/code> on the 2.1.x line&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>org.apache.mina:mina-core &amp;gt;=2.2.0, &amp;lt;=2.2.6&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>org.apache.mina:mina-core &amp;gt;=2.2.7&lt;/code> on the 2.2.x line&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A Java service resolves vulnerable &lt;code>org.apache.mina:mina-core&lt;/code> through Maven,
+Gradle, Bazel, SBT, a vendored jar, a shaded/fat jar, or a container image.&lt;/li>
+&lt;li>The service calls &lt;code>IoBuffer.getObject()&lt;/code> or uses MINA object serialization
+helpers such as &lt;code>ObjectSerializationCodecFactory&lt;/code>,
+&lt;code>ObjectSerializationDecoder&lt;/code>, or a &lt;code>ProtocolCodecFilter&lt;/code> built around object
+serialization.&lt;/li>
+&lt;li>The affected MINA protocol endpoint is reachable by clients that are not
+fully trusted application operators.&lt;/li>
+&lt;li>The runtime classpath includes libraries commonly usable in Java
+deserialization gadget chains.&lt;/li>
+&lt;li>The application relies on MINA classname accept filters as the primary
+protection around object deserialization.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;org\\.apache\\.mina|mina-core|IoBuffer\\.getObject|ObjectSerializationCodecFactory|ObjectSerializationDecoder|acceptMatchers|ProtocolCodecFilter&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mvn -q dependency:tree -Dincludes&lt;span class="o">=&lt;/span>org.apache.mina:mina-core
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">gradle -q dependencyInsight --dependency mina-core --configuration runtimeClasspath
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -name &lt;span class="s2">&amp;#34;*.jar&amp;#34;&lt;/span> -maxdepth &lt;span class="m">8&lt;/span> &lt;span class="p">|&lt;/span> xargs -r -n1 sh -c &lt;span class="s1">&amp;#39;jar tf &amp;#34;$0&amp;#34; 2&amp;gt;/dev/null | grep -q &amp;#34;org/apache/mina/core/buffer/AbstractIoBuffer.class&amp;#34; &amp;amp;&amp;amp; echo &amp;#34;$0&amp;#34;&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled &lt;code>mina-core&lt;/code> runtime on its current release line:
+&lt;code>2.1.x&lt;/code> to &lt;code>2.1.12+&lt;/code> or &lt;code>2.2.x&lt;/code> to &lt;code>2.2.7+&lt;/code>.&lt;/li>
+&lt;li>Regenerate lockfiles, dependency constraints, shaded artifacts, SBOMs,
+container images, deployment manifests, and runtime dependency reports.&lt;/li>
+&lt;li>Treat &lt;code>IoBuffer.getObject()&lt;/code> on untrusted input as dangerous even after the
+upgrade. Prefer protocol-specific parsers, JSON/CBOR/Protobuf schemas, or
+other non-Java-object wire formats for externally supplied data.&lt;/li>
+&lt;li>If immediate upgrade is blocked, disable or isolate MINA object serialization
+endpoints, restrict network reachability to trusted peers, and document the
+residual RCE risk until a fixed dependency is deployed.&lt;/li>
+&lt;li>Add defense-in-depth serialization filtering where the platform supports it,
+but do not count runtime filters as a replacement for the MINA upgrade.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42779 (Apache MINA
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`AbstractIoBuffer.resolveClass()`&lt;/span> deserialization allowlist bypass leading to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">RCE). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Apache MINA, verifies
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> affected object-deserialization exposure, and documents operator containment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected MINA runtime or cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42779.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run public exploits, gadget-chain payloads, ysoserial payloads, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exploit-like serialized objects against production or shared environments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, commit, or attach serialized payloads, credentials, session
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> material, customer data, or captured network traffic.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not hand-edit vendored Apache MINA source unless no package upgrade path
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exists and the change is explicitly marked as temporary containment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not replace Java deserialization with a new ad hoc parser without tests
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and reviewer-visible behavior notes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all Apache MINA usage controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Maven/Gradle/SBT/Bazel manifests, lockfiles, dependency constraints,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored jars, shaded/fat jars, SBOMs, Dockerfiles, base images, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment manifests, generated dependency reports, and runtime start
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scripts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`org.apache.mina:mina-core`&lt;/span> version. A target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;gt;=2.1.0, &amp;lt;=2.1.11`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;gt;=2.2.0, &amp;lt;=2.2.6`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the repository only contains clients, docs, or deployment pointers and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> does not own the affected runtime, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> naming the owner,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> evidence checked, vulnerable version evidence if present, and required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rollout actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Search for object deserialization exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`IoBuffer.getObject()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`ObjectSerializationCodecFactory`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`ObjectSerializationDecoder`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`ProtocolCodecFilter`&lt;/span> configurations that decode Java objects;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> custom wrappers around MINA object serialization;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> protocol listeners reachable from users, partners, plugins, agents, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> other semi-trusted clients.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade vulnerable runtimes on their existing release line:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`2.1.x`&lt;/span> to &lt;span class="sb">`2.1.12+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`2.2.x`&lt;/span> to &lt;span class="sb">`2.2.7+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Regenerate dependency locks, build metadata, shaded jars, SBOMs, image
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> digests, and rendered deployment artifacts used by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If a dependency constraint or transitive dependency keeps MINA vulnerable,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> update the owning direct dependency, add a scoped dependency override, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the owning upstream blocker in &lt;span class="sb">`TRIAGE.md`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If this codebase exposes MINA object deserialization to untrusted clients,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> add the safest small hardening change available in scope:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable the object-serialization codec for external endpoints;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require trusted network/authentication boundaries before that codec is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add or tighten runtime serialization filters as defense in depth;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add a runbook for replacing Java object serialization with a typed wire
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> format in a follow-up change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add or update tests/checks that are safe for a default branch:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency-resolution test or build assertion proving &lt;span class="sb">`mina-core`&lt;/span> is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> regression or configuration test proving external endpoints do not enable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> MINA object deserialization unintentionally;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> smoke test for the legitimate MINA protocol behavior after the upgrade.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Do not include exploit payloads or gadget chains.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42779 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> every resolved MINA version before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`IoBuffer.getObject()`&lt;/span> or object serialization codecs are present;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which endpoints, if any, were reachable by untrusted clients;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> what temporary network or feature containment is required before rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether suspicious protocol traffic or unexpected deserialization errors
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be reviewed in logs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> what follow-up is needed to remove Java object serialization from the wire
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> protocol if it remains.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run the relevant validation: package-manager resolution, unit/integration
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, dependency/security scan, SBOM generation, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, and service smoke tests available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42779 in Apache MINA`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Apache MINA runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved MINA version is already outside the CVE-2026-42779 affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ranges and no vulnerable shaded or vendored copy is present.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed MINA release cannot be consumed without a larger protocol or platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verifying exposure would require running exploit payloads, gadget chains, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unsafe serialized objects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would silently change a public wire protocol without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compatibility tests or operator approval.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable Java runtime resolves &lt;code>mina-core&lt;/code> &lt;code>2.1.0&lt;/code> through &lt;code>2.1.11&lt;/code> or
+&lt;code>2.2.0&lt;/code> through &lt;code>2.2.6&lt;/code>, including transitive, vendored, shaded, and image
+copies.&lt;/li>
+&lt;li>Build files, lockfiles, SBOMs, image metadata, and deployment manifests agree
+on the patched MINA version.&lt;/li>
+&lt;li>The change identifies whether &lt;code>IoBuffer.getObject()&lt;/code> or MINA object
+serialization codecs are reachable from untrusted clients.&lt;/li>
+&lt;li>Any temporary containment is explicit and does not pretend to be full
+remediation.&lt;/li>
+&lt;li>Tests and dependency scans pass, or unrelated failures are documented with
+enough detail for a reviewer to separate them from the security fix.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Fat jars and vendor directories that keep old MINA classes after the manifest
+dependency is upgraded.&lt;/li>
+&lt;li>Frameworks or products that embed MINA and do not expose &lt;code>mina-core&lt;/code> as a
+direct dependency in the application manifest.&lt;/li>
+&lt;li>Internal-only MINA endpoints that are still reachable by partner networks,
+plugins, agents, or compromised workloads.&lt;/li>
+&lt;li>Fixes that upgrade MINA but leave Java object deserialization exposed as a
+long-term protocol for untrusted clients.&lt;/li>
+&lt;li>Treating JEP 290 or other runtime serialization filters as sufficient when
+the vulnerable MINA branch is still deployed.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-vf5j-865m-mq7c"target="_blank" rel="noopener">https://github.com/advisories/GHSA-vf5j-865m-mq7c&lt;/a>&lt;/li>
+&lt;li>Apache MINA security release announcement: &lt;a href="https://www.mail-archive.com/users%40mina.apache.org/msg07130.html"target="_blank" rel="noopener">https://www.mail-archive.com/users%40mina.apache.org/msg07130.html&lt;/a>&lt;/li>
+&lt;li>Related earlier CVE-2026-41635 NVD entry: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41635"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41635&lt;/a>&lt;/li>
+&lt;li>Apache MINA project: &lt;a href="https://mina.apache.org/"target="_blank" rel="noopener">https://mina.apache.org/&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

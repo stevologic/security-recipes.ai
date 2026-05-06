@@ -1,0 +1,236 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Notebook</title><link>https://security-recipes.ai/tags/notebook/</link><description>Recent content in Notebook on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/notebook/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-40171 - Jupyter CommandLinker token theft</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-40171-jupyter-commandlinker-token-theft/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-40171-jupyter-commandlinker-token-theft/</guid><description>
+&lt;p>Jupyter Notebook and JupyterLab shipped a stored XSS path in command-linker
+handling used by the help extensions. A malicious notebook or Markdown file can
+present a UI element that looks like a normal Jupyter control; when a signed-in
+user interacts with it, attacker-controlled script can obtain the user&amp;rsquo;s
+Jupyter authentication token.&lt;/p>
+&lt;p>The token is enough to act through the Jupyter REST API as that user. In a
+shared AI notebook environment, that can become file access, file modification,
+kernel access, arbitrary code execution through running kernels, or terminal
+creation. For agentic AI platforms, the risk is larger than a browser bug: a
+notebook is both context and execution surface, so untrusted notebook content
+must not be able to cross into session authority.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>notebook &amp;gt;=7.0.0, &amp;lt;=7.5.5&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>notebook 7.5.6+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>jupyterlab &amp;lt;=4.5.6&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>jupyterlab 4.5.7+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable npm package:&lt;/strong> &lt;code>@jupyter-notebook/help-extension &amp;gt;=7.0.0, &amp;lt;=7.5.5&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed npm package:&lt;/strong> &lt;code>@jupyter-notebook/help-extension 7.5.6+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable npm package:&lt;/strong> &lt;code>@jupyterlab/help-extension &amp;lt;=4.5.6&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed npm package:&lt;/strong> &lt;code>@jupyterlab/help-extension 4.5.7+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, deploys, or configures Jupyter Notebook 7.x,
+JupyterLab, JupyterHub images, Codespaces/devcontainer notebook images,
+data-science workbenches, ML training sandboxes, or agent notebook
+workspaces.&lt;/li>
+&lt;li>Any resolved &lt;code>notebook&lt;/code> package is &lt;code>&amp;gt;=7.0.0, &amp;lt;=7.5.5&lt;/code>.&lt;/li>
+&lt;li>Any resolved &lt;code>jupyterlab&lt;/code> package is &lt;code>&amp;lt;=4.5.6&lt;/code>.&lt;/li>
+&lt;li>Frontend bundles, labextension locks, or package manager metadata include
+vulnerable &lt;code>@jupyter-notebook/help-extension&lt;/code> or &lt;code>@jupyterlab/help-extension&lt;/code>
+versions.&lt;/li>
+&lt;li>Users, agents, reviewers, or CI jobs may open notebooks, Markdown files, or
+generated reports from untrusted repositories, uploads, tickets, chats, or
+model outputs.&lt;/li>
+&lt;li>The Jupyter server can read project files, dataset mounts, model artifacts,
+cloud credentials, workspace secrets, Git credentials, SSH keys, or internal
+network resources.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;jupyterlab|notebook|jupyterhub|@jupyterlab/help-extension|@jupyter-notebook/help-extension|allowCommandLinker|data-commandLinker&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">python -m pip show notebook jupyterlab
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pip freeze &lt;span class="p">|&lt;/span> rg &lt;span class="s2">&amp;#34;^(notebook|jupyterlab)==&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @jupyterlab/help-extension @jupyter-notebook/help-extension
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;jupyter labextension disable|overrides\\.json|apputils-extension:sanitizer|NotebookApp|ServerApp&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml pyproject.toml requirements*.txt environment*.yml package*.json pnpm-lock.yaml yarn.lock charts deploy k8s .devcontainer .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Notebook deployment to &lt;code>notebook 7.5.6+&lt;/code>.&lt;/li>
+&lt;li>Upgrade every controlled JupyterLab deployment to &lt;code>jupyterlab 4.5.7+&lt;/code>.&lt;/li>
+&lt;li>Regenerate Python locks, environment files, frontend/labextension locks,
+container image digests, SBOMs, workspace templates, and deployment render
+output.&lt;/li>
+&lt;li>Where users or agents may open untrusted notebooks, disable command-linker
+behavior even after upgrade by setting sanitizer policy such as
+&lt;code>allowCommandLinker: false&lt;/code>.&lt;/li>
+&lt;li>Until patched images are deployed, disable the vulnerable help extensions in
+controlled runtime images or startup hooks.&lt;/li>
+&lt;li>Treat this as a session-token exposure if untrusted notebooks were opened in
+a vulnerable shared workspace. Rotate relevant workspace tokens, invalidate
+sessions where possible, and review Jupyter access logs for unusual file,
+kernel, and terminal activity.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-40171 / GHSA-rch3-82jr-f9w9 (Jupyter
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Notebook/JupyterLab stored XSS that can steal Jupyter auth tokens through
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">command-linker content). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Jupyter, disables or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> constrains command-linker behavior for untrusted notebook contexts, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Jupyter runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-40171 / GHSA-rch3-82jr-f9w9 and directly related Jupyter
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> command-linker hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Jupyter auth tokens, API tokens, kernels, terminal sessions, workspace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> files, notebooks, datasets, model artifacts, cloud credentials, Git
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials, SSH keys, and browser session data as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create or open an exploit notebook against production, staging,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shared dev, hosted notebook, or user workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, commit, or attach real Jupyter tokens, cookies,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> file contents, terminal output, kernel output, or secret-bearing notebook
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cells.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve command-linker behavior for untrusted notebook ingestion
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unless a product/security owner explicitly accepts the risk in the PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Jupyter runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Python manifests, lockfiles, Conda environment files, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> devcontainers, Codespaces config, JupyterHub images, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, notebook workspace templates,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> frontend extension bundles, SBOMs, runbooks, and CI images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`notebook`&lt;/span> is vulnerable if it resolves to &lt;span class="sb">`&amp;gt;=7.0.0, &amp;lt;=7.5.5`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`jupyterlab`&lt;/span> is vulnerable if it resolves to &lt;span class="sb">`&amp;lt;=4.5.6`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@jupyter-notebook/help-extension`&lt;/span> is vulnerable if it resolves to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;gt;=7.0.0, &amp;lt;=7.5.5`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@jupyterlab/help-extension`&lt;/span> is vulnerable if it resolves to &lt;span class="sb">`&amp;lt;=4.5.6`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine exposure without exploit testing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Can users, agents, reviewers, CI jobs, or support staff open notebooks or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Markdown files from untrusted repositories, uploads, tickets, chats, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> model outputs?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Does the runtime expose kernels, terminals, dataset mounts, model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> artifacts, source code, cloud credentials, or internal network access?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Are Jupyter tokens long-lived, shared, logged, embedded in URLs, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reachable by browser JavaScript?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not own an affected runtime, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> naming the files checked, suspected runtime owner, resolved versions if
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> known, and required fixed versions &lt;span class="sb">`notebook 7.5.6+`&lt;/span> and &lt;span class="sb">`jupyterlab 4.5.7+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every controlled runtime:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`notebook`&lt;/span> to &lt;span class="sb">`7.5.6+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`jupyterlab`&lt;/span> to &lt;span class="sb">`4.5.7+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@jupyter-notebook/help-extension`&lt;/span> to &lt;span class="sb">`7.5.6+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`@jupyterlab/help-extension`&lt;/span> to &lt;span class="sb">`4.5.7+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Regenerate locks, environment files, labextension metadata, image digests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, and rendered deployment manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add defense in depth for untrusted notebook contexts:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set the JupyterLab sanitizer setting &lt;span class="sb">`allowCommandLinker`&lt;/span> to &lt;span class="sb">`false`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> where this repository controls defaults;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable the affected help extensions in temporary containment images if
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an upgrade cannot be deployed atomically;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> make uploaded or agent-generated notebooks open in a lower-trust
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workspace without user secrets, terminals, or privileged kernels;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ensure tokens are not embedded in shareable URLs or logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add safe regression checks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency or lockfile assertions for the fixed package versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> image/version probes for Notebook and JupyterLab;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> config tests proving &lt;span class="sb">`allowCommandLinker`&lt;/span> is false in untrusted notebook
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> profiles;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> static sanitizer tests using inert fixture strings, not live exploit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> notebooks and not real tokens;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deployment render checks proving patched images or containment settings
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> are present.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add operator containment for non-atomic rollouts:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> temporarily block untrusted notebook uploads or previews;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable terminals for high-risk shared notebook pools if feasible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restart vulnerable notebook servers after patched images roll out;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> invalidate active browser sessions or Jupyter tokens where exposure was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plausible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> preserve logs needed to review suspicious API, file, kernel, and terminal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> activity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-40171 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Notebook, JupyterLab, and help-extension versions before and after the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which notebook workspaces could open untrusted notebooks or Markdown;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether command linker remains enabled anywhere and why;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether tokens, sessions, kernels, terminals, datasets, model artifacts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or workspace files may have been exposed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which sessions or tokens should be invalidated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for file reads, file writes, kernel
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> execution, terminal creation, or unexpected REST API use.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package-manager install, lockfile consistency,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unit tests, frontend tests, image build, Jupyter startup/version checks,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment rendering, SBOM refresh, dependency/security scans, and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> notebook workspace smoke tests available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-40171 in Jupyter workspaces`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Jupyter runtime, image, extension bundle, or workspace template
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Jupyter version cannot be consumed without a broader notebook
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only available verification would require opening a weaponized notebook
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or extracting a real token.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally require command-linker execution inside
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> untrusted notebooks; document the risk and require a product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Python lock, Conda environment, npm lock, labextension bundle,
+image, SBOM, or deployment target resolves vulnerable Notebook, JupyterLab,
+or help-extension versions.&lt;/li>
+&lt;li>Untrusted notebook profiles disable command linker or run in a reduced-trust
+workspace without privileged kernels, terminals, user secrets, or broad file
+mounts.&lt;/li>
+&lt;li>Tests prove the fixed versions and sanitizer defaults without creating a live
+exploit notebook or exposing a real token.&lt;/li>
+&lt;li>Operator actions cover session/token invalidation and log review when
+vulnerable users could have opened untrusted notebooks.&lt;/li>
+&lt;li>The PR does not contain notebook cells, screenshots, logs, or fixtures with
+real tokens, cookies, files, kernel output, terminal output, or secrets.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>requirements.txt&lt;/code> while Conda envs, Docker layers, JupyterHub
+single-user images, devcontainers, or labextension bundles still ship the
+vulnerable frontend.&lt;/li>
+&lt;li>Treating an authenticated-only notebook server as safe when the attack
+depends on a signed-in user opening untrusted notebook content.&lt;/li>
+&lt;li>Fixing JupyterLab while leaving Notebook 7.x images, workspace templates, or
+CI notebook renderers vulnerable.&lt;/li>
+&lt;li>Keeping command linker enabled in agent-generated notebook previews where
+model output can become clickable UI.&lt;/li>
+&lt;li>Logging token-bearing URLs or REST requests while adding diagnostics.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-rch3-82jr-f9w9"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rch3-82jr-f9w9&lt;/a>&lt;/li>
+&lt;li>JupyterLab command-linker documentation: &lt;a href="https://jupyterlab.readthedocs.io/en/latest/user/commands.html#commands-in-markdown-output-and-files"target="_blank" rel="noopener">https://jupyterlab.readthedocs.io/en/latest/user/commands.html#commands-in-markdown-output-and-files&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

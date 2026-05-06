@@ -1,0 +1,191 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Ssh-Mcp</title><link>https://security-recipes.ai/tags/ssh-mcp/</link><description>Recent content in Ssh-Mcp on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/ssh-mcp/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-7039 - ssh-mcp description command injection</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-7039-ssh-mcp-description-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-7039-ssh-mcp-description-command-injection/</guid><description>
+&lt;p>&lt;code>tufantunc/ssh-mcp&lt;/code> versions through &lt;code>1.5.0&lt;/code> are reported vulnerable to command
+injection in the MCP SSH execution path. The issue is especially dangerous when
+&lt;code>su&lt;/code> mode is enabled: the &lt;code>description&lt;/code> metadata field can be appended to a
+shell command and written to an interactive shell through &lt;code>shell.write()&lt;/code>.&lt;/p>
+&lt;p>The public report describes newline injection in &lt;code>description&lt;/code>. A benign-looking
+tool description can terminate the comment context and add a second command that
+runs with the privileges of the active shell. In &lt;code>su&lt;/code> mode, that can become root
+command execution on the SSH target.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>tufantunc/ssh-mcp &amp;lt;=1.5.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> no confirmed fixed release was identified in the checked GitHub
+Advisory Database and issue sources. If a later release exists, treat it as
+fixed only after verifying the changelog or patch removes newline/control
+character injection before &lt;code>shell.write()&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, vendors, builds, packages, or documents
+&lt;code>tufantunc/ssh-mcp&lt;/code>.&lt;/li>
+&lt;li>An MCP host can invoke the &lt;code>exec&lt;/code> or &lt;code>sudo-exec&lt;/code> tools with a caller-supplied
+&lt;code>description&lt;/code> field.&lt;/li>
+&lt;li>&lt;code>--suPassword&lt;/code>, persistent &lt;code>su&lt;/code> shell mode, privileged SSH users, or broad
+sudo permissions are enabled.&lt;/li>
+&lt;li>LLM-generated tool calls or user-controlled prompts can influence the
+&lt;code>description&lt;/code> value.&lt;/li>
+&lt;li>MCP logs show descriptions with line breaks, carriage returns, shell
+metacharacters, or unexpected commands near SSH execution events.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;ssh-mcp|tufantunc|suPassword|sudo-exec|shell.write|description&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls ssh-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why ssh-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why ssh-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;mcp.*ssh|ssh.*mcp|tools/call|description&amp;#34;&lt;/span> .mcp* config* docker-compose*.yml Dockerfile* charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Remove or disable &lt;code>ssh-mcp&lt;/code> where it is not strictly required.&lt;/li>
+&lt;li>Do not run affected &lt;code>ssh-mcp&lt;/code> versions with &lt;code>--suPassword&lt;/code>, persistent root
+shells, privileged SSH users, or broad sudo access.&lt;/li>
+&lt;li>If this repository owns a fork or vendored copy, patch command construction so
+human-readable descriptions are never concatenated into executable shell
+input. At minimum, reject or normalize &lt;code>\n&lt;/code>, &lt;code>\r&lt;/code>, NUL, ANSI control
+characters, and shell command delimiters before any &lt;code>shell.write()&lt;/code> call.&lt;/li>
+&lt;li>Prefer structured logging for descriptions instead of appending them as shell
+comments.&lt;/li>
+&lt;li>Run the MCP server with a dedicated least-privilege SSH identity, explicit
+command allow-lists, session recording, and egress/host restrictions.&lt;/li>
+&lt;li>Rotate SSH credentials and review command logs if an exposed deployment ran
+affected versions with privileged shell mode.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-7039 (tufantunc ssh-mcp description command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that removes, upgrades, or safely patches
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the affected MCP SSH execution path and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected deployment or cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-7039.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat SSH private keys, passwords, sudo passwords, MCP tokens, command output,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> session transcripts, and hostnames as sensitive. Do not print or commit them.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run exploit payloads against production, staging, shared SSH targets,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> developer machines, or real privileged accounts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve &lt;span class="sb">`su`&lt;/span> shell behavior by only escaping one character class.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every &lt;span class="sb">`ssh-mcp`&lt;/span> reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`package.json`&lt;/span>, lockfiles, vendored source, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm values, Kubernetes manifests, MCP client/server config, runbooks, CI,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated SBOMs, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployable target runs &lt;span class="sb">`tufantunc/ssh-mcp &amp;lt;=1.5.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether the dangerous path is reachable:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`exec`&lt;/span> or &lt;span class="sb">`sudo-exec`&lt;/span> MCP tools are enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tool callers can supply &lt;span class="sb">`description`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`--suPassword`&lt;/span> or persistent &lt;span class="sb">`su`&lt;/span> shell mode is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> the SSH identity has root, passwordless sudo, or broad host access;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> an LLM, user prompt, ticket body, workflow input, or remote config can
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> influence tool arguments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the package is not present or the repository only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> docs, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing the files checked and the owner that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> must remediate the runtime.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer removal or disablement when SSH command execution is not required.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Remove the MCP server registration, image, dependency, and runbook steps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If a verified fixed upstream release is available, upgrade to that release,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regenerate lockfiles/SBOMs/images, and keep the hardening steps below.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If this repository owns a fork or vendored code, patch command handling:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> keep &lt;span class="sb">`description`&lt;/span> out of executable shell input entirely;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> log description as structured metadata, not a shell comment;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject or normalize &lt;span class="sb">`\n`&lt;/span>, &lt;span class="sb">`\r`&lt;/span>, NUL, ANSI controls, backticks, &lt;span class="sb">`$()`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> semicolons, pipes, redirects, and other shell delimiters before any legacy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> compatibility path;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add a single command-construction helper used by &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`sudo-exec`&lt;/span>, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> any shared SSH execution path;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ensure the value passed to &lt;span class="sb">`shell.write()`&lt;/span> is built from validated command
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fields only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add safe tests that do not contact a real SSH host:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a unit test proving descriptions containing &lt;span class="sb">`\n id`&lt;/span>, &lt;span class="sb">`\r`&lt;/span>, &lt;span class="sb">`;`&lt;/span>, &lt;span class="sb">`&amp;amp;&amp;amp;`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> backticks, and &lt;span class="sb">`$()`&lt;/span> are rejected or logged as inert metadata;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a test proving the command sent to the shell excludes description text;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> a regression test covering both normal and &lt;span class="sb">`su`&lt;/span>/sudo execution builders.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add deployment containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable &lt;span class="sb">`--suPassword`&lt;/span> and persistent root shell mode by default;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run with a dedicated low-privilege SSH account;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict allowed commands or target hosts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add audit logging that records command IDs without secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-7039 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`ssh-mcp`&lt;/span> was removed, upgraded, or patched;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`su`&lt;/span> mode or privileged SSH identities were present;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which MCP clients or workflows could supply &lt;span class="sb">`description`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which SSH keys, passwords, or host credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which MCP and SSH logs should be reviewed for multiline descriptions or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unexpected child commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: package install, lockfile integrity, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lint/typecheck, container build, MCP config validation, SBOM generation, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-7039 in ssh-mcp`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No &lt;span class="sb">`ssh-mcp`&lt;/span> deployment, package, vendored source, or MCP registration is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A verified fixed upstream release is unavailable and the repository does not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> own a fork or vendored patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only apparent fix would require running exploit commands against real SSH
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> hosts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The product intentionally requires root shell MCP access and there is no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> approved decision to remove or contain it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled deployment still runs &lt;code>tufantunc/ssh-mcp &amp;lt;=1.5.0&lt;/code> with &lt;code>su&lt;/code>
+mode enabled unless there is a documented operator-owned containment decision.&lt;/li>
+&lt;li>Descriptions are never concatenated into the string sent to &lt;code>shell.write()&lt;/code>.&lt;/li>
+&lt;li>Regression tests prove multiline/control-character descriptions cannot add a
+command.&lt;/li>
+&lt;li>MCP configuration removes or restricts privileged SSH execution paths.&lt;/li>
+&lt;li>Operator actions cover credential rotation and review of MCP/SSH command
+logs for the exposure window.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Treating &lt;code>description&lt;/code> as harmless metadata even though tool arguments can be
+shaped by users or LLM output.&lt;/li>
+&lt;li>Escaping only &lt;code>#&lt;/code> or only newlines while leaving other shell delimiters active.&lt;/li>
+&lt;li>Updating package manifests while old MCP server registrations, images, or
+global installs remain in use.&lt;/li>
+&lt;li>Running the MCP server with developer SSH keys or root-capable automation
+credentials.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database listing: &lt;a href="https://github.com/advisories?query=severity%3Ahigh&amp;#43;sort%3Apublished-desc"target="_blank" rel="noopener">https://github.com/advisories?query=severity%3Ahigh+sort%3Apublished-desc&lt;/a>&lt;/li>
+&lt;li>CVE record: &lt;a href="https://www.cve.org/CVERecord?id=CVE-2026-7039"target="_blank" rel="noopener">https://www.cve.org/CVERecord?id=CVE-2026-7039&lt;/a>&lt;/li>
+&lt;li>Public issue report: &lt;a href="https://github.com/tufantunc/ssh-mcp/issues/44"target="_blank" rel="noopener">https://github.com/tufantunc/ssh-mcp/issues/44&lt;/a>&lt;/li>
+&lt;li>VulDB advisory: &lt;a href="https://vuldb.com/vuln/359619"target="_blank" rel="noopener">https://vuldb.com/vuln/359619&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

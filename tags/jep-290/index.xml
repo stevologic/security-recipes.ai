@@ -1,0 +1,198 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Jep-290</title><link>https://security-recipes.ai/tags/jep-290/</link><description>Recent content in Jep-290 on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/jep-290/index.xml" rel="self" type="application/rss+xml"/><item><title>Java ObjectInputStream and friends</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/</guid><description>
+&lt;p>&lt;code>ObjectInputStream.readObject()&lt;/code> is the Java equivalent of
+pickle: a payload of class metadata that the runtime
+&lt;em>reconstructs&lt;/em>, including invoking constructors, setting
+fields, and triggering &lt;code>readObject&lt;/code> / &lt;code>readResolve&lt;/code> /
+&lt;code>finalize&lt;/code> on every class in the graph. The &amp;ldquo;gadget chains&amp;rdquo;
+that make this exploitable have been written and re-written
+since 2015; the CVE shelf is full.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>new ObjectInputStream(...).readObject()&lt;/code> on any
+network / file / DB-blob input.&lt;/li>
+&lt;li>Frameworks that serialize via Java serialization under the
+hood: older RMI, JMS, JNDI lookup-with-RemoteObject paths,
+some session-replication backends.&lt;/li>
+&lt;li>Legacy uses of &lt;code>ObjectInputStream&lt;/code> for &amp;ldquo;convenient&amp;rdquo;
+same-VM persistence — still dangerous if the file ever
+reaches a different VM with different classpath assumptions.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A malicious payload using a known gadget chain (commons-
+collections, Spring, Groovy, the long-running Pwn-Twitter
+list) can RCE on &lt;code>readObject()&lt;/code> without the application code
+ever being entered. There is no patch coming; the design
+predates the threat model.&lt;/p>
+&lt;h2>Mitigation — JEP 290 deserialization filters&lt;span class="hx:absolute hx:-mt-20" id="mitigation--jep-290-deserialization-filters">&lt;/span>
+&lt;a href="#mitigation--jep-290-deserialization-filters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Java 9+ exposes
+&lt;code>ObjectInputFilter&lt;/code> / &lt;code>ObjectInputFilter.Config&lt;/code> (and the
+older &lt;code>setObjectInputFilter&lt;/code> API). Set a strict allowlist
+filter on every &lt;code>ObjectInputStream&lt;/code> the application creates:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-java" data-lang="java">&lt;span class="line">&lt;span class="cl">&lt;span class="n">ObjectInputFilter&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">allowlist&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ObjectInputFilter&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">Config&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">createFilter&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s">&amp;#34;com.example.Order;com.example.OrderItem;java.lang.Number;&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s">&amp;#34;java.util.ArrayList;java.util.HashMap;&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="s">&amp;#34;!*&amp;#34;&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="c1">// reject everything else&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="k">try&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ObjectInputStream&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">in&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">new&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">ObjectInputStream&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">input&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">in&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">setObjectInputFilter&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">allowlist&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="n">Object&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">obj&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">in&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="na">readObject&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w"> &lt;/span>&lt;span class="c1">// ...&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="p">}&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Or set it globally at JVM start:
+&lt;code>-Djdk.serialFilter='com.example.*;java.lang.Number;!*'&lt;/code>. The
+filter rejects every class outside the allowlist before the
+class is loaded, before &lt;code>readObject&lt;/code> is invoked, before any
+gadget chain runs.&lt;/p>
+&lt;h2>Uplift — replace ObjectInputStream entirely&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-objectinputstream-entirely">&lt;/span>
+&lt;a href="#uplift--replace-objectinputstream-entirely" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For any new-write path, switch to a JSON serializer with
+explicit type handling:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Jackson&lt;/strong> with default-typing &lt;strong>disabled&lt;/strong> and
+&lt;code>@JsonTypeInfo(use=Id.NAME)&lt;/code> plus
+&lt;code>@JsonSubTypes({...})&lt;/code> enumerations on polymorphic fields,
+&lt;em>or&lt;/em> a &lt;code>BasicPolymorphicTypeValidator&lt;/code> allowlist if default
+typing genuinely cannot be removed.&lt;/li>
+&lt;li>&lt;strong>Gson&lt;/strong> with explicit &lt;code>TypeAdapter&lt;/code> / &lt;code>RuntimeTypeAdapterFactory&lt;/code>
+registrations.&lt;/li>
+&lt;li>&lt;strong>Protobuf&lt;/strong> when the data is structured enough to warrant a
+schema.&lt;/li>
+&lt;/ul>
+&lt;p>Read paths for legacy data: keep an &lt;code>ObjectInputStream&lt;/code> reader
+&lt;em>with the JEP 290 filter installed&lt;/em> until the persisted data
+has been migrated; then remove the reader.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every &lt;code>new ObjectInputStream(...)&lt;/code> and
+every framework call known to deserialize Java objects
+internally.&lt;/li>
+&lt;li>&lt;strong>Strategy&lt;/strong> — mitigate / uplift / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating Java deserialization call sites in this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">repo. Output a PR or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every &lt;span class="sb">`new ObjectInputStream(...)`&lt;/span> in the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> List every framework usage that deserializes Java objects
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> internally — check for &lt;span class="sb">`ObjectMapper.readValue`&lt;/span> with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`enableDefaultTyping`&lt;/span>, RMI registrations, JMS message
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> listeners that trust message bodies, session-replication
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bindings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> For each, record whether the input crosses a trust
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boundary.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **All call sites:** mitigate by adding a JEP 290 filter.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> This is required regardless of any uplift.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **New-write paths:** also uplift to JSON with explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> typing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Legacy read paths:** keep the filtered ObjectInputStream
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> until data is migrated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Mitigate
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Define a single allowlist filter as a constant in a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security utility class.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Apply the filter to every ObjectInputStream creation. If
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the codebase has many call sites, factor a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`safeObjectInputStream(InputStream)`&lt;/span> helper and migrate to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Optionally, add the global JEP 290 filter to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> application&amp;#39;s JVM args / Dockerfile / launcher.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A payload containing an allowlisted class deserializes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> successfully.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> A payload containing a non-allowlisted class
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`org.apache.commons.collections.functors.InvokerTransformer`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`java.lang.Runtime`&lt;/span>) is rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Uplift (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Replace &lt;span class="sb">`ObjectOutputStream`&lt;/span> writers with the chosen JSON
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> serializer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add a behaviour-preservation test that round-trips a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> representative object through the old binary format and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the new JSON format and asserts field-by-field equality.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the codebase persists data: add a one-time migration job
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that reads old binary files via the filtered ObjectInputStream
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and writes them as JSON. Document a removal date for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> legacy reader.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/java-deser-&amp;lt;module-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][deserialization] add JEP 290 filter / uplift to JSON in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: call-site inventory, allowlist contents, test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> additions, migration plan if applicable, and the JVM-args
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> change if global filter applied.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A framework is doing the deserialization and the agent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot inject a filter. (E.g., a third-party library that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exposes no filter hook — flag and triage.)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Default typing in Jackson is load-bearing for a feature the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent cannot reshape without an API change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Test coverage on the call path is too thin to detect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regressions safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle in unrelated refactors.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the allowlist.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not remove the legacy reader without a documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Allowlist drift.&lt;/strong> A reviewer who adds a class to the
+allowlist next quarter without re-reading the gadget-chain
+list defeats the mitigation. Guard with a comment that says
+so explicitly, and re-review the allowlist quarterly.&lt;/li>
+&lt;li>&lt;strong>&lt;code>enableDefaultTyping&lt;/code> re-enabled.&lt;/strong> Jackson will resolve
+arbitrary classes if default typing is on. The Jackson
+recipe is a sibling pattern; if the codebase uses it, fix
+both at once.&lt;/li>
+&lt;li>&lt;strong>JNDI lookups in deserialized payloads.&lt;/strong> Even with a strict
+filter, some allowed classes can re-trigger lookups —
+validate the allowlist against the
+&lt;a href="https://security-recipes.ai/prompt-library/cve/">log4j-style JNDI lookups&lt;/a>
+threat surface.&lt;/li>
+&lt;li>&lt;strong>Globally setting the JVM filter&lt;/strong> can break other
+applications on the same JVM if any. Prefer per-stream
+filters when the JVM hosts multiple applications.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/">Python pickle&lt;/a>
+— same risk class in Python.&lt;/li>
+&lt;/ul></description></item></channel></rss>

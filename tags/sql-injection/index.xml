@@ -1,0 +1,218 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Sql-Injection</title><link>https://security-recipes.ai/tags/sql-injection/</link><description>Recent content in Sql-Injection on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/sql-injection/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41478 - Saltcorn mobile-sync SQL injection</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41478-saltcorn-mobile-sync-sql-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41478-saltcorn-mobile-sync-sql-injection/</guid><description>
+&lt;p>Saltcorn contains a critical SQL injection vulnerability in its mobile-sync
+routes. The affected endpoints accept sync metadata from an authenticated
+request and pass values into SQL-building helpers without treating them as
+bound values.&lt;/p>
+&lt;p>The advisory calls out &lt;code>POST /sync/load_changes&lt;/code> and &lt;code>POST /sync/deletes&lt;/code>.
+In particular, &lt;code>syncInfos[tableName].maxLoadedId&lt;/code> can reach &lt;code>getSyncRows()&lt;/code>,
+and timestamp-derived request values can reach &lt;code>getDelRows()&lt;/code>. A normal
+authenticated user with read access to at least one table may be able to
+exfiltrate application tables, admin password hashes, schema metadata, and
+configuration secrets. On some database backends or deployments, the same flaw
+may also allow write, DDL, or destructive database operations.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@saltcorn/server &amp;lt;1.4.6&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@saltcorn/server &amp;gt;=1.5.0-beta.0, &amp;lt;1.5.6&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@saltcorn/server &amp;gt;=1.6.0-alpha.0, &amp;lt;1.6.0-beta.5&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>@saltcorn/server 1.4.6&lt;/code>, &lt;code>1.5.6&lt;/code>, and &lt;code>1.6.0-beta.5+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected routes:&lt;/strong> &lt;code>POST /sync/load_changes&lt;/code> and &lt;code>POST /sync/deletes&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys, embeds, vendors, extends, or containerizes Saltcorn.&lt;/li>
+&lt;li>A deployable target resolves &lt;code>@saltcorn/server&lt;/code> in one of the vulnerable
+ranges above.&lt;/li>
+&lt;li>Mobile sync routes are enabled or exposed to authenticated users, tenants,
+public signup users, API clients, or reverse-proxy paths.&lt;/li>
+&lt;li>Low-privilege users can read at least one Saltcorn table through sync.&lt;/li>
+&lt;li>The Saltcorn database user has broad read/write privileges, schema privileges,
+or access to secrets that exceed the app&amp;rsquo;s runtime minimum.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;saltcorn|@saltcorn/server|/sync/load_changes|/sync/deletes|syncInfos|maxLoadedId|getSyncRows|getDelRows&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @saltcorn/server saltcorn
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @saltcorn/server saltcorn
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @saltcorn/server saltcorn
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;SALT.*DB|POSTGRES|DATABASE_URL|sync/load_changes|sync/deletes|mobile.*sync&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s nginx* traefik* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Saltcorn server package, image, and deployment to a
+fixed release: &lt;code>1.4.6+&lt;/code>, &lt;code>1.5.6+&lt;/code>, or &lt;code>1.6.0-beta.5+&lt;/code> depending on the
+release line in use.&lt;/li>
+&lt;li>Until patched, block or disable &lt;code>POST /sync/load_changes&lt;/code> and
+&lt;code>POST /sync/deletes&lt;/code> for non-admin users at the application, reverse proxy,
+API gateway, or WAF layer.&lt;/li>
+&lt;li>Where this repository owns custom sync logic or forks, make sync metadata
+strongly typed before SQL construction. Treat IDs and timestamps as values
+bound through parameterized queries, not SQL fragments.&lt;/li>
+&lt;li>Reduce database blast radius: least-privilege app user, no schema-owner
+runtime role, no database superuser, and separate credentials for migrations.&lt;/li>
+&lt;li>If the vulnerable routes were tenant or low-privilege reachable, rotate
+database credentials, application secrets, API keys, and reset privileged
+user sessions. Review sync route logs and database audit logs for unusual
+&lt;code>maxLoadedId&lt;/code>, timestamp, schema enumeration, or bulk-read patterns.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41478 / GHSA-jp74-mfrx-3qvh (Saltcorn
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">mobile-sync SQL injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Saltcorn, blocks exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable sync routes until patched, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Saltcorn server,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment, fork, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41478 / GHSA-jp74-mfrx-3qvh.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat database contents, password hashes, session cookies, API keys,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Saltcorn secrets, sync payloads, SQL logs, and tenant data as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run SQL injection payloads against production, staging, shared dev, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> customer databases.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, or commit database rows, password hashes, secrets, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> full sync request bodies.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not preserve vulnerable mobile-sync access for low-privilege users in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> name of backwards compatibility.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Saltcorn target controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, reverse-proxy config, API gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rules, SBOMs, seed data, plugins, forks, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Saltcorn server version. A target is vulnerable if
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`@saltcorn/server`&lt;/span> resolves to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;lt;1.4.6`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;gt;=1.5.0-beta.0, &amp;lt;1.5.6`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`&amp;gt;=1.6.0-alpha.0, &amp;lt;1.6.0-beta.5`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search for mobile-sync exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /sync/load_changes`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /sync/deletes`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`syncInfos`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`maxLoadedId`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> custom forks or plugins that call &lt;span class="sb">`getSyncRows()`&lt;/span> or &lt;span class="sb">`getDelRows()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reverse-proxy rewrites or API aliases for &lt;span class="sb">`/sync/*`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine which users can reach the sync routes. Check default roles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> signup settings, tenant roles, API tokens, mobile clients, and gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> authentication. A normal authenticated user with one readable table is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enough to be exposed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not deploy or modify a Saltcorn server, stop with
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, the likely runtime owner, and required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade every controlled Saltcorn package, image tag, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reference to the fixed release line in use: &lt;span class="sb">`1.4.6+`&lt;/span>, &lt;span class="sb">`1.5.6+`&lt;/span>, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`1.6.0-beta.5+`&lt;/span>. Regenerate lockfiles, image digests, SBOMs, and deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add temporary containment where this repo controls ingress or app policy:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block &lt;span class="sb">`POST /sync/load_changes`&lt;/span> and &lt;span class="sb">`POST /sync/deletes`&lt;/span> for non-admin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> users until all runtimes are patched;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed if Saltcorn version cannot be determined;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document any mobile-sync feature flag or route block that operators must
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> remove only after patched deployment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> If this repository owns a Saltcorn fork, plugin, or custom sync route, fix
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the root class of bug:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> parse &lt;span class="sb">`maxLoadedId`&lt;/span> as a finite integer before use;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> validate timestamp fields as timestamps, not SQL fragments;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind all values through prepared parameters;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> use identifier escaping only for identifiers, never as value sanitization;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject unexpected sync metadata keys before query construction.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe regression tests that do not read real data or execute destructive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SQL:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> vulnerable Saltcorn version ranges are rejected by dependency policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> non-admin users cannot reach sync routes on vulnerable versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> invalid &lt;span class="sb">`maxLoadedId`&lt;/span> and timestamp values receive 400/403 before SQL is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> built;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tests assert parameter binding or query-builder placeholders instead of
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> concatenated request values;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway render output includes the temporary deny/admin-only rule if used.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add database hardening if configuration lives here:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> app runtime credentials cannot create schemas, alter tables, or run as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> superuser;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> migrations use a separate role;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> sync routes have request size and rate limits;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> SQL logging redacts bind values and secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41478 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Saltcorn versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`/sync/load_changes`&lt;/span> or &lt;span class="sb">`/sync/deletes`&lt;/span> were reachable by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> low-privilege users, tenants, public signup users, or API clients;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether route blocking or mobile-sync disablement remains in place;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which database credentials, Saltcorn secrets, API keys, and admin sessions
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> should be rotated or reset;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which application, reverse-proxy, and database audit logs should be
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reviewed for unusual sync metadata, schema enumeration, or bulk reads.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Run relevant validation: package-manager install, lockfile integrity,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> unit/API tests, authz tests for sync routes, gateway/ingress rendering,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> container build, deployment diff, SBOM refresh, and dependency/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41478 in Saltcorn sync`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Saltcorn server, image, fork, plugin, or deployment is controlled
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Saltcorn version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Sync route reachability cannot be verified without touching production,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> staging, shared dev, or customer data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The product intentionally requires low-privilege mobile-sync access on a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable runtime; document the risk and require a product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled dependency, lockfile, image, SBOM, or deployment target resolves
+&lt;code>@saltcorn/server&lt;/code> to a vulnerable range.&lt;/li>
+&lt;li>Non-admin users cannot reach vulnerable sync routes during rollout.&lt;/li>
+&lt;li>Any custom sync code binds &lt;code>maxLoadedId&lt;/code>, timestamps, and other sync values as
+parameters after type validation.&lt;/li>
+&lt;li>Tests prove malformed sync metadata is rejected before SQL construction.&lt;/li>
+&lt;li>Operator actions cover credential rotation, admin-session reset, and log
+review when low-privilege route exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating &lt;code>package.json&lt;/code> while a lockfile, Docker layer, Helm value, or
+hosted image still pins a vulnerable Saltcorn release.&lt;/li>
+&lt;li>Treating &lt;code>db.sqlsanitize()&lt;/code> or identifier escaping as protection for
+user-controlled SQL values.&lt;/li>
+&lt;li>Leaving public signup enabled with mobile-sync routes reachable to newly
+registered users.&lt;/li>
+&lt;li>Logging request bodies or SQL results while adding sync regression tests.&lt;/li>
+&lt;li>Rotating application secrets but leaving the database password or admin
+sessions untouched after possible exfiltration.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-jp74-mfrx-3qvh"target="_blank" rel="noopener">https://github.com/advisories/GHSA-jp74-mfrx-3qvh&lt;/a>&lt;/li>
+&lt;li>Saltcorn advisory: &lt;a href="https://github.com/saltcorn/saltcorn/security/advisories/GHSA-jp74-mfrx-3qvh"target="_blank" rel="noopener">https://github.com/saltcorn/saltcorn/security/advisories/GHSA-jp74-mfrx-3qvh&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41478"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41478&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

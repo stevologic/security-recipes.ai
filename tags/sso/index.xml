@@ -1,0 +1,167 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Sso</title><link>https://security-recipes.ai/tags/sso/</link><description>Recent content in Sso on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/sso/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-42354 - Sentry SAML SSO identity linking</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42354-sentry-saml-sso-identity-linking/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42354-sentry-saml-sso-identity-linking/</guid><description>
+&lt;p>Self-hosted Sentry versions &lt;code>21.12.0&lt;/code> through &lt;code>26.4.0&lt;/code> contain a critical SAML
+SSO authentication flaw in multi-organization deployments. A malicious user who
+can configure SAML SSO for one organization on the same Sentry instance can use
+a malicious identity provider and a known victim email address to link into the
+victim&amp;rsquo;s user account.&lt;/p>
+&lt;p>The highest-risk shape is a shared self-hosted Sentry installation with multiple
+organizations, organization-managed SAML settings, and users who do not enforce
+account-level two-factor authentication. Sentry SaaS was patched by the vendor;
+ordinary application use of Sentry SDKs is not this CVE.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>sentry &amp;gt;=21.12.0, &amp;lt;=26.4.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>sentry &amp;gt;=26.4.1&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository owns or deploys a self-hosted Sentry server, not just a Sentry
+SDK, DSN, or integration.&lt;/li>
+&lt;li>Sentry resolves to a vulnerable &lt;code>sentry&lt;/code> Python package version or a
+vulnerable self-hosted Sentry release/container tag.&lt;/li>
+&lt;li>Multi-organization mode is enabled, such as &lt;code>SENTRY_SINGLE_ORGANIZATION = False&lt;/code>.&lt;/li>
+&lt;li>SAML SSO is enabled for one or more organizations, and organization owners can
+modify SSO identity provider configuration.&lt;/li>
+&lt;li>Account-level 2FA is not required for all users.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;getsentry|sentry.*self-hosted|SENTRY_SINGLE_ORGANIZATION|SAML|saml2|sso&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;sentry==|sentry[&amp;lt;=&amp;gt;]|getsentry/sentry|self-hosted&amp;#34;&lt;/span> requirements*.txt pyproject.toml poetry.lock Pipfile.lock Dockerfile* docker-compose*.yml .github deploy helm charts k8s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;getsentry|sentry&amp;#39;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade self-hosted Sentry to &lt;code>26.4.1+&lt;/code>, including Python package pins,
+container images, Helm/chart values, compose files, and self-hosted release
+manifests controlled by the repository.&lt;/li>
+&lt;li>If the instance is intended to be single-organization only, set and verify
+&lt;code>SENTRY_SINGLE_ORGANIZATION = True&lt;/code> as a compensating exposure reduction.&lt;/li>
+&lt;li>Require user account-level 2FA for Sentry users, especially administrators and
+users in organizations with SAML SSO enabled.&lt;/li>
+&lt;li>Inventory organization SAML providers and identity links after patching. If
+suspicious links or IdP changes are found, expire sessions and require a
+human-reviewed account recovery plan.&lt;/li>
+&lt;li>Do not treat Sentry SDK dependency updates as remediation unless this repo
+actually builds or deploys the Sentry server.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42354 (Sentry SAML SSO identity linking account
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">takeover) in this repository or deployment source. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades self-hosted Sentry and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents required operator validation, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a self-hosted Sentry server or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployment patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42354.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Distinguish self-hosted Sentry server deployments from ordinary Sentry SDK,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> DSN, logging, CI, or monitoring integrations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change unrelated identity provider settings, organization ownership,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> user emails, or account links automatically.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log SAML assertions, cookies, session tokens, IdP secrets, private
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> keys, DSNs, or user secrets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory Sentry server ownership:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Python package pins for &lt;span class="sb">`sentry`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`getsentry/sentry`&lt;/span> or self-hosted release images;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Docker Compose, Helm, Kubernetes, Terraform, Ansible, or release manifests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> internal runbooks that pin self-hosted Sentry versions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the repo only uses Sentry SDKs, DSNs, source-map uploaders, alerting
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integrations, or Sentry SaaS, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> explaining why this CVE
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is not patchable here.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine whether any self-hosted Sentry server version resolves to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;gt;=21.12.0, &amp;lt;=26.4.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Check exposure-relevant configuration and record it in the PR body:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`SENTRY_SINGLE_ORGANIZATION`&lt;/span> effective value;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether SAML SSO is enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether organization owners can modify SSO provider settings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether account-level 2FA is required for administrators and SAML users.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every vulnerable self-hosted Sentry reference to &lt;span class="sb">`26.4.1+`&lt;/span> on the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository&amp;#39;s normal release line. Regenerate lockfiles, image metadata,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm lock files, SBOMs, and deployment render output where applicable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add or update a short operator runbook section named
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`CVE-2026-42354 operator checks`&lt;/span> that requires:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> verification that the deployed Sentry version is &lt;span class="sb">`26.4.1+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of recent SAML IdP configuration changes across organizations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> review of unexpected SAML identity links for privileged users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> session expiration and account recovery steps if suspicious links exist;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> enforcement or rollout tracking for user account-level 2FA.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> If upgrade cannot be deployed immediately, add the safest temporary
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment available in this repo, such as forcing single-organization mode
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for single-tenant deployments, disabling organization-managed SAML setup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> behind a feature flag, restricting Sentry admin access, or documenting an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> emergency 2FA requirement.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Run available validation: dependency resolution, image build or manifest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, configuration tests, and any auth/SSO tests this repo provides.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42354 in self-hosted Sentry`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not deploy a self-hosted Sentry server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only Sentry references are SDKs, DSNs, logging exporters, source-map
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upload tooling, or SaaS integrations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed self-hosted Sentry version cannot be consumed without a larger
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The patch would automatically alter SAML identity links, organization
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ownership, or user accounts without operator approval.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No self-hosted Sentry server reference remains on &lt;code>21.12.0&lt;/code> through &lt;code>26.4.0&lt;/code>.&lt;/li>
+&lt;li>The change updates the actual deployment source, not only a development or SDK
+dependency.&lt;/li>
+&lt;li>The PR body records multi-organization, SAML, and 2FA exposure status.&lt;/li>
+&lt;li>Operator checks cover SAML IdP changes, suspicious identity links, session
+expiry, and human-reviewed account recovery.&lt;/li>
+&lt;li>Build, dependency, image, and deployment-render checks pass or unrelated
+failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Repositories that contain both Sentry SDKs and a self-hosted Sentry deployment;
+only the server side is relevant to this CVE.&lt;/li>
+&lt;li>Floating image tags that make the patch non-reproducible.&lt;/li>
+&lt;li>Assuming organization-level SAML controls can enforce account-level 2FA for
+every user; the workaround depends on users having account 2FA enabled.&lt;/li>
+&lt;li>Confusing this advisory with earlier Sentry SAML identity-linking advisories
+that have different fixed versions.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-rcmw-7mc7-3rj7"target="_blank" rel="noopener">https://github.com/advisories/GHSA-rcmw-7mc7-3rj7&lt;/a>&lt;/li>
+&lt;li>Sentry security advisory: &lt;a href="https://github.com/getsentry/sentry/security/advisories/GHSA-rcmw-7mc7-3rj7"target="_blank" rel="noopener">https://github.com/getsentry/sentry/security/advisories/GHSA-rcmw-7mc7-3rj7&lt;/a>&lt;/li>
+&lt;li>Sentry fix PR: &lt;a href="https://github.com/getsentry/sentry/pull/113720"target="_blank" rel="noopener">https://github.com/getsentry/sentry/pull/113720&lt;/a>&lt;/li>
+&lt;li>Sentry &lt;code>26.4.1&lt;/code> release: &lt;a href="https://github.com/getsentry/sentry/releases/tag/26.4.1"target="_blank" rel="noopener">https://github.com/getsentry/sentry/releases/tag/26.4.1&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

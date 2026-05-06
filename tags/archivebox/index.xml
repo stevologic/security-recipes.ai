@@ -1,0 +1,249 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Archivebox</title><link>https://security-recipes.ai/tags/archivebox/</link><description>Recent content in Archivebox on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 06 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/archivebox/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-42601 - ArchiveBox AddView config override RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42601-archivebox-addview-config-rce/</link><pubDate>Wed, 06 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42601-archivebox-addview-config-rce/</guid><description>
+&lt;p>ArchiveBox &lt;code>AddView&lt;/code> accepts a per-crawl &lt;code>config&lt;/code> value from the &lt;code>/add/&lt;/code>
+workflow and affected releases merge that user-controlled data into crawl
+configuration without enough validation. The merged configuration is later
+exported to archive worker environment variables, where downloader plugins can
+consume values such as extra argument lists or binary paths. An attacker who can
+submit to the add endpoint can turn a URL ingestion request into command
+argument injection and remote code execution on the ArchiveBox host.&lt;/p>
+&lt;p>The highest-risk deployment is an ArchiveBox web UI with &lt;code>PUBLIC_ADD_VIEW=True&lt;/code>.
+In that mode the add endpoint is intentionally reachable for public or
+bookmarklet-style submissions, and the GitHub advisory notes the affected path
+can be exploitable without authentication. This is also an agentic-context risk:
+ArchiveBox often stores private research, compliance evidence, crawler output,
+browser captures, and datasets later consumed by retrieval systems or agents.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>GitHub Advisory Database patched-version metadata:&lt;/strong> none listed at time of
+review&lt;/li>
+&lt;li>&lt;strong>Fixed/upgrade target from package intelligence:&lt;/strong> &lt;code>archivebox 0.8.6rc3+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Highest-risk condition:&lt;/strong> the ArchiveBox web app exposes &lt;code>/add/&lt;/code> to
+untrusted callers, especially with &lt;code>PUBLIC_ADD_VIEW=True&lt;/code>, and archive worker
+plugins that consume &lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or equivalent command
+configuration remain enabled.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, packages, deploys, or configures ArchiveBox.&lt;/li>
+&lt;li>A deployable target resolves &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code> through pip, uv, Poetry,
+Docker, Compose, Helm, Ansible, Nix, systemd, or a vendored image.&lt;/li>
+&lt;li>ArchiveBox is run as a web app, not only as a local one-shot CLI.&lt;/li>
+&lt;li>&lt;code>PUBLIC_ADD_VIEW=True&lt;/code>, public URL submission, bookmarklet-style submission,
+unauthenticated API ingress, or reverse-proxy routing exposes &lt;code>/add/&lt;/code>.&lt;/li>
+&lt;li>Archive worker plugins such as yt-dlp, gallery-dl, wget, git, SingleFile,
+readability, mercury, or custom extractors accept extra arguments, binary
+paths, environment-derived command options, or user-controlled crawl config.&lt;/li>
+&lt;li>The archive stores sensitive customer pages, research, private URLs,
+compliance evidence, authenticated browser captures, cookies, API tokens, or
+material later fed into a RAG/agent pipeline.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># macOS / Linux&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;archivebox|ArchiveBox|PUBLIC_ADD_VIEW|/add/|YTDLP_ARGS_EXTRA|GALLERYDL_ARGS_EXTRA|_ARGS_EXTRA|_BINARY&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;0\\.8\\.6rc0|archivebox==|archivebox/archivebox|pip install .*archivebox|uvx .*archivebox&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -maxdepth &lt;span class="m">5&lt;/span> -type f &lt;span class="se">\(&lt;/span> -iname &lt;span class="s2">&amp;#34;*archivebox*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;docker-compose*.yml&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;Dockerfile*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*.service&amp;#34;&lt;/span> &lt;span class="se">\)&lt;/span> -print
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Windows PowerShell&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;archivebox|ArchiveBox|PUBLIC_ADD_VIEW|/add/|YTDLP_ARGS_EXTRA|GALLERYDL_ARGS_EXTRA|_ARGS_EXTRA|_BINARY&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;0\.8\.6rc0|archivebox==|archivebox/archivebox|pip install .*archivebox|uvx .*archivebox&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File -Include *archivebox*,Dockerfile*,docker-compose*.yml,*.yaml,*.yml,*.service,*.ps1,*.sh&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled ArchiveBox package, image, installer, bootstrap
+script, and deployment manifest to &lt;code>0.8.6rc3+&lt;/code> or the newest vendor-published
+release that contains the fix. If a scanner still reports GHAD as having no
+patched version, document the release evidence used and keep containment in
+place until the metadata catches up.&lt;/li>
+&lt;li>Regenerate lockfiles, image digests, SBOMs, checksums, rendered manifests,
+deployment snapshots, and version evidence for every path that can run
+ArchiveBox.&lt;/li>
+&lt;li>Disable &lt;code>PUBLIC_ADD_VIEW&lt;/code> unless the business explicitly requires anonymous
+submissions. Require authentication and authorization for URL ingestion in
+production.&lt;/li>
+&lt;li>Add fail-closed validation for any repository-owned wrapper, proxy, form,
+operator, or extension that passes user crawl config into ArchiveBox. Reject
+user-controlled command argument keys such as &lt;code>*_ARGS_EXTRA&lt;/code>, executable path
+keys such as &lt;code>*_BINARY&lt;/code>, and environment overrides not explicitly allow-listed.&lt;/li>
+&lt;li>Restrict archive workers with least privilege: non-root users, read/write
+limits to the archive data directory, no Docker socket, no cloud metadata
+access, and no broad secrets in process environment variables.&lt;/li>
+&lt;li>If exposure was possible, rotate secrets available to the ArchiveBox process,
+review submitted URLs/config fields and worker execution logs, quarantine
+suspicious snapshots, and separate incident review from the code-change PR.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42601 / GHSA-3h23-7824-pj8r (ArchiveBox AddView
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">per-crawl config override leading to command argument injection and RCE).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or contains the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ArchiveBox deployment, blocks unsafe public add/config override paths, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected ArchiveBox deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install path, image, add-route policy, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42601 and directly related ArchiveBox ingestion and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> archive-worker hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat archived pages, private URLs, cookies, browser profiles, API tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SSH keys, cloud credentials, webhook secrets, compliance evidence, crawler
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output, and agent/RAG datasets as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not submit a real exploit payload to any shared or production ArchiveBox
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create a proof-of-concept that runs commands, writes marker files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> opens shells, downloads payloads, exfiltrates environment variables, or reads
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> archive contents.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print or commit real ArchiveBox snapshots, submitted URLs, cookies,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, logs, or command environments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every ArchiveBox reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Python manifests and lockfiles, uv/Poetry/pip-tools config, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Compose files, Helm charts, Kubernetes manifests, Terraform, Ansible, Nix,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> systemd units, bootstrap scripts, CI jobs, image digests, SBOMs, reverse
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> proxy rules, web-app route policy, docs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved ArchiveBox version. Treat &lt;span class="sb">`archivebox &amp;lt;=0.8.6rc0`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as vulnerable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine every &lt;span class="sb">`/add/`&lt;/span> exposure path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> and related public submission settings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ingress, reverse-proxy, gateway, service-mesh, or firewall rules;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bookmarklet, browser-extension, API, webhook, or agent integration paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether callers are authenticated and authorized before adding URLs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Identify every user-controlled config path that can reach archive workers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> per-crawl config fields, form fields, JSON APIs, environment overrides,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wrapper scripts, plugin options, &lt;span class="sb">`*_ARGS_EXTRA`&lt;/span>, &lt;span class="sb">`*_BINARY`&lt;/span>, and custom
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> extractor settings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not deploy, package, configure, or route traffic to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ArchiveBox, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, the likely runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner, the vulnerable range &lt;span class="sb">`archivebox &amp;lt;=0.8.6rc0`&lt;/span>, and the target
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`archivebox 0.8.6rc3+`&lt;/span> or latest fixed release.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade every controlled ArchiveBox target to &lt;span class="sb">`0.8.6rc3+`&lt;/span> or the newest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-published fixed release available through the repository&amp;#39;s normal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distribution channel. If GHAD metadata still shows no patched version,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> include release/package evidence in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, checksum allowlists, rendered manifests, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, package metadata, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add fail-closed containment where this repository owns configuration or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> routing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set &lt;span class="sb">`PUBLIC_ADD_VIEW=False`&lt;/span> by default for production;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication and authorization for &lt;span class="sb">`/add/`&lt;/span> and equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ingestion routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block untrusted per-crawl config keys that influence command arguments,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> executable paths, worker environment variables, or plugin enablement;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow-list only documented safe per-crawl fields;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prevent public ingress from reaching &lt;span class="sb">`/add/`&lt;/span> without explicit approval;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run archive workers without broad secrets, root privileges, Docker socket
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access, or cloud metadata access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe verification without executing commands through ArchiveBox:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency/image/SBOM assertions prove every ArchiveBox target is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;lt;=0.8.6rc0`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> config tests prove production &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> is false or protected by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an authenticated gateway;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> route/policy tests prove unauthenticated callers cannot reach &lt;span class="sb">`/add/`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unit tests or static checks prove user-provided crawl config cannot set
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`*_ARGS_EXTRA`&lt;/span>, &lt;span class="sb">`*_BINARY`&lt;/span>, or other command-affecting keys;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret scanning proves no snapshots, cookies, worker env, or archive data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> were committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42601 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ArchiveBox versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`/add/`&lt;/span> was publicly reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> was enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which worker plugins could consume extra arguments or binary paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets available to the ArchiveBox process should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which submitted URLs, per-crawl config records, worker logs, and archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots require review or quarantine;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any downstream agent/RAG datasets built from affected archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output should be revalidated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency resolution, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render, route/gateway policy tests, unit tests, SBOM refresh, secret scan,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and security scan available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42601 in ArchiveBox`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No ArchiveBox deployment, install path, image, package recipe, route policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or runtime config is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved ArchiveBox version can only be confirmed from production access
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed ArchiveBox release cannot be consumed through the allowed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distribution channel without a broader platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require command execution, reading archive contents,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> printing worker environment variables, or submitting payloads to a shared or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production ArchiveBox server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally allow unauthenticated public submissions
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with arbitrary per-crawl config; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing snapshots or logs indicate possible command execution; stop after
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> preserving evidence and documenting incident-response handoff.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled ArchiveBox package, image, SBOM, deployment manifest, or
+bootstrap path resolves to &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code>.&lt;/li>
+&lt;li>The real delivery path changed: dependency pin, lockfile, image digest,
+install script, rendered deployment, or runbook.&lt;/li>
+&lt;li>Public &lt;code>/add/&lt;/code> exposure is disabled or protected by explicit authentication,
+authorization, and route policy.&lt;/li>
+&lt;li>User-controlled crawl config cannot set command-affecting keys such as
+&lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or equivalent plugin execution options.&lt;/li>
+&lt;li>Verification does not include a working exploit payload or command execution
+proof.&lt;/li>
+&lt;li>Operator actions address secret rotation, snapshot/log review, archive
+quarantine, and downstream agent/RAG dataset revalidation when exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating pip requirements while Docker, Compose, Helm, or package images
+still pull an older ArchiveBox release.&lt;/li>
+&lt;li>Treating &lt;code>PUBLIC_ADD_VIEW&lt;/code> as harmless because the archive is &amp;ldquo;internal&amp;rdquo; but
+exposing it through a shared workspace, agent gateway, webhook, or bookmarklet
+path.&lt;/li>
+&lt;li>Blocking &lt;code>YTDLP_ARGS_EXTRA&lt;/code> but leaving other &lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or
+custom extractor options reachable.&lt;/li>
+&lt;li>Tests that prove safety by running a command through ArchiveBox. Use static
+checks, config tests, and route tests instead.&lt;/li>
+&lt;li>Logging worker environments while trying to inspect whether secrets were
+exposed.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-3h23-7824-pj8r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-3h23-7824-pj8r&lt;/a>&lt;/li>
+&lt;li>ArchiveBox security advisory: &lt;a href="https://github.com/ArchiveBox/ArchiveBox/security/advisories/GHSA-3h23-7824-pj8r"target="_blank" rel="noopener">https://github.com/ArchiveBox/ArchiveBox/security/advisories/GHSA-3h23-7824-pj8r&lt;/a>&lt;/li>
+&lt;li>Safety advisory: &lt;a href="https://getsafety.com/vulnerabilities/95898/"target="_blank" rel="noopener">https://getsafety.com/vulnerabilities/95898/&lt;/a>&lt;/li>
+&lt;li>PyPI release &lt;code>archivebox 0.8.6rc3&lt;/code>: &lt;a href="https://pypi.org/project/archivebox/0.8.6rc3/"target="_blank" rel="noopener">https://pypi.org/project/archivebox/0.8.6rc3/&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-42601"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-42601&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

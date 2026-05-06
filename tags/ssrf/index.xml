@@ -1,0 +1,438 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Ssrf</title><link>https://security-recipes.ai/tags/ssrf/</link><description>Recent content in Ssrf on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/ssrf/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-39383 - Gotenberg webhook SSRF</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39383-gotenberg-webhook-ssrf/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39383-gotenberg-webhook-ssrf/</guid><description>
+&lt;p>Gotenberg &lt;code>8.29.1&lt;/code> through &lt;code>8.30.x&lt;/code> can be abused as a blind SSRF primitive
+through webhook callbacks. A network attacker who can submit conversion
+requests can set &lt;code>Gotenberg-Webhook-Url&lt;/code> to an internal or external URL and
+cause Gotenberg to POST the converted document there.&lt;/p>
+&lt;p>The issue is dangerous even when response bodies are not returned to the
+attacker: POST side effects can be triggered, internal hosts can be probed, and
+cloud metadata or service endpoints may be reachable from the Gotenberg runtime.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Gotenberg &lt;code>&amp;gt;=8.29.1, &amp;lt;8.31.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Gotenberg &lt;code>8.31.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg v8 is deployed in a container image, Helm chart, compose file, or
+Go module at an affected version.&lt;/li>
+&lt;li>Conversion endpoints are reachable from untrusted users or tenants.&lt;/li>
+&lt;li>Webhook headers are accepted and no explicit webhook allow-list is configured.&lt;/li>
+&lt;li>The runtime can reach private networks, link-local addresses, localhost, or
+cloud metadata services.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;gotenberg|GOTENBERG_API_WEBHOOK|Gotenberg-Webhook-Url|webhook&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image inspect gotenberg/gotenberg:8 --format &lt;span class="s1">&amp;#39;{{ index .RepoDigests 0 }}&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg/gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl get deploy,statefulset,cronjob -A -o yaml &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;gotenberg|WEBHOOK&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every Gotenberg deployment to &lt;code>8.31.0+&lt;/code> and pin container images by
+immutable digest.&lt;/li>
+&lt;li>Configure &lt;code>GOTENBERG_API_WEBHOOK_ALLOW_LIST&lt;/code> for approved callback hosts.&lt;/li>
+&lt;li>Add network egress policy that blocks private ranges, loopback, link-local,
+and metadata endpoints unless explicitly required.&lt;/li>
+&lt;li>Put conversion endpoints behind authentication or a trusted internal ingress
+while rollout is in progress.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39383 (Gotenberg webhook SSRF). Produce exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that patches Gotenberg and adds practical
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> containment controls, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own a safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-39383.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer upgrading Gotenberg to &lt;span class="sb">`8.31.0+`&lt;/span>; do not invent a local fork unless no
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-fixed release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat all user-supplied webhook destinations as untrusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory all Gotenberg references in manifests, lockfiles, image tags,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm values, compose files, Dockerfiles, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployed version is &lt;span class="sb">`&amp;gt;=8.29.1, &amp;lt;8.31.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Upgrade affected references to &lt;span class="sb">`8.31.0+`&lt;/span>; pin container images by digest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> where this repo controls deployment artifacts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add or tighten webhook destination policy:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer &lt;span class="sb">`GOTENBERG_API_WEBHOOK_ALLOW_LIST`&lt;/span> for known callback hosts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add an egress rule denying loopback, RFC1918, link-local, and cloud
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata addresses from the Gotenberg workload;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication or trusted ingress for public conversion endpoints.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Run the relevant build, dependency, container, and deployment validation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Include a PR body section with affected versions, fixed versions, remaining
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator actions, and any exposure window if the service was internet-facing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-39383 in Gotenberg`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Gotenberg is not present in this repo or deployment source.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The target platform cannot consume &lt;span class="sb">`8.31.0+`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing tests or deployment rendering fail for unrelated pre-existing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reasons; document them in TRIAGE.md instead of expanding scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployment, lockfile, SBOM, or container reference resolves to vulnerable
+Gotenberg.&lt;/li>
+&lt;li>Webhook destinations are allow-listed or blocked from private/link-local
+ranges by policy.&lt;/li>
+&lt;li>CI, image build, and deployment rendering pass or failures are explicitly
+called out as pre-existing.&lt;/li>
+&lt;li>Publicly reachable deployments have an operator follow-up for exposure review.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Floating image tags such as &lt;code>gotenberg/gotenberg:8&lt;/code> that look patched today
+but are not reproducible without a digest.&lt;/li>
+&lt;li>Allow/deny-list variables only documented but not applied to runtime manifests.&lt;/li>
+&lt;li>Other Gotenberg &lt;code>8.31.0&lt;/code> advisories in the same rollout, especially
+CVE-2026-40280 and CVE-2026-40281.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5vh4-rgv7-p9g4"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5vh4-rgv7-p9g4&lt;/a>&lt;/li>
+&lt;li>Gotenberg release &lt;code>v8.31.0&lt;/code>: &lt;a href="https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0"target="_blank" rel="noopener">https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-40280 - Gotenberg SSRF deny-list bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-40280-gotenberg-deny-list-ssrf-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-40280-gotenberg-deny-list-ssrf-bypass/</guid><description>
+&lt;p>Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code> contains a critical SSRF bypass in the URL filtering used
+for webhook and &lt;code>downloadFrom&lt;/code> destinations. The private-IP deny-list patterns
+match lowercase schemes such as &lt;code>http://&lt;/code>, while URL schemes are
+case-insensitive and Go normalizes them before making the outbound request.&lt;/p>
+&lt;p>An attacker can use uppercase or mixed-case schemes such as &lt;code>HTTP://&lt;/code> to bypass
+the deny-list and reach private networks, link-local services, loopback targets,
+or cloud metadata endpoints from the Gotenberg runtime.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Gotenberg &lt;code>&amp;lt;=8.30.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Gotenberg &lt;code>8.31.0+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg v8 is deployed at or below &lt;code>8.30.1&lt;/code>.&lt;/li>
+&lt;li>The service accepts user-controlled webhook URLs or &lt;code>downloadFrom&lt;/code> entries.&lt;/li>
+&lt;li>Runtime SSRF protection relies on deny-list regexes for URL schemes or
+private network ranges.&lt;/li>
+&lt;li>The workload has egress access to internal services or metadata endpoints.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;gotenberg|downloadFrom|WEBHOOK_DENY|DOWNLOAD_FROM_DENY|deny-list&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;gotenberg/gotenberg&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">kubectl get networkpolicy -A -o yaml &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;gotenberg|egress|169\\.254|10\\.|172\\.|192\\.168&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade Gotenberg to &lt;code>8.31.0+&lt;/code> and pin image digests.&lt;/li>
+&lt;li>Prefer explicit allow-lists for webhook and &lt;code>downloadFrom&lt;/code> destinations over
+regex-only deny-lists.&lt;/li>
+&lt;li>Add egress controls that block private ranges, loopback, link-local, and
+metadata endpoints from the Gotenberg workload.&lt;/li>
+&lt;li>If upgrade cannot be immediate, restrict conversion endpoints to trusted
+callers and block mixed-case URL schemes at the ingress/proxy layer as a
+temporary mitigation.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-40280 (Gotenberg SSRF deny-list bypass). Produce
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Gotenberg and hardens URL
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> destination controls, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if a safe patch cannot be made from this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-40280.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Prefer Gotenberg &lt;span class="sb">`8.31.0+`&lt;/span>; do not substitute ad hoc regex edits for the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-fixed release when an upgrade is possible.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat URL scheme, host, redirects, and resolved IP addresses as untrusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Find all Gotenberg references in dependencies, Dockerfiles, compose files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Helm values, Terraform, Kubernetes manifests, SBOMs, and deployment docs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If any reference resolves to &lt;span class="sb">`&amp;lt;=8.30.1`&lt;/span>, upgrade it to &lt;span class="sb">`8.31.0+`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regenerate lockfiles or image metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Replace deny-list-only controls with explicit destination allow-lists where
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the application has known webhook/download hosts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add runtime egress policy for Gotenberg that denies:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`127.0.0.0/8`&lt;/span> and &lt;span class="sb">`::1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> RFC1918 private ranges;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`169.254.0.0/16`&lt;/span> and cloud metadata endpoints;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> other internal service CIDRs used by this environment.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Add a regression or smoke-test note that mixed-case schemes such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`HTTP://169.254.169.254/`&lt;/span> are rejected after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Run build, tests, dependency scans, image scans, and deployment rendering
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> available in this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-40280 in Gotenberg`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo only consumes an externally managed Gotenberg service.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`8.31.0+`&lt;/span> is unavailable for the deployment channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- The only possible change would weaken URL filtering or broaden network egress.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Gotenberg resolves to &lt;code>8.31.0+&lt;/code> everywhere this repo controls.&lt;/li>
+&lt;li>Webhook and &lt;code>downloadFrom&lt;/code> destinations are constrained by allow-list or
+equivalent policy.&lt;/li>
+&lt;li>Network egress prevents private/link-local/metadata access from the Gotenberg
+workload.&lt;/li>
+&lt;li>Verification notes explicitly cover mixed-case URL scheme bypass attempts.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Fixes that only lowercase user input in one call path while leaving redirects,
+webhook callbacks, or &lt;code>downloadFrom&lt;/code> handling unchecked.&lt;/li>
+&lt;li>Private-IP deny-list regexes that are case-sensitive or only match host text
+before DNS resolution.&lt;/li>
+&lt;li>Partial upgrades that leave worker images or cron conversion jobs on older
+Gotenberg tags.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5q7p-7jgv-ww56"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5q7p-7jgv-ww56&lt;/a>&lt;/li>
+&lt;li>Gotenberg release &lt;code>v8.31.0&lt;/code>: &lt;a href="https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0"target="_blank" rel="noopener">https://github.com/gotenberg/gotenberg/releases/tag/v8.31.0&lt;/a>&lt;/li>
+&lt;li>Related earlier bypass CVE-2026-27018: &lt;a href="https://github.com/advisories/GHSA-jjwv-57xh-xr6r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-jjwv-57xh-xr6r&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42449 - n8n-mcp IPv4-mapped IPv6 SSRF</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42449-n8n-mcp-ipv4-mapped-ipv6-ssrf/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42449-n8n-mcp-ipv4-mapped-ipv6-ssrf/</guid><description>
+&lt;p>&lt;code>n8n-mcp&lt;/code> versions &lt;code>2.47.4&lt;/code> through &lt;code>2.47.13&lt;/code> contain an SSRF bypass in the
+SDK embedder path. The synchronous &lt;code>SSRFProtection.validateUrlSync()&lt;/code> validator
+did not apply IPv6 protections, so IPv4-mapped IPv6 URL hosts such as
+&lt;code>[::ffff:169.254.169.254]&lt;/code> could bypass checks intended to block cloud
+metadata, localhost, and private network targets.&lt;/p>
+&lt;p>The reachable path is applications embedding &lt;code>n8n-mcp&lt;/code> as an SDK through
+&lt;code>N8NDocumentationMCPServer&lt;/code>, &lt;code>N8NMCPEngine&lt;/code>, &lt;code>getN8nApiClient()&lt;/code>, or
+&lt;code>validateInstanceContext()&lt;/code> while accepting a user-controlled &lt;code>n8nApiUrl&lt;/code>.
+Successful exploitation can make the server issue non-blind SSRF requests and
+forward the configured &lt;code>x-n8n-api-key&lt;/code> header to an attacker-chosen destination.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>n8n-mcp &amp;gt;=2.47.4, &amp;lt;2.47.14&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>n8n-mcp 2.47.14+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Primarily exposed:&lt;/strong> SDK embedders that accept user-controlled
+&lt;code>InstanceContext&lt;/code> or &lt;code>n8nApiUrl&lt;/code> values.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository depends on &lt;code>n8n-mcp&lt;/code> through npm, pnpm, Yarn, Bun, Docker, or
+an embedded SDK wrapper.&lt;/li>
+&lt;li>The resolved package version is &lt;code>&amp;gt;=2.47.4, &amp;lt;2.47.14&lt;/code>.&lt;/li>
+&lt;li>Application code instantiates &lt;code>N8NDocumentationMCPServer&lt;/code> or &lt;code>N8NMCPEngine&lt;/code>,
+or calls &lt;code>getN8nApiClient()&lt;/code> / &lt;code>validateInstanceContext()&lt;/code>.&lt;/li>
+&lt;li>Any caller, tenant, workspace config, environment override, webhook, API
+parameter, or stored integration setting can influence &lt;code>n8nApiUrl&lt;/code>.&lt;/li>
+&lt;li>The runtime can egress to cloud metadata endpoints, loopback, RFC1918 ranges,
+or internal control-plane services.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;n8n-mcp|N8NDocumentationMCPServer|N8NMCPEngine|getN8nApiClient|validateInstanceContext|n8nApiUrl&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls n8n-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why n8n-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why n8n-mcp
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;169\\.254\\.169\\.254|metadata\\.google|metadata\\.azure|InstanceContext|x-n8n-api-key&amp;#34;&lt;/span> .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>n8n-mcp&lt;/code> to &lt;code>2.47.14+&lt;/code> everywhere this repo controls dependency or
+image selection.&lt;/li>
+&lt;li>Reject user-controlled &lt;code>n8nApiUrl&lt;/code> values that use IP-literal hosts,
+bracketed IPv6, localhost, link-local, private, or metadata destinations
+before they reach the SDK.&lt;/li>
+&lt;li>Prefer internally configured n8n instance URLs over tenant- or user-supplied
+URLs. If tenants need custom instances, require an allow-list or an
+ownership-verification workflow.&lt;/li>
+&lt;li>Add egress controls that block metadata endpoints, loopback, RFC1918 ranges,
+and other internal networks from the process that runs &lt;code>n8n-mcp&lt;/code>.&lt;/li>
+&lt;li>Rotate any n8n API key that may have been forwarded to an untrusted
+&lt;code>n8nApiUrl&lt;/code>, and review logs for bracketed IPv6 or metadata-target attempts.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42449 (n8n-mcp IPv4-mapped IPv6 SSRF bypass).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades &lt;span class="sb">`n8n-mcp`&lt;/span>, closes reachable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`n8nApiUrl`&lt;/span> SSRF paths, adds regression coverage, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected SDK embedder or safe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42449.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not make live requests to cloud metadata, loopback admin services, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> private production networks while testing.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print, snapshot, or commit n8n API keys, MCP secrets, metadata tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request headers, or SSRF response bodies.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not weaken URL validation to preserve backwards compatibility with unsafe
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> IP-literal or private-network instance URLs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every &lt;span class="sb">`n8n-mcp`&lt;/span> dependency and deployment reference in package
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests, lockfiles, Dockerfiles, compose files, Helm values, SBOMs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated dependency manifests, and MCP server configuration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any resolved version is &lt;span class="sb">`&amp;gt;=2.47.4, &amp;lt;2.47.14`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search application code for SDK embedder usage:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`N8NDocumentationMCPServer`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`N8NMCPEngine`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`getN8nApiClient()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`validateInstanceContext()`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`InstanceContext`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`n8nApiUrl`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the repository does not embed &lt;span class="sb">`n8n-mcp`&lt;/span> as an SDK or never accepts a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> user-controlled &lt;span class="sb">`n8nApiUrl`&lt;/span>, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> documenting package
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> versions, call-path evidence, and why the vulnerable path is not reachable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade affected package references to &lt;span class="sb">`n8n-mcp &amp;gt;=2.47.14`&lt;/span> using the repo&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manager. Regenerate lockfiles, container metadata, and SBOMs as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> appropriate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add or tighten pre-SDK validation for any configurable &lt;span class="sb">`n8nApiUrl`&lt;/span>:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require &lt;span class="sb">`https:`&lt;/span> unless local development has an explicit test-only path;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject IP-literal hosts, including bracketed IPv6 and IPv4-mapped IPv6;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject localhost, loopback, link-local, RFC1918, and cloud metadata hosts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer a finite allow-list for approved n8n instance hostnames;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> make validation fail closed before an &lt;span class="sb">`x-n8n-api-key`&lt;/span> can be attached.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests using inert URLs that prove the app rejects:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`http://[::ffff:169.254.169.254]/`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`http://[::ffff:127.0.0.1]/`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`http://169.254.169.254/`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`http://127.0.0.1/`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any project-specific private CIDR or internal host pattern.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add deployment or runbook containment where this repository controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deny egress from the &lt;span class="sb">`n8n-mcp`&lt;/span> process to metadata endpoints, loopback,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> RFC1918 ranges, link-local ranges, and internal service CIDRs that should
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> never be n8n API targets.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42449 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether the SDK embedder path was reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which versions were upgraded;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether user-controlled &lt;span class="sb">`n8nApiUrl`&lt;/span> values existed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which n8n API keys should be rotated if untrusted URLs were possible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which logs should be reviewed for bracketed IPv6, IPv4-mapped IPv6,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata-host, or private-network URL attempts.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run the relevant validation: package-manager install check, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integration tests for URL validation, lint/typecheck, image build, deploy
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rendering, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42449 in n8n-mcp`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> This repository only runs the first-party &lt;span class="sb">`n8n-mcp`&lt;/span> HTTP server and does not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expose the affected SDK embedder path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The project does not control the dependency or container image selection.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The only known &lt;span class="sb">`n8nApiUrl`&lt;/span> source is hard-coded internal configuration, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a lockfile or image scan proves no vulnerable runtime remains.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix would require accepting user-controlled private-network URLs as a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product feature; document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No package, lockfile, image, or SBOM controlled by the repo resolves
+&lt;code>n8n-mcp &amp;gt;=2.47.4, &amp;lt;2.47.14&lt;/code>.&lt;/li>
+&lt;li>If the SDK embedder path is reachable, &lt;code>n8nApiUrl&lt;/code> validation fails closed
+before API keys are attached to outbound requests.&lt;/li>
+&lt;li>Tests cover bracketed IPv6 and IPv4-mapped IPv6 metadata/loopback targets.&lt;/li>
+&lt;li>Runtime egress policy blocks metadata, private network, link-local, and
+loopback destinations from the &lt;code>n8n-mcp&lt;/code> process.&lt;/li>
+&lt;li>The PR states whether API-key rotation and log review are required.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Repositories that update &lt;code>package.json&lt;/code> but leave &lt;code>package-lock.json&lt;/code>,
+&lt;code>pnpm-lock.yaml&lt;/code>, &lt;code>yarn.lock&lt;/code>, Docker layers, or SBOMs on vulnerable
+versions.&lt;/li>
+&lt;li>Wrapper code that validates URLs on one API path while background jobs,
+tenant settings, or stored integration records still pass raw &lt;code>n8nApiUrl&lt;/code>
+values into the SDK.&lt;/li>
+&lt;li>Tests that only cover dotted IPv4 private addresses and miss bracketed IPv6
+forms.&lt;/li>
+&lt;li>Logging middleware that captures &lt;code>x-n8n-api-key&lt;/code> headers or SSRF response
+bodies during failed validation tests.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-56c3-vfp2-5qqj"target="_blank" rel="noopener">https://github.com/advisories/GHSA-56c3-vfp2-5qqj&lt;/a>&lt;/li>
+&lt;li>Fix commit: &lt;a href="https://github.com/czlonkowski/n8n-mcp/commit/9639f75"target="_blank" rel="noopener">https://github.com/czlonkowski/n8n-mcp/commit/9639f75&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

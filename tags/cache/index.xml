@@ -1,0 +1,219 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Cache</title><link>https://security-recipes.ai/tags/cache/</link><description>Recent content in Cache on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/cache/index.xml" rel="self" type="application/rss+xml"/><item><title>Compromised package — cache quarantine</title><link>https://security-recipes.ai/prompt-library/general/compromised-package-cache-quarantine/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/compromised-package-cache-quarantine/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a &amp;ldquo;this package is malicious&amp;rdquo;
+advisory and runs the eviction across the org&amp;rsquo;s registries,
+caches, and mirrors — quarantining the artifact, verifying the
+purge worked, and drafting the developer-machine broadcast a
+human will deliver.&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+workflow.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the advisory&lt;/strong> — the artifact coordinate, the
+versions, the registries to inspect.&lt;/li>
+&lt;li>&lt;strong>Inventories&lt;/strong> — for each registry / proxy / cache the agent
+has a connector for, lists matching versions or digests.&lt;/li>
+&lt;li>&lt;strong>Quarantines&lt;/strong> the matching versions (preferred) or
+deletes them where policy requires. Default action is
+reversible quarantine.&lt;/li>
+&lt;li>&lt;strong>Verifies&lt;/strong> by re-fetching the purged artifact and
+confirming the registry refuses to serve it.&lt;/li>
+&lt;li>&lt;strong>Drafts the developer-machine broadcast&lt;/strong> — paste-ready
+purge commands for &lt;code>npm&lt;/code>, &lt;code>pip&lt;/code>, &lt;code>go&lt;/code>, &lt;code>docker&lt;/code>, etc., plus
+verification commands.&lt;/li>
+&lt;li>&lt;strong>Records the audit entry&lt;/strong> — registry actions, verification
+results, restore commands, and the broadcast text.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>An advisory says a published artifact (package, image, chart)
+is malicious — maintainer takeover, poisoned release,
+supply-chain compromise.&lt;/li>
+&lt;li>The artifact is identifiable by a stable coordinate.&lt;/li>
+&lt;li>The org&amp;rsquo;s registries / proxies have agent-quarantine API
+access declared in policy.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Routine vulnerable-version advisories (use the
+&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">vulnerable-dependency workflow&lt;/a>).&lt;/li>
+&lt;li>Range-based or fuzzy advisories without a stable coordinate.&lt;/li>
+&lt;li>Air-gapped mirrors the agent has no network path to (the
+broadcast pattern applies).&lt;/li>
+&lt;li>Reaching into developer machines (the agent drafts
+broadcasts; humans deliver them).&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Advisory&lt;/strong> — ID, ecosystem, package name(s), affected
+versions, type (compromise vs. vulnerable).&lt;/li>
+&lt;li>&lt;strong>Registry list&lt;/strong> — which registry / proxy / cache connectors
+to use for this ecosystem.&lt;/li>
+&lt;li>&lt;strong>Policy&lt;/strong> — quarantine vs. hard delete; whether the
+developer-machine broadcast is required.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are running a cache-quarantine action across this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">organization&amp;#39;s registries in response to a compromise advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Your output is exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A complete audit record showing every registry purged, every
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verification passing, and a drafted developer-machine
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> broadcast text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`TRIAGE.md`&lt;/span> note explaining what could not be completed and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> what a human needs to do next.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not act on advisories that are not labelled
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`compromise`&lt;/span>/&lt;span class="sb">`malicious`&lt;/span>. Do not perform a hard delete unless
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the policy explicitly requires it for this advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Validate the input
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Confirm the advisory is labelled &lt;span class="sb">`compromise`&lt;/span> or &lt;span class="sb">`malicious`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> If it is a routine &lt;span class="sb">`vulnerable`&lt;/span> advisory, stop and route to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the vulnerable-dependency workflow.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the advisory provides a stable coordinate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`name@version`&lt;/span> for packages, &lt;span class="sb">`image:tag`&lt;/span> or &lt;span class="sb">`image@digest`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for containers). If the coordinate is fuzzy (range,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wildcard), stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each registry / proxy / cache connector you have access to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List all versions / digests matching the advisory&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> coordinate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Record the registry&amp;#39;s URL, the matching coordinates, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the version timestamps.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the connector returns an empty list, record &amp;#34;not present
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in this registry&amp;#34; — do not preemptively block versions the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory does not name.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Quarantine
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each matching version on each registry:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Use the registry&amp;#39;s quarantine API to mark the version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> forbidden. Quarantine is the default; only hard-delete if
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the policy file flags this advisory as &lt;span class="sb">`delete-required`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Capture the registry&amp;#39;s response and the resulting state.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If a registry rejects the quarantine call (permission,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> API error, version not deletable), record the failure and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> continue with the rest — do not abort the whole run on one
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> registry&amp;#39;s failure. Failures show up in the audit and the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Verify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each version you quarantined:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Make a fresh fetch attempt against the registry as a normal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client would (not the privileged quarantine endpoint).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the registry returns a 404 / forbidden / quarantine
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> response.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the registry still serves the artifact, **revert the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> quarantine** for that version, record the failure in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> audit, and add the registry to the triage note.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Draft the developer-machine broadcast
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Write a paste-ready broadcast text containing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A one-paragraph summary of the advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The exact purge command(s) for each ecosystem in scope. For
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the most common cases:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> npm/pnpm/yarn: &lt;span class="sb">`npm cache clean --force`&lt;/span> and remove
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matching entries from &lt;span class="sb">`~/.npm/_cacache`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> pip: &lt;span class="sb">`pip cache remove &amp;#39;&amp;lt;package&amp;gt;&amp;#39;`&lt;/span> (and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`~/.cache/pip/wheels`&lt;/span> removal if the wheel is matched).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Go: &lt;span class="sb">`go clean -modcache`&lt;/span> (note: removes everything; for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> targeted, &lt;span class="sb">`rm -rf ~/go/pkg/mod/&amp;lt;module&amp;gt;@&amp;lt;version&amp;gt;`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Maven: remove &lt;span class="sb">`~/.m2/repository/&amp;lt;group&amp;gt;/&amp;lt;artifact&amp;gt;/&amp;lt;version&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Docker / Podman: &lt;span class="sb">`docker rmi &amp;lt;image&amp;gt;:&amp;lt;tag&amp;gt;`&lt;/span> and prune by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A verify-clean command per ecosystem.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The contact channel for &amp;#34;I purged but the package still shows
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> up&amp;#34; reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The broadcast is &lt;span class="gs">**drafted, not delivered**&lt;/span>. The audit record
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">includes the text but the engineering team owns distribution.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Audit record
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Append a single audit entry containing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Advisory ID and link.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Coordinates targeted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Per-registry results (success / failure / not present).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Per-registry verification results.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Restore commands (the inverse of each quarantine action).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The drafted broadcast text.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Run ID and timestamp.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions (write a TRIAGE.md and exit)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Advisory is not a &lt;span class="sb">`compromise`&lt;/span> / &lt;span class="sb">`malicious`&lt;/span> shape.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Coordinate is fuzzy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> One or more registries refused quarantine and the advisory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy requires &amp;#34;all registries before declaring success.&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification failed on a registry that does not support a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reliable revert path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A registry connector is missing entirely (do not silently
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> skip).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not act on registries not in the input list.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not delete unrelated versions of the same package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not publish, rotate upstream URLs, or change registry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configuration beyond version-state.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not SSH into developer machines, CI runners, or any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> laptop. The broadcast is the only output that targets dev
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> machines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently downgrade a hard-delete policy to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> quarantine.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A complete audit record with every registry&amp;rsquo;s state recorded
+and the broadcast text drafted, OR a &lt;code>TRIAGE.md&lt;/code> note.&lt;/li>
+&lt;li>Out-of-band notification to the security incident channel
+fires whether the run succeeds or fails — quiet purges are
+the wrong default.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Quarantine before delete.&lt;/strong> Default action is reversible.
+Hard deletes require an extra approval and are not in the
+agent&amp;rsquo;s default toolset.&lt;/li>
+&lt;li>&lt;strong>Per-registry scoped credentials.&lt;/strong> The agent&amp;rsquo;s credential
+on each registry can manage version-state on packages
+matching the advisory namespace, and nothing else.&lt;/li>
+&lt;li>&lt;strong>Coordinate match required.&lt;/strong> No fuzzy matches.&lt;/li>
+&lt;li>&lt;strong>Verification before success.&lt;/strong> No &amp;ldquo;purged&amp;rdquo; claim without a
+verifying re-fetch.&lt;/li>
+&lt;li>&lt;strong>Restore path documented.&lt;/strong> Every quarantine action&amp;rsquo;s audit
+record includes the inverse command.&lt;/li>
+&lt;li>&lt;strong>Dev machines = broadcast, not action.&lt;/strong> Always.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/#guardrails">Vulnerable Dependency Remediation → Malicious-package
+downgrade path&lt;/a>
+— the lockfile-shaped sibling.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/fundamentals/threat-model/#observed-real-world-patterns">Threat Model → Agent-infrastructure supply-chain compromise&lt;/a>
+— why this pattern is treated separately from routine CVEs.&lt;/li>
+&lt;/ul></description></item></channel></rss>

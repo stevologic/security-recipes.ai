@@ -1,0 +1,204 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Base-Image</title><link>https://security-recipes.ai/tags/base-image/</link><description>Recent content in Base-Image on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/base-image/index.xml" rel="self" type="application/rss+xml"/><item><title>Base image — bump and rebuild</title><link>https://security-recipes.ai/prompt-library/general/base-image-bump/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/base-image-bump/</guid><description>
+&lt;p>A tool-agnostic prompt that takes a CVE finding scoped to a
+base image or an OS-package layer, and produces a reviewer-ready
+PR that bumps the &lt;code>FROM&lt;/code> line (or the package install layer),
+rebuilds the image, runs the smoke test, and confirms the CVE
+is gone — or stops cleanly with a triage note.&lt;/p>
+&lt;p>Designed to slot into the
+&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+workflow.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ol>
+&lt;li>&lt;strong>Reads the finding&lt;/strong> — the affected image, the CVE, the
+package, the patched version (or the patched image tag).&lt;/li>
+&lt;li>&lt;strong>Locates the affected layer&lt;/strong> — the &lt;code>FROM&lt;/code> line, the
+&lt;code>apt-get install&lt;/code> line, or the &lt;code>RUN apt-get upgrade&lt;/code> step
+that introduces the vulnerable package.&lt;/li>
+&lt;li>&lt;strong>Picks a bump strategy&lt;/strong> — tag bump, digest pin update,
+package upgrade, or curated-base bump — from the workflow&amp;rsquo;s
+declared policy.&lt;/li>
+&lt;li>&lt;strong>Edits the Dockerfile&lt;/strong>, rebuilds the image with
+&lt;code>--no-cache&lt;/code> for the affected layer, runs the repo&amp;rsquo;s smoke
+test.&lt;/li>
+&lt;li>&lt;strong>Re-scans the rebuilt image&lt;/strong> and confirms the CVE is gone
+and no new CVEs were introduced.&lt;/li>
+&lt;li>&lt;strong>Opens a PR&lt;/strong> with a structured body — affected images,
+affected services, rollout shape, rollback plan.&lt;/li>
+&lt;/ol>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A container image scanner has produced a structured CVE finding
+scoped to the base image or to a package the Dockerfile
+installs.&lt;/li>
+&lt;li>The repo owns the Dockerfile (CODEOWNERS resolves cleanly).&lt;/li>
+&lt;li>The repo&amp;rsquo;s CI builds the image and exposes a smoke test the
+agent can invoke.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>Application-package CVEs (npm, pip, Go modules, etc.) — those
+go through the &lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">vulnerable-dependency workflow&lt;/a>.&lt;/li>
+&lt;li>Curated-base creation, distroless rebases, or OS-family changes
+— those are human-driven.&lt;/li>
+&lt;li>Images built outside the repo.&lt;/li>
+&lt;li>CVEs in the kernel or host runtime.&lt;/li>
+&lt;/ul>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>CVE&lt;/strong> — ID, affected package, fixed version (or fixed image
+tag).&lt;/li>
+&lt;li>&lt;strong>Image&lt;/strong> — registry path, current tag, current digest.&lt;/li>
+&lt;li>&lt;strong>Dockerfile path&lt;/strong> — repo-relative path.&lt;/li>
+&lt;li>&lt;strong>Smoke test command&lt;/strong> — inferred from CI (&lt;code>make smoke&lt;/code>, &lt;code>docker run … &amp;amp;&amp;amp; curl /health&lt;/code>, etc.).&lt;/li>
+&lt;li>&lt;strong>Policy file&lt;/strong> — &lt;code>.sec-auto-remediation.yml&lt;/code> declaring which
+bump magnitudes (patch / minor / major) are auto-eligible.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating a single base-image or OS-package CVE in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">this repository. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR with a Dockerfile edit and a successful rebuild + scan.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A &lt;span class="sb">`TRIAGE.md`&lt;/span> note explaining why the bump is unsafe or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ineffective.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not auto-merge. Do not bundle multiple CVEs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the finding and the policy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the CVE ID, the affected package, the fixed version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (or fixed image tag), and the image coordinate.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Read the policy file. Confirm the bump magnitude implied by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the fix is auto-eligible. If the policy says &amp;#34;human only&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for this magnitude, stop and triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Locate the affected layer
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the Dockerfile. Identify the &lt;span class="sb">`FROM`&lt;/span> line(s) and any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package-install layers (&lt;span class="sb">`apt-get install`&lt;/span>, &lt;span class="sb">`apk add`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`dnf install`&lt;/span>, &lt;span class="sb">`microdnf install`&lt;/span>, &lt;span class="sb">`yum install`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine which layer introduces the vulnerable package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Multi-stage builds may have multiple &lt;span class="sb">`FROM`&lt;/span> lines; identify
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> only the one(s) affected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If the image derives from an internal curated base
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (&lt;span class="sb">`internal/...:tag`&lt;/span>), confirm the curated base has been
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bumped upstream first. If not, stop and triage with a link
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to the upstream-bump request.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Pick the bump strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Choose exactly one (and only one):
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Tag bump.** Edit the &lt;span class="sb">`FROM`&lt;/span> line to the patched tag.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Digest pin update.** When the repo pins to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`image@sha256:…`&lt;/span>, edit the digest to the registry&amp;#39;s
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> current tag-resolved digest for the same logical version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Package upgrade.** Edit the package-install line to pin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the patched version (preferred) or add an explicit
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`apt-get upgrade &amp;lt;pkg&amp;gt;`&lt;/span> step before the install.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Curated base bump.** Edit the &lt;span class="sb">`FROM`&lt;/span> tag to the new
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> curated tag and link the upstream curated-base PR in the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Do not refactor the Dockerfile. Do not &amp;#34;clean up while you&amp;#39;re
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">in there.&amp;#34; If a clean fix requires more than the bump, stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Rebuild
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Rebuild the image with &lt;span class="sb">`--no-cache`&lt;/span> for the affected layer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> If the cache state is uncertain, rebuild the whole image.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Capture the new digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Run the repo&amp;#39;s smoke test against the rebuilt image. The
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image must start, the health check must pass.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the smoke test fails, revert and stop with a triage note
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> that includes the failure log.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Rescan
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Re-run the image scanner against the rebuilt image.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> The original CVE must be gone.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> The total CVE count must not have increased. If new CVEs
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> appeared, list them in the PR body — do not silently ship.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the original CVE is still present (e.g., the patched
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> version was not actually fixed in the new tag), stop and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> triage.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/cve-&amp;lt;cve-id&amp;gt;-&amp;lt;image-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][CVE-XXXX-YYYYY] bump &amp;lt;image&amp;gt; for &amp;lt;pkg&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **CVE summary** — ID, package, severity, link to the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> advisory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Strategy used** — which of the four bump shapes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Affected images** — the registry paths that will rebuild.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Affected services** — the manifests / Helm values /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kustomize overlays that pin to those images.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Rollout shape** — canary, blue/green, rolling.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **Rollback plan** — the previous tag/digest.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **New CVEs introduced (if any)** — listed with severity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> **How to verify locally** — exact build + smoke commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Bump magnitude is not auto-eligible per policy.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repo&amp;#39;s CI does not have a smoke test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The Dockerfile uses &lt;span class="sb">`latest`&lt;/span>, a moving major-version tag, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a missing tag (flag and triage; do not silently pin).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rebuilt image fails the smoke test.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Re-scan still shows the original CVE or shows new CVEs the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> policy treats as blocking.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The fix would require a multi-stage refactor or an OS-family
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not edit application source.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not edit CI, deploy manifests (the reviewer drives those),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or release pipelines.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not push to the registry — the agent&amp;#39;s credentials are
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pull-only.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle multiple CVEs.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Output contract&lt;span class="hx:absolute hx:-mt-20" id="output-contract">&lt;/span>
+&lt;a href="#output-contract" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Either a PR (happy path) with a successfully rebuilt and
+rescanned image, or a &lt;code>TRIAGE.md&lt;/code> note (stop condition).&lt;/li>
+&lt;li>Audit record includes the new digest, the scanner output, and
+the smoke-test result.&lt;/li>
+&lt;/ul>
+&lt;h2>Guardrails&lt;span class="hx:absolute hx:-mt-20" id="guardrails">&lt;/span>
+&lt;a href="#guardrails" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>One CVE, one image, one PR.&lt;/strong> Bundling masks regressions.&lt;/li>
+&lt;li>&lt;strong>Rescan required.&lt;/strong> No PR opens until the rebuilt image
+scans clean for the target CVE.&lt;/li>
+&lt;li>&lt;strong>Smoke test required.&lt;/strong> &amp;ldquo;It builds&amp;rdquo; is not &amp;ldquo;it works.&amp;rdquo;&lt;/li>
+&lt;li>&lt;strong>Layer cache is not a fix.&lt;/strong> Rebuild with &lt;code>--no-cache&lt;/code> for
+the affected layer.&lt;/li>
+&lt;li>&lt;strong>No &lt;code>latest&lt;/code>.&lt;/strong> The agent never introduces or relies on a
+moving tag.&lt;/li>
+&lt;li>&lt;strong>Pull-only credentials.&lt;/strong> Push happens from CI, not from
+the agent.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— the workflow this prompt slots into.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— the lockfile-shaped sibling.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/artifact-cache-purge/">Artifact Cache &amp;amp; Mirror Quarantine&lt;/a>
+— when the bump is the wrong fix because the &lt;em>publisher&lt;/em> is
+compromised.&lt;/li>
+&lt;/ul></description></item></channel></rss>

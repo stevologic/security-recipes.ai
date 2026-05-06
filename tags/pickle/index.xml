@@ -1,0 +1,190 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Pickle</title><link>https://security-recipes.ai/tags/pickle/</link><description>Recent content in Pickle on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/pickle/index.xml" rel="self" type="application/rss+xml"/><item><title>Python pickle / dill on untrusted input</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/python-pickle/</guid><description>
+&lt;p>&lt;code>pickle.load&lt;/code>, &lt;code>pickle.loads&lt;/code>, &lt;code>cPickle.load&lt;/code>, &lt;code>dill.load&lt;/code>, and
+their friends are &lt;strong>arbitrary-code-execution primitives&lt;/strong> when
+fed untrusted input. The Python docs say so plainly. The CVE
+trail is decades long. The unsafe behaviour is &lt;em>the design&lt;/em> —
+pickle is meant to reconstruct any Python object, including
+ones whose &lt;code>__reduce__&lt;/code> runs code.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Any of:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>pickle.load(f)&lt;/code>, &lt;code>pickle.loads(s)&lt;/code>,
+&lt;code>cPickle.load(f)&lt;/code>, &lt;code>cPickle.loads(s)&lt;/code>.&lt;/li>
+&lt;li>&lt;code>dill.load(f)&lt;/code>, &lt;code>dill.loads(s)&lt;/code> (same problem, larger
+surface).&lt;/li>
+&lt;li>&lt;code>joblib.load(path)&lt;/code> when the path is user-controlled.&lt;/li>
+&lt;li>&lt;code>numpy.load(allow_pickle=True)&lt;/code> on user files (silent default
+before 1.16.3 was unsafe; current default is safe but the
+flag is often re-enabled in legacy code).&lt;/li>
+&lt;li>&lt;code>torch.load(path)&lt;/code> (Python 2.6+ pickling underneath; safer
+options now exist as of PyTorch 2.5+).&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A pickled payload can carry a &lt;code>__reduce__&lt;/code> that returns
+&lt;code>(os.system, (&amp;quot;rm -rf /&amp;quot;,))&lt;/code> — &lt;code>pickle.load&lt;/code> happily executes
+it. There is no patch coming. Reading attacker-controlled
+pickles is RCE.&lt;/p>
+&lt;h2>Mitigation — restricted unpickler&lt;span class="hx:absolute hx:-mt-20" id="mitigation--restricted-unpickler">&lt;/span>
+&lt;a href="#mitigation--restricted-unpickler" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>When the call is on a backwards-compat read path (a legacy
+checkpoint format, an old persistence file), wrap the
+unpickler:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">pickle&lt;/span>&lt;span class="o">,&lt;/span> &lt;span class="nn">io&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">class&lt;/span> &lt;span class="nc">SafeUnpickler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pickle&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">Unpickler&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">ALLOWED&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;dict&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;list&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;set&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;builtins&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;tuple&amp;#34;&lt;/span>&lt;span class="p">),&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># Add only the application-specific classes&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># that legitimately round-trip through pickle.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">def&lt;/span> &lt;span class="nf">find_class&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="bp">self&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="bp">self&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">ALLOWED&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nb">super&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">find_class&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">name&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">raise&lt;/span> &lt;span class="n">pickle&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">UnpicklingError&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="sa">f&lt;/span>&lt;span class="s2">&amp;#34;forbidden: &lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">module&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">.&lt;/span>&lt;span class="si">{&lt;/span>&lt;span class="n">name&lt;/span>&lt;span class="si">}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">safe_loads&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="nb">bytes&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">SafeUnpickler&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">io&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">BytesIO&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">))&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">load&lt;/span>&lt;span class="p">()&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Every rejection logs at WARN. The allowlist is the policy; it is
+narrow on purpose.&lt;/p>
+&lt;h2>Uplift — replace pickle entirely&lt;span class="hx:absolute hx:-mt-20" id="uplift--replace-pickle-entirely">&lt;/span>
+&lt;a href="#uplift--replace-pickle-entirely" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Default replacement choices:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>JSON&lt;/strong> (&lt;code>json.dumps&lt;/code> / &lt;code>json.loads&lt;/code>) — when the data is
+already a tree of primitives.&lt;/li>
+&lt;li>&lt;strong>msgpack&lt;/strong> — when binary payload size matters.&lt;/li>
+&lt;li>&lt;strong>protobuf&lt;/strong> / &lt;strong>pydantic JSON&lt;/strong> — when the data has a schema
+worth declaring.&lt;/li>
+&lt;li>For ML-shaped state: &lt;strong>safetensors&lt;/strong> for weights, JSON for
+metadata.&lt;/li>
+&lt;/ul>
+&lt;p>Behaviour preservation: round-trip a representative payload
+through the old &lt;code>pickle.dumps&lt;/code> and the new serializer; assert
+the in-memory shape matches.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call site&lt;/strong> — file + line range.&lt;/li>
+&lt;li>&lt;strong>Data path&lt;/strong> — where the input comes from (file, network,
+user-uploaded, intra-process).&lt;/li>
+&lt;li>&lt;strong>Replacement strategy&lt;/strong> — uplift / mitigate / both.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating one Python pickle call site. Output a PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Read the call site and trace input
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read the function containing the pickle call. Identify the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> input source (file handle, bytes, network payload).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> If the input is provably trusted-only (e.g., a file written
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> in the same process, never read across a trust boundary),
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> stop and write a triage note documenting the trust
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> boundary — do not auto-replace.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If the call is on a backwards-compat read path with active
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> callers reading legacy data, do &lt;span class="gs">**mitigate**&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Otherwise do &lt;span class="gs">**uplift**&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> For checkpoint loaders that take user-supplied paths, do
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="gs">**both**&lt;/span> — mitigate the legacy path, uplift the write path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Mitigate (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add a &lt;span class="sb">`SafeUnpickler`&lt;/span> subclass with an explicit class
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlist scoped to the classes that legitimately round-trip
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> here. Log rejections at WARN.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Replace the &lt;span class="sb">`pickle.load(f)`&lt;/span> call with the safe wrapper.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a unit test that loads a known-good payload (passes)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and a payload referencing &lt;span class="sb">`os.system`&lt;/span> (raises
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`UnpicklingError`&lt;/span>).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Uplift (when applicable)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Choose the replacement format from this list, in order:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> JSON if the payload is primitives, msgpack if binary size
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> matters, protobuf/pydantic if schema is worth declaring,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safetensors+JSON for ML weights.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add a writer that emits the new format, and a reader that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> parses it.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> If old data exists, add a one-time migration that reads the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> pickle (via the SafeUnpickler from Step 2) and writes the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> new format. The migration is its own commit.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Add a behaviour-preservation test that asserts the in-memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shape after uplift matches what the old pickle would have
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> produced.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/pickle-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][pickle] replace untrusted-input pickle in &amp;lt;module&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body must include: input-source analysis, strategy chosen,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> test plan, legacy data migration plan if any, and a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> follow-up checklist for adjacent pickle call sites that this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR did not touch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Input source cannot be classified as untrusted vs. trusted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Replacement requires a coordinated migration across repos.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Test coverage on the call path is too thin to detect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> regressions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not touch other pickle call sites in the repo. One per
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> PR.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not silently broaden the SafeUnpickler allowlist beyond
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the classes the local code actually uses.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not remove the legacy read-path without a documented
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> data migration.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>&lt;code>__reduce__&lt;/code> in tests.&lt;/strong> Some test suites legitimately
+pickle and unpickle custom classes. Don&amp;rsquo;t break those — add
+the classes to the allowlist explicitly.&lt;/li>
+&lt;li>&lt;strong>&lt;code>numpy.load(allow_pickle=True)&lt;/code> left enabled.&lt;/strong> Often a
+copy-paste from a stack-overflow answer. The default is safe
+now; flip it back.&lt;/li>
+&lt;li>&lt;strong>&lt;code>torch.load&lt;/code> on a user-supplied path.&lt;/strong> The mitigation
+shape depends on the PyTorch version; check the loader&amp;rsquo;s
+&lt;code>weights_only&lt;/code> parameter (PyTorch 2.5+ defaults it true).&lt;/li>
+&lt;li>&lt;strong>Cross-version pickles.&lt;/strong> A pickle written by Python 3.11
+may not round-trip cleanly on 3.9. The behaviour-preservation
+test catches this.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/pyyaml-load/">PyYAML &lt;code>yaml.load&lt;/code>&lt;/a>
+— sibling pattern with a different fix.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/java-deserialization/">Java ObjectInputStream&lt;/a>
+— same pattern in Java.&lt;/li>
+&lt;/ul></description></item></channel></rss>

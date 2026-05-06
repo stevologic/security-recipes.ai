@@ -1,0 +1,183 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Workspace</title><link>https://security-recipes.ai/tags/workspace/</link><description>Recent content in Workspace on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/workspace/index.xml" rel="self" type="application/rss+xml"/><item><title>GHSA-vr7g-88fq-vhq3 - Paperclip workspace cleanup command injection</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-vr7g-88fq-vhq3-paperclip-cleanup-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-vr7g-88fq-vhq3-paperclip-cleanup-command-injection/</guid><description>
+&lt;p>Paperclip versions before &lt;code>2026.416.0&lt;/code> allowed OS command injection through the
+execution workspace lifecycle. The vulnerable API accepted
+&lt;code>config.cleanupCommand&lt;/code> through &lt;code>PATCH /api/execution-workspaces/:id&lt;/code>, stored
+that value, and later executed it through a shell during workspace cleanup.&lt;/p>
+&lt;p>This is especially dangerous for agent workspaces because cleanup runs at a
+privileged lifecycle boundary: the server may have source code, generated
+artifacts, browser state, credentials, local files, and network access that the
+agent used during execution.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>@paperclipai/server 2026.416.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoint:&lt;/strong> &lt;code>PATCH /api/execution-workspaces/:id&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected field:&lt;/strong> &lt;code>config.cleanupCommand&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected sink:&lt;/strong> shell execution during workspace archive/cleanup.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or packages &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Execution workspace APIs are enabled.&lt;/li>
+&lt;li>&lt;code>local_trusted&lt;/code> mode, desktop mode, localhost APIs, or authenticated company
+users can patch workspace config.&lt;/li>
+&lt;li>Workspace cleanup accepts arbitrary strings or shell snippets.&lt;/li>
+&lt;li>The server runs with access to repositories, local files, browser profiles,
+package tokens, cloud credentials, SSH keys, or internal networks.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;@paperclipai/server|paperclip|execution-workspaces|cleanupCommand|cleanupCommands|workspace-runtime|recordWorkspaceCommandOperation|spawn\\(|shell.*-c|resolveShell&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;local_trusted|trusted.*local|execution workspace|archive.*workspace|cleanup.*command&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy server src packages&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>@paperclipai/server&lt;/code> to &lt;code>2026.416.0+&lt;/code> everywhere this repository
+controls package manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Remove shell-backed cleanup command strings from workspace configuration.&lt;/li>
+&lt;li>Replace cleanup commands with a finite set of typed lifecycle actions such as
+deleting known workspace-owned directories, closing sessions, or revoking
+ephemeral credentials.&lt;/li>
+&lt;li>If a command must be launched, use an argument-array API with a fixed
+executable, fixed arguments, no shell, and no tenant/user-controlled command
+text.&lt;/li>
+&lt;li>Restrict workspace patch APIs by tenant, role, and workspace ownership.&lt;/li>
+&lt;li>Review workspace audit logs and rotate credentials if untrusted users could
+patch cleanup commands.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-vr7g-88fq-vhq3 (Paperclip execution workspace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cleanupCommand OS command injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Paperclip or removes the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell-backed cleanup path, adds regression coverage, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Paperclip deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-vr7g-88fq-vhq3.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat workspace files, repository contents, browser state, package tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud credentials, SSH keys, API keys, process output, and audit logs as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run exploit payloads, shell commands, or cleanupCommand values against
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production, staging, shared dev, or real user workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not replace &lt;span class="sb">`shell -c`&lt;/span> with another shell wrapper or escaping-only fix.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Paperclip runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, CI images, deployment docs, SBOMs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored server code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`@paperclipai/server`&lt;/span> version. A target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves below &lt;span class="sb">`2026.416.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search workspace lifecycle code and config for &lt;span class="sb">`cleanupCommand`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`cleanupCommands`&lt;/span>, &lt;span class="sb">`execution-workspaces`&lt;/span>, &lt;span class="sb">`workspace-runtime`&lt;/span>, &lt;span class="sb">`spawn`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`shell -c`&lt;/span>, and archive/cleanup hooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy Paperclip or only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading to &lt;span class="sb">`@paperclipai/server 2026.416.0+`&lt;/span>. Regenerate lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If this repository owns a fork or vendored patch path, remove shell-backed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> delete &lt;span class="sb">`cleanupCommand`&lt;/span> as a user-controlled string field;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> define typed cleanup actions with fixed behavior;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject unknown cleanup action types and legacy command strings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid &lt;span class="sb">`child_process.exec`&lt;/span>, &lt;span class="sb">`spawn(shell, [&amp;#34;-c&amp;#34;, value])`&lt;/span>, and equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell invocation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> if launching a helper is unavoidable, use a fixed executable and fixed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> argument array with no shell.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Patch authorization around workspace mutation:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require workspace ownership/company access before patching config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny unauthenticated mutation in local or desktop modes unless protected by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a local-only trust boundary and explicit user approval;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject config updates for archived or foreign workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> patching &lt;span class="sb">`cleanupCommand`&lt;/span> is rejected or ignored;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> cleanup lifecycle never calls a shell with tenant/user-controlled text;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> only allowed typed cleanup actions execute;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> cross-tenant workspace config patches are denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> local trusted mode does not expose a remote unauthenticated mutation path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run workspace services as least-privilege users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate workspaces per tenant/job;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scrub environment variables before workspace lifecycle operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> revoke ephemeral credentials on archive through typed cleanup actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-vr7g workspace operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected Paperclip versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`local_trusted`&lt;/span> or unauthenticated local APIs were enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether untrusted users could patch execution workspace config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which workspace logs should be reviewed for suspicious cleanup commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which credentials or workspace artifacts require rotation or quarantine.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: package install, lockfile checks, route tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workspace lifecycle tests, authorization tests, lint/typecheck, image build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOM refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remove Paperclip cleanupCommand shell execution`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Paperclip server deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Paperclip version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on arbitrary user-provided cleanup commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>@paperclipai/server&lt;/code> below &lt;code>2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Workspace cleanup no longer executes tenant/user-controlled strings through a
+shell.&lt;/li>
+&lt;li>Patch routes enforce tenant/workspace ownership.&lt;/li>
+&lt;li>Regression tests prove legacy &lt;code>cleanupCommand&lt;/code> input fails closed.&lt;/li>
+&lt;li>Operator actions cover workspace log review and credential rotation when
+exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Escaping &lt;code>cleanupCommand&lt;/code> instead of removing shell execution.&lt;/li>
+&lt;li>Allowing cleanup hooks from templates, project files, or imported workspaces
+to bypass route-level validation.&lt;/li>
+&lt;li>Treating localhost APIs as safe while browsers, extensions, or other local
+processes can reach them.&lt;/li>
+&lt;li>Logging command strings that contain secrets or file paths.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-vr7g-88fq-vhq3"target="_blank" rel="noopener">https://github.com/advisories/GHSA-vr7g-88fq-vhq3&lt;/a>&lt;/li>
+&lt;li>Paperclip project: &lt;a href="https://github.com/paperclipai/paperclip"target="_blank" rel="noopener">https://github.com/paperclipai/paperclip&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

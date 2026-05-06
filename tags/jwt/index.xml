@@ -1,0 +1,210 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Jwt</title><link>https://security-recipes.ai/tags/jwt/</link><description>Recent content in Jwt on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/jwt/index.xml" rel="self" type="application/rss+xml"/><item><title>JWT — `alg: none` and algorithm confusion</title><link>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/jwt-alg-none/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/classic-vulnerable-defaults/jwt-alg-none/</guid><description>
+&lt;p>JWTs are validated against an &lt;code>alg&lt;/code> field the &lt;em>token itself&lt;/em>
+declares. The spec includes &lt;code>none&lt;/code> (for &amp;ldquo;validation skipped&amp;rdquo;);
+some libraries used to honour it; some still do under specific
+configurations. A second class of bug — the RS256 → HS256
+algorithm-confusion attack — happens when an HMAC-verifier uses
+the public RSA key as the HMAC secret because the token says
+&lt;code>alg: HS256&lt;/code>.&lt;/p>
+&lt;p>The robust shape is the same in both cases: never trust the
+&lt;code>alg&lt;/code> field. Decide the expected algorithm on the verifier
+side and refuse anything else.&lt;/p>
+&lt;h2>Pattern&lt;span class="hx:absolute hx:-mt-20" id="pattern">&lt;/span>
+&lt;a href="#pattern" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;code>jwt.decode(token, key)&lt;/code> (PyJWT pre-2.0) without an
+&lt;code>algorithms=[...]&lt;/code> argument.&lt;/li>
+&lt;li>&lt;code>jsonwebtoken.verify(token, secret)&lt;/code> (Node.js) without
+&lt;code>{ algorithms: [...] }&lt;/code>.&lt;/li>
+&lt;li>&lt;code>JWT.decode(token, key)&lt;/code> (Ruby) without explicit
+&lt;code>algorithm&lt;/code>.&lt;/li>
+&lt;li>&lt;code>Jwts.parser().setSigningKey(key).parseClaimsJws(token)&lt;/code>
+(Java jjwt 0.10–) without
+&lt;code>.parseClaimsJws()&lt;/code> / &lt;code>.parserBuilder().setSigningKey(...)&lt;/code>
+with explicit algorithm verification.&lt;/li>
+&lt;li>Any custom verifier that reads &lt;code>header.alg&lt;/code> and dispatches.&lt;/li>
+&lt;/ul>
+&lt;h2>Why it matters&lt;span class="hx:absolute hx:-mt-20" id="why-it-matters">&lt;/span>
+&lt;a href="#why-it-matters" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>A token with &lt;code>alg: none&lt;/code> and an empty signature is valid in any
+library that honours the field — the attacker forges any claim
+they like. RS256-to-HS256 confusion is subtler: the attacker
+takes the server&amp;rsquo;s public RSA key (often published in a JWKS),
+signs an HMAC with it, sets &lt;code>alg: HS256&lt;/code>, and the verifier (if
+naive) treats the public key as the HMAC secret and accepts.&lt;/p>
+&lt;h2>Mitigation — algorithm allowlist + import-time monkey patch&lt;span class="hx:absolute hx:-mt-20" id="mitigation--algorithm-allowlist--import-time-monkey-patch">&lt;/span>
+&lt;a href="#mitigation--algorithm-allowlist--import-time-monkey-patch" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>For codebases with many call sites, add a wrapper that refuses
+to call any underlying JWT verifier without an explicit
+algorithm allowlist:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Python (PyJWT)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">jwt&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">os&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">_orig_decode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">jwt&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decode&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">_safe_decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">token&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">key&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">algorithms&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="kc">None&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kw&lt;/span>&lt;span class="p">):&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="ow">not&lt;/span> &lt;span class="n">algorithms&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">raise&lt;/span> &lt;span class="n">jwt&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">InvalidAlgorithmError&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;JWT verify requires an explicit algorithms allowlist&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="s2">&amp;#34;none&amp;#34;&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">a&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">lower&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">a&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">algorithms&lt;/span>&lt;span class="p">]:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">raise&lt;/span> &lt;span class="n">jwt&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">InvalidAlgorithmError&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;JWT alg=none is forbidden&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">_orig_decode&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">token&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">key&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">algorithms&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="n">algorithms&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="o">**&lt;/span>&lt;span class="n">kw&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">jwt&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decode&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">_safe_decode&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Equivalent shims exist for &lt;code>jsonwebtoken&lt;/code> (Node) and
+&lt;code>jwt-ruby&lt;/code>. Install at the application&amp;rsquo;s entry point.&lt;/p>
+&lt;h2>Uplift — explicit algorithm allowlist at every call&lt;span class="hx:absolute hx:-mt-20" id="uplift--explicit-algorithm-allowlist-at-every-call">&lt;/span>
+&lt;a href="#uplift--explicit-algorithm-allowlist-at-every-call" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>The clean fix:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="n">payload&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">jwt&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">decode&lt;/span>&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">token&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">key&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">algorithms&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;RS256&amp;#34;&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="c1"># exactly one, named&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">audience&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;myapi&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">issuer&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s2">&amp;#34;https://idp.example&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">options&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="p">{&lt;/span>&lt;span class="s2">&amp;#34;require&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s2">&amp;#34;exp&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;iat&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;aud&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;iss&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s2">&amp;#34;sub&amp;#34;&lt;/span>&lt;span class="p">]},&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Single algorithm, named. Plus require expected claims. Plus
+verify &lt;code>aud&lt;/code> and &lt;code>iss&lt;/code> against the application&amp;rsquo;s expected
+values.&lt;/p>
+&lt;h2>Inputs&lt;span class="hx:absolute hx:-mt-20" id="inputs">&lt;/span>
+&lt;a href="#inputs" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Call sites&lt;/strong> — every JWT verify call.&lt;/li>
+&lt;li>&lt;strong>Algorithm policy&lt;/strong> — which algorithm(s) the application
+legitimately uses.&lt;/li>
+&lt;li>&lt;strong>Required claims&lt;/strong> — which claims must be present.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating JWT verification call sites. Output a PR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or a TRIAGE.md.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Inventory
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> List every JWT verification call across the repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> For each, record: the library and version, the current
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> algorithm argument (if any), the key source (HMAC secret
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vs. RSA/EC public key vs. JWKS endpoint), and the claim
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> expectations.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Read the application&amp;#39;s auth design docs (if available) to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> learn the legitimate algorithm.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Pick the strategy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Always uplift (explicit allowlist on every call).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> If there are &amp;gt;5 call sites, also install the import-time
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shim as defence-in-depth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Uplift each call
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">For each verify call, change to:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> &lt;span class="sb">`algorithms=[&amp;#34;&amp;lt;expected-alg&amp;gt;&amp;#34;]`&lt;/span> — exactly one, named.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verify &lt;span class="sb">`aud`&lt;/span> against the application&amp;#39;s expected audience.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verify &lt;span class="sb">`iss`&lt;/span> against the application&amp;#39;s expected issuer.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Require &lt;span class="sb">`exp`&lt;/span>, &lt;span class="sb">`iat`&lt;/span>, and any other application-required
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> claims.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Install the shim (when chosen)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Add the wrapper module at a stable import path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Import it from every application entry point.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Add a unit test that calls &lt;span class="sb">`jwt.decode`&lt;/span> without an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`algorithms`&lt;/span> argument and asserts the wrapper rejects.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — Tests
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Add tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A token signed with the wrong algorithm is rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A token with &lt;span class="sb">`alg: none`&lt;/span> is rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A token with &lt;span class="sb">`alg: HS256`&lt;/span> and the public RSA key as the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &amp;#34;secret&amp;#34; is rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A token with &lt;span class="sb">`alg: &amp;lt;expected&amp;gt;`&lt;/span> and the right key but wrong
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`aud`&lt;/span> is rejected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A valid token is accepted.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 5 — Open the PR
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Branch: &lt;span class="sb">`remediate/jwt-alg-allowlist-&amp;lt;short-slug&amp;gt;`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Title: &lt;span class="sb">`[Security][jwt] enforce algorithm allowlist on every verify`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Body: call-site inventory, algorithm chosen per call, shim
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> installation, test additions, and a follow-up checklist for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> any service whose tokens did not declare a single
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> algorithm.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Label: &lt;span class="sb">`sec-auto-remediation`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A service legitimately accepts multiple algorithms (e.g.,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> during a key-rotation window). Confirm with the auth team
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> before allowlisting both; do not silently widen the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlist.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The verification path uses a custom signature implementation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the agent cannot reason about safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Tests on unrelated code break in ways the agent cannot
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolve without touching auth logic.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change token &lt;span class="ge">*issuance*&lt;/span>. This recipe is for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> verifiers.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not change key material.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Do not bundle unrelated auth refactors.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Multi-algorithm services during key rotation.&lt;/strong> During
+rotation, allowlists may legitimately include both old and
+new. Document the window and remove the old algorithm on
+schedule.&lt;/li>
+&lt;li>&lt;strong>JWKS keys with &lt;code>alg&lt;/code> unset.&lt;/strong> Some IdPs ship JWKS without
+&lt;code>alg&lt;/code>; the verifier &lt;em>must&lt;/em> enforce the expected algorithm
+even when JWKS doesn&amp;rsquo;t constrain it.&lt;/li>
+&lt;li>&lt;strong>&lt;code>kid&lt;/code> confusion.&lt;/strong> A token can name a JWKS key id; if the
+verifier trusts the &lt;code>kid&lt;/code> to pick the algorithm, you&amp;rsquo;ve
+re-introduced algorithm confusion through the back door.
+Decide the algorithm on the server, not the token.&lt;/li>
+&lt;li>&lt;strong>&lt;code>exp&lt;/code> without skew.&lt;/strong> Refusing tokens for sub-second
+clock skew is an availability bug. Allow a small skew
+(e.g., 60 seconds) — but no more.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/classic-vulnerable-defaults/">Classic Vulnerable Defaults&lt;/a>
+— workflow context.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/prompt-library/general/owasp-top-10-2026-remediate/">OWASP Top 10 (2026) → A07 Authentication Failures&lt;/a>
+— broader auth-failure pattern.&lt;/li>
+&lt;/ul></description></item></channel></rss>

@@ -1,0 +1,211 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Openssh</title><link>https://security-recipes.ai/tags/openssh/</link><description>Recent content in Openssh on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 25 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/openssh/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2024-6387 — regreSSHion</title><link>https://security-recipes.ai/prompt-library/cve/cve-2024-6387-regresshion/</link><pubDate>Sat, 25 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2024-6387-regresshion/</guid><description>
+&lt;p>A race condition in OpenSSH&amp;rsquo;s &lt;code>sshd&lt;/code> signal handler — a
+regression of an older 2006-era issue (CVE-2006-5051) —
+re-enabled remote RCE as root on glibc Linux servers running
+affected &lt;code>sshd&lt;/code>. The bug is reached through the
+&lt;code>LoginGraceTime&lt;/code> SIGALRM handler; the exploit is hard but
+demonstrably real (Qualys published proof of concept).&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> versions earlier than 4.4p1 — vulnerable to the
+original 2006 issue (and to this one if other patches
+weren&amp;rsquo;t backported).&lt;/li>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> 4.4p1 through 8.5p1 — &lt;em>not&lt;/em> vulnerable (the
+2006 fix held).&lt;/li>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> 8.5p1 through 9.7p1 — vulnerable (regression
+reintroduced).&lt;/li>
+&lt;li>&lt;strong>OpenSSH&lt;/strong> 9.8p1+ — patched.&lt;/li>
+&lt;/ul>
+&lt;p>OpenBSD&amp;rsquo;s native OpenSSH is not affected (the bug is
+glibc-specific). Linux distros backport patches at varying
+speeds; the right reference is your distro&amp;rsquo;s advisory.&lt;/p>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Detection:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">ssh -V &lt;span class="c1"># Reports the OpenSSH version&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sshd -V 2&amp;gt;&lt;span class="p">&amp;amp;&lt;/span>&lt;span class="m">1&lt;/span> &lt;span class="p">|&lt;/span> head -1 &lt;span class="c1"># Sometimes more accurate&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Also verify against the distro advisory&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">apt-cache policy openssh-server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">dnf info openssh-server&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;p>Sufficient exposure conditions:&lt;/p>
+&lt;ul>
+&lt;li>glibc Linux (i.e., not OpenBSD, FreeBSD, musl Alpine).&lt;/li>
+&lt;li>OpenSSH version in the 8.5p1–9.7p1 window.&lt;/li>
+&lt;li>&lt;code>sshd&lt;/code> reachable by an attacker.&lt;/li>
+&lt;li>Default &lt;code>LoginGraceTime&lt;/code> (120 seconds). The mitigation
+setting is &lt;code>LoginGraceTime 0&lt;/code>, which closes the race window
+by removing the alarm.&lt;/li>
+&lt;/ul>
+&lt;p>A network-isolated &lt;code>sshd&lt;/code> (only reachable from a bastion or
+internal-only) is a smaller exposure surface but still
+vulnerable to anyone who reaches the bastion.&lt;/p>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Upgrade&lt;/strong> OpenSSH to 9.8p1+ via the distro&amp;rsquo;s package
+manager.&lt;/li>
+&lt;li>&lt;strong>Mitigate&lt;/strong> with &lt;code>LoginGraceTime 0&lt;/code> in
+&lt;code>/etc/ssh/sshd_config&lt;/code> until the upgrade lands. This
+removes the alarm-based race entirely; the cost is that a
+client hanging the auth handshake holds an &lt;code>sshd&lt;/code> slot
+forever (a &lt;code>MaxStartups&lt;/code> setting becomes load-bearing).&lt;/li>
+&lt;li>&lt;strong>Restart&lt;/strong> &lt;code>sshd&lt;/code> after either action.&lt;/li>
+&lt;li>&lt;strong>Audit&lt;/strong> auth logs for unexplained &lt;code>sshd[&amp;lt;pid&amp;gt;]: fatal: Timeout before authentication&lt;/code> messages — the published
+exploit signatures the failure pattern.&lt;/li>
+&lt;li>&lt;strong>Treat as compromised&lt;/strong> any host whose &lt;code>sshd&lt;/code> was the
+affected version &lt;em>and&lt;/em> network-reachable to untrusted
+networks for an extended window. Rotate host keys; rotate
+any secret accessible from &lt;code>sshd&lt;/code>&amp;rsquo;s process memory.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are remediating CVE-2024-6387 (regreSSHion) on this host
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or in this system image. Output exactly one of:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A PR / change request upgrading OpenSSH and (optionally)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> applying the &lt;span class="sb">`LoginGraceTime 0`&lt;/span> mitigation, plus an IR
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> checklist for the operator.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A TRIAGE.md if the host has been running affected &lt;span class="sb">`sshd`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> on the public internet for an extended period.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">This recipe is &lt;span class="gs">**not**&lt;/span> auto-merge. The agent produces the PR;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">the operator restarts &lt;span class="sb">`sshd`&lt;/span> and decides on IR scope.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 0 — Detect
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Read OpenSSH server version: &lt;span class="sb">`sshd -V 2&amp;gt;&amp;amp;1 | head -1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Confirm the host is glibc Linux: &lt;span class="sb">`ldd --version | head -1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Read &lt;span class="sb">`/etc/ssh/sshd_config`&lt;/span> for the current
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`LoginGraceTime`&lt;/span> value.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Determine network exposure: is &lt;span class="sb">`sshd`&lt;/span> listening on a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> public interface? Is it firewalled to a bastion?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 1 — Classify
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Not on glibc Linux** or **OpenSSH outside the affected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> window:** document and stop.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, not network-reachable from untrusted nets:**
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> upgrade + restart, no IR escalation.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> **Affected, network-reachable from the public internet for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an extended window:** treat as potentially compromised.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Write the IR checklist; do not auto-rotate keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 2 — Upgrade
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> &lt;span class="sb">`apt upgrade openssh-server`&lt;/span> /
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`dnf upgrade openssh-server`&lt;/span> to the distro&amp;#39;s patched
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> version.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Verify the new version: &lt;span class="sb">`sshd -V`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> The PR body lists &lt;span class="sb">`systemctl restart sshd`&lt;/span> as an
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator action. The agent does not restart the service.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 3 — Mitigate (interim)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">If the upgrade cannot ship immediately, propose a config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">change:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">&lt;/span># In /etc/ssh/sshd_config
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">LoginGraceTime 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">MaxStartups 10:30:100
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="s">```&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`LoginGraceTime 0`&lt;/span> removes the alarm entirely. Tighten
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="sb">`MaxStartups`&lt;/span> to keep an attacker from holding open many
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">slots. Recommend a &lt;span class="sb">`systemctl reload sshd`&lt;/span> after the change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Step 4 — IR checklist (compromised classification)
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">The TRIAGE.md must include:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate SSH host keys.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit &lt;span class="sb">`auth.log`&lt;/span> / &lt;span class="sb">`journalctl -u ssh`&lt;/span> for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`Timeout before authentication`&lt;/span> lines and unusual login
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patterns during the exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rotate any secret that lived in &lt;span class="sb">`sshd`&lt;/span>&amp;#39;s process memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> during the window: pam credentials, host certificates,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> any &lt;span class="sb">`AuthorizedKeysCommand`&lt;/span> script outputs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Audit any deploy / CI workflows that authenticated to this
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> host during the window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Rebuild any artifact produced on the host while it was
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> affected and reachable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host is non-glibc Linux (musl, BSD) — not affected.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s distro has no patched OpenSSH packaged yet.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Apply the &lt;span class="sb">`LoginGraceTime 0`&lt;/span> mitigation; triage with a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> note about the missing package.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The host&amp;#39;s exposure window is unclear or the auth log
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation has lost evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Scope
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify SSH client configuration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not modify firewall rules — mention them in the PR body
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as a reviewer-considered defence-in-depth.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not bundle unrelated CVEs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run &lt;span class="sb">`systemctl restart sshd`&lt;/span>. Restarting &lt;span class="sb">`sshd`&lt;/span> is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the operator&amp;#39;s call (severs in-flight sessions).&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification — what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification--what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification--what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The package version after upgrade matches the distro&amp;rsquo;s
+patched version.&lt;/li>
+&lt;li>If the mitigation was applied: &lt;code>LoginGraceTime 0&lt;/code> is
+present and &lt;code>MaxStartups&lt;/code> is sane.&lt;/li>
+&lt;li>The PR body&amp;rsquo;s IR scope matches the host&amp;rsquo;s exposure
+classification — the reviewer doesn&amp;rsquo;t accept &amp;ldquo;it was
+internal&amp;rdquo; without seeing how that was confirmed.&lt;/li>
+&lt;li>For compromised classification, confirm the IR actions
+were carried out before merge.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Distro version strings.&lt;/strong> Some distros backport patches
+without bumping the upstream version string. The
+authoritative check is the distro advisory, not
+&lt;code>sshd -V&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>Custom-compiled OpenSSH.&lt;/strong> Hosts running OpenSSH built
+from source do not get the distro patch. Treat as a
+separate remediation; rebuild from a clean tree.&lt;/li>
+&lt;li>&lt;strong>&lt;code>MaxStartups&lt;/code> interactions.&lt;/strong> Setting &lt;code>LoginGraceTime 0&lt;/code>
+without raising &lt;code>MaxStartups&lt;/code> can become an availability
+bug — clients failing-to-authenticate hold slots forever.
+Tune both together.&lt;/li>
+&lt;li>&lt;strong>Bastion-only exposure isn&amp;rsquo;t no exposure.&lt;/strong> A bastion that
+itself is reachable becomes the same target. The IR scope
+should follow the chain.&lt;/li>
+&lt;li>&lt;strong>Containerised sshd.&lt;/strong> Some images run &lt;code>sshd&lt;/code> for
+management. Image bumps follow the
+&lt;a href="https://security-recipes.ai/security-remediation/base-images/">base-image workflow&lt;/a>;
+this recipe applies to the package inside the container.&lt;/li>
+&lt;/ul>
+&lt;h2>Related&lt;span class="hx:absolute hx:-mt-20" id="related">&lt;/span>
+&lt;a href="#related" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/vulnerable-dependencies/">Vulnerable Dependency Remediation&lt;/a>
+— generic CVE workflow.&lt;/li>
+&lt;li>&lt;a href="https://security-recipes.ai/security-remediation/base-images/">Base Image &amp;amp; Container Layer Remediation&lt;/a>
+— for OpenSSH inside container bases.&lt;/li>
+&lt;/ul></description></item></channel></rss>

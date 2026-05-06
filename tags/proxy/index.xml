@@ -1,0 +1,241 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Proxy</title><link>https://security-recipes.ai/tags/proxy/</link><description>Recent content in Proxy on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Sat, 02 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/proxy/index.xml" rel="self" type="application/rss+xml"/><item><title>Smart-contract upgrade diff risk review</title><link>https://security-recipes.ai/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review/</link><pubDate>Sun, 26 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review/</guid><description>
+&lt;p>Use this prompt to review upgrade diffs and enforce invariant checks
+before smart-contract changes are approved.&lt;/p>
+&lt;h2>Use when&lt;span class="hx:absolute hx:-mt-20" id="use-when">&lt;/span>
+&lt;a href="#use-when" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Proxy implementation contracts are changing.&lt;/li>
+&lt;li>Storage layout or access-control logic is modified.&lt;/li>
+&lt;li>Emergency patches must still prove safety.&lt;/li>
+&lt;/ul>
+&lt;h2>Prompt&lt;span class="hx:absolute hx:-mt-20" id="prompt">&lt;/span>
+&lt;a href="#prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">You are a DeFi security remediation agent reviewing contract upgrades.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Goal: produce a PR that adds upgrade-risk checks and test coverage,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">or TRIAGE.md if upgrade safety cannot be established.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Required checks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Storage layout compatibility (no unsafe slot collisions).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Access-control changes and role escalation diff.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Pause/guardian semantics unchanged or explicitly approved.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Solvency and collateral invariants across fork tests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Tasks:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Generate a machine-readable diff of old vs new ABI, storage layout,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> events, and privileged functions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Add/extend tests for invariants and permission boundaries.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Fail CI on unauthorized changes to timelock delay or signer threshold.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Produce reviewer checklist summarizing high-risk deltas.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Constraints:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No mainnet execution from this run.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No silent ignore of compiler warnings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">- Stop with TRIAGE.md if baseline artifacts are missing.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div></description></item><item><title>CVE-2026-39858 - Traefik forwarded alias auth bypass</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-39858-traefik-forwarded-alias-auth-bypass/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-39858-traefik-forwarded-alias-auth-bypass/</guid><description>
+&lt;p>Traefik contains a high-severity authentication bypass in &lt;code>ForwardAuth&lt;/code> and
+snippet-based authentication middleware. Affected releases sanitize canonical
+forwarded headers such as &lt;code>X-Forwarded-Proto&lt;/code>, but do not consistently strip or
+normalize alias spellings that use underscores, such as &lt;code>X_Forwarded_Proto&lt;/code>.&lt;/p>
+&lt;p>If the authentication backend treats underscore and dash header names as
+equivalent, an unauthenticated attacker can send spoofed trust context to the
+auth service. Protected routes may then be authorized as if the request came
+through a trusted scheme, host, prefix, or proxy path.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik &amp;lt;=1.7.34&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> no fixed v1 release listed; migrate to a fixed v2/v3 release or
+isolate with compensating controls.&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v2 &amp;lt;2.11.43&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v2 2.11.43+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 &amp;gt;=3.0.0-beta1, &amp;lt;3.6.14&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 3.6.14+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 &amp;gt;=3.7.0-ea.1, &amp;lt;3.7.0-rc.2&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>github.com/traefik/traefik/v3 3.7.0-rc.2+&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, vendors, embeds, or deploys Traefik in an affected
+version through Go modules, container images, Helm charts, compose files,
+Kubernetes manifests, Terraform, Ansible, or platform runbooks.&lt;/li>
+&lt;li>Traefik protects routes with &lt;code>ForwardAuth&lt;/code> or ingress-nginx snippet-style
+authentication middleware.&lt;/li>
+&lt;li>The authentication service uses forwarded request metadata such as scheme,
+host, original URI, client IP, prefix, or trusted proxy headers in its
+authorization decision.&lt;/li>
+&lt;li>The auth service, framework, proxy, or gateway normalizes underscore and dash
+header forms equivalently.&lt;/li>
+&lt;li>Public or tenant-controlled traffic can reach the protected Traefik entrypoint.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;traefik|ForwardAuth|forwardAuth|authRequestHeaders|X-Forwarded|X_Forwarded|snippet&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;traefik:v|traefik/traefik|github.com/traefik/traefik&amp;#34;&lt;/span> go.mod go.sum Dockerfile* docker-compose*.yml charts deploy k8s terraform ansible .github
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">go list -m all &lt;span class="p">|&lt;/span> rg &lt;span class="s1">&amp;#39;github.com/traefik/traefik&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">helm template . 2&amp;gt;/dev/null &lt;span class="p">|&lt;/span> rg -n &lt;span class="s2">&amp;#34;traefik|forwardAuth|X-Forwarded|X_Forwarded&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade all Traefik v2 deployments to &lt;code>2.11.43+&lt;/code>.&lt;/li>
+&lt;li>Upgrade all Traefik v3 &lt;code>3.0.0-beta1&lt;/code> through &lt;code>3.6.x&lt;/code> deployments to
+&lt;code>3.6.14+&lt;/code>.&lt;/li>
+&lt;li>Upgrade all Traefik v3 &lt;code>3.7.0-ea.*&lt;/code> deployments to &lt;code>3.7.0-rc.2+&lt;/code>, or move to
+the repository&amp;rsquo;s approved stable v3 release line if available.&lt;/li>
+&lt;li>Do not leave Traefik v1 as-is. GitHub lists no patched v1 release for this
+advisory, so migrate to a fixed v2/v3 release or document an operator-owned
+isolation plan.&lt;/li>
+&lt;li>Pin container image tags by digest where the repository controls deployment
+artifacts.&lt;/li>
+&lt;li>Add a strict &lt;code>authRequestHeaders&lt;/code> allow-list for ForwardAuth where compatible,
+and do not forward client-controlled &lt;code>X_Forwarded_*&lt;/code> aliases to auth services.&lt;/li>
+&lt;li>Add edge or ingress policy that denies or strips underscore-form aliases of
+forwarded headers while the upgrade rolls out.&lt;/li>
+&lt;li>Add non-production regression checks that spoof &lt;code>X_Forwarded_Proto&lt;/code>,
+&lt;code>X_Forwarded_Host&lt;/code>, and related aliases and verify protected routes remain
+denied.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-39858 (Traefik ForwardAuth forwarded-header alias
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">spoofing authentication bypass). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or migrates affected Traefik
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> deployments and adds practical verification, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own Traefik deployment artifacts or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe patch.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-39858.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not make unrelated proxy, router, identity provider, or application auth
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> changes.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not test exploit requests against production or external systems.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not log cookies, bearer tokens, auth service responses, private headers,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client IP lists, or user identity claims.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Traefik reference in this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Go modules and vendor trees;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> container image tags and digests;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Helm charts, values, lock files, Kustomize overlays, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Docker Compose files, Terraform, Ansible, CI, and runbooks;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated deployment manifests, SBOMs, and image metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine whether any deployable target resolves to a vulnerable version:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik &amp;lt;=1.7.34`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v2 &amp;lt;2.11.43`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v3 &amp;gt;=3.0.0-beta1, &amp;lt;3.6.14`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`github.com/traefik/traefik/v3 &amp;gt;=3.7.0-ea.1, &amp;lt;3.7.0-rc.2`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Check whether the target uses &lt;span class="sb">`ForwardAuth`&lt;/span> or snippet-based authentication
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> middleware and whether auth services rely on forwarded headers such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scheme, host, URI, prefix, or client IP.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Patch every vulnerable target:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v2: upgrade to &lt;span class="sb">`2.11.43+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v3 stable/beta line: upgrade to &lt;span class="sb">`3.6.14+`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v3 early-access/RC line: upgrade to &lt;span class="sb">`3.7.0-rc.2+`&lt;/span> or the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> repository&amp;#39;s approved fixed stable line;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Traefik v1: migrate to a fixed v2/v3 release or stop with TRIAGE.md
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documenting why no patched v1 release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Regenerate dependency locks, Helm locks, rendered manifests, image metadata,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOMs, and digest pins according to the repository&amp;#39;s normal workflow.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add or tighten safe containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set &lt;span class="sb">`authRequestHeaders`&lt;/span> to an explicit allow-list when compatible;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny or strip underscore-form forwarded aliases such as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`X_Forwarded_Proto`&lt;/span>, &lt;span class="sb">`X_Forwarded_Host`&lt;/span>, &lt;span class="sb">`X_Forwarded_For`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`X_Forwarded_Port`&lt;/span>, &lt;span class="sb">`X_Forwarded_Prefix`&lt;/span>, and &lt;span class="sb">`X_Forwarded_Uri`&lt;/span> at the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> outer edge;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document that auth backends must not trust client-supplied forwarded
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> metadata.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add non-production verification that a protected route stays denied when a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> request includes underscore-form forwarded aliases. Use synthetic headers
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> only, avoid real credentials, and keep the check in tests, local compose
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> smoke tests, or operator runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-39858 exposure and rollout`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> each Traefik target and resolved version before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`ForwardAuth`&lt;/span> or snippet-based auth is configured;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether strict &lt;span class="sb">`authRequestHeaders`&lt;/span> or edge header-deny policy was added;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which non-production spoofed-header check was run;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any required operator rollout or config reload actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Run the relevant validation: Go tests if Traefik is embedded, dependency
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolution, Helm/template rendering, compose config validation, Kubernetes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> schema validation, image build, and security/dependency scans available in
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-39858 in Traefik`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The repository does not own Traefik dependencies, images, or deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> manifests.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Traefik v1 is deployed and cannot be migrated within this change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The target requires a broader proxy or identity-provider migration before a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed Traefik release can be consumed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification requires attacking production or exposing real credentials.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No deployable target remains on Traefik v2 &lt;code>&amp;lt;2.11.43&lt;/code>, v3 &lt;code>&amp;lt;3.6.14&lt;/code>, affected
+&lt;code>3.7.0-ea.*&lt;/code> builds, or unsupported vulnerable v1.&lt;/li>
+&lt;li>The change updates the real delivery path: image tags/digests, Helm values,
+compose files, Kubernetes manifests, Go modules, generated manifests, and
+SBOMs where applicable.&lt;/li>
+&lt;li>&lt;code>ForwardAuth&lt;/code> or snippet-based auth exposure is explicitly recorded in the PR
+body.&lt;/li>
+&lt;li>Regression or smoke-test evidence shows spoofed &lt;code>X_Forwarded_*&lt;/code> headers do
+not authorize protected routes in non-production.&lt;/li>
+&lt;li>Builds, dependency resolution, manifest rendering, and security scans pass or
+unrelated failures are documented.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading only to &lt;code>2.11.42&lt;/code>, &lt;code>3.6.12&lt;/code>, or &lt;code>3.7.0-ea.3&lt;/code>; those fixed earlier
+Traefik auth issues but not this advisory.&lt;/li>
+&lt;li>Floating image tags such as &lt;code>traefik:v3&lt;/code> that make the patch non-reproducible.&lt;/li>
+&lt;li>Auth services that normalize underscores to dashes even after Traefik is
+patched.&lt;/li>
+&lt;li>Middleware chains that also need the same release for nearby Traefik auth
+bypass advisories, especially CVE-2026-35051 and CVE-2026-40912.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-5m6w-wvh7-57vm"target="_blank" rel="noopener">https://github.com/advisories/GHSA-5m6w-wvh7-57vm&lt;/a>&lt;/li>
+&lt;li>Traefik security announcement: &lt;a href="https://community.traefik.io/t/new-security-update-for-traefik-2-11-2-11-43-3-6-3-6-14-and-3-7-3-7-0-rc-2/29834"target="_blank" rel="noopener">https://community.traefik.io/t/new-security-update-for-traefik-2-11-2-11-43-3-6-3-6-14-and-3-7-3-7-0-rc-2/29834&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v2.11.43&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v2.11.43"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v2.11.43&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v3.6.14&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v3.6.14"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v3.6.14&lt;/a>&lt;/li>
+&lt;li>Traefik &lt;code>v3.7.0-rc.2&lt;/code> release: &lt;a href="https://github.com/traefik/traefik/releases/tag/v3.7.0-rc.2"target="_blank" rel="noopener">https://github.com/traefik/traefik/releases/tag/v3.7.0-rc.2&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>

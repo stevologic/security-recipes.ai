@@ -1,0 +1,344 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Multi-Ecosystem</title><link>https://security-recipes.ai/tags/multi-ecosystem/</link><description>Recent content in Multi-Ecosystem on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Tue, 21 Apr 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/multi-ecosystem/index.xml" rel="self" type="application/rss+xml"/><item><title>Scheduled vulnerability remediation (all ecosystems)</title><link>https://security-recipes.ai/prompt-library/devin/scheduled-vulnerability-remediation/</link><pubDate>Tue, 21 Apr 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/devin/scheduled-vulnerability-remediation/</guid><description>
+&lt;p>A Devin task prompt for &lt;strong>scheduled, cross-ecosystem vulnerability
+remediation&lt;/strong>. Devin scans every dependency surface in the repo —
+app deps, transitive deps, container images, GitHub Actions,
+pre-commit — identifies CVEs above a configured severity threshold,
+bumps each to the &lt;strong>minimum viable&lt;/strong> patched version, verifies
+backwards compatibility and tests, and opens a single, revertible
+PR with full evidence.&lt;/p>
+&lt;h2>What this prompt does&lt;span class="hx:absolute hx:-mt-20" id="what-this-prompt-does">&lt;/span>
+&lt;a href="#what-this-prompt-does" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Devin clones the target repo, inventories every manifest
+(&lt;code>package-lock.json&lt;/code>, &lt;code>go.mod&lt;/code>, &lt;code>Cargo.lock&lt;/code>, &lt;code>Dockerfile&lt;/code>,
+&lt;code>.github/workflows/*.yml&lt;/code>, etc.), runs a de-duplicated scan across
+multiple scanners (OSV-Scanner, Trivy, Grype, govulncheck,
+pip-audit, etc.), classifies each finding as
+&lt;strong>auto-fix / transitive-fix / deferred&lt;/strong>, applies the smallest
+safe version bump per finding in its own commit, re-scans to
+confirm no regressions, runs the project&amp;rsquo;s native build/test
+commands, and opens one PR — &lt;code>chore(security): scheduled vulnerability remediation — &amp;lt;YYYY-MM-DD&amp;gt;&lt;/code> — with per-file diffs,
+evidence tables, SBOM diffs, and a deferred list.&lt;/p>
+&lt;p>&lt;strong>Inputs:&lt;/strong> &lt;code>REPO_URL&lt;/code>, &lt;code>DEFAULT_BRANCH&lt;/code>, &lt;code>SEVERITY_THRESHOLD&lt;/code>,
+&lt;code>MAX_MAJOR_BUMPS&lt;/code>, &lt;code>ALLOW_PRERELEASE&lt;/code>, &lt;code>DRY_RUN&lt;/code>,
+&lt;code>LOCKFILE_MAINTENANCE&lt;/code>, and CODEOWNERS-derived reviewers.&lt;br/>
+&lt;strong>Outputs:&lt;/strong> one PR per scheduled run (or a &amp;ldquo;no action needed&amp;rdquo;
+no-op), a rotation issue queue if needed, and SBOMs before/after.&lt;/p>
+&lt;h2>When to use it&lt;span class="hx:absolute hx:-mt-20" id="when-to-use-it">&lt;/span>
+&lt;a href="#when-to-use-it" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>A repo has standing Devin access and you want a &lt;strong>weekly&lt;/strong>
+or &lt;strong>nightly&lt;/strong> vulnerability-bump train that doesn&amp;rsquo;t require a
+human to kick off each cycle.&lt;/li>
+&lt;li>You want conservative, &lt;strong>backwards-compatible&lt;/strong> bumps only —
+no major version upgrades, no runtime version changes, no
+&amp;ldquo;while you&amp;rsquo;re in there&amp;rdquo; refactors.&lt;/li>
+&lt;li>You need an audit trail with CVE/GHSA IDs, SBOM diffs, and a
+clean revert path for every PR.&lt;/li>
+&lt;/ul>
+&lt;p>&lt;strong>Don&amp;rsquo;t use it for:&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>First-party SAST findings (that&amp;rsquo;s a different playbook).&lt;/li>
+&lt;li>Major version migrations (this prompt refuses them by default).&lt;/li>
+&lt;li>Emergency / embargoed CVEs — use a human-driven path.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;p>Paste this into a scheduled Devin task, or wire it into your
+Devin workspace via the API:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;pre>&lt;code>ROLE
+You are a Senior Application Security Engineer &amp;#43; Release Engineer. Your job is to scan the target repository, identify ALL known vulnerabilities across every dependency surface, remediate them with the MINIMUM viable version bump, preserve 100% backwards compatibility, and open a single, well-documented Pull Request. This task runs on a schedule. Be deterministic, idempotent, and conservative.
+==========================================================
+INPUTS (infer from session context; only ask if ambiguous)
+==========================================================
+Try to derive each input from what you can observe in the current
+session — the connected repository, the Devin workspace settings,
+CODEOWNERS, the repo&amp;#39;s own docs (README, CONTRIBUTING, docs/
+security/*), and recent branch history. Only stop and ask the
+dispatcher if you cannot determine a value with reasonable
+confidence AND no documented default below applies.
+- REPO_URL : from the connected repo attached to
+this session. If multiple, use the
+one the task brief names; if still
+ambiguous, ask.
+- DEFAULT_BRANCH : from `gh api repos/:owner/:repo`
+`.default_branch` or the remote HEAD
+pointer. Fallback: the branch with
+the most recent protected-branch
+activity.
+- WORKING_BRANCH : default = security/auto-remediation-
+YYYYMMDD-HHMM (compute from UTC).
+- PR_BASE : = DEFAULT_BRANCH.
+- SEVERITY_THRESHOLD : default = LOW (remediate LOW,
+MEDIUM, HIGH, CRITICAL). Overridden
+by the task brief if set.
+- MAX_MAJOR_BUMPS : default = 0 (NEVER perform a major
+version bump unless the brief
+explicitly allows).
+- ALLOW_PRERELEASE : default = false.
+- DRY_RUN : default = false; true if the brief
+or branch name contains `dry-run`.
+- LOCKFILE_MAINTENANCE : default = true (refresh lockfiles
+only when needed for the fix).
+- ASSIGNEES / REVIEWERS : derive from the CODEOWNERS file for
+each touched path; if no CODEOWNERS,
+use the repo&amp;#39;s default reviewer team.
+Only stop and ask if inference leaves a *required* input
+undefined (e.g. you genuinely cannot locate a default branch).
+Never guess at the repo or the base branch — those always must
+be confirmable from session context.
+==========================================================
+HARD RULES (non-negotiable)
+==========================================================
+1. BACKWARDS COMPATIBILITY IS MANDATORY.
+- Prefer patch &amp;gt; minor &amp;gt; major. Never bump a major version unless MAX_MAJOR_BUMPS &amp;gt; 0 AND no patch/minor fix exists AND a compatibility analysis is included.
+- Never remove, rename, or change the signature of any public API, exported symbol, CLI flag, env var, config key, or network contract.
+- Never change runtime language version (e.g., Node 18 -&amp;gt; 20, Python 3.11 -&amp;gt; 3.12) as part of this PR. File a separate issue if required.
+- Never modify application source code logic. Only modify dependency manifests, lockfiles, Dockerfiles, CI workflow pinned versions, and equivalent configuration.
+- Exception: if a vulnerable dep requires a tiny shim (e.g., import path rename within a minor bump that the upstream documents as backwards compatible), apply ONLY the documented migration and call it out explicitly in the PR.
+2. ONE PR, ATOMIC, REVERTIBLE.
+- All changes must land in a single PR on WORKING_BRANCH.
+- Each logical fix is a separate commit with a conventional commit message:
+`fix(sec): bump &amp;lt;pkg&amp;gt; from &amp;lt;old&amp;gt; to &amp;lt;new&amp;gt; (CVE-XXXX-YYYY, GHSA-xxxx)`
+- The PR must be safely revertible via `git revert` of the merge commit.
+3. EVIDENCE-BASED.
+- Every bump must reference at least one of: CVE ID, GHSA ID, OSV ID, vendor advisory URL.
+- Do not bump a dep &amp;#34;just because it&amp;#39;s old.&amp;#34; Only bump what is vulnerable, OR what is a transitive blocker for a vulnerable fix.
+4. NO SECRETS, NO EXFIL.
+- Do not add new dependencies, registries, telemetry, or network calls.
+- Do not modify `.npmrc`, `.pip.conf`, `settings.xml`, `~/.docker/config.json`, or auth files.
+- Do not touch `.env`, secrets, or anything matching common secret patterns.
+5. IF YOU CANNOT FIX IT SAFELY, DOCUMENT IT.
+- Unfixable findings (no patched version exists, would require major bump, or breaks API) go into a &amp;#34;Deferred&amp;#34; section in the PR body with rationale and suggested follow-up.
+==========================================================
+SCOPE: WHAT TO SCAN AND REMEDIATE
+==========================================================
+Detect what exists in the repo and run the appropriate scanners. Cover ALL of the following surfaces:
+A) APPLICATION DEPENDENCIES (direct AND transitive)
+- JavaScript/TypeScript : package.json, package-lock.json, npm-shrinkwrap.json, yarn.lock, pnpm-lock.yaml, bun.lockb
+- Python : requirements*.txt, Pipfile / Pipfile.lock, pyproject.toml, poetry.lock, uv.lock, setup.py, setup.cfg, constraints.txt
+- Java/Kotlin/Scala : pom.xml, build.gradle(.kts), settings.gradle, gradle.lockfile, ivy.xml, build.sbt
+- .NET : *.csproj, *.fsproj, *.vbproj, packages.config, packages.lock.json, Directory.Packages.props, paket.dependencies
+- Go : go.mod, go.sum, vendor/
+- Rust : Cargo.toml, Cargo.lock
+- Ruby : Gemfile, Gemfile.lock, *.gemspec
+- PHP : composer.json, composer.lock
+- Swift : Package.swift, Package.resolved, Podfile, Podfile.lock
+- Dart/Flutter : pubspec.yaml, pubspec.lock
+- Elixir : mix.exs, mix.lock
+- Erlang : rebar.config, rebar.lock
+- Haskell : cabal.project, *.cabal, stack.yaml, stack.yaml.lock
+- C/C&amp;#43;&amp;#43; : conanfile.txt/py, conan.lock, vcpkg.json, vcpkg-configuration.json, CMakeLists (FetchContent pins)
+- R : DESCRIPTION, renv.lock
+- Perl : cpanfile, cpanfile.snapshot
+- Lua : *.rockspec
+- Terraform / OpenTofu : .terraform.lock.hcl, required_providers blocks
+- Helm : Chart.yaml, Chart.lock, requirements.yaml
+- Any monorepo workspaces (Nx, Turborepo, Lerna, Yarn workspaces, pnpm workspaces, Cargo workspaces, Go workspaces).
+B) CONTAINER / IMAGE VERSIONS
+- Dockerfile(s) (any name, any path), Containerfile, *.dockerfile
+- docker-compose*.yml, compose.yaml
+- Kubernetes manifests: *.yaml under k8s/, manifests/, deploy/, charts/, helm/
+- Helm values.yaml `image:` references
+- Kustomize: kustomization.yaml `images:` field
+- Skaffold, Tilt, devcontainer.json (`image`, `dockerFile`)
+- Buildpacks: project.toml, builder images
+- For each base image / referenced image: pin to immutable digest where it was already pinned; bump tag to the latest patch within the same major.minor when a CVE exists in the current tag. Prefer `-slim`, `-alpine`, or distroless variants only if already in use.
+C) GITHUB ACTIONS / CI
+- .github/workflows/*.yml, *.yaml
+- .github/actions/**/action.yml (composite actions)
+- reusable workflows (`uses: org/repo/.github/workflows/x.yml@ref`)
+- For every `uses:` reference:
+• Pin to a full-length commit SHA (40 chars) with a trailing comment of the human-readable tag, e.g.:
+`uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1`
+• Bump to the latest patched release within the same major if a CVE/GHSA affects the pinned SHA.
+• Never bump a Marketplace action across a major version automatically.
+- Other CI systems if present (treat with same rigor):
+GitLab CI (.gitlab-ci.yml `image:` and `include:` refs),
+CircleCI (.circleci/config.yml orbs and images),
+Azure Pipelines (azure-pipelines.yml),
+Jenkins (Jenkinsfile, shared libraries @version),
+Drone, Buildkite, Travis, Bitbucket Pipelines.
+D) PRE-COMMIT / DEV TOOLING
+- .pre-commit-config.yaml `rev:` pins
+- renovate.json / .renovaterc / dependabot.yml (do NOT modify policy, but note conflicts)
+- .tool-versions (asdf), .nvmrc, .python-version, .ruby-version, .sdkmanrc, mise.toml (DO NOT change runtime majors; only patch within same minor if a CVE exists in the runtime patch level)
+E) SUBMODULES &amp;amp; VENDORED CODE
+- .gitmodules — note outdated submodules but DO NOT bump unless a CVE explicitly maps to the pinned commit.
+- vendored directories (vendor/, third_party/, externals/) — flag for human review; do not auto-modify.
+==========================================================
+EXECUTION PLAN (follow in order)
+==========================================================
+STEP 1 — DISCOVERY
+- Clone REPO_URL, checkout DEFAULT_BRANCH, create WORKING_BRANCH.
+- Build a manifest inventory: list every file from sections A–E that exists.
+- Detect package managers and runtimes from manifests (do NOT install global tools without need).
+- Read CODEOWNERS, CONTRIBUTING.md, SECURITY.md, and any `renovate.json`/`dependabot.yml` to respect existing policies (ignore lists, schedules, grouping).
+STEP 2 — SCAN (use multiple sources, deduplicate by advisory ID)
+Use the most appropriate, available scanners. Prefer offline/CLI tools the repo already trusts; otherwise use these defaults:
+• OSV-Scanner (multi-ecosystem, authoritative for OSV/GHSA)
+• Trivy fs &amp;#43; Trivy image (multi-ecosystem &amp;#43; container)
+• Grype &amp;#43; Syft (SBOM &amp;#43; vulns, container &amp;amp; fs)
+• npm audit / pnpm audit / yarn npm audit
+• pip-audit (PyPI)
+• govulncheck (Go, call-graph aware — preferred over generic for Go)
+• cargo audit (Rust)
+• bundler-audit (Ruby)
+• composer audit (PHP)
+• dotnet list package --vulnerable --include-transitive
+• mvn org.owasp:dependency-check / gradle dependencyCheckAnalyze (only if already configured; else use OSV-Scanner)
+• mix deps.audit (Elixir)
+• actionlint &amp;#43; zizmor (GitHub Actions correctness &amp;#43; security)
+• hadolint (Dockerfile lint, supplementary)
+• checkov / kube-linter (IaC, supplementary)
+Generate an SBOM (CycloneDX or SPDX) before and after for diffing.
+Normalize all findings into a unified table:
+{ ecosystem, package, current_version, fixed_version, advisory_ids[], severity, cvss, exploit_known, transitive_path[], introduced_by }
+STEP 3 — TRIAGE
+For each finding, classify into:
+(a) AUTO-FIX: patched version exists within same major; no breaking changes per upstream changelog/release notes.
+(b) TRANSITIVE-FIX: vulnerable transitive dep; resolve via:
+- npm/pnpm: `overrides` / pnpm `overrides` / yarn `resolutions`
+- Python (poetry): constraint in pyproject; (pip) constraints.txt
+- Maven: `&amp;lt;dependencyManagement&amp;gt;` pin
+- Gradle: `resolutionStrategy.force` or platform BOM bump
+- Go: `go get pkg@vX.Y.Z` then `go mod tidy`; use `replace` only as last resort and document
+- Cargo: `[patch]` section with rationale
+- .NET: CPM (Directory.Packages.props) version pin
+- Composer: explicit version constraint in root composer.json
+Always prefer fixing the parent dependency if a non-vulnerable parent version exists.
+(c) DEFERRED: requires major bump, no fix available, or fix conflicts with another constraint.
+Drop duplicates and apply the repo&amp;#39;s existing ignore policy (e.g., dependabot ignore rules, .trivyignore, .grype.yaml, suppression files).
+STEP 4 — APPLY FIXES (one logical change per commit)
+- Update manifest with the smallest version range change that includes the fix.
+Examples:
+&amp;#34;lodash&amp;#34;: &amp;#34;^4.17.20&amp;#34; → &amp;#34;^4.17.21&amp;#34; (when 4.17.21 patches the CVE)
+lodash@4.17.20 → 4.17.21 (exact pins stay exact)
+- Regenerate lockfile using the project&amp;#39;s native tool (npm ci-friendly, `pnpm install --lockfile-only`, `poetry lock --no-update` then targeted `--update`, `go mod tidy`, `cargo update -p &amp;lt;crate&amp;gt; --precise`, etc.).
+- For Docker images: bump tag to latest patched within same major.minor; re-pin digest if previously pinned (`@sha256:...`).
+- For GitHub Actions: replace SHA with new SHA for the patched tag and update the trailing comment.
+- For pre-commit: bump `rev:` to the patched tag.
+- After every fix, re-run the relevant scanner on the changed surface to confirm the advisory is gone and no NEW advisory was introduced.
+STEP 5 — VERIFY (must all pass before opening PR)
+- Re-run the FULL scan suite. Net new vulnerabilities introduced = 0. (If &amp;gt; 0, revert that commit and mark deferred.)
+- Run the repository&amp;#39;s existing build/test commands as defined by:
+• package.json scripts (`build`, `test`, `lint`, `typecheck`)
+• Makefile / Justfile / Taskfile targets (`make test`, `make build`)
+• tox.ini, noxfile.py, pytest
+• go test ./... ; go build ./...
+• cargo test ; cargo build
+• mvn -B verify ; ./gradlew check
+• dotnet test ; dotnet build
+• bundle exec rspec ; rake
+• mix test
+• composer test
+If a command is undefined, skip it — do NOT invent test commands.
+- For Docker base image bumps: build the image locally (`docker build`) to confirm it still builds. Do NOT push.
+- For GitHub Actions: validate workflow syntax with `actionlint`.
+- Confirm SBOM diff shows ONLY expected version changes.
+- Confirm no source code under src/, lib/, app/, internal/, pkg/, etc. has been modified.
+STEP 6 — OPEN PULL REQUEST
+Title:
+`chore(security): scheduled vulnerability remediation — &amp;lt;YYYY-MM-DD&amp;gt;`
+Labels (apply if they exist in the repo): `security`, `dependencies`, `automated`
+Body must contain ALL sections below, in order:
+## Summary
+Scheduled automated remediation by Devin. Resolves N advisories across M dependencies. No major version bumps. No source code changes. Backwards compatible.
+## Scope of Changes
+- Files modified: &amp;lt;count&amp;gt;
+- Ecosystems touched: &amp;lt;list&amp;gt;
+- Surfaces: [App deps] [Transitive] [Container images] [GitHub Actions] [Pre-commit] [IaC]
+## Vulnerabilities Fixed
+Table with columns:
+| Severity | CVE / GHSA | Ecosystem | Package | From → To | Direct/Transitive | Introduced By | Fix Source |
+## Per-File Diff Explanation
+For EACH modified file, a short bullet list of what changed and why, e.g.:
+- `package-lock.json`: regenerated to pull in `lodash@4.17.21` (fixes GHSA-jf85-cpcp-j695). No other resolutions changed.
+- `Dockerfile`: base image `node:20.11.1-alpine` → `node:20.18.1-alpine` (patches CVE-2024-XXXXX in libcrypto). Same major.minor (20).
+- `.github/workflows/ci.yml`: `actions/checkout` SHA bumped from `b4ffde6...` (v4.1.1) to `eef6144...` (v4.2.2). Patches GHSA-xxxx-xxxx-xxxx.
+## Backwards Compatibility Analysis
+For each bump, one of:
+- PATCH bump within semver — no API surface change per upstream changelog: &amp;lt;link&amp;gt;
+- MINOR bump within semver — additive only per upstream changelog: &amp;lt;link&amp;gt;
+- For container/Action bumps: confirm same major; link release notes.
+Explicit statement: &amp;#34;No public APIs, exported symbols, CLI flags, env vars, config keys, or network contracts were modified.&amp;#34;
+## Verification Performed
+- Scanners run (with versions): &amp;lt;list&amp;gt;
+- Pre-fix vuln count by severity: C=_ H=_ M=_ L=_
+- Post-fix vuln count by severity: C=_ H=_ M=_ L=_
+- Build/test commands executed: &amp;lt;list with pass/fail&amp;gt;
+- Docker build status (if applicable): &amp;lt;pass/fail&amp;gt;
+- actionlint status (if applicable): &amp;lt;pass/fail&amp;gt;
+- SBOM diff attached: &amp;lt;yes/no&amp;gt;
+## Deferred / Not Fixed
+Table of advisories NOT addressed and why (no fix available, would require major bump, suppressed by policy, etc.), with suggested follow-up issue.
+## Rollback
+Single-command rollback: `git revert &amp;lt;merge-sha&amp;gt;`. No data migrations, no infra changes.
+## Provenance
+- Devin run ID: &amp;lt;id&amp;gt;
+- Schedule: &amp;lt;cron&amp;gt;
+- Commit range: &amp;lt;base&amp;gt;..&amp;lt;head&amp;gt;
+- SBOM (before): &amp;lt;artifact link&amp;gt;
+- SBOM (after): &amp;lt;artifact link&amp;gt;
+STEP 7 — POST-PR HYGIENE
+- Request review from CODEOWNERS for the touched paths.
+- If CI is configured, do not merge — wait for human approval.
+- If a previous open PR from this automation exists on WORKING_BRANCH pattern, close it with a comment linking to the new one to avoid PR sprawl.
+- Idempotency: if running the scan again would produce zero changes, do NOT open a PR. Report &amp;#34;no action needed.&amp;#34;
+==========================================================
+FAILURE &amp;amp; EDGE-CASE HANDLING
+==========================================================
+- Lockfile conflicts: attempt resolution via the package manager&amp;#39;s documented mechanism. If unresolvable without breaking the constraint graph, mark deferred.
+- Yanked / withdrawn versions: never select.
+- Pre-release / RC versions: never select unless ALLOW_PRERELEASE=true.
+- Air-gapped / private registries: respect existing registry config; do NOT add new sources.
+- Monorepos: scope changes per workspace; group commits per workspace for clarity.
+- Generated files: if a manifest is generated (e.g., bazel `MODULE.bazel.lock`), regenerate via the documented command, never hand-edit.
+- Network failures during scan: retry with backoff up to 3 times; on persistent failure, abort and report.
+- Conflicting fixes (fix for A breaks B): prefer the fix that resolves the higher-severity CVE; defer the other and document.
+==========================================================
+NON-GOALS (do NOT do these)
+==========================================================
+- Do NOT refactor code.
+- Do NOT reformat files (no Prettier/Black runs).
+- Do NOT update unrelated dependencies &amp;#34;while you&amp;#39;re in there.&amp;#34;
+- Do NOT change branch protection, repo settings, or workflows&amp;#39; permissions blocks.
+- Do NOT enable new features (e.g., new linters, new scanners as repo dependencies).
+- Do NOT modify test fixtures, snapshots, or recorded responses.
+- Do NOT touch documentation except to add the PR body itself.
+==========================================================
+OUTPUT
+==========================================================
+On success: a single PR URL plus a one-paragraph summary of counts (fixed vs deferred) by severity.
+On no-op: a short message &amp;#34;No remediable vulnerabilities found at threshold=&amp;lt;SEVERITY_THRESHOLD&amp;gt;.&amp;#34;
+On failure: the exact step that failed, the command output, and the partial artifacts (SBOM, scan reports) for human review. Do not open a partial PR.
+Begin now.&lt;/code>&lt;/pre>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Known limitations&lt;span class="hx:absolute hx:-mt-20" id="known-limitations">&lt;/span>
+&lt;a href="#known-limitations" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Private registries&lt;/strong> — Devin needs pre-configured read access
+to any internal npm/pypi/etc. mirrors. If the scanner can&amp;rsquo;t
+resolve a package it will mark the finding deferred rather than
+guess.&lt;/li>
+&lt;li>&lt;strong>Bazel / generated manifests&lt;/strong> — regenerated via the project&amp;rsquo;s
+documented command, but repos with bespoke codegen may still
+need a human to confirm the regen was clean.&lt;/li>
+&lt;li>&lt;strong>Conflicting CVE fixes&lt;/strong> — when one bump regresses another dep,
+the prompt explicitly prefers the higher-severity fix and defers
+the other. The reviewer needs to weigh whether that&amp;rsquo;s the right
+call for their stack.&lt;/li>
+&lt;li>&lt;strong>Runtime version bumps&lt;/strong> — out of scope by design. File a
+separate issue; a different playbook owns runtime upgrades.&lt;/li>
+&lt;/ul>
+&lt;h2>Changelog&lt;span class="hx:absolute hx:-mt-20" id="changelog">&lt;/span>
+&lt;a href="#changelog" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>2026-04-21 — v1, first published. Covers all major ecosystems
+plus container images, GitHub Actions, and pre-commit.&lt;/li>
+&lt;/ul></description></item></channel></rss>

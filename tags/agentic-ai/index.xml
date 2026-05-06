@@ -1,0 +1,1283 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>security-recipes.ai – Agentic-Ai</title><link>https://security-recipes.ai/tags/agentic-ai/</link><description>Recent content in Agentic-Ai on security-recipes.ai</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><lastBuildDate>Wed, 06 May 2026 00:00:00 +0000</lastBuildDate><atom:link href="https://security-recipes.ai/tags/agentic-ai/index.xml" rel="self" type="application/rss+xml"/><item><title>CVE-2026-41265 - Flowise Airtable Agent code injection RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-41265-flowise-airtable-agent-code-injection-rce/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-41265-flowise-airtable-agent-code-injection-rce/</guid><description>
+&lt;p>Flowise versions &lt;code>3.0.13&lt;/code> and earlier allow remote code execution through the
+Airtable Agent node. The node asks an LLM to generate Python code for a pandas
+dataframe, validates that generated code with deny-list patterns, then executes
+it in a Pyodide runtime on the Flowise server.&lt;/p>
+&lt;p>The advisory describes several ways attacker-controlled content can shape the
+generated Python: direct prompts sent to a vulnerable chatflow, an attacker-run
+model endpoint configured by an authenticated user, or prompt-injection text in
+Airtable data and column names. Because the validator was bypassable, generated
+code could reach OS command execution in the context of the Flowise server.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>flowise &amp;lt;=3.0.13&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>flowise-components &amp;lt;=3.0.13&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>flowise 3.1.0+&lt;/code> and &lt;code>flowise-components 3.1.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected component:&lt;/strong> Airtable Agent node code generation and evaluation.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys, builds, or documents Flowise &lt;code>&amp;lt;=3.0.13&lt;/code>.&lt;/li>
+&lt;li>A chatflow uses the Airtable Agent node.&lt;/li>
+&lt;li>Prediction or internal-prediction endpoints are reachable by untrusted users,
+unauthenticated users, public chat embeds, webhooks, or tenant-controlled
+integrations.&lt;/li>
+&lt;li>Authenticated users can create chatflows that point to arbitrary model
+servers or attacker-controlled Airtable data.&lt;/li>
+&lt;li>The Flowise process has access to LLM provider keys, Airtable tokens, source
+repositories, internal services, cloud credentials, or writable deployment
+storage.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;flowise|flowise-components|AirtableAgent|Airtable_Agents|validatePythonCodeForDataFrame|pyodide|internal-prediction|/api/v1/prediction&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls flowise flowise-components
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why flowise flowise-components
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why flowise flowise-components
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;Airtable Agent|airtable.*agent|chatflow|prediction|FLOWISE|FLOWISE_USERNAME|FLOWISE_PASSWORD&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s .github .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>flowise&lt;/code> and &lt;code>flowise-components&lt;/code> to &lt;code>3.1.0+&lt;/code> everywhere this
+repository controls package manifests, lockfiles, images, or deployment
+manifests.&lt;/li>
+&lt;li>Until the fixed version is deployed, disable Airtable Agent nodes and block
+public or tenant prediction routes for chatflows containing that node.&lt;/li>
+&lt;li>Prevent untrusted users from configuring arbitrary model endpoints, Airtable
+bases, or chatflows that can trigger server-side generated-code evaluation.&lt;/li>
+&lt;li>Treat LLM-generated code as untrusted code. Prefer removing server-side eval
+of generated Python; otherwise enforce a positive AST-level allow-list and
+run evaluation in a constrained, no-network, no-filesystem sandbox.&lt;/li>
+&lt;li>Rotate Flowise, Airtable, model provider, and runtime credentials if exposed
+chatflows could have reached the vulnerable node.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-41265 (Flowise Airtable Agent code injection
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">remote code execution). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Flowise, disables exposed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Airtable Agent execution until patched, adds regression coverage, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Flowise deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-41265 / GHSA-v38x-c887-992f.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Flowise credentials, Airtable tokens, LLM provider keys, chatflow
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> payloads, prompt logs, generated Python, environment variables, and workspace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> files as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run exploit payloads, reverse shells, shell commands, or attacker-like
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> generated Python against production, staging, shared dev, or real Flowise
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instances.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not rely on LLM prompt instructions or string deny-lists as the only
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> security control for generated code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Flowise runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`package.json`&lt;/span>, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, Ansible, CI images, SBOMs, seed chatflows,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exported chatflow JSON, environment templates, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`flowise`&lt;/span> and &lt;span class="sb">`flowise-components`&lt;/span> version. A target
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> is vulnerable if either package resolves to &lt;span class="sb">`&amp;lt;=3.0.13`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search for Airtable Agent exposure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Airtable Agent nodes in exported chatflows;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> public chat embeds or unauthenticated prediction routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> tenant-controlled chatflow creation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> arbitrary model-server configuration;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Airtable table, column, or prompt content that can reach generated Python.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy Flowise or only contains unrelated client
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade all controlled Flowise packages and images to &lt;span class="sb">`3.1.0+`&lt;/span>. Regenerate
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add containment where this repo controls it:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Airtable Agent chatflows until every runtime is patched;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block public prediction calls to vulnerable chatflows at the API gateway;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restrict chatflow creation and model endpoint configuration to trusted
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> administrators;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed if node type or Flowise version cannot be determined.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests or policy checks that do not execute system commands:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> vulnerable package versions are rejected by dependency policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Airtable Agent chatflows cannot be publicly exposed on vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> versions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> generated Python containing imports, attribute tricks, file access,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> subprocess/system calls, or network access is rejected before execution;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> the evaluator is disabled, sandboxed, or upgraded according to the fixed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime contract.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> least-privilege Flowise service identity;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> no cloud or deployment-admin credentials in the Flowise process;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> egress restrictions for Flowise workers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret redaction in chatflow, prompt, and generated-code logs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-41265 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Flowise versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any Airtable Agent chatflow was public or tenant reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which Airtable, LLM provider, Flowise, and runtime credentials require
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which Flowise prediction logs and process logs should be reviewed for
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rejected generated code or suspicious child processes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> any temporary route block or feature disablement still in place.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package install, lockfile integrity, unit/API
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tests, chatflow import checks, gateway policy tests, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> diff, SBOM refresh, and dependency/security scans available in this repo.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-41265 in Flowise Airtable Agent`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Flowise runtime is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Flowise version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The product intentionally depends on public Airtable Agent chatflows executing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> LLM-generated Python; document the risk and require a product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled code or commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>flowise&lt;/code> or &lt;code>flowise-components&lt;/code> to &lt;code>&amp;lt;=3.0.13&lt;/code>.&lt;/li>
+&lt;li>Airtable Agent chatflows are disabled, admin-only, or fixed before they are
+reachable by untrusted prompts.&lt;/li>
+&lt;li>Tests or policy checks prove generated Python cannot import modules, open
+files, spawn commands, or reach network/system APIs.&lt;/li>
+&lt;li>Gateway or feature-flag containment exists for non-atomic rollouts.&lt;/li>
+&lt;li>Operator actions cover credential rotation and log review when exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading the Flowise app package while old &lt;code>flowise-components&lt;/code> code remains
+in an image layer or global npm install.&lt;/li>
+&lt;li>Treating authenticated chatflow authors as trusted when tenants can configure
+model endpoints or Airtable data.&lt;/li>
+&lt;li>Leaving public prediction routes enabled for old exported chatflows.&lt;/li>
+&lt;li>Logging full generated Python, Airtable data, or provider credentials during
+debugging.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-v38x-c887-992f"target="_blank" rel="noopener">https://github.com/advisories/GHSA-v38x-c887-992f&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-41265"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-41265&lt;/a>&lt;/li>
+&lt;li>Flowise project: &lt;a href="https://github.com/FlowiseAI/Flowise"target="_blank" rel="noopener">https://github.com/FlowiseAI/Flowise&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-3xx2/GHSA-47wq - Paperclip agent key tenant-boundary bypass</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-3xx2-47wq-paperclip-agent-key-tenant-boundary/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-3xx2-47wq-paperclip-agent-key-tenant-boundary/</guid><description>
+&lt;p>Two critical Paperclip advisories describe the same tenant-boundary failure in
+agent API key routes. The &lt;code>GET&lt;/code>, &lt;code>POST&lt;/code>, and &lt;code>DELETE&lt;/code> handlers for
+&lt;code>/agents/:id/keys&lt;/code> accepted a board-type session but did not verify that the
+caller belonged to the company owning the target agent.&lt;/p>
+&lt;p>An authenticated board user could supply another company&amp;rsquo;s agent UUID, list or
+revoke that agent&amp;rsquo;s keys, and mint a new plaintext agent token bound to the
+victim tenant. For an agent platform, that is a full cross-tenant control-plane
+compromise.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>@paperclipai/server 2026.416.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected routes:&lt;/strong>
+&lt;ul>
+&lt;li>&lt;code>GET /agents/:id/keys&lt;/code>&lt;/li>
+&lt;li>&lt;code>POST /agents/:id/keys&lt;/code>&lt;/li>
+&lt;li>&lt;code>DELETE /agents/:id/keys/:keyId&lt;/code>&lt;/li>
+&lt;li>equivalent &lt;code>/api/agents/:id/keys&lt;/code> deployments or reverse-proxy prefixes.&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or packages &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>.&lt;/li>
+&lt;li>The Paperclip deployment is multi-tenant or has more than one company,
+workspace, board, customer, or organization.&lt;/li>
+&lt;li>Board users can authenticate without being instance administrators.&lt;/li>
+&lt;li>Agent IDs are visible in URLs, logs, exported data, webhooks, frontend state,
+or predictable test fixtures.&lt;/li>
+&lt;li>Agent API tokens can call downstream endpoints that rely on token-bound
+&lt;code>companyId&lt;/code> for authorization.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;@paperclipai/server|paperclip|/agents/:id/keys|agents/.*/keys|assertBoard|assertCompanyAccess|createApiKey|listKeys|revokeKey&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;agentApiKeys|companyId|instance_admin|board|agent token|pcp_&amp;#34;&lt;/span> server src packages Dockerfile* docker-compose*.yml charts deploy&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>@paperclipai/server&lt;/code> to &lt;code>2026.416.0+&lt;/code> everywhere this repository
+controls package manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Require company access for all agent-key list, create, and revoke paths:
+fetch the target agent first, then call the product&amp;rsquo;s company-access helper
+using the agent&amp;rsquo;s company ID.&lt;/li>
+&lt;li>Enforce tenant checks in the service layer as well as route handlers so future
+routes cannot bypass the boundary by calling &lt;code>createApiKey&lt;/code>, &lt;code>listKeys&lt;/code>, or
+&lt;code>revokeKey&lt;/code> directly.&lt;/li>
+&lt;li>Make revocation scoped to both key ID and agent/company, not key ID alone.&lt;/li>
+&lt;li>Rotate agent API tokens and review audit logs if unauthorized board users
+could access the key routes.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating Paperclip agent API key tenant-boundary advisories
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Paperclip or patches the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenant authorization boundary, adds regression coverage, and documents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Paperclip deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat agent API tokens, key hashes, tenant IDs, company IDs, session cookies,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> audit logs, and customer data as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not mint, print, commit, or attach real agent API tokens.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not fix only the frontend. The server-side route and service boundary must
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> enforce tenant ownership.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Paperclip runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, CI images, deployment docs, SBOMs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored server code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`@paperclipai/server`&lt;/span> version. A target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves below &lt;span class="sb">`2026.416.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search route and service code for agent-key operations:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`GET /agents/:id/keys`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`POST /agents/:id/keys`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`DELETE /agents/:id/keys/:keyId`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`/api/agents/:id/keys`&lt;/span> aliases;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`assertBoard`&lt;/span>, &lt;span class="sb">`assertCompanyAccess`&lt;/span>, &lt;span class="sb">`createApiKey`&lt;/span>, &lt;span class="sb">`listKeys`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`revokeKey`&lt;/span>, and &lt;span class="sb">`agentApiKeys`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository only deploys a fixed hosted Paperclip service or does not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> own Paperclip, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading to &lt;span class="sb">`@paperclipai/server 2026.416.0+`&lt;/span>. Regenerate lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If the repository owns a fork or vendored patch path, patch authorization:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fetch the target agent before key list/create/revoke;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> call &lt;span class="sb">`assertCompanyAccess(req, agent.companyId)`&lt;/span> or equivalent before any
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> key operation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow instance-admin override only through the existing reviewed helper;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> pass actor/company context into service-layer key functions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scope revoke by key ID plus agent ID/company ID;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> never return plaintext tokens except immediately after an authorized
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> create operation in the caller&amp;#39;s own tenant.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add regression tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Company A board user gets 403 for Company B key list/create/revoke;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> zero-membership board user gets 403;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> instance admin behavior matches the intended product policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> authorized same-company users can still create and revoke keys;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> service-layer calls cannot create or revoke cross-tenant keys without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actor/company context.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add audit and operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> log key-management actor, target agent, company, and decision without
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> plaintext tokens;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> rate-limit key creation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> alert on cross-company key-management denials;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document token rotation for the exposure window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add a PR body section named &lt;span class="sb">`Paperclip agent key operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected Paperclip versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether multiple companies or self-service board accounts existed;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether agent IDs were discoverable by non-member users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether agent API keys were listed, minted, or revoked by suspicious
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actors;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which agent tokens must be rotated and which audit logs must be reviewed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Run relevant validation: package install, lockfile checks, route tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> service tests, authorization integration tests, lint/typecheck, image build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOM refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): enforce tenant access on Paperclip agent keys`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Paperclip server deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Paperclip version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The tenant ownership model is unclear or intentionally allows cross-company
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> board administration; document the risk and require a product/security
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require exposing real agent tokens or customer data.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>@paperclipai/server&lt;/code> below &lt;code>2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Every agent-key route checks access to the company that owns the target agent.&lt;/li>
+&lt;li>Service functions cannot list, create, or revoke keys without actor/company
+context.&lt;/li>
+&lt;li>Cross-tenant regression tests cover list, create, and revoke.&lt;/li>
+&lt;li>Operator actions cover token rotation and audit-log review without exposing
+plaintext tokens.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Adding &lt;code>assertCompanyAccess&lt;/code> only to &lt;code>POST&lt;/code> while &lt;code>GET&lt;/code> or &lt;code>DELETE&lt;/code> remains
+tenant-blind.&lt;/li>
+&lt;li>Fetching the agent after creating or revoking the key.&lt;/li>
+&lt;li>Revoking by key ID alone when key IDs are globally unique and guessable from
+logs or frontend state.&lt;/li>
+&lt;li>Logging plaintext &lt;code>pcp_*&lt;/code> tokens in tests, audit events, or PR comments.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-3xx2-mqjm-hg9x&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-3xx2-mqjm-hg9x"target="_blank" rel="noopener">https://github.com/advisories/GHSA-3xx2-mqjm-hg9x&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-47wq-cj9q-wpmp&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-47wq-cj9q-wpmp"target="_blank" rel="noopener">https://github.com/advisories/GHSA-47wq-cj9q-wpmp&lt;/a>&lt;/li>
+&lt;li>Paperclip project: &lt;a href="https://github.com/paperclipai/paperclip"target="_blank" rel="noopener">https://github.com/paperclipai/paperclip&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-7482 - Ollama GGUF memory disclosure</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-7482-ollama-gguf-memory-disclosure/</link><pubDate>Tue, 05 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-7482-ollama-gguf-memory-disclosure/</guid><description>
+&lt;p>Ollama before &lt;code>0.17.1&lt;/code> contains a heap out-of-bounds read in GGUF model
+loading. A malicious GGUF file can declare tensor offsets and sizes that exceed
+the actual file length. When the vulnerable server processes that model during
+creation or quantization, it can read beyond the intended heap buffer.&lt;/p>
+&lt;p>This is a secure-context issue, not only a model-server dependency issue.
+GitHub&amp;rsquo;s advisory notes that exposed memory may include environment variables,
+API keys, system prompts, and other users&amp;rsquo; conversation data. The same
+deployment often also gives the server a model push path, so the remediation
+needs to address both the vulnerable version and unauthenticated access to
+model creation and push endpoints.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> Ollama &lt;code>&amp;lt;0.17.1&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> Ollama &lt;code>0.17.1+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>High-risk exposure:&lt;/strong> Ollama is reachable by untrusted users and permits
+unauthenticated or weakly authenticated access to model creation or push
+routes, especially when &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> or equivalent bind settings
+expose the service beyond loopback.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository builds, installs, packages, configures, or deploys Ollama.&lt;/li>
+&lt;li>A deployable binary, container image, package pin, installer, or SBOM resolves
+Ollama &lt;code>&amp;lt;0.17.1&lt;/code>.&lt;/li>
+&lt;li>Docker, Compose, Kubernetes, systemd, Terraform, Ansible, Nix, shell scripts,
+or runbooks set &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code>, publish the Ollama port, or place
+Ollama behind an ingress, reverse proxy, agent gateway, workspace gateway, or
+MCP-adjacent service.&lt;/li>
+&lt;li>Untrusted users, agents, notebooks, CI jobs, web applications, or automation
+can reach model creation, model import, or model push workflows.&lt;/li>
+&lt;li>The Ollama process has environment variables or mounted files containing
+model-provider keys, registry tokens, internal service credentials, system
+prompts, tenant context, or conversation data.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># macOS / Linux&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;ollama|OLLAMA_HOST|/api/create|/api/push|GGUF|Modelfile|ollama/ollama&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;0\\.17\\.0|0\\.16\\.|0\\.15\\.|ollama[:/@]|OLLAMA_HOST=0\\.0\\.0\\.0&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml .github charts deploy k8s manifests systemd scripts docs 2&amp;gt;/dev/null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ollama --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> rg &lt;span class="s2">&amp;#34;ollama&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Windows PowerShell&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;ollama|OLLAMA_HOST|/api/create|/api/push|GGUF|Modelfile|ollama/ollama&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File -Include Dockerfile*,docker-compose*.yml,*.yaml,*.yml,*.ps1,*.md &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;0\.17\.0|0\.16\.|0\.15\.|ollama[:/@]|OLLAMA_HOST=0\.0\.0\.0&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ollama --version
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker image ls &lt;span class="p">|&lt;/span> Select-String &lt;span class="s2">&amp;#34;ollama&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled Ollama install, image, package recipe, base image,
+workstation bootstrap, and deployment manifest to &lt;code>0.17.1+&lt;/code>; prefer the
+latest available patched release.&lt;/li>
+&lt;li>Regenerate lockfiles, image digests, SBOMs, checksums, rendered manifests,
+golden deployment output, and version evidence for every path that ships
+Ollama.&lt;/li>
+&lt;li>Bind Ollama to loopback or private service networks by default. Do not expose
+&lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> to untrusted networks without an authenticated gateway,
+allow-list, and explicit route policy.&lt;/li>
+&lt;li>Restrict model creation, model import, and model push workflows to trusted
+administrators or controlled automation. Block unauthenticated access to
+&lt;code>/api/create&lt;/code>, &lt;code>/api/push&lt;/code>, and any equivalent proxy route.&lt;/li>
+&lt;li>Allow-list trusted model sources and registries. Prefer digest-pinned models
+and signed or provenance-checked model artifacts for production deployments.&lt;/li>
+&lt;li>If exposure was possible, rotate model-provider keys, model registry tokens,
+service credentials, API keys, and other secrets present in the Ollama
+process environment. Treat untrusted model artifacts created during the
+window as suspect.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-7482 / GHSA-x8qc-fggm-mpqg (Ollama GGUF
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">out-of-bounds read that may disclose server process memory). Produce exactly
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Ollama, restricts model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> creation and push exposure, adds verification, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Ollama deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install path, image, gateway policy, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-7482 and directly related Ollama exposure hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat environment variables, API keys, model registry tokens, provider
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials, system prompts, conversation data, tenant context, model files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and Ollama logs as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create or commit a malicious GGUF file, exploit payload, heap-memory
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> disclosure artifact, or proof that attempts to read process memory.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not push models or test artifacts to external registries.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not expose a local Ollama service publicly to reproduce the issue.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Ollama reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Dockerfiles, base images, Compose files, Helm charts, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, Nix, package recipes, workstation bootstrap scripts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> systemd units, CI jobs, developer-container config, gateway/proxy policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> MCP or agent runtime config, SBOMs, checksums, docs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved Ollama version. A target is vulnerable if it
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> resolves to &lt;span class="sb">`&amp;lt;0.17.1`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine every exposure path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind address and &lt;span class="sb">`OLLAMA_HOST`&lt;/span> value;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> published ports, ingress routes, reverse proxy rules, service mesh policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> firewall rules, workspace gateway routes, and agent gateway routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reachability of &lt;span class="sb">`/api/create`&lt;/span>, &lt;span class="sb">`/api/push`&lt;/span>, and equivalent proxy or UI
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> actions;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether callers are authenticated and authorized before model creation,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> model import, or model push.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy, package, configure, or route traffic to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Ollama, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, likely runtime owner,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> fixed target &lt;span class="sb">`Ollama 0.17.1+`&lt;/span>, and operator actions the owner must perform.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade all controlled Ollama targets to &lt;span class="sb">`0.17.1+`&lt;/span>, preferably the latest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> patched release available through the repository&amp;#39;s normal distribution
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> channel.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, checksum allowlists, rendered manifests, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, package metadata, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add fail-closed exposure controls where this repository owns routing or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime configuration:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bind Ollama to loopback or a private service network by default;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication and admin authorization for model creation, model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> import, and model push;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block unauthenticated or tenant-user access to &lt;span class="sb">`/api/create`&lt;/span> and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/api/push`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remove &lt;span class="sb">`OLLAMA_HOST=0.0.0.0`&lt;/span> unless a documented gateway policy protects
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the service;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add network policy or firewall constraints for non-public deployments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add model-source controls where this repository owns model supply:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow-list trusted model registries, buckets, or artifact repositories;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prefer digest-pinned model artifacts;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> document how model provenance or signatures are checked before production
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> use;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject arbitrary user-supplied GGUF uploads unless a human-reviewed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ingestion path exists.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe verification without exploiting memory disclosure:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency/image/SBOM assertions prove every Ollama target is &lt;span class="sb">`&amp;gt;=0.17.1`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway or policy tests prove unauthenticated callers cannot reach
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`/api/create`&lt;/span> or &lt;span class="sb">`/api/push`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> render tests prove public ingress does not expose Ollama without auth;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> config tests fail if &lt;span class="sb">`OLLAMA_HOST=0.0.0.0`&lt;/span> is set without an approved
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> gateway policy;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret scanning proves no real tokens, prompts, logs, or model files were
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-7482 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Ollama versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether Ollama was bound to loopback, private network, or public
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> interfaces;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`/api/create`&lt;/span> or &lt;span class="sb">`/api/push`&lt;/span> was reachable by untrusted callers;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which model artifacts or registries need quarantine or review;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which environment variables, provider keys, registry tokens, or service
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> credentials should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which access logs should be reviewed for model creation, import, or push
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> activity during the vulnerable window.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency resolution, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render, gateway policy tests, unit/integration tests, SBOM refresh, secret
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> scan, and security scan available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-7482 in Ollama`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No Ollama deployment, install path, image, package recipe, gateway route, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> runtime config is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved Ollama version can only be confirmed from production access the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Ollama release cannot be consumed through the allowed distribution
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> channel without a broader platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require a malicious GGUF file, reading process memory,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exfiltrating model artifacts, or exposing a service to an untrusted network.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing product requirements intentionally allow untrusted users or agents
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> to create and push arbitrary models; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled Ollama binary, package, image, SBOM, deployment manifest, or
+bootstrap path resolves to &lt;code>&amp;lt;0.17.1&lt;/code>.&lt;/li>
+&lt;li>Unauthenticated or tenant-level callers cannot reach model creation or model
+push routes.&lt;/li>
+&lt;li>Public or shared-network exposure of &lt;code>OLLAMA_HOST=0.0.0.0&lt;/code> is removed or
+protected by explicit gateway authorization and network policy.&lt;/li>
+&lt;li>Model-source controls prevent arbitrary untrusted GGUF ingestion in
+production.&lt;/li>
+&lt;li>Operator actions cover secret rotation, model artifact review, and access-log
+review when exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating a developer install script while production containers or Helm values
+still pin an older Ollama image.&lt;/li>
+&lt;li>Treating loopback defaults as proof of safety when deployment manifests set
+&lt;code>OLLAMA_HOST=0.0.0.0&lt;/code>.&lt;/li>
+&lt;li>Blocking &lt;code>/api/create&lt;/code> but leaving &lt;code>/api/push&lt;/code> or a proxy alias reachable.&lt;/li>
+&lt;li>Adding tests that create exploit-like GGUF payloads or commit model binaries.&lt;/li>
+&lt;li>Logging environment variables, prompts, model metadata, or conversation
+content while adding verification.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-x8qc-fggm-mpqg"target="_blank" rel="noopener">https://github.com/advisories/GHSA-x8qc-fggm-mpqg&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-7482"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-7482&lt;/a>&lt;/li>
+&lt;li>Ollama release &lt;code>v0.17.1&lt;/code>: &lt;a href="https://github.com/ollama/ollama/releases/tag/v0.17.1"target="_blank" rel="noopener">https://github.com/ollama/ollama/releases/tag/v0.17.1&lt;/a>&lt;/li>
+&lt;li>Ollama fix PR: &lt;a href="https://github.com/ollama/ollama/pull/14406"target="_blank" rel="noopener">https://github.com/ollama/ollama/pull/14406&lt;/a>&lt;/li>
+&lt;li>Ollama fix commit: &lt;a href="https://github.com/ollama/ollama/commit/88d57d0483cca907e0b23a968c83627a20b21047"target="_blank" rel="noopener">https://github.com/ollama/ollama/commit/88d57d0483cca907e0b23a968c83627a20b21047&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-vr7g-88fq-vhq3 - Paperclip workspace cleanup command injection</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-vr7g-88fq-vhq3-paperclip-cleanup-command-injection/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-vr7g-88fq-vhq3-paperclip-cleanup-command-injection/</guid><description>
+&lt;p>Paperclip versions before &lt;code>2026.416.0&lt;/code> allowed OS command injection through the
+execution workspace lifecycle. The vulnerable API accepted
+&lt;code>config.cleanupCommand&lt;/code> through &lt;code>PATCH /api/execution-workspaces/:id&lt;/code>, stored
+that value, and later executed it through a shell during workspace cleanup.&lt;/p>
+&lt;p>This is especially dangerous for agent workspaces because cleanup runs at a
+privileged lifecycle boundary: the server may have source code, generated
+artifacts, browser state, credentials, local files, and network access that the
+agent used during execution.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Fixed:&lt;/strong> &lt;code>@paperclipai/server 2026.416.0+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected endpoint:&lt;/strong> &lt;code>PATCH /api/execution-workspaces/:id&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected field:&lt;/strong> &lt;code>config.cleanupCommand&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Affected sink:&lt;/strong> shell execution during workspace archive/cleanup.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository deploys or packages &lt;code>@paperclipai/server &amp;lt;2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Execution workspace APIs are enabled.&lt;/li>
+&lt;li>&lt;code>local_trusted&lt;/code> mode, desktop mode, localhost APIs, or authenticated company
+users can patch workspace config.&lt;/li>
+&lt;li>Workspace cleanup accepts arbitrary strings or shell snippets.&lt;/li>
+&lt;li>The server runs with access to repositories, local files, browser profiles,
+package tokens, cloud credentials, SSH keys, or internal networks.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;@paperclipai/server|paperclip|execution-workspaces|cleanupCommand|cleanupCommands|workspace-runtime|recordWorkspaceCommandOperation|spawn\\(|shell.*-c|resolveShell&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why @paperclipai/server
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;local_trusted|trusted.*local|execution workspace|archive.*workspace|cleanup.*command&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy server src packages&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade &lt;code>@paperclipai/server&lt;/code> to &lt;code>2026.416.0+&lt;/code> everywhere this repository
+controls package manifests, lockfiles, images, or deployment manifests.&lt;/li>
+&lt;li>Remove shell-backed cleanup command strings from workspace configuration.&lt;/li>
+&lt;li>Replace cleanup commands with a finite set of typed lifecycle actions such as
+deleting known workspace-owned directories, closing sessions, or revoking
+ephemeral credentials.&lt;/li>
+&lt;li>If a command must be launched, use an argument-array API with a fixed
+executable, fixed arguments, no shell, and no tenant/user-controlled command
+text.&lt;/li>
+&lt;li>Restrict workspace patch APIs by tenant, role, and workspace ownership.&lt;/li>
+&lt;li>Review workspace audit logs and rotate credentials if untrusted users could
+patch cleanup commands.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating GHSA-vr7g-88fq-vhq3 (Paperclip execution workspace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cleanupCommand OS command injection). Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades Paperclip or removes the
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell-backed cleanup path, adds regression coverage, and documents operator
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected Paperclip deployment or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only GHSA-vr7g-88fq-vhq3.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat workspace files, repository contents, browser state, package tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cloud credentials, SSH keys, API keys, process output, and audit logs as
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not run exploit payloads, shell commands, or cleanupCommand values against
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production, staging, shared dev, or real user workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not replace &lt;span class="sb">`shell -c`&lt;/span> with another shell wrapper or escaping-only fix.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every Paperclip runtime controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> package manifests, lockfiles, Dockerfiles, compose files, Helm charts,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Kubernetes manifests, Terraform, CI images, deployment docs, SBOMs, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendored server code.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`@paperclipai/server`&lt;/span> version. A target is
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vulnerable if it resolves below &lt;span class="sb">`2026.416.0`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Search workspace lifecycle code and config for &lt;span class="sb">`cleanupCommand`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`cleanupCommands`&lt;/span>, &lt;span class="sb">`execution-workspaces`&lt;/span>, &lt;span class="sb">`workspace-runtime`&lt;/span>, &lt;span class="sb">`spawn`&lt;/span>,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`exec`&lt;/span>, &lt;span class="sb">`shell -c`&lt;/span>, and archive/cleanup hooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If this repository does not deploy Paperclip or only contains unrelated
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> client code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked and the runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Prefer upgrading to &lt;span class="sb">`@paperclipai/server 2026.416.0+`&lt;/span>. Regenerate lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, and deployment render output.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> If this repository owns a fork or vendored patch path, remove shell-backed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cleanup:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> delete &lt;span class="sb">`cleanupCommand`&lt;/span> as a user-controlled string field;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> define typed cleanup actions with fixed behavior;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject unknown cleanup action types and legacy command strings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> avoid &lt;span class="sb">`child_process.exec`&lt;/span>, &lt;span class="sb">`spawn(shell, [&amp;#34;-c&amp;#34;, value])`&lt;/span>, and equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> shell invocation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> if launching a helper is unavoidable, use a fixed executable and fixed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> argument array with no shell.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Patch authorization around workspace mutation:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require workspace ownership/company access before patching config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> deny unauthenticated mutation in local or desktop modes unless protected by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> a local-only trust boundary and explicit user approval;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject config updates for archived or foreign workspaces.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add regression tests:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> patching &lt;span class="sb">`cleanupCommand`&lt;/span> is rejected or ignored;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> cleanup lifecycle never calls a shell with tenant/user-controlled text;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> only allowed typed cleanup actions execute;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> cross-tenant workspace config patches are denied;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> local trusted mode does not expose a remote unauthenticated mutation path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add operator hardening:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run workspace services as least-privilege users;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> isolate workspaces per tenant/job;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> scrub environment variables before workspace lifecycle operations;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> revoke ephemeral credentials on archive through typed cleanup actions.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`GHSA-vr7g workspace operator actions`&lt;/span> that
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> affected Paperclip versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`local_trusted`&lt;/span> or unauthenticated local APIs were enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether untrusted users could patch execution workspace config;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which workspace logs should be reviewed for suspicious cleanup commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which credentials or workspace artifacts require rotation or quarantine.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: package install, lockfile checks, route tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> workspace lifecycle tests, authorization tests, lint/typecheck, image build,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SBOM refresh, and dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remove Paperclip cleanupCommand shell execution`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected Paperclip server deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed Paperclip version cannot be consumed without a broader migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements depend on arbitrary user-provided cleanup commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require executing attacker-controlled commands.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled package, lockfile, image, SBOM, or deployment target resolves
+&lt;code>@paperclipai/server&lt;/code> below &lt;code>2026.416.0&lt;/code>.&lt;/li>
+&lt;li>Workspace cleanup no longer executes tenant/user-controlled strings through a
+shell.&lt;/li>
+&lt;li>Patch routes enforce tenant/workspace ownership.&lt;/li>
+&lt;li>Regression tests prove legacy &lt;code>cleanupCommand&lt;/code> input fails closed.&lt;/li>
+&lt;li>Operator actions cover workspace log review and credential rotation when
+exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Escaping &lt;code>cleanupCommand&lt;/code> instead of removing shell execution.&lt;/li>
+&lt;li>Allowing cleanup hooks from templates, project files, or imported workspaces
+to bypass route-level validation.&lt;/li>
+&lt;li>Treating localhost APIs as safe while browsers, extensions, or other local
+processes can reach them.&lt;/li>
+&lt;li>Logging command strings that contain secrets or file paths.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory: &lt;a href="https://github.com/advisories/GHSA-vr7g-88fq-vhq3"target="_blank" rel="noopener">https://github.com/advisories/GHSA-vr7g-88fq-vhq3&lt;/a>&lt;/li>
+&lt;li>Paperclip project: &lt;a href="https://github.com/paperclipai/paperclip"target="_blank" rel="noopener">https://github.com/paperclipai/paperclip&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>CVE-2026-42601 - ArchiveBox AddView config override RCE</title><link>https://security-recipes.ai/prompt-library/cve/cve-2026-42601-archivebox-addview-config-rce/</link><pubDate>Wed, 06 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/cve-2026-42601-archivebox-addview-config-rce/</guid><description>
+&lt;p>ArchiveBox &lt;code>AddView&lt;/code> accepts a per-crawl &lt;code>config&lt;/code> value from the &lt;code>/add/&lt;/code>
+workflow and affected releases merge that user-controlled data into crawl
+configuration without enough validation. The merged configuration is later
+exported to archive worker environment variables, where downloader plugins can
+consume values such as extra argument lists or binary paths. An attacker who can
+submit to the add endpoint can turn a URL ingestion request into command
+argument injection and remote code execution on the ArchiveBox host.&lt;/p>
+&lt;p>The highest-risk deployment is an ArchiveBox web UI with &lt;code>PUBLIC_ADD_VIEW=True&lt;/code>.
+In that mode the add endpoint is intentionally reachable for public or
+bookmarklet-style submissions, and the GitHub advisory notes the affected path
+can be exploitable without authentication. This is also an agentic-context risk:
+ArchiveBox often stores private research, compliance evidence, crawler output,
+browser captures, and datasets later consumed by retrieval systems or agents.&lt;/p>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>Vulnerable:&lt;/strong> &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code>&lt;/li>
+&lt;li>&lt;strong>GitHub Advisory Database patched-version metadata:&lt;/strong> none listed at time of
+review&lt;/li>
+&lt;li>&lt;strong>Fixed/upgrade target from package intelligence:&lt;/strong> &lt;code>archivebox 0.8.6rc3+&lt;/code>&lt;/li>
+&lt;li>&lt;strong>Highest-risk condition:&lt;/strong> the ArchiveBox web app exposes &lt;code>/add/&lt;/code> to
+untrusted callers, especially with &lt;code>PUBLIC_ADD_VIEW=True&lt;/code>, and archive worker
+plugins that consume &lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or equivalent command
+configuration remain enabled.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, packages, deploys, or configures ArchiveBox.&lt;/li>
+&lt;li>A deployable target resolves &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code> through pip, uv, Poetry,
+Docker, Compose, Helm, Ansible, Nix, systemd, or a vendored image.&lt;/li>
+&lt;li>ArchiveBox is run as a web app, not only as a local one-shot CLI.&lt;/li>
+&lt;li>&lt;code>PUBLIC_ADD_VIEW=True&lt;/code>, public URL submission, bookmarklet-style submission,
+unauthenticated API ingress, or reverse-proxy routing exposes &lt;code>/add/&lt;/code>.&lt;/li>
+&lt;li>Archive worker plugins such as yt-dlp, gallery-dl, wget, git, SingleFile,
+readability, mercury, or custom extractors accept extra arguments, binary
+paths, environment-derived command options, or user-controlled crawl config.&lt;/li>
+&lt;li>The archive stores sensitive customer pages, research, private URLs,
+compliance evidence, authenticated browser captures, cookies, API tokens, or
+material later fed into a RAG/agent pipeline.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># macOS / Linux&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;archivebox|ArchiveBox|PUBLIC_ADD_VIEW|/add/|YTDLP_ARGS_EXTRA|GALLERYDL_ARGS_EXTRA|_ARGS_EXTRA|_BINARY&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;0\\.8\\.6rc0|archivebox==|archivebox/archivebox|pip install .*archivebox|uvx .*archivebox&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">find . -maxdepth &lt;span class="m">5&lt;/span> -type f &lt;span class="se">\(&lt;/span> -iname &lt;span class="s2">&amp;#34;*archivebox*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;docker-compose*.yml&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;Dockerfile*&amp;#34;&lt;/span> -o -iname &lt;span class="s2">&amp;#34;*.service&amp;#34;&lt;/span> &lt;span class="se">\)&lt;/span> -print
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># Windows PowerShell&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;archivebox|ArchiveBox|PUBLIC_ADD_VIEW|/add/|YTDLP_ARGS_EXTRA|GALLERYDL_ARGS_EXTRA|_ARGS_EXTRA|_BINARY&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File &lt;span class="p">|&lt;/span> Select-String -Pattern &lt;span class="s2">&amp;#34;0\.8\.6rc0|archivebox==|archivebox/archivebox|pip install .*archivebox|uvx .*archivebox&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Get-ChildItem -Recurse -File -Include *archivebox*,Dockerfile*,docker-compose*.yml,*.yaml,*.yml,*.service,*.ps1,*.sh&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled ArchiveBox package, image, installer, bootstrap
+script, and deployment manifest to &lt;code>0.8.6rc3+&lt;/code> or the newest vendor-published
+release that contains the fix. If a scanner still reports GHAD as having no
+patched version, document the release evidence used and keep containment in
+place until the metadata catches up.&lt;/li>
+&lt;li>Regenerate lockfiles, image digests, SBOMs, checksums, rendered manifests,
+deployment snapshots, and version evidence for every path that can run
+ArchiveBox.&lt;/li>
+&lt;li>Disable &lt;code>PUBLIC_ADD_VIEW&lt;/code> unless the business explicitly requires anonymous
+submissions. Require authentication and authorization for URL ingestion in
+production.&lt;/li>
+&lt;li>Add fail-closed validation for any repository-owned wrapper, proxy, form,
+operator, or extension that passes user crawl config into ArchiveBox. Reject
+user-controlled command argument keys such as &lt;code>*_ARGS_EXTRA&lt;/code>, executable path
+keys such as &lt;code>*_BINARY&lt;/code>, and environment overrides not explicitly allow-listed.&lt;/li>
+&lt;li>Restrict archive workers with least privilege: non-root users, read/write
+limits to the archive data directory, no Docker socket, no cloud metadata
+access, and no broad secrets in process environment variables.&lt;/li>
+&lt;li>If exposure was possible, rotate secrets available to the ArchiveBox process,
+review submitted URLs/config fields and worker execution logs, quarantine
+suspicious snapshots, and separate incident review from the code-change PR.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating CVE-2026-42601 / GHSA-3h23-7824-pj8r (ArchiveBox AddView
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">per-crawl config override leading to command argument injection and RCE).
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades or contains the vulnerable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ArchiveBox deployment, blocks unsafe public add/config override paths, adds
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> safe verification, and documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected ArchiveBox deployment,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> install path, image, add-route policy, or safe patch path.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only CVE-2026-42601 and directly related ArchiveBox ingestion and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> archive-worker hardening.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat archived pages, private URLs, cookies, browser profiles, API tokens,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SSH keys, cloud credentials, webhook secrets, compliance evidence, crawler
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output, and agent/RAG datasets as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not submit a real exploit payload to any shared or production ArchiveBox
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not create a proof-of-concept that runs commands, writes marker files,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> opens shells, downloads payloads, exfiltrates environment variables, or reads
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> archive contents.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not print or commit real ArchiveBox snapshots, submitted URLs, cookies,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> secrets, logs, or command environments.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every ArchiveBox reference controlled by this repository:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Python manifests and lockfiles, uv/Poetry/pip-tools config, Dockerfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Compose files, Helm charts, Kubernetes manifests, Terraform, Ansible, Nix,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> systemd units, bootstrap scripts, CI jobs, image digests, SBOMs, reverse
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> proxy rules, web-app route policy, docs, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved ArchiveBox version. Treat &lt;span class="sb">`archivebox &amp;lt;=0.8.6rc0`&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> as vulnerable.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Determine every &lt;span class="sb">`/add/`&lt;/span> exposure path:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> and related public submission settings;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ingress, reverse-proxy, gateway, service-mesh, or firewall rules;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> bookmarklet, browser-extension, API, webhook, or agent integration paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether callers are authenticated and authorized before adding URLs.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> Identify every user-controlled config path that can reach archive workers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> per-crawl config fields, form fields, JSON APIs, environment overrides,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> wrapper scripts, plugin options, &lt;span class="sb">`*_ARGS_EXTRA`&lt;/span>, &lt;span class="sb">`*_BINARY`&lt;/span>, and custom
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> extractor settings.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> If this repository does not deploy, package, configure, or route traffic to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ArchiveBox, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, the likely runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> owner, the vulnerable range &lt;span class="sb">`archivebox &amp;lt;=0.8.6rc0`&lt;/span>, and the target
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`archivebox 0.8.6rc3+`&lt;/span> or latest fixed release.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Upgrade every controlled ArchiveBox target to &lt;span class="sb">`0.8.6rc3+`&lt;/span> or the newest
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> vendor-published fixed release available through the repository&amp;#39;s normal
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distribution channel. If GHAD metadata still shows no patched version,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> include release/package evidence in the PR body.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Regenerate all derived artifacts controlled by the repository: lockfiles,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> image digests, SBOMs, checksum allowlists, rendered manifests, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots, package metadata, and version evidence.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add fail-closed containment where this repository owns configuration or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> routing:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> set &lt;span class="sb">`PUBLIC_ADD_VIEW=False`&lt;/span> by default for production;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> require authentication and authorization for &lt;span class="sb">`/add/`&lt;/span> and equivalent
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ingestion routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block untrusted per-crawl config keys that influence command arguments,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> executable paths, worker environment variables, or plugin enablement;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> allow-list only documented safe per-crawl fields;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> prevent public ingress from reaching &lt;span class="sb">`/add/`&lt;/span> without explicit approval;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> run archive workers without broad secrets, root privileges, Docker socket
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> access, or cloud metadata access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add safe verification without executing commands through ArchiveBox:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> dependency/image/SBOM assertions prove every ArchiveBox target is not
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`&amp;lt;=0.8.6rc0`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> config tests prove production &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> is false or protected by
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> an authenticated gateway;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> route/policy tests prove unauthenticated callers cannot reach &lt;span class="sb">`/add/`&lt;/span>;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> unit tests or static checks prove user-provided crawl config cannot set
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`*_ARGS_EXTRA`&lt;/span>, &lt;span class="sb">`*_BINARY`&lt;/span>, or other command-affecting keys;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> secret scanning proves no snapshots, cookies, worker env, or archive data
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> were committed.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add a PR body section named &lt;span class="sb">`CVE-2026-42601 operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ArchiveBox versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`/add/`&lt;/span> was publicly reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether &lt;span class="sb">`PUBLIC_ADD_VIEW`&lt;/span> was enabled;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which worker plugins could consume extra arguments or binary paths;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which secrets available to the ArchiveBox process should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which submitted URLs, per-crawl config records, worker logs, and archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> snapshots require review or quarantine;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether any downstream agent/RAG datasets built from affected archive
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output should be revalidated.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Run relevant validation: dependency resolution, image build, deployment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render, route/gateway policy tests, unit tests, SBOM refresh, secret scan,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and security scan available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate CVE-2026-42601 in ArchiveBox`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No ArchiveBox deployment, install path, image, package recipe, route policy,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> or runtime config is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> The resolved ArchiveBox version can only be confirmed from production access
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> the agent does not have.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed ArchiveBox release cannot be consumed through the allowed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> distribution channel without a broader platform migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Proving exposure would require command execution, reading archive contents,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> printing worker environment variables, or submitting payloads to a shared or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> production ArchiveBox server.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally allow unauthenticated public submissions
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> with arbitrary per-crawl config; document the risk and require a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Existing snapshots or logs indicate possible command execution; stop after
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> preserving evidence and documenting incident-response handoff.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document the failure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled ArchiveBox package, image, SBOM, deployment manifest, or
+bootstrap path resolves to &lt;code>archivebox &amp;lt;=0.8.6rc0&lt;/code>.&lt;/li>
+&lt;li>The real delivery path changed: dependency pin, lockfile, image digest,
+install script, rendered deployment, or runbook.&lt;/li>
+&lt;li>Public &lt;code>/add/&lt;/code> exposure is disabled or protected by explicit authentication,
+authorization, and route policy.&lt;/li>
+&lt;li>User-controlled crawl config cannot set command-affecting keys such as
+&lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or equivalent plugin execution options.&lt;/li>
+&lt;li>Verification does not include a working exploit payload or command execution
+proof.&lt;/li>
+&lt;li>Operator actions address secret rotation, snapshot/log review, archive
+quarantine, and downstream agent/RAG dataset revalidation when exposure was
+possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Updating pip requirements while Docker, Compose, Helm, or package images
+still pull an older ArchiveBox release.&lt;/li>
+&lt;li>Treating &lt;code>PUBLIC_ADD_VIEW&lt;/code> as harmless because the archive is &amp;ldquo;internal&amp;rdquo; but
+exposing it through a shared workspace, agent gateway, webhook, or bookmarklet
+path.&lt;/li>
+&lt;li>Blocking &lt;code>YTDLP_ARGS_EXTRA&lt;/code> but leaving other &lt;code>*_ARGS_EXTRA&lt;/code>, &lt;code>*_BINARY&lt;/code>, or
+custom extractor options reachable.&lt;/li>
+&lt;li>Tests that prove safety by running a command through ArchiveBox. Use static
+checks, config tests, and route tests instead.&lt;/li>
+&lt;li>Logging worker environments while trying to inspect whether secrets were
+exposed.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory Database: &lt;a href="https://github.com/advisories/GHSA-3h23-7824-pj8r"target="_blank" rel="noopener">https://github.com/advisories/GHSA-3h23-7824-pj8r&lt;/a>&lt;/li>
+&lt;li>ArchiveBox security advisory: &lt;a href="https://github.com/ArchiveBox/ArchiveBox/security/advisories/GHSA-3h23-7824-pj8r"target="_blank" rel="noopener">https://github.com/ArchiveBox/ArchiveBox/security/advisories/GHSA-3h23-7824-pj8r&lt;/a>&lt;/li>
+&lt;li>Safety advisory: &lt;a href="https://getsafety.com/vulnerabilities/95898/"target="_blank" rel="noopener">https://getsafety.com/vulnerabilities/95898/&lt;/a>&lt;/li>
+&lt;li>PyPI release &lt;code>archivebox 0.8.6rc3&lt;/code>: &lt;a href="https://pypi.org/project/archivebox/0.8.6rc3/"target="_blank" rel="noopener">https://pypi.org/project/archivebox/0.8.6rc3/&lt;/a>&lt;/li>
+&lt;li>NVD CVE: &lt;a href="https://nvd.nist.gov/vuln/detail/CVE-2026-42601"target="_blank" rel="noopener">https://nvd.nist.gov/vuln/detail/CVE-2026-42601&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>GHSA-xh72/GHSA-xmxx - OpenClaw agent-surface fail-closed bypasses</title><link>https://security-recipes.ai/prompt-library/cve/ghsa-xh72-openclaw-agent-surface-fail-closed/</link><pubDate>Sat, 02 May 2026 00:00:00 +0000</pubDate><guid>https://security-recipes.ai/prompt-library/cve/ghsa-xh72-openclaw-agent-surface-fail-closed/</guid><description>
+&lt;p>OpenClaw published a cluster of GitHub-reviewed High/Critical advisories around
+external agent inputs and runtime authorization boundaries. They matter because
+they sit exactly where agentic systems are most exposed: chat/webhook ingress,
+gateway bearer auth, chat-room command authorization, and tool-result media
+normalization.&lt;/p>
+&lt;p>The four advisories covered by this recipe are:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>GHSA-xh72-v6v9-mwhc&lt;/code> (Critical): Feishu webhook mode and card-action
+callbacks could fail open when signing configuration or callback tokens were
+missing or blank, allowing unauthenticated traffic to reach command dispatch.&lt;/li>
+&lt;li>&lt;code>GHSA-xmxx-7p24-h892&lt;/code> (High): gateway HTTP and WebSocket handlers could keep
+accepting an old bearer token after SecretRef rotation because auth was
+resolved at server startup instead of per request.&lt;/li>
+&lt;li>&lt;code>GHSA-2gvc-4f3c-2855&lt;/code> (High): Matrix room control-command authorization could
+trust sender IDs learned from the DM pairing store, crossing the DM/room
+command boundary.&lt;/li>
+&lt;li>&lt;code>GHSA-mr34-9552-qr95&lt;/code> (High): webchat tool-result media handling could pass
+local or UNC-style paths into host-side embedding before enforcing
+&lt;code>localRoots&lt;/code>, risking host file reads or Windows network credential exposure.&lt;/li>
+&lt;/ul>
+&lt;h2>Affected versions&lt;span class="hx:absolute hx:-mt-20" id="affected-versions">&lt;/span>
+&lt;a href="#affected-versions" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>&lt;strong>OpenClaw Feishu webhook/card-action validation:&lt;/strong>
+&lt;code>openclaw &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw gateway bearer auth re-resolution:&lt;/strong>
+&lt;code>openclaw &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw Matrix room control-command authorization:&lt;/strong>
+&lt;code>openclaw &amp;gt;2026.3.28, &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>&lt;strong>OpenClaw webchat media local-root containment:&lt;/strong>
+&lt;code>openclaw &amp;gt;=2026.4.7, &amp;lt;2026.4.15&lt;/code>; fixed in &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;/ul>
+&lt;h2>Indicator-of-exposure&lt;span class="hx:absolute hx:-mt-20" id="indicator-of-exposure">&lt;/span>
+&lt;a href="#indicator-of-exposure" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>The repository installs, builds, deploys, vendors, or documents
+&lt;code>openclaw&lt;/code> before &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>Feishu webhook mode is enabled, especially if &lt;code>encryptKey&lt;/code> is optional,
+missing, read from a SecretRef, or configured differently per environment.&lt;/li>
+&lt;li>Feishu card-action callbacks are accepted, and blank or malformed lifecycle
+callback tokens can reach action dispatch.&lt;/li>
+&lt;li>Gateway bearer tokens are provided through SecretRef or another dynamic
+secret source, and operators expect rotation to revoke old tokens without a
+process restart.&lt;/li>
+&lt;li>Matrix integration is enabled, room control commands are available, and DM
+pairing is used for the same bot account.&lt;/li>
+&lt;li>Webchat renders tool-result media, especially if agents, tools, or users can
+submit &lt;code>file://&lt;/code>, local filesystem, Windows drive, or UNC-style media paths.&lt;/li>
+&lt;/ul>
+&lt;p>Quick checks:&lt;/p>
+&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;openclaw|@openclaw|OPENCLAW|Feishu|encryptKey|card-action|SecretRef|bearer|Matrix|commandAllowFrom|pairing|webchat|localRoots|file://|UNC&amp;#34;&lt;/span> .
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">npm ls openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pnpm why openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">yarn why openclaw
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rg -n &lt;span class="s2">&amp;#34;openclaw|feishu|matrix|gateway|webchat|localRoots|SecretRef|bearer&amp;#34;&lt;/span> Dockerfile* docker-compose*.yml charts deploy k8s helm .github config* .&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Remediation strategy&lt;span class="hx:absolute hx:-mt-20" id="remediation-strategy">&lt;/span>
+&lt;a href="#remediation-strategy" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrade every controlled OpenClaw package, image, deployment manifest, and
+generated SBOM to &lt;code>2026.4.15+&lt;/code>.&lt;/li>
+&lt;li>Fail closed for Feishu ingress: webhook mode must not start without
+&lt;code>encryptKey&lt;/code>, missing signing config must be invalid, invalid signatures must
+return &lt;code>401&lt;/code>, and blank card-action callback tokens must be rejected before
+dispatch.&lt;/li>
+&lt;li>Re-resolve gateway bearer authentication from the current runtime secret
+snapshot on every HTTP request and WebSocket upgrade.&lt;/li>
+&lt;li>Enforce separate Matrix authorization boundaries: DM pairing-store entries
+must not authorize room control commands.&lt;/li>
+&lt;li>Reject remote-host &lt;code>file://&lt;/code> URLs, Windows network paths, and local-root
+bypasses before any media &lt;code>stat&lt;/code>, read, transform, or embed operation.&lt;/li>
+&lt;li>Until the fixed build is live, disable Feishu webhook/card-action ingress,
+disable Matrix room control commands, block local-file media embedding, and
+rotate/restart gateway bearer-token consumers where old tokens may remain
+accepted.&lt;/li>
+&lt;/ul>
+&lt;h2>The prompt&lt;span class="hx:absolute hx:-mt-20" id="the-prompt">&lt;/span>
+&lt;a href="#the-prompt" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;div class="hextra-code-block hx:relative hx:mt-6 hx:first:mt-0 hx:group/code">
+&lt;div>&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">Model context: this prompt was generated by GPT 5.5 Extra High reasoning.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">You are remediating the OpenClaw 2026.4.15 agent-surface advisory cluster:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-xh72-v6v9-mwhc, GHSA-xmxx-7p24-h892, GHSA-2gvc-4f3c-2855, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GHSA-mr34-9552-qr95. Produce exactly one output:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A reviewer-ready PR/change request that upgrades OpenClaw, adds containment
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> for exposed agent ingress, adds trust-boundary regression tests, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> documents operator cleanup, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> TRIAGE.md if this repository does not own an affected OpenClaw runtime or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> cannot make a safe change.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Rules
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Scope only the four OpenClaw advisories named above.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Treat Feishu signing keys, callback tokens, Matrix access tokens, gateway
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bearer tokens, SecretRefs, tool-result media paths, local file paths, prompt
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> logs, command logs, and workspace paths as sensitive.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not send forged webhook traffic, room commands, WebSocket upgrades, or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> file-read payloads to production, staging, shared dev, or real customer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> tenants.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not keep any fail-open behavior because an integration was historically
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> optional.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Do not auto-merge.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Steps
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">1.&lt;/span> Inventory every OpenClaw runtime controlled by this repository: npm manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> lockfiles, Dockerfiles, compose files, Helm charts, Kubernetes manifests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Terraform, Ansible, CI images, SBOMs, gateway config, chat integration config,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> exported agent/workflow definitions, and runbooks.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">2.&lt;/span> Determine every resolved &lt;span class="sb">`openclaw`&lt;/span> version. Treat any controlled runtime
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> below &lt;span class="sb">`2026.4.15`&lt;/span> as vulnerable to at least one advisory in this cluster.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">3.&lt;/span> Map exposure by integration:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Feishu webhook mode, &lt;span class="sb">`encryptKey`&lt;/span>, signature validation, replay protection,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and card-action lifecycle token handling;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> gateway HTTP and WebSocket bearer auth, especially dynamic SecretRef
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> rotation behavior;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> Matrix room control commands, DM pairing-store use, room allowlists, group
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> allowlists, and configured sender IDs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> webchat tool-result media embedding, &lt;span class="sb">`localRoots`&lt;/span>, &lt;span class="sb">`file://`&lt;/span> handling,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Windows drive paths, and UNC/network paths.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">4.&lt;/span> If the repository does not deploy OpenClaw or only contains unrelated client
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> code, stop with &lt;span class="sb">`TRIAGE.md`&lt;/span> listing files checked, affected advisory IDs,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and the runtime owner.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">5.&lt;/span> Upgrade every controlled OpenClaw package, image, and deployment target to
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`2026.4.15+`&lt;/span>. Regenerate lockfiles, image digests, SBOMs, deployment render
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> output, and dependency reports.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">6.&lt;/span> Add Feishu fail-closed controls where this repository owns config or code:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> refuse webhook mode when &lt;span class="sb">`encryptKey`&lt;/span> is absent;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> return invalid/unauthorized for missing signing config and invalid
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> signatures;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject blank card-action callback tokens before any handler dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add explicit startup or policy checks so unsafe config cannot ship.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">7.&lt;/span> Add gateway bearer-token rotation controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> resolve auth from the current runtime secret snapshot per request and per
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> WebSocket upgrade;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject old bearer tokens after SecretRef rotation without requiring a
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> process restart;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> add a readiness or probe test that demonstrates old-token rejection.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">8.&lt;/span> Add Matrix room authorization controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> ensure room command authorizers use configured room senders, room members,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> and group allowlists only;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> exclude DM pairing-store sender IDs from room command authorization;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> skip DM pairing-store reads for room traffic where practical.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">9.&lt;/span> Add webchat media containment controls:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject remote-host &lt;span class="sb">`file://`&lt;/span> URLs;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> reject Windows UNC/network paths and Windows drive paths outside
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> configured roots;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> call local-root containment checks before any filesystem &lt;span class="sb">`stat`&lt;/span>, read,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> transform, embed, or metadata probe;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> fail closed when media path type cannot be classified safely.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">10.&lt;/span> Add regression tests that do not read real sensitive files or call real chat
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> providers:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> missing Feishu &lt;span class="sb">`encryptKey`&lt;/span> fails startup or policy validation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> invalid Feishu signatures return unauthorized before JSON/action dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> blank card-action tokens are rejected before handler dispatch;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> old gateway bearer tokens fail immediately after SecretRef rotation;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> DM-paired Matrix senders cannot authorize room control commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> remote-host &lt;span class="sb">`file://`&lt;/span>, UNC, and local-root bypass media paths are rejected
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> before filesystem access.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">11.&lt;/span> Add temporary containment for any rollout that is not atomic:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Feishu webhook/card-action routes;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> disable Matrix room control commands;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> block local-file webchat media embedding;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> restart gateway pods after bearer-token rotation until per-request
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> re-resolution is verified.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">12.&lt;/span> Add a PR body section named &lt;span class="sb">`OpenClaw operator actions`&lt;/span> that states:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> OpenClaw versions before and after the change;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which integrations were enabled and externally or tenant reachable;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which tokens or signing keys should be rotated;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> whether process restarts are required during rollout;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">-&lt;/span> which webhook, gateway, Matrix, command-dispatch, and media logs should
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> be reviewed for suspicious activity.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">13.&lt;/span> Run relevant validation: package install, lockfile integrity, unit tests,
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> integration tests with mocked providers, policy checks, gateway/ingress
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> render tests, image build, deployment diff, SBOM refresh, and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> dependency/security scans available in this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">14.&lt;/span> Use PR title:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="sb">`fix(sec): remediate OpenClaw agent-surface advisories`&lt;/span>.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">## Stop conditions
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="gu">&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> No affected OpenClaw deployment is controlled by this repository.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> A fixed OpenClaw version cannot be consumed without a broader platform
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> migration.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Product requirements intentionally depend on fail-open webhook auth, stale
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> bearer-token validity, DM-to-room command trust, or host-file media embedding;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> document the risk and require a product/security decision.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Verification would require forged traffic against real integrations or
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> reading sensitive host files.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Validation fails for unrelated pre-existing reasons; document those failures
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> instead of broadening scope.&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;/div>&lt;div class="hextra-code-copy-btn-container hx:opacity-0 hx:transition hx:group-hover/code:opacity-100 hx:flex hx:gap-1 hx:absolute hx:m-[11px] hx:right-0 hx:top-0">
+&lt;button
+class="hextra-code-copy-btn hx:group/copybtn hx:cursor-pointer hx:transition-all hx:active:opacity-50 hx:bg-primary-700/5 hx:border hx:border-black/5 hx:text-gray-600 hx:hover:text-gray-900 hx:rounded-md hx:p-1.5 hx:dark:bg-primary-300/10 hx:dark:border-white/10 hx:dark:text-gray-400 hx:dark:hover:text-gray-50"
+title="Copy code"
+aria-label="Copy code"
+data-copied-label="Copied!"
+>
+&lt;div class="hextra-copy-icon hx:group-[.copied]/copybtn:hidden hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;div class="hextra-success-icon hx:hidden hx:group-[.copied]/copybtn:block hx:pointer-events-none hx:h-4 hx:w-4">&lt;/div>
+&lt;/button>
+&lt;/div>
+&lt;/div>
+&lt;h2>Verification - what the reviewer looks for&lt;span class="hx:absolute hx:-mt-20" id="verification---what-the-reviewer-looks-for">&lt;/span>
+&lt;a href="#verification---what-the-reviewer-looks-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>No controlled lockfile, image, SBOM, or deployment target resolves OpenClaw
+below &lt;code>2026.4.15&lt;/code>.&lt;/li>
+&lt;li>Feishu webhook mode fails closed when signing configuration is absent or
+invalid, and blank card-action tokens cannot reach dispatch.&lt;/li>
+&lt;li>Gateway bearer auth is resolved from the current secret snapshot per request
+and per WebSocket upgrade.&lt;/li>
+&lt;li>Matrix DM pairing-store entries cannot authorize room control commands.&lt;/li>
+&lt;li>Webchat media containment rejects &lt;code>file://&lt;/code>, UNC, and local-root bypass paths
+before filesystem access.&lt;/li>
+&lt;li>Operator actions cover token/key rotation, log review, temporary route
+blocks, and rollout restarts where exposure was possible.&lt;/li>
+&lt;/ul>
+&lt;h2>Watch for&lt;span class="hx:absolute hx:-mt-20" id="watch-for">&lt;/span>
+&lt;a href="#watch-for" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>Upgrading the main package while old OpenClaw images or globally installed
+CLI/runtime packages remain in deployment manifests.&lt;/li>
+&lt;li>Testing only normal Feishu signed messages and missing missing-config,
+invalid-signature, blank-token, and malformed-callback paths.&lt;/li>
+&lt;li>Rotating a SecretRef while the running gateway still holds startup-time auth.&lt;/li>
+&lt;li>Treating Matrix DM pairing as equivalent to room command authorization.&lt;/li>
+&lt;li>Checking local-root containment after &lt;code>stat&lt;/code>, preview generation, or media
+metadata probing has already touched the path.&lt;/li>
+&lt;/ul>
+&lt;h2>References&lt;span class="hx:absolute hx:-mt-20" id="references">&lt;/span>
+&lt;a href="#references" class="subheading-anchor" aria-label="Permalink for this section">&lt;/a>&lt;/h2>&lt;ul>
+&lt;li>GitHub Advisory &lt;code>GHSA-xh72-v6v9-mwhc&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-xh72-v6v9-mwhc"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xh72-v6v9-mwhc&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-xmxx-7p24-h892&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-xmxx-7p24-h892"target="_blank" rel="noopener">https://github.com/advisories/GHSA-xmxx-7p24-h892&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-2gvc-4f3c-2855&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-2gvc-4f3c-2855"target="_blank" rel="noopener">https://github.com/advisories/GHSA-2gvc-4f3c-2855&lt;/a>&lt;/li>
+&lt;li>GitHub Advisory &lt;code>GHSA-mr34-9552-qr95&lt;/code>: &lt;a href="https://github.com/advisories/GHSA-mr34-9552-qr95"target="_blank" rel="noopener">https://github.com/advisories/GHSA-mr34-9552-qr95&lt;/a>&lt;/li>
+&lt;li>OpenClaw project: &lt;a href="https://github.com/openclaw/openclaw"target="_blank" rel="noopener">https://github.com/openclaw/openclaw&lt;/a>&lt;/li>
+&lt;/ul></description></item></channel></rss>
