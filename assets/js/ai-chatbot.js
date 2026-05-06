@@ -42,6 +42,7 @@
     agentRecipe: 'securityRecipes.ai.agent.recipe',
     agentActions: 'securityRecipes.ai.agent.actions',
     agentInputChannels: 'securityRecipes.ai.agent.inputChannels',
+    marketplaceContextSources: 'securityRecipes.ai.marketplace.contextSources',
     agentWorkflowTemplate: 'securityRecipes.ai.agent.workflowTemplate',
     caseFiles: 'securityRecipes.ai.caseFiles',
     caseboardSelected: 'securityRecipes.ai.caseboard.selected',
@@ -68,6 +69,9 @@
     context: 'securityRecipes.ai.includeContext',
     related: 'securityRecipes.ai.includeRelated',
     githubContext: 'securityRecipes.ai.includeGitHubContext',
+    githubContextFiles: 'securityRecipes.ai.github.context.files',
+    githubContextIssues: 'securityRecipes.ai.github.context.issues',
+    githubContextPulls: 'securityRecipes.ai.github.context.pulls',
     githubCodeScanningContext: 'securityRecipes.ai.includeGitHubCodeScanningContext',
     gitLabProjectContext: 'securityRecipes.ai.includeGitLabProjectContext',
     gitLabFindingsContext: 'securityRecipes.ai.includeGitLabFindingsContext',
@@ -253,7 +257,7 @@
   ];
   var AGENT_OUTPUT_ROUTES = [
     { value: 'draft-pr', label: 'Draft PR packet', requirement: 'No GitHub write required. Produces branch name, PR body, tests, rollback, and reviewer checklist.' },
-    { value: 'github-issue', label: 'GitHub issue', requirement: 'Requires GitHub PAT or OAuth token with issues write access.' },
+    { value: 'github-issue', label: 'GitHub issue', requirement: 'Requires GitHub PAT or browser login with issues write access.' },
     { value: 'slack', label: 'Slack message', requirement: 'Requires an incoming Slack webhook URL.' },
     { value: 'email', label: 'Email handoff', requirement: 'Uses a local mailto draft, or a configured CORS-enabled email relay URL.' },
     { value: 'jira', label: 'Jira ticket', requirement: 'Requires Jira base URL, account email, API token, and project key.' },
@@ -298,6 +302,9 @@
     includeScannerExport: localStorage.getItem(STORE.scannerExportContext) === 'true',
     includeSbom: localStorage.getItem(STORE.sbomContext) === 'true',
     githubRepoUrl: localStorage.getItem(STORE.githubRepoUrl) || '',
+    githubContextFiles: localStorage.getItem(STORE.githubContextFiles) !== 'false',
+    githubContextIssues: localStorage.getItem(STORE.githubContextIssues) !== 'false',
+    githubContextPulls: localStorage.getItem(STORE.githubContextPulls) !== 'false',
     githubLastStatusDetail: '',
     githubContextText: '',
     githubContextLoadedAt: '',
@@ -803,6 +810,223 @@
       .map(function (channel) { return normalizeInputChannel(channel, { source: 'catalog' }); })
       .concat(local.map(function (channel) { return normalizeInputChannel(channel, { source: 'local' }); }));
     return marketplaceCache.inputChannels;
+  }
+
+  function optionalContextSourceConfigs() {
+    return [
+      {
+        key: 'github-code-scanning',
+        channelId: 'github-code-scanning-alerts',
+        label: 'GitHub code scanning',
+        attr: 'data-github-code-scanning-context',
+        elementKey: 'includeGitHubCodeScanning',
+        stateKey: 'includeGitHubCodeScanning',
+        storeKey: STORE.githubCodeScanningContext,
+        clear: function () { clearGitHubCodeScanningContext({ keepSettings: true }); },
+        update: updateGitHubCodeScanningUI
+      },
+      {
+        key: 'gitlab-project',
+        channelId: 'gitlab-project-context',
+        label: 'GitLab project',
+        attr: 'data-gitlab-project-context',
+        elementKey: 'includeGitLabProject',
+        stateKey: 'includeGitLabProject',
+        storeKey: STORE.gitLabProjectContext,
+        update: updateGitLabContextUI
+      },
+      {
+        key: 'gitlab-findings',
+        channelId: 'gitlab-vulnerability-findings',
+        label: 'GitLab findings',
+        attr: 'data-gitlab-findings-context',
+        elementKey: 'includeGitLabFindings',
+        stateKey: 'includeGitLabFindings',
+        storeKey: STORE.gitLabFindingsContext,
+        update: updateGitLabContextUI
+      },
+      {
+        key: 'azure-devops-repository',
+        channelId: 'azure-devops-repository',
+        label: 'Azure DevOps repo',
+        attr: 'data-azure-devops-repository-context',
+        elementKey: 'includeAzureDevOpsRepository',
+        stateKey: 'includeAzureDevOpsRepository',
+        storeKey: STORE.azureDevOpsRepositoryContext,
+        clear: function () { clearAzureDevOpsRepositoryContext({ keepSettings: true }); },
+        update: updateAzureDevOpsContextUI
+      },
+      {
+        key: 'snyk',
+        channelId: 'snyk-issues-api',
+        label: 'Snyk issues',
+        attr: 'data-snyk-context',
+        elementKey: 'includeSnyk',
+        stateKey: 'includeSnyk',
+        storeKey: STORE.snykContext,
+        clear: function () { clearSnykContext({ keepSettings: true }); },
+        update: updateSnykUI
+      },
+      {
+        key: 'confluence',
+        channelId: 'confluence-knowledge',
+        label: 'Confluence runbooks',
+        attr: 'data-confluence-context',
+        elementKey: 'includeConfluence',
+        stateKey: 'includeConfluence',
+        storeKey: STORE.confluenceContext,
+        clear: function () { clearConfluenceContext({ keepSettings: true }); },
+        update: updateConfluenceUI
+      },
+      {
+        key: 'defender-xdr',
+        channelId: 'microsoft-defender-xdr-incidents',
+        label: 'Defender XDR incidents',
+        attr: 'data-defender-xdr-context',
+        elementKey: 'includeDefenderXdr',
+        stateKey: 'includeDefenderXdr',
+        storeKey: STORE.defenderXdrContext,
+        clear: function () { clearDefenderXdrContext({ keepSettings: true }); },
+        update: updateDefenderXdrUI
+      },
+      {
+        key: 'sentinel',
+        channelId: 'microsoft-sentinel-incidents',
+        label: 'Sentinel incidents',
+        attr: 'data-sentinel-context',
+        elementKey: 'includeSentinel',
+        stateKey: 'includeSentinel',
+        storeKey: STORE.sentinelContext,
+        clear: function () { clearSentinelContext({ keepSettings: true }); },
+        update: updateSentinelUI
+      },
+      {
+        key: 'sarif',
+        channelId: importedContextChannelId('sarif'),
+        label: 'SARIF upload',
+        attr: 'data-sarif-context',
+        elementKey: 'includeSarif',
+        stateKey: 'includeSarif',
+        storeKey: STORE.sarifContext,
+        update: function () { updateImportedContextUI('sarif'); }
+      },
+      {
+        key: 'scanner-export',
+        channelId: importedContextChannelId('scanner'),
+        label: 'Scanner exports',
+        attr: 'data-scanner-export-context',
+        elementKey: 'includeScannerExport',
+        stateKey: 'includeScannerExport',
+        storeKey: STORE.scannerExportContext,
+        update: function () { updateImportedContextUI('scanner'); }
+      },
+      {
+        key: 'sbom',
+        channelId: importedContextChannelId('sbom'),
+        label: 'SBOM upload',
+        attr: 'data-sbom-context',
+        elementKey: 'includeSbom',
+        stateKey: 'includeSbom',
+        storeKey: STORE.sbomContext,
+        update: function () { updateImportedContextUI('sbom'); }
+      }
+    ];
+  }
+
+  function optionalContextSourceConfigByKey(key) {
+    return optionalContextSourceConfigs().filter(function (config) {
+      return config.key === key;
+    })[0] || null;
+  }
+
+  function optionalContextSourceConfigByChannel(channelId) {
+    return optionalContextSourceConfigs().filter(function (config) {
+      return config.channelId === channelId;
+    })[0] || null;
+  }
+
+  function installedMarketplaceContextSourceIds() {
+    var ids = loadStoredJson(STORE.marketplaceContextSources, []);
+    return Array.isArray(ids) ? uniqueStrings(ids.filter(Boolean), 32) : [];
+  }
+
+  function installMarketplaceContextSource(channelId) {
+    if (!optionalContextSourceConfigByChannel(channelId)) return;
+    saveStoredJson(STORE.marketplaceContextSources, uniqueStrings(installedMarketplaceContextSourceIds().concat([channelId]), 32));
+    renderInstalledMarketplaceSettings();
+    if (els.marketplaceSettingsDetails) els.marketplaceSettingsDetails.open = true;
+  }
+
+  function marketplaceContextSourceIsVisible(config) {
+    var selected = storedInputChannelIds();
+    if (els.agentInputChannels) selected = uniqueStrings(selected.concat(selectValues(els.agentInputChannels)), 48);
+    return installedMarketplaceContextSourceIds().indexOf(config.channelId) !== -1 ||
+      selected.indexOf(config.channelId) !== -1 ||
+      !!state[config.stateKey];
+  }
+
+  function refreshOptionalContextSourceElements() {
+    var root = els.marketplaceContextSources;
+    if (!root) return;
+    optionalContextSourceConfigs().forEach(function (config) {
+      els[config.elementKey] = root.querySelector('[' + config.attr + ']');
+    });
+  }
+
+  function renderMarketplaceContextSources() {
+    if (!els.marketplaceContextSources) return;
+    var visible = optionalContextSourceConfigs().filter(marketplaceContextSourceIsVisible);
+    els.marketplaceContextSources.innerHTML = visible.map(function (config) {
+      return '<label class="ai-chatbot-check ai-chatbot-check-marketplace">' +
+        '<input data-context-source="' + html(config.key) + '" ' + config.attr + ' type="checkbox">' +
+        '<span>' + html(config.label) + '</span><em>Marketplace</em>' +
+        '</label>';
+    }).join('');
+    if (els.marketplaceContextNote) {
+      els.marketplaceContextNote.textContent = visible.length
+        ? 'Marketplace-added sources are available below.'
+        : 'Add scanner, knowledge, or code-system inputs from Marketplace to show more sources here.';
+    }
+    refreshOptionalContextSourceElements();
+    visible.forEach(function (config) {
+      if (els[config.elementKey]) els[config.elementKey].checked = !!state[config.stateKey];
+    });
+    renderInstalledMarketplaceSettings();
+  }
+
+  function marketplaceSettingsChannelIsVisible(channelId) {
+    var config = optionalContextSourceConfigByChannel(channelId);
+    var selected = storedInputChannelIds();
+    if (els.agentInputChannels) selected = uniqueStrings(selected.concat(selectValues(els.agentInputChannels)), 48);
+    return !!config && (
+      installedMarketplaceContextSourceIds().indexOf(channelId) !== -1 ||
+      selected.indexOf(channelId) !== -1 ||
+      !!state[config.stateKey] ||
+      sourceHasSetupValue(channelId)
+    );
+  }
+
+  function renderInstalledMarketplaceSettings() {
+    if (!els.marketplaceSettingsDetails || !els.marketplaceSettingsCards) return;
+    var visibleCount = 0;
+    Array.prototype.forEach.call(els.marketplaceSettingsCards, function (card) {
+      var channelId = card.getAttribute('data-marketplace-settings-card');
+      var visible = marketplaceSettingsChannelIsVisible(channelId);
+      card.hidden = !visible;
+      if (visible) visibleCount += 1;
+    });
+    els.marketplaceSettingsDetails.hidden = visibleCount === 0;
+  }
+
+  function setOptionalContextSourceState(key, enabled) {
+    var config = optionalContextSourceConfigByKey(key);
+    if (!config) return;
+    state[config.stateKey] = !!enabled;
+    localStorage.setItem(config.storeKey, String(!!enabled));
+    if (!enabled && config.clear) config.clear();
+    if (config.update) config.update();
+    syncAgentInputSelectionsFromToggles();
+    renderMarketplaceContextSources();
   }
 
   function normalizeOutputChannel(channel, options) {
@@ -6813,6 +7037,7 @@
       settings: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/><path d="M19 12a7.8 7.8 0 0 0-.08-1.07l2.02-1.55-2-3.46-2.4.98a8.4 8.4 0 0 0-1.86-1.08L14.33 3h-4l-.35 2.82A8.4 8.4 0 0 0 8.12 6.9l-2.4-.98-2 3.46 2.02 1.55a7.6 7.6 0 0 0 0 2.14L3.72 14.62l2 3.46 2.4-.98c.56.45 1.18.82 1.86 1.08l.35 2.82h4l.35-2.82a8.4 8.4 0 0 0 1.86-1.08l2.4.98 2-3.46-2.02-1.55c.05-.35.08-.71.08-1.07Z" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"/></svg>',
       terminal: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4V5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m7 9 3 3-3 3M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       play: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 5.5v13l11-6.5-11-6.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+      clock: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       plus: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
       trash: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M8 7l1-3h6l1 3M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       package: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 8.2 12 4l8 4.2v7.6L12 20l-8-4.2V8.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m4.5 8.5 7.5 4 7.5-4M12 12.5V20" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -6892,8 +7117,22 @@
   }
 
   function getOAuthField(provider, field) {
-    var key = oauthFieldKey(provider || state.provider, field);
-    return key ? localStorage.getItem(key) || '' : '';
+    var resolvedProvider = provider || state.provider;
+    var key = oauthFieldKey(resolvedProvider, field);
+    var stored = key ? localStorage.getItem(key) || '' : '';
+    if (stored) return stored;
+    var presets = window.__SECURITY_RECIPES_OAUTH_PROVIDERS__ || window.__SECURITY_RECIPES_OAUTH_PROVIDERS || {};
+    var preset = presets && typeof presets === 'object' ? presets[resolvedProvider] || {} : {};
+    var aliases = {
+      clientId: ['clientId', 'client_id'],
+      authUrl: ['authUrl', 'auth_url', 'authorizationUrl', 'authorization_url'],
+      tokenUrl: ['tokenUrl', 'token_url'],
+      scope: ['scope', 'scopes']
+    }[field] || [field];
+    for (var i = 0; i < aliases.length; i++) {
+      if (preset[aliases[i]]) return collapseText(preset[aliases[i]]);
+    }
+    return '';
   }
 
   function setOAuthField(provider, field, value) {
@@ -6902,6 +7141,13 @@
     var clean = collapseText(value || '');
     if (clean) localStorage.setItem(key, clean);
     else localStorage.removeItem(key);
+  }
+
+  function hasOAuthBrowserConfig(provider) {
+    var resolvedProvider = provider || state.provider;
+    return !!(getOAuthField(resolvedProvider, 'clientId') &&
+      getOAuthField(resolvedProvider, 'authUrl') &&
+      getOAuthField(resolvedProvider, 'tokenUrl'));
   }
 
   function githubAuthMode() {
@@ -6921,7 +7167,7 @@
   }
 
   function githubCredentialLabel(mode) {
-    return (mode || githubAuthMode()) === 'oauth' ? 'OAuth token' : 'PAT';
+    return (mode || githubAuthMode()) === 'oauth' ? 'browser login' : 'PAT';
   }
 
   function githubOAuthFieldKey(field) {
@@ -6939,6 +7185,16 @@
     if (!key) return '';
     var value = localStorage.getItem(key) || '';
     if (value) return value;
+    var preset = window.__SECURITY_RECIPES_GITHUB_OAUTH__ || window.__SECURITY_RECIPES_GITHUB_OAUTH || {};
+    var aliases = {
+      clientId: ['clientId', 'client_id'],
+      authUrl: ['authUrl', 'auth_url', 'authorizationUrl', 'authorization_url'],
+      tokenUrl: ['tokenUrl', 'token_url'],
+      scope: ['scope', 'scopes']
+    }[field] || [field];
+    for (var i = 0; i < aliases.length; i++) {
+      if (preset[aliases[i]]) return collapseText(preset[aliases[i]]);
+    }
     if (field === 'authUrl') return 'https://github.com/login/oauth/authorize';
     if (field === 'tokenUrl') return 'https://github.com/login/oauth/access_token';
     if (field === 'scope') return 'repo read:org workflow';
@@ -7159,6 +7415,24 @@
     localStorage.setItem(STORE.provider, provider);
   }
 
+  function postBrowserAuthPopupResult(type, payload) {
+    if (!window.opener || window.opener.closed) return false;
+    try {
+      window.opener.postMessage(Object.assign({ type: type }, payload || {}), window.location.origin);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function postOAuthPopupResult(payload) {
+    return postBrowserAuthPopupResult('securityrecipes:oauth-complete', payload);
+  }
+
+  function postGitHubOAuthPopupResult(payload) {
+    return postBrowserAuthPopupResult('securityrecipes:github-oauth-complete', payload);
+  }
+
   async function exchangeOAuthCode(pending, code) {
     var body = new URLSearchParams();
     body.set('grant_type', 'authorization_code');
@@ -7189,13 +7463,29 @@
     var tokenUrl = getOAuthField(provider, 'tokenUrl');
     var scope = getOAuthField(provider, 'scope');
     if (!clientId || !authUrl || !tokenUrl) {
-      setStatus('Save OAuth client ID, authorization URL, and token URL first.', 'error');
+      var missing = cfg.label + ' browser sign-in is not configured for this site yet. Paste an OAuth bearer above, or ask the site owner to publish OAuth app details.';
+      setOAuthStatus(missing, 'error');
+      setStatus(missing, 'error');
       return;
+    }
+
+    var popup = null;
+    try {
+      popup = window.open('', 'securityrecipes-oauth-' + provider, 'popup,width=720,height=820,menubar=no,toolbar=no,location=yes,status=no,scrollbars=yes,resizable=yes');
+      if (popup) popup.document.title = cfg.label + ' authorization';
+    } catch (e) {
+      popup = null;
     }
 
     var stateValue = randomBase64Url(24);
     var verifier = randomBase64Url(64);
-    var challenge = await pkceChallenge(verifier);
+    var challenge;
+    try {
+      challenge = await pkceChallenge(verifier);
+    } catch (error) {
+      if (popup && !popup.closed) popup.close();
+      throw error;
+    }
     var redirectUri = oauthRedirectUri();
     var pending = {
       provider: provider,
@@ -7217,8 +7507,15 @@
     url.searchParams.set('code_challenge_method', 'S256');
     if (scope) url.searchParams.set('scope', scope);
 
-    setStatus('Opening ' + cfg.label + ' OAuth authorization in this browser...', '');
-    window.location.assign(url.toString());
+    var message = 'Continue ' + cfg.label + ' sign-in in the popup. The bearer token will be saved only in this browser.';
+    setOAuthStatus(message, '');
+    setStatus('Opening ' + cfg.label + ' sign-in...', '');
+    if (popup && !popup.closed) {
+      popup.location.href = url.toString();
+      try { popup.focus(); } catch (e) {}
+    } else {
+      window.location.assign(url.toString());
+    }
   }
 
   function readPendingGitHubOAuth() {
@@ -7242,13 +7539,27 @@
     var tokenUrl = collapseText(els.githubOAuthTokenUrl && els.githubOAuthTokenUrl.value) || getGitHubOAuthField('tokenUrl');
     var scope = collapseText(els.githubOAuthScope && els.githubOAuthScope.value) || getGitHubOAuthField('scope');
     if (!clientId || !authUrl || !tokenUrl) {
-      setGitHubStatus('Save GitHub OAuth client ID, authorization URL, and token URL first.', 'error');
+      setGitHubStatus('GitHub browser sign-in is waiting on site-level OAuth setup. Use PAT mode for now.', 'error');
       return;
+    }
+
+    var popup = null;
+    try {
+      popup = window.open('', 'securityrecipes-github-oauth', 'popup,width=720,height=820,menubar=no,toolbar=no,location=yes,status=no,scrollbars=yes,resizable=yes');
+      if (popup) popup.document.title = 'GitHub authorization';
+    } catch (e) {
+      popup = null;
     }
 
     var stateValue = randomBase64Url(24);
     var verifier = randomBase64Url(64);
-    var challenge = await pkceChallenge(verifier);
+    var challenge;
+    try {
+      challenge = await pkceChallenge(verifier);
+    } catch (error) {
+      if (popup && !popup.closed) popup.close();
+      throw error;
+    }
     var redirectUri = oauthRedirectUri();
     localStorage.setItem(STORE.githubOAuthPending, JSON.stringify({
       clientId: clientId,
@@ -7268,8 +7579,13 @@
     url.searchParams.set('code_challenge_method', 'S256');
     if (scope) url.searchParams.set('scope', scope);
 
-    setGitHubStatus('Opening GitHub OAuth authorization in this browser...', '');
-    window.location.assign(url.toString());
+    setGitHubStatus('Continue GitHub sign-in in the popup. The token will be saved only in this browser.', '');
+    if (popup && !popup.closed) {
+      popup.location.href = url.toString();
+      try { popup.focus(); } catch (e) {}
+    } else {
+      window.location.assign(url.toString());
+    }
   }
 
   async function handleOAuthCallback() {
@@ -7285,11 +7601,17 @@
         localStorage.removeItem(STORE.githubOAuthPending);
         clearOAuthCallbackUrl();
         updateGitHubAuthUI();
-        setGitHubStatus('GitHub OAuth token saved locally: ' + maskToken(githubToken), 'ok');
+        var githubSavedMessage = 'GitHub browser login saved locally: ' + maskToken(githubToken);
+        setGitHubStatus(githubSavedMessage, 'ok');
+        if (postGitHubOAuthPopupResult({ ok: true, tokenPreview: maskToken(githubToken) })) {
+          window.setTimeout(function () { window.close(); }, 240);
+        }
       } catch (error) {
         clearOAuthCallbackUrl();
         updateGitHubAuthUI();
-        setGitHubStatus('GitHub OAuth failed: ' + (error && error.message ? error.message : 'token exchange failed'), 'error');
+        var githubErrorMessage = 'GitHub OAuth failed: ' + (error && error.message ? error.message : 'token exchange failed');
+        setGitHubStatus(githubErrorMessage, 'error');
+        postGitHubOAuthPopupResult({ ok: false, error: githubErrorMessage });
       }
       return;
     }
@@ -7297,12 +7619,16 @@
     if (params.error) {
       localStorage.removeItem(STORE.oauthPending);
       clearOAuthCallbackUrl();
-      setStatus('OAuth authorization failed: ' + (params.errorDescription || params.error), 'error');
+      var authError = 'OAuth authorization failed: ' + (params.errorDescription || params.error);
+      setStatus(authError, 'error');
+      postOAuthPopupResult({ ok: false, provider: pending && pending.provider, error: authError });
       return;
     }
     if (!pending || !pending.provider || params.state !== pending.state) {
       clearOAuthCallbackUrl();
-      setStatus('OAuth callback was ignored because the saved browser state did not match.', 'error');
+      var stateError = 'OAuth callback was ignored because the saved browser state did not match.';
+      setStatus(stateError, 'error');
+      postOAuthPopupResult({ ok: false, error: stateError });
       return;
     }
     try {
@@ -7311,11 +7637,18 @@
       localStorage.removeItem(STORE.oauthPending);
       clearOAuthCallbackUrl();
       updateProviderUI();
-      setStatus(providerConfig(pending.provider).label + ' OAuth bearer saved locally: ' + maskToken(token), 'ok');
+      var savedMessage = providerConfig(pending.provider).label + ' OAuth bearer saved locally: ' + maskToken(token);
+      setStatus(savedMessage, 'ok');
+      setOAuthStatus(savedMessage, 'ok');
+      if (postOAuthPopupResult({ ok: true, provider: pending.provider, tokenPreview: maskToken(token) })) {
+        window.setTimeout(function () { window.close(); }, 240);
+      }
     } catch (error) {
       clearOAuthCallbackUrl();
       setSettingsOpen(true);
-      setStatus(error && error.message ? error.message : 'OAuth token exchange failed.', 'error');
+      var exchangeError = error && error.message ? error.message : 'OAuth token exchange failed.';
+      setStatus(exchangeError, 'error');
+      postOAuthPopupResult({ ok: false, provider: pending.provider, error: exchangeError });
       updateProviderUI();
     }
   }
@@ -8334,27 +8667,43 @@
 
   async function fetchGitHubRepoContext(fullName) {
     var repo = normalizeGitHubRepo(await githubJson('/repos/' + repoApiPath(fullName), false));
-    if (repo.private && !getGitHubToken()) throw new Error('Repository is private. Add a GitHub PAT or OAuth token with repo read access, then load context again.');
+    if (repo.private && !getGitHubToken()) throw new Error('Repository is private. Add a GitHub PAT or use GitHub browser login with repo read access, then load context again.');
     var ref = repo.default_branch || 'main';
-    var treePaths = await fetchGitHubTreeFiles(repo, ref);
+    var treePaths = [];
     var files = [];
-    for (var i = 0; i < treePaths.length && files.length < GITHUB_CONTEXT_MAX_FILES; i++) {
-      try {
-        var file = await fetchGitHubFile(repo.full_name, treePaths[i], ref);
-        if (file && file.text) files.push(file);
-      } catch (e) {
-        // Missing or binary files are skipped; metadata, issues, and PRs still carry context.
+    if (state.githubContextFiles) {
+      treePaths = await fetchGitHubTreeFiles(repo, ref);
+      for (var i = 0; i < treePaths.length && files.length < GITHUB_CONTEXT_MAX_FILES; i++) {
+        try {
+          var file = await fetchGitHubFile(repo.full_name, treePaths[i], ref);
+          if (file && file.text) files.push(file);
+        } catch (e) {
+          // Missing or binary files are skipped; metadata, issues, and PRs still carry context.
+        }
       }
     }
 
-    var issuesData = await githubJson('/repos/' + repoApiPath(repo.full_name) + '/issues?state=open&sort=updated&per_page=20', true);
-    var issues = Array.isArray(issuesData) ? issuesData.filter(function (item) { return !item.pull_request; }).slice(0, GITHUB_CONTEXT_MAX_ISSUES) : [];
-    var prsData = await githubJson('/repos/' + repoApiPath(repo.full_name) + '/pulls?state=open&sort=updated&per_page=' + GITHUB_CONTEXT_MAX_PRS, true);
-    var prs = Array.isArray(prsData) ? prsData.slice(0, GITHUB_CONTEXT_MAX_PRS) : [];
+    var issues = [];
+    if (state.githubContextIssues) {
+      var issuesData = await githubJson('/repos/' + repoApiPath(repo.full_name) + '/issues?state=open&sort=updated&per_page=20', true);
+      issues = Array.isArray(issuesData) ? issuesData.filter(function (item) { return !item.pull_request; }).slice(0, GITHUB_CONTEXT_MAX_ISSUES) : [];
+    }
+    var prs = [];
+    if (state.githubContextPulls) {
+      var prsData = await githubJson('/repos/' + repoApiPath(repo.full_name) + '/pulls?state=open&sort=updated&per_page=' + GITHUB_CONTEXT_MAX_PRS, true);
+      prs = Array.isArray(prsData) ? prsData.slice(0, GITHUB_CONTEXT_MAX_PRS) : [];
+    }
+
+    var selected = [
+      state.githubContextFiles ? 'repository files' : '',
+      state.githubContextIssues ? 'open issues' : '',
+      state.githubContextPulls ? 'open pull requests' : ''
+    ].filter(Boolean);
 
     var lines = [
       (repo.private ? 'Authenticated GitHub repository: ' : 'Public GitHub repository: ') + repo.full_name,
       'Default branch: ' + ref,
+      'Selected GitHub context: ' + (selected.length ? selected.join(', ') : 'repository metadata only'),
       repo.language ? 'Primary language: ' + repo.language : '',
       repo.description ? 'Description: ' + repo.description : '',
       repo.html_url ? 'URL: ' + repo.html_url : '',
@@ -8363,20 +8712,22 @@
     ].filter(Boolean);
 
     lines.push('Repository files loaded for bounded remediation context:');
-    if (files.length) {
-      files.forEach(function (file) {
-        lines.push('- ' + file.path + ': ' + file.text);
-      });
+    if (!state.githubContextFiles) {
+      lines.push('- skipped by GitHub context settings.');
+    } else if (files.length) {
+      files.forEach(function (file) { lines.push('- ' + file.path + ': ' + file.text); });
     } else {
       lines.push('- none found in README/security/contributing/license/manifest/workflow candidates.');
     }
 
     lines.push('Recent open GitHub issues:');
-    if (issues.length) issues.forEach(function (issue) { lines.push('- ' + formatGitHubIssue(issue)); });
+    if (!state.githubContextIssues) lines.push('- skipped by GitHub context settings.');
+    else if (issues.length) issues.forEach(function (issue) { lines.push('- ' + formatGitHubIssue(issue)); });
     else lines.push('- none returned by the public issues API.');
 
     lines.push('Recent open GitHub pull requests:');
-    if (prs.length) prs.forEach(function (pr) { lines.push('- ' + formatGitHubIssue(pr)); });
+    if (!state.githubContextPulls) lines.push('- skipped by GitHub context settings.');
+    else if (prs.length) prs.forEach(function (pr) { lines.push('- ' + formatGitHubIssue(pr)); });
     else lines.push('- none returned by the public pull request API.');
 
     return {
@@ -8609,6 +8960,10 @@
   function updateGitHubUI() {
     if (els.includeGitHub) els.includeGitHub.checked = state.includeGitHub;
     if (els.githubRepoInput && els.githubRepoInput.value !== state.githubRepoUrl) els.githubRepoInput.value = state.githubRepoUrl;
+    if (els.githubContextFiles) els.githubContextFiles.checked = state.githubContextFiles;
+    if (els.githubContextIssues) els.githubContextIssues.checked = state.githubContextIssues;
+    if (els.githubContextPulls) els.githubContextPulls.checked = state.githubContextPulls;
+    if (els.githubContextDepsDev) els.githubContextDepsDev.checked = state.includeDepsDev;
     updateGitHubAuthUI();
     updateSettingsSummary();
     if (state.githubContextLoadedAt && state.githubContextText) {
@@ -8659,9 +9014,9 @@
     }
     if (els.githubTokenLabel) els.githubTokenLabel.textContent = 'GitHub ' + githubCredentialLabel(mode);
     if (els.githubTokenInput) els.githubTokenInput.value = '';
+    if (els.githubTokenRow) els.githubTokenRow.hidden = mode !== 'pat';
     if (els.githubOAuthDetails) {
       els.githubOAuthDetails.hidden = mode !== 'oauth';
-      if (mode === 'oauth' && !getGitHubToken('oauth')) els.githubOAuthDetails.open = true;
     }
     if (els.githubOAuthClientId) els.githubOAuthClientId.value = getGitHubOAuthField('clientId');
     if (els.githubOAuthScope) els.githubOAuthScope.value = getGitHubOAuthField('scope');
@@ -8672,11 +9027,12 @@
 
   function updateDepsDevUI() {
     if (els.includeDepsDev) els.includeDepsDev.checked = state.includeDepsDev;
+    if (els.githubContextDepsDev) els.githubContextDepsDev.checked = state.includeDepsDev;
     updateSettingsSummary();
     if (state.depsDevContextLoadedAt && state.depsDevContextText) {
       setDepsDevStatus('deps.dev dependency intelligence ready for ' + state.githubRepoUrl + '. Checked ' + formatTimestamp(state.depsDevContextLoadedAt) + '.', 'ok');
     } else if (state.includeDepsDev && state.githubRepoUrl) {
-      setDepsDevStatus('deps.dev enabled. Use Check dependencies or send a message to fetch GitHub SBOM + deps.dev advisory context.', '');
+      setDepsDevStatus('deps.dev enabled. Dependency Graph SBOM will be assessed automatically when GitHub context is loaded or sent.', '');
     } else if (state.includeDepsDev) {
       setDepsDevStatus('deps.dev enabled. Paste a public GitHub repository URL or owner/repo first.', '');
     } else {
@@ -12540,7 +12896,7 @@
     options = options || {};
     var provider = options.provider || state.provider;
     var token = getToken(provider);
-    if (!token) throw new Error('Save a ' + tokenLabel(provider) + ' in Chat settings before sending.');
+    if (!token) throw new Error('Save a ' + tokenLabel(provider) + ' in Settings before sending.');
     var model = options.model || getModel(provider);
     var history = options.history || apiHistory();
     var system = options.system || buildSystemPrompt(userText);
@@ -13657,13 +14013,14 @@
     if (els.agentStatus && !state.agentRunning) {
       els.agentStatus.textContent = getToken(provider)
         ? 'Beta agents use the saved ' + providerConfig(provider).label + ' credential, selected marketplace inputs, report pack, and optional delivery integrations. Browser schedules run only while this site is open in a tab.'
-        : 'Save a ' + tokenLabel(provider) + ' in Chat settings before running this agent.';
+        : 'Save a ' + tokenLabel(provider) + ' in Settings before running this agent.';
       els.agentStatus.removeAttribute('data-kind');
     }
   }
 
   function updateOAuthUI() {
     var mode = getCredentialMode(state.provider);
+    var cfg = providerConfig(state.provider);
     if (els.credentialModeButtons) {
       Array.prototype.forEach.call(els.credentialModeButtons, function (button) {
         button.setAttribute('aria-pressed', button.getAttribute('data-credential-mode') === mode ? 'true' : 'false');
@@ -13671,14 +14028,26 @@
     }
     if (els.oauthDetails) {
       els.oauthDetails.hidden = mode !== 'oauth';
-      if (mode === 'oauth' && !getToken(state.provider, 'oauth')) els.oauthDetails.open = true;
     }
     if (els.oauthClientId) els.oauthClientId.value = getOAuthField(state.provider, 'clientId');
     if (els.oauthScope) els.oauthScope.value = getOAuthField(state.provider, 'scope');
     if (els.oauthAuthUrl) els.oauthAuthUrl.value = getOAuthField(state.provider, 'authUrl');
     if (els.oauthTokenUrl) els.oauthTokenUrl.value = getOAuthField(state.provider, 'tokenUrl');
+    if (els.oauthTitle) els.oauthTitle.textContent = 'Sign in with ' + cfg.label;
+    if (els.oauthDescription) {
+      els.oauthDescription.textContent = hasOAuthBrowserConfig(state.provider)
+        ? 'A popup will open and save the OAuth bearer locally after authorization.'
+        : 'One-click sign-in is waiting on site-level OAuth setup. You can still paste a bearer above.';
+    }
     if (mode === 'oauth') {
-      setOAuthStatus('Paste an OAuth bearer token above, or configure browser OAuth with PKCE. Redirect URI: ' + oauthRedirectUri(), getToken(state.provider, 'oauth') ? 'ok' : '');
+      var token = getToken(state.provider, 'oauth');
+      if (token) {
+        setOAuthStatus(cfg.label + ' connected. OAuth bearer saved locally: ' + maskToken(token), 'ok');
+      } else if (hasOAuthBrowserConfig(state.provider)) {
+        setOAuthStatus('Click Authorize in browser to connect ' + cfg.label + '. Tokens stay local to this browser.', '');
+      } else {
+        setOAuthStatus('Authorize in browser will turn on once ' + cfg.label + ' OAuth details are published for this site. Paste a bearer token above for now.', '');
+      }
     } else {
       setOAuthStatus('', '');
     }
@@ -14065,7 +14434,7 @@
     var entries = routerSourceEntries();
     if (!els.routerSources) return;
     if (!entries.length) {
-      els.routerSources.innerHTML = '<div class="ai-chatbot-router-empty">No source is selected or loaded yet. Start in Chat settings or the Exposure Board imports.</div>';
+      els.routerSources.innerHTML = '<div class="ai-chatbot-router-empty">No source is selected or loaded yet. Start in Settings or the Exposure Board imports.</div>';
       return;
     }
     els.routerSources.innerHTML = entries.map(function (entry) {
@@ -15186,6 +15555,7 @@
       var addEntry = marketplaceEntryByKey(addChannelButton.getAttribute('data-control-plane-add-channel'));
       if (!addEntry || (addEntry.kind !== 'input' && addEntry.kind !== 'output')) return;
       if (addEntry.kind === 'input') {
+        installMarketplaceContextSource(addEntry.id || addEntry.raw.id);
         var selected = uniqueStrings(currentInputChannelIds().concat([addEntry.id || addEntry.raw.id]), 24);
         setSelectValues(els.agentInputChannels, selected);
         syncSelectedInputChannels();
@@ -17297,8 +17667,8 @@
     }
     if (sourceId === 'deps-dev-advisories') {
       return {
-        detailSelector: '[data-depsdev-details]',
-        focusTarget: els.githubRepoInput
+        detailSelector: '[data-context-details]',
+        focusTarget: els.includeDepsDev || els.githubContextDepsDev || els.githubRepoInput
       };
     }
     if (sourceId === 'gitlab-project-context') {
@@ -17321,25 +17691,25 @@
     }
     if (sourceId === 'snyk-issues-api') {
       return {
-        detailSelector: '[data-saas-context-details]',
+        detailSelector: '[data-marketplace-settings-details]',
         focusTarget: els.snykOrgId || els.snykApiBaseUrl
       };
     }
     if (sourceId === 'confluence-knowledge') {
       return {
-        detailSelector: '[data-saas-context-details]',
+        detailSelector: '[data-marketplace-settings-details]',
         focusTarget: els.confluenceQuery || els.confluenceBaseUrl
       };
     }
     if (sourceId === 'microsoft-defender-xdr-incidents') {
       return {
-        detailSelector: '[data-saas-context-details]',
+        detailSelector: '[data-marketplace-settings-details]',
         focusTarget: els.defenderXdrToken || els.defenderXdrBaseUrl
       };
     }
     if (sourceId === 'microsoft-sentinel-incidents') {
       return {
-        detailSelector: '[data-saas-context-details]',
+        detailSelector: '[data-marketplace-settings-details]',
         focusTarget: els.sentinelWorkspaceName || els.sentinelSubscriptionId || els.sentinelToken
       };
     }
@@ -22412,20 +22782,27 @@
     els.agentRouteHint.textContent = parts.join(' ');
   }
 
+  function updateAgentScheduleFields() {
+    if (!els.agentCadence) return;
+    var cadence = selectedText(els.agentCadence) || 'Manual approval';
+    var scheduled = cadence !== 'Manual approval';
+    if (els.agentNextRunField) els.agentNextRunField.hidden = !scheduled;
+    if (!els.agentNextRun) return;
+    if (scheduled && !els.agentNextRun.value) {
+      els.agentNextRun.value = defaultAgentScheduleValue(cadence);
+    } else if (!scheduled && els.agentNextRun.value) {
+      els.agentNextRun.value = '';
+    }
+  }
+
   function updateAgentTemplateHint() {
     if (!els.agentTemplateHint) return;
-    var template = currentWorkflowTemplate();
     var channels = currentInputChannels();
-    if (!template) {
-      els.agentTemplateHint.textContent = 'Custom workflow pack. Select one or more input channels, choose a report profile, then route the output downstream.';
-      return;
+    var labels = channels.map(function (channel) { return channel.label; }).filter(Boolean);
+    if (!labels.length) {
+      labels = ['current page', 'recipe index'];
     }
-    var parts = [
-      template.label + ': ' + template.description,
-      'Default scope hint: ' + (template.target_hint || 'set a narrow scope'),
-      channels.length ? 'Inputs: ' + channels.map(function (channel) { return channel.label; }).join(', ') + '.' : ''
-    ].filter(Boolean);
-    els.agentTemplateHint.textContent = parts.join(' ');
+    els.agentTemplateHint.textContent = 'Context: ' + labels.slice(0, 3).join(', ') + (labels.length > 3 ? ', +' + String(labels.length - 3) + ' more' : '') + '.';
   }
 
   function updateAgentRoutingHint(config) {
@@ -22499,6 +22876,9 @@
   function syncSelectedInputChannels() {
     var ids = currentInputChannelIds();
     localStorage.setItem(STORE.agentInputChannels, JSON.stringify(ids));
+    optionalContextSourceConfigs().forEach(function (config) {
+      if (ids.indexOf(config.channelId) !== -1) installMarketplaceContextSource(config.channelId);
+    });
     state.includeContext = ids.indexOf('page-context') !== -1;
     state.includeRelated = ids.indexOf('recipe-index') !== -1;
     state.includeGitHub = ids.indexOf('github-repository') !== -1;
@@ -22514,6 +22894,7 @@
     state.includeSarif = ids.indexOf(importedContextChannelId('sarif')) !== -1;
     state.includeScannerExport = ids.indexOf(importedContextChannelId('scanner')) !== -1;
     state.includeSbom = ids.indexOf(importedContextChannelId('sbom')) !== -1;
+    renderMarketplaceContextSources();
     if (els.includeContext) els.includeContext.checked = state.includeContext;
     if (els.includeRelated) els.includeRelated.checked = state.includeRelated;
     if (els.includeGitHub) els.includeGitHub.checked = state.includeGitHub;
@@ -22723,6 +23104,7 @@
   }
 
   function updateAgentMarketplacePreview() {
+    updateAgentScheduleFields();
     var config = agentConfig();
     if (els.agentMarketplacePreview) {
       els.agentMarketplacePreview.textContent = JSON.stringify(marketplacePreviewPayload(config), null, 2);
@@ -23325,7 +23707,7 @@
   async function deliverGitHubIssue(config, output) {
     var parsed = parseGitHubRepository(currentGitHubRepositoryInput());
     if (!parsed) throw new Error('GitHub issue output needs a repository in Settings, for example owner/repo.');
-    if (!getGitHubToken()) throw new Error('GitHub issue output needs a saved GitHub PAT or OAuth token with issues write access.');
+    if (!getGitHubToken()) throw new Error('GitHub issue output needs a saved GitHub PAT or browser login with issues write access.');
     var title = firstMarkdownTitle(output, agentActionTitle((config.actions || [])[0] || {}));
     var body = agentDeliverySummary(config, output);
     var issue = await githubWriteJson('/repos/' + repoApiPath(parsed.fullName) + '/issues', {
@@ -24144,6 +24526,7 @@
       nextRun = defaultAgentScheduleValue('Once at next run');
       if (els.agentNextRun) els.agentNextRun.value = nextRun;
     }
+    updateAgentScheduleFields();
     if (!state.agentActions.length) state.agentActions.push(agentDraftAction());
     state.agentActions = state.agentActions.map(function (action) {
       var provider = action.provider || getAgentProvider();
@@ -24660,57 +25043,46 @@
                       '<button class="ai-chatbot-action" type="button" data-save-token>' + icon('save') + '<span>Save</span></button>' +
                       '<button class="ai-chatbot-action danger" type="button" data-clear-token>Clear</button>' +
                     '</div>' +
-                    '<details class="ai-chatbot-oauth-block" data-oauth-details hidden>' +
-                      '<summary class="ai-chatbot-oauth-heading"><span>Browser OAuth</span><small>Optional PKCE flow; bearer token stays in this browser.</small></summary>' +
+                    '<section class="ai-chatbot-oauth-block ai-chatbot-oauth-simple" data-oauth-details hidden>' +
+                      '<div class="ai-chatbot-oauth-heading">' + icon('key') + '<span>Browser sign-in</span><small>Connect the provider from a popup; the bearer stays in this browser.</small></div>' +
                       '<div class="ai-chatbot-oauth-content">' +
-                        '<div class="ai-chatbot-oauth-grid">' +
-                          '<label class="ai-chatbot-field"><span>Client ID</span><input data-oauth-client-id type="text" autocomplete="off" placeholder="OAuth app client ID"></label>' +
-                          '<label class="ai-chatbot-field"><span>Scope</span><input data-oauth-scope type="text" autocomplete="off" placeholder="Optional scopes"></label>' +
-                          '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Authorization URL</span><input data-oauth-auth-url type="url" autocomplete="off" placeholder="https://provider.example/oauth/authorize"></label>' +
-                          '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Token URL</span><input data-oauth-token-url type="url" autocomplete="off" placeholder="https://provider.example/oauth/token"></label>' +
+                        '<div class="ai-chatbot-oauth-card">' +
+                          icon('shield') +
+                          '<div><strong data-oauth-title>Authorize in browser</strong><span data-oauth-description>Use the provider sign-in window. No OAuth app fields are required here.</span></div>' +
+                          '<button class="ai-chatbot-action" type="button" data-start-oauth>' + icon('play') + '<span>Authorize in browser</span></button>' +
                         '</div>' +
-                        '<div class="ai-chatbot-actions-row">' +
-                          '<div class="ai-chatbot-status" data-oauth-status></div>' +
-                          '<div class="ai-chatbot-inline-actions">' +
-                            '<button class="ai-chatbot-action secondary" type="button" data-save-oauth-config>Save OAuth config</button>' +
-                            '<button class="ai-chatbot-action" type="button" data-start-oauth>Authorize in browser</button>' +
-                          '</div>' +
+                        '<input data-oauth-client-id type="hidden">' +
+                        '<input data-oauth-scope type="hidden">' +
+                        '<input data-oauth-auth-url type="hidden">' +
+                        '<input data-oauth-token-url type="hidden">' +
+                        '<button class="ai-chatbot-action secondary" type="button" data-save-oauth-config hidden>Save OAuth config</button>' +
+                        '<div class="ai-chatbot-status" data-oauth-status></div>' +
                         '</div>' +
-                      '</div>' +
-                    '</details>' +
+                    '</section>' +
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-context-details>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('database') + '<span>Context sources</span><small>Toggle exactly what gets sent with prompts.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('database') + '<span>Context sources</span><small>Core prompt context; add more from Marketplace.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-context-row">' +
                       '<label class="ai-chatbot-check"><input data-context type="checkbox"><span>Page context</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-related type="checkbox"><span>Recipe index</span></label>' +
+                      '<label class="ai-chatbot-check"><input data-related type="checkbox"><span>Recipes</span></label>' +
                       '<label class="ai-chatbot-check"><input data-github-context type="checkbox"><span>GitHub repository</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-github-code-scanning-context type="checkbox"><span>GitHub code scanning</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-gitlab-project-context type="checkbox"><span>GitLab project</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-gitlab-findings-context type="checkbox"><span>GitLab findings</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-azure-devops-repository-context type="checkbox"><span>Azure DevOps repo</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-depsdev-context type="checkbox"><span>deps.dev CVEs</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-snyk-context type="checkbox"><span>Snyk issues</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-confluence-context type="checkbox"><span>Confluence runbooks</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-defender-xdr-context type="checkbox"><span>Defender XDR incidents</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-sentinel-context type="checkbox"><span>Sentinel incidents</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-sarif-context type="checkbox"><span>SARIF upload</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-scanner-export-context type="checkbox"><span>Scanner exports</span></label>' +
-                      '<label class="ai-chatbot-check"><input data-sbom-context type="checkbox"><span>SBOM upload</span></label>' +
+                      '<label class="ai-chatbot-check"><input data-depsdev-context type="checkbox"><span>deps.dev</span></label>' +
                     '</div>' +
+                    '<div class="ai-chatbot-context-marketplace-note" data-marketplace-context-note></div>' +
+                    '<div class="ai-chatbot-context-row ai-chatbot-context-row-marketplace" data-marketplace-context-sources></div>' +
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-github-block" data-github-details>' +
                   '<summary class="ai-chatbot-github-heading">' + icon('package') + '<span>GitHub repository context</span><small>Public metadata needs no auth; private repos and write actions need GitHub auth.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
-                    '<div class="ai-chatbot-capability-list">' +
-                      '<span>README, SECURITY, CONTRIBUTING, manifests <em>public: no auth / private: token</em></span>' +
-                      '<span>Open issues and pull requests <em>public: no auth / private or higher limits: token</em></span>' +
-                      '<span>Code scanning alerts and rule clusters <em>token with Code scanning alerts read permission or security_events scope</em></span>' +
-                      '<span>Dependency Graph SBOM <em>repo must expose graph; private requires token</em></span>' +
-                      '<span>Create GitHub issue from agent output <em>token with issue write access</em></span>' +
+                    '<div class="ai-chatbot-context-marketplace-note">Choose the GitHub context slices that can be sent with chat or agent runs.</div>' +
+                    '<div class="ai-chatbot-context-row">' +
+                      '<label class="ai-chatbot-check"><input data-github-context-files type="checkbox"><span>Repo files</span></label>' +
+                      '<label class="ai-chatbot-check"><input data-github-context-issues type="checkbox"><span>Open issues</span></label>' +
+                      '<label class="ai-chatbot-check"><input data-github-context-pulls type="checkbox"><span>Open PRs</span></label>' +
+                      '<label class="ai-chatbot-check"><input data-github-context-depsdev type="checkbox"><span>Dependency graph</span></label>' +
                     '</div>' +
                     '<div class="ai-chatbot-token-row">' +
                       '<label class="ai-chatbot-field"><span>Repository</span><input data-github-repo-url type="text" autocomplete="off" placeholder="https://github.com/owner/repo or owner/repo"></label>' +
@@ -24719,73 +25091,42 @@
                     '</div>' +
                     '<div class="ai-chatbot-credential-row" role="group" aria-label="GitHub credential type">' +
                       '<button class="ai-chatbot-mode-button" type="button" data-github-auth-mode="pat" aria-pressed="true">PAT</button>' +
-                      '<button class="ai-chatbot-mode-button" type="button" data-github-auth-mode="oauth" aria-pressed="false">OAuth token</button>' +
+                      '<button class="ai-chatbot-mode-button" type="button" data-github-auth-mode="oauth" aria-pressed="false">Browser login</button>' +
                     '</div>' +
-                    '<div class="ai-chatbot-token-row">' +
+                    '<div class="ai-chatbot-token-row" data-github-token-row>' +
                       '<label class="ai-chatbot-field"><span data-github-token-label>GitHub PAT</span><input data-github-token type="password" autocomplete="off" placeholder="Stored in this browser"></label>' +
                       '<button class="ai-chatbot-action" type="button" data-save-github-token>' + icon('save') + '<span>Save</span></button>' +
                       '<button class="ai-chatbot-action danger" type="button" data-clear-github-token>Clear</button>' +
                     '</div>' +
-                    '<details class="ai-chatbot-oauth-block" data-github-oauth-details hidden>' +
-                      '<summary class="ai-chatbot-oauth-heading"><span>GitHub browser OAuth</span><small>PKCE where supported; paste an OAuth token if your app requires a server exchange.</small></summary>' +
+                    '<section class="ai-chatbot-oauth-block ai-chatbot-oauth-simple" data-github-oauth-details hidden>' +
+                      '<div class="ai-chatbot-oauth-heading">' + icon('key') + '<span>GitHub browser sign-in</span><small>Connect GitHub from a popup; tokens stay in this browser.</small></div>' +
                       '<div class="ai-chatbot-oauth-content">' +
-                        '<div class="ai-chatbot-oauth-grid">' +
-                          '<label class="ai-chatbot-field"><span>Client ID</span><input data-github-oauth-client-id type="text" autocomplete="off" placeholder="GitHub OAuth app client ID"></label>' +
-                          '<label class="ai-chatbot-field"><span>Scope</span><input data-github-oauth-scope type="text" autocomplete="off" placeholder="repo read:org workflow"></label>' +
-                          '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Authorization URL</span><input data-github-oauth-auth-url type="url" autocomplete="off"></label>' +
-                          '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Token URL</span><input data-github-oauth-token-url type="url" autocomplete="off"></label>' +
-                        '</div>' +
-                        '<div class="ai-chatbot-actions-row">' +
-                          '<div class="ai-chatbot-status">GitHub credentials stay in localStorage and are sent only with GitHub API requests from this browser.</div>' +
-                          '<div class="ai-chatbot-inline-actions">' +
-                            '<button class="ai-chatbot-action secondary" type="button" data-save-github-oauth-config>Save OAuth config</button>' +
-                            '<button class="ai-chatbot-action" type="button" data-start-github-oauth>Login via browser</button>' +
+                        '<div class="ai-chatbot-oauth-card">' +
+                          icon('shield') +
+                          '<div><strong>Authorize GitHub</strong><span>GitHub asks for repository permissions, then this app stores the browser token locally.</span></div>' +
+                          '<div class="ai-chatbot-oauth-actions">' +
+                            '<button class="ai-chatbot-action" type="button" data-start-github-oauth>' + icon('play') + '<span>Authorize</span></button>' +
+                            '<button class="ai-chatbot-action secondary" type="button" data-clear-github-oauth-token>Clear login</button>' +
                           '</div>' +
                         '</div>' +
+                        '<input data-github-oauth-client-id type="hidden">' +
+                        '<input data-github-oauth-scope type="hidden">' +
+                        '<input data-github-oauth-auth-url type="hidden">' +
+                        '<input data-github-oauth-token-url type="hidden">' +
+                        '<button class="ai-chatbot-action secondary" type="button" data-save-github-oauth-config hidden>Save OAuth config</button>' +
+                        '<div class="ai-chatbot-status">GitHub credentials stay in localStorage and are sent only with GitHub API requests from this browser.</div>' +
                       '</div>' +
-                    '</details>' +
+                    '</section>' +
                     '<div class="ai-chatbot-actions-row">' +
                       '<div class="ai-chatbot-status" data-github-status></div>' +
                     '</div>' +
-                    '<div class="ai-chatbot-settings-block">' +
-                      '<div class="ai-chatbot-github-heading"><span>GitHub code scanning alerts</span><small>Load a bounded repository alert sample for AppSec queueing, report shaping, and remediation planning.</small></div>' +
-                      '<div class="ai-chatbot-agent-grid">' +
-                        '<label class="ai-chatbot-field"><span>State filter</span><input data-github-code-scanning-state type="text" autocomplete="off" placeholder="open, fixed"></label>' +
-                        '<label class="ai-chatbot-field"><span>Severity filter</span><input data-github-code-scanning-severity type="text" autocomplete="off" placeholder="critical, high"></label>' +
-                        '<label class="ai-chatbot-field"><span>Tool name</span><input data-github-code-scanning-tool-name type="text" autocomplete="off" placeholder="Optional. Example: CodeQL"></label>' +
-                        '<label class="ai-chatbot-field"><span>Bounded sample size</span><input data-github-code-scanning-per-page type="number" min="1" max="100" step="1" autocomplete="off" placeholder="50"></label>' +
-                      '</div>' +
-                      '<div class="ai-chatbot-actions-row">' +
-                        '<div class="ai-chatbot-status" data-github-code-scanning-status></div>' +
-                        '<div class="ai-chatbot-inline-actions">' +
-                          '<button class="ai-chatbot-action secondary" type="button" data-save-github-code-scanning-settings>Save</button>' +
-                          '<button class="ai-chatbot-action" type="button" data-load-github-code-scanning-context>Load alerts</button>' +
-                          '<button class="ai-chatbot-action danger" type="button" data-clear-github-code-scanning-context>Clear</button>' +
-                        '</div>' +
-                      '</div>' +
-                    '</div>' +
                   '</div>' +
                 '</details>' +
-                '<details class="ai-chatbot-depsdev-block" data-depsdev-details>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('scan') + '<span>Dependency intelligence</span><small>GitHub Dependency Graph SBOM plus deps.dev advisory checks.</small></summary>' +
+                '<details class="ai-chatbot-settings-block" data-marketplace-settings-details hidden>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('route') + '<span>Installed marketplace settings</span><small>Configure added inputs, context tools, and browser-local credentials.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
-                    '<div class="ai-chatbot-actions-row">' +
-                      '<div class="ai-chatbot-status" data-depsdev-status></div>' +
-                      '<button class="ai-chatbot-action secondary" type="button" data-load-depsdev-context>Check dependencies</button>' +
-                    '</div>' +
-                  '</div>' +
-                '</details>' +
-                '<details class="ai-chatbot-settings-block" data-saas-context-details>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('route') + '<span>SaaS scanner and knowledge APIs</span><small>Direct browser-side intake for customer-approved sources. Tokens stay local.</small></summary>' +
-                  '<div class="ai-chatbot-github-content">' +
-                    '<div class="ai-chatbot-capability-list">' +
-                      '<span>Snyk organization issues <em>REST API intake for high-priority package, code, config, cloud, or custom issues.</em></span>' +
-                      '<span>Confluence Cloud search <em>Runbooks, exception notes, and internal procedures pulled into bounded chat or agent context.</em></span>' +
-                      '<span>Defender XDR incidents <em>Bounded browser-side incident intake for status, severity, and alert-backed remediation context.</em></span>' +
-                      '<span>Microsoft Sentinel incidents <em>Workspace-scoped incident intake for queue shaping, reporting, and downstream remediation routing.</em></span>' +
-                    '</div>' +
                     '<div class="ai-chatbot-agent-grid">' +
-                      '<div class="ai-chatbot-settings-block">' +
+                      '<div class="ai-chatbot-settings-block" data-marketplace-settings-card="snyk-issues-api" hidden>' +
                         '<div class="ai-chatbot-github-heading"><span>Snyk issues</span><small>Pull a bounded first page of organization issues using a BYO API token.</small></div>' +
                         '<label class="ai-chatbot-field"><span>Snyk REST base URL</span><input data-snyk-api-base-url type="url" autocomplete="off" placeholder="https://api.snyk.io/rest"></label>' +
                         '<label class="ai-chatbot-field"><span>Snyk org ID</span><input data-snyk-org-id type="text" autocomplete="off" placeholder="4a18d42f-0706-4ad0-b127-24078731fbed"></label>' +
@@ -24800,7 +25141,7 @@
                           '</div>' +
                         '</div>' +
                       '</div>' +
-                      '<div class="ai-chatbot-settings-block">' +
+                      '<div class="ai-chatbot-settings-block" data-marketplace-settings-card="confluence-knowledge" hidden>' +
                         '<div class="ai-chatbot-github-heading"><span>Confluence runbooks</span><small>Search Confluence Cloud pages with stored email + API token or a query inferred from the active task.</small></div>' +
                         '<label class="ai-chatbot-field"><span>Confluence site URL</span><input data-confluence-base-url type="url" autocomplete="off" placeholder="https://example.atlassian.net"></label>' +
                         '<label class="ai-chatbot-field"><span>Atlassian account email</span><input data-confluence-email type="email" autocomplete="off" placeholder="you@example.com"></label>' +
@@ -24816,7 +25157,7 @@
                           '</div>' +
                         '</div>' +
                       '</div>' +
-                      '<div class="ai-chatbot-settings-block">' +
+                      '<div class="ai-chatbot-settings-block" data-marketplace-settings-card="microsoft-defender-xdr-incidents" hidden>' +
                         '<div class="ai-chatbot-github-heading"><span>Defender XDR incidents</span><small>Load a bounded Microsoft Defender XDR incident sample with a browser-local bearer token.</small></div>' +
                         '<label class="ai-chatbot-field"><span>Incidents endpoint</span><input data-defender-xdr-base-url type="url" autocomplete="off" placeholder="https://api.security.microsoft.com/api/incidents"></label>' +
                         '<label class="ai-chatbot-field"><span>Bearer token</span><input data-defender-xdr-token type="password" autocomplete="off" placeholder="Stored in this browser"></label>' +
@@ -24832,7 +25173,7 @@
                           '</div>' +
                         '</div>' +
                       '</div>' +
-                      '<div class="ai-chatbot-settings-block">' +
+                      '<div class="ai-chatbot-settings-block" data-marketplace-settings-card="microsoft-sentinel-incidents" hidden>' +
                         '<div class="ai-chatbot-github-heading"><span>Microsoft Sentinel incidents</span><small>Load a bounded workspace incident sample with a browser-local bearer token and workspace coordinates.</small></div>' +
                         '<label class="ai-chatbot-field"><span>Management endpoint</span><input data-sentinel-base-url type="url" autocomplete="off" placeholder="https://management.azure.com"></label>' +
                         '<label class="ai-chatbot-field"><span>Bearer token</span><input data-sentinel-token type="password" autocomplete="off" placeholder="Stored in this browser"></label>' +
@@ -25503,24 +25844,15 @@
                     '<div class="ai-chatbot-agent-sidecard-head"><div>' + icon('route') + '<span>Run queue</span></div><small>One or many recipes</small></div>' +
                     '<div class="ai-chatbot-agent-queue" data-agent-action-list></div>' +
                   '</section>' +
-                  '<section class="ai-chatbot-terminal" data-terminal>' +
-                    '<div class="ai-chatbot-terminal-head"><div>' + icon('terminal') + '<span>MiniBox terminal</span></div><button class="ai-chatbot-agent-button secondary" type="button" data-terminal-clear>Clear</button></div>' +
-                    '<pre class="ai-chatbot-terminal-screen" data-terminal-output></pre>' +
-                    '<form class="ai-chatbot-terminal-form" data-terminal-form>' +
-                      '<span class="ai-chatbot-terminal-prompt" data-terminal-prompt>remediator@minibox:~$</span>' +
-                      '<input data-terminal-input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" placeholder="status, evidence, routes, schedule, agent validate">' +
-                      '<button class="ai-chatbot-agent-button ai-chatbot-terminal-run" type="submit" data-terminal-run title="Run command" aria-label="Run terminal command">' + icon('play') + '<span>Run</span></button>' +
-                    '</form>' +
-                  '</section>' +
                   '<section class="ai-chatbot-agent-footer">' +
-                    '<div class="ai-chatbot-status" data-agent-status>Queue precise actions, then preview the run plan. Browser schedules fire only while this site is open.</div>' +
+                    '<div class="ai-chatbot-status" data-agent-status>Validate, run now, or schedule this remediation agent. Browser schedules run while this tab is open.</div>' +
                     '<div class="ai-chatbot-agent-output" data-agent-output hidden></div>' +
-                    '<div class="ai-chatbot-agent-actions">' +
+                    '<div class="ai-chatbot-agent-actions ai-chatbot-agent-run-actions">' +
                       '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-validate>' + icon('shield') + '<span>Validate agent</span></button>' +
                       '<button class="ai-chatbot-agent-button" type="button" data-agent-preview>' + icon('play') + '<span>Run now</span></button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-schedule>Schedule agent</button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-save-case>Save case</button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-deliver>Run output</button>' +
+                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-schedule>' + icon('clock') + '<span>Schedule agent</span></button>' +
+                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-save-case hidden>Save case</button>' +
+                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-deliver hidden>Run output</button>' +
                     '</div>' +
                   '</section>' +
                 '</aside>' +
@@ -25555,6 +25887,8 @@
     els.oauthAuthUrl = shell.querySelector('[data-oauth-auth-url]');
     els.oauthTokenUrl = shell.querySelector('[data-oauth-token-url]');
     els.oauthStatus = shell.querySelector('[data-oauth-status]');
+    els.oauthTitle = shell.querySelector('[data-oauth-title]');
+    els.oauthDescription = shell.querySelector('[data-oauth-description]');
     els.status = shell.querySelector('[data-status]');
     els.messages = shell.querySelector('[data-messages]');
     els.chatQuickActions = shell.querySelector('[data-chat-quick-actions]');
@@ -25564,22 +25898,21 @@
     els.includeContext = shell.querySelector('[data-context]');
     els.includeRelated = shell.querySelector('[data-related]');
     els.includeGitHub = shell.querySelector('[data-github-context]');
-    els.includeGitHubCodeScanning = shell.querySelector('[data-github-code-scanning-context]');
-    els.includeGitLabProject = shell.querySelector('[data-gitlab-project-context]');
-    els.includeGitLabFindings = shell.querySelector('[data-gitlab-findings-context]');
-    els.includeAzureDevOpsRepository = shell.querySelector('[data-azure-devops-repository-context]');
     els.includeDepsDev = shell.querySelector('[data-depsdev-context]');
-    els.includeSnyk = shell.querySelector('[data-snyk-context]');
-    els.includeConfluence = shell.querySelector('[data-confluence-context]');
-    els.includeDefenderXdr = shell.querySelector('[data-defender-xdr-context]');
-    els.includeSentinel = shell.querySelector('[data-sentinel-context]');
-    els.includeSarif = shell.querySelector('[data-sarif-context]');
-    els.includeScannerExport = shell.querySelector('[data-scanner-export-context]');
-    els.includeSbom = shell.querySelector('[data-sbom-context]');
+    els.marketplaceContextNote = shell.querySelector('[data-marketplace-context-note]');
+    els.marketplaceContextSources = shell.querySelector('[data-marketplace-context-sources]');
+    els.marketplaceSettingsDetails = shell.querySelector('[data-marketplace-settings-details]');
+    els.marketplaceSettingsCards = shell.querySelectorAll('[data-marketplace-settings-card]');
+    refreshOptionalContextSourceElements();
     els.githubRepoInput = shell.querySelector('[data-github-repo-url]');
     els.githubStatus = shell.querySelector('[data-github-status]');
+    els.githubContextFiles = shell.querySelector('[data-github-context-files]');
+    els.githubContextIssues = shell.querySelector('[data-github-context-issues]');
+    els.githubContextPulls = shell.querySelector('[data-github-context-pulls]');
+    els.githubContextDepsDev = shell.querySelector('[data-github-context-depsdev]');
     els.githubAuthModeButtons = shell.querySelectorAll('[data-github-auth-mode]');
     els.githubTokenLabel = shell.querySelector('[data-github-token-label]');
+    els.githubTokenRow = shell.querySelector('[data-github-token-row]');
     els.githubTokenInput = shell.querySelector('[data-github-token]');
     els.githubOAuthDetails = shell.querySelector('[data-github-oauth-details]');
     els.githubOAuthClientId = shell.querySelector('[data-github-oauth-client-id]');
@@ -25811,6 +26144,7 @@
     els.agentScope = shell.querySelector('[data-agent-scope]');
     els.agentCadence = shell.querySelector('[data-agent-cadence]');
     els.agentNextRun = shell.querySelector('[data-agent-next-run]');
+    els.agentNextRunField = shell.querySelector('[data-agent-next-run-field]');
     els.agentApproval = shell.querySelector('[data-agent-approval]');
     els.agentContextPack = shell.querySelector('[data-agent-context-pack]');
     els.agentTemplate = shell.querySelector('[data-agent-template]');
@@ -25911,9 +26245,14 @@
 
     cleanupLegacyGitHubAuth();
     updatePanelOffset();
+    renderMarketplaceContextSources();
     els.includeContext.checked = state.includeContext;
     els.includeRelated.checked = state.includeRelated;
     els.includeGitHub.checked = state.includeGitHub;
+    if (els.githubContextFiles) els.githubContextFiles.checked = state.githubContextFiles;
+    if (els.githubContextIssues) els.githubContextIssues.checked = state.githubContextIssues;
+    if (els.githubContextPulls) els.githubContextPulls.checked = state.githubContextPulls;
+    if (els.githubContextDepsDev) els.githubContextDepsDev.checked = state.includeDepsDev;
     if (els.includeGitHubCodeScanning) els.includeGitHubCodeScanning.checked = state.includeGitHubCodeScanning;
     if (els.includeGitLabProject) els.includeGitLabProject.checked = state.includeGitLabProject;
     if (els.includeGitLabFindings) els.includeGitLabFindings.checked = state.includeGitLabFindings;
@@ -27415,6 +27754,36 @@
       });
     });
 
+    [
+      { el: els.githubContextFiles, key: 'githubContextFiles', store: STORE.githubContextFiles },
+      { el: els.githubContextIssues, key: 'githubContextIssues', store: STORE.githubContextIssues },
+      { el: els.githubContextPulls, key: 'githubContextPulls', store: STORE.githubContextPulls }
+    ].forEach(function (item) {
+      if (!item.el) return;
+      item.el.addEventListener('change', function () {
+        state[item.key] = item.el.checked;
+        localStorage.setItem(item.store, String(item.el.checked));
+        if (state.githubContextLoadedAt) {
+          state.githubContextText = '';
+          state.githubContextLoadedAt = '';
+        }
+        updateGitHubUI();
+      });
+    });
+
+    if (els.githubContextDepsDev) {
+      els.githubContextDepsDev.addEventListener('change', function () {
+        state.includeDepsDev = els.githubContextDepsDev.checked;
+        localStorage.setItem(STORE.depsDevContext, String(state.includeDepsDev));
+        if (!state.includeDepsDev) {
+          state.depsDevContextText = '';
+          state.depsDevContextLoadedAt = '';
+        }
+        updateDepsDevUI();
+        syncAgentInputSelectionsFromToggles();
+      });
+    }
+
     shell.querySelector('[data-save-github-token]').addEventListener('click', function () {
       var value = els.githubTokenInput.value.trim();
       if (!value) {
@@ -27435,6 +27804,16 @@
       updateSettingsSummary();
       setGitHubStatus('GitHub credentials cleared from this browser.', '');
     });
+
+    var clearGitHubOAuthToken = shell.querySelector('[data-clear-github-oauth-token]');
+    if (clearGitHubOAuthToken) {
+      clearGitHubOAuthToken.addEventListener('click', function () {
+        localStorage.removeItem(githubTokenKey('oauth'));
+        updateGitHubAuthUI();
+        updateSettingsSummary();
+        setGitHubStatus('GitHub browser login cleared from this browser.', '');
+      });
+    }
 
     shell.querySelector('[data-save-github-oauth-config]').addEventListener('click', function () {
       setGitHubOAuthField('clientId', els.githubOAuthClientId.value);
@@ -27459,19 +27838,13 @@
       state.includeGitHub = true;
       localStorage.setItem(STORE.githubContext, 'true');
       if (els.includeGitHub) els.includeGitHub.checked = true;
-      prepareGitHubContext().catch(function (error) {
+      syncAgentInputSelectionsFromToggles();
+      (async function () {
+        await prepareGitHubContext();
+        if (state.includeDepsDev) await prepareDepsDevContext();
+      })().catch(function (error) {
         var detail = error && error.message ? error.message : 'GitHub context load failed.';
         setGitHubStatus('GitHub context failed to load. Hover for details.', 'error', detail);
-      });
-    });
-
-    shell.querySelector('[data-load-depsdev-context]').addEventListener('click', function () {
-      state.includeDepsDev = true;
-      localStorage.setItem(STORE.depsDevContext, 'true');
-      if (els.includeDepsDev) els.includeDepsDev.checked = true;
-      prepareDepsDevContext().catch(function (error) {
-        var detail = error && error.message ? error.message : 'deps.dev dependency check failed.';
-        setDepsDevStatus('deps.dev dependency check failed. Hover for details.', 'error', detail);
       });
     });
 
@@ -27773,6 +28146,14 @@
       updateAgentMarketplacePreview();
     });
 
+    if (els.marketplaceContextSources) {
+      els.marketplaceContextSources.addEventListener('change', function (event) {
+        var input = event.target && event.target.closest ? event.target.closest('[data-context-source]') : null;
+        if (!input) return;
+        setOptionalContextSourceState(input.getAttribute('data-context-source'), input.checked);
+      });
+    }
+
     els.includeContext.addEventListener('change', function () {
       state.includeContext = els.includeContext.checked;
       localStorage.setItem(STORE.context, String(state.includeContext));
@@ -27940,6 +28321,29 @@
       els.agentRecipeInput.setAttribute('aria-expanded', 'false');
     });
 
+    window.addEventListener('message', function (event) {
+      if (event.origin !== window.location.origin) return;
+      var data = event.data || {};
+      if (data && data.type === 'securityrecipes:github-oauth-complete') {
+        updateGitHubAuthUI();
+        setSettingsOpen(true);
+        setGitHubStatus(data.ok ? 'GitHub browser login saved locally: ' + (data.tokenPreview || maskToken(getGitHubToken('oauth'))) : data.error || 'GitHub browser sign-in did not complete.', data.ok ? 'ok' : 'error');
+        return;
+      }
+      if (!data || data.type !== 'securityrecipes:oauth-complete') return;
+      if (data.provider && PROVIDERS[data.provider]) {
+        state.provider = data.provider;
+        localStorage.setItem(STORE.provider, state.provider);
+      }
+      updateProviderUI();
+      setSettingsOpen(true);
+      if (data.ok) {
+        setOAuthStatus(providerConfig(state.provider).label + ' connected. OAuth bearer saved locally: ' + (data.tokenPreview || maskToken(getToken(state.provider, 'oauth'))), 'ok');
+      } else {
+        setOAuthStatus(data.error || 'OAuth sign-in did not complete.', 'error');
+      }
+    });
+
     window.addEventListener('resize', updatePanelOffset);
     window.addEventListener('scroll', updatePanelOffset, { passive: true });
     enablePersistentSiteNavigation();
@@ -27951,7 +28355,7 @@
         appendTerminalRecord('output', output);
       });
     }
-    els.agentPreview.addEventListener('click', handleAgentPreview);
+    if (els.agentPreview) els.agentPreview.addEventListener('click', handleAgentPreview);
     if (els.agentSaveCase) {
       els.agentSaveCase.addEventListener('click', function () {
         try {
@@ -27968,7 +28372,7 @@
         }
       });
     }
-    els.agentDeliver.addEventListener('click', deliverAgentOutput);
+    if (els.agentDeliver) els.agentDeliver.addEventListener('click', deliverAgentOutput);
 
     if (els.agentSchedule) els.agentSchedule.addEventListener('click', saveScheduleDraft);
 
