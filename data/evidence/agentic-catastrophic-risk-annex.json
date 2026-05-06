@@ -936,7 +936,7 @@
       "board_question": "Can the organization prove that high-impact agent actions stop when approval, identity, policy, or receipt evidence is missing?",
       "buyer_value": "Turns board-level oversight into inspectable runtime evidence rather than a policy PDF.",
       "default_decision": "hold_for_catastrophic_risk_review",
-      "evidence_coverage_score": 100,
+      "evidence_coverage_score": 100.0,
       "evidence_paths": [
         "data/control-plane/workflow-manifests.json",
         "data/policy/mcp-gateway-policy.json",
@@ -974,7 +974,7 @@
       "board_question": "Can the platform stop an agent that loops across tools, ignores deny decisions, or converts one task into a broader action chain?",
       "buyer_value": "Gives platform teams a runtime stop story for autonomous behavior that is technically working but operationally unsafe.",
       "default_decision": "kill_session_on_catastrophic_signal",
-      "evidence_coverage_score": 100,
+      "evidence_coverage_score": 100.0,
       "evidence_paths": [
         "data/policy/mcp-gateway-policy.json",
         "data/evidence/agentic-red-team-drill-pack.json",
@@ -1009,7 +1009,7 @@
       "board_question": "Can the buyer prove an agent cannot pass tokens across MCP servers, request broader audience tokens, or silently inherit user authority?",
       "buyer_value": "Directly addresses the MCP authorization and non-human identity concerns large AI platforms must solve.",
       "default_decision": "deny_unbounded_autonomy",
-      "evidence_coverage_score": 100,
+      "evidence_coverage_score": 100.0,
       "evidence_paths": [
         "data/evidence/mcp-authorization-conformance-pack.json",
         "data/evidence/agent-identity-delegation-ledger.json",
@@ -1044,7 +1044,7 @@
       "board_question": "Can one compromised or confused agent avoid spreading hidden prompts, authority, memory, or tool traces into another agent?",
       "buyer_value": "Extends SecurityRecipes from MCP-safe retrieval into multi-agent safety and governance.",
       "default_decision": "hold_for_catastrophic_risk_review",
-      "evidence_coverage_score": 100,
+      "evidence_coverage_score": 100.0,
       "evidence_paths": [
         "data/evidence/agent-handoff-boundary-pack.json",
         "data/evidence/context-egress-boundary-pack.json",
@@ -1079,7 +1079,7 @@
       "board_question": "Can an agent change dependencies, base images, build caches, release assets, or generated code without silently expanding fleet-wide exposure?",
       "buyer_value": "Makes security remediation agents credible for supply-chain work without hiding fleet-level risk.",
       "default_decision": "hold_for_catastrophic_risk_review",
-      "evidence_coverage_score": 100,
+      "evidence_coverage_score": 100.0,
       "evidence_paths": [
         "data/evidence/agent-capability-risk-register.json",
         "data/evidence/agent-skill-supply-chain-pack.json",
@@ -1117,7 +1117,7 @@
       "board_question": "Can approved context, private memory, secrets, PII, or customer evidence be prevented from leaving the tenant, model, telemetry, MCP, or public-corpus boundary?",
       "buyer_value": "Answers the privacy and data-governance concern that blocks enterprise agent adoption.",
       "default_decision": "kill_session_on_catastrophic_signal",
-      "evidence_coverage_score": 100,
+      "evidence_coverage_score": 100.0,
       "evidence_paths": [
         "data/evidence/secure-context-trust-pack.json",
         "data/evidence/context-egress-boundary-pack.json",
@@ -1152,7 +1152,7 @@
       "board_question": "Can agents be kept out of irreversible actions unless a separate human-operated approval and risk acceptance path exists?",
       "buyer_value": "Creates a credible answer for boards, insurers, regulated enterprises, and acquirers reviewing high-consequence autonomy.",
       "default_decision": "deny_unbounded_autonomy",
-      "evidence_coverage_score": 100,
+      "evidence_coverage_score": 100.0,
       "evidence_paths": [
         "data/evidence/agent-capability-risk-register.json",
         "data/policy/mcp-gateway-policy.json",
@@ -1330,7 +1330,7 @@
         ],
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
         "schema_version": "1.0",
-        "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367",
+        "sha256": "5497501fefe0800fed1671535b5f70fe6ec78e81d90e1c87fd58d1707b35df36",
         "status": "ready",
         "summary": {
           "key": "authorization_summary",
@@ -1341,6 +1341,7 @@
               "deny_until_redesigned": 1,
               "hold_for_authorization_evidence": 1
             },
+            "client_metadata_evidence_required_count": 16,
             "connector_count": 16,
             "failure_count": 0,
             "metadata_evidence_required_count": 16,
@@ -1348,6 +1349,7 @@
               "approve_public_context_no_auth": 1,
               "approve_with_gateway_attestation": 15
             },
+            "step_up_connector_count": 1,
             "workflow_count": 8
           }
         },
@@ -1362,7 +1364,7 @@
         ],
         "path": "data/evidence/agent-identity-delegation-ledger.json",
         "schema_version": "1.0",
-        "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42",
+        "sha256": "2cd197d660a40486bd1fd5f0d26bc6a76d0fb6a91a023805494135235c826d4b",
         "status": "ready",
         "summary": {
           "key": "identity_summary",
@@ -1416,7 +1418,7 @@
         ],
         "path": "data/evidence/agent-capability-risk-register.json",
         "schema_version": "1.0",
-        "sha256": "53c25f92d26a7d3559499e24a97ab2ed4bfa8c541adfec3da3abeab404684d26",
+        "sha256": "badc69340a0f45d548da7e512f4a1931c24d003fc94da60a6bc0df0f604c48b3",
         "status": "ready",
         "summary": {
           "key": "capability_risk_summary",
@@ -1489,7 +1491,7 @@
         ],
         "path": "data/evidence/agentic-readiness-scorecard.json",
         "schema_version": "1.0",
-        "sha256": "d294962e993b2b801db27f554ce7ec02dbf14eec1172873785ff17c38d33f69c",
+        "sha256": "171a76307cb1c678bbd4e66afa0cc75a98bf833472fc8fc20930c120ee819d0a",
         "status": "ready",
         "summary": {
           "key": "readiness_summary",
@@ -1525,7 +1527,7 @@
         ],
         "path": "data/evidence/agentic-red-team-drill-pack.json",
         "schema_version": "1.0",
-        "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b",
+        "sha256": "54627e38d67b719c1b33f96e3fb76c5f771f8dbbd716a0f3fee7eccb35d0c145",
         "status": "ready",
         "summary": {
           "key": "red_team_summary",
@@ -1564,12 +1566,12 @@
         ],
         "path": "data/evidence/agentic-measurement-probe-pack.json",
         "schema_version": "1.0",
-        "sha256": "77d8ccb3ff88747f0c2020f25c038ce5af3f74164d977a808c79352b925cb01b",
+        "sha256": "ba3844622427e717661e34690d8661c0629a3a817d341bfd9bc78f3104913f7d",
         "status": "ready",
         "summary": {
           "key": "measurement_probe_summary",
           "value": {
-            "average_score": 100,
+            "average_score": 100.0,
             "decision_counts": {
               "measurement_ready": 8
             },
@@ -1621,7 +1623,7 @@
         ],
         "path": "data/evidence/agentic-run-receipt-pack.json",
         "schema_version": "1.0",
-        "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+        "sha256": "024be26473b5d73ecccf22bed371acabbe2e02cd56a6ec152c577556f2f3d39b",
         "status": "ready",
         "summary": {
           "key": "receipt_summary",
@@ -1649,7 +1651,7 @@
         ],
         "path": "data/evidence/secure-context-trust-pack.json",
         "schema_version": "1.0",
-        "sha256": "0dffe5aa6e580ebf4f16ceb4ffbc92f576845552f99942b5c7b2f8d265636085",
+        "sha256": "46dcf0f9afcb194c4b93fd8f911c5d9469927afbf56ed0813f9231a8ce91507d",
         "status": "ready",
         "summary": null,
         "title": "Secure Context Trust Pack"
@@ -1664,7 +1666,7 @@
         ],
         "path": "data/evidence/context-egress-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833",
+        "sha256": "660ce19358255360eb2c33d617a962e1e9b1621c827afe0028e1b24c62dde73d",
         "status": "ready",
         "summary": {
           "key": "egress_boundary_summary",
@@ -1706,7 +1708,7 @@
         ],
         "path": "data/evidence/agent-handoff-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b",
+        "sha256": "a575340a947635bcd6b51a41b2648de38685906587c58f4e8db1c7520fb05ffc",
         "status": "ready",
         "summary": {
           "key": "handoff_boundary_summary",
@@ -1757,7 +1759,7 @@
         ],
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
         "schema_version": "1.0",
-        "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450",
+        "sha256": "117e1c4f7ce7a8b321a492ce1518eff191bc0889222ca5c4947492e734f94a83",
         "status": "ready",
         "summary": {
           "key": "skill_supply_chain_summary",

@@ -7311,7 +7311,6 @@
       localStorage.removeItem(STORE.oauthPending);
       clearOAuthCallbackUrl();
       updateProviderUI();
-      setSettingsOpen(false);
       setStatus(providerConfig(pending.provider).label + ' OAuth bearer saved locally: ' + maskToken(token), 'ok');
     } catch (error) {
       clearOAuthCallbackUrl();
@@ -13036,6 +13035,98 @@
     return rows.join('\n');
   }
 
+  function contextAuditRows() {
+    var selectedInputs = currentInputChannelIds().map(function (id) {
+      var channel = inputChannelById(id);
+      return channel ? channel.label + ' (' + channel.runtime_support + ')' : id;
+    });
+    var evidenceRows = terminalContextText().split('\n').filter(Boolean);
+    var terminalCount = (state.terminalRecords || []).length;
+    var route = currentAgentOutputRoute();
+    var recipe = selectedRecipe();
+    return {
+      provider: providerConfig(getAgentProvider()).label + ' / ' + getModel(getAgentProvider()) + (getToken(getAgentProvider()) ? ' with saved credential' : ' without saved credential'),
+      recipe: recipe ? recipeLabel(recipe) : (collapseText(els.agentRecipeInput && els.agentRecipeInput.value) || 'No recipe selected'),
+      target: collapseText(els.agentScope && els.agentScope.value) || 'No target selected',
+      sourceRows: evidenceRows,
+      selectedInputs: selectedInputs,
+      output: route ? route.label : 'No output route selected',
+      approval: selectedText(els.agentApproval) || 'Security reviewer required',
+      terminal: terminalCount ? String(terminalCount) + ' terminal record(s) available to the chat context window' : 'No terminal transcript yet',
+      gaps: contextAuditGaps(selectedInputs, evidenceRows)
+    };
+  }
+
+  function contextAuditGaps(selectedInputs, evidenceRows) {
+    var gaps = [];
+    if (!getToken(getAgentProvider())) gaps.push('Provider credential is missing, so LLM-backed chat and agent runs cannot call the selected model yet.');
+    if (!collapseText(els.agentScope && els.agentScope.value)) gaps.push('Target scope is empty. Add a repo, package, CVE, service, file path, or case before running remediation.');
+    if (!selectedRecipe() && !collapseText(els.agentRecipeInput && els.agentRecipeInput.value)) gaps.push('No recipe or finding is selected yet.');
+    if (!selectedInputs.length) gaps.push('No marketplace input/tool is selected for the agent planner.');
+    if (!evidenceRows.some(function (row) { return /loaded|imported|on/i.test(row); })) gaps.push('No loaded or imported evidence source is active yet.');
+    return gaps.length ? gaps : ['No obvious browser-local context gaps detected. Review stale source timestamps before live remediation.'];
+  }
+
+  function contextAuditMarkdown(rows, label) {
+    rows = rows || contextAuditRows();
+    return [
+      label || 'Context check',
+      '',
+      '- Model context: ' + rows.provider,
+      '- Recipe: ' + rows.recipe,
+      '- Target: ' + rows.target,
+      '- Output path: ' + rows.output + ' with ' + rows.approval,
+      '- Marketplace context/tools: ' + (rows.selectedInputs.length ? rows.selectedInputs.join(', ') : 'none selected'),
+      '- Terminal transcript: ' + rows.terminal,
+      '- Evidence/source state:',
+      rows.sourceRows.slice(0, 16).map(function (row) { return '  - ' + row; }).join('\n'),
+      '- Gaps or cautions:',
+      rows.gaps.map(function (gap) { return '  - ' + gap; }).join('\n')
+    ].filter(Boolean).join('\n');
+  }
+
+  function terminalEvidenceText() {
+    var rows = contextAuditRows();
+    return [
+      'Evidence and prompt-context sources:',
+      rows.sourceRows.map(function (row) { return '- ' + row; }).join('\n'),
+      '',
+      'Selected marketplace inputs/tools:',
+      rows.selectedInputs.length ? rows.selectedInputs.map(function (item) { return '- ' + item; }).join('\n') : '- none selected',
+      '',
+      'Cautions:',
+      rows.gaps.map(function (gap) { return '- ' + gap; }).join('\n')
+    ].join('\n');
+  }
+
+  function terminalRoutesText() {
+    var current = currentAgentOutputRoute();
+    var rows = outputChannels().slice(0, 14).map(function (route) {
+      return '- ' + route.label + ' [' + route.runtime_support + ']' + (current && current.id === route.id ? ' (selected)' : '');
+    });
+    return [
+      'Selected output route: ' + (current ? current.label : 'none'),
+      'Approval gate: ' + (selectedText(els.agentApproval) || 'Security reviewer required'),
+      '',
+      'Available output integrations:',
+      rows.join('\n')
+    ].join('\n');
+  }
+
+  function terminalScheduleText() {
+    if (!state.agentActions || !state.agentActions.length) {
+      return 'No scheduled agents yet. Configure the planner, choose Hourly/Daily/Weekly or a timestamp, then use Schedule agent.';
+    }
+    return state.agentActions.map(function (action, index) {
+      return [
+        String(index + 1) + '. ' + agentStatusLabel(action) + ' - ' + agentActionTitle(action),
+        '   cadence: ' + (action.cadence || 'Manual approval'),
+        '   next: ' + formatAgentSchedule(action.nextRun || action.scheduledFor, action.cadence),
+        '   route: ' + (action.outputRoute || 'run receipt')
+      ].join('\n');
+    }).join('\n\n');
+  }
+
   function terminalToolsText() {
     var inputs = inputChannels().slice(0, 12).map(function (channel) {
       return '- input: ' + channel.label + ' [' + channel.runtime_support + ']';
@@ -13142,6 +13233,9 @@
       [home + '/queue.txt']: terminalQueueText(),
       [home + '/cases/index.json']: JSON.stringify(cases, null, 2),
       [home + '/evidence/sources.txt']: terminalContextText(),
+      [home + '/evidence/summary.txt']: terminalEvidenceText(),
+      [home + '/schedule.txt']: terminalScheduleText(),
+      [home + '/routes.txt']: terminalRoutesText(),
       [home + '/marketplace/tools.txt']: terminalToolsText(),
       [home + '/tmp/history.txt']: terminalHistoryText()
     };
@@ -13255,18 +13349,22 @@
       'Workbench commands:',
       'status - show provider, workflow, inputs, output, queue, and cases',
       'context - show prompt context and uploaded evidence state',
+      'evidence - summarize loaded evidence, selected tools, and context gaps',
+      'routes - show the selected output route and available delivery integrations',
+      'schedule - show browser-scheduled agent runs and next timestamps',
       'ops - show recent local source, agent, case, and report activity',
       'tools or marketplace - list marketplace input/output add-ons',
       'recipes <query> - search remediation recipes',
       'recipe <query> - select the best matching recipe',
       'run <query>[; <query>] - queue one or many recipe runs',
       'agent queue - show queued browser-agent actions',
+      'agent validate - audit readiness without calling the LLM',
       'agent preview - generate the current reviewed plan',
       'sources refresh - refresh due browser-safe context sources',
       'settings - open the consolidated settings drawer',
       'search <query> - open Search with a query',
       '',
-      'Files: README.md, context.json, recipe.txt, queue.txt, cases/index.json, evidence/sources.txt, marketplace/tools.txt, tmp/history.txt'
+      'Files: README.md, context.json, recipe.txt, queue.txt, schedule.txt, routes.txt, cases/index.json, evidence/sources.txt, evidence/summary.txt, marketplace/tools.txt, tmp/history.txt'
     ].join('\n');
   }
 
@@ -13347,6 +13445,12 @@
         output = terminalStatusText();
       } else if (lower === 'context') {
         output = terminalContextText();
+      } else if (lower === 'evidence') {
+        output = terminalEvidenceText();
+      } else if (lower === 'routes') {
+        output = terminalRoutesText();
+      } else if (lower === 'schedule') {
+        output = terminalScheduleText();
       } else if (lower === 'history') {
         output = terminalCommandHistoryText();
       } else if (lower === 'ops' || lower === 'activity') {
@@ -13384,6 +13488,8 @@
               return String(index + 1) + '. ' + agentStatusLabel(action) + ' - ' + agentActionTitle(action);
             }).join('\n')
           : 'No queued agent actions.';
+      } else if (lower === 'agent validate') {
+        output = validateAgentPlanner({ terminal: true });
       } else if (lower === 'agent preview') {
         if (options.allowAgentPreview === false) {
           output = 'Agent-issued agent preview was ignored to avoid a recursive browser run.';
@@ -13395,9 +13501,8 @@
         await refreshSourceBatch('due');
         output = 'Source refresh pass completed. Check navigator or context for current source state.';
       } else if (lower === 'settings') {
-        switchTab('chat');
         setSettingsOpen(true);
-        output = 'Settings drawer opened.';
+        output = 'Settings section opened.';
       } else if (/^search(?:\s+|$)/i.test(raw)) {
         if (els.searchInput) {
           els.searchInput.value = args;
@@ -13495,7 +13600,8 @@
     if (els.settingsButton) els.settingsButton.setAttribute('aria-label', state.settingsOpen ? 'Close settings' : 'Open settings');
   }
 
-  function setSettingsOpen(open) {
+  function setSettingsOpen(open, options) {
+    options = options || {};
     state.settingsOpen = !!open;
     localStorage.setItem(STORE.settingsOpen, state.settingsOpen ? 'true' : 'false');
     if (els.settings) els.settings.setAttribute('data-open', state.settingsOpen ? 'true' : 'false');
@@ -13503,6 +13609,11 @@
     if (els.settingsButton) els.settingsButton.setAttribute('aria-expanded', state.settingsOpen ? 'true' : 'false');
     if (els.settingsContent) els.settingsContent.hidden = !state.settingsOpen;
     updateSettingsSummary();
+    if (options.switchPanel !== false && els.panel) {
+      var activePanel = els.panel.getAttribute('data-active-panel') || 'chat';
+      if (state.settingsOpen && activePanel !== 'settings') switchTab('settings');
+      else if (!state.settingsOpen && activePanel === 'settings') switchTab('chat');
+    }
   }
 
   function setDefaultSettingsOpenForProvider() {
@@ -14193,6 +14304,20 @@
       openSourceSetup(value);
       return;
     }
+    if (action === 'select-context-source') {
+      if (!inputChannelById(value)) return;
+      if (els.agentInputChannels) {
+        setSelectValues(els.agentInputChannels, uniqueStrings(currentInputChannelIds().concat([value]), 24));
+        syncSelectedInputChannels();
+      }
+      switchTab('agents');
+      if (els.agentStatus && !state.agentRunning) {
+        var selectedChannel = inputChannelById(value);
+        els.agentStatus.textContent = (selectedChannel ? selectedChannel.label : 'Context source') + ' added to the remediation agent context.';
+        els.agentStatus.setAttribute('data-kind', 'ok');
+      }
+      return;
+    }
     if (action === 'refresh-planner-sources') {
       refreshSelectedPlannerSources().then(function (result) {
         var setupChannel;
@@ -14604,9 +14729,18 @@
   }
 
   function handleSearchAction(event) {
+    var suggestion = event.target.closest('[data-search-suggestion]');
     var sessionSelector = event.target.closest('[data-activity-session-select]');
     var selector = event.target.closest('[data-activity-select]');
     var button = event.target.closest('[data-search-action]');
+    if (suggestion) {
+      if (els.searchInput) {
+        els.searchInput.value = suggestion.getAttribute('data-search-suggestion') || '';
+        els.searchInput.focus();
+        runSearch();
+      }
+      return;
+    }
     if (sessionSelector) {
       state.activitySessionSelectedId = sessionSelector.getAttribute('data-activity-session-select') || '';
       refreshSearchSurface({ preserveStatus: true });
@@ -14893,6 +15027,38 @@
     return rows;
   }
 
+  function marketplaceEntryShortId(entry) {
+    if (entry.kind === 'workflow') return workflowTemplatePublicId(entry.raw);
+    if (entry.kind === 'output') return outputChannelPublicId(entry.raw);
+    if (entry.kind === 'input') return inputChannelPublicId(entry.raw);
+    if (entry.kind === 'report') return reportProfilePublicId(entry.raw);
+    return entry.id || entry.key || '';
+  }
+
+  function marketplaceEntryInitials(entry) {
+    var label = collapseText(entry && entry.label) || collapseText(entry && entry.id) || 'add';
+    var lowered = (label + ' ' + String((entry && entry.id) || '')).toLowerCase();
+    var known = [
+      ['github', 'GH'],
+      ['gitlab', 'GL'],
+      ['bitbucket', 'BB'],
+      ['jira', 'JI'],
+      ['slack', 'SL'],
+      ['teams', 'TM'],
+      ['servicenow', 'SN'],
+      ['linear', 'LI'],
+      ['snyk', 'SY'],
+      ['wiz', 'WZ'],
+      ['splunk', 'SP']
+    ].find(function (pair) {
+      return lowered.indexOf(pair[0]) !== -1;
+    });
+    if (known) return known[1];
+    return label.split(/\s+/).filter(Boolean).slice(0, 2).map(function (part) {
+      return part.charAt(0).toUpperCase();
+    }).join('') || 'AD';
+  }
+
   function renderControlPlaneResults() {
     if (!els.controlPlaneResults) return;
     var query = controlPlaneQuery();
@@ -14913,6 +15079,8 @@
       var rows = controlPlaneEntryRows(entry);
       var readiness = marketplaceEntryReadiness(entry);
       var docsHref = readiness.docsHref || defaultPackDocsHref(entry);
+      var idText = marketplaceEntryShortId(entry);
+      var primaryAction = '';
       var actions = [
         '<button class="ai-chatbot-agent-button secondary" type="button" data-control-plane-copy-item="' + html(entry.key) + '">Copy JSON</button>'
       ];
@@ -14920,62 +15088,65 @@
         actions.push('<a class="ai-chatbot-agent-button secondary" href="' + html(docsHref) + '" target="_blank" rel="noopener noreferrer">Open docs</a>');
       }
       if (entry.kind === 'workflow') {
+        primaryAction = '<button class="ai-chatbot-agent-button" type="button" data-control-plane-apply-template="' + html(entry.id) + '">Add</button>';
         actions.push('<button class="ai-chatbot-agent-button secondary" type="button" data-control-plane-apply-template="' + html(entry.id) + '">Apply pack</button>');
         actions.push('<button class="ai-chatbot-agent-button secondary" type="button" data-control-plane-clone-template="' + html(entry.id) + '">Use as base</button>');
       } else if (entry.kind === 'report') {
+        primaryAction = '<button class="ai-chatbot-agent-button" type="button" data-control-plane-apply-report="' + html(entry.id) + '">Add</button>';
         actions.push('<button class="ai-chatbot-agent-button secondary" type="button" data-control-plane-apply-report="' + html(entry.id) + '">Apply to planner</button>');
         actions.push('<button class="ai-chatbot-agent-button secondary" type="button" data-control-plane-clone-report="' + html(entry.id) + '">Use as base</button>');
       } else if (entry.kind === 'input' || entry.kind === 'output') {
+        primaryAction = '<button class="ai-chatbot-agent-button" type="button" data-control-plane-add-channel="' + html(entry.key) + '">Add</button>';
         actions.push('<button class="ai-chatbot-agent-button secondary" type="button" data-control-plane-clone-channel="' + html(entry.key) + '">Use as base</button>');
       }
       return '<article class="ai-chatbot-control-plane-card">' +
         '<header>' +
+          '<span class="ai-chatbot-marketplace-icon">' + html(marketplaceEntryInitials(entry)) + '</span>' +
           '<div>' +
             '<span class="ai-chatbot-control-plane-kind">' + html(entry.kindLabel) + '</span>' +
             '<h3>' + html(entry.label) + '</h3>' +
           '</div>' +
-          '<div class="ai-chatbot-control-plane-badges">' +
-            '<span>' + html(entry.status) + '</span>' +
-            '<span>' + html(entry.runtime) + '</span>' +
-            (entry.category ? '<span>' + html(entry.category) + '</span>' : '') +
+          '<div class="ai-chatbot-marketplace-card-actions">' +
+            primaryAction +
           '</div>' +
         '</header>' +
-        '<p>' + html(entry.description) + '</p>' +
-        '<dl>' +
-          '<div><dt>ID</dt><dd><code>' + html(
-            entry.kind === 'workflow'
-              ? workflowTemplatePublicId(entry.raw)
-              : (entry.kind === 'output'
-                ? outputChannelPublicId(entry.raw)
-                : (entry.kind === 'input'
-                  ? inputChannelPublicId(entry.raw)
-                  : (entry.kind === 'report' ? reportProfilePublicId(entry.raw) : entry.id)))
-          ) + '</code></dd></div>' +
-          rows.map(function (row) {
-            return '<div><dt>' + html(row[0]) + '</dt><dd>' + html(row[1]) + '</dd></div>';
-          }).join('') +
-        '</dl>' +
-        '<div class="ai-chatbot-control-plane-readiness">' +
-          '<div class="ai-chatbot-control-plane-readiness-head">' +
-            '<strong>' + html(readiness.runtimeLabel) + '</strong>' +
-            '<span>' + html(readiness.blockers.length ? 'Read blockers before promoting or delivering this pack.' : 'No catalog-level blocker remains in the current browser model.') + '</span>' +
-          '</div>' +
-          '<div class="ai-chatbot-control-plane-readiness-grid">' +
-            '<div>' +
-              '<h4>Requirements</h4>' +
-              '<ul>' + readiness.requirements.map(function (item) {
-                return '<li>' + html(item) + '</li>';
-              }).join('') + '</ul>' +
-            '</div>' +
-            '<div>' +
-              '<h4>Current blockers</h4>' +
-              '<ul>' + (readiness.blockers.length ? readiness.blockers : ['No catalog-level blocker remains; only operator configuration and reviewer judgment still apply.']).map(function (item) {
-                return '<li>' + html(item) + '</li>';
-              }).join('') + '</ul>' +
-            '</div>' +
-          '</div>' +
+        '<div class="ai-chatbot-control-plane-badges">' +
+          '<span>' + html(entry.status) + '</span>' +
+          '<span>' + html(entry.runtime) + '</span>' +
+          (entry.category ? '<span>' + html(entry.category) + '</span>' : '') +
         '</div>' +
-        '<div class="ai-chatbot-agent-actions">' + actions.join('') + '</div>' +
+        '<p>' + html(entry.description) + '</p>' +
+        '<code class="ai-chatbot-marketplace-short-id">' + html(idText) + '</code>' +
+        '<details class="ai-chatbot-marketplace-more">' +
+          '<summary>Details</summary>' +
+          '<dl>' +
+            '<div><dt>ID</dt><dd><code>' + html(idText) + '</code></dd></div>' +
+            rows.map(function (row) {
+              return '<div><dt>' + html(row[0]) + '</dt><dd>' + html(row[1]) + '</dd></div>';
+            }).join('') +
+          '</dl>' +
+          '<div class="ai-chatbot-control-plane-readiness">' +
+            '<div class="ai-chatbot-control-plane-readiness-head">' +
+              '<strong>' + html(readiness.runtimeLabel) + '</strong>' +
+              '<span>' + html(readiness.blockers.length ? 'Read blockers before promoting or delivering this pack.' : 'No catalog-level blocker remains in the current browser model.') + '</span>' +
+            '</div>' +
+            '<div class="ai-chatbot-control-plane-readiness-grid">' +
+              '<div>' +
+                '<h4>Requirements</h4>' +
+                '<ul>' + readiness.requirements.map(function (item) {
+                  return '<li>' + html(item) + '</li>';
+                }).join('') + '</ul>' +
+              '</div>' +
+              '<div>' +
+                '<h4>Current blockers</h4>' +
+                '<ul>' + (readiness.blockers.length ? readiness.blockers : ['No catalog-level blocker remains; only operator configuration and reviewer judgment still apply.']).map(function (item) {
+                  return '<li>' + html(item) + '</li>';
+                }).join('') + '</ul>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="ai-chatbot-agent-actions">' + actions.join('') + '</div>' +
+        '</details>' +
       '</article>';
     }).join('');
     if (els.controlPlaneStatus) {
@@ -14998,6 +15169,7 @@
   function handleControlPlaneAction(event) {
     var copyTrackButton = event.target.closest('[data-control-plane-copy-track]');
     var copyButton = event.target.closest('[data-control-plane-copy-item]');
+    var addChannelButton = event.target.closest('[data-control-plane-add-channel]');
     if (copyTrackButton) {
       var coverage = strategicTrackCoverageById(copyTrackButton.getAttribute('data-control-plane-copy-track'));
       if (!coverage) return;
@@ -15007,7 +15179,32 @@
         })
         .catch(function () {
           if (els.controlPlaneStatus) els.controlPlaneStatus.textContent = coverage.label + ' track JSON is visible in the app, but clipboard copy was unavailable.';
-        });
+      });
+      return;
+    }
+    if (addChannelButton) {
+      var addEntry = marketplaceEntryByKey(addChannelButton.getAttribute('data-control-plane-add-channel'));
+      if (!addEntry || (addEntry.kind !== 'input' && addEntry.kind !== 'output')) return;
+      if (addEntry.kind === 'input') {
+        var selected = uniqueStrings(currentInputChannelIds().concat([addEntry.id || addEntry.raw.id]), 24);
+        setSelectValues(els.agentInputChannels, selected);
+        syncSelectedInputChannels();
+        switchTab('agents');
+        if (els.agentStatus && !state.agentRunning) {
+          els.agentStatus.textContent = addEntry.label + ' added to the agent context/tools.';
+          els.agentStatus.setAttribute('data-kind', 'ok');
+        }
+      } else {
+        if (els.agentOutputRoute) els.agentOutputRoute.value = addEntry.id || addEntry.raw.id;
+        localStorage.setItem(STORE.agentOutputChannel, els.agentOutputRoute ? els.agentOutputRoute.value : (addEntry.id || addEntry.raw.id));
+        switchTab('agents');
+        updateAgentRouteHint();
+        if (els.agentStatus && !state.agentRunning) {
+          els.agentStatus.textContent = addEntry.label + ' selected as the agent output route.';
+          els.agentStatus.setAttribute('data-kind', 'ok');
+        }
+      }
+      updateAgentMarketplacePreview();
       return;
     }
     if (copyButton) {
@@ -17019,7 +17216,20 @@
       panel.hidden = panel.getAttribute('data-panel') !== panelName;
     });
     if (els.panel) els.panel.setAttribute('data-active-panel', panelName);
-    if (panelName === 'control-plane') renderControlPlane();
+    if (panelName === 'settings' && !state.settingsOpen) {
+      setSettingsOpen(true, { switchPanel: false });
+    } else if (panelName !== 'settings' && state.settingsOpen) {
+      setSettingsOpen(false, { switchPanel: false });
+    }
+    if (panelName === 'chat' && els.messages) {
+      window.setTimeout(function () {
+        els.messages.scrollTop = els.messages.scrollHeight;
+        if (els.prompt) els.prompt.focus();
+      }, 0);
+      updateChatQuickActions();
+    }
+    if (panelName === 'terminal') renderTerminal();
+    else if (panelName === 'control-plane') renderControlPlane();
     else if (panelName === 'router') renderRouter();
     else if (panelName === 'assets') renderAssetBoard();
     else if (panelName === 'exposure') renderExposureBoard();
@@ -17068,27 +17278,8 @@
   }
 
   function renderSearchStats() {
-    var docsValue = state.docsReady ? state.docs.length : '...';
-    var openCases = (state.caseFiles || []).filter(function (record) {
-      return normalizeCaseStatus(record.status) !== 'closed';
-    }).length;
-    var coverage = portfolioCoverageSummary();
-    var sourceGaps = sourceFreshnessItems().filter(function (item) {
-      return item.state !== 'ready';
-    }).length;
     if (!els.searchStats) return;
-    els.searchStats.innerHTML = [
-      { label: 'Ready sources', value: routerSourceEntries().filter(function (entry) { return entry.ready; }).length },
-      { label: 'Source gaps', value: sourceGaps },
-      { label: 'Ready routes', value: routerDestinationEntries().filter(function (entry) { return entry.ready; }).length },
-      { label: 'Exposure queue', value: exposureRecords().length },
-      { label: 'Open cases', value: openCases },
-      { label: 'Portfolios', value: coverage.total_portfolios },
-      { label: 'Marketplace', value: marketplaceEntries().length },
-      { label: 'Docs indexed', value: docsValue }
-    ].map(function (item) {
-      return '<article><strong>' + html(String(item.value)) + '</strong><span>' + html(item.label) + '</span></article>';
-    }).join('');
+    els.searchStats.innerHTML = '';
   }
 
   function sourceSetupConfig(sourceId) {
@@ -18282,37 +18473,97 @@
     });
   }
 
+  function recipeSearchItems(query, docs) {
+    return (docs || docSearchItems(query)).filter(function (item) {
+      return item && item.secondary && item.secondary.action === 'apply-doc-recipe';
+    }).slice(0, 6).map(function (item) {
+      item = Object.assign({}, item);
+      item.kindLabel = 'Recipe';
+      item.primary = item.secondary;
+      item.secondary = item.primary && item.primary.value ? { label: 'Open doc', href: item.primary.value } : null;
+      return item;
+    });
+  }
+
+  function contextSearchItems(query) {
+    var terms = termsFor(query);
+    var selectedIds = currentInputChannelIds();
+    var freshnessById = {};
+    sourceFreshnessItems().forEach(function (item) {
+      freshnessById[item.sourceId] = item;
+    });
+    return inputChannels().map(function (channel) {
+      var runtime = inputChannelRuntimeState(channel.id);
+      var freshness = freshnessById[channel.id];
+      var score = searchTextScore(channel.label, [
+        channel.id,
+        channel.description,
+        channel.category,
+        channel.runtime_support,
+        (channel.auth_modes || []).join(' ')
+      ], query, terms);
+      if (!score) return null;
+      if (runtime.ready) score += 8;
+      if (selectedIds.indexOf(channel.id) !== -1) score += 7;
+      return {
+        group: 'context',
+        score: score,
+        kindLabel: 'Context',
+        title: channel.label,
+        summary: freshness ? freshness.summary : channel.description,
+        state: runtime.ready ? 'ready' : (freshness ? freshness.state : 'needs_config'),
+        stateLabel: runtime.ready ? 'Ready' : (freshness ? freshness.stateLabel : channel.runtime_support),
+        badges: uniqueStrings([
+          channel.category,
+          channel.runtime_support,
+          selectedIds.indexOf(channel.id) !== -1 ? 'selected' : '',
+          runtime.summary && (runtime.summary.file_name || runtime.summary.repository || runtime.summary.project_path)
+        ], 4),
+        primary: {
+          label: selectedIds.indexOf(channel.id) !== -1 ? 'Open agent' : 'Use context',
+          action: selectedIds.indexOf(channel.id) !== -1 ? 'open-tab' : 'select-context-source',
+          value: selectedIds.indexOf(channel.id) !== -1 ? 'agents' : channel.id
+        },
+        secondary: {
+          label: runtime.ready ? 'Settings' : 'Set up',
+          action: 'open-source-settings',
+          value: channel.id
+        }
+      };
+    }).filter(Boolean).sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return String(a.title || '').localeCompare(String(b.title || ''));
+    }).slice(0, 8);
+  }
+
   function searchSectionsForQuery(query, scope) {
     var sections = [];
-    if (scope === 'all' || scope === 'workbench') {
-      var workbench = workbenchSearchItems(query);
-      if (workbench.length) {
-        sections.push({
-          title: 'Workbench',
-          subtitle: 'Local exposures, cases, assets, and service portfolios.',
-          items: workbench
-        });
-      }
+    var docs = docSearchItems(query);
+    var recipes = recipeSearchItems(query, docs);
+    var plainDocs = docs.filter(function (item) {
+      return !(item && item.secondary && item.secondary.action === 'apply-doc-recipe');
+    }).slice(0, 8);
+    var context = contextSearchItems(query);
+    if (recipes.length) {
+      sections.push({
+        title: 'Recipes',
+        subtitle: 'Runnable remediation prompts and recipe docs.',
+        items: recipes
+      });
     }
-    if (scope === 'all' || scope === 'marketplace') {
-      var marketplace = marketplaceSearchItems(query);
-      if (marketplace.length) {
-        sections.push({
-          title: 'Marketplace',
-          subtitle: 'Input channels, routes, report contracts, and workflow packs.',
-          items: marketplace
-        });
-      }
+    if (plainDocs.length) {
+      sections.push({
+        title: 'Docs',
+        subtitle: 'Reference pages, implementation notes, and guidance.',
+        items: plainDocs
+      });
     }
-    if (scope === 'all' || scope === 'docs') {
-      var docs = docSearchItems(query);
-      if (docs.length) {
-        sections.push({
-          title: 'Docs and recipes',
-          subtitle: 'Prompts, CVEs, remediation writeups, and workflow notes.',
-          items: docs
-        });
-      }
+    if (context.length) {
+      sections.push({
+        title: 'Context',
+        subtitle: 'Sources that can be added to the remediation agent.',
+        items: context
+      });
     }
     return sections;
   }
@@ -19362,7 +19613,7 @@
             '</div>' +
             '<div class="ai-chatbot-caseboard-preview-wrap">' +
               '<div class="ai-chatbot-caseboard-preview-meta">' + previewMeta + '</div>' +
-              '<pre class="ai-chatbot-agent-json">' + html(JSON.stringify(activitySessionPayload(selected), null, 2)) + '</pre>' +
+              '<details class="ai-chatbot-json-disclosure"><summary>Session JSON</summary><pre class="ai-chatbot-agent-json">' + html(JSON.stringify(activitySessionPayload(selected), null, 2)) + '</pre></details>' +
               previewActions +
             '</div>' +
           '</div>'
@@ -19528,7 +19779,7 @@
           '</div>' +
           '<div class="ai-chatbot-caseboard-preview-wrap">' +
             '<div class="ai-chatbot-caseboard-preview-meta">' + previewMeta + '</div>' +
-            '<pre class="ai-chatbot-agent-json">' + html(JSON.stringify(activityRecordPreviewPayload(selected), null, 2)) + '</pre>' +
+            '<details class="ai-chatbot-json-disclosure"><summary>Record JSON</summary><pre class="ai-chatbot-agent-json">' + html(JSON.stringify(activityRecordPreviewPayload(selected), null, 2)) + '</pre></details>' +
             previewActions +
           '</div>' +
         '</div>'
@@ -19559,113 +19810,7 @@
   }
 
   function searchHomeSections() {
-    var sections = [];
-    var missionSummary = missionControlSummary();
-    var missionItems = missionControlItems();
-    var sessions = activitySessions();
-    var activitySummary = activityHistorySummary();
-    var activityRecords = activityExplorerRecords();
-    var recommendations = navigatorRecommendationItems();
-    var diagnostics = sourceDiagnosticItems().slice(0, 4);
-    var freshnessItems = sourceFreshnessItems();
-    var freshness = freshnessItems.slice(0, 4);
-    var dueRefreshCount = freshnessItems.filter(function (item) {
-      return item.refreshable && item.state !== 'ready';
-    }).length;
-    var refreshableCount = freshnessItems.filter(function (item) {
-      return item.refreshable;
-    }).length;
-    sections.push({
-      title: 'Mission control',
-      subtitle: missionControlSubtitle(missionSummary),
-      actions: [
-        {
-          label: 'Copy daily brief',
-          action: 'copy-ops-brief',
-          value: ''
-        },
-        {
-          label: 'Download JSON',
-          action: 'download-ops-brief',
-          value: ''
-        },
-        {
-          label: 'Open agents',
-          action: 'open-tab',
-          value: 'agents'
-        }
-      ],
-      items: missionItems
-    });
-    sections.push({
-      kind: 'activity-session-explorer',
-      title: 'Investigation sessions',
-      subtitle: 'Grouped browser-local runs, source pulls, case captures, and handoff exports so one investigation can be reviewed as a single unit.',
-      emptyText: 'No grouped investigation sessions exist yet. Run chat, planner, or handoff flows to start building session packs.',
-      sessions: sessions
-    });
-    sections.push({
-      kind: 'activity-explorer',
-      title: 'Process log and history',
-      subtitle: activityHistorySubtitle(activitySummary) + ' Filter the ledger, inspect one record, and jump back into the linked browser surface from here.',
-      emptyText: 'No browser-local operator history is recorded yet. Refresh a source, run an agent, save a case, or export a report to populate this ledger.',
-      actions: [
-        {
-          label: 'Copy markdown',
-          action: 'copy-activity-log',
-          value: ''
-        },
-        {
-          label: 'Download JSON',
-          action: 'download-activity-log',
-          value: ''
-        },
-        {
-          label: 'Clear history',
-          action: 'clear-activity-log',
-          value: ''
-        }
-      ],
-      items: activityRecords,
-      records: activityRecords
-    });
-    if (recommendations.length) {
-      sections.push({
-        title: 'Recommended next steps',
-        subtitle: 'The browser router is ranking work based on current queue, case, route, and workflow state.',
-        items: recommendations
-      });
-    }
-    if (diagnostics.length) {
-      sections.push({
-        title: 'Source recovery hub',
-        subtitle: 'Failed, missing, or not-yet-loaded sources now expose concrete setup gaps, browser fetch blockers, and retry actions before the next run.',
-        items: diagnostics
-      });
-    }
-    if (freshness.length) {
-      sections.push({
-        title: 'Source freshness watch',
-        subtitle: dueRefreshCount
-          ? (String(dueRefreshCount) + ' browser-safe source' + (dueRefreshCount === 1 ? '' : 's') + ' need a refresh or first load before you trust the next route or report.')
-          : 'Loaded evidence and API snapshots are current. Use the inline refresh path when you want a new browser-local pull.',
-        actions: refreshableCount ? [{
-          label: state.sourceRefreshBatchRunning ? 'Refreshing...' : (dueRefreshCount ? 'Refresh due sources' : 'Refresh live sources'),
-          action: 'refresh-source-batch',
-          value: dueRefreshCount ? 'due' : 'all',
-          disabled: state.sourceRefreshBatchRunning
-        }] : [],
-        items: freshness
-      });
-    }
-    if (!sections.length) {
-      sections.push({
-        title: 'Navigator home',
-        subtitle: 'Search docs, local evidence, cases, assets, and marketplace contracts from one browser-local panel.',
-        items: []
-      });
-    }
-    return sections;
+    return [];
   }
 
   function renderSearchAction(action, emphasis) {
@@ -19677,28 +19822,24 @@
   }
 
   function renderSearchSection(section) {
-    if (section && section.kind === 'activity-explorer') return renderActivityExplorerSection(section);
-    if (section && section.kind === 'activity-session-explorer') return renderActivitySessionSection(section);
     var actions = section && section.actions ? section.actions : [];
     var items = section && section.items ? section.items : [];
     var body = items.length
-      ? '<div class="ai-chatbot-search-grid">' + items.map(function (item) {
-          return '<article class="ai-chatbot-router-card ai-chatbot-search-card">' +
-            '<header>' +
-              '<div><span class="ai-chatbot-control-plane-kind">' + html(item.kindLabel || 'Result') + '</span><h3>' + html(item.title || 'Untitled') + '</h3></div>' +
-              (item.stateLabel ? '<span class="ai-chatbot-router-status" data-state="' + html(item.state || 'ready') + '">' + html(item.stateLabel) + '</span>' : '') +
-            '</header>' +
-            (item.badges && item.badges.length ? '<div class="ai-chatbot-control-plane-badges">' + item.badges.map(function (badge) { return '<span>' + html(badge) + '</span>'; }).join('') + '</div>' : '') +
-            (item.summary ? '<p>' + html(item.summary) + '</p>' : '') +
-            (item.detail ? '<div class="ai-chatbot-search-card-detail">' + html(item.detail) + '</div>' : '') +
-            (item.notes && item.notes.length ? '<ul class="ai-chatbot-search-card-notes">' + item.notes.map(function (note) { return '<li>' + html(note) + '</li>'; }).join('') + '</ul>' : '') +
-            '<div class="ai-chatbot-router-actions">' + [
+      ? '<div class="ai-chatbot-typeahead-list">' + items.map(function (item) {
+          return '<article class="ai-chatbot-typeahead-row">' +
+            '<div class="ai-chatbot-typeahead-main">' +
+              '<span class="ai-chatbot-typeahead-kind">' + html(item.kindLabel || section.title || 'Result') + '</span>' +
+              '<strong>' + html(item.title || 'Untitled') + '</strong>' +
+              (item.summary ? '<p>' + html(item.summary) + '</p>' : '') +
+              (item.badges && item.badges.length ? '<div class="ai-chatbot-control-plane-badges">' + item.badges.slice(0, 3).map(function (badge) { return '<span>' + html(badge) + '</span>'; }).join('') + '</div>' : '') +
+            '</div>' +
+            '<div class="ai-chatbot-typeahead-actions">' + [
               renderSearchAction(item.primary, 'primary'),
               renderSearchAction(item.secondary, 'secondary')
             ].filter(Boolean).join('') + '</div>' +
           '</article>';
         }).join('') + '</div>'
-      : '<div class="ai-chatbot-search-empty">' + html(section.emptyText || 'Load browser-local evidence or marketplace packs to populate this section.') + '</div>';
+      : '';
     return '<section class="ai-chatbot-search-section">' +
       '<div class="ai-chatbot-search-section-head">' +
         '<div class="ai-chatbot-search-section-top">' +
@@ -19710,23 +19851,34 @@
     '</section>';
   }
 
+  function renderSearchStart() {
+    return '<div class="ai-chatbot-typeahead-empty">' +
+      '<strong>Search recipes, docs, and context</strong>' +
+      '<span>Start typing a CVE, package, scanner, repo, or integration name.</span>' +
+      '<div class="ai-chatbot-typeahead-suggestions">' +
+        ['log4j', 'GitHub', 'SARIF', 'Snyk', 'Slack', 'MCP'].map(function (term) {
+          return '<button type="button" data-search-suggestion="' + html(term) + '">' + html(term) + '</button>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }
+
   function renderSearchResults(sections, query, options) {
     var total = searchResultCount(sections);
     options = options || {};
     renderSearchStats();
     if (!els.searchResults) return;
     if (!query) {
-      sections = searchHomeSections();
-      els.searchResults.innerHTML = sections.map(renderSearchSection).join('');
+      els.searchResults.innerHTML = renderSearchStart();
       if (els.searchStatus && !options.preserveStatus) {
         els.searchStatus.textContent = ((selectedSearchScope() === 'all' || selectedSearchScope() === 'docs') && !state.docsReady)
-          ? 'Navigator home. Loading docs index...'
-          : 'Navigator home. Search across the local workbench, marketplace, and docs.';
+          ? 'Loading docs index...'
+          : '';
       }
       return;
     }
     if (!total) {
-      els.searchResults.innerHTML = '<div class="ai-chatbot-search-empty">No matches found across the selected surfaces.</div>';
+      els.searchResults.innerHTML = '<div class="ai-chatbot-typeahead-empty"><strong>No matches</strong><span>Try a CVE, package, scanner, repository, or context source name.</span></div>';
       if (els.searchStatus && !options.preserveStatus) els.searchStatus.textContent = '0 results';
       return;
     }
@@ -19758,7 +19910,7 @@
       return;
     }
     if (els.searchStatus) {
-      els.searchStatus.textContent = needsDocs ? 'Searching workbench, marketplace, and docs...' : 'Searching...';
+      els.searchStatus.textContent = needsDocs ? 'Searching recipes, docs, and context...' : 'Searching...';
     }
     if (needsDocs) await ensureDocsIndex();
     if (!els.searchInput || els.searchInput.value.trim() !== query) return;
@@ -19766,13 +19918,14 @@
   }
 
   function focusTerminalWorkbench() {
-    switchTab('agents');
+    switchTab('terminal');
     window.setTimeout(function () {
-      var terminal = els.terminalInput && els.terminalInput.closest('.ai-chatbot-terminal');
+      var input = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
+      var terminal = input && input.closest('.ai-chatbot-terminal');
       if (terminal && terminal.scrollIntoView) {
         terminal.scrollIntoView({ block: 'center', behavior: 'smooth' });
       }
-      if (els.terminalInput) els.terminalInput.focus();
+      if (input) input.focus();
     }, 0);
   }
 
@@ -19796,6 +19949,9 @@
         els.caseboardSearch.focus();
       } else if (panelName === 'reports' && els.reportSourceId) {
         els.reportSourceId.focus();
+      } else if (panelName === 'terminal') {
+        var terminalInput = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
+        if (terminalInput) terminalInput.focus();
       } else {
         els.prompt.focus();
       }
@@ -22578,6 +22734,56 @@
     renderAgentRoutingExplainability(config);
     renderAgentLaunchReadiness(config);
     renderRouter();
+    updateChatQuickActions();
+  }
+
+  function validateAgentPlanner(options) {
+    options = options || {};
+    var snapshot = plannerReadinessSnapshot(agentConfig());
+    var lines = [
+      snapshot.overall_label + ': ' + snapshot.summary,
+      '',
+      'Checks:',
+      '- Ready: ' + String(snapshot.counts.ready) + ' of ' + String(snapshot.counts.checks),
+      '- Blocked: ' + String(snapshot.counts.blocked),
+      '- Needs setup: ' + String(snapshot.counts.needs_config),
+      '- Template/stale: ' + String(snapshot.counts.template),
+      '',
+      'Readiness items:'
+    ].concat(snapshot.items.map(function (item) {
+      return '- ' + item.label + ': ' + item.state.replace(/_/g, ' ') + ' - ' + item.summary;
+    }));
+    if (snapshot.primary_action) {
+      lines.push('');
+      lines.push('Next action: ' + snapshot.primary_action.label);
+    }
+    if (!options.terminal) {
+      appendTerminalRecord('system', 'agent validation: ' + snapshot.overall_label);
+      if (els.agentStatus && !state.agentRunning) {
+        els.agentStatus.textContent = snapshot.overall_label + '. ' + snapshot.summary;
+        els.agentStatus.setAttribute('data-kind', snapshot.overall_state === 'blocked' ? 'error' : 'ok');
+      }
+    }
+    state.agentLaunchReadiness = snapshot;
+    return lines.join('\n');
+  }
+
+  function updateChatQuickActions() {
+    if (!els.chatQuickActions) return;
+    var runButton = els.chatQuickActions.querySelector('[data-chat-quick="run-recipe"]');
+    if (!runButton) return;
+    var ready = false;
+    try {
+      var snapshot = plannerReadinessSnapshot(agentConfig());
+      ready = ['ready', 'copy_only'].indexOf(snapshot.overall_state) !== -1;
+      runButton.title = ready
+        ? 'Ready to run with the selected recipe, target, context, and output route.'
+        : snapshot.overall_label + ': ' + snapshot.summary;
+    } catch (error) {
+      ready = false;
+      runButton.title = 'Select a model, recipe, target, context/tool, and output route before running.';
+    }
+    runButton.setAttribute('data-ready', ready ? 'true' : 'false');
   }
 
   function formatAgentSchedule(value, cadence) {
@@ -22592,6 +22798,58 @@
     if (!value || value === 'manual start' || value === 'not scheduled') return null;
     var date = new Date(value);
     return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  function agentCadenceIntervalMs(cadence) {
+    var label = collapseText(cadence || '').toLowerCase();
+    if (label === 'hourly' || label.indexOf('hourly') !== -1) return 60 * 60 * 1000;
+    if (label === 'daily' || label.indexOf('daily') !== -1) return 24 * 60 * 60 * 1000;
+    if (label === 'weekly' || label.indexOf('weekly') !== -1) return 7 * 24 * 60 * 60 * 1000;
+    return 0;
+  }
+
+  function localDateTimeInputValue(date) {
+    var value = date instanceof Date ? date : new Date(date || Date.now());
+    if (Number.isNaN(value.getTime())) value = new Date();
+    function pad(number) {
+      return String(number).padStart(2, '0');
+    }
+    return [
+      value.getFullYear(),
+      '-',
+      pad(value.getMonth() + 1),
+      '-',
+      pad(value.getDate()),
+      'T',
+      pad(value.getHours()),
+      ':',
+      pad(value.getMinutes())
+    ].join('');
+  }
+
+  function defaultAgentScheduleValue(cadence) {
+    var label = collapseText(cadence || '').toLowerCase();
+    var date = new Date(Date.now() + 5 * 60 * 1000);
+    if (label.indexOf('hourly') !== -1) date = new Date(Date.now() + 60 * 60 * 1000);
+    else if (label.indexOf('daily') !== -1) {
+      date = new Date();
+      date.setDate(date.getDate() + 1);
+      date.setHours(9, 0, 0, 0);
+    } else if (label.indexOf('weekly') !== -1) {
+      date = new Date();
+      date.setDate(date.getDate() + ((8 - date.getDay()) % 7 || 7));
+      date.setHours(9, 0, 0, 0);
+    }
+    return localDateTimeInputValue(date);
+  }
+
+  function nextRecurringAgentRunValue(action, fallbackIso) {
+    var interval = agentCadenceIntervalMs(action && action.cadence);
+    if (!interval) return '';
+    var base = parseAgentScheduleDate(action.nextRun || action.scheduledFor) || new Date(fallbackIso || Date.now());
+    var next = new Date(base.getTime() + interval);
+    while (next.getTime() <= Date.now()) next = new Date(next.getTime() + interval);
+    return localDateTimeInputValue(next);
   }
 
   function agentScheduleRuntime(action) {
@@ -22691,7 +22949,10 @@
       ].filter(Boolean).join(' | ');
       return '<article class="ai-chatbot-agent-queued">' +
         '<div><span class="ai-chatbot-agent-status-pill" data-status="' + html(action.status || 'queued') + '">' + html(agentStatusLabel(action)) + '</span><strong>' + html(agentActionTitle(action)) + '</strong><small>' + html(bits) + '</small></div>' +
-        '<button class="ai-chatbot-agent-remove" type="button" data-agent-remove-action="' + index + '" aria-label="Remove action">Remove</button>' +
+        '<div class="ai-chatbot-agent-queued-actions">' +
+          '<button class="ai-chatbot-agent-remove" type="button" data-agent-run-action="' + index + '">' + html(action.status === 'scheduled-draft' ? 'Run now' : 'Run') + '</button>' +
+          '<button class="ai-chatbot-agent-remove" type="button" data-agent-remove-action="' + index + '" aria-label="Remove action">Remove</button>' +
+        '</div>' +
       '</article>';
     }).join('');
   }
@@ -23871,23 +24132,38 @@
 
   function saveScheduleDraft() {
     var now = nowIso();
+    var cadence = selectedText(els.agentCadence) || 'Once at next run';
+    var nextRun = els.agentNextRun && els.agentNextRun.value ? els.agentNextRun.value : '';
+    if (!nextRun && cadence !== 'Manual approval') {
+      nextRun = defaultAgentScheduleValue(cadence);
+      if (els.agentNextRun) els.agentNextRun.value = nextRun;
+    }
+    if (!nextRun && cadence === 'Manual approval') {
+      cadence = 'Once at next run';
+      if (els.agentCadence) selectByText(els.agentCadence, cadence);
+      nextRun = defaultAgentScheduleValue('Once at next run');
+      if (els.agentNextRun) els.agentNextRun.value = nextRun;
+    }
     if (!state.agentActions.length) state.agentActions.push(agentDraftAction());
     state.agentActions = state.agentActions.map(function (action) {
       var provider = action.provider || getAgentProvider();
       action.status = 'scheduled-draft';
       action.provider = provider;
       action.model = action.model || (els.agentModel ? collapseText(els.agentModel.value) || getModel(provider) : getModel(provider));
+      action.cadence = cadence;
+      action.nextRun = nextRun;
       action.updatedAt = now;
       action.scheduledAt = now;
-      action.scheduledFor = action.nextRun && action.nextRun !== 'manual start' ? action.nextRun : '';
+      action.scheduledFor = nextRun;
       return action;
     });
     saveAgentActions();
     renderAgentActions();
     if (els.agentStatus) {
-      els.agentStatus.textContent = 'Browser schedule saved for ' + state.agentActions.length + ' action(s). This tab checks due actions while the site is open; closed browsers will not run them.';
+      els.agentStatus.textContent = 'Browser schedule saved for ' + state.agentActions.length + ' action(s), starting ' + formatTimestamp(nextRun) + '. This tab checks due actions while the site is open; closed browsers will not run them.';
       els.agentStatus.setAttribute('data-kind', 'ok');
     }
+    appendTerminalRecord('system', 'scheduled ' + String(state.agentActions.length) + ' agent action(s) for ' + formatTimestamp(nextRun) + ' (' + cadence + ')');
     appendActivityRecord({
       category: 'schedule',
       eventType: 'browser_schedule_saved',
@@ -24029,9 +24305,19 @@
         await executeAgentTerminalCommands(answer);
         var finishedAt = nowIso();
         if (actionIndex >= 0 && state.agentActions[actionIndex]) {
-          state.agentActions[actionIndex].status = 'generated';
-          state.agentActions[actionIndex].lastBrowserRunAt = finishedAt;
-          state.agentActions[actionIndex].updatedAt = finishedAt;
+          var completedAction = state.agentActions[actionIndex];
+          var nextRecurringRun = nextRecurringAgentRunValue(completedAction, finishedAt);
+          completedAction.lastBrowserRunAt = finishedAt;
+          completedAction.updatedAt = finishedAt;
+          if (nextRecurringRun) {
+            completedAction.status = 'scheduled-draft';
+            completedAction.lastRunStatus = 'generated';
+            completedAction.nextRun = nextRecurringRun;
+            completedAction.scheduledFor = nextRecurringRun;
+            appendTerminalRecord('system', 'agent rescheduled: ' + agentActionTitle(completedAction) + ' -> ' + formatTimestamp(nextRecurringRun));
+          } else {
+            completedAction.status = 'generated';
+          }
         } else {
           state.agentActions = (config.actions || state.agentActions).map(function (action) {
             action.status = 'generated';
@@ -24097,6 +24383,86 @@
     var sessionContext = createActivitySession('agent_run', agentRunSessionLabel(config, false));
     await prepareAgentRunContext({ activityContext: sessionContext });
     await runAgentPreview(config, { activityContext: sessionContext });
+  }
+
+  async function runAgentActionNow(index) {
+    if (state.agentRunning) return;
+    var action = state.agentActions && state.agentActions[index];
+    if (!action) return;
+    var config = agentConfigForAction(action);
+    var sessionContext = createActivitySession('agent_run', agentRunSessionLabel(config, true));
+    await prepareAgentRunContext({ activityContext: sessionContext });
+    await runAgentPreview(config, { actionIndex: index, scheduled: action.status === 'scheduled-draft', activityContext: sessionContext });
+  }
+
+  async function handleContextCheckQuickAction() {
+    if (state.sending) return;
+    var rows = contextAuditRows();
+    var localSummary = contextAuditMarkdown(rows, 'Context check summary');
+    var prompt = 'Summarize the following browser-local SecurityRecipes chat context into a concise bullet list for a vulnerability remediation operator. Separate ready context, missing or stale context, and recommended next action.\n\n' + localSummary;
+    var userMessage = {
+      role: 'user',
+      content: 'Context check',
+      createdAt: nowIso()
+    };
+    var assistantMessage = {
+      role: 'assistant',
+      content: getToken(getAgentProvider()) ? '' : localSummary,
+      createdAt: nowIso(),
+      provider: getAgentProvider(),
+      streaming: !!getToken(getAgentProvider())
+    };
+    state.messages.push(userMessage, assistantMessage);
+    saveChatHistoryStorage();
+    renderMessages();
+    appendTerminalRecord('system', 'context check requested');
+    if (!getToken(getAgentProvider())) {
+      setStatus('Context check generated locally. Save a provider credential for LLM summarization.', 'ok');
+      appendActivityRecord({
+        category: 'chat',
+        eventType: 'context_check_local',
+        status: 'ok',
+        title: 'Generated local context check',
+        summary: 'Context sources, marketplace inputs, terminal transcript, and gaps were summarized without calling an LLM.',
+        targetLabel: 'Chat context',
+        badges: ['local summary', String(rows.selectedInputs.length) + ' inputs']
+      });
+      return;
+    }
+    state.sending = true;
+    if (els.send) els.send.disabled = true;
+    setStatus('Summarizing current context with ' + providerConfig(getAgentProvider()).label + '...', '');
+    try {
+      var answer = await sendToProvider(prompt, {
+        provider: getAgentProvider(),
+        model: getModel(getAgentProvider()),
+        history: [],
+        system: 'You summarize remediation context. Use short bullets. Do not invent loaded sources or credentials.'
+      });
+      assistantMessage.streaming = false;
+      assistantMessage.content = answer || localSummary;
+      saveChatHistoryStorage();
+      setStatus('Context check completed', 'ok');
+      appendActivityRecord({
+        category: 'chat',
+        eventType: 'context_check_completed',
+        status: 'ok',
+        title: 'Completed context check',
+        summary: 'LLM summarized the current chat context, selected inputs, evidence, and route readiness.',
+        targetLabel: providerConfig(getAgentProvider()).label,
+        badges: [providerConfig(getAgentProvider()).label, getModel(getAgentProvider())]
+      });
+    } catch (error) {
+      assistantMessage.streaming = false;
+      assistantMessage.error = true;
+      assistantMessage.content = localSummary + '\n\nLLM summary failed: ' + (error && error.message ? error.message : 'Provider request failed.');
+      saveChatHistoryStorage();
+      setStatus('Context check fell back to local summary', 'error');
+    } finally {
+      state.sending = false;
+      if (els.send) els.send.disabled = false;
+      renderMessages();
+    }
   }
 
   async function handleSend(event) {
@@ -24257,17 +24623,29 @@
           '<button class="ai-chatbot-tab" type="button" data-tab="chat" aria-selected="true">' + icon('bot') + '<span>Chat</span></button>' +
           '<button class="ai-chatbot-tab" type="button" data-tab="search" aria-selected="false">' + icon('scan') + '<span>Search</span></button>' +
           '<button class="ai-chatbot-tab" type="button" data-tab="agents" aria-selected="false">' + icon('route') + '<span>Agents</span></button>' +
+          '<button class="ai-chatbot-tab" type="button" data-tab="terminal" aria-selected="false">' + icon('terminal') + '<span>Terminal</span></button>' +
           '<button class="ai-chatbot-tab" type="button" data-tab="marketplace" aria-selected="false">' + icon('package') + '<span>Marketplace</span></button>' +
         '</div>' +
         '<div class="ai-chatbot-panel-body">' +
           '<div class="ai-chatbot-tab-panel" data-panel="chat">' +
+            '<div class="ai-chatbot-messages" data-messages></div>' +
+            '<div class="ai-chatbot-chat-actions" data-chat-quick-actions aria-label="Common remediation actions">' +
+              '<button class="ai-chatbot-chat-action" type="button" data-chat-quick="run-recipe">' + icon('play') + '<span>Run recipe</span></button>' +
+              '<button class="ai-chatbot-chat-action" type="button" data-chat-quick="context">' + icon('database') + '<span>Context check</span></button>' +
+            '</div>' +
+            '<form class="ai-chatbot-composer" data-form>' +
+              '<label class="ai-chatbot-field"><textarea data-prompt placeholder="Ask for a remediation plan, prompt, runbook, or context check"></textarea></label>' +
+              '<button class="ai-chatbot-action" type="submit" data-send>' + icon('send') + '<span>Send</span></button>' +
+            '</form>' +
+          '</div>' +
+          '<div class="ai-chatbot-tab-panel ai-chatbot-settings-panel" data-panel="settings" hidden>' +
             '<div class="ai-chatbot-settings">' +
               '<button class="ai-chatbot-settings-toggle" type="button" data-settings-toggle aria-expanded="false" aria-controls="ai-chatbot-settings-content">' +
                 '<span>Settings</span><strong data-settings-summary></strong>' + icon('chevron') +
               '</button>' +
               '<div id="ai-chatbot-settings-content" class="ai-chatbot-settings-content" data-settings-content hidden>' +
                 '<details class="ai-chatbot-settings-block" data-provider-credential-details>' +
-                  '<summary class="ai-chatbot-github-heading"><span>Model Provider</span><small>Provider, model, and browser-local API/OAuth credential.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('settings') + '<span>Model Provider</span><small>Provider, model, and browser-local API/OAuth credential.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-settings-row">' +
                       '<label class="ai-chatbot-field"><span>Provider</span><select data-provider><option value="openai">OpenAI</option><option value="grok">Grok</option><option value="claude">Claude</option></select></label>' +
@@ -24303,7 +24681,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-context-details>' +
-                  '<summary class="ai-chatbot-github-heading"><span>Context sources</span><small>Toggle exactly what gets sent with prompts.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('database') + '<span>Context sources</span><small>Toggle exactly what gets sent with prompts.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-context-row">' +
                       '<label class="ai-chatbot-check"><input data-context type="checkbox"><span>Page context</span></label>' +
@@ -24325,7 +24703,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-github-block" data-github-details>' +
-                  '<summary class="ai-chatbot-github-heading"><span>GitHub repository context</span><small>Public metadata needs no auth; private repos and write actions need GitHub auth.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('package') + '<span>GitHub repository context</span><small>Public metadata needs no auth; private repos and write actions need GitHub auth.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-capability-list">' +
                       '<span>README, SECURITY, CONTRIBUTING, manifests <em>public: no auth / private: token</em></span>' +
@@ -24389,7 +24767,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-depsdev-block" data-depsdev-details>' +
-                  '<summary class="ai-chatbot-github-heading"><span>Dependency intelligence</span><small>GitHub Dependency Graph SBOM plus deps.dev advisory checks.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('scan') + '<span>Dependency intelligence</span><small>GitHub Dependency Graph SBOM plus deps.dev advisory checks.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-actions-row">' +
                       '<div class="ai-chatbot-status" data-depsdev-status></div>' +
@@ -24398,7 +24776,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-saas-context-details>' +
-                  '<summary class="ai-chatbot-github-heading"><span>SaaS scanner and knowledge APIs</span><small>Direct browser-side intake for customer-approved sources. Tokens stay local.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('route') + '<span>SaaS scanner and knowledge APIs</span><small>Direct browser-side intake for customer-approved sources. Tokens stay local.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-capability-list">' +
                       '<span>Snyk organization issues <em>REST API intake for high-priority package, code, config, cloud, or custom issues.</em></span>' +
@@ -24478,7 +24856,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-imported-context-details>' +
-                  '<summary class="ai-chatbot-github-heading"><span>Imported scan evidence</span><small>Upload local SARIF or SBOM files. The browser stores only a bounded summary until you clear it.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('file') + '<span>Imported scan evidence</span><small>Upload local SARIF or SBOM files. The browser stores only a bounded summary until you clear it.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-capability-list">' +
                       '<span>SARIF 2.1.0 uploads <em>CodeQL, Semgrep, Snyk, Gitleaks, Checkov, and other scanners that export SARIF.</em></span>' +
@@ -24515,7 +24893,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-delivery-settings-details>' +
-                  '<summary class="ai-chatbot-github-heading"><span>Delivery integrations</span><small>Optional routes for live or copyable handoff. Secrets stay in this browser.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('send') + '<span>Delivery integrations</span><small>Optional routes for live or copyable handoff. Secrets stay in this browser.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-capability-list">' +
                       '<span>Collaboration and ticketing <em>Slack, Teams, Google Chat, email, Jira, ServiceNow, Linear, GitHub, GitLab, and Azure DevOps routes.</em></span>' +
@@ -24635,31 +25013,37 @@
                 '</div>' +
               '</div>' +
             '</div>' +
-            '<div class="ai-chatbot-messages" data-messages></div>' +
-            '<div class="ai-chatbot-chat-actions" data-chat-quick-actions aria-label="Common remediation actions">' +
-              '<button class="ai-chatbot-chat-action" type="button" data-chat-quick="run-recipe">' + icon('play') + '<span>Run recipe</span></button>' +
-              '<button class="ai-chatbot-chat-action" type="button" data-chat-quick="context">' + icon('database') + '<span>Context check</span></button>' +
-              '<button class="ai-chatbot-chat-action" type="button" data-chat-quick="terminal">' + icon('terminal') + '<span>Terminal</span></button>' +
-              '<button class="ai-chatbot-chat-action" type="button" data-chat-quick="workbench">' + icon('route') + '<span>Workbench</span></button>' +
-            '</div>' +
-            '<form class="ai-chatbot-composer" data-form>' +
-              '<label class="ai-chatbot-field"><textarea data-prompt placeholder="Ask for a remediation plan, prompt, runbook, or context check"></textarea></label>' +
-              '<button class="ai-chatbot-action" type="submit" data-send>' + icon('send') + '<span>Send</span></button>' +
-            '</form>' +
           '</div>' +
           '<div class="ai-chatbot-tab-panel ai-chatbot-search-panel" data-panel="search" hidden>' +
             '<div class="ai-chatbot-search">' +
-              '<div class="ai-chatbot-control-plane-intro">' +
-                '<div><strong>Security navigator</strong><span>Search local evidence, cases, assets, routes, workflow packs, and SecurityRecipes docs from one browser-local panel.</span></div>' +
-                '<a href="' + html(siteHref('docs/control-plane-marketplace/')) + '" target="_blank" rel="noopener noreferrer">Open docs</a>' +
-              '</div>' +
-              '<div class="ai-chatbot-control-plane-stats" data-search-stats></div>' +
-              '<div class="ai-chatbot-control-plane-filters">' +
-                '<label class="ai-chatbot-field"><span>Search everywhere</span><input data-search-input type="search" autocomplete="off" placeholder="payment-api, Snyk, GitLab, SBOM, route, workflow pack"></label>' +
-                '<label class="ai-chatbot-field"><span>Scope</span><select data-search-scope><option value="all">All surfaces</option><option value="workbench">Workbench only</option><option value="marketplace">Marketplace only</option><option value="docs">Docs only</option></select></label>' +
+              '<div class="ai-chatbot-search-simple-head">' +
+                '<label class="ai-chatbot-field ai-chatbot-search-typeahead-field"><span>Search</span><input data-search-input type="search" autocomplete="off" placeholder="Search recipes, docs, and context"></label>' +
+                '<select data-search-scope hidden><option value="all">Recipes, docs, and context</option><option value="docs">Docs only</option></select>' +
+                '<div class="ai-chatbot-control-plane-stats ai-chatbot-search-stats-compact" data-search-stats hidden></div>' +
               '</div>' +
               '<div class="ai-chatbot-search-results" data-search-results></div>' +
               '<div class="ai-chatbot-status" data-search-status></div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="ai-chatbot-tab-panel ai-chatbot-terminal-panel" data-panel="terminal" hidden>' +
+            '<div class="ai-chatbot-terminal-view">' +
+              '<section class="ai-chatbot-terminal ai-chatbot-terminal-primary" data-terminal>' +
+                '<div class="ai-chatbot-terminal-head"><div>' + icon('terminal') + '<span>MiniBox terminal</span></div><button class="ai-chatbot-agent-button secondary" type="button" data-terminal-clear>Clear</button></div>' +
+                '<pre class="ai-chatbot-terminal-screen" data-terminal-output></pre>' +
+                '<form class="ai-chatbot-terminal-form" data-terminal-form>' +
+                  '<span class="ai-chatbot-terminal-prompt" data-terminal-prompt>remediator@minibox:~$</span>' +
+                  '<input data-terminal-input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" placeholder="status, context, evidence, routes, schedule, agent validate">' +
+                  '<button class="ai-chatbot-agent-button ai-chatbot-terminal-run" type="submit" data-terminal-run title="Run command" aria-label="Run terminal command">' + icon('play') + '<span>Run</span></button>' +
+                '</form>' +
+              '</section>' +
+              '<div class="ai-chatbot-terminal-command-grid" aria-label="Useful MiniBox commands">' +
+                '<button type="button" data-terminal-command="status">status</button>' +
+                '<button type="button" data-terminal-command="context">context</button>' +
+                '<button type="button" data-terminal-command="evidence">evidence</button>' +
+                '<button type="button" data-terminal-command="routes">routes</button>' +
+                '<button type="button" data-terminal-command="schedule">schedule</button>' +
+                '<button type="button" data-terminal-command="agent validate">agent validate</button>' +
+              '</div>' +
             '</div>' +
           '</div>' +
           '<div class="ai-chatbot-tab-panel ai-chatbot-router-panel" data-panel="router" hidden>' +
@@ -24687,14 +25071,14 @@
           '<div class="ai-chatbot-tab-panel ai-chatbot-control-plane-panel" data-panel="control-plane" hidden>' +
             '<div class="ai-chatbot-control-plane">' +
               '<div class="ai-chatbot-control-plane-intro">' +
-                '<div><strong>Marketplace control plane</strong><span>Browse browser-safe input channels, output routes, report contracts, public JSON feeds, published schemas, reusable workflow packs, private local pack labs, and owner-aware routing policies.</span></div>' +
+                '<div><strong>Marketplace</strong><span>Add sources, tools, workflow packs, and output routes to the remediation agent.</span></div>' +
                 '<a href="' + html(siteHref('docs/marketplace-gallery/')) + '" target="_blank" rel="noopener noreferrer">Open gallery</a>' +
               '</div>' +
               '<div class="ai-chatbot-control-plane-stats" data-control-plane-stats></div>' +
               '<div class="ai-chatbot-control-plane-filters">' +
-                '<label class="ai-chatbot-field"><span>Search marketplace</span><input data-control-plane-search type="search" autocomplete="off" placeholder="teams, wiz, run receipt, Splunk, workflow pack"></label>' +
-                '<label class="ai-chatbot-field"><span>Type</span><select data-control-plane-kind><option value="all">All entries</option><option value="input">Input channels</option><option value="output">Output channels</option><option value="report">Report profiles</option><option value="workflow">Workflow packs</option></select></label>' +
-                '<label class="ai-chatbot-field"><span>Runtime</span><select data-control-plane-runtime><option value="all">All runtimes</option><option value="live">live</option><option value="live_or_copy">live_or_copy</option><option value="copy_only">copy_only</option><option value="config_only">config_only</option><option value="planned">planned</option><option value="contract">contract</option></select></label>' +
+                '<label class="ai-chatbot-field"><span>Find an add-on</span><input data-control-plane-search type="search" autocomplete="off" placeholder="GitHub, Slack, Jira, Snyk, SARIF, PR packet"></label>' +
+                '<label class="ai-chatbot-field"><span>Show</span><select data-control-plane-kind><option value="all">Everything</option><option value="input">Sources and tools</option><option value="output">Output routes</option><option value="workflow">Workflow packs</option><option value="report">Report profiles</option></select></label>' +
+                '<select data-control-plane-runtime hidden><option value="all">All runtimes</option><option value="live">live</option><option value="live_or_copy">live_or_copy</option><option value="copy_only">copy_only</option><option value="config_only">config_only</option><option value="planned">planned</option><option value="contract">contract</option></select>' +
               '</div>' +
               '<div class="ai-chatbot-control-plane-coverage" data-control-plane-coverage></div>' +
               '<div class="ai-chatbot-control-plane-radar" data-control-plane-radar></div>' +
@@ -25023,73 +25407,58 @@
           '<div class="ai-chatbot-tab-panel" data-panel="agents" hidden>' +
             '<div class="ai-chatbot-agents">' +
               '<div class="ai-chatbot-agent-hero">' +
-                '<div class="ai-chatbot-agent-hero-copy"><span class="ai-chatbot-beta-tag">Beta</span><strong>Remediation run builder</strong><span>Pick one or many recipes, bind the LLM to approved context, then produce a reviewed packet or route it through a configured integration.</span></div>' +
+                '<div class="ai-chatbot-agent-hero-copy"><strong>Remediation agent</strong><span>Pick a recipe and target. Everything else uses safe defaults until you change it.</span></div>' +
                 '<div class="ai-chatbot-agent-runtime">' +
-                  '<label class="ai-chatbot-field"><span>LLM provider</span><select data-agent-provider><option value="openai">OpenAI</option><option value="grok">Grok</option><option value="claude">Claude</option></select></label>' +
+                  '<label class="ai-chatbot-field"><span>Provider</span><select data-agent-provider><option value="openai">OpenAI</option><option value="grok">Grok</option><option value="claude">Claude</option></select></label>' +
                   '<label class="ai-chatbot-field"><span>Model</span><select data-agent-model></select></label>' +
-                  '<a href="' + html(siteHref('automation/agent-scheduling/')) + '" target="_blank" rel="noopener noreferrer">How this works</a>' +
                 '</div>' +
               '</div>' +
-              '<section class="ai-chatbot-workbench-menu" data-workbench-menu>' +
-                '<button class="ai-chatbot-workbench-menu-toggle ai-chatbot-github-heading" type="button" data-workbench-menu-toggle aria-expanded="false"><span>Workbench submenus</span><small>Open only the deeper surface you need: terminal, cases, assets, exposure, reports, routing, or marketplace packs.</small></button>' +
-                '<div class="ai-chatbot-workbench-menu-grid" data-workbench-menu-content hidden>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="agents">' + icon('route') + '<strong>Planner</strong><span>Recipe, target, context, queue</span></button>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="agents" data-focus-terminal="true">' + icon('terminal') + '<strong>Terminal</strong><span>MiniBox shell for chat and agents</span></button>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="cases">' + icon('file') + '<strong>Cases</strong><span>Saved runs and handoff JSON</span></button>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="assets">' + icon('database') + '<strong>Assets</strong><span>Ownership and criticality context</span></button>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="exposure">' + icon('scan') + '<strong>Exposure</strong><span>Prioritized finding queue</span></button>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="reports">' + icon('file') + '<strong>Reports</strong><span>Reviewer-ready packets</span></button>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="router">' + icon('route') + '<strong>Routing</strong><span>Policy and owner-aware handoff</span></button>' +
-                  '<button class="ai-chatbot-workbench-menu-item" type="button" data-open-panel="control-plane">' + icon('package') + '<strong>Marketplace</strong><span>Add-ons, packs, and schemas</span></button>' +
-                '</div>' +
-              '</section>' +
               '<div class="ai-chatbot-agent-workbench">' +
                 '<div class="ai-chatbot-agent-main">' +
                   '<section class="ai-chatbot-agent-step">' +
-                    '<div class="ai-chatbot-agent-step-title"><span>1</span><div><strong>Recipe and target</strong><small>Start with the evidence or recipe name, then anchor the work to a repo, package, CVE, file path, or service.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-step-title"><span>1</span><div><strong>What should be fixed?</strong><small>Use a recipe, CVE, scanner finding, package, repo, file, or service.</small></div></div>' +
                     '<div class="ai-chatbot-agent-grid">' +
                       '<div class="ai-chatbot-field ai-chatbot-typeahead ai-chatbot-wide-field">' +
                         '<label for="ai-chatbot-agent-recipe"><span>Recipe</span></label>' +
-                        '<input id="ai-chatbot-agent-recipe" data-agent-recipe type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ai-chatbot-agent-recipe-results" placeholder="CVE, scanner finding, prompt, or workflow recipe">' +
+                        '<input id="ai-chatbot-agent-recipe" data-agent-recipe type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ai-chatbot-agent-recipe-results" placeholder="CVE-2024..., log4j, dependency fix, SAST triage">' +
                         '<div id="ai-chatbot-agent-recipe-results" class="ai-chatbot-typeahead-results" data-agent-recipe-results hidden></div>' +
                       '</div>' +
-                      '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Target scope</span><input data-agent-scope type="text" autocomplete="off" placeholder="owner/repo, package, CVE, service, or file path"></label>' +
+                      '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Target</span><input data-agent-scope type="text" autocomplete="off" placeholder="owner/repo, package, service, CVE, or file path"></label>' +
                     '</div>' +
                   '</section>' +
                   '<section class="ai-chatbot-agent-step">' +
-                    '<div class="ai-chatbot-agent-step-title"><span>2</span><div><strong>Remediation mode</strong><small>Choose the shape of work so the agent returns the right checks, stop conditions, and handoff.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-step-title"><span>2</span><div><strong>Mode</strong><small>Pick the closest remediation shape.</small></div></div>' +
                     '<select data-agent-workflow hidden><option value="dependency">Vulnerable dependency remediation</option><option value="sast">SAST finding triage</option><option value="sensitive-data">Sensitive data remediation</option><option value="mcp-guardrail">MCP connector guardrail review</option><option value="base-image">Base image update</option><option value="recipe-runbook">Apply SecurityRecipes runbook</option></select>' +
                     '<div class="ai-chatbot-agent-cards" role="group" aria-label="Agent action type">' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="dependency" data-accent="teal" aria-pressed="true"><span class="ai-chatbot-agent-card-icon">' + icon('package') + '</span><h3>Dependency fix</h3><p>Bump the narrowest package set and hold for review.</p></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="sast" data-accent="amber" aria-pressed="false"><span class="ai-chatbot-agent-card-icon">' + icon('scan') + '</span><h3>SAST triage</h3><p>Group findings, remove false positives, and draft fixes.</p></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="sensitive-data" data-accent="rose" aria-pressed="false"><span class="ai-chatbot-agent-card-icon">' + icon('key') + '</span><h3>Sensitive data</h3><p>Quarantine exposure, route rotation, and preserve evidence.</p></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="mcp-guardrail" data-accent="violet" aria-pressed="false"><span class="ai-chatbot-agent-card-icon">' + icon('shield') + '</span><h3>MCP guardrail</h3><p>Check connector egress, auth, and runtime policy.</p></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="base-image" data-accent="slate" aria-pressed="false"><span class="ai-chatbot-agent-card-icon">' + icon('cube') + '</span><h3>Base image</h3><p>Pick a patched base image and prove compatibility.</p></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="recipe-runbook" data-accent="blue" aria-pressed="false"><span class="ai-chatbot-agent-card-icon">' + icon('file') + '</span><h3>Apply recipe</h3><p>Convert a recipe into commands, checks, and rollback.</p></button>' +
+                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="dependency" data-accent="teal" aria-pressed="true">' + icon('package') + '<h3>Dependency</h3></button>' +
+                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="sast" data-accent="amber" aria-pressed="false">' + icon('scan') + '<h3>SAST</h3></button>' +
+                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="sensitive-data" data-accent="rose" aria-pressed="false">' + icon('key') + '<h3>Secrets</h3></button>' +
+                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="mcp-guardrail" data-accent="violet" aria-pressed="false">' + icon('shield') + '<h3>MCP</h3></button>' +
+                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="base-image" data-accent="slate" aria-pressed="false">' + icon('cube') + '<h3>Image</h3></button>' +
+                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="recipe-runbook" data-accent="blue" aria-pressed="false">' + icon('file') + '<h3>Recipe</h3></button>' +
                     '</div>' +
                   '</section>' +
-                  '<section class="ai-chatbot-agent-step">' +
-                    '<div class="ai-chatbot-agent-step-title"><span>3</span><div><strong>Context, report, and handoff</strong><small>Select marketplace inputs, the report contract, approval gate, and route for the reviewed output.</small></div></div>' +
-                    '<div class="ai-chatbot-agent-grid">' +
-                      '<label class="ai-chatbot-field"><span>Workflow pack</span><select data-agent-template></select></label>' +
-                      '<label class="ai-chatbot-field"><span>Report profile</span><select data-agent-report-profile></select></label>' +
-                      '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Marketplace inputs and tools</span><select data-agent-input-channels multiple></select></label>' +
-                      '<label class="ai-chatbot-field"><span>Output route</span><select data-agent-output-route></select></label>' +
-                      '<label class="ai-chatbot-field"><span>Approval gate</span><select data-agent-approval><option>Security reviewer required</option><option>Code owner required</option><option>Ticket required</option><option>Two-person review</option></select></label>' +
-                      '<label class="ai-chatbot-field"><span>Cadence</span><select data-agent-cadence><option>Manual approval</option><option>Once at next run</option><option>Daily review queue</option><option>Weekly sweep</option><option>On new finding</option></select></label>' +
-                      '<label class="ai-chatbot-field"><span>Next run</span><input data-agent-next-run type="datetime-local"></label>' +
-                      '<label class="ai-chatbot-field"><span>Context pack</span><select data-agent-context-pack><option>Secure context trust pack</option><option>Agentic assurance pack</option><option>MCP gateway policy</option><option>Runtime controls</option></select></label>' +
+                  '<section class="ai-chatbot-agent-step" data-agent-deliver-step>' +
+                    '<div class="ai-chatbot-agent-step-title"><span>3</span><div><strong>Deliver</strong><small>Pick the output and decide whether this runs now or later.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-grid ai-chatbot-agent-deliver-grid">' +
+                      '<label class="ai-chatbot-field" hidden><span>Workflow pack</span><select data-agent-template></select></label>' +
+                      '<label class="ai-chatbot-field" hidden><span>Report profile</span><select data-agent-report-profile></select></label>' +
+                      '<label class="ai-chatbot-field ai-chatbot-wide-field" hidden><span>Marketplace inputs and tools</span><select data-agent-input-channels multiple></select></label>' +
+                      '<label class="ai-chatbot-field"><span>Send to</span><select data-agent-output-route></select></label>' +
+                      '<label class="ai-chatbot-field"><span>When</span><select data-agent-cadence><option>Manual approval</option><option>Once at next run</option><option>Hourly</option><option>Daily</option><option>Weekly</option></select></label>' +
+                      '<label class="ai-chatbot-field" data-agent-next-run-field hidden><span>Start at</span><input data-agent-next-run type="datetime-local"></label>' +
+                      '<label class="ai-chatbot-field" hidden><span>Approval gate</span><select data-agent-approval><option>Security reviewer required</option><option>Code owner required</option><option>Ticket required</option><option>Two-person review</option></select></label>' +
+                      '<label class="ai-chatbot-field" hidden><span>Context pack</span><select data-agent-context-pack><option>Secure context trust pack</option><option>Agentic assurance pack</option><option>MCP gateway policy</option><option>Runtime controls</option></select></label>' +
                     '</div>' +
-                    '<div class="ai-chatbot-agent-hint" data-agent-route-hint></div>' +
-                    '<div class="ai-chatbot-agent-hint" data-agent-template-hint></div>' +
-                    '<div class="ai-chatbot-agent-hint" data-agent-routing-hint></div>' +
+                    '<div class="ai-chatbot-agent-hint ai-chatbot-agent-hint-inline ai-chatbot-agent-context-line">' + icon('package') + '<span data-agent-template-hint></span><button class="ai-chatbot-agent-button secondary" type="button" data-open-panel="control-plane">Add context</button></div>' +
+                    '<div class="ai-chatbot-agent-hint" data-agent-route-hint hidden></div>' +
+                    '<div class="ai-chatbot-agent-hint" data-agent-routing-hint hidden></div>' +
                     '<div class="ai-chatbot-agent-actions ai-chatbot-agent-primary-actions">' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-apply-routing disabled>' + icon('route') + '<span>Apply routing recommendation</span></button>' +
                       '<button class="ai-chatbot-agent-button" type="button" data-agent-add-action>' + icon('plus') + '<span>Add action to queue</span></button>' +
                       '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-clear-actions>' + icon('trash') + '<span>Clear queue</span></button>' +
+                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-apply-routing disabled hidden>' + icon('route') + '<span>Apply routing recommendation</span></button>' +
                     '</div>' +
-                    '<div class="ai-chatbot-agent-hint ai-chatbot-agent-hint-inline">' + icon('settings') + '<span>Delivery credentials, source tokens, uploads, and marketplace add-ons live in one settings drawer.</span><button class="ai-chatbot-agent-button secondary" type="button" data-open-delivery-settings>Open settings</button></div>' +
-                    '<details class="ai-chatbot-agent-integrations">' +
+                    '<details class="ai-chatbot-agent-integrations" hidden>' +
                       '<summary class="ai-chatbot-github-heading"><span>Launch readiness</span><small>Audit credential, target, source, workflow-pack, report, and route blockers before you run.</small></summary>' +
                       '<div class="ai-chatbot-github-content ai-chatbot-agent-readiness-wrap">' +
                         '<div class="ai-chatbot-agent-readiness-summary" data-agent-readiness-summary></div>' +
@@ -25103,7 +25472,7 @@
                         '</div>' +
                       '</div>' +
                     '</details>' +
-                    '<details class="ai-chatbot-agent-integrations">' +
+                    '<details class="ai-chatbot-agent-integrations" hidden>' +
                       '<summary class="ai-chatbot-github-heading"><span>Routing explainability</span><small>See policy matches, defaults, and planner drift.</small></summary>' +
                       '<div class="ai-chatbot-github-content">' +
                         '<div data-agent-routing-summary></div>' +
@@ -25113,7 +25482,7 @@
                         '</div>' +
                       '</div>' +
                     '</details>' +
-                    '<details class="ai-chatbot-agent-integrations">' +
+                    '<details class="ai-chatbot-agent-integrations" hidden>' +
                       '<summary class="ai-chatbot-github-heading"><span>Report and config JSON</span><small>Inspect the browser-side contract and normalized downstream bundle.</small></summary>' +
                       '<div class="ai-chatbot-github-content">' +
                         '<div class="ai-chatbot-agent-hint">Config contract</div>' +
@@ -25139,7 +25508,7 @@
                     '<pre class="ai-chatbot-terminal-screen" data-terminal-output></pre>' +
                     '<form class="ai-chatbot-terminal-form" data-terminal-form>' +
                       '<span class="ai-chatbot-terminal-prompt" data-terminal-prompt>remediator@minibox:~$</span>' +
-                      '<input data-terminal-input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" placeholder="whoami, ls, cat context.json, run log4j">' +
+                      '<input data-terminal-input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" placeholder="status, evidence, routes, schedule, agent validate">' +
                       '<button class="ai-chatbot-agent-button ai-chatbot-terminal-run" type="submit" data-terminal-run title="Run command" aria-label="Run terminal command">' + icon('play') + '<span>Run</span></button>' +
                     '</form>' +
                   '</section>' +
@@ -25147,10 +25516,11 @@
                     '<div class="ai-chatbot-status" data-agent-status>Queue precise actions, then preview the run plan. Browser schedules fire only while this site is open.</div>' +
                     '<div class="ai-chatbot-agent-output" data-agent-output hidden></div>' +
                     '<div class="ai-chatbot-agent-actions">' +
-                      '<button class="ai-chatbot-agent-button" type="button" data-agent-preview>' + icon('play') + '<span>Generate plan</span></button>' +
+                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-validate>' + icon('shield') + '<span>Validate agent</span></button>' +
+                      '<button class="ai-chatbot-agent-button" type="button" data-agent-preview>' + icon('play') + '<span>Run now</span></button>' +
+                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-schedule>Schedule agent</button>' +
                       '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-save-case>Save case</button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-deliver>Run selected output</button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-schedule>Save schedule draft</button>' +
+                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-deliver>Run output</button>' +
                     '</div>' +
                   '</section>' +
                 '</aside>' +
@@ -25469,13 +25839,19 @@
     els.agentActionList = shell.querySelector('[data-agent-action-list]');
     els.agentStatus = shell.querySelector('[data-agent-status]');
     els.agentOutput = shell.querySelector('[data-agent-output]');
+    els.agentValidate = shell.querySelector('[data-agent-validate]');
     els.agentPreview = shell.querySelector('[data-agent-preview]');
     els.agentSaveCase = shell.querySelector('[data-agent-save-case]');
     els.agentDeliver = shell.querySelector('[data-agent-deliver]');
-    els.terminalOutput = shell.querySelector('[data-terminal-output]');
-    els.terminalForm = shell.querySelector('[data-terminal-form]');
-    els.terminalInput = shell.querySelector('[data-terminal-input]');
-    els.terminalPrompt = shell.querySelector('[data-terminal-prompt]');
+    els.agentSchedule = shell.querySelector('[data-agent-schedule]');
+    els.terminalOutputs = shell.querySelectorAll('[data-terminal-output]');
+    els.terminalForms = shell.querySelectorAll('[data-terminal-form]');
+    els.terminalInputs = shell.querySelectorAll('[data-terminal-input]');
+    els.terminalPrompts = shell.querySelectorAll('[data-terminal-prompt]');
+    els.terminalOutput = els.terminalOutputs[0];
+    els.terminalForm = els.terminalForms[0];
+    els.terminalInput = els.terminalInputs[0];
+    els.terminalPrompt = els.terminalPrompts[0];
     els.slackWebhook = shell.querySelector('[data-slack-webhook]');
     els.pagerDutyRoutingKey = shell.querySelector('[data-pagerduty-routing-key]');
     els.googleChatWebhook = shell.querySelector('[data-google-chat-webhook]');
@@ -25596,8 +25972,8 @@
     if (els.settingsButton) {
       els.settingsButton.addEventListener('click', function () {
         if (els.panel.hidden) openPanel('chat');
-        switchTab('chat');
-        setSettingsOpen(!state.settingsOpen);
+        var activePanel = els.panel.getAttribute('data-active-panel') || 'chat';
+        setSettingsOpen(activePanel !== 'settings');
         if (state.settingsOpen) {
           window.setTimeout(function () {
             var target = els.settingsContent && els.settingsContent.querySelector('input, select, button, summary');
@@ -25644,6 +26020,11 @@
           }, 0);
         } else if (panelName === 'control-plane' && els.controlPlaneSearch) {
           window.setTimeout(function () { els.controlPlaneSearch.focus(); }, 0);
+        } else if (panelName === 'terminal') {
+          window.setTimeout(function () {
+            var terminalInput = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
+            if (terminalInput) terminalInput.focus();
+          }, 0);
         } else if (panelName === 'assets' && els.assetSearch) {
           window.setTimeout(function () { els.assetSearch.focus(); }, 0);
         } else if (panelName === 'exposure' && els.exposureSearch) {
@@ -25709,16 +26090,11 @@
         var action = button && button.getAttribute('data-chat-quick');
         var text = '';
         if (!action) return;
-        if (action === 'workbench') {
-          switchTab('agents');
+        if (action === 'context') {
+          handleContextCheckQuickAction();
           return;
         }
-        if (action === 'terminal') {
-          focusTerminalWorkbench();
-          return;
-        }
-        else if (action === 'context') text = 'Review the current SecurityRecipes context, selected marketplace inputs, uploaded evidence, and browser terminal transcript. Call out what is ready, missing, or stale before remediation.';
-        else text = 'Run the best matching SecurityRecipes remediation recipe using the current page context, selected marketplace inputs, uploaded evidence, and reviewer-gated output route. Produce commands, checks, rollback, and the handoff packet.';
+        text = 'Run the best matching SecurityRecipes remediation recipe using the current page context, selected marketplace inputs, uploaded evidence, and reviewer-gated output route. Produce commands, checks, rollback, and the handoff packet.';
         if (els.prompt) {
           els.prompt.value = text;
           els.prompt.focus();
@@ -26736,6 +27112,10 @@
 
     if (els.agentCadence) els.agentCadence.addEventListener('change', function () {
       state.agentRoutingDecision = null;
+      var cadence = selectedText(els.agentCadence);
+      if (els.agentNextRun && cadence !== 'Manual approval' && !els.agentNextRun.value) {
+        els.agentNextRun.value = defaultAgentScheduleValue(cadence);
+      }
       updateAgentMarketplacePreview();
     });
     if (els.agentNextRun) els.agentNextRun.addEventListener('change', function () {
@@ -26934,22 +27314,32 @@
       });
     }
 
-    if (els.terminalForm) {
-      els.terminalForm.addEventListener('submit', function (event) {
+    Array.prototype.forEach.call(els.terminalForms || [], function (form) {
+      form.addEventListener('submit', function (event) {
         event.preventDefault();
-        var command = collapseText(els.terminalInput && els.terminalInput.value);
-        if (els.terminalInput) els.terminalInput.value = '';
+        var input = form.querySelector('[data-terminal-input]');
+        var command = collapseText(input && input.value);
+        if (input) input.value = '';
         executeTerminalCommand(command, { source: 'terminal' });
       });
-    }
+    });
 
-    var terminalClear = shell.querySelector('[data-terminal-clear]');
-    if (terminalClear) {
+    Array.prototype.forEach.call(shell.querySelectorAll('[data-terminal-clear]'), function (terminalClear) {
       terminalClear.addEventListener('click', function () {
         executeTerminalCommand('clear', { source: 'terminal' });
-        if (els.terminalInput) els.terminalInput.focus();
+        var input = terminalClear.closest('.ai-chatbot-terminal') && terminalClear.closest('.ai-chatbot-terminal').querySelector('[data-terminal-input]');
+        if (input) input.focus();
       });
-    }
+    });
+
+    shell.addEventListener('click', function (event) {
+      var commandButton = event.target.closest('[data-terminal-command]');
+      if (!commandButton || !shell.contains(commandButton)) return;
+      var command = commandButton.getAttribute('data-terminal-command');
+      var input = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
+      if (input) input.value = command;
+      executeTerminalCommand(command, { source: 'terminal' });
+    });
 
     shell.querySelector('[data-agent-clear-actions]').addEventListener('click', function () {
       state.agentActions = [];
@@ -26963,6 +27353,11 @@
     });
 
     els.agentActionList.addEventListener('click', function (event) {
+      var runButton = event.target.closest('[data-agent-run-action]');
+      if (runButton) {
+        runAgentActionNow(Number(runButton.getAttribute('data-agent-run-action')));
+        return;
+      }
       var button = event.target.closest('[data-agent-remove-action]');
       if (!button) return;
       state.agentActions.splice(Number(button.getAttribute('data-agent-remove-action')), 1);
@@ -26982,7 +27377,6 @@
       els.tokenInput.value = '';
       updateProviderBadge();
       setStatus(maskToken(value), 'ok');
-      setSettingsOpen(false);
       updateAgentUI();
       scheduleProviderConnectivityChecks();
     });
@@ -27551,6 +27945,12 @@
     enablePersistentSiteNavigation();
     startBrowserAgentScheduler();
 
+    if (els.agentValidate) {
+      els.agentValidate.addEventListener('click', function () {
+        var output = validateAgentPlanner();
+        appendTerminalRecord('output', output);
+      });
+    }
     els.agentPreview.addEventListener('click', handleAgentPreview);
     if (els.agentSaveCase) {
       els.agentSaveCase.addEventListener('click', function () {
@@ -27570,7 +27970,7 @@
     }
     els.agentDeliver.addEventListener('click', deliverAgentOutput);
 
-    shell.querySelector('[data-agent-schedule]').addEventListener('click', saveScheduleDraft);
+    if (els.agentSchedule) els.agentSchedule.addEventListener('click', saveScheduleDraft);
 
     handleOAuthCallback().catch(function (error) {
       setSettingsOpen(true);

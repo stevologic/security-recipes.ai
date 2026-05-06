@@ -147,7 +147,7 @@ window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
   AI remediation chatbot â€” provider tokens are stored only in the user's
   browser and requests go directly to OpenAI, xAI/Grok, or Anthropic.
 */}}
-{{ with resources.Get "js/ai-chatbot.js" | minify | fingerprint }}
+{{ with resources.Get "js/ai-chatbot.js" | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
 

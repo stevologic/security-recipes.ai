@@ -297,7 +297,7 @@
         "recipes_agentic_source_freshness_watch",
         "recipes_agentic_standards_crosswalk"
       ],
-      "question": "Why is this urgent in 2026?",
+      "question": "Why is a secure context control plane urgent for enterprise AI in 2026?",
       "short_answer": "MCP, A2A, custom MCP apps, agentic skills, non-human identity, and agent telemetry are moving into enterprise workflows faster than review teams can manually govern them."
     },
     {
@@ -569,7 +569,7 @@
         "recipes_secure_context_value_model",
         "recipes_design_partner_pilot_pack"
       ],
-      "question": "What stays open, and what becomes paid?",
+      "question": "What stays open in SecurityRecipes, and what becomes paid?",
       "short_answer": "Open artifacts include recipes, profiles, generators, evidence packs, local evaluators, and read-only MCP access; paid surfaces are hosted policy, private context, connector drift, receipts, eval replay, and trust-center APIs."
     },
     {
@@ -623,7 +623,7 @@
         },
         "source_snapshot": {
           "agentic_posture_decision": "guarded_enterprise_pilot",
-          "agentic_posture_score": 96,
+          "agentic_posture_score": 95,
           "lethal_tool_combination_workflows": 2,
           "registered_workflows": 8,
           "telemetry_signal_classes": 9
@@ -673,7 +673,7 @@
         "decision": "guarded_enterprise_pilot",
         "dimension_count": 8,
         "failure_count": 0,
-        "posture_score": 96,
+        "posture_score": 95,
         "risk_factor_count": 5,
         "workflow_count": 8,
         "workflow_decision_counts": {
@@ -706,7 +706,7 @@
         "failure_count": 0,
         "freshness_class_counts": {
           "current_reference": 16,
-          "recent_signal": 11,
+          "recent_signal": 14,
           "standing_reference": 5,
           "undated_review_required": 4
         },
@@ -717,6 +717,20 @@
             "published": "2026-05-04",
             "publisher_family": "OpenAI",
             "url": "https://openai.github.io/openai-agents-js/guides/guardrails/"
+          },
+          {
+            "id": "openai-agents-tracing-2026",
+            "name": "OpenAI Agents SDK Tracing",
+            "published": "2026-05-04",
+            "publisher_family": "OpenAI",
+            "url": "https://openai.github.io/openai-agents-js/guides/tracing/"
+          },
+          {
+            "id": "opentelemetry-genai-agent-spans-2026",
+            "name": "OpenTelemetry GenAI Agent and Framework Spans",
+            "published": "2026-05-04",
+            "publisher_family": "OpenTelemetry",
+            "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/"
           },
           {
             "id": "csa-star-ai-catastrophic-risk-annex-2026",
@@ -752,55 +766,44 @@
             "published": "2026-04-07",
             "publisher_family": "NIST",
             "url": "https://www.nist.gov/itl/ai-risk-management-framework"
-          },
-          {
-            "id": "microsoft-indirect-prompt-injection-2026",
-            "name": "Defend against indirect prompt injection attacks",
-            "published": "2026-03-24",
-            "publisher_family": "Microsoft",
-            "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
-          },
-          {
-            "id": "mcp-tool-annotations-2026-03-16",
-            "name": "Tool annotations in the Model Context Protocol",
-            "published": "2026-03-16",
-            "publisher_family": "Model Context Protocol",
-            "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
           }
         ],
-        "primary_watchlist_count": 9,
-        "primary_watchlist_covered_count": 9,
+        "primary_watchlist_count": 10,
+        "primary_watchlist_covered_count": 10,
         "publisher_family_counts": {
           "A2A": 2,
           "Anthropic": 1,
           "CISA": 3,
-          "Cloud Security Alliance": 5,
+          "Cloud Security Alliance": 6,
           "Linux Foundation": 1,
           "Microsoft": 1,
           "Model Context Protocol": 4,
           "NIST": 4,
           "OWASP": 7,
-          "OpenAI": 4,
+          "OpenAI": 5,
+          "OpenTelemetry": 1,
           "Unknown": 4
         },
         "source_class_counts": {
-          "frontier_lab_guidance": 5,
+          "frontier_lab_guidance": 6,
           "government_framework": 4,
           "government_guidance": 3,
           "incident_intelligence": 1,
+          "industry_framework": 1,
           "industry_guidance": 3,
           "industry_standard": 8,
+          "observability_standard": 1,
           "protocol_guidance": 2,
           "protocol_specification": 5,
           "unknown": 4,
           "vendor_architecture_guidance": 1
         },
         "status": "source_freshness_ready",
-        "unique_source_reference_count": 36,
+        "unique_source_reference_count": 39,
         "watch_decision_counts": {
-          "current": 8
+          "current": 9
         },
-        "watch_source_count": 8
+        "watch_source_count": 9
       }
     },
     "agentic_telemetry_contract": {
@@ -927,7 +930,7 @@
         },
         "control_plane_acquisition_readiness": {
           "active_workflow_count": 8,
-          "blueprint_score": 90,
+          "blueprint_score": 90.0,
           "distinct_mcp_tool_count": 36,
           "ready_layer_count": 10,
           "ready_source_pack_count": 25,
@@ -960,26 +963,27 @@
           "status": "critical_infrastructure_secure_context_ready"
         },
         "crosswalk_summary": {
-          "capability_count": 33,
-          "control_count": 39,
+          "capability_count": 34,
+          "control_count": 44,
           "control_status_counts": {
-            "ready": 39
+            "ready": 44
           },
-          "covered_capability_count": 33,
-          "distinct_mcp_tool_count": 50,
+          "covered_capability_count": 34,
+          "distinct_mcp_tool_count": 52,
           "failure_count": 0,
           "source_class_counts": {
             "frontier_lab_guidance": 4,
             "government_framework": 5,
             "incident_intelligence": 1,
+            "industry_framework": 1,
             "industry_standard": 5,
             "protocol_guidance": 1,
             "protocol_specification": 1
           },
-          "source_reference_count": 17,
-          "standard_count": 7,
+          "source_reference_count": 18,
+          "standard_count": 8,
           "standard_status_counts": {
-            "ready": 7
+            "ready": 8
           },
           "status": "standards_crosswalk_ready"
         },
@@ -1623,7 +1627,7 @@
       "proof_role": "Primary buyer evidence index across secure context, MCP, identity, runtime, eval, readiness, and commercialization artifacts.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "b723e383ef0c3d325db82508a73eaca88a8babe45f1db108229a1b34b0a27ddc",
+      "sha256": "29edc64f77c5bd835207282bd47e1fecf8448a2f17d05ae597c1b94746e323bd",
       "status": "ready",
       "summary": {
         "key": "export_summary",
@@ -1692,7 +1696,7 @@
           },
           "control_plane_acquisition_readiness": {
             "active_workflow_count": 8,
-            "blueprint_score": 90,
+            "blueprint_score": 90.0,
             "distinct_mcp_tool_count": 36,
             "ready_layer_count": 10,
             "ready_source_pack_count": 25,
@@ -1725,26 +1729,27 @@
             "status": "critical_infrastructure_secure_context_ready"
           },
           "crosswalk_summary": {
-            "capability_count": 33,
-            "control_count": 39,
+            "capability_count": 34,
+            "control_count": 44,
             "control_status_counts": {
-              "ready": 39
+              "ready": 44
             },
-            "covered_capability_count": 33,
-            "distinct_mcp_tool_count": 50,
+            "covered_capability_count": 34,
+            "distinct_mcp_tool_count": 52,
             "failure_count": 0,
             "source_class_counts": {
               "frontier_lab_guidance": 4,
               "government_framework": 5,
               "incident_intelligence": 1,
+              "industry_framework": 1,
               "industry_standard": 5,
               "protocol_guidance": 1,
               "protocol_specification": 1
             },
-            "source_reference_count": 17,
-            "standard_count": 7,
+            "source_reference_count": 18,
+            "standard_count": 8,
             "standard_status_counts": {
-              "ready": 7
+              "ready": 8
             },
             "status": "standards_crosswalk_ready"
           },
@@ -2054,7 +2059,7 @@
       "proof_role": "Acquisition and enterprise-value model with conservative assumptions, paid wedges, buyer segments, and missing proof points.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "1ca6835a9294ff004bb98ea77bbb7f75b9bd4fa0473add6096f916292a25ca00",
+      "sha256": "b426282fa5cbf26fe358a6f73dc5abdb9de3264edacce1c619df70086ba82530",
       "status": "ready",
       "summary": {
         "key": "value_model_summary",
@@ -2091,7 +2096,7 @@
       "proof_role": "Executable pilot motion for converting open evidence into customer runtime data, renewal evidence, and paid wedge validation.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "6199dc7f67c99891f6f714e4b16e02b4fea3940a0de0b74ca3ac178ac1282399",
+      "sha256": "781d84cab19e8a0f8f2ba6150f587c7ccf92abf3f856fc9fb13e83d474016c2d",
       "status": "ready",
       "summary": {
         "key": "pilot_summary",
@@ -2120,7 +2125,7 @@
       "proof_role": "Standards and source-drift proof that buyer-facing claims are maintained against current primary sources.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "872f72b80fce38d882f63c1235c040aa167dfaf06cf8d2689137832269cdea50",
+      "sha256": "01ee567179bf2436ad0430b93da8b5274bbe9a1db4174e9aa63e05767a45d6af",
       "status": "ready",
       "summary": {
         "key": "freshness_summary",
@@ -2128,7 +2133,7 @@
           "failure_count": 0,
           "freshness_class_counts": {
             "current_reference": 16,
-            "recent_signal": 11,
+            "recent_signal": 14,
             "standing_reference": 5,
             "undated_review_required": 4
           },
@@ -2139,6 +2144,20 @@
               "published": "2026-05-04",
               "publisher_family": "OpenAI",
               "url": "https://openai.github.io/openai-agents-js/guides/guardrails/"
+            },
+            {
+              "id": "openai-agents-tracing-2026",
+              "name": "OpenAI Agents SDK Tracing",
+              "published": "2026-05-04",
+              "publisher_family": "OpenAI",
+              "url": "https://openai.github.io/openai-agents-js/guides/tracing/"
+            },
+            {
+              "id": "opentelemetry-genai-agent-spans-2026",
+              "name": "OpenTelemetry GenAI Agent and Framework Spans",
+              "published": "2026-05-04",
+              "publisher_family": "OpenTelemetry",
+              "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-agent-spans/"
             },
             {
               "id": "csa-star-ai-catastrophic-risk-annex-2026",
@@ -2174,55 +2193,44 @@
               "published": "2026-04-07",
               "publisher_family": "NIST",
               "url": "https://www.nist.gov/itl/ai-risk-management-framework"
-            },
-            {
-              "id": "microsoft-indirect-prompt-injection-2026",
-              "name": "Defend against indirect prompt injection attacks",
-              "published": "2026-03-24",
-              "publisher_family": "Microsoft",
-              "url": "https://learn.microsoft.com/en-us/security/zero-trust/sfi/defend-indirect-prompt-injection"
-            },
-            {
-              "id": "mcp-tool-annotations-2026-03-16",
-              "name": "Tool annotations in the Model Context Protocol",
-              "published": "2026-03-16",
-              "publisher_family": "Model Context Protocol",
-              "url": "https://blog.modelcontextprotocol.io/posts/2026-03-16-tool-annotations/"
             }
           ],
-          "primary_watchlist_count": 9,
-          "primary_watchlist_covered_count": 9,
+          "primary_watchlist_count": 10,
+          "primary_watchlist_covered_count": 10,
           "publisher_family_counts": {
             "A2A": 2,
             "Anthropic": 1,
             "CISA": 3,
-            "Cloud Security Alliance": 5,
+            "Cloud Security Alliance": 6,
             "Linux Foundation": 1,
             "Microsoft": 1,
             "Model Context Protocol": 4,
             "NIST": 4,
             "OWASP": 7,
-            "OpenAI": 4,
+            "OpenAI": 5,
+            "OpenTelemetry": 1,
             "Unknown": 4
           },
           "source_class_counts": {
-            "frontier_lab_guidance": 5,
+            "frontier_lab_guidance": 6,
             "government_framework": 4,
             "government_guidance": 3,
             "incident_intelligence": 1,
+            "industry_framework": 1,
             "industry_guidance": 3,
             "industry_standard": 8,
+            "observability_standard": 1,
             "protocol_guidance": 2,
             "protocol_specification": 5,
             "unknown": 4,
             "vendor_architecture_guidance": 1
           },
           "status": "source_freshness_ready",
-          "unique_source_reference_count": 36,
+          "unique_source_reference_count": 39,
           "watch_decision_counts": {
-            "current": 8
+            "current": 9
           },
-          "watch_source_count": 8
+          "watch_source_count": 9
         }
       },
       "title": "Agentic Source Freshness Watch"
@@ -2238,7 +2246,7 @@
       "proof_role": "Architecture and commercialization map for context, identity, MCP, handoff, telemetry, receipts, evals, and severe-risk control layers.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "65e0505f72a688a135ebc2fc241ae2a921dd1df12b689bb2a1190dc82c54c6e7",
+      "sha256": "6ae62a6abe351b01dcc954772eabd2567e472d6dc5dfe7db727a0806909d15b1",
       "status": "ready",
       "summary": {
         "key": "control_plane_summary",
@@ -2290,31 +2298,32 @@
       "proof_role": "Standards-to-evidence map across OWASP, NIST, MCP, OpenAI, Anthropic, and adjacent agentic security guidance.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "7e15621277691edf41cc37d126865fdfbb38e376fa4fc93f7e6020919037605a",
+      "sha256": "fb255872b8829f77510654e12c2c3445104b9c35dbb78e0421ea17f8c7abdeb0",
       "status": "ready",
       "summary": {
         "key": "crosswalk_summary",
         "value": {
-          "capability_count": 33,
-          "control_count": 39,
+          "capability_count": 34,
+          "control_count": 44,
           "control_status_counts": {
-            "ready": 39
+            "ready": 44
           },
-          "covered_capability_count": 33,
-          "distinct_mcp_tool_count": 50,
+          "covered_capability_count": 34,
+          "distinct_mcp_tool_count": 52,
           "failure_count": 0,
           "source_class_counts": {
             "frontier_lab_guidance": 4,
             "government_framework": 5,
             "incident_intelligence": 1,
+            "industry_framework": 1,
             "industry_standard": 5,
             "protocol_guidance": 1,
             "protocol_specification": 1
           },
-          "source_reference_count": 17,
-          "standard_count": 7,
+          "source_reference_count": 18,
+          "standard_count": 8,
           "standard_status_counts": {
-            "ready": 7
+            "ready": 8
           },
           "status": "standards_crosswalk_ready"
         }
@@ -2366,7 +2375,7 @@
       "proof_role": "NIST-aligned critical-infrastructure readiness profile for sector hazards, secure context, MCP authorization, operator approval, safety-case gates, telemetry, and runtime CI decisions.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "6f43cb863c143a749d4bdf376adb6d303c3a7457f1700573115afe1e4a065035",
+      "sha256": "5014b46f62da96b7d1d7d0ae66b814df4b4ab72ce2f84eee5a4db6785d9d0e72",
       "status": "ready",
       "summary": {
         "key": "critical_infrastructure_summary",
@@ -2408,7 +2417,7 @@
       "proof_role": "Resource, audience, PKCE, token-passthrough, session-binding, and scope-drift decisions before MCP tool calls execute.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f",
+      "sha256": "146c60d3bd67000544738862c21c0eab71e19a5e066521540229037578db7bbb",
       "status": "ready",
       "summary": {
         "key": "authorization_summary",
@@ -2445,7 +2454,7 @@
       "proof_role": "OpenTelemetry-aligned trace contract for agent, model, MCP, context, policy, egress, approval, verifier, incident, redaction, and receipt evidence.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f",
+      "sha256": "d135ec6ddd8f862c9ffa6b24232688c32565c0aa61361582c625c5717c66ed83",
       "status": "ready",
       "summary": {
         "key": "telemetry_summary",
@@ -2477,7 +2486,7 @@
       "proof_role": "Runtime proof templates that tie identities, context, tool decisions, egress, approvals, verifier output, evidence retention, and revocation into one receipt.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e",
+      "sha256": "a2b7c23753e5e120545ea440d6cf3f79ba5086e4e7834b8e2f7fa024746fe534",
       "status": "ready",
       "summary": {
         "key": "receipt_summary",
@@ -2507,7 +2516,7 @@
       "proof_role": "Launch-review decisions for agentic apps, agent hosts, production MCP rollouts, autonomy, data, tools, memory, guardrails, telemetry, and approvals.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "8fc8923faca76a09dd198e5974e35252deaf10b1f112667419a72a74630f2ede",
+      "sha256": "57ce7e801a9ce97a30d697d28f6c584e84cb2cb72bcd8fb152446c64cc3848f6",
       "status": "ready",
       "summary": {
         "key": "app_intake_summary",
@@ -2529,7 +2538,7 @@
           },
           "source_snapshot": {
             "agentic_posture_decision": "guarded_enterprise_pilot",
-            "agentic_posture_score": 96,
+            "agentic_posture_score": 95,
             "lethal_tool_combination_workflows": 2,
             "registered_workflows": 8,
             "telemetry_signal_classes": 9
@@ -2550,7 +2559,7 @@
       "proof_role": "Buyer-facing posture summary across workflow posture, XPIA factors, MCP/A2A trust rollups, source hashes, and decision evidence.",
       "required": true,
       "schema_version": "1.0",
-      "sha256": "19ea3207a783792db5674b67f721a41a7e2b4c98afced290c778e28c2fb037b0",
+      "sha256": "a908687b4538c08a5bea9437df590469257691db608644dfd883ab97bc8dd864",
       "status": "ready",
       "summary": {
         "key": "posture_summary",
@@ -2558,7 +2567,7 @@
           "decision": "guarded_enterprise_pilot",
           "dimension_count": 8,
           "failure_count": 0,
-          "posture_score": 96,
+          "posture_score": 95,
           "risk_factor_count": 5,
           "workflow_count": 8,
           "workflow_decision_counts": {
@@ -2582,38 +2591,38 @@
   "source_artifacts": {
     "secure_context_buyer_diligence_profile": {
       "path": "data/assurance/secure-context-buyer-diligence-profile.json",
-      "sha256": "1275f149684b2ec3d56d977c0b12cf69af2a6f96247859a276976e5e2caea8e6"
+      "sha256": "f24579c62b477a2b4836e15a5a23defacef9b93e9c5e5db95f692a1037486d43"
     },
     "source_packs": [
       {
         "key": "enterprise_trust_center_export",
         "path": "data/evidence/enterprise-trust-center-export.json",
-        "sha256": "b723e383ef0c3d325db82508a73eaca88a8babe45f1db108229a1b34b0a27ddc"
+        "sha256": "29edc64f77c5bd835207282bd47e1fecf8448a2f17d05ae597c1b94746e323bd"
       },
       {
         "key": "secure_context_value_model",
         "path": "data/evidence/secure-context-value-model.json",
-        "sha256": "1ca6835a9294ff004bb98ea77bbb7f75b9bd4fa0473add6096f916292a25ca00"
+        "sha256": "b426282fa5cbf26fe358a6f73dc5abdb9de3264edacce1c619df70086ba82530"
       },
       {
         "key": "design_partner_pilot_pack",
         "path": "data/evidence/design-partner-pilot-pack.json",
-        "sha256": "6199dc7f67c99891f6f714e4b16e02b4fea3940a0de0b74ca3ac178ac1282399"
+        "sha256": "781d84cab19e8a0f8f2ba6150f587c7ccf92abf3f856fc9fb13e83d474016c2d"
       },
       {
         "key": "agentic_source_freshness_watch",
         "path": "data/evidence/agentic-source-freshness-watch.json",
-        "sha256": "872f72b80fce38d882f63c1235c040aa167dfaf06cf8d2689137832269cdea50"
+        "sha256": "01ee567179bf2436ad0430b93da8b5274bbe9a1db4174e9aa63e05767a45d6af"
       },
       {
         "key": "agentic_control_plane_blueprint",
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "65e0505f72a688a135ebc2fc241ae2a921dd1df12b689bb2a1190dc82c54c6e7"
+        "sha256": "6ae62a6abe351b01dcc954772eabd2567e472d6dc5dfe7db727a0806909d15b1"
       },
       {
         "key": "agentic_standards_crosswalk",
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "7e15621277691edf41cc37d126865fdfbb38e376fa4fc93f7e6020919037605a"
+        "sha256": "fb255872b8829f77510654e12c2c3445104b9c35dbb78e0421ea17f8c7abdeb0"
       },
       {
         "key": "agentic_protocol_conformance_pack",
@@ -2623,32 +2632,32 @@
       {
         "key": "critical_infrastructure_secure_context_pack",
         "path": "data/evidence/critical-infrastructure-secure-context-pack.json",
-        "sha256": "6f43cb863c143a749d4bdf376adb6d303c3a7457f1700573115afe1e4a065035"
+        "sha256": "5014b46f62da96b7d1d7d0ae66b814df4b4ab72ce2f84eee5a4db6785d9d0e72"
       },
       {
         "key": "mcp_authorization_conformance_pack",
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
-        "sha256": "177373830ba2407a44a90d84cf01196c26f98d91098151254ba9dc6b1c1ab69f"
+        "sha256": "146c60d3bd67000544738862c21c0eab71e19a5e066521540229037578db7bbb"
       },
       {
         "key": "agentic_telemetry_contract",
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "5be5557a2ed4788f93924a83d3d1488a6dbd3181447acda9138dc74ccbda5e4f"
+        "sha256": "d135ec6ddd8f862c9ffa6b24232688c32565c0aa61361582c625c5717c66ed83"
       },
       {
         "key": "agentic_run_receipt_pack",
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+        "sha256": "a2b7c23753e5e120545ea440d6cf3f79ba5086e4e7834b8e2f7fa024746fe534"
       },
       {
         "key": "agentic_app_intake_pack",
         "path": "data/evidence/agentic-app-intake-pack.json",
-        "sha256": "8fc8923faca76a09dd198e5974e35252deaf10b1f112667419a72a74630f2ede"
+        "sha256": "57ce7e801a9ce97a30d697d28f6c584e84cb2cb72bcd8fb152446c64cc3848f6"
       },
       {
         "key": "agentic_posture_snapshot",
         "path": "data/evidence/agentic-posture-snapshot.json",
-        "sha256": "19ea3207a783792db5674b67f721a41a7e2b4c98afced290c778e28c2fb037b0"
+        "sha256": "a908687b4538c08a5bea9437df590469257691db608644dfd883ab97bc8dd864"
       }
     ]
   },

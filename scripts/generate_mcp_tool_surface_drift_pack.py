@@ -347,7 +347,7 @@ def build_sample_decisions(surfaces: list[dict[str, Any]]) -> list[dict[str, Any
             "expected_runtime_request": {
                 "namespace": registry.get("namespace"),
                 "tool_name": registry.get("tool_name"),
-                "capability_expansion": true,
+                "capability_expansion": True,
                 "added_capability_flags": [
                     "delete",
                     "publish",

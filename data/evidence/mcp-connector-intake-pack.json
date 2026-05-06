@@ -110,7 +110,7 @@
         },
         {
           "control": "token_audience_validation",
-          "evidence": "{\"strategy\":\"oauth2_proxy\",\"resource_indicators\":true,\"audience_validation\":false,\"pkce\":true,\"token_passthrough\":true,\"short_lived_tokens\":true,\"command_allowlist\":false}",
+          "evidence": "{\"strategy\":\"oauth2_proxy\",\"resource_indicators\":true,\"audience_validation\":false,\"client_id_metadata_document\":false,\"scope_challenge_handling\":false,\"step_up_authorization\":false,\"pkce\":true,\"token_passthrough\":true,\"short_lived_tokens\":true,\"command_allowlist\":false}",
           "id": "missing-audience-validation",
           "severity": "high",
           "title": "Token audience validation is not declared"
@@ -499,11 +499,11 @@
   "source_artifacts": {
     "connector_intake_candidates": {
       "path": "data/mcp/connector-intake-candidates.json",
-      "sha256": "67627bc35a30623c011f09296e020e5fe07009799aecdf981dae130b4d3080bf"
+      "sha256": "d6c783f56dc38909b87abb5187014f2d0acadb8d4771b1ab35e9a35538688148"
     },
     "connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",
-      "sha256": "2982b7ab2dea084cd78295ad257cc4c8606c52938197cf61bb2692156dcf92be"
+      "sha256": "77e4c63f3c9b2a7ac9088bede503e5d34a8a5056a2968d144bc8a8b816006427"
     }
   },
   "standards_alignment": [

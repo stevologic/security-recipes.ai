@@ -167,13 +167,13 @@
                 "workflow_prompt_context"
               ],
               "root": "content/prompt-library",
-              "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
+              "source_hash": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b",
               "source_id": "prompt-library-recipes",
               "title": "Prompt Library Recipes",
               "trust_tier": "tier_1_curated_guidance"
             },
             "matched_workflow": {
-              "context_package_hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
+              "context_package_hash": "699b678e8f120e66e5366bc125b4562d895afd6afb581ad1e0c53b93fef1f303",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -202,7 +202,7 @@
             "actionable_finding_count": 0,
             "finding_count": 10,
             "max_actionable_findings": 0,
-            "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
+            "source_hash": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b",
             "source_id": "prompt-library-recipes"
           },
           "expected_decision": [
@@ -229,7 +229,7 @@
               "prompt-library-recipes"
             ],
             "source_hashes": {
-              "prompt-library-recipes": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469"
+              "prompt-library-recipes": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -287,7 +287,7 @@
               "trust_tier": "tier_2_policy_context"
             },
             "matched_workflow": {
-              "context_package_hash": "d65ba4419af71adb16c60ceef959e603f7441c987e768acbc026cce7cab72f6e",
+              "context_package_hash": "7d271a506e281d6049a6a19ed877917d456b3dc9517b12faf670aa2c78f44b25",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -395,10 +395,17 @@
                 "recipes_evaluate_agent_memory_decision",
                 "recipes_agent_skill_supply_chain_pack",
                 "recipes_evaluate_agent_skill_decision",
+                "recipes_agent_handoff_boundary_pack",
+                "recipes_evaluate_agent_handoff_decision",
+                "recipes_agentic_entitlement_review_pack",
+                "recipes_evaluate_agentic_entitlement_decision",
                 "recipes_evaluate_context_retrieval_decision",
                 "recipes_evaluate_mcp_authorization_decision",
                 "recipes_evaluate_context_egress_decision",
                 "recipes_agentic_control_plane_blueprint",
+                "recipes_agentic_exposure_graph",
+                "recipes_agentic_posture_snapshot",
+                "recipes_evaluate_agentic_posture_decision",
                 "recipes_agentic_measurement_probe_pack",
                 "recipes_secure_context_attestation_pack",
                 "recipes_evaluate_context_attestation_decision",
@@ -407,13 +414,13 @@
                 "tool_contract_context"
               ],
               "root": "mcp_server.py",
-              "source_hash": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209",
+              "source_hash": "24755ffab83050cf4ae1c87c955ab04ffe98aa920cc0e7b03bc8e29f92437867",
               "source_id": "mcp-server-runtime",
               "title": "MCP Server Runtime Contract",
               "trust_tier": "tier_2_policy_context"
             },
             "matched_workflow": {
-              "context_package_hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
+              "context_package_hash": "699b678e8f120e66e5366bc125b4562d895afd6afb581ad1e0c53b93fef1f303",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -444,7 +451,7 @@
             "actionable_finding_count": 0,
             "finding_count": 0,
             "max_actionable_findings": 0,
-            "source_hash": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209",
+            "source_hash": "24755ffab83050cf4ae1c87c955ab04ffe98aa920cc0e7b03bc8e29f92437867",
             "source_id": "mcp-server-runtime"
           },
           "expected_decision": [
@@ -469,7 +476,7 @@
               "mcp-server-runtime"
             ],
             "source_hashes": {
-              "mcp-server-runtime": "1c70d461f14819e4edc8684b427186040807eeacf130b2b7fca6ca7a9dcf5209"
+              "mcp-server-runtime": "24755ffab83050cf4ae1c87c955ab04ffe98aa920cc0e7b03bc8e29f92437867"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -620,7 +627,7 @@
               "attestation_id": "wfctx-vulnerable-dependency-remediation",
               "decision": "allow_attested_workflow_context",
               "freshness_state": "declared_current",
-              "hash": "cd26cc892403887f4d11c720801aa86834c0710e88cd39dadd896f4a5206e922",
+              "hash": "699b678e8f120e66e5366bc125b4562d895afd6afb581ad1e0c53b93fef1f303",
               "source_id": null,
               "status": "active",
               "subject_type": "workflow_context_package",
@@ -643,9 +650,9 @@
           "check_type": "context_poisoning_scan",
           "evidence": {
             "actionable_finding_count": 0,
-            "finding_count": 12,
+            "finding_count": 38,
             "max_actionable_findings": 0,
-            "source_hash": "e3d40d6ec29510b1fc7f4ab4f3b8a6e498ed255d3a00af565a86797c2cd75cb7",
+            "source_hash": "78cf0f381a81ab7480c5b91cdc9fb7b075ecb287f688750cf7b16b1faf1cc56b",
             "source_id": "agentic-evidence-packs"
           },
           "expected_decision": [
@@ -672,7 +679,7 @@
               "agentic-evidence-packs"
             ],
             "source_hashes": {
-              "agentic-evidence-packs": "14bc793ba8c933192dbd0750df8ef3bc727d1c69ef34283ecf873cc8e8c401b4"
+              "agentic-evidence-packs": "d9ea924062de7700d389f415f2f633df54e12b7f479ff7ae96e1930b02559681"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -751,7 +758,7 @@
               "exposure": "public",
               "root": "content/prompt-library",
               "sensitivity": "public",
-              "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
+              "source_hash": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b",
               "source_id": "prompt-library-recipes",
               "title": "Prompt Library Recipes",
               "trust_tier": "tier_1_curated_guidance"
@@ -770,7 +777,7 @@
             "actionable_finding_count": 0,
             "finding_count": 10,
             "max_actionable_findings": 0,
-            "source_hash": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469",
+            "source_hash": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b",
             "source_id": "prompt-library-recipes"
           },
           "expected_decision": [
@@ -797,7 +804,7 @@
               "prompt-library-recipes"
             ],
             "source_hashes": {
-              "prompt-library-recipes": "9b727cc8513d519d8debca3abcfe21cfa397c689b8955af92e092161f32bf469"
+              "prompt-library-recipes": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -850,13 +857,13 @@
                 "enterprise_onboarding_context"
               ],
               "root": "content/security-remediation",
-              "source_hash": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6",
+              "source_hash": "bf39f623c7292c086d1175546ec9fe77dcc40379db49ffd1396751f5ea8788af",
               "source_id": "security-remediation-workflows",
               "title": "Security Remediation Workflow Docs",
               "trust_tier": "tier_1_curated_guidance"
             },
             "matched_workflow": {
-              "context_package_hash": "57f645643f721b9cdfd41f432712908970674651a63bbff5d106b63c7c0ec2a0",
+              "context_package_hash": "ff33e80b23521263af58f492f16ead2874463c8f34f52ca2da620017e3bbb05a",
               "source_ids": [
                 "security-remediation-workflows",
                 "prompt-library-recipes",
@@ -883,9 +890,9 @@
           "check_type": "context_poisoning_scan",
           "evidence": {
             "actionable_finding_count": 0,
-            "finding_count": 7,
+            "finding_count": 11,
             "max_actionable_findings": 0,
-            "source_hash": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6",
+            "source_hash": "bf39f623c7292c086d1175546ec9fe77dcc40379db49ffd1396751f5ea8788af",
             "source_id": "security-remediation-workflows"
           },
           "expected_decision": [
@@ -912,7 +919,7 @@
               "security-remediation-workflows"
             ],
             "source_hashes": {
-              "security-remediation-workflows": "29a87a81b416055a43cd271adfd438abac0f4b2a6aef3ef25c15d41183099bc6"
+              "security-remediation-workflows": "bf39f623c7292c086d1175546ec9fe77dcc40379db49ffd1396751f5ea8788af"
             }
           },
           "expected_decision": "citations_and_hashes_required",
@@ -963,19 +970,19 @@
   "source_artifacts": {
     "agentic_threat_radar": {
       "path": "data/evidence/agentic-threat-radar.json",
-      "sha256": "e13a0c68d026174b6be7910d4f4f6988309582cb1deac15db40faa50db37c30a"
+      "sha256": "b4bed4cbdc57fdce6350c076b926f8df56187b4ed8d03f1878c780a89a74e933"
     },
     "context_egress_boundary_pack": {
       "path": "data/evidence/context-egress-boundary-pack.json",
-      "sha256": "07edcffbc4aef554649510bb640e6589e1de91b339997538bdc1f207e8021a71"
+      "sha256": "5c03bc25ebe2ed327912bb14e89520017584193c2dcb468b1da2f59f36ef85fe"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "0e5fbabe54b1c4df1e3b2cad486ddd3869a1bee7f8b672151a4bad023bb0fae6"
+      "sha256": "f2e2884d9a292158069e2f1d5113b59a2a03fd7616f1db8d4c122ece3bdf3488"
     },
     "secure_context_attestation_pack": {
       "path": "data/evidence/secure-context-attestation-pack.json",
-      "sha256": "9d047538e2e4215d2d6791be9fbc81ce888070efbeba02cbb12cfd1f50d7f5ba"
+      "sha256": "4032848280396162652b5ee839eba558b2f3f1d6acbd20de68e5363ebe52a829"
     },
     "secure_context_eval_profile": {
       "path": "data/assurance/secure-context-eval-scenarios.json",
@@ -983,7 +990,7 @@
     },
     "secure_context_trust_pack": {
       "path": "data/evidence/secure-context-trust-pack.json",
-      "sha256": "ccb196ec997a38877931dc7233a729c06a96e9860d80ea5f5302970c611b0fb3"
+      "sha256": "211539ee4b749fcc6ad0998a5c1f45b960fc245c569d1bc6c1178e72a451f17c"
     }
   },
   "standards_alignment": [

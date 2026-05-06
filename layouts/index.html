@@ -1883,7 +1883,7 @@ window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
   routingLibrary: {{ "/marketplace-schemas/routing-library.schema.json" | relURL | jsonify | safeJS }}
 };
 </script>
-{{ with resources.Get "js/ai-chatbot.js" | minify | fingerprint }}
+{{ with resources.Get "js/ai-chatbot.js" | fingerprint }}
 <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
 </body>
