@@ -1,4 +1,4 @@
----
+﻿---
 title: MCP Elicitation Boundary
 linkTitle: MCP Elicitation Boundary
 weight: 11
@@ -7,6 +7,8 @@ description: >
   Generated MCP form-mode and URL-mode elicitation controls with
   deterministic runtime decisions for sensitive data, external auth,
   payment, URL safety, consent, and receipt evidence.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -44,72 +46,20 @@ version needs a default-deny policy:
 - Source profile:
   `data/assurance/mcp-elicitation-boundary-profile.json`
 - Generator:
-  `scripts/generate_mcp_elicitation_boundary_pack.py`
 - Evidence pack:
   `data/evidence/mcp-elicitation-boundary-pack.json`
 - Runtime evaluator:
-  `scripts/evaluate_mcp_elicitation_boundary_decision.py`
 - MCP tools:
   `recipes_mcp_elicitation_boundary_pack` and
-  `recipes_evaluate_mcp_elicitation_boundary_decision`
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_mcp_elicitation_boundary_pack.py
-python3 scripts/generate_mcp_elicitation_boundary_pack.py --check
-```
 
 Evaluate a safe URL-mode OAuth request:
 
-```bash
-python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
-  --workflow-id mcp-connector-intake-scanner \
-  --agent-id sr-agent::mcp-connector-intake::codex \
-  --run-id run-123 \
-  --connector-id github \
-  --namespace github.oauth \
-  --server-id mcp-server::github \
-  --elicitation-profile-id profile-third-party-oauth-url \
-  --elicitation-id elicit-123 \
-  --mode url \
-  --url https://github.com/login/oauth/authorize \
-  --url-domain github.com \
-  --user-id user-123 \
-  --session-id session-123 \
-  --correlation-id corr-123 \
-  --authorization-pack-hash auth-pack-sha256 \
-  --client-supports-mode \
-  --server-identity-displayed \
-  --user-can-decline \
-  --user-consent-recorded \
-  --completion-notification-bound \
-  --https-url \
-  --url-allowlisted \
-  --expect-decision allow_elicitation_with_receipt
-```
 
 Evaluate a blocked secret-form request:
 
-```bash
-python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
-  --workflow-id mcp-gateway-policy \
-  --agent-id sr-agent::gateway::codex \
-  --run-id run-124 \
-  --server-id mcp-server::unknown \
-  --elicitation-profile-id profile-credential-form-prohibited \
-  --elicitation-id elicit-124 \
-  --mode form \
-  --data-class api_key \
-  --schema-field api_key \
-  --session-id session-124 \
-  --correlation-id corr-124 \
-  --client-supports-mode \
-  --server-identity-displayed \
-  --user-can-decline \
-  --user-can-review \
-  --expect-decision deny_sensitive_form_elicitation
-```
 
 ## Decision model
 
@@ -192,32 +142,6 @@ recipes_mcp_elicitation_boundary_pack(mode="url")
 
 Evaluate one runtime request:
 
-```text
-recipes_evaluate_mcp_elicitation_boundary_decision(
-  workflow_id="mcp-connector-intake-scanner",
-  agent_id="sr-agent::mcp-connector-intake::codex",
-  run_id="run-123",
-  connector_id="github",
-  namespace="github.oauth",
-  server_id="mcp-server::github",
-  elicitation_profile_id="profile-third-party-oauth-url",
-  elicitation_id="elicit-123",
-  mode="url",
-  url="https://github.com/login/oauth/authorize",
-  url_domain="github.com",
-  user_id="user-123",
-  session_id="session-123",
-  correlation_id="corr-123",
-  authorization_pack_hash="auth-pack-sha256",
-  client_supports_mode=true,
-  server_identity_displayed=true,
-  user_can_decline=true,
-  user_consent_recorded=true,
-  completion_notification_bound=true,
-  https_url=true,
-  url_allowlisted=true
-)
-```
 
 ## See also
 

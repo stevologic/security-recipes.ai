@@ -1,174 +1,90 @@
 ---
 title: Docs
 linkTitle: Docs
-weight: 1
+weight: 6
 toc: true
 sidebar:
   open: true
+cascade:
+  - _target:
+      kind: page
+    sidebar:
+      exclude: true
+  - _target:
+      kind: section
+    sidebar:
+      open: false
 description: >
-  What security-recipes.ai is, who it's for, how the site is
-  structured, and how to get value out of it in your first 10 minutes.
+  How to use security-recipes.ai as a focused recipe library for
+  agent-assisted security remediation.
 ---
 
-**security-recipes.ai** is a community-driven library of opinionated
-playbooks for turning the AI coding tools engineers already use —
-GitHub Copilot, Devin, Cursor, Codex, and Claude — into **autonomous
-remediators** that close risk instead of logging it.
+security-recipes.ai is a recipe library for teams that want AI agents to help
+with security remediation without handing those agents broad authority.
 
-{{< callout type="info" >}}
-**New here?** Read this page top-to-bottom once, then jump to the
-[Agents]({{< relref "/agents" >}}) section and pick the tool your team
-already uses.
+Use the site to answer four questions:
 
-**Newer than that?** If "agent," "MCP server," or "skill" aren't
-everyday vocabulary yet, start with
-[**Fundamentals**]({{< relref "/fundamentals" >}}) — it's the
-plain-English primer on every term used on the rest of the site.
-{{< /callout >}}
+1. What kind of security finding am I trying to fix?
+2. Which recipe and prompt should the agent use?
+3. Which agent configuration file should carry the rules?
+4. Which MCP servers or data sources should the agent read before acting?
 
-## Why this exists
+That is the whole shape. The repository includes helper scripts and an optional
+read-only MCP server, but the primary artifact is the content: recipes,
+prompts, setup guides, and review patterns.
 
-Modern security programs produce far more findings than humans can fix
-in any reasonable time. Meanwhile, every engineering team in the company
-has adopted at least one AI coding agent that is perfectly capable of
-branching a repo, writing a patch, running tests, and opening a PR.
-
-The gap isn't capability. It's **the recipe**: the specific
-configuration, rules, hooks, MCP connectors, and house conventions that
-turn a general-purpose coding assistant into a dependable, low-risk
-remediation worker.
-
-This site is where we collect those recipes — reviewed, versioned, and
-community-driven.
-
-## What's a "recipe"?
-
-A recipe is a short, opinionated walkthrough that answers a single
-question:
-
-> How do I enable agentic remediation in _this_ specific tool?
-
-Every recipe follows the same four-section skeleton so teams can skim
-and compare:
-
-1. **Prerequisites** — licenses, accounts, and integrations required first.
-2. **Recipe steps** — a numbered, opinionated walkthrough. No "it depends."
-3. **Verification** — how to know end-to-end that it actually works.
-4. **Guardrails** — the controls to put in place before scaling up.
-
-If a page is missing guardrails, treat it as a draft and flag it in
-a PR.
-
-## How to integrate with your agent
-
-Once you've picked a recipe, the question is how to get it in
-front of your agent at the right time. The
-[**Integrate an AI Agent**]({{< relref "/docs/agent-integration" >}})
-guide catalogues five durable shapes — direct fetch, vendored
-snapshot, MCP knowledge server, skill / rules-file inlining,
-and CI-time injection — with per-agent walkthroughs for
-Copilot, Claude, Cursor, Codex, and Devin.
+## Core surfaces
 
 {{< cards >}}
-  {{< card link="/docs/marketplace-gallery/" title="Marketplace Gallery ->" subtitle="Public inventory plus readiness matrix for browser input channels, report contracts, output routes, and workflow packs contributed through Hugo data files." >}}
-  {{< card link="/how-to-use/" title="Visual Guide ->" subtitle="A four-panel walkthrough for using the site: explore the map, run one agent PR, operate workflows, then scale with MCP-backed context." >}}
-  {{< card link="/docs/agent-integration/" title="Integrate an AI Agent →" subtitle="Five integration shapes, per-agent walkthroughs, and the cross-cutting concerns (pinning, audit, fetched-content hygiene) that keep an integration trustworthy." >}}
-  {{< card link="/security-remediation/control-plane/" title="Workflow Control Plane ->" subtitle="Declarative workflow manifests for scope, MCP context, gates, evidence, KPIs, and kill signals." >}}
-  {{< card link="/security-remediation/mcp-gateway-policy/" title="MCP Gateway Policy Pack ->" subtitle="Generated policy contract for enforcing scoped MCP tool access and runtime kill signals." >}}
-  {{< card link="/security-remediation/mcp-connector-intake-scanner/" title="Connector Intake Scanner ->" subtitle="Generated admission decisions, control gaps, registry patch previews, and red-team drills for new or changed MCP servers." >}}
-  {{< card link="/security-remediation/mcp-authorization-conformance/" title="MCP Authorization Conformance ->" subtitle="Generated resource, audience, PKCE, token-passthrough, session-binding, and scope-drift decisions for MCP tool calls." >}}
-  {{< card link="/security-remediation/mcp-elicitation-boundary/" title="MCP Elicitation Boundary ->" subtitle="Generated form-mode and URL-mode controls for MCP user prompts, sensitive flows, external auth, URL safety, consent, and receipts." >}}
-  {{< card link="/security-remediation/mcp-tool-risk-contract/" title="MCP Tool Risk Contract ->" subtitle="Generated annotation trust, workflow scope, and session-combination decisions before MCP tools are invoked." >}}
-  {{< card link="/security-remediation/mcp-tool-surface-drift-sentinel/" title="MCP Tool Surface Drift ->" subtitle="Generated fingerprints for MCP tool descriptions, schemas, annotations, and capability metadata, with runtime drift decisions before changed tools are trusted." >}}
-  {{< card link="/security-remediation/agentic-protocol-conformance/" title="Protocol Conformance Pack ->" subtitle="Generated MCP and A2A protocol conformance evidence with runtime decisions for authorization, annotations, tool drift, Agent Cards, identity, handoff, and prompt-injection boundaries." >}}
-  {{< card link="/security-remediation/mcp-connector-trust-registry/" title="MCP Connector Trust Registry ->" subtitle="Generated MCP namespace inventory with trust tiers, controls, evidence, promotion criteria, and kill signals." >}}
-  {{< card link="/security-remediation/enterprise-trust-center-export/" title="Enterprise Trust Center Export ->" subtitle="Generated review packet that bundles secure-context, MCP, identity, handoff, eval, readiness, and runtime evidence." >}}
-  {{< card link="/security-remediation/agentic-soc-detection-pack/" title="Agentic SOC Detection Pack ->" subtitle="Generated SIEM-ready detections, query templates, response playbooks, and runtime alert decisions for MCP and agentic AI telemetry." >}}
-  {{< card link="/security-remediation/hosted-mcp-readiness-pack/" title="Hosted MCP Readiness ->" subtitle="Generated tenant-isolation, protected-resource authorization, private context, connector, telemetry, receipt, metering, and rollout gates for the hosted product." >}}
-  {{< card link="/security-remediation/secure-context-customer-proof-pack/" title="Customer Proof Pack ->" subtitle="Generated runtime event, metric, receipt, renewal-gate, and evidence-backed contract for design partner pilots." >}}
-  {{< card link="/security-remediation/secure-context-evidence-contract/" title="Evidence Contract ->" subtitle="Generated evidence object catalog, hosted API surface, release channels, redaction rules, signatures, and runtime release decisions." >}}
-  {{< card link="/security-remediation/agentic-posture-snapshot/" title="Agentic Posture Snapshot ->" subtitle="Generated enterprise posture score, workflow posture decisions, XPIA risk factors, MCP/A2A trust rollups, and source hashes." >}}
-  {{< card link="/security-remediation/agentic-aivss-risk-scoring/" title="Agentic AIVSS Risk Scoring ->" subtitle="Generated severity, SLA, remediation queue, owner, hosted MCP readiness gate, and runtime decision layer for agentic risk." >}}
-  {{< card link="/security-remediation/model-provider-routing-gate/" title="Model Provider Routing Gate ->" subtitle="Generated provider/model route decisions before secure context crosses a frontier, private, local, or unsanctioned model boundary." >}}
-  {{< card link="/security-remediation/browser-agent-boundary/" title="Browser Agent Boundary ->" subtitle="Generated browser workspace classes, task profiles, ambient-authority controls, and runtime decisions for untrusted pages, logged-in sessions, localhost, downloads, and external sends." >}}
-  {{< card link="/security-remediation/agentic-exposure-graph/" title="Agentic Exposure Graph ->" subtitle="Generated relationship graph for risk-ranked paths across secure context, identities, MCP namespaces, authorization, egress, readiness, risk, and receipts." >}}
-  {{< card link="/docs/secure-context-release/" title="Secure Context Release Gate ->" subtitle="Generated release manifests for open-reference, production MCP, and trust-center channels with source hashes, signature gates, eval evidence, and rollback signals." >}}
-  {{< card link="/security-remediation/critical-infrastructure-secure-context/" title="Critical Infrastructure Profile ->" subtitle="Generated NIST-aligned readiness profile for sector hazards, secure context, MCP authorization, operator approvals, safety-case gates, telemetry, and CI runtime decisions." >}}
-  {{< card link="/security-remediation/agentic-assurance-pack/" title="Agentic Assurance Pack ->" subtitle="Generated control evidence and AI/Agent BOM seed for enterprise review, procurement, and audit." >}}
-  {{< card link="/security-remediation/agentic-readiness-scorecard/" title="Readiness Scorecard ->" subtitle="Generated scale, pilot, gate, and block decisions for enterprise workflow promotion." >}}
-  {{< card link="/security-remediation/agent-capability-risk-register/" title="Capability Risk Register ->" subtitle="Generated capability and residual-risk tiers for agentic workflows before MCP access expands." >}}
-  {{< card link="/security-remediation/agent-memory-boundary/" title="Agent Memory Boundary ->" subtitle="Generated memory classes, TTLs, tenant boundaries, provenance, rollback expectations, and runtime decisions before agent state is stored or replayed." >}}
-  {{< card link="/security-remediation/agentic-red-team-drills/" title="Red-Team Drill Pack ->" subtitle="Generated adversarial eval coverage for agentic workflows, MCP policy, connector trust, and runtime evidence." >}}
-  {{< card link="/security-remediation/agentic-red-team-replay-harness/" title="Red-Team Replay Harness ->" subtitle="Generated replay fixtures, expected decisions, trace requirements, receipt bindings, and evaluator decisions for agentic red-team proof." >}}
-  {{< card link="/security-remediation/agent-identity-ledger/" title="Agent Identity Ledger ->" subtitle="Generated non-human identity and delegation contracts for approved workflows, agents, MCP scopes, and revocation." >}}
-  {{< card link="/security-remediation/agentic-run-receipts/" title="Agentic Run Receipts ->" subtitle="Generated proof templates for identity, context, tool decisions, egress, approvals, verifier output, evidence, and revocation." >}}
-  {{< card link="/security-remediation/context-egress-boundary/" title="Context Egress Boundary ->" subtitle="Generated data-class, destination-class, tenant-boundary, residency, DPA, and secret-egress decisions for MCP-backed context movement." >}}
-  {{< card link="/security-remediation/secure-context-lineage-ledger/" title="Secure Context Lineage ->" subtitle="Generated source-to-run context lineage with attestation, poisoning scan, route, egress, handoff, telemetry, receipt, and reuse decisions." >}}
+  {{< card link="/quickstart/" title="Quick Start" subtitle="A short path from one finding to one reviewed agent output." >}}
+  {{< card link="/security-remediation/" title="Remediation" subtitle="Playbooks for dependency, SAST, sensitive-data, container, CVE, and default-hardening work." >}}
+  {{< card link="/agents/" title="Agent Setup" subtitle="How to feed recipes into GitHub Copilot, Claude, Cursor, Codex, and Devin." >}}
+  {{< card link="/prompt-library/" title="Recipes" subtitle="Reusable prompts, instruction files, rules, skills, and review checklists." >}}
+  {{< card link="/mcp-servers/" title="MCP Integration" subtitle="How to connect public and internal security context as scoped, read-only agent input." >}}
+  {{< card link="/docs/agent-integration/" title="Agent Consumption" subtitle="Patterns for direct fetch, vendored snapshots, MCP connectors, and CI injection." >}}
+  {{< card link="/docs/chatbot-architecture/" title="Chatbot Architecture" subtitle="How the browser assistant builds context, calls providers, and where to change the design." >}}
+  {{< card link="/docs/cve-intelligence-intake/" title="CVE Intake" subtitle="Route advisory signals into remediation, containment, suppression, triage, or rejection." >}}
 {{< /cards >}}
 
-## How the site is organised
+## What the site does
 
-- **[Fundamentals]({{< relref "/fundamentals" >}})** — plain-English
-  primer on the concepts every other page assumes you already know.
-  Start here if you're new to this space.
-- **[Agents]({{< relref "/agents" >}})** — one folder per supported
-  AI coding tool. This is the main surface of the site; each page is
-  a recipe.
-- **[Prompt Library]({{< relref "/prompt-library" >}})** — the actual
-  prompts, rules files, skills, and instruction files that teams are
-  using in production, contributed back so you don't start from zero.
-- **[MCP Server Access]({{< relref "/mcp-servers" >}})** — the
-  context layer: what data sources agents can reach, under what
-  scopes.
-- **[Security Remediation]({{< relref "/security-remediation" >}})**
-  — reference agentic workflows a security team can run on
-  engineering's behalf.
-- **[Automation]({{< relref "/automation" >}})** — deterministic
-  tools that earn their keep before you reach for an LLM.
-- **Docs** (you are here) — meta-information about how this site works
-  and how to contribute.
+- Provides practical security remediation recipes that an agent can follow.
+- Gives teams prompt and rules-file examples they can adapt to their repos.
+- Shows how to add security context from MCP servers without turning every
+  connector into an action surface.
+- Keeps review gates clear: one finding, one bounded change, tests run, human
+  approval before merge.
+- Makes the optional site index and MCP server available for teams that want
+  agents to search the recipes directly.
 
-## Who this is for
+## What the site does not do
 
-- **Security engineers** who want to automate opening fix-PRs for every
-  new finding instead of hand-delivering them to product teams.
-- **Platform engineers** who own the developer tooling stack and need a
-  consistent agentic story across teams and tools.
-- **Engineering managers** evaluating which AI agent to bet on for
-  remediation work — and what guardrails have to come with it.
+- It is not a replacement for SCA, SAST, secrets scanning, CI, ticketing, SIEM,
+  SOAR, or code review.
+- It is not a general-purpose automation platform.
+- It does not require teams to run a custom scanner before they can use a
+  recipe.
+- It does not treat prompts as enforcement. Policy still belongs in branch
+  protections, CODEOWNERS, CI, approvals, scoped tokens, and audit logs.
 
-## Suggested first 10 minutes
+## Helper scripts
 
-1. If anything on this site reads as jargon, start with
-   **[Fundamentals]({{< relref "/fundamentals" >}})** — the primer
-   on what an agent is, what the tools do, why prompts matter, and
-   what MCP servers are.
-2. Skim the **[Agents overview]({{< relref "/agents" >}})** and pick
-   the tool your team already has licenses for.
-3. Open that agent's recipe and read the **Guardrails** section first.
-   If you can't meet those controls yet, that's your actual first
-   project — not the recipe.
-4. Check the **[Prompt Library]({{< relref "/prompt-library" >}})** for
-   any instruction files, skills, or rules that apply to your tool.
-   Fork them into your repo rather than writing from scratch.
+The scripts in this repository are support tooling. They help maintainers
+validate content, generate indexes, import public advisory material, and run
+local checks. They are not required runtime tooling for a company using a
+recipe.
 
-## Contributing — this is community-driven
+If a team wants to operationalize a recipe, the recommended path is:
 
-This project is designed to grow through contributions from every team
-that adopts it. If you have a working recipe, a polished prompt, or a
-skill that's been earning its keep, **open a PR**.
+1. Keep the recipe and prompt in the repo or agent configuration.
+2. Use existing scanners and ticket systems to provide findings.
+3. Use existing CI and branch protections to enforce review.
+4. Add MCP connectors only for context the agent must read.
+5. Treat any write-capable connector as a separate security review.
 
-See the [Contribute guide]({{< relref "/contribute" >}}) for the fork-and-PR
-workflow and the checklist reviewers look for.
+## Where to start
 
-Everything merged here must be:
-
-- **Reproducible** — another team can follow the steps and get the same
-  result.
-- **Opinionated** — "it depends" is not a recipe. Pick a path.
-- **Safe** — every recipe ends with guardrails, not just a happy path.
-
-## License
-
-Recipes are published under the MIT license. Logos and brand names
-remain the property of their respective owners.
+Start with the [Quick Start]({{< relref "/quickstart" >}}), then choose the
+agent your team already uses under [Agent Setup]({{< relref "/agents" >}}).
+When the first loop works, add [MCP context]({{< relref "/mcp-servers" >}})
+and stronger prompts from [Recipes]({{< relref "/prompt-library" >}}).

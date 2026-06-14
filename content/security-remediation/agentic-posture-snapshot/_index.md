@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Posture Snapshot
 linkTitle: Agentic Posture Snapshot
 weight: 12
@@ -7,6 +7,8 @@ description: >
   Generated enterprise posture evidence for agentic AI systems across secure
   context, MCP tools, A2A handoffs, identity, skills, telemetry, exposure
   paths, readiness, standards, and reviewer diligence.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -51,40 +53,16 @@ of product claims.
 
 ## Generated artifacts
 
-```text
-data/assurance/agentic-posture-model.json
-data/evidence/agentic-posture-snapshot.json
-scripts/generate_agentic_posture_snapshot.py
-scripts/evaluate_agentic_posture_decision.py
-```
 
 Run the generator after changing any evidence pack that participates in
 the posture view:
 
-```bash
-python3 scripts/generate_agentic_posture_snapshot.py
-python3 scripts/generate_agentic_posture_snapshot.py --check
-```
 
 Evaluate a runtime posture event:
 
-```bash
-python3 scripts/evaluate_agentic_posture_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --namespace repo.contents \
-  --expect-decision allow_with_posture_monitoring
-```
 
 Hold high-autonomy XPIA-sensitive execution until a human approval exists:
 
-```bash
-python3 scripts/evaluate_agentic_posture_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --namespace repo.contents \
-  --autonomy-level autonomous \
-  --indirect-prompt-injection-risk high \
-  --expect-decision hold_for_xpia_human_review
-```
 
 ## Decision model
 
@@ -125,7 +103,6 @@ Workflow posture decisions are:
 The MCP server exposes:
 
 - `recipes_agentic_posture_snapshot`
-- `recipes_evaluate_agentic_posture_decision`
 
 Use the snapshot tool for board, platform, procurement, and reviewer
 questions. Use the evaluator before a runtime event crosses a posture

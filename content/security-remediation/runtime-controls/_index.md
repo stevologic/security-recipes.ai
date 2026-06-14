@@ -347,6 +347,10 @@ that make agent-specific design sensible.
   — what reviewers do when telemetry hold flags an agent
   output.
 
+## Python remediation tool
+
+{{< remediation-tool domain="runtime-controls" >}}
+
 ## Changelog
 
 - 2026-04-25 — v1. Architecture, decision rules, and graduated

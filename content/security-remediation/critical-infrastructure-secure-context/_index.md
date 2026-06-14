@@ -1,4 +1,4 @@
----
+﻿---
 title: Critical Infrastructure Secure Context Profile
 linkTitle: Critical Infrastructure Profile
 weight: 19
@@ -8,6 +8,8 @@ description: >
   MCP: sector hazard mapping, secure-context evidence, operator approval,
   safety-case gates, telemetry, incident response, and deterministic
   runtime decisions.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -34,56 +36,20 @@ deny, or kill decisions.
 - Source model:
   `data/assurance/critical-infrastructure-secure-context-profile.json`
 - Generator:
-  `scripts/generate_critical_infrastructure_secure_context_pack.py`
 - Evidence pack:
   `data/evidence/critical-infrastructure-secure-context-pack.json`
 - Runtime evaluator:
-  `scripts/evaluate_critical_infrastructure_context_decision.py`
 - MCP tools:
   `recipes_critical_infrastructure_secure_context_pack`,
-  `recipes_evaluate_critical_infrastructure_context_decision`
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_critical_infrastructure_secure_context_pack.py
-python3 scripts/generate_critical_infrastructure_secure_context_pack.py --check
-```
 
 Evaluate a read-only pilot decision:
 
-```bash
-python3 scripts/evaluate_critical_infrastructure_context_decision.py \
-  --sector-id energy-ot-ics \
-  --workflow-id vulnerable-dependency-remediation \
-  --action-class read_only_context \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --run-id ci-readonly \
-  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
-  --tenant-id ci-tenant \
-  --context-package-hash sha256:context \
-  --authorization-decision allow_authorized_mcp_request \
-  --egress-decision allow_internal_context \
-  --expect-decision allow_ci_read_only_context
-```
 
 Evaluate a held high-impact action:
 
-```bash
-python3 scripts/evaluate_critical_infrastructure_context_decision.py \
-  --sector-id energy-ot-ics \
-  --workflow-id base-image-remediation \
-  --action-class critical_infrastructure_control \
-  --agent-id sr-agent::base-image-remediation::codex \
-  --run-id ci-hold \
-  --identity-id sr-agent::base-image-remediation::codex \
-  --tenant-id ci-tenant \
-  --context-package-hash sha256:context \
-  --authorization-decision allow_authorized_mcp_request \
-  --egress-decision allow_internal_context \
-  --flag affects_ot_or_ics=true \
-  --expect-decision hold_for_ci_safety_case
-```
 
 ## Why this matters now
 

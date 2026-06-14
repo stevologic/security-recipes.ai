@@ -268,6 +268,10 @@ acknowledged it — that is by design.
   — what a reviewer looks for in a quarantine action's audit
   record.
 
+## Python remediation tool
+
+{{< remediation-tool domain="artifact-cache-purge" >}}
+
 ## Changelog
 
 - 2026-04-25 — v1 reference workflow. Quarantine-by-default for

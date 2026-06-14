@@ -1,107 +1,85 @@
 ---
-title: Agents
-linkTitle: Agents
-weight: 2
+title: Agent Setup
+linkTitle: Agent Setup
+weight: 3
 toc: true
 sidebar:
   open: true
 description: >
-  The five AI coding agents this site supports — GitHub Copilot, Devin,
-  Cursor, Codex, and Claude — and how to decide which one to start with.
+  How to configure common AI coding agents to consume security recipes,
+  prompts, and scoped MCP context.
 ---
 
-This site treats each AI coding agent as a **separate product with its
-own recipe**. The configuration shape, the rules files, the guardrails,
-and the failure modes are different enough that one-size-fits-all
-guidance is misleading. Pick the agent your team already uses and
-follow its page.
+Start with the agent your team already uses. The recipe pattern works across
+tools as long as the agent gets three things:
+
+- A local rule file or knowledge entry.
+- The specific security recipe for the finding.
+- Only the context needed to produce a PR or triage note.
 
 {{< callout type="info" >}}
-**Already have a licensed tool on your team?** Use that. Migrating
-agents for the sake of "the better recipe" is almost always a bad
-trade — pick the agent with the shortest path to rolled-out
-guardrails, not the flashiest demo.
+**Do not switch agents just for a recipe.** The best first agent is usually the
+one already connected to your repos, approvals, and review habits.
 {{< /callout >}}
 
 ## Supported agents
 
-### [GitHub Copilot]({{< relref "/github_copilot" >}})
+{{< cards >}}
+  {{< card link="/github_copilot/" title="GitHub Copilot" subtitle="Use repository instructions, narrow GitHub Issues, code scanning context, and the Copilot Coding Agent." >}}
+  {{< card link="/claude/" title="Claude" subtitle="Use `CLAUDE.md`, skills, hooks, and read-only MCP context for repeatable remediation." >}}
+  {{< card link="/cursor/" title="Cursor" subtitle="Use Cursor Rules and Background Agents for IDE-native remediation runs." >}}
+  {{< card link="/codex/" title="Codex" subtitle="Use `AGENTS.md` and focused task prompts for terminal-first remediation." >}}
+  {{< card link="/devin/" title="Devin" subtitle="Use Knowledge entries and playbooks for hosted ticket-to-PR workflows." >}}
+{{< /cards >}}
 
-The Copilot Coding Agent can pick up GitHub Issues, branch, patch, run
-CI, and open a PR. Pair it with a repo-level
-`.github/copilot-instructions.md` and a narrow issue template and you
-have the shortest path to autonomous remediation for teams already on
-GitHub Enterprise.
+## Common setup pattern
 
-**Best when:** your remediation work already lives in GitHub Issues and
-you want to stay inside the PR review loop you have today.
+Every agent page follows this shape:
 
-### [Devin]({{< relref "/devin" >}})
+1. Create or update the agent's native instruction file.
+2. Add the remediation rules and stop conditions.
+3. Link or vendor the relevant security-recipes.ai recipe.
+4. Add read-only MCP context only when the finding needs it.
+5. Run one low-risk finding and inspect the PR or triage note.
+6. Promote the pattern only after reviewers trust the output.
 
-Devin is a hosted autonomous engineer. You point it at a task, it
-works in its own sandbox, and it reports back. It's the most "end to
-end agentic" of the bunch and the one that most rewards **Knowledge
-entries** — per-repo runbooks Devin reads on every session.
+## Native instruction files
 
-**Best when:** you want a fully hosted, ticket-in → PR-out loop and
-you're willing to invest in Knowledge curation.
+| Agent | Native context | Best use |
+| --- | --- | --- |
+| GitHub Copilot | `.github/copilot-instructions.md`, issue body, repository settings | Issue-to-PR flows inside GitHub |
+| Claude | `CLAUDE.md`, `.claude/skills/*/SKILL.md`, hooks | Rich repo rules and repeatable procedures |
+| Cursor | `.cursor/rules/*.mdc`, chat, Background Agents | IDE-centered remediation with project rules |
+| Codex | `AGENTS.md`, task prompt | Terminal and repository-local work |
+| Devin | Knowledge, playbooks, task description | Hosted task execution with curated runbooks |
 
-### [Cursor]({{< relref "/cursor" >}})
+## What to give the agent
 
-Cursor has both an interactive Agent mode (inside the IDE) and
-**Background Agents** (headless, running in the cloud). The Background
-Agents are what make Cursor interesting for remediation — paired with
-project rules (`.cursor/rules/*.mdc`) they'll chew through a backlog of
-findings without a human at the keyboard.
+Keep the prompt small and specific:
 
-**Best when:** your engineers already live in Cursor for day-to-day
-work and you want agentic remediation without adopting another tool.
+```text
+Use the vulnerable dependency recipe from security-recipes.ai.
+Fix only <finding ID>.
+Use repository instructions before editing.
+Read package/advisory context from approved read-only MCP sources.
+Run the relevant tests.
+Open one PR or stop with a triage note.
+```
 
-### [Codex]({{< relref "/codex" >}})
+## What to enforce outside the prompt
 
-Codex reads `AGENTS.md` on every invocation — a single, focused repo
-brief that describes how to build, test, and style changes. Pair it
-with a narrow task prompt and a strict guardrails policy and it's an
-excellent fit for mechanical, high-volume remediation.
+Prompts guide behavior; they do not enforce it. Use the systems you already
+trust for enforcement:
 
-**Best when:** you need the simplest possible recipe and you already
-use OpenAI's stack elsewhere.
+- Branch protection and required reviews.
+- CODEOWNERS for sensitive files.
+- Required CI and security checks.
+- Scoped tokens and read-only MCP permissions.
+- Audit logs for agent runs and connector calls.
 
-### [Claude]({{< relref "/claude" >}})
+## See also
 
-Claude is unusually strong at agentic work because of three things:
-`CLAUDE.md` (repo context), **skills** (`.claude/skills/*/SKILL.md` —
-reusable procedure files), and **hooks** (`PreToolUse` / `PostToolUse`
-shell scripts that enforce guardrails at tool-call time). It's the
-most customisable and, when well-configured, the most trustworthy.
-
-**Best when:** you want deep, repo-specific guardrails and you're
-willing to invest in skills as a first-class artifact.
-
-## How to pick
-
-A rough decision tree:
-
-1. **Is there already a licensed AI coding agent on your team?**
-   → Use it. Read its recipe.
-2. **Are most engineers already in a specific IDE?** → Match the agent
-   to it (Cursor for Cursor users, Copilot for VS Code / JetBrains with
-   GitHub).
-3. **Do you need the deepest guardrails?** → Claude's hooks and skills
-   are the most mature story.
-4. **Do you need fully hosted, ticket-in → PR-out with minimal IDE
-   involvement?** → Devin.
-
-You are allowed to run more than one. Most mature programs end up
-using 2–3 agents for different classes of work — e.g. Devin for
-backlog SCA findings, Claude for sensitive services, Copilot for
-quick in-IDE fixes.
-
-## What to read next
-
-- The agent page you picked — read it top-to-bottom, guardrails first.
-- **[Prompt Library]({{< relref "/prompt-library" >}})** — working
-  instruction files, rules, and skills you can fork into your repo
-  instead of writing from scratch.
-- **[Docs]({{< relref "/docs" >}})** — site-wide conventions and the
-  shape every recipe follows.
+- [Quick Start]({{< relref "/quickstart" >}})
+- [Recipes]({{< relref "/prompt-library" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})
+- [Integrate an AI Agent]({{< relref "/docs/agent-integration" >}})

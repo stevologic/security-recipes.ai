@@ -1,0 +1,120 @@
+{{- $root := site.GetPage "/prompt-library" -}}
+{{- $pages := slice -}}
+{{- with $root -}}
+  {{- $pages = .RegularPagesRecursive -}}
+{{- end -}}
+{{- $pages = sort $pages "RelPermalink" -}}
+{{- $zeroDayWindowDays := 4 -}}
+{{- $zeroDayReferenceDate := now.Format "2006-01-02" -}}
+{{- range $pages -}}
+  {{- $candidateDate := "" -}}
+  {{- with .Date }}{{ $candidateDate = .Format "2006-01-02" }}{{ end -}}
+  {{- if gt $candidateDate $zeroDayReferenceDate -}}
+    {{- $zeroDayReferenceDate = $candidateDate -}}
+  {{- end -}}
+{{- end -}}
+{{- $zeroDaySince := ((time.AsTime $zeroDayReferenceDate).AddDate 0 0 -4).Format "2006-01-02" -}}
+
+{{- $categoryCounts := dict -}}
+{{- $zeroDayCount := 0 -}}
+{{- $recipes := slice -}}
+{{- range $pages -}}
+  {{- $source := "" -}}
+  {{- $slug := .Slug | default "" -}}
+  {{- with .File -}}
+    {{- $source = .Path -}}
+    {{- if and (eq $slug "") (ne .TranslationBaseName "_index") -}}
+      {{- $slug = .TranslationBaseName -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $source = replace $source "\\" "/" -}}
+  {{- if eq $slug "" -}}
+    {{- $slug = replaceRE "/" "-" (replaceRE "^/|/$" "" .RelPermalink) -}}
+  {{- end -}}
+
+  {{- $catSlug := "general" -}}
+  {{- $catLabel := "General" -}}
+  {{- if hasPrefix $source "prompt-library/cve/" -}}
+    {{- $catSlug = "cve" -}}{{- $catLabel = "CVE" -}}
+  {{- else if hasPrefix $source "prompt-library/general/classic-vulnerable-defaults/" -}}
+    {{- $catSlug = "classic-defaults" -}}{{- $catLabel = "Classic Vulnerable Defaults" -}}
+  {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
+    {{- $catSlug = "crypto-defi" -}}{{- $catLabel = "Crypto/DeFi" -}}
+  {{- else if hasPrefix $source "prompt-library/claude/" -}}
+    {{- $catSlug = "claude" -}}{{- $catLabel = "Claude" -}}
+  {{- else if hasPrefix $source "prompt-library/github_copilot/" -}}
+    {{- $catSlug = "github-copilot" -}}{{- $catLabel = "GitHub Copilot" -}}
+  {{- else if hasPrefix $source "prompt-library/cursor/" -}}
+    {{- $catSlug = "cursor" -}}{{- $catLabel = "Cursor" -}}
+  {{- else if hasPrefix $source "prompt-library/codex/" -}}
+    {{- $catSlug = "codex" -}}{{- $catLabel = "Codex" -}}
+  {{- else if hasPrefix $source "prompt-library/devin/" -}}
+    {{- $catSlug = "devin" -}}{{- $catLabel = "Devin" -}}
+  {{- end -}}
+
+  {{- $current := index $categoryCounts $catSlug | default 0 -}}
+  {{- $categoryCounts = merge $categoryCounts (dict $catSlug (add $current 1)) -}}
+  {{- $summary := .Description | default (.Summary | plainify | truncate 240) -}}
+  {{- $date := "" -}}
+  {{- with .Date -}}{{- $date = .Format "2006-01-02" -}}{{- end -}}
+  {{- $isZeroDay := and (eq $catSlug "cve") (ne $date "") (ge $date $zeroDaySince) -}}
+  {{- if $isZeroDay -}}
+    {{- $zeroDayCount = add $zeroDayCount 1 -}}
+  {{- end -}}
+  {{- $recipe := dict
+    "slug" $slug
+    "title" .Title
+    "link_title" (.LinkTitle | default .Title)
+    "url" .Permalink
+    "path" .RelPermalink
+    "source_file" $source
+    "category" (dict "slug" $catSlug "label" $catLabel)
+    "agent" (.Params.agent | default .Params.tool | default $catSlug)
+    "severity" (.Params.severity | default "unspecified")
+    "maturity" (.Params.maturity | default "unspecified")
+    "ecosystem" (.Params.ecosystem | default "")
+    "cve" (.Params.cve | default "")
+    "ghsa" (.Params.ghsa | default "")
+    "kev" (.Params.kev | default false)
+    "aliases" (.Params.aliases | default (slice))
+    "tags" (.Params.tags | default (slice))
+    "author" (.Params.author | default "")
+    "team" (.Params.team | default "")
+    "model" (.Params.model | default .Params.model_used | default "")
+    "date" $date
+    "zero_day" $isZeroDay
+    "last_updated" (.Lastmod.Format "2006-01-02")
+    "summary" $summary
+    "content_text" .Plain
+    "download" (dict
+      "content_type" "application/json"
+      "suggested_filename" (printf "security-recipe-%s.json" $slug)
+    )
+  -}}
+  {{- $recipes = $recipes | append $recipe -}}
+{{- end -}}
+
+{{- $categories := slice -}}
+{{- range $slug, $count := $categoryCounts -}}
+  {{- $categories = $categories | append (dict "slug" $slug "count" $count) -}}
+{{- end -}}
+
+{{- dict
+  "api_version" "2026-06-10"
+  "kind" "security-recipes.recipe-library"
+  "site" site.Title
+  "endpoint" ("/api/recipes.json" | absURL)
+  "legacy_endpoint" ("/recipes-index.json" | absURL)
+  "generated_at" (now.Format "2006-01-02T15:04:05Z07:00")
+  "recipe_count" (len $recipes)
+  "zero_day" (dict
+    "label" "0-Day"
+    "window_days" $zeroDayWindowDays
+    "since" $zeroDaySince
+    "reference_date" $zeroDayReferenceDate
+    "count" $zeroDayCount
+    "description" "CVE recipes whose site-created date falls within the current 0-Day window."
+  )
+  "categories" (sort $categories "slug")
+  "recipes" $recipes
+| jsonify -}}

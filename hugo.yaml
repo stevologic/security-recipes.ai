@@ -1,13 +1,11 @@
 # ============================================================================
-# Hugo configuration — security-recipes.ai
+# Hugo configuration - security-recipes.ai
 # Uses the Hextra theme (https://imfing.github.io/hextra/)
 # ============================================================================
 
-# NOTE: For GitHub Pages deploys this value is overridden by the workflow
-# via `hugo --baseURL ...` (computed from the owner/repo at build time),
-# so forks / renames work without editing this file. The value below is
-# only used for local `hugo server` and Docker builds.
-# For a custom domain, set it to e.g. "https://docs.example.com/".
+# For GitHub Pages deploys this value is overridden by CI through
+# `hugo --baseURL ...`, so forks and repo renames work without editing this
+# file. The value below is for local `hugo server` and Docker builds.
 baseURL: "https://security-recipes.ai/"
 title: "security-recipes.ai"
 languageCode: en-us
@@ -16,24 +14,15 @@ enableRobotsTXT: true
 enableGitInfo: true
 enableEmoji: true
 
-# ----------------------------------------------------------------------
-# Sitemap — Hugo auto-generates `sitemap.xml` at the site root using
-# these defaults. Per-page overrides via `sitemap` frontmatter.
-# `enableGitInfo: true` above means `<lastmod>` is the file's most
-# recent git commit time, which gives search engines an honest signal
-# of page freshness without anyone having to hand-maintain a date.
-# ----------------------------------------------------------------------
 sitemap:
   changefreq: weekly
   filename: sitemap.xml
   priority: 0.7
 
-# Hextra is loaded as a Hugo Module (see go.mod).
 module:
   imports:
     - path: github.com/imfing/hextra
 
-# Markdown / syntax highlighting
 markup:
   goldmark:
     renderer:
@@ -42,9 +31,12 @@ markup:
     noClasses: false
     style: github-dark
 
-# Output formats needed by Hextra search + MCP recipe indexing.
+# Hextra needs HTML output. The recipes index powers the MCP server and agent
+# consumption patterns. The marketplace feeds are kept for compatibility with
+# existing browser assistant features, but they are no longer part of the main
+# site story.
 outputs:
-  home: [HTML, RECIPESINDEX, MARKETPLACECATALOG, MARKETPLACEINPUTS, MARKETPLACEOUTPUTS, MARKETPLACEREPORTS, MARKETPLACEWORKFLOWS, MARKETPLACEREADINESS, MARKETPLACEMANIFEST]
+  home: [HTML, RECIPESINDEX, AGENTRECIPES, MARKETPLACECATALOG, MARKETPLACEINPUTS, MARKETPLACEOUTPUTS, MARKETPLACEREPORTS, MARKETPLACEWORKFLOWS, MARKETPLACEREADINESS, MARKETPLACEMANIFEST]
   page: [HTML]
   section: [HTML, RSS]
 
@@ -52,6 +44,12 @@ outputFormats:
   RECIPESINDEX:
     mediaType: application/json
     baseName: recipes-index
+    isPlainText: true
+    notAlternative: true
+  AGENTRECIPES:
+    mediaType: application/json
+    path: api
+    baseName: recipes
     isPlainText: true
     notAlternative: true
   MARKETPLACECATALOG:
@@ -90,13 +88,8 @@ outputFormats:
     isPlainText: true
     notAlternative: true
 
-# ----------------------------------------------------------------------------
-# Menus
-# ----------------------------------------------------------------------------
-# Top nav mirrors the landing page: Docs, Agents (with 5 child recipes),
-# Prompt Library, and a Contribute link that points at CONTRIBUTING.md in
-# the hosting repo. Contribute and the repo URL are both resolved at
-# runtime from `params.repoURL` so the site can be forked without edits.
+# Keep the primary nav intentionally small. Deeper pages stay discoverable
+# through section sidebars and search.
 menu:
   main:
     - identifier: quickstart
@@ -104,310 +97,31 @@ menu:
       pageRef: quickstart
       weight: 1
 
-    - identifier: fundamentals
-      name: Fundamentals
-      pageRef: fundamentals
+    - identifier: recipes
+      name: Remediation
+      pageRef: security-remediation
       weight: 2
-      params:
-        type: menu
-    - identifier: fundamentals-overview
-      parent: fundamentals
-      name: Overview
-      pageRef: fundamentals
-      weight: 10
-    - identifier: fundamentals-threat-model
-      parent: fundamentals
-      name: Threat Model
-      pageRef: fundamentals/threat-model
-      weight: 11
-    - identifier: fundamentals-emerging-patterns
-      parent: fundamentals
-      name: Emerging Patterns
-      pageRef: fundamentals/emerging-patterns
-      weight: 12
+
+    - identifier: agents
+      name: Agent Setup
+      pageRef: agents
+      weight: 3
+
+    - identifier: prompt-library
+      name: Recipes
+      pageRef: prompt-library
+      url: /recipes/
+      weight: 4
+
+    - identifier: mcp-servers
+      name: MCP Integration
+      pageRef: mcp-servers
+      weight: 5
 
     - identifier: docs
       name: Docs
       pageRef: docs
-      weight: 3
-      params:
-        type: menu
-    - identifier: docs-overview
-      parent: docs
-      name: Overview
-      pageRef: docs
-      weight: 30
-    - identifier: docs-agent-integration
-      parent: docs
-      name: Integrate an AI Agent
-      pageRef: docs/agent-integration
-      weight: 31
-    - identifier: docs-marketplace-gallery
-      parent: docs
-      name: Marketplace Gallery
-      pageRef: docs/marketplace-gallery
-      weight: 32
-    - identifier: docs-visual-guide
-      parent: docs
-      name: Visual Guide
-      pageRef: how-to-use
-      weight: 33
-
-    - identifier: agents
-      name: Agents
-      pageRef: agents
-      weight: 4
-      params:
-        type: menu
-    - identifier: agents-overview
-      parent: agents
-      name: Overview
-      pageRef: agents
-      weight: 20
-    - identifier: copilot
-      parent: agents
-      name: GitHub Copilot
-      pageRef: github_copilot
-      weight: 21
-    - identifier: devin
-      parent: agents
-      name: Devin
-      pageRef: devin
-      weight: 22
-    - identifier: cursor
-      parent: agents
-      name: Cursor
-      pageRef: cursor
-      weight: 23
-    - identifier: codex
-      parent: agents
-      name: Codex
-      pageRef: codex
-      weight: 24
-    - identifier: claude
-      parent: agents
-      name: Claude
-      pageRef: claude
-      weight: 25
-
-    # ----------------------------------------------------------------------
-    # Prompt Library
-    # ----------------------------------------------------------------------
-    # NAVIGATION CONTRACT: the top-nav dropdown lists *per-tool*
-    # subsections (Claude / Cursor / Codex / Devin / Copilot / General)
-    # plus the two cross-cutting collections (CVE Recipes, Classic
-    # Vulnerable Defaults). Each of those is a hub whose contents are
-    # auto-discovered by the `prompt-toc` / `cve-toc` shortcodes — so
-    # individual recipes never appear here.
-    #
-    # As tools or cross-cutting collections grow, expect a small,
-    # bounded number of new entries. Individual prompts and CVE
-    # recipes do **not** get menu entries.
-    - identifier: prompt-library
-      name: Prompt Library
-      pageRef: prompt-library
-      weight: 5
-      params:
-        type: menu
-    - identifier: prompt-library-overview
-      parent: prompt-library
-      name: Overview
-      pageRef: prompt-library
-      weight: 50
-    - identifier: prompt-library-claude
-      parent: prompt-library
-      name: Claude
-      pageRef: prompt-library/claude
-      weight: 51
-    - identifier: prompt-library-copilot
-      parent: prompt-library
-      name: GitHub Copilot
-      pageRef: prompt-library/github_copilot
-      weight: 52
-    - identifier: prompt-library-cursor
-      parent: prompt-library
-      name: Cursor
-      pageRef: prompt-library/cursor
-      weight: 53
-    - identifier: prompt-library-codex
-      parent: prompt-library
-      name: Codex
-      pageRef: prompt-library/codex
-      weight: 54
-    - identifier: prompt-library-devin
-      parent: prompt-library
-      name: Devin
-      pageRef: prompt-library/devin
-      weight: 55
-    - identifier: prompt-library-general
-      parent: prompt-library
-      name: General
-      pageRef: prompt-library/general
-      weight: 56
-    - identifier: prompt-library-sources
-      parent: prompt-library
-      name: Reputable Sources
-      pageRef: prompt-library/sources
-      weight: 57
-    - identifier: prompt-library-cve
-      parent: prompt-library
-      name: CVE Recipes
-      pageRef: prompt-library/cve
-      weight: 58
-    - identifier: prompt-library-classic
-      parent: prompt-library
-      name: Classic Vulnerable Defaults
-      pageRef: prompt-library/general/classic-vulnerable-defaults
-      weight: 59
-
-    - identifier: mcp-servers
-      name: MCP Servers
-      pageRef: mcp-servers
       weight: 6
-
-    # ----------------------------------------------------------------------
-    # Security Remediation
-    # ----------------------------------------------------------------------
-    # NAVIGATION CONTRACT (don't break this): the top-nav dropdown lists
-    # only the *Overview* and stable hub-level categories — never the
-    # leaf workflow / operations pages. Hextra's sidebar auto-discovers
-    # every page in the section from the filesystem, so dropping a new
-    # workflow at `content/security-remediation/<slug>/_index.md`
-    # appears in-section without any edit here.
-    #
-    # When in doubt: add a card on the section's _index.md, not a menu
-    # entry here.
-    - identifier: security-remediation
-      name: Security Remediation
-      pageRef: security-remediation
-      weight: 7
-      params:
-        type: menu
-    - identifier: secrem-overview
-      parent: security-remediation
-      name: Overview
-      pageRef: security-remediation
-      weight: 60
-    - identifier: secrem-control-plane-blueprint
-      parent: security-remediation
-      name: Control Plane Blueprint
-      pageRef: security-remediation/agentic-control-plane-blueprint
-      weight: 65
-    - identifier: secrem-app-intake
-      parent: security-remediation
-      name: App Intake Gate
-      pageRef: security-remediation/agentic-app-intake-gate
-      weight: 65
-    - identifier: secrem-model-provider-routing
-      parent: security-remediation
-      name: Model Provider Routing
-      pageRef: security-remediation/model-provider-routing-gate
-      weight: 66
-    - identifier: secrem-aivss-risk-scoring
-      parent: security-remediation
-      name: AIVSS Risk Scoring
-      pageRef: security-remediation/agentic-aivss-risk-scoring
-      weight: 66
-    - identifier: secrem-threat-radar
-      parent: security-remediation
-      name: Agentic Threat Radar
-      pageRef: security-remediation/agentic-threat-radar
-      weight: 66
-    - identifier: secrem-standards-crosswalk
-      parent: security-remediation
-      name: Standards Crosswalk
-      pageRef: security-remediation/agentic-standards-crosswalk
-      weight: 66
-    - identifier: secrem-mcp-risk-coverage
-      parent: security-remediation
-      name: MCP Risk Coverage
-      pageRef: security-remediation/mcp-risk-coverage
-      weight: 66
-    - identifier: secrem-protocol-conformance
-      parent: security-remediation
-      name: Protocol Conformance
-      pageRef: security-remediation/agentic-protocol-conformance
-      weight: 66
-    - identifier: secrem-control-plane
-      parent: security-remediation
-      name: Workflow Control Plane
-      pageRef: security-remediation/control-plane
-      weight: 67
-    - identifier: secrem-gateway-policy
-      parent: security-remediation
-      name: MCP Gateway Policy
-      pageRef: security-remediation/mcp-gateway-policy
-      weight: 68
-    - identifier: secrem-connector-intake
-      parent: security-remediation
-      name: Connector Intake
-      pageRef: security-remediation/mcp-connector-intake-scanner
-      weight: 69
-    - identifier: secrem-mcp-tool-risk
-      parent: security-remediation
-      name: MCP Tool Risk
-      pageRef: security-remediation/mcp-tool-risk-contract
-      weight: 69
-    - identifier: secrem-connector-trust
-      parent: security-remediation
-      name: MCP Connector Trust
-      pageRef: security-remediation/mcp-connector-trust-registry
-      weight: 70
-    - identifier: secrem-assurance-pack
-      parent: security-remediation
-      name: Agentic Assurance Pack
-      pageRef: security-remediation/agentic-assurance-pack
-      weight: 71
-    - identifier: secrem-readiness-scorecard
-      parent: security-remediation
-      name: Readiness Scorecard
-      pageRef: security-remediation/agentic-readiness-scorecard
-      weight: 72
-    - identifier: secrem-red-team-drills
-      parent: security-remediation
-      name: Red-Team Drill Pack
-      pageRef: security-remediation/agentic-red-team-drills
-      weight: 73
-    - identifier: secrem-agent-identity-ledger
-      parent: security-remediation
-      name: Agent Identity Ledger
-      pageRef: security-remediation/agent-identity-ledger
-      weight: 74
-    - identifier: secrem-context-poisoning-guard
-      parent: security-remediation
-      name: Context Poisoning Guard
-      pageRef: security-remediation/context-poisoning-guard
-      weight: 74
-    - identifier: secrem-reviewer
-      parent: security-remediation
-      name: Reviewer Playbook
-      pageRef: security-remediation/reviewer-playbook
-      weight: 75
-    - identifier: secrem-gatekeeping
-      parent: security-remediation
-      name: Gatekeeping Patterns
-      pageRef: security-remediation/gatekeeping
-      weight: 76
-    - identifier: secrem-runtime-controls
-      parent: security-remediation
-      name: Runtime Controls
-      pageRef: security-remediation/runtime-controls
-      weight: 77
-    - identifier: secrem-compliance
-      parent: security-remediation
-      name: Compliance & Audit
-      pageRef: security-remediation/compliance
-      weight: 78
-
-    - identifier: automation
-      name: Automation
-      pageRef: automation
-      weight: 8
-
-    - identifier: contribute
-      name: Contribute
-      pageRef: contribute
-      weight: 9
 
   sidebar:
     - identifier: more
@@ -420,41 +134,28 @@ menu:
       pageRef: /contribute
       weight: 101
 
-# ----------------------------------------------------------------------------
-# Theme params
-# ----------------------------------------------------------------------------
 params:
   description: >
-    The trusted secure context layer for agentic AI and MCP servers.
-    Open recipes, agent-verified prompts, and production MCP access for
-    reviewer-gated security remediation at enterprise speed.
+    Security recipes for agentic AI remediation: reviewed playbooks,
+    prompts, agent setup guides, and MCP integration patterns for teams
+    that want narrower, safer security fixes.
 
-  # ----------------------------------------------------------------------
-  # SEO defaults — read by `partials/custom/seo.html`
-  # ----------------------------------------------------------------------
-  # Per-page frontmatter overrides any of these. The seo partial walks
-  # description -> summary -> site default for description, and
-  # `params.image` -> seo.defaultImage for the OG card image.
   seo:
     siteName: "SecurityRecipes"
     author: "security-recipes.ai contributors"
-    twitter: ""                 # set to "@handle" once a social account exists
+    twitter: ""
     defaultImage: "images/og-card.svg"
     defaultImageWidth: 1200
     defaultImageHeight: 630
-    # `sameAs` feeds the Organization JSON-LD — list canonical
-    # social / repo URLs here so search engines can connect identities.
     sameAs:
       - "https://github.com/stevologic/security-recipes.ai"
-    # Default keyword bag used on pages that declare neither `keywords`
-    # nor `tags`. Page-level `tags` always wins where present.
     defaultKeywords:
-      - "agentic security"
+      - "security recipes"
+      - "agentic security remediation"
       - "AI security remediation"
       - "AI coding agents"
       - "vulnerability remediation"
       - "CVE remediation"
-      - "AI agents"
       - "GitHub Copilot"
       - "Claude Code"
       - "Cursor"
@@ -464,13 +165,7 @@ params:
       - "SAST"
       - "secure software supply chain"
       - "OWASP Top 10"
-      - "NIST AI Risk Management Framework"
-      - "secure context layer"
-      - "MCP native security"
 
-  # Repository URL — dynamic.
-  # Override in CI with HUGO_PARAMS_REPOURL=https://github.com/<owner>/<repo>
-  # so the site tracks whichever repo is hosting it.
   repoURL: "https://github.com/stevologic/security-recipes.ai"
 
   navbar:
@@ -479,36 +174,27 @@ params:
     logo:
       path: images/logo.svg
       dark: images/logo.svg
-      # link: /
-      # width: 40
-      # height: 20
 
   theme:
-    # Options: light, dark, system
     default: dark
     displayToggle: true
 
   footer:
     displayCopyright: true
     displayPoweredBy: false
-    copyright: "© 2026 security-recipes.ai · An open, community-driven playbook for security engineering teams"
+    copyright: "Copyright 2026 security-recipes.ai - open security recipes for agent-assisted remediation"
 
-  # Page displays & behaviour
   page:
-    width: normal       # normal | wide | full
+    width: normal
 
-  # Display TOC on the right
   toc:
     displayTags: true
 
-  # Edit on GitHub links — disabled. We don't want an external
-  # callout to github.com injected into every page's header.
   editURL:
     enable: false
 
-  # Built-in search
   search:
-    enable: true
+    enable: false
     type: flexsearch
     flexsearch:
       index: content

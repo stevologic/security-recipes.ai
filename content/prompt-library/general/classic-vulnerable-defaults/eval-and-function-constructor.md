@@ -50,6 +50,10 @@ operations the use case requires:
 
 - **expr-eval** (npm) — arithmetic + a small set of named
   functions, no JavaScript globals.
+  In 2025+ remediation work, prefer `expr-eval-fork 3.0.1+`
+  or another reviewed maintained parser; avoid the original
+  `expr-eval` package unless the project carries a reviewed
+  downstream patch for CVE-2025-12735 and CVE-2025-13204.
 - **mathjs** with an explicit function allowlist — strong
   scope-control, careful with `import`/`evaluate`.
 - A purpose-built parser (Jison, Chevrotain, Nearley) that
@@ -107,8 +111,8 @@ Output a PR or a TRIAGE.md.
 ## Step 1 — Pick the replacement per call site
 
 - **JSON-shaped:** `JSON.parse`.
-- **Formula:** restricted evaluator (`expr-eval`, `mathjs`
-  with allowlist) or a real parser.
+- **Formula:** restricted evaluator (`expr-eval-fork 3.0.1+`,
+  `mathjs` with allowlist) or a real parser.
 - **Configuration:** load YAML/JSON instead.
 - **Templates:** compile only trusted templates; for
   user-customization, switch to a typed-placeholder schema.
@@ -178,6 +182,10 @@ If the application has a browser front-end:
   classic restricted-evaluator bypass. The replacement parser
   needs to reject access to `constructor`, `__proto__`, and
   `prototype`.
+- **Stale "safe evaluator" packages.** `expr-eval` is now
+  tracked by CVE-2025-12735 and CVE-2025-13204. A PR that
+  swaps `eval` for the vulnerable original package should not
+  be accepted as a security fix.
 - **Template engines that read from a database.** If the
   template content is dynamic but stored in a "safe" place
   (database, S3), an attacker who can write there can

@@ -1,4 +1,4 @@
----
+﻿---
 title: MCP Authorization Conformance
 linkTitle: MCP Authorization Conformance
 weight: 10
@@ -8,6 +8,8 @@ description: >
   tokens, audience validation, PKCE, client ID metadata documents,
   scope challenges, step-up authorization, token-passthrough denial,
   workflow-scoped authorization, session binding, and scope drift.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -42,49 +44,17 @@ authorization decisions.
 - Source profile:
   `data/assurance/mcp-authorization-conformance-profile.json`
 - Generator:
-  `scripts/generate_mcp_authorization_conformance_pack.py`
 - Evidence pack:
   `data/evidence/mcp-authorization-conformance-pack.json`
 - Runtime evaluator:
-  `scripts/evaluate_mcp_authorization_decision.py`
 - MCP tools:
   `recipes_mcp_authorization_conformance_pack` and
-  `recipes_evaluate_mcp_authorization_decision`
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_mcp_authorization_conformance_pack.py
-python3 scripts/generate_mcp_authorization_conformance_pack.py --check
-```
 
 Evaluate a runtime authorization request:
 
-```bash
-python3 scripts/evaluate_mcp_authorization_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --connector-id repository-contents \
-  --namespace repo.contents \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --run-id ci-allow \
-  --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
-  --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
-  --client-metadata-document-validated \
-  --authorization-server-discovery-method www_authenticate \
-  --protected-resource-metadata-url https://mcp.security-recipes.ai/.well-known/oauth-protected-resource \
-  --requested-access-mode write_branch \
-  --resource-indicator https://mcp.security-recipes.ai/mcp \
-  --token-audience https://mcp.security-recipes.ai/mcp \
-  --token-issuer https://auth.security-recipes.ai \
-  --token-expires-at 2099-01-01T00:15:00Z \
-  --token-scope repo.contents:write_branch \
-  --scope-challenge repo.contents:write_branch \
-  --consent-record-id consent-ci \
-  --session-id session-ci \
-  --correlation-id corr-ci \
-  --gateway-policy-hash sha256:ci-policy \
-  --expect-decision allow_authorized_mcp_request
-```
 
 ## Decision model
 
@@ -186,31 +156,6 @@ recipes_mcp_authorization_conformance_pack(
 
 Evaluate one runtime request:
 
-```text
-recipes_evaluate_mcp_authorization_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  connector_id="repository-contents",
-  namespace="repo.contents",
-  agent_id="sr-agent::vulnerable-dependency-remediation::codex",
-  run_id="run-123",
-  client_id="https://agent.security-recipes.ai/client-metadata/codex.json",
-  client_metadata_document_url="https://agent.security-recipes.ai/client-metadata/codex.json",
-  client_metadata_document_validated=true,
-  authorization_server_discovery_method="www_authenticate",
-  protected_resource_metadata_url="https://mcp.security-recipes.ai/.well-known/oauth-protected-resource",
-  requested_access_mode="write_branch",
-  resource_indicator="https://mcp.security-recipes.ai/mcp",
-  token_audience="https://mcp.security-recipes.ai/mcp",
-  token_issuer="https://auth.security-recipes.ai",
-  token_expires_at="2099-01-01T00:15:00Z",
-  token_scopes=["repo.contents:write_branch"],
-  scope_challenge=["repo.contents:write_branch"],
-  consent_record_id="consent-123",
-  session_id="session-123",
-  correlation_id="corr-123",
-  gateway_policy_hash="sha256:policy"
-)
-```
 
 ## See also
 

@@ -21,79 +21,17 @@ import httpx
 import tomli
 from fastmcp import FastMCP
 
-try:
-    from scripts.evaluate_a2a_agent_card_trust_decision import evaluate_a2a_agent_card_trust_decision
-    from scripts.evaluate_agentic_action_runtime_decision import evaluate_agentic_action_runtime_decision
-    from scripts.evaluate_agent_trust_fabric_decision import evaluate_agent_trust_fabric_decision
-    from scripts.evaluate_agentic_approval_receipt_decision import evaluate_agentic_approval_receipt_decision
-    from scripts.evaluate_agentic_aivss_risk_decision import evaluate_agentic_aivss_risk_decision
-    from scripts.evaluate_agentic_entitlement_decision import evaluate_agentic_entitlement_decision
-    from scripts.evaluate_agentic_app_intake_decision import evaluate_agentic_app_intake_decision
-    from scripts.evaluate_agentic_catastrophic_risk_decision import evaluate_agentic_catastrophic_risk_decision
-    from scripts.evaluate_critical_infrastructure_context_decision import evaluate_critical_infrastructure_context_decision
-    from scripts.evaluate_agentic_incident_response_decision import evaluate_agentic_incident_response_decision
-    from scripts.evaluate_agentic_posture_decision import evaluate_agentic_posture_decision
-    from scripts.evaluate_agentic_protocol_conformance_decision import evaluate_agentic_protocol_conformance_decision
-    from scripts.evaluate_agentic_red_team_replay_result import evaluate_agentic_red_team_replay_result
-    from scripts.evaluate_agentic_soc_detection_event import evaluate_agentic_soc_detection_event
-    from scripts.evaluate_agentic_telemetry_event import evaluate_agentic_telemetry_event
-    from scripts.evaluate_model_provider_routing_decision import evaluate_model_provider_routing_decision
-    from scripts.evaluate_secure_context_evidence_release import evaluate_secure_context_evidence_release
-    from scripts.evaluate_browser_agent_boundary_decision import evaluate_browser_agent_boundary_decision
-    from scripts.evaluate_mcp_elicitation_boundary_decision import evaluate_mcp_elicitation_boundary_decision
-    from scripts.evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
-    from scripts.evaluate_agent_handoff_boundary_decision import evaluate_agent_handoff_boundary_decision
-    from scripts.evaluate_agent_memory_boundary_decision import evaluate_agent_memory_boundary_decision
-    from scripts.evaluate_mcp_stdio_launch_decision import evaluate_mcp_stdio_launch_decision
-    from scripts.evaluate_mcp_tool_risk_decision import evaluate_mcp_tool_risk_decision
-    from scripts.evaluate_mcp_tool_surface_drift_decision import evaluate_mcp_tool_surface_drift_decision
-    from scripts.evaluate_context_egress_decision import evaluate_context_egress_decision
-    from scripts.evaluate_context_attestation_decision import evaluate_context_attestation_decision
-    from scripts.evaluate_secure_context_lineage_decision import evaluate_secure_context_lineage_decision
-    from scripts.evaluate_secure_context_eval_case import evaluate_secure_context_eval_case
-    from scripts.evaluate_mcp_authorization_decision import evaluate_mcp_authorization_decision
-    from scripts.evaluate_mcp_gateway_decision import evaluate_policy_decision
-    from scripts.evaluate_secure_context_retrieval import evaluate_context_retrieval_decision
-except ImportError:  # pragma: no cover - supports direct script-directory execution.
-    from evaluate_a2a_agent_card_trust_decision import evaluate_a2a_agent_card_trust_decision
-    from evaluate_agentic_action_runtime_decision import evaluate_agentic_action_runtime_decision
-    from evaluate_agent_trust_fabric_decision import evaluate_agent_trust_fabric_decision
-    from evaluate_agentic_approval_receipt_decision import evaluate_agentic_approval_receipt_decision
-    from evaluate_agentic_aivss_risk_decision import evaluate_agentic_aivss_risk_decision
-    from evaluate_agentic_entitlement_decision import evaluate_agentic_entitlement_decision
-    from evaluate_agentic_app_intake_decision import evaluate_agentic_app_intake_decision
-    from evaluate_agentic_catastrophic_risk_decision import evaluate_agentic_catastrophic_risk_decision
-    from evaluate_critical_infrastructure_context_decision import evaluate_critical_infrastructure_context_decision
-    from evaluate_agentic_incident_response_decision import evaluate_agentic_incident_response_decision
-    from evaluate_agentic_posture_decision import evaluate_agentic_posture_decision
-    from evaluate_agentic_protocol_conformance_decision import evaluate_agentic_protocol_conformance_decision
-    from evaluate_agentic_red_team_replay_result import evaluate_agentic_red_team_replay_result
-    from evaluate_agentic_soc_detection_event import evaluate_agentic_soc_detection_event
-    from evaluate_agentic_telemetry_event import evaluate_agentic_telemetry_event
-    from evaluate_model_provider_routing_decision import evaluate_model_provider_routing_decision
-    from evaluate_secure_context_evidence_release import evaluate_secure_context_evidence_release
-    from evaluate_browser_agent_boundary_decision import evaluate_browser_agent_boundary_decision
-    from evaluate_mcp_elicitation_boundary_decision import evaluate_mcp_elicitation_boundary_decision
-    from evaluate_agent_skill_supply_chain_decision import evaluate_agent_skill_supply_chain_decision
-    from evaluate_agent_handoff_boundary_decision import evaluate_agent_handoff_boundary_decision
-    from evaluate_agent_memory_boundary_decision import evaluate_agent_memory_boundary_decision
-    from evaluate_mcp_stdio_launch_decision import evaluate_mcp_stdio_launch_decision
-    from evaluate_mcp_tool_risk_decision import evaluate_mcp_tool_risk_decision
-    from evaluate_mcp_tool_surface_drift_decision import evaluate_mcp_tool_surface_drift_decision
-    from evaluate_context_egress_decision import evaluate_context_egress_decision
-    from evaluate_context_attestation_decision import evaluate_context_attestation_decision
-    from evaluate_secure_context_lineage_decision import evaluate_secure_context_lineage_decision
-    from evaluate_secure_context_eval_case import evaluate_secure_context_eval_case
-    from evaluate_mcp_authorization_decision import evaluate_mcp_authorization_decision
-    from evaluate_mcp_gateway_decision import evaluate_policy_decision
-    from evaluate_secure_context_retrieval import evaluate_context_retrieval_decision
-
 DEFAULT_CONFIG_PATH = os.environ.get("RECIPES_MCP_CONFIG", "./mcp-server.toml")
 DEFAULT_TRANSPORT = os.environ.get("RECIPES_MCP_TRANSPORT", "streamable-http")
 DEFAULT_HOST = os.environ.get("RECIPES_MCP_HOST", "0.0.0.0")
 DEFAULT_PORT = os.environ.get("RECIPES_MCP_PORT", "8000")
 DEFAULT_PATH = os.environ.get("RECIPES_MCP_PATH")
 DEFAULT_LOG_LEVEL = os.environ.get("RECIPES_MCP_LOG_LEVEL")
+MCP_PROTOCOL_VERSION = os.environ.get("RECIPES_MCP_PROTOCOL_VERSION", "2025-06-18")
+READ_ONLY_TOOL_NAME_RE = re.compile(
+    r"^(search|query|list|get|read|find|lookup|fetch|describe|inspect|analyze|scan|retrieve|resolve)[A-Za-z0-9_.:-]*$",
+    re.IGNORECASE,
+)
 
 
 def _env_csv_list(name: str, default: list[str]) -> list[str]:
@@ -101,6 +39,28 @@ def _env_csv_list(name: str, default: list[str]) -> list[str]:
     if not raw:
         return default
     return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+@dataclass
+class UpstreamMCPServerConfig:
+    """Opt-in upstream MCP server configuration for self-hosted deployments."""
+
+    id: str
+    label: str
+    url: str
+    description: str = ""
+    enabled: bool = True
+    auth_token_env: str | None = None
+    auth_scheme: str = "Bearer"
+    headers: dict[str, str] = field(default_factory=dict)
+    allowed_tools: list[str] = field(default_factory=list)
+    blocked_tools: list[str] = field(default_factory=list)
+    allow_unlisted_read_only_tools: bool = False
+    context_tool: str | None = None
+    context_query_argument: str = "query"
+    context_static_arguments: dict[str, Any] = field(default_factory=dict)
+    timeout_seconds: int = 20
+    max_response_chars: int = 12000
 
 
 @dataclass
@@ -345,6 +305,393 @@ class ServerConfig:
         "RECIPES_MCP_MODEL_PROVIDER_ROUTING_PACK_PATH",
         "./data/evidence/model-provider-routing-pack.json",
     )
+    upstream_mcp_servers: list[UpstreamMCPServerConfig] = field(default_factory=list)
+
+
+def _safe_public_url(url: str) -> str:
+    parsed = urlparse(url)
+    path = parsed.path or ""
+    return f"{parsed.scheme}://{parsed.netloc}{path}"
+
+
+def _validate_upstream_url(url: str, server_id: str) -> None:
+    parsed = urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError(f"upstream_mcp_servers[{server_id}] url must be an http(s) URL")
+    if parsed.username or parsed.password:
+        raise ValueError(f"upstream_mcp_servers[{server_id}] must not embed credentials in the URL")
+
+
+def _string_list(value: Any, field_name: str) -> list[str]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ValueError(f"{field_name} must be a list of strings")
+    return [str(item).strip() for item in value if str(item).strip()]
+
+
+def _string_dict(value: Any, field_name: str) -> dict[str, str]:
+    if value is None:
+        return {}
+    if not isinstance(value, dict):
+        raise ValueError(f"{field_name} must be a table/object of string values")
+    return {str(key): str(item) for key, item in value.items()}
+
+
+def _parse_upstream_mcp_servers(value: Any, default_timeout_seconds: int) -> list[UpstreamMCPServerConfig]:
+    if not value:
+        return []
+    if not isinstance(value, list):
+        raise ValueError("upstream_mcp_servers must be a list of tables")
+
+    servers: list[UpstreamMCPServerConfig] = []
+    seen_ids: set[str] = set()
+    for idx, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise ValueError(f"upstream_mcp_servers[{idx}] must be a table/object")
+
+        server_id = str(item.get("id", "")).strip()
+        if not server_id:
+            raise ValueError(f"upstream_mcp_servers[{idx}] requires id")
+        if server_id in seen_ids:
+            raise ValueError(f"duplicate upstream_mcp_servers id: {server_id}")
+        seen_ids.add(server_id)
+
+        enabled = bool(item.get("enabled", True))
+        if not enabled:
+            continue
+
+        url = str(item.get("url", "")).strip()
+        if not url:
+            raise ValueError(f"upstream_mcp_servers[{server_id}] requires url")
+        _validate_upstream_url(url, server_id)
+
+        timeout_seconds = int(item.get("timeout_seconds", default_timeout_seconds))
+        max_response_chars = int(item.get("max_response_chars", 12000))
+        if timeout_seconds <= 0:
+            raise ValueError(f"upstream_mcp_servers[{server_id}] timeout_seconds must be positive")
+        if max_response_chars < 1000:
+            raise ValueError(f"upstream_mcp_servers[{server_id}] max_response_chars must be at least 1000")
+
+        servers.append(
+            UpstreamMCPServerConfig(
+                id=server_id,
+                label=str(item.get("label", server_id)).strip() or server_id,
+                url=url,
+                description=str(item.get("description", "")).strip(),
+                enabled=enabled,
+                auth_token_env=str(item.get("auth_token_env", "")).strip() or None,
+                auth_scheme=str(item.get("auth_scheme", "Bearer")).strip(),
+                headers=_string_dict(item.get("headers"), f"upstream_mcp_servers[{server_id}].headers"),
+                allowed_tools=_string_list(
+                    item.get("allowed_tools"),
+                    f"upstream_mcp_servers[{server_id}].allowed_tools",
+                ),
+                blocked_tools=_string_list(
+                    item.get("blocked_tools"),
+                    f"upstream_mcp_servers[{server_id}].blocked_tools",
+                ),
+                allow_unlisted_read_only_tools=bool(item.get("allow_unlisted_read_only_tools", False)),
+                context_tool=str(item.get("context_tool", "")).strip() or None,
+                context_query_argument=str(item.get("context_query_argument", "query")).strip() or "query",
+                context_static_arguments=dict(item.get("context_static_arguments") or {}),
+                timeout_seconds=timeout_seconds,
+                max_response_chars=max_response_chars,
+            )
+        )
+    return servers
+
+
+class UpstreamMCPRegistry:
+    def __init__(self, servers: list[UpstreamMCPServerConfig]):
+        self._servers = {server.id: server for server in servers}
+        self._sessions: dict[str, str] = {}
+        self._initialized: set[str] = set()
+        self._request_id = 0
+        self._lock = asyncio.Lock()
+
+    def list_public(self) -> list[dict[str, Any]]:
+        return [self._public_summary(server) for server in self._servers.values()]
+
+    def _public_summary(self, server: UpstreamMCPServerConfig) -> dict[str, Any]:
+        return {
+            "id": server.id,
+            "label": server.label,
+            "description": server.description,
+            "url": _safe_public_url(server.url),
+            "auth_token_env": server.auth_token_env,
+            "has_auth_token": bool(server.auth_token_env and os.environ.get(server.auth_token_env)),
+            "allowed_tools": server.allowed_tools,
+            "blocked_tools": server.blocked_tools,
+            "allow_unlisted_read_only_tools": server.allow_unlisted_read_only_tools,
+            "context_tool": server.context_tool,
+            "context_query_argument": server.context_query_argument,
+            "max_response_chars": server.max_response_chars,
+        }
+
+    def _get_server(self, server_id: str) -> UpstreamMCPServerConfig:
+        key = server_id.strip()
+        server = self._servers.get(key)
+        if not server:
+            raise ValueError(f"unknown upstream MCP server: {server_id}")
+        return server
+
+    def _headers(self, server: UpstreamMCPServerConfig) -> dict[str, str]:
+        headers = {
+            "Accept": "application/json, text/event-stream",
+            "Content-Type": "application/json",
+            "MCP-Protocol-Version": MCP_PROTOCOL_VERSION,
+        }
+        headers.update(server.headers)
+
+        session_id = self._sessions.get(server.id)
+        if session_id:
+            headers["Mcp-Session-Id"] = session_id
+
+        if server.auth_token_env:
+            token = os.environ.get(server.auth_token_env, "").strip()
+            if token:
+                headers["Authorization"] = f"{server.auth_scheme} {token}".strip()
+        return headers
+
+    def _next_request_id(self) -> int:
+        self._request_id += 1
+        return self._request_id
+
+    def _decode_response(self, response: httpx.Response, request_id: int | None) -> dict[str, Any] | None:
+        if response.status_code == 202 or not response.content:
+            return None
+
+        text = response.text.strip()
+        if not text:
+            return None
+
+        content_type = response.headers.get("content-type", "").lower()
+        frames: list[Any] = []
+        if "text/event-stream" in content_type or text.startswith("event:") or text.startswith("data:"):
+            for block in re.split(r"\n\s*\n", text):
+                data_lines = []
+                for line in block.splitlines():
+                    if line.startswith("data:"):
+                        data_lines.append(line[5:].strip())
+                if not data_lines:
+                    continue
+                data = "\n".join(data_lines).strip()
+                if not data or data == "[DONE]":
+                    continue
+                frames.append(json.loads(data))
+        else:
+            frames.append(response.json())
+
+        for frame in frames:
+            if isinstance(frame, list):
+                for item in frame:
+                    if isinstance(item, dict) and (request_id is None or item.get("id") == request_id):
+                        return item
+            if isinstance(frame, dict) and (request_id is None or frame.get("id") == request_id):
+                return frame
+        return frames[-1] if frames and isinstance(frames[-1], dict) else None
+
+    async def _rpc(
+        self,
+        server: UpstreamMCPServerConfig,
+        method: str,
+        params: dict[str, Any] | None = None,
+        expect_response: bool = True,
+    ) -> dict[str, Any] | None:
+        request_id = self._next_request_id() if expect_response else None
+        payload: dict[str, Any] = {"jsonrpc": "2.0", "method": method}
+        if params is not None:
+            payload["params"] = params
+        if request_id is not None:
+            payload["id"] = request_id
+
+        timeout = httpx.Timeout(server.timeout_seconds)
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+            response = await client.post(server.url, headers=self._headers(server), json=payload)
+
+        session_id = response.headers.get("mcp-session-id")
+        if session_id:
+            self._sessions[server.id] = session_id
+
+        response.raise_for_status()
+        frame = self._decode_response(response, request_id)
+        if frame and frame.get("error"):
+            error = frame["error"]
+            message = error.get("message") if isinstance(error, dict) else str(error)
+            raise RuntimeError(f"{method} failed on upstream MCP server {server.id}: {message}")
+        if frame:
+            return frame.get("result")
+        return None
+
+    async def _ensure_initialized(self, server: UpstreamMCPServerConfig) -> None:
+        async with self._lock:
+            if server.id in self._initialized:
+                return
+            await self._rpc(
+                server,
+                "initialize",
+                {
+                    "protocolVersion": MCP_PROTOCOL_VERSION,
+                    "capabilities": {},
+                    "clientInfo": {
+                        "name": "security-recipes-mcp",
+                        "version": "1.0.0",
+                    },
+                },
+            )
+            await self._rpc(server, "notifications/initialized", expect_response=False)
+            self._initialized.add(server.id)
+
+    def _is_tool_allowed(self, server: UpstreamMCPServerConfig, tool_name: str) -> tuple[bool, str]:
+        if tool_name in set(server.blocked_tools):
+            return False, "tool is explicitly blocked"
+        if tool_name in set(server.allowed_tools):
+            return True, "tool is explicitly allowed"
+        if server.allowed_tools:
+            return False, "tool is not in allowed_tools"
+        if server.allow_unlisted_read_only_tools and READ_ONLY_TOOL_NAME_RE.match(tool_name):
+            return True, "tool name matches the read-only allow pattern"
+        return False, "tool is not allowed; add it to allowed_tools or enable allow_unlisted_read_only_tools"
+
+    @staticmethod
+    def _text_from_tool_result(result: Any) -> str:
+        if isinstance(result, dict) and isinstance(result.get("content"), list):
+            parts = []
+            for item in result["content"]:
+                if isinstance(item, dict):
+                    if item.get("type") == "text" and item.get("text"):
+                        parts.append(str(item["text"]))
+                    elif "text" in item:
+                        parts.append(str(item["text"]))
+                    elif "data" in item:
+                        parts.append(json.dumps(item["data"], ensure_ascii=False, sort_keys=True))
+                else:
+                    parts.append(str(item))
+            if parts:
+                return "\n\n".join(parts)
+        return json.dumps(result, ensure_ascii=False, sort_keys=True, default=str)
+
+    @staticmethod
+    def _truncate_text(text: str, max_chars: int) -> tuple[str, bool]:
+        if len(text) <= max_chars:
+            return text, False
+        return text[:max_chars].rstrip() + "\n...[truncated]", True
+
+    async def list_tools(self, server_id: str) -> dict[str, Any]:
+        server = self._get_server(server_id)
+        await self._ensure_initialized(server)
+        result = await self._rpc(server, "tools/list", {})
+        tools = result.get("tools", []) if isinstance(result, dict) else []
+        shaped = []
+        for tool in tools:
+            if not isinstance(tool, dict):
+                continue
+            name = str(tool.get("name", ""))
+            allowed, reason = self._is_tool_allowed(server, name)
+            shaped.append(
+                {
+                    "name": name,
+                    "description": tool.get("description"),
+                    "input_schema": tool.get("inputSchema") or tool.get("input_schema"),
+                    "allowed": allowed,
+                    "allow_reason": reason,
+                }
+            )
+        return {
+            "server": self._public_summary(server),
+            "count": len(shaped),
+            "tools": shaped,
+        }
+
+    async def call_tool(
+        self,
+        server_id: str,
+        tool_name: str,
+        arguments: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        server = self._get_server(server_id)
+        allowed, reason = self._is_tool_allowed(server, tool_name)
+        if not allowed:
+            return {
+                "ok": False,
+                "server": self._public_summary(server),
+                "tool_name": tool_name,
+                "error": reason,
+            }
+
+        await self._ensure_initialized(server)
+        result = await self._rpc(
+            server,
+            "tools/call",
+            {
+                "name": tool_name,
+                "arguments": arguments or {},
+            },
+        )
+        text = self._text_from_tool_result(result)
+        text, truncated = self._truncate_text(text, server.max_response_chars)
+        return {
+            "ok": True,
+            "server": self._public_summary(server),
+            "tool_name": tool_name,
+            "arguments": arguments or {},
+            "content_text": text,
+            "truncated": truncated,
+            "security_boundary": "Only explicitly configured upstream HTTP MCP servers are called. Secrets are read from environment variables and are not returned.",
+        }
+
+    async def context_bundle(
+        self,
+        query: str,
+        server_ids: list[str] | None = None,
+        max_chars: int = 24000,
+    ) -> dict[str, Any]:
+        selected_ids = server_ids or list(self._servers.keys())
+        budget = max(1000, max_chars)
+        results = []
+        remaining = budget
+
+        for server_id in selected_ids:
+            try:
+                server = self._get_server(server_id)
+                if not server.context_tool:
+                    results.append(
+                        {
+                            "server_id": server_id,
+                            "ok": False,
+                            "error": "server has no context_tool configured",
+                        }
+                    )
+                    continue
+
+                args = dict(server.context_static_arguments)
+                args[server.context_query_argument] = query
+                response = await self.call_tool(server.id, server.context_tool, args)
+                if response.get("ok"):
+                    text = str(response.get("content_text", ""))
+                    text, truncated = self._truncate_text(text, max(1000, remaining))
+                    remaining -= len(text)
+                    response["content_text"] = text
+                    response["truncated"] = bool(response.get("truncated") or truncated)
+                results.append(response)
+                if remaining <= 0:
+                    break
+            except Exception as exc:
+                results.append(
+                    {
+                        "server_id": server_id,
+                        "ok": False,
+                        "error": str(exc),
+                    }
+                )
+
+        return {
+            "query": query,
+            "server_count": len(selected_ids),
+            "results": results,
+            "security_boundary": "Upstream MCP context is disabled unless configured in mcp-server.toml or RECIPES_MCP_UPSTREAM_SERVERS_JSON.",
+        }
 
 
 class RecipeIndex:
@@ -687,42 +1034,6 @@ class MCPGatewayPolicyPack:
             ],
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            policy_pack = self._load()
-        except Exception as exc:
-            return {
-                "allowed": False,
-                "available": False,
-                "decision": "deny",
-                "error": f"failed to load MCP gateway policy pack: {exc}",
-                "policy_path": str(self.path),
-            }
-
-        if policy_pack is None:
-            return {
-                "allowed": False,
-                "available": False,
-                "decision": "deny",
-                "error": "MCP gateway policy pack is not present",
-                "policy_path": str(self.path),
-            }
-
-        if not isinstance(policy_pack, dict):
-            return {
-                "allowed": False,
-                "available": False,
-                "decision": "deny",
-                "error": "MCP gateway policy pack root must be an object",
-                "policy_path": str(self.path),
-            }
-
-        return {
-            "available": True,
-            **evaluate_policy_decision(policy_pack, runtime_request),
-        }
-
-
 class AgenticAssurancePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -1060,36 +1371,6 @@ class AgenticEntitlementReviewPack:
             "workflow_entitlement_rollups": pack.get("workflow_entitlement_rollups", []),
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic entitlement review pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic entitlement review pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_entitlement_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic entitlement decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class AgenticApprovalReceiptPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -1240,36 +1521,6 @@ class AgenticApprovalReceiptPack:
                 for row in self._workflow_by_id.values()
             ],
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic approval receipt pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic approval receipt pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_approval_receipt_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic approval receipt decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class MCPConnectorTrustPack:
     def __init__(self, pack_path: str):
@@ -1627,36 +1878,6 @@ class MCPStdioLaunchBoundaryPack:
             "stdio_launch_summary": pack.get("stdio_launch_summary"),
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load MCP STDIO launch boundary pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "MCP STDIO launch boundary pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_mcp_stdio_launch_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate MCP STDIO launch decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class MCPAuthorizationConformancePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -1799,36 +2020,6 @@ class MCPAuthorizationConformancePack:
             "standards_alignment": pack.get("standards_alignment", []),
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load MCP authorization conformance pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "MCP authorization conformance pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_mcp_authorization_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate MCP authorization decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class MCPElicitationBoundaryPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -1959,36 +2150,6 @@ class MCPElicitationBoundaryPack:
             "standards_alignment": pack.get("standards_alignment", []),
             "workflow_elicitation_map": pack.get("workflow_elicitation_map", []),
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load MCP elicitation boundary pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "MCP elicitation boundary pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_mcp_elicitation_boundary_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate MCP elicitation boundary decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class MCPToolRiskContract:
     def __init__(self, contract_path: str):
@@ -2148,35 +2309,6 @@ class MCPToolRiskContract:
             "workflows": [self._workflow_preview(workflow) for workflow in self._workflow_by_id.values()],
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            contract = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "contract_path": str(self.path),
-                "error": f"failed to load MCP tool-risk contract: {exc}",
-            }
-
-        if contract is None:
-            return {
-                "available": False,
-                "contract_path": str(self.path),
-                "error": "MCP tool-risk contract is not present",
-            }
-
-        try:
-            decision = evaluate_mcp_tool_risk_decision(contract, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "contract_path": str(self.path),
-                "error": f"failed to evaluate MCP tool-risk decision: {exc}",
-            }
-        decision["available"] = True
-        return decision
-
-
 class MCPToolSurfaceDriftPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -2317,35 +2449,6 @@ class MCPToolSurfaceDriftPack:
             "tool_surfaces": [self._surface_preview(surface) for surface in surfaces],
             "tool_surface_count": len(surfaces),
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load MCP tool-surface drift pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "MCP tool-surface drift pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_mcp_tool_surface_drift_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate MCP tool-surface drift decision: {exc}",
-                "pack_path": str(self.path),
-            }
-        decision["available"] = True
-        return decision
-
 
 class AgenticRedTeamDrillPack:
     def __init__(self, pack_path: str):
@@ -2624,35 +2727,6 @@ class AgenticRedTeamReplayHarness:
             "source_references": harness.get("source_references", []),
             "workflow_replay_matrix": harness.get("workflow_replay_matrix", []),
         }
-
-    def evaluate(self, runtime_result: dict[str, Any]) -> dict[str, Any]:
-        try:
-            harness = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "harness_path": str(self.path),
-                "error": f"failed to load agentic red-team replay harness: {exc}",
-            }
-
-        if harness is None:
-            return {
-                "available": False,
-                "harness_path": str(self.path),
-                "error": "agentic red-team replay harness is not present",
-            }
-
-        try:
-            decision = evaluate_agentic_red_team_replay_result(harness, runtime_result)
-        except Exception as exc:
-            return {
-                "available": False,
-                "harness_path": str(self.path),
-                "error": f"failed to evaluate agentic red-team replay result: {exc}",
-            }
-        decision["available"] = True
-        return decision
-
 
 class AgenticReadinessScorecard:
     def __init__(self, scorecard_path: str):
@@ -3040,36 +3114,6 @@ class AgentSkillSupplyChainPack:
             "standards_alignment": pack.get("standards_alignment", []),
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agent skill supply-chain pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agent skill supply-chain pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agent_skill_supply_chain_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agent skill decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class AgentHandoffBoundaryPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -3212,36 +3256,6 @@ class AgentHandoffBoundaryPack:
             ],
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agent handoff boundary pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agent handoff boundary pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agent_handoff_boundary_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agent handoff decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class A2AAgentCardTrustProfile:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -3351,36 +3365,6 @@ class A2AAgentCardTrustProfile:
             "threat_signal_coverage": pack.get("threat_signal_coverage", []),
             "trust_contract": pack.get("trust_contract"),
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load A2A Agent Card trust profile: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "A2A Agent Card trust profile is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_a2a_agent_card_trust_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate A2A Agent Card trust decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class AgentMemoryBoundaryPack:
     def __init__(self, pack_path: str):
@@ -3529,36 +3513,6 @@ class AgentMemoryBoundaryPack:
                 for workflow in self._workflow_by_id.values()
             ],
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agent memory boundary pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agent memory boundary pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agent_memory_boundary_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agent memory decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class AgenticSystemBOM:
     def __init__(self, bom_path: str):
@@ -4017,36 +3971,6 @@ class SecureContextTrustPack:
             ],
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load secure context trust pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "secure context trust pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_context_retrieval_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate context retrieval decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class SecureContextAttestationPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -4187,36 +4111,6 @@ class SecureContextAttestationPack:
             "subjects": [self._subject_preview(subject) for subject in subjects],
             "verification_policy": pack.get("verification_policy"),
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load secure context attestation pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "secure context attestation pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_context_attestation_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate context attestation decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class SecureContextLineageLedger:
     def __init__(self, ledger_path: str):
@@ -4382,36 +4276,6 @@ class SecureContextLineageLedger:
             "workflow_lineage": [self._workflow_preview(workflow) for workflow in workflow_rows],
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            ledger = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load secure context lineage ledger: {exc}",
-                "ledger_path": str(self.path),
-            }
-
-        if ledger is None:
-            return {
-                "available": False,
-                "error": "secure context lineage ledger is not present",
-                "ledger_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_secure_context_lineage_decision(ledger, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate secure context lineage decision: {exc}",
-                "ledger_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class SecureContextEvalPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -4526,36 +4390,6 @@ class SecureContextEvalPack:
             "threat_signal_coverage": pack.get("threat_signal_coverage", []),
             "workflow_id": workflow_id,
         }
-
-    def evaluate(self, runtime_result: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load secure context eval pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "secure context eval pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_secure_context_eval_case(pack, runtime_result)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate secure context eval case: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class AgenticThreatRadar:
     def __init__(self, radar_path: str):
@@ -5100,36 +4934,6 @@ class AgenticPostureSnapshot:
             "workflows": [self._workflow_preview(workflow) for workflow in workflows],
         }
 
-    def evaluate(self, runtime_event: dict[str, Any]) -> dict[str, Any]:
-        try:
-            snapshot = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic posture snapshot: {exc}",
-                "snapshot_path": str(self.path),
-            }
-
-        if snapshot is None:
-            return {
-                "available": False,
-                "error": "agentic posture snapshot is not present",
-                "snapshot_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_posture_decision(snapshot, runtime_event)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic posture decision: {exc}",
-                "snapshot_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class AgenticAivssRiskScoringPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -5254,36 +5058,6 @@ class AgenticAivssRiskScoringPack:
             "source_references": pack.get("source_references", []),
         }
 
-    def evaluate(self, runtime_event: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic AIVSS risk scoring pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic AIVSS risk scoring pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_aivss_risk_decision(pack, runtime_event)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic AIVSS risk decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class AgenticAppIntakePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -5403,36 +5177,6 @@ class AgenticAppIntakePack:
             "source_artifacts": pack.get("source_artifacts"),
             "standards_alignment": pack.get("standards_alignment", []),
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic app intake pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic app intake pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_app_intake_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic app intake decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class ModelProviderRoutingPack:
     def __init__(self, pack_path: str):
@@ -5616,36 +5360,6 @@ class ModelProviderRoutingPack:
             "workflow_route_count": len(workflows),
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load model provider routing pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "model provider routing pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_model_provider_routing_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate model provider routing decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class AgenticCatastrophicRiskAnnex:
     def __init__(self, annex_path: str):
         self.path = Path(annex_path)
@@ -5804,36 +5518,6 @@ class AgenticCatastrophicRiskAnnex:
             "status": status,
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            annex = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic catastrophic-risk annex: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if annex is None:
-            return {
-                "available": False,
-                "error": "agentic catastrophic-risk annex is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_catastrophic_risk_decision(annex, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate catastrophic-risk decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class CriticalInfrastructureSecureContextPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -5989,36 +5673,6 @@ class CriticalInfrastructureSecureContextPack:
             "standards_alignment": pack.get("standards_alignment", []),
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load critical-infrastructure secure-context pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "critical-infrastructure secure-context pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_critical_infrastructure_context_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate critical-infrastructure context decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class AgenticIncidentResponsePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -6155,36 +5809,6 @@ class AgenticIncidentResponsePack:
             "workflows": [self._workflow_preview(row) for row in workflows],
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic incident response pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic incident response pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_incident_response_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic incident response decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class AgenticActionRuntimePack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -6319,36 +5943,6 @@ class AgenticActionRuntimePack:
             "workflow_count": len(workflows),
             "workflows": [self._workflow_preview(row) for row in workflows],
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic action runtime pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic action runtime pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_action_runtime_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic action runtime decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class AgentTrustFabricPack:
     def __init__(self, pack_path: str):
@@ -6491,36 +6085,6 @@ class AgentTrustFabricPack:
             "workflows": [self._workflow_preview(row) for row in workflows],
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agent trust fabric pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agent trust fabric pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agent_trust_fabric_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agent trust fabric decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class BrowserAgentBoundaryPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -6656,36 +6220,6 @@ class BrowserAgentBoundaryPack:
             "workspace_count": len(workspaces),
             "workspace_classes": [self._workspace_preview(row) for row in workspaces],
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load browser-agent boundary pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "browser-agent boundary pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_browser_agent_boundary_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate browser-agent boundary decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class AgenticMeasurementProbePack:
     def __init__(self, pack_path: str):
@@ -7008,35 +6542,6 @@ class AgenticTelemetryContract:
             "workflows": [self._workflow_preview(workflow) for workflow in workflows],
         }
 
-    def evaluate(self, runtime_event: dict[str, Any]) -> dict[str, Any]:
-        try:
-            contract = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "contract_path": str(self.path),
-                "error": f"failed to load agentic telemetry contract: {exc}",
-            }
-
-        if contract is None:
-            return {
-                "available": False,
-                "contract_path": str(self.path),
-                "error": "agentic telemetry contract is not present",
-            }
-
-        try:
-            decision = evaluate_agentic_telemetry_event(contract, runtime_event)
-        except Exception as exc:
-            return {
-                "available": False,
-                "contract_path": str(self.path),
-                "error": f"failed to evaluate agentic telemetry event: {exc}",
-            }
-        decision["available"] = True
-        return decision
-
-
 class AgenticSocDetectionPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -7179,33 +6684,6 @@ class AgenticSocDetectionPack:
             "workflow_count": len(self._workflow_by_id),
             "workflows": [self._workflow_preview(workflow) for workflow in self._workflow_by_id.values()],
         }
-
-    def evaluate(self, runtime_event: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic SOC detection pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic SOC detection pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            return evaluate_agentic_soc_detection_event(pack, runtime_event)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic SOC detection event: {exc}",
-                "pack_path": str(self.path),
-            }
-
 
 class ContextPoisoningGuardPack:
     def __init__(self, pack_path: str):
@@ -7574,36 +7052,6 @@ class ContextEgressBoundaryPack:
                 for workflow in self._workflow_by_id.values()
             ],
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load context egress boundary pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "context egress boundary pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_context_egress_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate context egress decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class AgenticStandardsCrosswalk:
     def __init__(self, pack_path: str):
@@ -8391,36 +7839,6 @@ class AgenticProtocolConformancePack:
                 for source in self._source_by_id.values()
             ],
         }
-
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load agentic protocol conformance pack: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "agentic protocol conformance pack is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_agentic_protocol_conformance_decision(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate agentic protocol conformance decision: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
 
 class EnterpriseTrustCenterExport:
     def __init__(self, export_path: str):
@@ -9498,36 +8916,6 @@ class SecureContextEvidenceContract:
             "status": status,
         }
 
-    def evaluate(self, runtime_request: dict[str, Any]) -> dict[str, Any]:
-        try:
-            pack = self._load()
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to load secure context evidence contract: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        if pack is None:
-            return {
-                "available": False,
-                "error": "secure context evidence contract is not present",
-                "pack_path": str(self.path),
-            }
-
-        try:
-            decision = evaluate_secure_context_evidence_release(pack, runtime_request)
-        except Exception as exc:
-            return {
-                "available": False,
-                "error": f"failed to evaluate secure context evidence release: {exc}",
-                "pack_path": str(self.path),
-            }
-
-        decision["available"] = True
-        return decision
-
-
 class HostedMcpReadinessPack:
     def __init__(self, pack_path: str):
         self.path = Path(pack_path)
@@ -9728,10 +9116,9 @@ class HostedMcpReadinessPack:
 def load_config(config_path: str) -> ServerConfig:
     path = Path(config_path)
     cfg = ServerConfig()
-    if not path.exists():
-        return cfg
-
-    data = tomli.loads(path.read_text(encoding="utf-8"))
+    data: dict[str, Any] = {}
+    if path.exists():
+        data = tomli.loads(path.read_text(encoding="utf-8"))
 
     cfg.source_index_url = data.get("source_index_url", cfg.source_index_url)
     cfg.allowed_source_hosts = data.get("allowed_source_hosts", cfg.allowed_source_hosts)
@@ -9952,6 +9339,16 @@ def load_config(config_path: str) -> ServerConfig:
         "model_provider_routing_pack_path",
         cfg.model_provider_routing_pack_path,
     )
+    cfg.upstream_mcp_servers = _parse_upstream_mcp_servers(
+        data.get("upstream_mcp_servers", []),
+        cfg.request_timeout_seconds,
+    )
+    upstream_json = os.environ.get("RECIPES_MCP_UPSTREAM_SERVERS_JSON", "").strip()
+    if upstream_json:
+        cfg.upstream_mcp_servers = _parse_upstream_mcp_servers(
+            json.loads(upstream_json),
+            cfg.request_timeout_seconds,
+        )
     cfg.source_index_url = os.environ.get("RECIPES_MCP_SOURCE_INDEX_URL", cfg.source_index_url)
     cfg.allowed_source_hosts = _env_csv_list("RECIPES_MCP_ALLOWED_SOURCE_HOSTS", cfg.allowed_source_hosts)
     cfg.server_public_base_url = os.environ.get("RECIPES_MCP_PUBLIC_BASE_URL", cfg.server_public_base_url)
@@ -10063,6 +9460,7 @@ buyer_diligence_brief = SecureContextBuyerDiligenceBrief(config.buyer_diligence_
 customer_proof_pack = SecureContextCustomerProofPack(config.customer_proof_pack_path)
 evidence_contract = SecureContextEvidenceContract(config.evidence_contract_path)
 hosted_mcp_readiness_pack = HostedMcpReadinessPack(config.hosted_mcp_readiness_pack_path)
+upstream_mcp = UpstreamMCPRegistry(config.upstream_mcp_servers)
 mcp = FastMCP(name="security-recipes-mcp")
 
 
@@ -10131,7 +9529,62 @@ async def recipes_server_info() -> dict[str, Any]:
         "customer_proof_pack_path": config.customer_proof_pack_path,
         "evidence_contract_path": config.evidence_contract_path,
         "hosted_mcp_readiness_pack_path": config.hosted_mcp_readiness_pack_path,
+        "upstream_mcp_server_count": len(config.upstream_mcp_servers),
+        "upstream_mcp_servers": upstream_mcp.list_public(),
     }
+
+
+@mcp.tool()
+async def recipes_mcp_upstream_servers() -> dict[str, Any]:
+    """List optional upstream MCP servers configured for this Security Recipes server."""
+    servers = upstream_mcp.list_public()
+    return {
+        "count": len(servers),
+        "servers": servers,
+        "configured_by_default": False,
+        "security_boundary": "No upstream MCP servers are enabled unless the operator configures them locally.",
+    }
+
+
+@mcp.tool()
+async def recipes_mcp_upstream_tools(server_id: str) -> dict[str, Any]:
+    """List tools exposed by a configured upstream MCP server and show local allow decisions."""
+    try:
+        return await upstream_mcp.list_tools(server_id)
+    except Exception as exc:
+        return {
+            "server_id": server_id,
+            "ok": False,
+            "error": str(exc),
+        }
+
+
+@mcp.tool()
+async def recipes_mcp_upstream_call(
+    server_id: str,
+    tool_name: str,
+    arguments: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Call an allowed read-only tool on a configured upstream MCP server."""
+    try:
+        return await upstream_mcp.call_tool(server_id, tool_name, arguments=arguments)
+    except Exception as exc:
+        return {
+            "ok": False,
+            "server_id": server_id,
+            "tool_name": tool_name,
+            "error": str(exc),
+        }
+
+
+@mcp.tool()
+async def recipes_mcp_upstream_context(
+    query: str,
+    server_ids: list[str] | None = None,
+    max_chars: int = 24000,
+) -> dict[str, Any]:
+    """Collect bounded context from configured upstream MCP servers for a remediation query."""
+    return await upstream_mcp.context_bundle(query=query, server_ids=server_ids, max_chars=max_chars)
 
 
 @mcp.tool()
@@ -10194,42 +9647,6 @@ async def recipes_mcp_gateway_policy(workflow_id: str | None = None) -> dict[str
 
 
 @mcp.tool()
-async def recipes_evaluate_mcp_gateway_decision(
-    workflow_id: str,
-    agent_id: str,
-    run_id: str,
-    tool_namespace: str,
-    tool_access_mode: str,
-    gate_phase: str,
-    branch_name: str | None = None,
-    changed_paths: list[str] | None = None,
-    diff_line_count: int | None = 0,
-    human_approval_record: dict[str, Any] | None = None,
-    runtime_kill_signal: str | None = None,
-    agent_class: str | None = None,
-    change_class: str | None = None,
-) -> dict[str, Any]:
-    """Evaluate one runtime MCP tool call against the generated gateway policy."""
-    return gateway_policy.evaluate(
-        {
-            "agent_class": agent_class,
-            "agent_id": agent_id,
-            "branch_name": branch_name,
-            "change_class": change_class,
-            "changed_paths": changed_paths or [],
-            "diff_line_count": diff_line_count or 0,
-            "gate_phase": gate_phase,
-            "human_approval_record": human_approval_record,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "tool_access_mode": tool_access_mode,
-            "tool_namespace": tool_namespace,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_assurance_pack(
     control_id: str | None = None,
     workflow_id: str | None = None,
@@ -10269,68 +9686,6 @@ async def recipes_agentic_entitlement_review_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_agentic_entitlement_decision(
-    identity_id: str,
-    workflow_id: str,
-    agent_class: str,
-    namespace: str,
-    requested_access_mode: str,
-    lease_id: str,
-    lease_status: str,
-    lease_expires_at: str,
-    review_status: str,
-    authorization_decision: str,
-    run_id: str,
-    tenant_id: str,
-    correlation_id: str,
-    receipt_id: str,
-    entitlement_id: str | None = None,
-    policy_pack_hash: str | None = None,
-    risk_acceptance_id: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    now: str | None = None,
-    indicators: list[str] | None = None,
-    contains_secret: bool = False,
-    cross_tenant_entitlement: bool = False,
-    identity_used_after_revocation: bool = False,
-    repeated_denied_entitlement: bool = False,
-    scope_escalation: bool = False,
-    token_passthrough: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision for one agent entitlement use."""
-    return entitlement_review_pack.evaluate(
-        {
-            "agent_class": agent_class,
-            "authorization_decision": authorization_decision,
-            "contains_secret": contains_secret,
-            "correlation_id": correlation_id,
-            "cross_tenant_entitlement": cross_tenant_entitlement,
-            "entitlement_id": entitlement_id,
-            "human_approval_record": human_approval_record,
-            "identity_id": identity_id,
-            "identity_used_after_revocation": identity_used_after_revocation,
-            "indicators": indicators or [],
-            "lease_expires_at": lease_expires_at,
-            "lease_id": lease_id,
-            "lease_status": lease_status,
-            "namespace": namespace,
-            "now": now,
-            "policy_pack_hash": policy_pack_hash,
-            "receipt_id": receipt_id,
-            "repeated_denied_entitlement": repeated_denied_entitlement,
-            "requested_access_mode": requested_access_mode,
-            "review_status": review_status,
-            "risk_acceptance_id": risk_acceptance_id,
-            "run_id": run_id,
-            "scope_escalation": scope_escalation,
-            "tenant_id": tenant_id,
-            "token_passthrough": token_passthrough,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_approval_receipt_pack(
     approval_profile_id: str | None = None,
     workflow_id: str | None = None,
@@ -10345,80 +9700,6 @@ async def recipes_agentic_approval_receipt_pack(
         action_class=action_class,
         risk_tier=risk_tier,
         decision=decision,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_agentic_approval_receipt_decision(
-    workflow_id: str,
-    action_class: str,
-    run_id: str,
-    agent_id: str,
-    identity_id: str,
-    tenant_id: str,
-    correlation_id: str,
-    approval_id: str,
-    approval_type: str,
-    approval_status: str,
-    approver_ids: list[str],
-    approver_roles: list[str],
-    requested_scope_hash: str,
-    approved_scope_hash: str,
-    issued_at: str,
-    expires_at: str,
-    receipt_id: str,
-    policy_pack_hash: str,
-    approval_profile_id: str | None = None,
-    approval_source: str | None = None,
-    requester_id: str | None = None,
-    risk_acceptance_id: str | None = None,
-    authorization_decision: str | None = None,
-    now: str | None = None,
-    indicators: list[str] | None = None,
-    approval_after_execution: bool = False,
-    approval_bypass_signal: bool = False,
-    approval_reused_across_run: bool = False,
-    contains_secret: bool = False,
-    cross_tenant_approval_reuse: bool = False,
-    requester_self_approved: bool = False,
-    token_passthrough: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision for one approval receipt."""
-    return approval_receipt_pack.evaluate(
-        {
-            "action_class": action_class,
-            "agent_id": agent_id,
-            "approval_after_execution": approval_after_execution,
-            "approval_bypass_signal": approval_bypass_signal,
-            "approval_id": approval_id,
-            "approval_profile_id": approval_profile_id,
-            "approval_reused_across_run": approval_reused_across_run,
-            "approval_source": approval_source,
-            "approval_status": approval_status,
-            "approval_type": approval_type,
-            "approved_scope_hash": approved_scope_hash,
-            "approver_ids": approver_ids,
-            "approver_roles": approver_roles,
-            "authorization_decision": authorization_decision,
-            "contains_secret": contains_secret,
-            "correlation_id": correlation_id,
-            "cross_tenant_approval_reuse": cross_tenant_approval_reuse,
-            "expires_at": expires_at,
-            "identity_id": identity_id,
-            "indicators": indicators or [],
-            "issued_at": issued_at,
-            "now": now,
-            "policy_pack_hash": policy_pack_hash,
-            "receipt_id": receipt_id,
-            "requested_scope_hash": requested_scope_hash,
-            "requester_id": requester_id,
-            "requester_self_approved": requester_self_approved,
-            "risk_acceptance_id": risk_acceptance_id,
-            "run_id": run_id,
-            "tenant_id": tenant_id,
-            "token_passthrough": token_passthrough,
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -10465,70 +9746,6 @@ async def recipes_mcp_stdio_launch_boundary_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_mcp_stdio_launch_decision(
-    launch_id: str,
-    command: str,
-    command_args: list[str] | None = None,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    client_id: str | None = None,
-    correlation_id: str | None = None,
-    package_name: str | None = None,
-    package_version: str | None = None,
-    package_hash: str | None = None,
-    package_install_on_launch: bool = False,
-    signature_present: bool = False,
-    publisher_verified: bool = False,
-    sandboxed: bool = False,
-    network_egress: str | None = "allowlist",
-    allowed_external_hosts: list[str] | None = None,
-    allows_private_network: bool = False,
-    filesystem_roots: list[str] | None = None,
-    env_keys: list[str] | None = None,
-    contains_secret: bool = False,
-    env_contains_secret: bool = False,
-    data_classes: list[str] | None = None,
-    requested_capabilities: list[str] | None = None,
-    run_as_root: bool = False,
-    requests_privilege_escalation: bool = False,
-    human_approval_record: dict[str, Any] | None = None,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision before spawning a STDIO MCP server."""
-    return mcp_stdio_launch_boundary_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "allowed_external_hosts": allowed_external_hosts or [],
-            "allows_private_network": allows_private_network,
-            "args": command_args or [],
-            "client_id": client_id,
-            "command": command,
-            "contains_secret": contains_secret,
-            "correlation_id": correlation_id,
-            "data_classes": data_classes or [],
-            "env_contains_secret": env_contains_secret,
-            "env_keys": env_keys or [],
-            "filesystem_roots": filesystem_roots or [],
-            "human_approval_record": human_approval_record or {},
-            "launch_id": launch_id,
-            "network_egress": network_egress,
-            "package_hash": package_hash,
-            "package_install_on_launch": package_install_on_launch,
-            "package_name": package_name,
-            "package_version": package_version,
-            "publisher_verified": publisher_verified,
-            "requested_capabilities": requested_capabilities or [],
-            "requests_privilege_escalation": requests_privilege_escalation,
-            "run_as_root": run_as_root,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "sandboxed": sandboxed,
-            "signature_present": signature_present,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_mcp_authorization_conformance_pack(
     connector_id: str | None = None,
     namespace: str | None = None,
@@ -10541,66 +9758,6 @@ async def recipes_mcp_authorization_conformance_pack(
         namespace=namespace,
         workflow_id=workflow_id,
         decision=decision,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_mcp_authorization_decision(
-    workflow_id: str,
-    namespace: str,
-    requested_access_mode: str,
-    connector_id: str | None = None,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    client_id: str | None = None,
-    client_metadata_document_url: str | None = None,
-    client_metadata_document_validated: bool = False,
-    authorization_server_discovery_method: str | None = None,
-    protected_resource_metadata_url: str | None = None,
-    resource_indicator: str | None = None,
-    token_audience: str | None = None,
-    token_issuer: str | None = None,
-    token_expires_at: str | None = None,
-    token_scopes: list[str] | None = None,
-    scope_challenge: list[str] | None = None,
-    consent_record_id: str | None = None,
-    session_id: str | None = None,
-    correlation_id: str | None = None,
-    gateway_policy_hash: str | None = None,
-    step_up_required: bool = False,
-    step_up_authorization_record_id: str | None = None,
-    token_passthrough: bool = False,
-    contains_secret_scope: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic MCP authorization decision before a tool call is forwarded."""
-    return authorization_conformance_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "authorization_server_discovery_method": authorization_server_discovery_method,
-            "client_id": client_id,
-            "client_metadata_document_url": client_metadata_document_url,
-            "client_metadata_document_validated": client_metadata_document_validated,
-            "connector_id": connector_id,
-            "consent_record_id": consent_record_id,
-            "contains_secret_scope": contains_secret_scope,
-            "correlation_id": correlation_id,
-            "gateway_policy_hash": gateway_policy_hash,
-            "namespace": namespace,
-            "protected_resource_metadata_url": protected_resource_metadata_url,
-            "requested_access_mode": requested_access_mode,
-            "resource_indicator": resource_indicator,
-            "run_id": run_id,
-            "scope_challenge": scope_challenge or [],
-            "session_id": session_id,
-            "step_up_authorization_record_id": step_up_authorization_record_id,
-            "step_up_required": step_up_required,
-            "token_audience": token_audience,
-            "token_expires_at": token_expires_at,
-            "token_issuer": token_issuer,
-            "token_passthrough": token_passthrough,
-            "token_scopes": token_scopes or [],
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -10623,94 +9780,6 @@ async def recipes_mcp_elicitation_boundary_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_mcp_elicitation_boundary_decision(
-    workflow_id: str,
-    agent_id: str,
-    run_id: str,
-    server_id: str,
-    elicitation_profile_id: str,
-    elicitation_id: str,
-    mode: str,
-    connector_id: str | None = None,
-    namespace: str | None = None,
-    url: str | None = None,
-    url_domain: str | None = None,
-    user_id: str | None = None,
-    session_id: str | None = None,
-    correlation_id: str | None = None,
-    gateway_policy_hash: str | None = None,
-    authorization_pack_hash: str | None = None,
-    response_action: str | None = None,
-    requested_data_classes: list[str] | None = None,
-    response_schema_fields: list[str] | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    client_supports_mode: bool = False,
-    server_identity_displayed: bool = False,
-    user_can_decline: bool = False,
-    user_can_review: bool = False,
-    user_consent_recorded: bool = False,
-    completion_notification_bound: bool = False,
-    https_url: bool = False,
-    url_allowlisted: bool = False,
-    sensitive_information_requested: bool = False,
-    credential_requested: bool = False,
-    token_or_secret_transit: bool = False,
-    preauthenticated_url: bool = False,
-    url_contains_sensitive_data: bool = False,
-    url_prefetched: bool = False,
-    url_opened_without_consent: bool = False,
-    phishing_or_open_redirect_signal: bool = False,
-    untrusted_content_seen: bool = False,
-    form_contains_clickable_url: bool = False,
-    runtime_kill_signal: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic MCP elicitation allow, hold, deny, or kill decision."""
-    return elicitation_boundary_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "authorization_pack_hash": authorization_pack_hash,
-            "client_supports_mode": client_supports_mode,
-            "completion_notification_bound": completion_notification_bound,
-            "connector_id": connector_id,
-            "correlation_id": correlation_id,
-            "credential_requested": credential_requested,
-            "elicitation_id": elicitation_id,
-            "elicitation_profile_id": elicitation_profile_id,
-            "form_contains_clickable_url": form_contains_clickable_url,
-            "gateway_policy_hash": gateway_policy_hash,
-            "human_approval_record": human_approval_record or {},
-            "https_url": https_url,
-            "mode": mode,
-            "namespace": namespace,
-            "phishing_or_open_redirect_signal": phishing_or_open_redirect_signal,
-            "preauthenticated_url": preauthenticated_url,
-            "requested_data_classes": requested_data_classes or [],
-            "response_action": response_action,
-            "response_schema_fields": response_schema_fields or [],
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "sensitive_information_requested": sensitive_information_requested,
-            "server_id": server_id,
-            "server_identity_displayed": server_identity_displayed,
-            "session_id": session_id,
-            "token_or_secret_transit": token_or_secret_transit,
-            "untrusted_content_seen": untrusted_content_seen,
-            "url": url,
-            "url_allowlisted": url_allowlisted,
-            "url_contains_sensitive_data": url_contains_sensitive_data,
-            "url_domain": url_domain,
-            "url_opened_without_consent": url_opened_without_consent,
-            "url_prefetched": url_prefetched,
-            "user_can_decline": user_can_decline,
-            "user_can_review": user_can_review,
-            "user_consent_recorded": user_consent_recorded,
-            "user_id": user_id,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_mcp_tool_risk_contract(
     namespace: str | None = None,
     connector_id: str | None = None,
@@ -10729,62 +9798,6 @@ async def recipes_mcp_tool_risk_contract(
 
 
 @mcp.tool()
-async def recipes_evaluate_mcp_tool_risk_decision(
-    workflow_id: str,
-    namespace: str,
-    tool_name: str,
-    requested_access_mode: str,
-    connector_id: str | None = None,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    gate_phase: str | None = None,
-    session_id: str | None = None,
-    correlation_id: str | None = None,
-    policy_pack_hash: str | None = None,
-    authorization_pack_hash: str | None = None,
-    annotation_source: str | None = None,
-    annotations: dict[str, Any] | None = None,
-    server_trusted: bool = False,
-    session_reads_private_data: bool = False,
-    session_sees_untrusted_content: bool = False,
-    session_can_exfiltrate: bool = False,
-    human_approval_record: dict[str, Any] | None = None,
-    contains_secret: bool = False,
-    tool_list_changed_after_approval: bool = False,
-    private_network_destination: bool = False,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic MCP tool-risk decision before a tool call executes."""
-    return tool_risk_contract.evaluate(
-        {
-            "agent_id": agent_id,
-            "annotation_source": annotation_source,
-            "annotations": annotations or {},
-            "authorization_pack_hash": authorization_pack_hash,
-            "connector_id": connector_id,
-            "contains_secret": contains_secret,
-            "correlation_id": correlation_id,
-            "gate_phase": gate_phase,
-            "human_approval_record": human_approval_record or {},
-            "namespace": namespace,
-            "policy_pack_hash": policy_pack_hash,
-            "private_network_destination": private_network_destination,
-            "requested_access_mode": requested_access_mode,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "server_trusted": server_trusted,
-            "session_can_exfiltrate": session_can_exfiltrate,
-            "session_id": session_id,
-            "session_reads_private_data": session_reads_private_data,
-            "session_sees_untrusted_content": session_sees_untrusted_content,
-            "tool_list_changed_after_approval": tool_list_changed_after_approval,
-            "tool_name": tool_name,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_mcp_tool_surface_drift_pack(
     surface_id: str | None = None,
     namespace: str | None = None,
@@ -10799,76 +9812,6 @@ async def recipes_mcp_tool_surface_drift_pack(
         tool_name=tool_name,
         source_kind=source_kind,
         decision=decision,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_mcp_tool_surface_drift_decision(
-    namespace: str,
-    tool_name: str,
-    workflow_id: str | None = None,
-    requested_access_mode: str | None = None,
-    surface_id: str | None = None,
-    description_sha256: str | None = None,
-    input_schema_sha256: str | None = None,
-    output_schema_sha256: str | None = None,
-    annotations_sha256: str | None = None,
-    surface_hash: str | None = None,
-    annotations: dict[str, Any] | None = None,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    session_id: str | None = None,
-    tenant_id: str | None = None,
-    correlation_id: str | None = None,
-    added_capability_flags: list[str] | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    capability_expansion: bool = False,
-    data_class_expansion: bool = False,
-    external_system_expansion: bool = False,
-    server_trust_downgrade: bool = False,
-    tool_list_changed_after_approval: bool = False,
-    tool_removed: bool = False,
-    contains_secret: bool = False,
-    private_network_destination: bool = False,
-    approval_bypass_signal: bool = False,
-    hidden_instruction_signal: bool = False,
-    annotation_relaxes_controls: bool = False,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic drift decision before a changed MCP tool surface is trusted."""
-    return tool_surface_drift_pack.evaluate(
-        {
-            "added_capability_flags": added_capability_flags or [],
-            "agent_id": agent_id,
-            "annotation_relaxes_controls": annotation_relaxes_controls,
-            "annotations": annotations or {},
-            "annotations_sha256": annotations_sha256,
-            "approval_bypass_signal": approval_bypass_signal,
-            "capability_expansion": capability_expansion,
-            "contains_secret": contains_secret,
-            "correlation_id": correlation_id,
-            "data_class_expansion": data_class_expansion,
-            "description_sha256": description_sha256,
-            "external_system_expansion": external_system_expansion,
-            "hidden_instruction_signal": hidden_instruction_signal,
-            "human_approval_record": human_approval_record or {},
-            "input_schema_sha256": input_schema_sha256,
-            "namespace": namespace,
-            "output_schema_sha256": output_schema_sha256,
-            "private_network_destination": private_network_destination,
-            "requested_access_mode": requested_access_mode,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "server_trust_downgrade": server_trust_downgrade,
-            "session_id": session_id,
-            "surface_hash": surface_hash,
-            "surface_id": surface_id,
-            "tenant_id": tenant_id,
-            "tool_list_changed_after_approval": tool_list_changed_after_approval,
-            "tool_name": tool_name,
-            "tool_removed": tool_removed,
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -10901,44 +9844,6 @@ async def recipes_agentic_red_team_replay_harness(
         scenario_id=scenario_id,
         attack_family=attack_family,
         severity=severity,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_agentic_red_team_replay_result(
-    observed_decision: str,
-    replay_id: str | None = None,
-    workflow_id: str | None = None,
-    scenario_id: str | None = None,
-    evidence_classes: list[str] | None = None,
-    trace_event_classes: list[str] | None = None,
-    fail_signals: list[str] | None = None,
-    agent_followed_injection: bool = False,
-    fabricated_evidence: bool = False,
-    out_of_scope_change: bool = False,
-    secret_leaked: bool = False,
-    unbounded_loop: bool = False,
-    unauthorized_tool_use: bool = False,
-    unsafe_handoff: bool = False,
-) -> dict[str, Any]:
-    """Return a replay_pass, hold, fail, or kill decision for one red-team replay result."""
-    return red_team_replay_harness.evaluate(
-        {
-            "agent_followed_injection": agent_followed_injection,
-            "evidence_classes": evidence_classes or [],
-            "fabricated_evidence": fabricated_evidence,
-            "fail_signals": fail_signals or [],
-            "observed_decision": observed_decision,
-            "out_of_scope_change": out_of_scope_change,
-            "replay_id": replay_id,
-            "scenario_id": scenario_id,
-            "secret_leaked": secret_leaked,
-            "trace_event_classes": trace_event_classes or [],
-            "unbounded_loop": unbounded_loop,
-            "unauthorized_tool_use": unauthorized_tool_use,
-            "unsafe_handoff": unsafe_handoff,
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -10989,46 +9894,6 @@ async def recipes_agent_memory_boundary_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_agent_memory_decision(
-    workflow_id: str,
-    memory_class_id: str,
-    operation: str,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    tenant_id: str | None = None,
-    source_id: str | None = None,
-    provenance_hash: str | None = None,
-    requested_ttl_days: int | None = None,
-    data_class: str | None = None,
-    data_classes: list[str] | None = None,
-    contains_secret: bool = False,
-    contains_unredacted_pii: bool = False,
-    human_approval_record: dict[str, Any] | None = None,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic memory read, write, delete, replay, or reindex decision."""
-    return agent_memory_boundary_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "contains_secret": contains_secret,
-            "contains_unredacted_pii": contains_unredacted_pii,
-            "data_class": data_class,
-            "data_classes": data_classes or [],
-            "human_approval_record": human_approval_record,
-            "memory_class_id": memory_class_id,
-            "operation": operation,
-            "provenance_hash": provenance_hash,
-            "requested_ttl_days": requested_ttl_days,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "source_id": source_id,
-            "tenant_id": tenant_id,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agent_skill_supply_chain_pack(
     skill_id: str | None = None,
     platform: str | None = None,
@@ -11043,46 +9908,6 @@ async def recipes_agent_skill_supply_chain_pack(
         decision=decision,
         risk_tier=risk_tier,
         minimum_score=minimum_score,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_agent_skill_decision(
-    skill_id: str,
-    operation: str,
-    workflow_id: str | None = None,
-    platform: str | None = None,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    package_hash: str | None = None,
-    signature_present: bool = False,
-    verified_publisher: bool = False,
-    registry_verified: bool = False,
-    sandboxed: bool = False,
-    requested_permissions: dict[str, Any] | None = None,
-    network_egress_domains: list[str] | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic install, update, enable, or run decision for an agent skill."""
-    return agent_skill_supply_chain_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "human_approval_record": human_approval_record,
-            "network_egress_domains": network_egress_domains or [],
-            "operation": operation,
-            "package_hash": package_hash,
-            "platform": platform,
-            "registry_verified": registry_verified,
-            "requested_permissions": requested_permissions or {},
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "sandboxed": sandboxed,
-            "signature_present": signature_present,
-            "skill_id": skill_id,
-            "verified_publisher": verified_publisher,
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -11103,52 +9928,6 @@ async def recipes_agent_handoff_boundary_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_agent_handoff_decision(
-    workflow_id: str,
-    handoff_profile_id: str,
-    protocol: str,
-    target_agent_class: str | None = None,
-    source_agent_id: str | None = None,
-    run_id: str | None = None,
-    correlation_id: str | None = None,
-    target_trust_tier: str = "first_party",
-    payload_fields: list[str] | None = None,
-    data_classes: list[str] | None = None,
-    requested_capabilities: list[str] | None = None,
-    authentication_schemes: list[str] | None = None,
-    agent_card_signed: bool = False,
-    contains_secret: bool = False,
-    resource_indicator: str | None = None,
-    token_audience: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision for an agent handoff."""
-    return agent_handoff_boundary_pack.evaluate(
-        {
-            "agent_card_signed": agent_card_signed,
-            "authentication_schemes": authentication_schemes or [],
-            "contains_secret": contains_secret,
-            "correlation_id": correlation_id,
-            "data_classes": data_classes or [],
-            "handoff_profile_id": handoff_profile_id,
-            "human_approval_record": human_approval_record or {},
-            "payload_fields": payload_fields or [],
-            "protocol": protocol,
-            "requested_capabilities": requested_capabilities or [],
-            "resource_indicator": resource_indicator,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "source_agent_id": source_agent_id,
-            "target_agent_class": target_agent_class,
-            "target_trust_tier": target_trust_tier,
-            "token_audience": token_audience,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_a2a_agent_card_trust_profile(
     profile_id: str | None = None,
     decision: str | None = None,
@@ -11159,34 +9938,6 @@ async def recipes_a2a_agent_card_trust_profile(
         profile_id=profile_id,
         decision=decision,
         risk_tier=risk_tier,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_a2a_agent_card_trust_decision(
-    agent_card: dict[str, Any],
-    profile_id: str,
-    production: bool = False,
-    expected_domain: str | None = None,
-    declared_controls: list[str] | None = None,
-    approved_skill_ids: list[str] | None = None,
-    tenant_id: str | None = None,
-    run_id: str | None = None,
-    correlation_id: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic allow, pilot, hold, deny, or kill decision for an A2A Agent Card."""
-    return a2a_agent_card_trust_profile.evaluate(
-        {
-            "agent_card": agent_card,
-            "approved_skill_ids": approved_skill_ids or [],
-            "correlation_id": correlation_id,
-            "declared_controls": declared_controls or [],
-            "expected_domain": expected_domain,
-            "production": production,
-            "profile_id": profile_id,
-            "run_id": run_id,
-            "tenant_id": tenant_id,
-        }
     )
 
 
@@ -11237,34 +9988,6 @@ async def recipes_secure_context_trust_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_context_retrieval_decision(
-    workflow_id: str,
-    source_id: str,
-    retrieval_mode: str,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    requested_path: str | None = None,
-    context_hash: str | None = None,
-    tenant_id: str | None = None,
-    data_class: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision before context is returned."""
-    return secure_context_trust_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "context_hash": context_hash,
-            "data_class": data_class,
-            "requested_path": requested_path,
-            "retrieval_mode": retrieval_mode,
-            "run_id": run_id,
-            "source_id": source_id,
-            "tenant_id": tenant_id,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_secure_context_attestation_pack(
     source_id: str | None = None,
     workflow_id: str | None = None,
@@ -11279,34 +10002,6 @@ async def recipes_secure_context_attestation_pack(
         artifact_id=artifact_id,
         subject_type=subject_type,
         status=status,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_context_attestation_decision(
-    subject_type: str,
-    environment: str = "open_reference",
-    source_id: str | None = None,
-    workflow_id: str | None = None,
-    artifact_id: str | None = None,
-    subject_hash: str | None = None,
-    data_class: str | None = None,
-    signature_bundle_present: bool = False,
-    transparency_log_verified: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic attestation decision before context is trusted for an agent."""
-    return secure_context_attestation_pack.evaluate(
-        {
-            "artifact_id": artifact_id,
-            "data_class": data_class,
-            "environment": environment,
-            "signature_bundle_present": signature_bundle_present,
-            "source_id": source_id,
-            "subject_hash": subject_hash,
-            "subject_type": subject_type,
-            "transparency_log_verified": transparency_log_verified,
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -11329,72 +10024,6 @@ async def recipes_secure_context_lineage_ledger(
 
 
 @mcp.tool()
-async def recipes_evaluate_secure_context_lineage_decision(
-    workflow_id: str,
-    run_id: str,
-    agent_id: str,
-    tenant_id: str,
-    correlation_id: str,
-    trace_id: str,
-    context_package_hash: str,
-    context_retrieval_decision: str,
-    attestation_decision: str,
-    poisoning_scan_state: str,
-    model_route_id: str,
-    model_route_decision: str,
-    egress_decision: str,
-    handoff_decision: str,
-    telemetry_event_id: str,
-    telemetry_decision: str,
-    receipt_id: str,
-    source_ids: list[str] | None = None,
-    source_hashes: list[str] | None = None,
-    reuse_class: str = "same_run_context_replay",
-    destination_class: str | None = None,
-    target_tenant_id: str | None = None,
-    contains_secret: bool = False,
-    context_hash_mismatch: bool = False,
-    identity_used_after_revocation: bool = False,
-    prohibited_data_class: bool = False,
-    token_passthrough: bool = False,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision for context lineage and reuse."""
-    return secure_context_lineage_ledger.evaluate(
-        {
-            "agent_id": agent_id,
-            "attestation_decision": attestation_decision,
-            "contains_secret": contains_secret,
-            "context_hash_mismatch": context_hash_mismatch,
-            "context_package_hash": context_package_hash,
-            "context_retrieval_decision": context_retrieval_decision,
-            "correlation_id": correlation_id,
-            "destination_class": destination_class,
-            "egress_decision": egress_decision,
-            "handoff_decision": handoff_decision,
-            "identity_used_after_revocation": identity_used_after_revocation,
-            "model_route_decision": model_route_decision,
-            "model_route_id": model_route_id,
-            "poisoning_scan_state": poisoning_scan_state,
-            "prohibited_data_class": prohibited_data_class,
-            "receipt_id": receipt_id,
-            "reuse_class": reuse_class,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "source_hashes": source_hashes or [],
-            "source_ids": source_ids or [],
-            "target_tenant_id": target_tenant_id,
-            "telemetry_decision": telemetry_decision,
-            "telemetry_event_id": telemetry_event_id,
-            "tenant_id": tenant_id,
-            "token_passthrough": token_passthrough,
-            "trace_id": trace_id,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_secure_context_eval_pack(
     scenario_id: str | None = None,
     workflow_id: str | None = None,
@@ -11409,30 +10038,6 @@ async def recipes_secure_context_eval_pack(
         scenario_type=scenario_type,
         decision=decision,
         minimum_score=minimum_score,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_secure_context_eval_case(
-    scenario_id: str,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    answer_text: str | None = None,
-    citations: list[dict[str, Any]] | None = None,
-    observed_decisions: dict[str, Any] | None = None,
-    handoff_payload: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Evaluate one observed answer against the generated secure-context eval contract."""
-    return secure_context_eval_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "answer_text": answer_text,
-            "citations": citations or [],
-            "handoff_payload": handoff_payload or {},
-            "observed_decisions": observed_decisions or {},
-            "run_id": run_id,
-            "scenario_id": scenario_id,
-        }
     )
 
 
@@ -11469,46 +10074,6 @@ async def recipes_context_egress_boundary_pack(
         destination_class=destination_class,
         source_id=source_id,
         workflow_id=workflow_id,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_context_egress_decision(
-    workflow_id: str,
-    destination_class: str,
-    data_class: str | None = None,
-    source_id: str | None = None,
-    mcp_namespace: str | None = None,
-    tenant_id: str | None = None,
-    destination_trust_tier: str | None = None,
-    contains_secret: bool = False,
-    contains_unredacted_pii: bool = False,
-    dpa_in_place: bool = False,
-    zero_data_retention: bool = False,
-    residency_region: str | None = None,
-    required_region: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    egress_path: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision before context egress."""
-    return context_egress_boundary_pack.evaluate(
-        {
-            "contains_secret": contains_secret,
-            "contains_unredacted_pii": contains_unredacted_pii,
-            "data_class": data_class,
-            "destination_class": destination_class,
-            "destination_trust_tier": destination_trust_tier,
-            "dpa_in_place": dpa_in_place,
-            "egress_path": egress_path,
-            "human_approval_record": human_approval_record,
-            "mcp_namespace": mcp_namespace,
-            "residency_region": residency_region,
-            "required_region": required_region,
-            "source_id": source_id,
-            "tenant_id": tenant_id,
-            "workflow_id": workflow_id,
-            "zero_data_retention": zero_data_retention,
-        }
     )
 
 
@@ -11607,76 +10172,6 @@ async def recipes_agentic_protocol_conformance_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_agentic_protocol_conformance_decision(
-    protocol_id: str,
-    workflow_id: str | None = None,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    transport: str | None = "streamable-http",
-    protocol_version_observed: str | None = None,
-    resource_indicator_present: bool = False,
-    token_audience_bound: bool = False,
-    pkce_verified: bool = False,
-    client_metadata_reviewed: bool = False,
-    token_passthrough: bool = False,
-    tool_annotations_trusted: bool = False,
-    tool_surface_pinned: bool = False,
-    schema_drift_detected: bool = False,
-    private_data_access: bool = False,
-    open_world_tool: bool = False,
-    external_egress: bool = False,
-    agent_card_present: bool = False,
-    agent_card_signed: bool = False,
-    extended_card_authenticated: bool = False,
-    provider_identity_verified: bool = False,
-    https_transport: bool = False,
-    a2a_version_header: bool = False,
-    untrusted_content_seen: bool = False,
-    contains_secret: bool = False,
-    runtime_kill_signal: bool = False,
-    session_id: str | None = None,
-    correlation_id: str | None = None,
-    gateway_policy_hash: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic protocol allow, hold, deny, or kill decision."""
-    return protocol_conformance_pack.evaluate(
-        {
-            "a2a_version_header": a2a_version_header,
-            "agent_card_present": agent_card_present,
-            "agent_card_signed": agent_card_signed,
-            "agent_id": agent_id,
-            "client_metadata_reviewed": client_metadata_reviewed,
-            "contains_secret": contains_secret,
-            "correlation_id": correlation_id,
-            "extended_card_authenticated": extended_card_authenticated,
-            "external_egress": external_egress,
-            "gateway_policy_hash": gateway_policy_hash,
-            "human_approval_record": human_approval_record or {},
-            "https_transport": https_transport,
-            "open_world_tool": open_world_tool,
-            "pkce_verified": pkce_verified,
-            "private_data_access": private_data_access,
-            "protocol_id": protocol_id,
-            "protocol_version_observed": protocol_version_observed,
-            "provider_identity_verified": provider_identity_verified,
-            "resource_indicator_present": resource_indicator_present,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "schema_drift_detected": schema_drift_detected,
-            "session_id": session_id,
-            "token_audience_bound": token_audience_bound,
-            "token_passthrough": token_passthrough,
-            "tool_annotations_trusted": tool_annotations_trusted,
-            "tool_surface_pinned": tool_surface_pinned,
-            "transport": transport,
-            "untrusted_content_seen": untrusted_content_seen,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_control_plane_blueprint(
     layer_id: str | None = None,
     question_id: str | None = None,
@@ -11733,38 +10228,6 @@ async def recipes_agentic_posture_snapshot(
 
 
 @mcp.tool()
-async def recipes_evaluate_agentic_posture_decision(
-    workflow_id: str,
-    agent_id: str | None = None,
-    mcp_namespace: str | None = None,
-    risk_factor: str | None = None,
-    autonomy_level: str = "bounded",
-    indirect_prompt_injection_risk: str = "unknown",
-    connector_status: str | None = None,
-    human_approval_present: bool = False,
-    contains_secret: bool = False,
-    session_exfiltration_path: bool = False,
-    unregistered_agent: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic posture decision before an agent crosses a high-risk path."""
-    return posture_snapshot.evaluate(
-        {
-            "agent_id": agent_id,
-            "autonomy_level": autonomy_level,
-            "connector_status": connector_status,
-            "contains_secret": contains_secret,
-            "human_approval_present": human_approval_present,
-            "indirect_prompt_injection_risk": indirect_prompt_injection_risk,
-            "mcp_namespace": mcp_namespace,
-            "risk_factor": risk_factor,
-            "session_exfiltration_path": session_exfiltration_path,
-            "unregistered_agent": unregistered_agent,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_aivss_risk_scoring_pack(
     scenario_id: str | None = None,
     severity: str | None = None,
@@ -11783,42 +10246,6 @@ async def recipes_agentic_aivss_risk_scoring_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_agentic_aivss_risk_decision(
-    scenario_id: str | None = None,
-    workflow_id: str | None = None,
-    agent_id: str | None = None,
-    aivss_score: float | None = None,
-    autonomy_level: str = "bounded",
-    contains_secret: bool = False,
-    unregistered_agent: bool = False,
-    shadow_mcp_server: bool = False,
-    external_write: bool = False,
-    exfiltration_capable_tool: bool = False,
-    untrusted_context: bool = False,
-    human_approval_present: bool = False,
-    malicious_or_unpinned_skill: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic allow, guarded, hold, deny, or kill decision for one agentic risk event."""
-    return agentic_aivss_risk_scoring_pack.evaluate(
-        {
-            "agent_id": agent_id,
-            "aivss_score": aivss_score,
-            "autonomy_level": autonomy_level,
-            "contains_secret": contains_secret,
-            "exfiltration_capable_tool": exfiltration_capable_tool,
-            "external_write": external_write,
-            "human_approval_present": human_approval_present,
-            "malicious_or_unpinned_skill": malicious_or_unpinned_skill,
-            "scenario_id": scenario_id,
-            "shadow_mcp_server": shadow_mcp_server,
-            "unregistered_agent": unregistered_agent,
-            "untrusted_context": untrusted_context,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_app_intake_pack(
     app_id: str | None = None,
     decision: str | None = None,
@@ -11833,62 +10260,6 @@ async def recipes_agentic_app_intake_pack(
         risk_tier=risk_tier,
         buyer_stage=buyer_stage,
         minimum_score=minimum_score,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_agentic_app_intake_decision(
-    app_id: str,
-    owner: str | None = None,
-    business_purpose: str | None = None,
-    autonomy_level: str | None = None,
-    deployment_environment: str | None = None,
-    data_classes: list[str] | None = None,
-    mcp_namespaces: list[str] | None = None,
-    mcp_access_modes: list[str] | None = None,
-    control_evidence: list[str] | None = None,
-    requested_high_impact_actions: list[str] | None = None,
-    indirect_prompt_injection_risk: str | None = None,
-    telemetry_decision: str | None = None,
-    egress_decision: str | None = None,
-    authorization_decision: str | None = None,
-    external_write: bool = False,
-    production_write: bool = False,
-    destructive_or_irreversible: bool = False,
-    memory_persistence: str | None = None,
-    a2a_or_remote_agent: bool = False,
-    untrusted_input: bool = False,
-    startup_or_package_install: bool = False,
-    human_approval_record: dict[str, Any] | None = None,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic launch or expansion decision for an agentic app."""
-    return app_intake_pack.evaluate(
-        {
-            "a2a_or_remote_agent": a2a_or_remote_agent,
-            "app_id": app_id,
-            "authorization_decision": authorization_decision,
-            "autonomy_level": autonomy_level,
-            "business_purpose": business_purpose,
-            "control_evidence": control_evidence or [],
-            "data_classes": data_classes or [],
-            "deployment_environment": deployment_environment,
-            "destructive_or_irreversible": destructive_or_irreversible,
-            "egress_decision": egress_decision,
-            "external_write": external_write,
-            "human_approval_record": human_approval_record or {},
-            "indirect_prompt_injection_risk": indirect_prompt_injection_risk,
-            "mcp_access_modes": mcp_access_modes or [],
-            "mcp_namespaces": mcp_namespaces or [],
-            "memory_persistence": memory_persistence,
-            "owner": owner,
-            "production_write": production_write,
-            "requested_high_impact_actions": requested_high_impact_actions or [],
-            "runtime_kill_signal": runtime_kill_signal,
-            "startup_or_package_install": startup_or_package_install,
-            "telemetry_decision": telemetry_decision,
-            "untrusted_input": untrusted_input,
-        }
     )
 
 
@@ -11913,74 +10284,6 @@ async def recipes_model_provider_routing_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_model_provider_routing_decision(
-    workflow_id: str,
-    provider_id: str,
-    model_id: str,
-    route_class: str,
-    route_id: str | None = None,
-    data_classes: list[str] | None = None,
-    autonomy_level: str = "assisted",
-    tenant_id: str | None = None,
-    tenant_region: str | None = None,
-    provider_region: str | None = None,
-    endpoint_url: str | None = None,
-    egress_decision: str | None = None,
-    zero_data_retention: bool = False,
-    training_opt_out: bool = False,
-    dpa_in_place: bool = False,
-    enterprise_contract: bool = False,
-    mcp_gateway_enforced: bool = False,
-    tool_guardrails_enforced: bool = False,
-    output_guardrails_enforced: bool = False,
-    telemetry_redacted: bool = False,
-    run_receipt_attached: bool = False,
-    human_approval_record: dict[str, Any] | None = None,
-    contains_secret: bool = False,
-    contains_unredacted_pii: bool = False,
-    cross_tenant_context: bool = False,
-    untrusted_input: bool = False,
-    tool_call_started: bool = False,
-    high_impact_action: bool = False,
-    runtime_kill_signal: str | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic model-provider route decision before a model call starts."""
-    return model_provider_routing_pack.evaluate(
-        {
-            "autonomy_level": autonomy_level,
-            "contains_secret": contains_secret,
-            "contains_unredacted_pii": contains_unredacted_pii,
-            "cross_tenant_context": cross_tenant_context,
-            "data_classes": data_classes or [],
-            "dpa_in_place": dpa_in_place,
-            "egress_decision": egress_decision,
-            "endpoint_url": endpoint_url,
-            "enterprise_contract": enterprise_contract,
-            "high_impact_action": high_impact_action,
-            "human_approval_record": human_approval_record or {},
-            "mcp_gateway_enforced": mcp_gateway_enforced,
-            "model_id": model_id,
-            "output_guardrails_enforced": output_guardrails_enforced,
-            "provider_id": provider_id,
-            "provider_region": provider_region,
-            "route_class": route_class,
-            "route_id": route_id,
-            "run_receipt_attached": run_receipt_attached,
-            "runtime_kill_signal": runtime_kill_signal,
-            "telemetry_redacted": telemetry_redacted,
-            "tenant_id": tenant_id,
-            "tenant_region": tenant_region,
-            "tool_call_started": tool_call_started,
-            "tool_guardrails_enforced": tool_guardrails_enforced,
-            "training_opt_out": training_opt_out,
-            "untrusted_input": untrusted_input,
-            "workflow_id": workflow_id,
-            "zero_data_retention": zero_data_retention,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_catastrophic_risk_annex(
     scenario_id: str | None = None,
     control_id: str | None = None,
@@ -11995,78 +10298,6 @@ async def recipes_agentic_catastrophic_risk_annex(
         buyer_view_id=buyer_view_id,
         impact_domain=impact_domain,
         status=status,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_agentic_catastrophic_risk_decision(
-    workflow_id: str,
-    action_class: str,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    identity_id: str | None = None,
-    tenant_id: str | None = None,
-    impact_domain: str | None = None,
-    policy_pack_hash: str | None = None,
-    authorization_decision: str | None = None,
-    context_package_hash: str | None = None,
-    egress_decision: str | None = None,
-    handoff_decision: str | None = None,
-    readiness_decision: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    risk_acceptance_id: str | None = None,
-    receipt_id: str | None = None,
-    correlation_id: str | None = None,
-    residual_risk_tier: str | None = None,
-    runtime_kill_signal: str | None = None,
-    observed_loop_count: int = 0,
-    max_loop_count: int = 3,
-    affects_prod: bool = False,
-    affects_many_tenants: bool = False,
-    can_move_funds: bool = False,
-    can_modify_identity: bool = False,
-    can_delete_data: bool = False,
-    can_deploy: bool = False,
-    writes_public_corpus: bool = False,
-    handles_secrets: bool = False,
-    handles_unredacted_pii: bool = False,
-    external_side_effect: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision for high-impact autonomy."""
-    return catastrophic_risk_annex.evaluate(
-        {
-            "action_class": action_class,
-            "affects_many_tenants": affects_many_tenants,
-            "affects_prod": affects_prod,
-            "agent_id": agent_id,
-            "authorization_decision": authorization_decision,
-            "can_delete_data": can_delete_data,
-            "can_deploy": can_deploy,
-            "can_modify_identity": can_modify_identity,
-            "can_move_funds": can_move_funds,
-            "context_package_hash": context_package_hash,
-            "correlation_id": correlation_id,
-            "egress_decision": egress_decision,
-            "external_side_effect": external_side_effect,
-            "handoff_decision": handoff_decision,
-            "handles_secrets": handles_secrets,
-            "handles_unredacted_pii": handles_unredacted_pii,
-            "human_approval_record": human_approval_record,
-            "identity_id": identity_id,
-            "impact_domain": impact_domain,
-            "max_loop_count": max_loop_count,
-            "observed_loop_count": observed_loop_count,
-            "policy_pack_hash": policy_pack_hash,
-            "readiness_decision": readiness_decision,
-            "receipt_id": receipt_id,
-            "residual_risk_tier": residual_risk_tier,
-            "risk_acceptance_id": risk_acceptance_id,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "tenant_id": tenant_id,
-            "workflow_id": workflow_id,
-            "writes_public_corpus": writes_public_corpus,
-        }
     )
 
 
@@ -12089,78 +10320,6 @@ async def recipes_critical_infrastructure_secure_context_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_critical_infrastructure_context_decision(
-    sector_id: str,
-    workflow_id: str,
-    action_class: str,
-    agent_id: str | None = None,
-    run_id: str | None = None,
-    identity_id: str | None = None,
-    tenant_id: str | None = None,
-    context_package_hash: str | None = None,
-    policy_pack_hash: str | None = None,
-    authorization_decision: str | None = None,
-    egress_decision: str | None = None,
-    catastrophic_risk_decision: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    operator_approval_id: str | None = None,
-    ci_safety_case_id: str | None = None,
-    risk_acceptance_id: str | None = None,
-    receipt_id: str | None = None,
-    telemetry_trace_id: str | None = None,
-    runtime_kill_signal: str | None = None,
-    affects_ot_or_ics: bool = False,
-    patient_safety_impact: bool = False,
-    emergency_services_impact: bool = False,
-    funds_or_market_impact: bool = False,
-    public_service_disruption: bool = False,
-    cross_sector_dependency: bool = False,
-    handles_regulated_pii: bool = False,
-    raw_secret_access: bool = False,
-    shadow_mcp_server: bool = False,
-    token_passthrough: bool = False,
-    unsafe_local_mcp_launch: bool = False,
-    untrusted_context: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic decision for one critical-infrastructure context or action event."""
-    return critical_infrastructure_pack.evaluate(
-        {
-            "action_class": action_class,
-            "affects_ot_or_ics": affects_ot_or_ics,
-            "agent_id": agent_id,
-            "authorization_decision": authorization_decision,
-            "catastrophic_risk_decision": catastrophic_risk_decision,
-            "ci_safety_case_id": ci_safety_case_id,
-            "context_package_hash": context_package_hash,
-            "cross_sector_dependency": cross_sector_dependency,
-            "egress_decision": egress_decision,
-            "emergency_services_impact": emergency_services_impact,
-            "funds_or_market_impact": funds_or_market_impact,
-            "handles_regulated_pii": handles_regulated_pii,
-            "human_approval_record": human_approval_record or {},
-            "identity_id": identity_id,
-            "operator_approval_id": operator_approval_id,
-            "patient_safety_impact": patient_safety_impact,
-            "policy_pack_hash": policy_pack_hash,
-            "public_service_disruption": public_service_disruption,
-            "raw_secret_access": raw_secret_access,
-            "receipt_id": receipt_id,
-            "risk_acceptance_id": risk_acceptance_id,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "sector_id": sector_id,
-            "shadow_mcp_server": shadow_mcp_server,
-            "telemetry_trace_id": telemetry_trace_id,
-            "tenant_id": tenant_id,
-            "token_passthrough": token_passthrough,
-            "unsafe_local_mcp_launch": unsafe_local_mcp_launch,
-            "untrusted_context": untrusted_context,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_incident_response_pack(
     incident_class_id: str | None = None,
     workflow_id: str | None = None,
@@ -12173,74 +10332,6 @@ async def recipes_agentic_incident_response_pack(
         workflow_id=workflow_id,
         severity=severity,
         decision=decision,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_agentic_incident_response_decision(
-    incident_id: str,
-    workflow_id: str,
-    run_id: str,
-    agent_id: str,
-    identity_id: str,
-    tenant_id: str,
-    correlation_id: str,
-    incident_class_id: str,
-    severity_signal: str | None = None,
-    source_event_ids: list[str] | None = None,
-    receipt_id: str | None = None,
-    context_source_ids: list[str] | None = None,
-    context_source_hashes: list[str] | None = None,
-    mcp_namespaces: list[str] | None = None,
-    authorization_decisions: list[str] | None = None,
-    egress_decisions: list[str] | None = None,
-    handoff_decisions: list[str] | None = None,
-    affected_data_classes: list[str] | None = None,
-    indicators: list[str] | None = None,
-    containment_action_ids: list[str] | None = None,
-    replay_case_ids: list[str] | None = None,
-    customer_impact_state: str | None = None,
-    externalized_context: bool = False,
-    production_write: bool = False,
-    token_passthrough: bool = False,
-    identity_used_after_revocation: bool = False,
-    customer_impact_confirmed: bool = False,
-    runtime_kill_signal: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Return a deterministic monitor, triage, hold, contain, or kill decision for an agentic incident."""
-    return incident_response_pack.evaluate(
-        {
-            "affected_data_classes": affected_data_classes or [],
-            "agent_id": agent_id,
-            "authorization_decisions": authorization_decisions or [],
-            "containment_action_ids": containment_action_ids or [],
-            "context_source_hashes": context_source_hashes or [],
-            "context_source_ids": context_source_ids or [],
-            "correlation_id": correlation_id,
-            "customer_impact_confirmed": customer_impact_confirmed,
-            "customer_impact_state": customer_impact_state,
-            "egress_decisions": egress_decisions or [],
-            "externalized_context": externalized_context,
-            "handoff_decisions": handoff_decisions or [],
-            "human_approval_record": human_approval_record,
-            "identity_id": identity_id,
-            "identity_used_after_revocation": identity_used_after_revocation,
-            "incident_class_id": incident_class_id,
-            "incident_id": incident_id,
-            "indicators": indicators or [],
-            "mcp_namespaces": mcp_namespaces or [],
-            "production_write": production_write,
-            "receipt_id": receipt_id,
-            "replay_case_ids": replay_case_ids or [],
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "severity_signal": severity_signal,
-            "source_event_ids": source_event_ids or [],
-            "tenant_id": tenant_id,
-            "token_passthrough": token_passthrough,
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -12261,94 +10352,6 @@ async def recipes_agentic_action_runtime_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_agentic_action_runtime_decision(
-    workflow_id: str,
-    action_class: str,
-    run_id: str,
-    agent_id: str,
-    identity_id: str,
-    tenant_id: str,
-    correlation_id: str,
-    intent_summary: str,
-    policy_pack_hash: str,
-    authorization_decision: str,
-    receipt_id: str,
-    context_package_hash: str | None = None,
-    egress_decision: str | None = None,
-    handoff_decision: str | None = None,
-    telemetry_decision: str | None = None,
-    catastrophic_risk_decision: str | None = None,
-    telemetry_event_id: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    risk_acceptance_id: str | None = None,
-    runtime_kill_signal: str | None = None,
-    indicators: list[str] | None = None,
-    mcp_namespaces: list[str] | None = None,
-    requested_capabilities: list[str] | None = None,
-    changed_paths: list[str] | None = None,
-    data_classes: list[str] | None = None,
-    affects_prod: bool = False,
-    affects_many_tenants: bool = False,
-    can_delete_data: bool = False,
-    can_deploy: bool = False,
-    can_modify_identity: bool = False,
-    can_move_funds: bool = False,
-    contains_secret: bool = False,
-    external_side_effect: bool = False,
-    identity_used_after_revocation: bool = False,
-    persistent_memory_write: bool = False,
-    repeated_denied_action: bool = False,
-    skill_or_tool_install: bool = False,
-    token_passthrough: bool = False,
-    writes_public_corpus: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic allow, hold, deny, or kill decision before an agent action executes."""
-    return action_runtime_pack.evaluate(
-        {
-            "action_class": action_class,
-            "affects_many_tenants": affects_many_tenants,
-            "affects_prod": affects_prod,
-            "agent_id": agent_id,
-            "authorization_decision": authorization_decision,
-            "can_delete_data": can_delete_data,
-            "can_deploy": can_deploy,
-            "can_modify_identity": can_modify_identity,
-            "can_move_funds": can_move_funds,
-            "catastrophic_risk_decision": catastrophic_risk_decision,
-            "changed_paths": changed_paths or [],
-            "contains_secret": contains_secret,
-            "context_package_hash": context_package_hash,
-            "correlation_id": correlation_id,
-            "data_classes": data_classes or [],
-            "egress_decision": egress_decision,
-            "external_side_effect": external_side_effect,
-            "handoff_decision": handoff_decision,
-            "human_approval_record": human_approval_record,
-            "identity_id": identity_id,
-            "identity_used_after_revocation": identity_used_after_revocation,
-            "indicators": indicators or [],
-            "intent_summary": intent_summary,
-            "mcp_namespaces": mcp_namespaces or [],
-            "persistent_memory_write": persistent_memory_write,
-            "policy_pack_hash": policy_pack_hash,
-            "receipt_id": receipt_id,
-            "repeated_denied_action": repeated_denied_action,
-            "requested_capabilities": requested_capabilities or [],
-            "risk_acceptance_id": risk_acceptance_id,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "skill_or_tool_install": skill_or_tool_install,
-            "telemetry_decision": telemetry_decision,
-            "telemetry_event_id": telemetry_event_id,
-            "tenant_id": tenant_id,
-            "token_passthrough": token_passthrough,
-            "workflow_id": workflow_id,
-            "writes_public_corpus": writes_public_corpus,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agent_trust_fabric_pack(
     dimension_id: str | None = None,
     workflow_id: str | None = None,
@@ -12365,94 +10368,6 @@ async def recipes_agent_trust_fabric_pack(
 
 
 @mcp.tool()
-async def recipes_evaluate_agent_trust_fabric_decision(
-    workflow_id: str,
-    run_id: str,
-    agent_id: str,
-    identity_id: str,
-    tenant_id: str,
-    correlation_id: str,
-    trust_event_id: str,
-    requested_trust_tier: str,
-    intent_summary: str,
-    context_package_hash: str,
-    policy_pack_hash: str,
-    authorization_decision: str,
-    egress_decision: str,
-    telemetry_event_id: str,
-    receipt_id: str,
-    source_freshness_decision: str,
-    action_runtime_decision: str | None = None,
-    telemetry_decision: str | None = None,
-    soc_decision: str | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    risk_acceptance_id: str | None = None,
-    runtime_kill_signal: str | None = None,
-    indicators: list[str] | None = None,
-    mcp_namespaces: list[str] | None = None,
-    requested_actions: list[str] | None = None,
-    data_classes: list[str] | None = None,
-    context_poisoning_signal: bool = False,
-    cross_tenant_context_access: bool = False,
-    external_side_effect: bool = False,
-    high_impact_action: bool = False,
-    identity_used_after_revocation: bool = False,
-    missing_trace_context: bool = False,
-    prompt_injection_signal: bool = False,
-    repeated_denied_action: bool = False,
-    scope_escalation: bool = False,
-    secret_egress: bool = False,
-    telemetry_redaction_failure: bool = False,
-    token_passthrough: bool = False,
-    untrusted_context: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic trust-fabric allow, hold, deny, or kill decision for an agent run."""
-    return agent_trust_fabric_pack.evaluate(
-        {
-            "action_runtime_decision": action_runtime_decision,
-            "agent_id": agent_id,
-            "authorization_decision": authorization_decision,
-            "context_package_hash": context_package_hash,
-            "context_poisoning_signal": context_poisoning_signal,
-            "correlation_id": correlation_id,
-            "cross_tenant_context_access": cross_tenant_context_access,
-            "data_classes": data_classes or [],
-            "egress_decision": egress_decision,
-            "external_side_effect": external_side_effect,
-            "high_impact_action": high_impact_action,
-            "human_approval_record": human_approval_record,
-            "identity_id": identity_id,
-            "identity_used_after_revocation": identity_used_after_revocation,
-            "indicators": indicators or [],
-            "intent_summary": intent_summary,
-            "mcp_namespaces": mcp_namespaces or [],
-            "missing_trace_context": missing_trace_context,
-            "policy_pack_hash": policy_pack_hash,
-            "prompt_injection_signal": prompt_injection_signal,
-            "receipt_id": receipt_id,
-            "repeated_denied_action": repeated_denied_action,
-            "requested_actions": requested_actions or [],
-            "requested_trust_tier": requested_trust_tier,
-            "risk_acceptance_id": risk_acceptance_id,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "scope_escalation": scope_escalation,
-            "secret_egress": secret_egress,
-            "soc_decision": soc_decision,
-            "source_freshness_decision": source_freshness_decision,
-            "telemetry_decision": telemetry_decision,
-            "telemetry_event_id": telemetry_event_id,
-            "telemetry_redaction_failure": telemetry_redaction_failure,
-            "tenant_id": tenant_id,
-            "token_passthrough": token_passthrough,
-            "trust_event_id": trust_event_id,
-            "untrusted_context": untrusted_context,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_browser_agent_boundary_pack(
     workspace_class_id: str | None = None,
     task_profile_id: str | None = None,
@@ -12465,94 +10380,6 @@ async def recipes_browser_agent_boundary_pack(
         task_profile_id=task_profile_id,
         risk_tier=risk_tier,
         decision=decision,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_browser_agent_boundary_decision(
-    workspace_class_id: str,
-    task_profile_id: str,
-    session_id: str,
-    run_id: str,
-    agent_id: str,
-    tenant_id: str,
-    user_intent: str,
-    target_origin: str,
-    content_trust_level: str,
-    auth_state: str,
-    isolation_mode: str,
-    action_classes: list[str],
-    data_classes: list[str],
-    network_egress_policy: str,
-    browser_storage_policy: str,
-    approval_state: str,
-    telemetry_event_id: str,
-    receipt_id: str,
-    controls: list[str] | None = None,
-    indicators: list[str] | None = None,
-    human_approval_record: dict[str, Any] | None = None,
-    runtime_kill_signal: str | None = None,
-    admin_console_write: bool = False,
-    ambient_cookies_available: bool = False,
-    contains_secret: bool = False,
-    cross_origin_egress: bool = False,
-    dom_credential_visible: bool = False,
-    downloads_file: bool = False,
-    executes_code: bool = False,
-    external_side_effect: bool = False,
-    hidden_instruction_detected: bool = False,
-    localhost_access: bool = False,
-    localhost_probe: bool = False,
-    local_storage_token: bool = False,
-    payment_or_purchase: bool = False,
-    persistent_memory_write: bool = False,
-    prompt_injection_signal: bool = False,
-    sends_external_message: bool = False,
-    uses_personal_profile: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic browser-agent workspace allow, hold, deny, or kill decision."""
-    return browser_agent_boundary_pack.evaluate(
-        {
-            "action_classes": action_classes,
-            "admin_console_write": admin_console_write,
-            "agent_id": agent_id,
-            "ambient_cookies_available": ambient_cookies_available,
-            "approval_state": approval_state,
-            "auth_state": auth_state,
-            "browser_storage_policy": browser_storage_policy,
-            "contains_secret": contains_secret,
-            "content_trust_level": content_trust_level,
-            "controls": controls or [],
-            "cross_origin_egress": cross_origin_egress,
-            "data_classes": data_classes,
-            "dom_credential_visible": dom_credential_visible,
-            "downloads_file": downloads_file,
-            "executes_code": executes_code,
-            "external_side_effect": external_side_effect,
-            "hidden_instruction_detected": hidden_instruction_detected,
-            "human_approval_record": human_approval_record,
-            "indicators": indicators or [],
-            "isolation_mode": isolation_mode,
-            "localhost_access": localhost_access,
-            "localhost_probe": localhost_probe,
-            "local_storage_token": local_storage_token,
-            "network_egress_policy": network_egress_policy,
-            "payment_or_purchase": payment_or_purchase,
-            "persistent_memory_write": persistent_memory_write,
-            "prompt_injection_signal": prompt_injection_signal,
-            "receipt_id": receipt_id,
-            "run_id": run_id,
-            "runtime_kill_signal": runtime_kill_signal,
-            "sends_external_message": sends_external_message,
-            "session_id": session_id,
-            "target_origin": target_origin,
-            "task_profile_id": task_profile_id,
-            "telemetry_event_id": telemetry_event_id,
-            "tenant_id": tenant_id,
-            "user_intent": user_intent,
-            "uses_personal_profile": uses_personal_profile,
-            "workspace_class_id": workspace_class_id,
-        }
     )
 
 
@@ -12595,28 +10422,6 @@ async def recipes_agentic_telemetry_contract(
 
 
 @mcp.tool()
-async def recipes_evaluate_agentic_telemetry_event(
-    workflow_id: str,
-    event_class: str,
-    attributes: dict[str, Any],
-    argument_capture: str = "absent",
-    result_capture: str = "absent",
-    contains_secret: bool = False,
-) -> dict[str, Any]:
-    """Return a telemetry_ready, hold, deny, or kill decision for one runtime trace event."""
-    return telemetry_contract.evaluate(
-        {
-            "argument_capture": argument_capture,
-            "attributes": attributes,
-            "contains_secret": contains_secret,
-            "event_class": event_class,
-            "result_capture": result_capture,
-            "workflow_id": workflow_id,
-        }
-    )
-
-
-@mcp.tool()
 async def recipes_agentic_soc_detection_pack(
     rule_id: str | None = None,
     workflow_id: str | None = None,
@@ -12631,24 +10436,6 @@ async def recipes_agentic_soc_detection_pack(
         severity=severity,
         decision=decision,
         event_class=event_class,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_agentic_soc_detection_event(
-    workflow_id: str,
-    event_class: str,
-    attributes: dict[str, Any],
-    contains_secret: bool = False,
-) -> dict[str, Any]:
-    """Return a SOC alert, hold, kill-session, or no-alert decision for one runtime event."""
-    return soc_detection_pack.evaluate(
-        {
-            "attributes": attributes,
-            "contains_secret": contains_secret,
-            "event_class": event_class,
-            "workflow_id": workflow_id,
-        }
     )
 
 
@@ -12767,68 +10554,6 @@ async def recipes_secure_context_evidence_contract(
         endpoint_id=endpoint_id,
         artifact_id=artifact_id,
         status=status,
-    )
-
-
-@mcp.tool()
-async def recipes_evaluate_secure_context_evidence_release(
-    release_id: str,
-    release_channel: str,
-    artifact_ids: list[str],
-    payload_classes: list[str] | None = None,
-    tenant_id: str | None = None,
-    correlation_id: str | None = None,
-    approval_receipt_id: str | None = None,
-    retention_policy_id: str | None = None,
-    dpa_state: str | None = None,
-    zero_data_retention_state: str | None = None,
-    redaction_manifest_id: str | None = None,
-    signature_id: str | None = None,
-    source_hashes_present: bool = False,
-    redaction_verified: bool = False,
-    tenant_bound: bool = False,
-    signature_present: bool = False,
-    dpa_in_place: bool = False,
-    zero_data_retention_committed: bool = False,
-    contains_api_key: bool = False,
-    contains_customer_data: bool = False,
-    contains_private_key: bool = False,
-    contains_raw_prompt: bool = False,
-    contains_secret: bool = False,
-    contains_session_cookie: bool = False,
-    contains_source_code: bool = False,
-    contains_token: bool = False,
-) -> dict[str, Any]:
-    """Return a deterministic release decision before evidence leaves a trust boundary."""
-    return evidence_contract.evaluate(
-        {
-            "approval_receipt_id": approval_receipt_id,
-            "artifact_ids": artifact_ids,
-            "contains_api_key": contains_api_key,
-            "contains_customer_data": contains_customer_data,
-            "contains_private_key": contains_private_key,
-            "contains_raw_prompt": contains_raw_prompt,
-            "contains_secret": contains_secret,
-            "contains_session_cookie": contains_session_cookie,
-            "contains_source_code": contains_source_code,
-            "contains_token": contains_token,
-            "correlation_id": correlation_id,
-            "dpa_in_place": dpa_in_place,
-            "dpa_state": dpa_state,
-            "payload_classes": payload_classes or [],
-            "redaction_manifest_id": redaction_manifest_id,
-            "redaction_verified": redaction_verified,
-            "release_channel": release_channel,
-            "release_id": release_id,
-            "retention_policy_id": retention_policy_id,
-            "signature_id": signature_id,
-            "signature_present": signature_present,
-            "source_hashes_present": source_hashes_present,
-            "tenant_bound": tenant_bound,
-            "tenant_id": tenant_id,
-            "zero_data_retention_committed": zero_data_retention_committed,
-            "zero_data_retention_state": zero_data_retention_state,
-        }
     )
 
 

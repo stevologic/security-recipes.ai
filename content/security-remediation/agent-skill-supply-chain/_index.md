@@ -1,9 +1,9 @@
----
+﻿---
 title: Agent Skill Supply Chain
 linkTitle: Agent Skill Supply Chain
 weight: 18
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated provenance, permission, isolation, and runtime-decision pack
   for agent skills, rules files, hooks, extensions, and behavior packages.
@@ -39,24 +39,14 @@ requirements, runtime approval requirements, and deterministic decisions.
 
 - `data/assurance/agent-skill-supply-chain-model.json` - the source
   model for skill provenance, permission, risk, and control credits.
-- `scripts/generate_agent_skill_supply_chain_pack.py` - a dependency-free
-  generator and validator with `--check` mode.
-- `scripts/evaluate_agent_skill_supply_chain_decision.py` - a
-  dependency-free runtime evaluator for install, update, enable, and run
-  decisions.
 - `data/evidence/agent-skill-supply-chain-pack.json` - the generated
   evidence pack.
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_agent_skill_supply_chain_pack.py
-python3 scripts/generate_agent_skill_supply_chain_pack.py --check
-```
 
 The MCP server exposes the pack through
 `recipes_agent_skill_supply_chain_pack` and exposes runtime decisions
-through `recipes_evaluate_agent_skill_decision`.
 
 ## Decision model
 
@@ -108,28 +98,9 @@ This feature follows current primary guidance:
 
 Evaluate a pinned, read-only context skill before running:
 
-```text
-recipes_evaluate_agent_skill_decision(
-  skill_id="sr-secure-context-retrieval-skill",
-  operation="run",
-  workflow_id="vulnerable-dependency-remediation",
-  platform="codex",
-  sandboxed=true
-)
-```
 
 Evaluate a high-consequence quarantine skill with approval:
 
-```text
-recipes_evaluate_agent_skill_decision(
-  skill_id="sr-artifact-quarantine-operator-skill",
-  operation="run",
-  workflow_id="artifact-cache-quarantine",
-  platform="claude",
-  sandboxed=true,
-  human_approval_record={"id":"chg-1234","approved_at":"2026-05-03T16:00:00Z"}
-)
-```
 
 An unregistered marketplace skill, a changed package hash, a wildcard
 egress request, or a private-data-plus-egress pattern fails closed.

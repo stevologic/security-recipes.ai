@@ -1,4 +1,4 @@
----
+﻿---
 title: Codex
 linkTitle: Codex
 weight: 4
@@ -21,7 +21,7 @@ Codex. Come back here for the full recipe once that loop is working.
 {{< /callout >}}
 
 OpenAI's Codex (CLI + cloud agent) is purpose-built for sandboxed,
-repo-aware tasks — a strong fit for **batch** remediation jobs. The
+repo-aware tasks â€” a strong fit for **batch** remediation jobs. The
 recipe is: a small driver script, a standing `AGENTS.md`, and a
 per-task prompt template. Codex handles the rest inside its sandbox.
 
@@ -34,7 +34,7 @@ per-task prompt template. Codex handles the rest inside its sandbox.
 
 ## General onboarding
 
-The public path — what any individual or team can do today using
+The public path â€” what any individual or team can do today using
 OpenAI's documented Codex CLI flow.
 
 1. **Get an OpenAI account.** Sign up at
@@ -43,7 +43,7 @@ OpenAI's documented Codex CLI flow.
    required. See
    [OpenAI API documentation](https://openai.com/api/plan documentation).
 2. **Install the Codex CLI.** See the section below, or
-   Anthropic's — sorry, OpenAI's —
+   Anthropic's â€” sorry, OpenAI's â€”
    [quickstart](https://developers.openai.com/codex/quickstart).
 3. **Authenticate.** Use OAuth (`codex login`), device-code
    flow (`codex login --device-auth`), or an API key. See
@@ -79,7 +79,7 @@ OpenAI's documented Codex CLI flow.
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder — customize for your organization.** Replace the
+**Placeholder â€” customize for your organization.** Replace the
 steps and links below with your internal process for getting an
 OpenAI / Codex enterprise API key, approving use of the hosted
 endpoints, and standing up the sandbox this recipe expects. The
@@ -97,7 +97,7 @@ this in for their own organizations.
    recipe needs (e.g. `gpt-5.3-codex` only). Internal link:
    [API key request](#placeholder-key-link).
 3. **Bind to corporate SSO.** Enterprise OpenAI accounts support
-   SSO — bind the account to your identity provider per the
+   SSO â€” bind the account to your identity provider per the
    standard IT guide. Internal link:
    [SSO enrollment](#placeholder-sso-link).
 4. **Approve the hosted endpoint.** Get the OpenAI API added to
@@ -142,7 +142,7 @@ npm i -g @openai/codex
 
 Authenticate with `codex login`:
 
-- **ChatGPT OAuth (default):** `codex login` opens a browser — works for
+- **ChatGPT OAuth (default):** `codex login` opens a browser â€” works for
   ChatGPT Plus / Pro / Business / Enterprise plans.
 - **Device code (headless):** `codex login --device-auth` prints a code
   to pair from another device.
@@ -203,7 +203,7 @@ Stop and ask a human before:
 ### 2. Write a driver script
 
 The driver reads findings off a queue, fills a prompt template, and
-invokes Codex in full-auto inside a sandbox. Keep it small — this
+invokes Codex in full-auto inside a sandbox. Keep it small â€” this
 is the piece you rely on for years.
 
 ```bash
@@ -219,13 +219,13 @@ QUEUE="${1:?usage: remediate.sh <queue-file>}"
 WORKDIR=$(mktemp -d)
 trap 'rm -rf "$WORKDIR"' EXIT
 
-# Pin the model string in one place — upgrade here when a new Codex
+# Pin the model string in one place â€” upgrade here when a new Codex
 # model ships. Valid strings today include `gpt-5.3-codex` (Codex-tuned)
 # and `gpt-5.4` (general); see https://developers.openai.com/codex/models
 CODEX_MODEL="${CODEX_MODEL:-gpt-5.3-codex}"
 
 while IFS= read -r finding_id; do
-  echo "→ remediating $finding_id"
+  echo "â†’ remediating $finding_id"
 
   # Fresh clone per finding, so branches never cross-contaminate.
   git clone --depth 1 "$REPO_URL" "$WORKDIR/$finding_id"
@@ -244,7 +244,7 @@ while IFS= read -r finding_id; do
       --json \
       "$PROMPT" \
       > "../../logs/$finding_id.jsonl" \
-    || { echo "✗ $finding_id: codex failed"; popd; continue; }
+    || { echo "âœ— $finding_id: codex failed"; popd; continue; }
 
   # Open the PR (Codex pushed the branch; we add the tracking metadata).
   gh pr create \
@@ -260,7 +260,7 @@ done < "$QUEUE"
 
 {{< callout type="info" >}}
 **`codex exec` vs interactive `codex`.** `codex exec` is the
-non-interactive subcommand designed for scripts and CI — it streams
+non-interactive subcommand designed for scripts and CI â€” it streams
 output to stdout (or JSONL with `--json`) and exits when the task is
 complete. Interactive `codex` opens the TUI and is not suitable for
 headless runs. See the [command reference](https://developers.openai.com/codex/cli/reference)
@@ -269,7 +269,7 @@ for every flag.
 
 ### 3. Define a per-task prompt template
 
-Keep task-specific wording out of `AGENTS.md` — put it in a
+Keep task-specific wording out of `AGENTS.md` â€” put it in a
 template the driver fills in per finding.
 
 ```markdown
@@ -321,7 +321,7 @@ ENTRYPOINT ["/workspace/scripts/remediate.sh"]
 ### 5. Run it from CI on a schedule (and wire it to tickets)
 
 The driver can be triggered by whatever surface your findings arrive
-on. Pick one — they all use the same Docker sandbox + queue.txt
+on. Pick one â€” they all use the same Docker sandbox + queue.txt
 contract.
 
 {{< tabs items="Nightly schedule,GitHub Issues label,Dependabot alert,Jira / Linear webhook" >}}
@@ -385,7 +385,7 @@ jobs:
             codex-sandbox /workspace/queue.txt
       - run: |
           gh issue comment ${{ github.event.issue.number }} \
-            --body "Codex finished — see PRs linked above."
+            --body "Codex finished â€” see PRs linked above."
         env: { GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} }
 ```
   {{< /tab >}}
@@ -419,11 +419,11 @@ jobs:
   {{< /tab >}}
   {{< tab >}}
 Configure a Jira Automation rule (or Linear webhook) to POST to a
-GitHub `workflow_dispatch` endpoint — that's the easiest way to keep
+GitHub `workflow_dispatch` endpoint â€” that's the easiest way to keep
 the ticket/PR paper trail without running an always-on intake service:
 
 ```bash
-# Jira Automation → Send web request → POST
+# Jira Automation â†’ Send web request â†’ POST
 curl -sS -X POST \
   https://api.github.com/repos/$OWNER/$REPO/actions/workflows/codex-remediate.yml/dispatches \
   -H "Authorization: Bearer $GH_PAT" \
@@ -449,10 +449,10 @@ the PR opens, POST its URL back to the ticket via the REST API
 - **Per-task token cap** at the Codex CLI level
   (`--max-tokens`).
 - **Per-job wall-clock cap** via the driver's `timeout 20m`.
-- **Daily PR cap** — if the driver has already opened N PRs today,
+- **Daily PR cap** â€” if the driver has already opened N PRs today,
   it exits early. Compute this with a quick `gh pr list --search`
   before the loop.
-- **Kill switch** — if a repo gets the `codex-paused` label on any
+- **Kill switch** â€” if a repo gets the `codex-paused` label on any
   issue, the driver skips that repo entirely.
 
 ## Verification
@@ -465,13 +465,13 @@ should produce:
 - no secrets in logs,
 - a session-log artifact you can replay.
 
-If any of those are missing, fix them before scaling up — batch jobs
+If any of those are missing, fix them before scaling up â€” batch jobs
 amplify small mistakes very quickly.
 
 ## Orchestration: what stays constant, what changes
 
 Codex's batch-remediation recipe leans heavily on a **driver
-script** — a small orchestrator that reads findings off a queue,
+script** â€” a small orchestrator that reads findings off a queue,
 fills a prompt template, invokes Codex in a sandbox, and opens a
 PR. The driver is the stable spine; everything it feeds Codex is
 expected to change over time.
@@ -491,7 +491,7 @@ flowchart LR
 
 What is **constant** (build once, leave alone):
 
-- The driver script itself — queue poll, prompt fill, Codex
+- The driver script itself â€” queue poll, prompt fill, Codex
   invocation, PR open, session log capture.
 - The sandbox container image and its tool allowlist.
 - The per-task token cap, per-job wall-clock cap, and the
@@ -515,12 +515,12 @@ ecosystem without rewriting the batch pipeline.
 
 ## Guardrails
 
-- **Sandbox only.** `--full-auto` grants file & network access — never
+- **Sandbox only.** `--full-auto` grants file & network access â€” never
   run it on the host.
 - **Quota per repo.** Cap how many PRs Codex may open in 24h per repo
   to avoid spam.
 - **Secret scanning.** Route Codex output through your secret scanner
-  before committing — LLMs occasionally inline env values into patches.
+  before committing â€” LLMs occasionally inline env values into patches.
 - **Session logs are evidence.** Keep the `--session-log` artifact for
   every run. When a reviewer asks "why did the agent do that?", the
   log is the answer.
@@ -528,7 +528,7 @@ ecosystem without rewriting the batch pipeline.
 ## Troubleshooting
 
 - **Codex exhausts iterations.** Lower `--max-iterations` and
-  sharpen the task template — 30 is generous; 10 is usually enough
+  sharpen the task template â€” 30 is generous; 10 is usually enough
   for a single-dep bump.
 - **Lockfile churn.** Add a pre-commit hook in the sandbox that runs
   `pnpm install --frozen-lockfile` to catch drift before pushing.
@@ -537,8 +537,8 @@ ecosystem without rewriting the batch pipeline.
 
 ## See also
 
-- OpenAI: [Codex CLI docs](https://developers.openai.com/codex/cli) · [quickstart](https://developers.openai.com/codex/quickstart) · [authentication](https://developers.openai.com/codex/auth)
-- OpenAI: [`codex exec` (non-interactive mode)](https://developers.openai.com/codex/noninteractive) · [CLI reference](https://developers.openai.com/codex/cli/reference) · [models](https://developers.openai.com/codex/models)
-- [MCP Server Access]({{< relref "/mcp-servers" >}}) — expose sandboxed tools as MCP for richer context
-- Recipe: [Devin]({{< relref "/devin" >}}) — end-to-end agent alternative
-- [Prompt Library]({{< relref "/prompt-library" >}}) — share your Codex driver prompts
+- OpenAI: [Codex CLI docs](https://developers.openai.com/codex/cli) Â· [quickstart](https://developers.openai.com/codex/quickstart) Â· [authentication](https://developers.openai.com/codex/auth)
+- OpenAI: [`codex exec` (non-interactive mode)](https://developers.openai.com/codex/noninteractive) Â· [CLI reference](https://developers.openai.com/codex/cli/reference) Â· [models](https://developers.openai.com/codex/models)
+- [MCP Integration]({{< relref "/mcp-servers" >}}) â€” expose sandboxed tools as MCP for richer context
+- Recipe: [Devin]({{< relref "/devin" >}}) â€” end-to-end agent alternative
+- [Recipes]({{< relref "/prompt-library" >}}) â€” share your Codex driver prompts

@@ -1,9 +1,9 @@
----
+﻿---
 title: MCP STDIO Launch Boundary
 linkTitle: MCP STDIO Launch Boundary
 weight: 8
 sidebar:
-  open: true
+  exclude: true
 description: >
   A deterministic launch gate for local STDIO MCP servers that treats
   MCP client configuration as executable supply-chain surface before an
@@ -47,35 +47,15 @@ The high-value reviewer questions are straightforward:
 - `data/assurance/mcp-stdio-launch-boundary-model.json` - source model
   for approved STDIO profiles, launch examples, decisions, red-team
   drills, and standards alignment.
-- `scripts/generate_mcp_stdio_launch_boundary_pack.py` - dependency-free
-  generator and validator with `--check` mode.
 - `data/evidence/mcp-stdio-launch-boundary-pack.json` - generated launch
   boundaries, risk findings, source hashes, and reviewer evidence.
-- `scripts/evaluate_mcp_stdio_launch_decision.py` - deterministic runtime
-  evaluator for an MCP client, endpoint agent, or CI gate.
 - `recipes_mcp_stdio_launch_boundary_pack` and
-  `recipes_evaluate_mcp_stdio_launch_decision` - MCP tools that expose
-  the pack and runtime decision surface.
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_mcp_stdio_launch_boundary_pack.py
-python3 scripts/generate_mcp_stdio_launch_boundary_pack.py --check
-```
 
 Evaluate the repo-shipped local server launch:
 
-```bash
-python3 scripts/evaluate_mcp_stdio_launch_decision.py \
-  --launch-id security-recipes-local-stdio \
-  --command python \
-  --arg mcp_server.py \
-  --sandboxed \
-  --network-egress allowlist \
-  --env-key RECIPES_MCP_TRANSPORT \
-  --expect-decision allow_pinned_sandboxed_stdio_launch
-```
 
 ## Launch decisions
 

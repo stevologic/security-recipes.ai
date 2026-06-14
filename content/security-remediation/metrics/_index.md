@@ -216,6 +216,10 @@ turn it back on until the root cause is understood:
 - **Reviewer approvals per hour.** Rewards rubber-stamping. If the
   program needs a throughput number, use findings closed.
 
+## Python remediation tool
+
+{{< remediation-tool domain="metrics" >}}
+
 ## See also
 
 - [Agentic Security Remediation]({{< relref "/security-remediation" >}}) — the workflows the metrics cover

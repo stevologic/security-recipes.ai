@@ -1,0 +1,91 @@
+{{- $id := .Get "domain" -}}
+{{- $domain := dict -}}
+{{- range site.Data.remediation_suite.domains.domains -}}
+  {{- if eq .id $id -}}
+    {{- $domain = . -}}
+  {{- end -}}
+{{- end -}}
+{{- if $domain.id -}}
+<section class="sr-remediation-tool" aria-labelledby="sr-tool-{{ $domain.id }}-title">
+  <div class="sr-tool-head">
+    <div>
+      <p class="sr-tool-kicker">Python remediation tool</p>
+      <h3 id="sr-tool-{{ $domain.id }}-title">{{ $domain.title }}</h3>
+      <p>{{ $domain.purpose }}</p>
+    </div>
+    <a class="sr-tool-doc-link" href="{{ "/security-remediation/remediation-suite/" | relURL }}">Suite docs</a>
+  </div>
+
+  <div class="sr-tool-command">
+    <span>Custom command</span>
+    <code>python scripts/security_recipes_remediation_suite.py {{ $domain.command }}</code>
+  </div>
+
+  <div class="sr-tool-flow" role="img" aria-label="{{ $domain.title }} usage flow">
+    <span>Finding</span>
+    <i aria-hidden="true"></i>
+    <span>Domain tool</span>
+    <i aria-hidden="true"></i>
+    <span>Recipes + optional LLM</span>
+    <i aria-hidden="true"></i>
+    <span>PR handoff or TRIAGE.md</span>
+  </div>
+
+  <div class="sr-tool-grid">
+    <div>
+      <h4>Inputs</h4>
+      <ul>
+        {{- range first 4 $domain.inputs }}
+        <li>{{ . }}</li>
+        {{- end }}
+      </ul>
+    </div>
+    <div>
+      <h4>Allowed actions</h4>
+      <ul>
+        {{- range first 4 $domain.allowed_actions }}
+        <li>{{ . }}</li>
+        {{- end }}
+      </ul>
+    </div>
+    <div>
+      <h4>Stop conditions</h4>
+      <ul>
+        {{- range first 4 $domain.stop_conditions }}
+        <li>{{ . }}</li>
+        {{- end }}
+      </ul>
+    </div>
+    <div>
+      <h4>Evidence output</h4>
+      <ul>
+        {{- range first 4 $domain.evidence }}
+        <li>{{ . }}</li>
+        {{- end }}
+      </ul>
+    </div>
+  </div>
+
+  <details class="sr-tool-details">
+    <summary>Enterprise adapters and example command</summary>
+    <div class="sr-tool-details-body">
+      <div class="sr-tool-adapters">
+        {{- range $category, $tools := $domain.enterprise_tools }}
+        <div>
+          <strong>{{ replace $category "_" " " | title }}</strong>
+          <span>{{ delimit $tools ", " }}</span>
+        </div>
+        {{- end }}
+      </div>
+      <pre><code>python scripts/security_recipes_remediation_suite.py {{ $domain.command }} \
+  --finding finding.json \
+  --recipes-source public/api/recipes.json \
+  --tooling github,snyk,jira,servicenow \
+  --llm-mode prompt \
+  --output out/{{ $domain.command }}-packet.json</code></pre>
+    </div>
+  </details>
+</section>
+{{- else -}}
+<p><strong>Remediation tool not found:</strong> {{ $id }}</p>
+{{- end -}}

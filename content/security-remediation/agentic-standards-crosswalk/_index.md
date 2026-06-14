@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Standards Crosswalk
 linkTitle: Standards Crosswalk
 weight: 19
@@ -8,6 +8,8 @@ description: >
   CSA AI Controls Matrix, NIST AI agent guidance, MCP authorization,
   critical-infrastructure AI readiness, and frontier-lab prompt-injection
   defenses to SecurityRecipes controls and MCP tools.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -48,7 +50,6 @@ generated artifact:
 - Source model:
   `data/assurance/agentic-standards-crosswalk.json`
 - Generator:
-  `scripts/generate_agentic_standards_crosswalk.py`
 - Evidence pack:
   `data/evidence/agentic-standards-crosswalk.json`
 - MCP tool:
@@ -56,10 +57,6 @@ generated artifact:
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_agentic_standards_crosswalk.py
-python3 scripts/generate_agentic_standards_crosswalk.py --check
-```
 
 ## Why this matters
 

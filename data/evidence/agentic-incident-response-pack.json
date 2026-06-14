@@ -75,7 +75,6 @@
       ],
       "mcp_tools": [
         "recipes_mcp_gateway_policy",
-        "recipes_evaluate_mcp_gateway_decision",
         "recipes_mcp_authorization_conformance_pack",
         "recipes_agentic_exposure_graph"
       ],
@@ -126,7 +125,6 @@
       ],
       "mcp_tools": [
         "recipes_mcp_authorization_conformance_pack",
-        "recipes_evaluate_mcp_authorization_decision",
         "recipes_mcp_connector_trust_pack",
         "recipes_agentic_run_receipt_pack"
       ],
@@ -154,9 +152,7 @@
       ],
       "mcp_tools": [
         "recipes_agent_handoff_boundary_pack",
-        "recipes_evaluate_agent_handoff_decision",
-        "recipes_a2a_agent_card_trust_profile",
-        "recipes_evaluate_a2a_agent_card_trust_decision"
+        "recipes_a2a_agent_card_trust_profile"
       ],
       "title": "Agent handoff or A2A context leakage"
     },
@@ -182,9 +178,7 @@
       ],
       "mcp_tools": [
         "recipes_agent_memory_boundary_pack",
-        "recipes_evaluate_agent_memory_decision",
-        "recipes_agent_skill_supply_chain_pack",
-        "recipes_evaluate_agent_skill_decision"
+        "recipes_agent_skill_supply_chain_pack"
       ],
       "title": "Agent memory, skill, hook, or rules package compromise"
     },
@@ -210,7 +204,6 @@
       ],
       "mcp_tools": [
         "recipes_agentic_catastrophic_risk_annex",
-        "recipes_evaluate_agentic_catastrophic_risk_decision",
         "recipes_agent_capability_risk_register",
         "recipes_agentic_readiness_scorecard"
       ],
@@ -355,7 +348,7 @@
     },
     {
       "risk": "Incident class coverage can lag behind new agent host, MCP, A2A, memory, or skill behaviors.",
-      "treatment": "Review incident classes during model upgrades, connector promotions, prompt-library changes, and quarterly threat radar updates."
+      "treatment": "Review incident classes during model upgrades, connector promotions, recipe changes, and quarterly threat radar updates."
     },
     {
       "risk": "Replay evidence can prove recurrence controls only when the failing context, prompt, tool result, and policy decision are preserved.",
@@ -384,7 +377,6 @@
     {
       "id": "contain-and-revoke",
       "mcp_tools": [
-        "recipes_evaluate_agentic_incident_response_decision",
         "recipes_agent_identity_ledger",
         "recipes_mcp_gateway_policy",
         "recipes_mcp_authorization_conformance_pack"
@@ -704,7 +696,6 @@
       "incident_class_id": "mcp-authorization-confused-deputy",
       "minimum_mcp_tools": [
         "recipes_mcp_authorization_conformance_pack",
-        "recipes_evaluate_mcp_authorization_decision",
         "recipes_mcp_connector_trust_pack",
         "recipes_agentic_run_receipt_pack"
       ],
@@ -716,7 +707,6 @@
       "incident_class_id": "high-impact-autonomy-near-miss",
       "minimum_mcp_tools": [
         "recipes_agentic_catastrophic_risk_annex",
-        "recipes_evaluate_agentic_catastrophic_risk_decision",
         "recipes_agent_capability_risk_register",
         "recipes_agentic_readiness_scorecard"
       ],

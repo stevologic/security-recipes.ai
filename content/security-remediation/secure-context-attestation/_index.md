@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Attestation Pack
 linkTitle: Secure Context Attestation
 weight: 10
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated attestation and recertification layer for SecurityRecipes
   context sources and workflow context packages, designed for CI, MCP
@@ -19,7 +19,7 @@ what has to be signed before production use?
 
 ## The product bet
 
-SecurityRecipes should not look like another prompt library. The
+SecurityRecipes should not look like another recipe catalog. The
 defensible product is a **secure context layer**: context sources are
 registered, hashed, scanned, recertified, exposed through typed MCP
 tools, and eventually signed for production gateways.
@@ -36,44 +36,20 @@ service.
 - `data/assurance/secure-context-attestation-profile.json` - the source
   profile for attestation policy, signed environments, recertification
   SLAs, and primary-source standards alignment.
-- `scripts/generate_secure_context_attestation_pack.py` - a
-  dependency-free generator and `--check` validator.
-- `scripts/evaluate_context_attestation_decision.py` - a deterministic
-  runtime evaluator for context-source, workflow-package, and source
-  artifact attestation decisions.
 - `data/evidence/secure-context-attestation-pack.json` - the generated
   pack with in-toto-shaped subjects, verification policy,
   recertification queue, and signature readiness.
 - MCP tools:
   `recipes_secure_context_attestation_pack` and
-  `recipes_evaluate_context_attestation_decision`.
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_secure_context_attestation_pack.py
-python3 scripts/generate_secure_context_attestation_pack.py --check
-```
 
 Evaluate an open-reference context source:
 
-```bash
-python3 scripts/evaluate_context_attestation_decision.py \
-  --subject-type context_source \
-  --source-id prompt-library-recipes \
-  --environment open_reference \
-  --expect-decision allow_attested_context
-```
 
 Evaluate the same subject for production MCP use:
 
-```bash
-python3 scripts/evaluate_context_attestation_decision.py \
-  --subject-type context_source \
-  --source-id prompt-library-recipes \
-  --environment production_mcp \
-  --expect-decision hold_for_signature
-```
 
 That second hold is intentional. Production and diligence environments
 must present a signature bundle and transparency-log verification before

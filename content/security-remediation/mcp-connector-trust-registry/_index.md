@@ -1,9 +1,9 @@
----
+﻿---
 title: MCP Connector Trust Registry
 linkTitle: Connector Trust Registry
 weight: 8
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated MCP connector trust pack that inventories every workflow
   namespace, trust tier, access mode, control requirement, evidence
@@ -40,8 +40,6 @@ The registry layer has three artifacts and one MCP tool:
 
 - `data/mcp/connector-trust-registry.json` - the source-controlled
   connector inventory and trust-tier model.
-- `scripts/generate_mcp_connector_trust_pack.py` - a dependency-free
-  generator and validator with `--check` mode for CI drift detection.
 - `data/evidence/mcp-connector-trust-pack.json` - the generated trust
   pack that joins the registry, workflow manifest, and gateway policy.
 - `recipes_mcp_connector_trust_pack` - an MCP tool that exposes the pack
@@ -49,12 +47,7 @@ The registry layer has three artifacts and one MCP tool:
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_mcp_connector_trust_pack.py
-python3 scripts/generate_mcp_connector_trust_pack.py --check
-```
 
-GitHub Actions runs the check before the Hugo build, so a workflow cannot
 add an MCP namespace without adding the connector trust contract.
 
 ## Trust tiers
@@ -152,7 +145,7 @@ That turns MCP trust from a review meeting into a build contract.
 
 ## See also
 
-- [Production MCP Server]({{< relref "/mcp-servers" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})
   - the connector and gateway vision this registry operationalizes.
 - [MCP Gateway Policy Pack]({{< relref "/security-remediation/mcp-gateway-policy" >}})
   - the runtime decision contract.

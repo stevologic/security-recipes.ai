@@ -1,4 +1,4 @@
----
+﻿---
 title: Context Poisoning Guard
 linkTitle: Context Poisoning Guard
 weight: 10
@@ -8,6 +8,8 @@ description: >
   prompt-injection, tool-poisoning, approval-bypass, hidden-instruction,
   encoded-payload, and secret-exfiltration markers across registered
   SecurityRecipes context roots.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -20,7 +22,7 @@ that context is returned to an agent through MCP.
 
 SecurityRecipes is positioned as **the secure context layer for
 agentic AI**. The strongest enterprise version of that idea is not a
-prompt library. It is a controlled context supply chain:
+recipe catalog. It is a controlled context supply chain:
 
 - registered source roots,
 - owners and trust tiers,
@@ -40,7 +42,6 @@ blocked until fixed.
 - Source profile:
   `data/assurance/context-poisoning-guard-profile.json`
 - Generator:
-  `scripts/generate_context_poisoning_guard_pack.py`
 - Evidence pack:
   `data/evidence/context-poisoning-guard-pack.json`
 - MCP tool:
@@ -48,10 +49,6 @@ blocked until fixed.
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_context_poisoning_guard_pack.py
-python3 scripts/generate_context_poisoning_guard_pack.py --check
-```
 
 ## What it scans
 
@@ -90,7 +87,7 @@ rule ID, severity, disposition, and source hash.
 
 The generated pack supports:
 
-- prompt-library publication review,
+- recipe publication review,
 - MCP server intake,
 - quarterly secure-context recertification,
 - red-team replay planning,

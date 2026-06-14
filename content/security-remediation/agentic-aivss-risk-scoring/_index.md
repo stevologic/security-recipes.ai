@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic AIVSS Risk Scoring
 linkTitle: Agentic AIVSS Risk Scoring
 weight: 13
@@ -7,6 +7,8 @@ description: >
   Generated AIVSS-aligned severity, SLA, remediation-priority, and
   deterministic runtime decisions for agentic AI, MCP, A2A, skill,
   identity, context, and approval-bypass risks.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -36,40 +38,16 @@ teams can inspect and fork the assumptions.
 
 ## Generated artifacts
 
-```text
-data/assurance/agentic-aivss-risk-scoring-profile.json
-data/evidence/agentic-aivss-risk-scoring-pack.json
-scripts/generate_agentic_aivss_risk_scoring_pack.py
-scripts/evaluate_agentic_aivss_risk_decision.py
-```
 
 Run the generator after posture, exposure, MCP, skill, approval, action,
 or incident evidence changes:
 
-```bash
-python3 scripts/generate_agentic_aivss_risk_scoring_pack.py
-python3 scripts/generate_agentic_aivss_risk_scoring_pack.py --check
-```
 
 Evaluate a runtime event:
 
-```bash
-python3 scripts/evaluate_agentic_aivss_risk_decision.py \
-  --scenario-id mcp_tool_misuse_lethal_session \
-  --expect-decision hold_for_human_security_review
-```
 
 Kill an unsafe high-autonomy event:
 
-```bash
-python3 scripts/evaluate_agentic_aivss_risk_decision.py \
-  --scenario-id agent_goal_hijack_context_poisoning \
-  --autonomy-level autonomous \
-  --untrusted-context \
-  --external-write \
-  --exfiltration-capable-tool \
-  --expect-decision kill_session_on_agentic_aivss_signal
-```
 
 ## Risk scenarios
 
@@ -115,7 +93,6 @@ This pack tracks the strongest current source signals:
 The MCP server exposes:
 
 - `recipes_agentic_aivss_risk_scoring_pack`
-- `recipes_evaluate_agentic_aivss_risk_decision`
 
 Use the pack tool for reviewer, platform, and remediation-priority review.
 Use the evaluator before a gateway or agent host allows high-autonomy

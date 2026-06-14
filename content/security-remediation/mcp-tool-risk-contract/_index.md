@@ -1,9 +1,9 @@
----
+﻿---
 title: MCP Tool Risk Contract
 linkTitle: MCP Tool Risk
 weight: 7
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated MCP tool-risk contract that turns tool annotations,
   connector trust, authorization conformance, workflow scope, and
@@ -37,42 +37,17 @@ attacker-controlled content.
 - Profile:
   `data/assurance/mcp-tool-risk-contract-profile.json`
 - Generator:
-  `scripts/generate_mcp_tool_risk_contract.py`
 - Runtime evaluator:
-  `scripts/evaluate_mcp_tool_risk_decision.py`
 - Evidence pack:
   `data/evidence/mcp-tool-risk-contract.json`
 - MCP tools:
   `recipes_mcp_tool_risk_contract` and
-  `recipes_evaluate_mcp_tool_risk_decision`
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_mcp_tool_risk_contract.py
-python3 scripts/generate_mcp_tool_risk_contract.py --check
-```
 
 Evaluate one proposed tool call:
 
-```bash
-python3 scripts/evaluate_mcp_tool_risk_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --namespace repo.contents \
-  --tool-name repo.contents.patch \
-  --requested-access-mode write_branch \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --run-id run-ci \
-  --session-id session-ci \
-  --correlation-id corr-ci \
-  --server-trusted \
-  --read-only-hint false \
-  --destructive-hint false \
-  --idempotent-hint false \
-  --open-world-hint true \
-  --human-approval-id approval-ci \
-  --expect-decision allow_with_confirmation
-```
 
 ## Decision model
 

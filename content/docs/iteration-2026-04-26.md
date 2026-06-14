@@ -2,13 +2,6 @@
 
 Input run:
 
-```bash
-python scripts/generate_cve_recipes_from_ghad.py \
-  --advisory-root data/ghad-snapshot \
-  --output-root /tmp/cve-generated-check \
-  --report-path data/ghad-assessment/latest.json \
-  --published-year 2026
-```
 
 ## Result-by-result review
 

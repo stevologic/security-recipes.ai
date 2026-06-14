@@ -1,9 +1,9 @@
----
+﻿---
 title: Agent Capability Risk Register
 linkTitle: Capability Risk Register
 weight: 8
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated capability-based risk register that scores each agentic
   remediation workflow by system criticality, autonomy, MCP permissions,
@@ -42,8 +42,6 @@ The capability-risk layer has three artifacts and one MCP surface:
 - `data/assurance/agent-capability-risk-model.json` - the
   source-controlled factor model, risk tiers, control credits, and
   standards mapping.
-- `scripts/generate_agent_capability_risk_register.py` - a
-  dependency-free generator with `--check` mode for CI drift detection.
 - `data/evidence/agent-capability-risk-register.json` - the generated
   workflow-by-workflow risk register.
 - `recipes_agent_capability_risk_register` - the MCP tool that exposes
@@ -52,10 +50,6 @@ The capability-risk layer has three artifacts and one MCP surface:
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_agent_capability_risk_register.py
-python3 scripts/generate_agent_capability_risk_register.py --check
-```
 
 ## What is inside the register
 

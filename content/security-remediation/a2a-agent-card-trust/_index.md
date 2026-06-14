@@ -1,9 +1,9 @@
----
+﻿---
 title: A2A Agent Card Trust
 linkTitle: A2A Agent Card Trust
 weight: 13
 sidebar:
-  open: true
+  exclude: true
 description: >
   Generated trust profile and runtime decisions for A2A Agent Cards
   before remote agents receive secure context or join an agent handoff.
@@ -33,41 +33,16 @@ review, denial, or immediate session termination.
 - `data/assurance/a2a-agent-card-trust-profile.json` - source model for
   Agent Card fields, trust profiles, decisions, controls, sample cards,
   and industry alignment.
-- `scripts/generate_a2a_agent_card_trust_profile.py` - deterministic
-  generator and `--check` validator.
-- `scripts/evaluate_a2a_agent_card_trust_decision.py` - runtime
-  evaluator for one proposed A2A Agent Card.
 - `data/evidence/a2a-agent-card-trust-profile.json` - generated
   evidence pack for CI, MCP, architecture review, and diligence.
 - MCP tools:
   `recipes_a2a_agent_card_trust_profile` and
-  `recipes_evaluate_a2a_agent_card_trust_decision`.
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_a2a_agent_card_trust_profile.py
-python3 scripts/generate_a2a_agent_card_trust_profile.py --check
-```
 
 Evaluate a trusted production card:
 
-```bash
-python3 scripts/evaluate_a2a_agent_card_trust_decision.py \
-  --agent-card /tmp/trusted-agent-card.json \
-  --profile-id trusted-production-agent \
-  --production \
-  --declared-control https_interface \
-  --declared-control provider_identity_verified \
-  --declared-control server_identity_verified \
-  --declared-control agent_card_signature_verified \
-  --declared-control standard_http_auth \
-  --declared-control scope_minimized_security \
-  --declared-control gateway_enforced \
-  --declared-control audit_log \
-  --declared-control human_approval_for_high_impact \
-  --expect-decision allow_trusted_agent_card
-```
 
 ## Trust profiles
 

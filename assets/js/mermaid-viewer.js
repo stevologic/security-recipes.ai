@@ -1,51 +1,68 @@
 /*
- * Mermaid fullscreen viewer
- * -------------------------
- * Makes every rendered Mermaid diagram on the site clickable: tapping
- * a diagram opens it in a full-viewport lightbox where the SVG is
- * scaled to fit so dense flowcharts / sequence diagrams are actually
- * readable. Close via the × button, clicking the backdrop, or ESC.
- *
- * Uses event delegation + a MutationObserver so it picks up diagrams
- * that Mermaid renders asynchronously after initial page load (and
- * anything inside tabs / collapsed sections that get expanded later).
+ * Shared fullscreen viewer
+ * ------------------------
+ * Reuses one lightbox for rendered Mermaid diagrams and dense figure
+ * images that benefit from a closer look on smaller screens.
  */
 (function () {
   "use strict";
 
   if (typeof document === "undefined") return;
 
+  var MERMAID_SELECTOR = ".mermaid, pre.mermaid";
+  var IMAGE_SELECTOR = ".sr-suite-figure img, .visual-guide-figure img";
+  var HINT_ICON =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>' +
+    "<span>Click to expand</span>";
+
   function ready(fn) {
     if (document.readyState !== "loading") fn();
     else document.addEventListener("DOMContentLoaded", fn);
   }
 
+  function setInteractiveHint(container) {
+    if (!container || container.querySelector(".mermaid__zoom-hint")) return;
+    var hint = document.createElement("span");
+    hint.className = "mermaid__zoom-hint";
+    hint.setAttribute("aria-hidden", "true");
+    hint.innerHTML = HINT_ICON;
+    container.appendChild(hint);
+  }
+
   ready(function init() {
-    // --- build modal once ---
     var modal = document.createElement("div");
     modal.className = "mermaid-modal";
     modal.setAttribute("aria-hidden", "true");
     modal.innerHTML =
       '<div class="mermaid-modal__backdrop" data-mermaid-close="1"></div>' +
       '<div class="mermaid-modal__dialog" role="dialog" aria-modal="true" aria-label="Diagram viewer">' +
-      '  <button type="button" class="mermaid-modal__close" aria-label="Close diagram viewer" data-mermaid-close="1">&times;</button>' +
+      '  <button type="button" class="mermaid-modal__close" aria-label="Close fullscreen viewer" data-mermaid-close="1">&times;</button>' +
       '  <div class="mermaid-modal__content"></div>' +
       "</div>";
     document.body.appendChild(modal);
 
+    var dialog = modal.querySelector(".mermaid-modal__dialog");
     var content = modal.querySelector(".mermaid-modal__content");
 
-    function openModal(svgEl) {
-      // Clone so we don't detach the original from the page.
-      var clone = svgEl.cloneNode(true);
-      clone.removeAttribute("width");
-      clone.removeAttribute("height");
+    function openModal(viewEl, label) {
+      var clone = viewEl.cloneNode(true);
+      var tagName = clone.tagName ? clone.tagName.toLowerCase() : "";
+
+      if (tagName === "svg") {
+        clone.removeAttribute("width");
+        clone.removeAttribute("height");
+      }
+
       clone.style.width = "100%";
       clone.style.height = "auto";
       clone.style.maxWidth = "100%";
       clone.style.maxHeight = "100%";
+
       content.innerHTML = "";
       content.appendChild(clone);
+      dialog.setAttribute("aria-label", label || "Diagram viewer");
       modal.classList.add("is-open");
       modal.setAttribute("aria-hidden", "false");
       document.documentElement.classList.add("mermaid-modal-open");
@@ -70,21 +87,26 @@
       }
     });
 
-    // --- delegate clicks on any rendered mermaid diagram ---
     document.addEventListener("click", function (e) {
-      // Ignore clicks that happen inside the modal itself.
       if (e.target.closest(".mermaid-modal")) return;
-      var host = e.target.closest(".mermaid, pre.mermaid");
-      if (!host) return;
-      var svg = host.querySelector("svg");
-      if (!svg) return; // not rendered yet — bail out silently
+
+      var mermaidHost = e.target.closest(MERMAID_SELECTOR);
+      if (mermaidHost) {
+        var svg = mermaidHost.querySelector("svg");
+        if (!svg) return;
+        e.preventDefault();
+        openModal(svg, "Diagram viewer");
+        return;
+      }
+
+      var image = e.target.closest(IMAGE_SELECTOR);
+      if (!image) return;
       e.preventDefault();
-      openModal(svg);
+      openModal(image, image.getAttribute("alt") || "Expanded figure image");
     });
 
-    // --- mark rendered diagrams as interactive (cursor + hover hint) ---
     function markInteractive() {
-      var nodes = document.querySelectorAll(".mermaid, pre.mermaid");
+      var nodes = document.querySelectorAll(MERMAID_SELECTOR);
       for (var i = 0; i < nodes.length; i++) {
         var el = nodes[i];
         if (!el.querySelector("svg")) continue;
@@ -93,31 +115,40 @@
         el.setAttribute("role", "button");
         el.setAttribute("tabindex", "0");
         el.setAttribute("aria-label", "Open diagram in fullscreen viewer");
-        var hint = document.createElement("span");
-        hint.className = "mermaid__zoom-hint";
-        hint.setAttribute("aria-hidden", "true");
-        hint.innerHTML =
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
-          'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-          '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>' +
-          '<span>Click to expand</span>';
-        el.appendChild(hint);
+        setInteractiveHint(el);
+      }
+
+      var images = document.querySelectorAll(IMAGE_SELECTOR);
+      for (var j = 0; j < images.length; j++) {
+        var image = images[j];
+        var figure = image.closest("figure");
+        if (!figure || figure.classList.contains("figure--interactive")) continue;
+        figure.classList.add("figure--interactive");
+        image.setAttribute("role", "button");
+        image.setAttribute("tabindex", "0");
+        image.setAttribute("aria-label", image.getAttribute("alt") || "Open image in fullscreen viewer");
+        setInteractiveHint(figure);
       }
     }
 
-    // Keyboard activation: Enter / Space opens the viewer.
     document.addEventListener("keydown", function (e) {
       if (e.key !== "Enter" && e.key !== " ") return;
-      var host = e.target.closest && e.target.closest(".mermaid--interactive");
-      if (!host) return;
-      var svg = host.querySelector("svg");
-      if (!svg) return;
+
+      var mermaidHost = e.target.closest && e.target.closest(".mermaid--interactive");
+      if (mermaidHost) {
+        var svg = mermaidHost.querySelector("svg");
+        if (!svg) return;
+        e.preventDefault();
+        openModal(svg, "Diagram viewer");
+        return;
+      }
+
+      var image = e.target.closest && e.target.closest(IMAGE_SELECTOR);
+      if (!image) return;
       e.preventDefault();
-      openModal(svg);
+      openModal(image, image.getAttribute("alt") || "Expanded figure image");
     });
 
-    // Mermaid renders async, and Hextra can lazy-mount tabs; a
-    // MutationObserver keeps us in sync with whatever is on screen.
     if (typeof MutationObserver !== "undefined") {
       var observer = new MutationObserver(function () {
         markInteractive();
@@ -125,7 +156,6 @@
       observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    // First pass, plus a couple of retries for slow mermaid renders.
     markInteractive();
     setTimeout(markInteractive, 250);
     setTimeout(markInteractive, 1000);

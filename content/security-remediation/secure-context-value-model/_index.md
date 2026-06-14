@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Value Model
 linkTitle: Value Model
 weight: 12
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated trust review- and trust-value model that turns the
   open SecurityRecipes corpus, generated evidence packs, and production
@@ -36,8 +36,6 @@ attached before the operational-impact story becomes review-grade.
 - `data/assurance/secure-context-value-model-profile.json` - source
   profile for reviewer segments, value drivers, adoption scenarios,
   hosted-readiness paths, diligence questions, and source references.
-- `scripts/generate_secure_context_value_model.py` - deterministic
-  generator and `--check` validator.
 - `data/evidence/secure-context-value-model.json` - generated value
   model with scenario economics, evidence hashes, source-pack status,
   and trust review readiness.
@@ -45,12 +43,7 @@ attached before the operational-impact story becomes review-grade.
   a value driver, reviewer segment, scenario, hosted-readiness path, or
   diligence question.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_secure_context_value_model.py
-python3 scripts/generate_secure_context_value_model.py --check
-```
 
 ## What the model contains
 
@@ -142,4 +135,4 @@ The profile is source-backed by current primary guidance:
 - [Agentic Control Plane Blueprint]({{< relref "/security-remediation/agentic-control-plane-blueprint" >}})
 - [Agentic Threat Radar]({{< relref "/security-remediation/agentic-threat-radar" >}})
 - [Agentic Standards Crosswalk]({{< relref "/security-remediation/agentic-standards-crosswalk" >}})
-- [Production MCP Server]({{< relref "/mcp-servers" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})

@@ -71,7 +71,7 @@ Branch names should read like commit messages. Prefixes we use:
 | Prefix      | Use                                                      |
 | ----------- | -------------------------------------------------------- |
 | `recipe/`   | New or updated per-agent recipe                          |
-| `prompt/`   | New or updated Prompt Library entry                      |
+| `prompt/`   | New or updated Recipes entry                             |
 | `docs/`     | Non-recipe documentation                                 |
 | `chore/`    | Build, CI, deps, infra                                   |
 | `fix/`      | Bug fixes (broken links, typos, wrong snippets)          |
@@ -242,7 +242,7 @@ Things reviewers look for in a recipe PR:
 
 ## Contributing a prompt
 
-The Prompt Library is organised by tool:
+Recipes are organised by tool:
 
 ```text
 content/prompt-library/

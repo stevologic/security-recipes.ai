@@ -1,9 +1,9 @@
----
+﻿---
 title: Hosted MCP Readiness Pack
 linkTitle: Hosted MCP Readiness
 weight: 14
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated hosted-MCP readiness plan that turns the open
   SecurityRecipes corpus into a tenant-safe enterprise product roadmap:
@@ -37,8 +37,6 @@ hosted claims until a tenant-safe service exists.
   for hosted MCP positioning, current source references, source-pack
   dependencies, stages, controls, rollout gates, reviewer evidence,
   vendorization, risks, and next 90 days.
-- `scripts/generate_hosted_mcp_readiness_pack.py` - deterministic
-  generator and `--check` validator.
 - `data/evidence/hosted-mcp-readiness-pack.json` - generated pack with
   14 source packs, 5 rollout stages, 21 readiness controls, 7 gates, 5
   reviewer evidence items, and 7 hosted-product risks.
@@ -46,12 +44,7 @@ hosted claims until a tenant-safe service exists.
   readiness stage, control, rollout gate, reviewer evidence item, risk, or
   implementation-status view.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_hosted_mcp_readiness_pack.py
-python3 scripts/generate_hosted_mcp_readiness_pack.py --check
-```
 
 ## Product decision
 
@@ -203,7 +196,7 @@ The profile is grounded in current primary sources:
 
 ## See also
 
-- [Production MCP Server]({{< relref "/mcp-servers" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})
 - [Secure Context Customer Proof Pack]({{< relref "/security-remediation/secure-context-customer-proof-pack" >}})
 - [Design Partner Pilot Pack]({{< relref "/security-remediation/design-partner-pilot-pack" >}})
 - [Secure Context Reviewer Brief]({{< relref "/security-remediation/secure-context-buyer-diligence-brief" >}})

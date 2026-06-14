@@ -1,9 +1,9 @@
----
+﻿---
 title: Design Partner Pilot Pack
 linkTitle: Design Partner Pilot
 weight: 13
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated design-partner pilot motion that turns secure-context,
   MCP, telemetry, eval, receipt, and value-model evidence into a
@@ -35,8 +35,6 @@ motion required to prove it.
 - `data/assurance/design-partner-pilot-profile.json` - source-backed
   pilot profile for reviewer segments, phases, telemetry, success metrics,
   hosted-ready proof paths, scope guardrails, diligence questions, and risk gates.
-- `scripts/generate_design_partner_pilot_pack.py` - deterministic
-  generator and `--check` validator for CI drift detection.
 - `data/evidence/design-partner-pilot-pack.json` - generated pack with
   source-pack hashes, readiness score, phase gates, readiness proof states,
   telemetry requirements, and diligence answers.
@@ -44,12 +42,7 @@ motion required to prove it.
   reviewer segment, pilot phase, hosted-readiness path, metric, diligence
   question, or pilot risk.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_design_partner_pilot_pack.py
-python3 scripts/generate_design_partner_pilot_pack.py --check
-```
 
 ## What the pack contains
 
@@ -142,4 +135,4 @@ The profile is grounded in current primary sources:
 - [Enterprise Trust Center Export]({{< relref "/security-remediation/enterprise-trust-center-export" >}})
 - [Agentic App Intake Gate]({{< relref "/security-remediation/agentic-app-intake-gate" >}})
 - [Agentic Telemetry Contract]({{< relref "/security-remediation/agentic-telemetry-contract" >}})
-- [Production MCP Server]({{< relref "/mcp-servers" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})

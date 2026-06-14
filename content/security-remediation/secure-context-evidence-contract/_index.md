@@ -1,4 +1,4 @@
----
+﻿---
 title: Secure Context Evidence Contract
 linkTitle: Secure Context Evidence Contract
 weight: 12
@@ -6,6 +6,8 @@ toc: true
 description: >
   Generated evidence object, hosted API, release-channel, redaction,
   signature, and runtime decision contract for secure context exports.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -37,55 +39,20 @@ foundation, not a marketing page.
 - Source profile:
   `data/assurance/secure-context-evidence-contract-profile.json`
 - Generator:
-  `scripts/generate_secure_context_evidence_contract.py`
 - Evidence contract:
   `data/evidence/secure-context-evidence-contract.json`
 - Runtime evaluator:
-  `scripts/evaluate_secure_context_evidence_release.py`
 - MCP tools:
   `recipes_secure_context_evidence_contract` and
-  `recipes_evaluate_secure_context_evidence_release`
 
 Regenerate and validate the contract:
 
-```bash
-python3 scripts/generate_secure_context_evidence_contract.py
-python3 scripts/generate_secure_context_evidence_contract.py --check
-```
 
 Evaluate a safe trust-center release:
 
-```bash
-python3 scripts/evaluate_secure_context_evidence_release.py \
-  --release-id trust-center-ci \
-  --release-channel trust_center_external \
-  --artifact-id enterprise_trust_center_export \
-  --artifact-id secure_context_customer_proof_pack \
-  --artifact-id agentic_run_receipt_pack \
-  --source-hashes-present \
-  --redaction-verified \
-  --signature-present \
-  --approval-receipt-id approval-ci \
-  --retention-policy-id retention-ci \
-  --dpa-state not_required \
-  --expect-decision allow_publish_evidence_release
-```
 
 Evaluate a blocked secret release:
 
-```bash
-python3 scripts/evaluate_secure_context_evidence_release.py \
-  --release-id secret-ci \
-  --release-channel trust_center_external \
-  --artifact-id enterprise_trust_center_export \
-  --source-hashes-present \
-  --redaction-verified \
-  --signature-present \
-  --approval-receipt-id approval-ci \
-  --retention-policy-id retention-ci \
-  --contains-token \
-  --expect-decision kill_session_on_secret_or_token_release
-```
 
 ## Decision model
 
@@ -206,25 +173,6 @@ recipes_secure_context_evidence_contract(channel_id="trust_center_external")
 
 Evaluate a hosted API release:
 
-```text
-recipes_evaluate_secure_context_evidence_release(
-  release_id="hosted-api-release-1",
-  release_channel="hosted_mcp_api",
-  artifact_ids=[
-    "secure_context_customer_proof_pack",
-    "agentic_run_receipt_pack",
-    "agentic_telemetry_contract"
-  ],
-  tenant_id="tenant-123",
-  correlation_id="corr-123",
-  source_hashes_present=true,
-  redaction_verified=true,
-  tenant_bound=true,
-  signature_present=true,
-  retention_policy_id="retention-123",
-  zero_data_retention_state="committed"
-)
-```
 
 ## See also
 

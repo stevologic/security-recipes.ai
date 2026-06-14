@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1.7
+
+FROM python:3.12-slim
+
+LABEL org.opencontainers.image.title="security-recipes remediation suite dashboard" \
+      org.opencontainers.image.description="Dockerized browser workbench for configuring and running the security-recipes.ai Python remediation suite." \
+      org.opencontainers.image.source="https://github.com/stevologic/security-recipes.ai"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    SECURITY_RECIPES_DASHBOARD_HOST=0.0.0.0 \
+    SECURITY_RECIPES_DASHBOARD_PORT=8787 \
+    SECURITY_RECIPES_DASHBOARD_STATE_DIR=/data
+
+WORKDIR /app
+
+COPY . /app
+
+RUN mkdir -p /data
+
+EXPOSE 8787
+
+VOLUME ["/data"]
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD python - <<'PY' || exit 1
+import json
+import urllib.request
+
+with urllib.request.urlopen("http://127.0.0.1:8787/api/health", timeout=2) as response:
+    payload = json.loads(response.read().decode("utf-8"))
+if payload.get("status") != "ok":
+    raise SystemExit(1)
+PY
+
+CMD ["sh", "-c", "python scripts/security_recipes_remediation_suite.py serve-dashboard --host ${SECURITY_RECIPES_DASHBOARD_HOST} --port ${SECURITY_RECIPES_DASHBOARD_PORT} --state-dir ${SECURITY_RECIPES_DASHBOARD_STATE_DIR}"]

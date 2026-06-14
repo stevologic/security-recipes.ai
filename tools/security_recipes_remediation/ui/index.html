@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Security Recipes Remediation Suite</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="badge">UI</span>
+          <div>
+            <strong>Python Remediation Suite</strong>
+            <span>Configure context, trigger domains, inspect packets.</span>
+          </div>
+        </div>
+        <section class="sidebar-card">
+          <h2>Saved access + context</h2>
+          <textarea id="accessNotes" rows="5"></textarea>
+          <label for="contextSources">Context sources</label>
+          <textarea id="contextSources" rows="4" placeholder="One source per line"></textarea>
+          <button id="saveConfig" class="button button-secondary" type="button">Save configuration</button>
+          <p class="hint">This saves non-secret planner settings inside the container state directory.</p>
+        </section>
+        <section class="sidebar-card">
+          <h2>Suite status</h2>
+          <dl id="suiteMeta" class="meta-list"></dl>
+        </section>
+      </aside>
+      <main class="main">
+        <header class="hero">
+          <div>
+            <p class="eyebrow">Docker-ready planner dashboard</p>
+            <h1>Build packets, not broad automation.</h1>
+            <p class="hero-copy">
+              Select a remediation domain, wire in recipe context and enterprise tooling hints,
+              preview the bounded agent prompt, and generate a packet JSON artifact for handoff.
+            </p>
+          </div>
+          <div class="hero-actions">
+            <span id="health" class="pill pill-ok">Loading domains</span>
+            <button id="downloadPacket" class="button" type="button" disabled>Download latest packet</button>
+          </div>
+        </header>
+
+        <section class="grid two">
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Configure the run</h2>
+              <span class="panel-tag">Planner inputs</span>
+            </div>
+            <form id="planForm" class="form-grid">
+              <label>
+                <span>Domain</span>
+                <select id="domainSelect" name="domain"></select>
+              </label>
+              <label>
+                <span>Recipes source</span>
+                <input id="recipesSource" name="recipes_source" type="text" />
+              </label>
+              <label>
+                <span>Tooling</span>
+                <input id="tooling" name="tooling" type="text" placeholder="github,snyk,jira" />
+              </label>
+              <label>
+                <span>Ecosystem</span>
+                <input id="ecosystem" name="ecosystem" type="text" placeholder="npm, python, container, solidity" />
+              </label>
+              <label>
+                <span>LLM mode</span>
+                <select id="llmMode" name="llm_mode">
+                  <option value="off">off</option>
+                  <option value="prompt">prompt</option>
+                  <option value="call">call</option>
+                </select>
+              </label>
+              <label>
+                <span>Max recipes</span>
+                <input id="maxRecipes" name="max_recipes" type="number" min="1" max="20" />
+              </label>
+              <label class="full">
+                <span>Finding input</span>
+                <textarea
+                  id="findingInput"
+                  name="finding_input"
+                  rows="14"
+                  placeholder="Paste free text, JSON, or SARIF payload here."
+                ></textarea>
+              </label>
+              <details class="full details">
+                <summary>Optional LLM configuration</summary>
+                <div class="form-grid nested">
+                  <label>
+                    <span>Endpoint</span>
+                    <input id="llmEndpoint" type="text" />
+                  </label>
+                  <label>
+                    <span>Model</span>
+                    <input id="llmModel" type="text" />
+                  </label>
+                  <label>
+                    <span>API key env</span>
+                    <input id="llmApiKeyEnv" type="text" />
+                  </label>
+                  <label>
+                    <span>Temperature</span>
+                    <input id="llmTemperature" type="number" min="0" max="2" step="0.1" />
+                  </label>
+                  <label>
+                    <span>Timeout</span>
+                    <input id="llmTimeout" type="number" min="1" step="1" />
+                  </label>
+                </div>
+              </details>
+              <div class="actions full">
+                <button class="button button-primary" type="submit">Generate remediation packet</button>
+                <button id="loadDomainDefaults" class="button" type="button">Load domain details</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Domain guide</h2>
+              <span class="panel-tag">What the tool can do</span>
+            </div>
+            <div id="domainDetails" class="domain-details"></div>
+          </article>
+        </section>
+
+        <section class="grid two">
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Generated packet</h2>
+              <span class="panel-tag">JSON output</span>
+            </div>
+            <pre id="packetPreview" class="code-block">Generate a packet to preview the JSON output.</pre>
+          </article>
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Agent handoff prompt</h2>
+              <span class="panel-tag">Reviewer-bounded instructions</span>
+            </div>
+            <pre id="promptPreview" class="code-block">The selected domain prompt will appear here.</pre>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+  </html>

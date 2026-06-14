@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Assurance Pack
 linkTitle: Assurance Pack
 weight: 6
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated reviewer-, auditor-, and AI-platform-ready evidence bundle
   for agentic remediation controls, workflow scope, MCP gateway policy,
@@ -48,8 +48,6 @@ The assurance layer lives in source-controlled and generated artifacts:
 - `data/assurance/agentic-assurance-control-map.json` - the control map
   for SecurityRecipes assurance objectives, evidence sources, reviewer
   value, and framework mappings.
-- `scripts/generate_agentic_assurance_pack.py` - a dependency-free
-  generator and validator with `--check` mode for CI drift detection.
 - `data/evidence/agentic-assurance-pack.json` - the generated trust pack
   that joins the control map, workflow manifest, gateway policy, and
   workflow validation report.
@@ -58,10 +56,6 @@ The assurance layer lives in source-controlled and generated artifacts:
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_agentic_assurance_pack.py
-python3 scripts/generate_agentic_assurance_pack.py --check
-```
 
 The local MCP server exposes the same generated bundle through
 `recipes_agentic_assurance_pack`, so agent hosts and internal control

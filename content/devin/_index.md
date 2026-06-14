@@ -1,4 +1,4 @@
----
+﻿---
 title: Devin
 linkTitle: Devin
 weight: 2
@@ -20,7 +20,7 @@ is a five-minute path to your first agentic remediation PR with
 Devin. Come back here for the full recipe once that loop is working.
 {{< /callout >}}
 
-Devin is a fully autonomous engineering agent — well suited to multi-step
+Devin is a fully autonomous engineering agent â€” well suited to multi-step
 remediation work that spans repos, CI, and ticket systems. Unlike the
 other recipes on this site, Devin owns its own sandbox and integrations;
 your job is mainly to encode the runbook as a Knowledge entry and
@@ -35,7 +35,7 @@ trigger sessions at the right moments.
 
 ## General onboarding
 
-The public path — what any team can do today using Cognition's
+The public path â€” what any team can do today using Cognition's
 documented flow.
 
 1. **Pick a plan.** Devin offers Team and Enterprise tiers. API
@@ -44,15 +44,15 @@ documented flow.
 2. **Sign up** at [devin.ai](https://devin.ai/) and create a
    workspace.
 3. **Connect your source host.** Install the GitHub / GitLab
-   integration from **Workspace → Integrations** so Devin can
+   integration from **Workspace â†’ Integrations** so Devin can
    clone repos and open PRs. See
    [Devin Integrations](https://docs.devin.ai/integrations).
 4. **Document your runbooks as Knowledge entries.** Knowledge
-   is Devin's long-term memory — used at the start of every
+   is Devin's long-term memory â€” used at the start of every
    session. See [Devin Knowledge](https://docs.devin.ai/product-guides/knowledge).
 5. **Author Playbooks for repeatable tasks** you can invoke by
    name. See [Devin Playbooks](https://docs.devin.ai/product-guides/using-playbooks).
-6. **Mint an API key** at **Workspace → Settings → API keys**
+6. **Mint an API key** at **Workspace â†’ Settings â†’ API keys**
    and start dispatching sessions via
    [`POST /v1/sessions`](https://docs.devin.ai/api-reference/sessions/create-a-new-devin-session).
 
@@ -74,7 +74,7 @@ workspace API key as `Authorization: Bearer <token>`.
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder — customize for your organization.** Replace the
+**Placeholder â€” customize for your organization.** Replace the
 steps and links below with your internal process for getting a
 Devin workspace seat, connecting your source repos, and issuing
 the scoped API key this recipe expects. The structure is a
@@ -91,12 +91,12 @@ their own organizations.
    workspace once Security approves. Internal link:
    [Devin workspace](#placeholder-workspace-link).
 3. **Bind to corporate SSO.** Devin Team / Enterprise supports SSO
-   — bind the account to your identity provider per the standard
+   â€” bind the account to your identity provider per the standard
    IT guide. Internal link:
    [SSO enrollment](#placeholder-sso-link).
 4. **Connect the right repos.** Your Devin admin installs the
    GitHub / GitLab integration and grants it to only the repos this
-   recipe targets — nothing broader. Internal link:
+   recipe targets â€” nothing broader. Internal link:
    [Repo connection checklist](#placeholder-repo-link).
 5. **Complete internal training.** Read the internal rules of
    engagement for autonomous-agent usage on production repos,
@@ -146,7 +146,7 @@ subscribed to this session:
 ## Ecosystem-specific notes
 
 ### Node / pnpm
-- Respect `pnpm-workspace.yaml` — upgrade at the workspace root,
+- Respect `pnpm-workspace.yaml` â€” upgrade at the workspace root,
   not inside a single package, unless the affected dep is only
   used there.
 - After any dep change, run `pnpm install --frozen-lockfile` in
@@ -170,11 +170,11 @@ ecosystem test runners.
 ### 2. Configure reproducible setup for each repo
 
 Devin's sandbox should boot into a known-good state. Under
-**Workspace → Repositories → <your repo> → Setup**, record the
+**Workspace â†’ Repositories â†’ <your repo> â†’ Setup**, record the
 exact commands Devin should run on first connect:
 
 ```bash
-# Repository setup — payments-service
+# Repository setup â€” payments-service
 corepack enable
 pnpm install --frozen-lockfile
 pnpm -r build
@@ -187,7 +187,7 @@ are fast.
 
 ### 3. Mint a scoped Devin API key
 
-In **Workspace → Settings → API keys**, create a key named
+In **Workspace â†’ Settings â†’ API keys**, create a key named
 `remediation-webhook`. Scope: "Create sessions only." Store the
 key as a secret in the ticket system / CI that will POST to the
 API.
@@ -205,7 +205,7 @@ repo Devin operates on is selected via the connected GitHub /
 GitLab integration (and named inside the `prompt`), not by a
 `repos` body field.
 
-{{< tabs items="GitHub Issues,GitHub Webhook → Actions,Jira Automation,Linear webhook,Scheduled sweep" >}}
+{{< tabs items="GitHub Issues,GitHub Webhook â†’ Actions,Jira Automation,Linear webhook,Scheduled sweep" >}}
   {{< tab >}}
 ```yaml
 # .github/workflows/devin-dispatch.yml
@@ -251,7 +251,7 @@ jobs:
               -H "Content-Type: application/json" \
               --data @-
 ```
-Label a GitHub issue `ready-for-agent` → Devin creates a session,
+Label a GitHub issue `ready-for-agent` â†’ Devin creates a session,
 branches the connected repo, and opens a draft PR linked back.
   {{< /tab >}}
   {{< tab >}}
@@ -291,7 +291,7 @@ Devin. Works the same shape for Bitbucket Pipelines or GitLab CI.
   {{< /tab >}}
   {{< tab >}}
 ```
-# Jira → Automation → "Send web request"
+# Jira â†’ Automation â†’ "Send web request"
 Method:  POST
 URL:     https://api.devin.ai/v1/sessions
 Headers: Authorization: Bearer {{DEVIN_API_KEY}}
@@ -306,7 +306,7 @@ Body:
 }
 ```
 Trigger: "Issue transitioned to *Ready-for-Agent*." The automation
-rule calls Devin's API directly — no Action needed in the middle.
+rule calls Devin's API directly â€” no Action needed in the middle.
   {{< /tab >}}
   {{< tab >}}
 ```js
@@ -337,7 +337,7 @@ export default {
   },
 };
 ```
-Linear webhook (state change → *Ready-for-Agent*) posts here; the
+Linear webhook (state change â†’ *Ready-for-Agent*) posts here; the
 Worker forwards to Devin. Subscribe to `Issue.update` only.
   {{< /tab >}}
   {{< tab >}}
@@ -429,11 +429,11 @@ Trigger one finding manually. Devin should:
 Review the **session replay** in the Devin workspace to confirm
 the runbook was followed and no unexpected commands were issued.
 If the replay shows the agent skipped a step, fix the Knowledge
-entry — don't patch the symptom in the prompt.
+entry â€” don't patch the symptom in the prompt.
 
 ## Orchestration: what stays constant, what changes
 
-Devin's orchestration is unusually simple — your ticket system's
+Devin's orchestration is unusually simple â€” your ticket system's
 webhook creates a Devin session with a task brief, Devin runs
 end-to-end in its managed sandbox, and replies with a PR. The
 **webhook + Knowledge entry + PR review gate** is the stable
@@ -455,7 +455,7 @@ flowchart LR
 
 What is **constant** (build once, leave alone):
 
-- The `ready-for-agent` → webhook → `/sessions` POST contract.
+- The `ready-for-agent` â†’ webhook â†’ `/sessions` POST contract.
 - The Knowledge entries you treat as authoritative (runbook,
   commit conventions, PR template).
 - The scoped API token, per-session ACU cap, per-day ACU cap,
@@ -469,7 +469,7 @@ What **evolves** (expected to change, often):
   learn which framings reduce reviewer pushback. Knowledge
   entries are added and pruned.
 - **Model.** Devin's underlying engine changes as Cognition
-  upgrades it — you benefit from better models without touching
+  upgrades it â€” you benefit from better models without touching
   the webhook plumbing.
 - **Tools.** New integrations (a new ticket system, a new CI
   platform, a new scanner) slot in as additional sandbox tools.
@@ -482,7 +482,7 @@ orchestration is write-once.
 ## Guardrails
 
 - **Scope the repo list.** Devin only operates on repos you've explicitly
-  connected — keep this list tight.
+  connected â€” keep this list tight.
 - **Require human review.** Treat Devin PRs like any other contributor's
   PR: required reviewers, passing CI, no auto-merge.
 - **Budget caps.** Configure per-session and per-day ACU (agent compute
@@ -493,7 +493,7 @@ orchestration is write-once.
 ## Troubleshooting
 
 - **Devin keeps asking for repo setup.** The per-repo setup
-  commands didn't run — check **Workspace → Repositories →
+  commands didn't run â€” check **Workspace â†’ Repositories â†’
   Setup** and re-save them. Verify the first-run output in the
   session replay.
 - **Session ignores your runbook.** Knowledge entries are
@@ -507,7 +507,7 @@ orchestration is write-once.
 
 - Cognition: [Devin docs home](https://docs.devin.ai)
 - Devin API: [`POST /v1/sessions`](https://docs.devin.ai/api-reference/sessions/create-a-new-devin-session)
-- Devin docs: [Knowledge](https://docs.devin.ai/product-guides/knowledge) · [Playbooks](https://docs.devin.ai/product-guides/using-playbooks) · [Integrations](https://docs.devin.ai/product-guides/integrations)
-- [MCP Server Access]({{< relref "/mcp-servers" >}}) — exposing richer context to agents
-- Recipe: [Codex]({{< relref "/codex" >}}) — for similar batch flows
-- [Prompt Library]({{< relref "/prompt-library" >}}) — share your Devin session briefs (see `prompt-library/devin/` for live examples)
+- Devin docs: [Knowledge](https://docs.devin.ai/product-guides/knowledge) Â· [Playbooks](https://docs.devin.ai/product-guides/using-playbooks) Â· [Integrations](https://docs.devin.ai/product-guides/integrations)
+- [MCP Integration]({{< relref "/mcp-servers" >}}) â€” exposing richer context to agents
+- Recipe: [Codex]({{< relref "/codex" >}}) â€” for similar batch flows
+- [Recipes]({{< relref "/prompt-library" >}}) â€” share your Devin session briefs (see `prompt-library/devin/` for live examples)

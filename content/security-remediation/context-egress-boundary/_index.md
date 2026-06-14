@@ -1,4 +1,4 @@
----
+﻿---
 title: Context Egress Boundary
 linkTitle: Context Egress Boundary
 weight: 11
@@ -8,6 +8,8 @@ description: >
   egress: allow, hold, deny, or kill-session decisions before context
   leaves a tenant, model provider, MCP server, telemetry sink, or public
   corpus boundary.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -41,21 +43,14 @@ blocked.
 - Source model:
   `data/assurance/context-egress-boundary-model.json`
 - Generator:
-  `scripts/generate_context_egress_boundary_pack.py`
 - Evidence pack:
   `data/evidence/context-egress-boundary-pack.json`
 - Runtime evaluator:
-  `scripts/evaluate_context_egress_decision.py`
 - MCP tools:
   `recipes_context_egress_boundary_pack` and
-  `recipes_evaluate_context_egress_decision`
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_context_egress_boundary_pack.py
-python3 scripts/generate_context_egress_boundary_pack.py --check
-```
 
 ## Decision model
 
@@ -113,43 +108,12 @@ validation, or tool-result inspection.
 
 Allow public guidance to an approved model provider:
 
-```bash
-python3 scripts/evaluate_context_egress_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --data-class curated_security_guidance \
-  --destination-class approved_model_provider \
-  --dpa-in-place \
-  --zero-data-retention \
-  --required-region us \
-  --residency-region us \
-  --expect-decision allow_public_egress_with_citation
-```
 
 Hold customer source code that lacks required human approval:
 
-```bash
-python3 scripts/evaluate_context_egress_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --mcp-namespace repo.contents \
-  --destination-class approved_model_provider \
-  --tenant-id tenant-123 \
-  --dpa-in-place \
-  --zero-data-retention \
-  --required-region us \
-  --residency-region us \
-  --expect-decision hold_for_redaction_or_dpa
-```
 
 Kill a secret-egress attempt:
 
-```bash
-python3 scripts/evaluate_context_egress_decision.py \
-  --workflow-id sensitive-data-remediation \
-  --data-class secret_or_token \
-  --destination-class external_url_or_webhook \
-  --contains-secret \
-  --expect-decision kill_session_on_secret_egress
-```
 
 ## MCP examples
 
@@ -167,18 +131,6 @@ recipes_context_egress_boundary_pack(data_class="customer_source_code")
 
 Evaluate one outbound context movement:
 
-```text
-recipes_evaluate_context_egress_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  mcp_namespace="repo.contents",
-  destination_class="approved_model_provider",
-  tenant_id="tenant-123",
-  dpa_in_place=true,
-  zero_data_retention=true,
-  required_region="us",
-  residency_region="us"
-)
-```
 
 ## Why this is enterprise-grade
 

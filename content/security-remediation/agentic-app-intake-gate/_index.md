@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic App Intake Gate
 linkTitle: Agentic App Intake
 weight: 5
@@ -7,6 +7,8 @@ description: >
   A generated launch-review gate for agentic applications, agent hosts,
   and production MCP rollouts across autonomy, data, tools, memory,
   handoffs, guardrails, telemetry, and approval evidence.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -43,48 +45,20 @@ security, GRC, procurement, and trust review reviewers can understand.
 - Source profile:
   `data/assurance/agentic-app-intake-profile.json`
 - Generator:
-  `scripts/generate_agentic_app_intake_pack.py`
 - Runtime evaluator:
-  `scripts/evaluate_agentic_app_intake_decision.py`
 - Evidence pack:
   `data/evidence/agentic-app-intake-pack.json`
 - MCP tools:
   `recipes_agentic_app_intake_pack` and
-  `recipes_evaluate_agentic_app_intake_decision`
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_agentic_app_intake_pack.py
-python3 scripts/generate_agentic_app_intake_pack.py --check
-```
 
 Evaluate a guarded remediation agent host:
 
-```bash
-python3 scripts/evaluate_agentic_app_intake_decision.py \
-  --app-id repository-remediation-agent-host \
-  --deployment-environment enterprise_pilot \
-  --egress-decision allow_internal_boundary \
-  --authorization-decision allow_authorized_mcp_request \
-  --telemetry-decision telemetry_ready \
-  --human-approval-id approval-ci \
-  --approver product-security \
-  --approver service-owner \
-  --two-key-review \
-  --expect-decision approve_guarded_pilot
-```
 
 Block high-impact signer or production authority:
 
-```bash
-python3 scripts/evaluate_agentic_app_intake_decision.py \
-  --app-id financial-operations-agent \
-  --data-class live_signing_material \
-  --external-write \
-  --production-write \
-  --expect-decision kill_session_on_launch_signal
-```
 
 ## Decision model
 

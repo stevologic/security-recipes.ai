@@ -64,12 +64,6 @@ change is made.
 The generated browser-agent boundary pack now captures this contract in
 machine-readable form:
 
-```bash
-python3 scripts/generate_browser_agent_boundary_pack.py
-python3 scripts/evaluate_browser_agent_boundary_decision.py \
-  --workspace-class-id security-recipes-browser-planner \
-  --task-profile-id draft-remediation-handoff
-```
 
 Use that evaluator before promoting the beta planner into a recurring
 worker, a shared browser profile, or an external delivery path.

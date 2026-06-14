@@ -78,7 +78,6 @@
       "title": "Generated MCP gateway policy pack",
       "path": "data/policy/mcp-gateway-policy.json",
       "availability": "generated",
-      "produced_by": "scripts/generate_mcp_gateway_policy.py",
       "retention": "per repository history and release artifact retention"
     },
     {
@@ -94,7 +93,6 @@
       "title": "Generated agentic red-team drill pack",
       "path": "data/evidence/agentic-red-team-drill-pack.json",
       "availability": "generated",
-      "produced_by": "scripts/generate_agentic_red_team_drill_pack.py",
       "retention": "per repository history and release artifact retention"
     },
     {
@@ -102,7 +100,6 @@
       "title": "Generated agentic threat radar",
       "path": "data/evidence/agentic-threat-radar.json",
       "availability": "generated",
-      "produced_by": "scripts/generate_agentic_threat_radar.py",
       "retention": "per repository history and release artifact retention"
     },
     {
@@ -266,7 +263,7 @@
       "title": "Prompt, Skill, and MCP Supply Chain Governance",
       "objective": "Prompts, skills, rules files, workflow manifests, and MCP client/server configuration are treated as reviewed software supply-chain artifacts.",
       "product_surface": [
-        "prompt library",
+        "recipes",
         "workflow manifests",
         "MCP server configuration"
       ],
@@ -405,7 +402,7 @@
       "product_surface": [
         "assurance pack",
         "MCP server",
-        "prompt library",
+        "recipes",
         "gateway policy pack"
       ],
       "ai_easy_default": "Downstream platforms can ingest a single assurance pack to inventory agentic remediation capabilities and their control dependencies.",
@@ -486,7 +483,7 @@
         "secure context trust pack"
       ],
       "ai_easy_default": "Agents, reviewers, and AI platform teams can ask one MCP tool which current threats matter and which SecurityRecipes controls address them.",
-      "buyer_value": "Shows enterprise buyers that SecurityRecipes has a living control strategy tied to current industry guidance rather than a static prompt library.",
+      "buyer_value": "Shows enterprise buyers that SecurityRecipes has a living control strategy tied to current industry guidance rather than a static recipe catalog.",
       "evidence_sources": [
         "threat_radar_pack",
         "red_team_drill_pack",

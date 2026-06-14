@@ -1,204 +1,103 @@
 ---
-title: Agentic Security Remediation
-linkTitle: Agentic Security Remediation
-weight: 9
+title: Security Recipes
+linkTitle: Recipes
+weight: 2
 sidebar:
-  open: true
+  open: false
+toc: true
 cascade:
-  sidebar:
-    open: true
+  - _target:
+      kind: page
+    sidebar:
+      exclude: true
 description: >
-  Reference workflows a security engineering team can operate on
-  behalf of the wider organization — using agentic remediation
-  where it earns its keep, and stopping cleanly where it doesn't.
+  Practical remediation recipes that help AI agents produce narrow,
+  reviewable security fixes.
 ---
 
-{{< callout type="info" >}}
-**TL;DR.** These are **reference workflows a security team operates**
-on engineering's behalf — not ones engineering teams are asked to
-run themselves. The Prompt Library is the shared cookbook; this
-section is the menu a security team cooks from. Engineering doesn't
-have to do anything — the output is PRs, tickets, or triage notes.
-{{< /callout >}}
+Security recipes are reusable remediation playbooks. Each one should tell an
+AI agent:
 
-Agentic automation is most valuable in places where risk reduction
-is measurable, the fix shape is narrow, and the blast radius of a
-bad change is small enough that a tight guardrail can catch it.
-The workflows below fit that profile. Everything else a security
-team runs manually — or hands to a human with a checklist — until
-the automation is demonstrably safer than a hurried engineer at
-11 p.m.
+- what kind of finding it can handle,
+- what context it needs,
+- what files it should avoid,
+- what tests or checks matter,
+- when to stop and write a triage note,
+- what a reviewer should see in the output.
 
-## How we decide what to automate
+The goal is not to automate every security task. The goal is to make safe,
+bounded fixes easier to delegate to an agent while keeping humans in the review
+loop.
 
-Before a workflow lands here, it has to satisfy four tests:
-
-- **Bounded scope.** The agent can only touch files in a
-  pre-declared allowlist (e.g. lockfiles, a specific YAML) — never
-  arbitrary source.
-- **Reversible output.** The agent's output is always a PR, never a
-  merge. A human reviewer remains the last line of defense.
-- **Measurable outcome.** We can tell whether the fix actually
-  moved risk, not just whether a PR landed.
-- **Clean failure mode.** When the agent can't fix something, it
-  writes a structured triage note and stops — it does not guess.
-
-## Active workflows
+## Python remediation suite
 
 {{< cards >}}
-  {{< card link="/security-remediation/sensitive-data/" title="Sensitive Data Element Remediation" subtitle="Detect and redact unexpected PII / secrets appearing in logs, schemas, and shared configs." >}}
-  {{< card link="/security-remediation/vulnerable-dependencies/" title="Vulnerable Dependency Remediation" subtitle="Bump transitive and direct dependencies in response to CVEs and Dependabot advisories." >}}
-  {{< card link="/security-remediation/sast-findings/" title="SAST Finding Remediation" subtitle="Triage SAST findings, drop the false positives with audit, and auto-fix the long tail of bounded fix shapes." >}}
-  {{< card link="/security-remediation/base-images/" title="Base Image & Container Layers" subtitle="Bump `FROM` lines, refresh OS-package layers, and rebuild derived multi-stage images on OS-level CVEs." >}}
-  {{< card link="/security-remediation/artifact-cache-purge/" title="Artifact Cache & Mirror Quarantine" subtitle="When a published artifact is compromised, evict it from every internal proxy, container registry, and CI cache that might still serve it." >}}
-  {{< card link="/security-remediation/classic-vulnerable-defaults/" title="Classic Vulnerable Defaults" subtitle="Mitigate and uplift the durable, recurring weaknesses that keep landing — pickle, unsafe YAML, JNDI lookups, JWT `none`, XXE, and friends." >}}
-  {{< card link="/security-remediation/crypto-payments/" title="Cryptocurrency & Crypto Payments Security" subtitle="Harden wallet operations, address handling, and settlement controls where one wrong transaction is irreversible." >}}
-  {{< card link="/security-remediation/defi-blockchain/" title="DeFi & Blockchain Protocol Security" subtitle="Secure smart-contract, oracle, bridge, and governance operations with runbooks designed for on-chain blast radius." >}}
+  {{< card link="/security-remediation/remediation-suite/" title="Python Remediation Suite" subtitle="Use domain-specific Python tools for SCA, SAST, sensitive data, containers, cache purge, gatekeeping, runtime controls, review, rollout, metrics, and audit." >}}
 {{< /cards >}}
 
-## Program operations
-
-The workflows above are how the program *acts*. The pages below
-are how it's *run* — the measurement, review, rollout, gating,
-identity, runtime, and compliance layers every program needs whether it
-has one workflow or ten.
+## Core remediation recipes
 
 {{< cards >}}
-  {{< card link="/security-remediation/agentic-control-plane-blueprint/" title="Agentic Control Plane Blueprint" subtitle="Generated architecture, reviewer diligence map, MCP evidence surface, and trusted-source path for the secure context layer." >}}
-  {{< card link="/security-remediation/agentic-app-intake-gate/" title="Agentic App Intake Gate" subtitle="Generated launch-review decisions for agentic apps, agent hosts, and production MCP rollouts across autonomy, data, tools, memory, guardrails, telemetry, and approval evidence." >}}
-  {{< card link="/security-remediation/model-provider-routing-gate/" title="Model Provider Routing Gate" subtitle="Generated provider/model route decisions before secure context crosses a frontier, private, local, or unsanctioned model boundary." >}}
-  {{< card link="/security-remediation/agentic-posture-snapshot/" title="Agentic Posture Snapshot" subtitle="Generated posture score, workflow posture decisions, XPIA risk factors, MCP/A2A trust rollups, source hashes, and reviewer diligence views." >}}
-  {{< card link="/security-remediation/agentic-aivss-risk-scoring/" title="Agentic AIVSS Risk Scoring" subtitle="Generated AIVSS-aligned severity, SLA, remediation queue, hosted MCP readiness gates, and runtime decisions for agentic AI and MCP risks." >}}
-  {{< card link="/security-remediation/agentic-exposure-graph/" title="Agentic Exposure Graph" subtitle="Generated relationship graph that ranks paths across secure context, identities, MCP namespaces, authorization, egress, readiness, risk, and run receipts." >}}
-  {{< card link="/security-remediation/agentic-catastrophic-risk-annex/" title="Agentic Catastrophic Risk Annex" subtitle="Generated severe-risk scenarios, high-impact action classes, default decisions, kill signals, and runtime evaluator for board-grade agentic AI assurance." >}}
-  {{< card link="/security-remediation/critical-infrastructure-secure-context/" title="Critical Infrastructure Secure Context Profile" subtitle="Generated NIST-aligned critical-infrastructure readiness profile with sector hazards, MCP evidence, operator approvals, safety-case gates, and deterministic CI context decisions." >}}
-  {{< card link="/security-remediation/agentic-incident-response-pack/" title="Agentic Incident Response Pack" subtitle="Generated incident classes, containment phases, forensic evidence, replay gates, and runtime response decisions for secure-context and MCP failures." >}}
-  {{< card link="/security-remediation/agentic-action-runtime/" title="Agentic Action Runtime Pack" subtitle="Generated action classes, workflow envelopes, approval requirements, runtime kill signals, and deterministic allow/hold/deny/kill decisions before autonomous actions execute." >}}
-  {{< card link="/security-remediation/agent-trust-fabric/" title="Agent Trust Fabric" subtitle="Generated zero-trust agent verdicts across identity, context, scope, behavior, egress, telemetry, containment, and source-freshness evidence." >}}
-  {{< card link="/security-remediation/agentic-approval-receipts/" title="Agentic Approval Receipt Pack" subtitle="Generated scope-bound approval profiles, expiry, reviewer roles, separation of duties, risk acceptance, and deterministic allow/hold/deny/kill decisions before privileged agent actions execute." >}}
-  {{< card link="/security-remediation/browser-agent-boundary/" title="Browser Agent Workspace Boundary" subtitle="Generated browser-agent workspace classes, task profiles, ambient-authority controls, and deterministic decisions for logged-in sessions, untrusted web content, localhost, downloads, forms, and external sends." >}}
-  {{< card link="/security-remediation/agentic-entitlement-review/" title="Agentic Entitlement Review Pack" subtitle="Generated expiring permission leases, access-review cadences, step-up authorization rules, and deterministic entitlement decisions for agent identities and MCP scopes." >}}
-  {{< card link="/security-remediation/secure-context-buyer-diligence-brief/" title="Secure Context Reviewer Brief" subtitle="Generated reviewer briefs, enterprise questions, objection handlers, industry bets, and evidence-room proof steps for security review." >}}
-  {{< card link="/security-remediation/secure-context-value-model/" title="Secure Context Value Model" subtitle="Generated trust review- and trust-value model that turns secure-context evidence, hosted MCP readiness gates, and conservative operational-impact assumptions into reviewer-ready diligence." >}}
-  {{< card link="/security-remediation/design-partner-pilot-pack/" title="Design Partner Pilot Pack" subtitle="Generated reviewer-segment, telemetry, phase-gate, hosted-ready-proof, and risk evidence that turns the secure-context thesis into a design-partner motion." >}}
-  {{< card link="/security-remediation/hosted-mcp-readiness-pack/" title="Hosted MCP Readiness Pack" subtitle="Generated tenant-isolation, protected-resource authorization, private context, connector, telemetry, receipt, metering, and reviewer gate plan for the future hosted MCP deployment." >}}
-  {{< card link="/security-remediation/secure-context-customer-proof-pack/" title="Secure Context Customer Proof Pack" subtitle="Generated customer-proof contract for runtime events, metrics, receipts, renewal gates, and review-ready design-partner evidence." >}}
-  {{< card link="/security-remediation/secure-context-evidence-contract/" title="Secure Context Evidence Contract" subtitle="Generated evidence object catalog, hosted API surface, release channels, redaction rules, signatures, and runtime release decisions for trust-center and reviewer exports." >}}
-  {{< card link="/security-remediation/enterprise-trust-center-export/" title="Enterprise Trust Center Export" subtitle="Generated review packet that bundles secure-context, MCP, identity, eval, readiness, runtime evidence, and trust artifacts into one MCP-readable export." >}}
-  {{< card link="/security-remediation/agentic-threat-radar/" title="Agentic Threat Radar" subtitle="Source-backed threat signals, reviewer triggers, mapped controls, and source roadmap priorities for agentic AI and MCP security." >}}
-  {{< card link="/security-remediation/agentic-source-freshness-watch/" title="Agentic Source Freshness Watch" subtitle="Generated source-freshness and standards-drift evidence that proves OWASP, NIST, MCP, A2A, CISA, OpenAI, and CSA guidance stays current enough for enterprise review." >}}
-  {{< card link="/security-remediation/agentic-standards-crosswalk/" title="Agentic Standards Crosswalk" subtitle="Generated OWASP, CSA AI Controls Matrix, NIST, MCP, OpenAI, and Anthropic standards-to-evidence map for reviewer diligence, critical-infrastructure readiness, and MCP-native control review." >}}
-  {{< card link="/security-remediation/mcp-risk-coverage/" title="MCP and Agentic Skills Risk Coverage" subtitle="Generated OWASP MCP Top 10 and OWASP Agentic Skills Top 10 coverage map across evidence packs, MCP tools, and hosted readiness gates." >}}
-  {{< card link="/security-remediation/agentic-protocol-conformance/" title="Agentic Protocol Conformance Pack" subtitle="Generated MCP and A2A protocol conformance evidence with deterministic runtime decisions for authorization, tool annotations, tool-surface drift, Agent Cards, identity, handoff, and prompt-injection boundaries." >}}
-  {{< card link="/security-remediation/agentic-measurement-probes/" title="Agentic Measurement Probes" subtitle="Generated traceability probes for context, MCP authorization, identity, memory, egress, red-team replay, readiness, receipts, and threat alignment." >}}
-  {{< card link="/security-remediation/agentic-telemetry-contract/" title="Agentic Telemetry Contract" subtitle="Generated OpenTelemetry-aligned trace contract for agent, model, MCP, context, policy, egress, approval, verifier, incident, redaction, and receipt evidence." >}}
-  {{< card link="/security-remediation/agentic-soc-detection-pack/" title="Agentic SOC Detection Pack" subtitle="Generated SIEM-ready detections, query templates, alert decisions, and runtime evaluation for agentic AI and MCP telemetry." >}}
-  {{< card link="/security-remediation/control-plane/" title="Workflow Control Plane" subtitle="Machine-readable workflow manifests for scope, MCP context, gates, evidence, KPIs, and kill signals that agents and auditors can consume directly." >}}
-  {{< card link="/security-remediation/mcp-gateway-policy/" title="MCP Gateway Policy Pack" subtitle="Generated enforcement policy for scoped tool access, branch writes, runtime kill signals, and evidence records." >}}
-  {{< card link="/security-remediation/mcp-runtime-decision-evaluator/" title="MCP Runtime Decision Evaluator" subtitle="Deterministic allow, hold, deny, and kill-session decisions for each agent tool call before it reaches enterprise systems." >}}
-  {{< card link="/security-remediation/mcp-connector-intake-scanner/" title="MCP Connector Intake Scanner" subtitle="Generated admission decisions, control gaps, registry patch previews, and red-team drills for new or changed MCP servers before connector promotion." >}}
-  {{< card link="/security-remediation/mcp-stdio-launch-boundary/" title="MCP STDIO Launch Boundary" subtitle="Generated launch profiles, subprocess decisions, command allowlists, sandbox requirements, and secret/network kill rules before local MCP servers start." >}}
-  {{< card link="/security-remediation/mcp-authorization-conformance/" title="MCP Authorization Conformance" subtitle="Generated resource, audience, PKCE, token-passthrough, session-binding, and scope-drift decisions before MCP tool calls execute." >}}
-  {{< card link="/security-remediation/mcp-elicitation-boundary/" title="MCP Elicitation Boundary" subtitle="Generated form-mode and URL-mode elicitation controls with deterministic decisions for secrets, external auth, URL safety, consent, and receipts." >}}
-  {{< card link="/security-remediation/mcp-tool-risk-contract/" title="MCP Tool Risk Contract" subtitle="Generated tool annotation, trust-source, workflow-scope, and session-combination decisions before MCP tools are invoked." >}}
-  {{< card link="/security-remediation/mcp-tool-surface-drift-sentinel/" title="MCP Tool Surface Drift Sentinel" subtitle="Generated fingerprints for MCP tool descriptions, schemas, annotations, and capability metadata with deterministic allow, hold, deny, and kill decisions when live tool surfaces change." >}}
-  {{< card link="/security-remediation/mcp-connector-trust-registry/" title="MCP Connector Trust Registry" subtitle="Generated connector trust pack for MCP namespaces, tiers, access modes, evidence, promotion criteria, and runtime kill signals." >}}
-  {{< card link="/security-remediation/agentic-assurance-pack/" title="Agentic Assurance Pack" subtitle="Generated trust pack for AI platform review, procurement, audit evidence, and AI/Agent BOM readiness." >}}
-  {{< card link="/security-remediation/agentic-readiness-scorecard/" title="Agentic Readiness Scorecard" subtitle="Generated scale, pilot, gate, and block decisions from workflow, MCP policy, connector trust, identity, assurance, and red-team evidence." >}}
-  {{< card link="/security-remediation/agent-capability-risk-register/" title="Agent Capability Risk Register" subtitle="Generated low, medium, and high residual-risk tiers from system criticality, AI autonomy, MCP permissions, impact radius, and control credits." >}}
-  {{< card link="/security-remediation/agent-memory-boundary/" title="Agent Memory Boundary" subtitle="Generated memory classes, TTLs, tenant boundaries, provenance, rollback expectations, and runtime decisions before agent state is stored or replayed." >}}
-  {{< card link="/security-remediation/agent-skill-supply-chain/" title="Agent Skill Supply Chain" subtitle="Generated provenance, permission, isolation, package-hash, signature, sandbox, and runtime decisions for agent skills, rules, hooks, and extensions." >}}
-  {{< card link="/security-remediation/agentic-system-bom/" title="Agentic System BOM" subtitle="Generated Agent/AI Bill of Materials for workflows, agent classes, identities, MCP connectors, evidence, evals, and drift triggers." >}}
-  {{< card link="/security-remediation/agentic-run-receipts/" title="Agentic Run Receipts" subtitle="Generated proof templates for each governed agent run: identity, context, tool decisions, egress, approvals, verifier output, evidence, and revocation." >}}
-  {{< card link="/security-remediation/secure-context-trust-pack/" title="Secure Context Trust Pack" subtitle="Generated provenance, source hashes, trust tiers, retrieval decisions, and workflow context packages for MCP-backed agents." >}}
-  {{< card link="/security-remediation/secure-context-attestation/" title="Secure Context Attestation" subtitle="Generated in-toto-shaped attestation seed, recertification queue, signature-readiness policy, and runtime decisions before context is trusted." >}}
-  {{< card link="/security-remediation/secure-context-lineage-ledger/" title="Secure Context Lineage Ledger" subtitle="Generated context lineage from source hash to attestation, poisoning scan, retrieval, model route, egress, handoff, telemetry, run receipt, and reuse decision." >}}
-  {{< card link="/security-remediation/secure-context-evals/" title="Secure Context Evals" subtitle="Scenario-backed evals for retrieval correctness, attestation holds, poisoning resilience, egress safety, answer contracts, and A2A handoff boundaries." >}}
-  {{< card link="/security-remediation/agent-handoff-boundary/" title="Agent Handoff Boundary" subtitle="Generated protocol trust evidence and runtime decisions before MCP, A2A, provider-native, or approval-bridge handoffs move context between agents." >}}
-  {{< card link="/security-remediation/a2a-agent-card-trust/" title="A2A Agent Card Trust" subtitle="Generated remote-agent intake evidence and runtime decisions before A2A Agent Cards receive secure context or delegated authority." >}}
-  {{< card link="/security-remediation/context-poisoning-guard/" title="Context Poisoning Guard" subtitle="Generated pre-retrieval scanner for prompt-injection, tool-poisoning, approval-bypass, hidden-instruction, and exfiltration markers in registered context." >}}
-  {{< card link="/security-remediation/secure-context-firewall/" title="Secure Context Firewall" subtitle="Deterministic allow, hold, deny, and kill-session decisions before MCP-backed context is returned to an agent." >}}
-  {{< card link="/security-remediation/context-egress-boundary/" title="Context Egress Boundary" subtitle="Generated data-boundary policy and runtime decisions before context leaves a tenant, model provider, MCP server, telemetry sink, or public corpus." >}}
-  {{< card link="/security-remediation/agentic-red-team-drills/" title="Agentic Red-Team Drill Pack" subtitle="Generated adversarial eval drills for prompt injection, goal hijack, approval bypass, token passthrough, connector drift, loops, and evidence integrity." >}}
-  {{< card link="/security-remediation/agentic-red-team-replay-harness/" title="Agentic Red-Team Replay Harness" subtitle="Generated replay fixtures, expected decisions, trace requirements, run receipt bindings, and evaluator decisions for agentic red-team proof." >}}
-  {{< card link="/security-remediation/agent-identity-ledger/" title="Agent Identity & Delegation Ledger" subtitle="Generated non-human identity contracts for approved agents, delegated MCP scopes, explicit denies, review ownership, and runtime revocation." >}}
-  {{< card link="/security-remediation/metrics/" title="Program Metrics & KPIs" subtitle="MTTR, merge-as-is rate, reviewer burden, false positives, cost per finding — what to measure and what a good month looks like." >}}
-  {{< card link="/security-remediation/reviewer-playbook/" title="Reviewer Playbook" subtitle="The seven-question checklist for gating agent PRs, plus onboarding, redirect patterns, and prompt-drift signals to escalate." >}}
-  {{< card link="/security-remediation/gatekeeping/" title="Gatekeeping Patterns" subtitle="The catalog of admission, mid-run, pre-merge, post-merge, runtime, and cross-cutting gates — pick a stack, not a single gate." >}}
-  {{< card link="/security-remediation/runtime-controls/" title="Runtime Controls" subtitle="Inline action proxies and telemetry-driven session disablement — what the gate at the *running* agent looks like, not at its PR." >}}
-  {{< card link="/security-remediation/maturity/" title="Rollout & Maturity Model" subtitle="Crawl / walk / run adoption — pilot exit criteria, expansion signals, and the kill signals that pause a workflow." >}}
-  {{< card link="/security-remediation/compliance/" title="Compliance & Audit" subtitle="How this shape of workflow maps onto SOC 2, ISO 27001, PCI DSS, and NIST SSDF — evidence to produce and questions auditors will ask." >}}
+  {{< card link="/security-remediation/vulnerable-dependencies/" title="Vulnerable Dependencies" subtitle="Bump direct and transitive dependencies, update lockfiles, and prove the affected package is no longer present." >}}
+  {{< card link="/security-remediation/sast-findings/" title="SAST Findings" subtitle="Use for local, testable SAST fixes where the rule, source, sink, and safe pattern are clear." >}}
+  {{< card link="/security-remediation/sensitive-data/" title="Sensitive Data" subtitle="Clean up exposed secrets, PII, or sensitive fields in logs, configs, fixtures, and schemas." >}}
+  {{< card link="/security-remediation/base-images/" title="Base Images and Containers" subtitle="Update image tags, OS packages, and Dockerfile patterns without broad deployment changes." >}}
+  {{< card link="/security-remediation/classic-vulnerable-defaults/" title="Classic Vulnerable Defaults" subtitle="Fix repeat offenders such as unsafe YAML, pickle, XXE, weak JWT settings, and dangerous defaults." >}}
+  {{< card link="/security-remediation/artifact-cache-purge/" title="Artifact Cache Purge" subtitle="Quarantine compromised artifacts from mirrors, registries, and CI caches." >}}
 {{< /cards >}}
 
-## Per-CVE recipes
+## Specialized domains
 
-When a finding is a *named* CVE — Log4Shell, xz-utils,
-Heartbleed, regreSSHion, the headline supply-chain story of
-the month — generic workflows are not always enough. The CVE
-has its own blast radius, its own quirks, and its own
-"remediation that looks right and isn't." See
-[CVE Recipes]({{< relref "/prompt-library/cve" >}}) for
-per-CVE prompts that an agent can run end-to-end without
-breaking the code around the fix.
+{{< cards >}}
+  {{< card link="/security-remediation/crypto-payments/" title="Crypto Payments" subtitle="Protect irreversible payment, wallet, address, and settlement workflows." >}}
+  {{< card link="/security-remediation/defi-blockchain/" title="DeFi and Blockchain" subtitle="Remediation patterns for smart contracts, bridges, oracle usage, and governance workflows." >}}
+{{< /cards >}}
 
-## On deck
+## Operating the recipe loop
 
-Candidate workflows teams scope next typically sit in a shared
-backlog. The same four tests apply — bounded scope, reversible
-output, measurable outcome, clean failure mode — before any of
-them move to "Active."
+{{< cards >}}
+  {{< card link="/security-remediation/recipe-recommender/" title="Recipe Recommender" subtitle="Classify one finding and pick the single safest downstream recipe before an agent starts remediation." >}}
+  {{< card link="/security-remediation/reviewer-playbook/" title="Reviewer Playbook" subtitle="Questions reviewers should ask before merging an agent-authored security PR." >}}
+  {{< card link="/security-remediation/gatekeeping/" title="Gatekeeping Patterns" subtitle="Admission, mid-run, pre-merge, and post-merge gates for agent-assisted work." >}}
+  {{< card link="/security-remediation/runtime-controls/" title="Runtime Controls" subtitle="How to keep agent tool use scoped while a remediation run is active." >}}
+  {{< card link="/security-remediation/maturity/" title="Rollout Model" subtitle="Crawl, walk, run adoption with promotion criteria and stop signals." >}}
+  {{< card link="/security-remediation/metrics/" title="Metrics" subtitle="MTTR, reviewer burden, merge quality, false positives, and where automation is earning its keep." >}}
+  {{< card link="/security-remediation/compliance/" title="Compliance and Audit" subtitle="Evidence patterns for SOC 2, ISO 27001, PCI DSS, NIST SSDF, and internal review." >}}
+{{< /cards >}}
 
-- **More to come.** As the orchestration spine matures, new
-  workflows land where the cost/benefit math is clearly in agents'
-  favor. If you have a candidate, see
-  [Contribute]({{< relref "/contribute" >}}).
+## Recipe run contract
 
-## How orchestration fits together
+```text
+One finding.
+One matching recipe.
+One agent run.
+One PR or triage note.
+Human review before merge.
+```
 
-Every agentic remediation workflow here shares one orchestration
-spine:
+That contract keeps agentic remediation useful. If a finding requires broad
+architecture work, production infrastructure changes, unclear ownership, or a
+high-risk data migration, the correct output is a triage note rather than a
+heroic patch.
 
-1. **Intake** — a finding lands in the risk system (CVE feed, DLP
-   scanner, SAST, manual report).
-2. **Dispatch** — the orchestrator decides whether the finding is
-   eligible for an agent (scope, blast radius, cost caps).
-3. **Run** — an agent attempts the remediation inside a sandbox
-   with a strict tool allowlist.
-4. **Verify** — tests + guardrail checks run; if anything fails,
-   the agent stops and writes a triage note.
-5. **Review** — a human reviewer (and the owning team) approve
-   before merge.
+## MCP context for recipes
 
-The **orchestrator** is intentionally boring — a queue, a
-dispatcher, and a reviewer loop. What changes over time are the
-three inputs the orchestrator feeds into each step: the **prompt**
-(as we learn what works), the **model** (as better models ship),
-and the **tools / MCP connectors** (as we connect new sources of
-context). See any of the per-agent pages under
-[Agents]({{< relref "/agents" >}}) for a worked example of that
-separation of concerns.
+Most recipes get better when the agent can read structured evidence:
 
-## What engineers will see
+- advisory and package data,
+- code scanning alerts,
+- SBOM or SARIF output,
+- repository ownership,
+- CI status,
+- internal runbooks.
 
-- **PRs** tagged with an auto-remediation label (`sec-auto-remediation`
-  is the illustrative example used throughout this site — rename to
-  your org's convention) with a reviewer from the security team on
-  the review line.
-- **Triage tickets** when the agent stops — these are not asks for
-  engineers to debug the agent, they're asks for a human fix.
-- **A changelog** on each workflow page below, so readers can see
-  when its behaviour changed and why.
+Use [MCP Integration]({{< relref "/mcp-servers" >}}) to connect those sources
+as scoped context. Start read-only; add write access only after a separate
+review.
 
-## What this section is not
+## Add or improve a recipe
 
-- A mandate to run these workflows in your own repos. The Prompt
-  Library is where you'd pick up recipes to run yourself.
-- A promise that automation will catch everything. Every workflow
-  lists what it **won't** catch — read those sections before
-  leaning on it.
-
-## See also
-
-- [Prompt Library]({{< relref "/prompt-library" >}}) — the recipes security and engineering teams share
-- [Agents]({{< relref "/agents" >}}) — per-tool orchestration recipes
-- [Contribute]({{< relref "/contribute" >}}) — suggest a new workflow
+Good recipes are specific. They name what is in scope, what is out of scope,
+what evidence is required, and what a safe stop looks like. See
+[Contribute]({{< relref "/contribute" >}}) when you have a working recipe or
+prompt to share.

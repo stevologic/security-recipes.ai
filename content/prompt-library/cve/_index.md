@@ -66,6 +66,19 @@ For high and critical advisories, that means each prompt must include:
   customer content, or exploit payloads;
 - source links back to GHAD, NVD/CVE, vendor advisories, or release evidence.
 
+## Before remediation: intake the signal
+
+When a CVE, GHSA, OSV, vendor bulletin, scanner row, or ticket is incomplete,
+run the
+[CVE intelligence intake gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}})
+before asking an agent to patch.
+
+The intake gate turns the advisory signal into one of five outcomes:
+remediation, containment, not-exposed suppression, human triage, or rejected
+unverified signal. It is backed by the local policy file
+`data/intelligence/cve-intelligence-intake-gates.json` and documented in
+[CVE Intelligence Intake]({{< relref "/docs/cve-intelligence-intake" >}}).
+
 ## How to use a CVE recipe
 
 The same pattern as any other prompt on this site:
@@ -116,7 +129,12 @@ disclosure date. Drop a new
 fields below, and it will appear here on the next build —
 no edits to this hub or to `hugo.yaml` required.
 
-Required frontmatter for the listing to be useful:
+{{< cve-toc >}}
+
+This catalogue grows. New entries land via the same review
+process as any other prompt.
+
+Required frontmatter for contributors:
 
 - `cve` or `ghsa` — the canonical ID (e.g.,
   `"CVE-2021-44228"` or `"GHSA-v4p8-mg3p-g94g"`). Use `ghsa`
@@ -132,11 +150,6 @@ Required frontmatter for the listing to be useful:
   each ecosystem.
 - `aliases` — popular names (`["Log4Shell"]`); the first
   alias renders as a quick visual identifier.
-
-{{< cve-toc >}}
-
-This catalogue grows. New entries land via the same review
-process as any other prompt.
 
 ## Anatomy of a good CVE recipe submission
 

@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Red-Team Drill Pack
 linkTitle: Red-Team Drill Pack
 weight: 7
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated adversarial eval bundle for agentic remediation workflows:
   prompt injection, goal hijack, credential access, approval bypass,
@@ -44,8 +44,6 @@ The red-team layer lives in three artifacts:
 - `data/assurance/agentic-red-team-scenario-map.json` - the source map
   of adversarial scenarios, standards references, expected decisions,
   evidence, pass criteria, and fail signals.
-- `scripts/generate_agentic_red_team_drill_pack.py` - a dependency-free
-  generator and validator with `--check` mode for CI drift detection.
 - `data/evidence/agentic-red-team-drill-pack.json` - the generated pack
   that maps scenarios to every active workflow and MCP namespace.
 - `data/evidence/agentic-red-team-replay-harness.json` - the generated
@@ -54,10 +52,6 @@ The red-team layer lives in three artifacts:
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_agentic_red_team_drill_pack.py
-python3 scripts/generate_agentic_red_team_drill_pack.py --check
-```
 
 The local MCP server exposes the pack through
 `recipes_agentic_red_team_drill_pack`.

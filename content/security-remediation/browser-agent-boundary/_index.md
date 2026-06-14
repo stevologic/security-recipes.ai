@@ -1,9 +1,9 @@
----
+﻿---
 title: Browser Agent Workspace Boundary
 linkTitle: Browser Agent Boundary
 weight: 16
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated browser-agent workspace boundary and deterministic runtime
   evaluator for logged-in sessions, untrusted web content, localhost,
@@ -52,93 +52,18 @@ SIEM export, and signed run receipts.
 - `data/assurance/browser-agent-boundary-profile.json` - source contract
   for workspace classes, task profiles, browser authority controls,
   runtime fields, kill signals, standards alignment, and trusted-source path.
-- `scripts/generate_browser_agent_boundary_pack.py` - deterministic
-  generator and `--check` validator.
-- `scripts/evaluate_browser_agent_boundary_decision.py` - deterministic
-  runtime evaluator for browser-agent sessions.
 - `data/evidence/browser-agent-boundary-pack.json` - generated evidence
   pack for MCP clients, CI drift checks, and reviewer diligence.
 - `recipes_browser_agent_boundary_pack` - MCP lookup by workspace class,
   task profile, risk tier, or decision.
-- `recipes_evaluate_browser_agent_boundary_decision` - MCP evaluator for
-  one proposed browser-agent run.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_browser_agent_boundary_pack.py
-python3 scripts/generate_browser_agent_boundary_pack.py --check
-```
 
 Evaluate safe public research:
 
-```bash
-python3 scripts/evaluate_browser_agent_boundary_decision.py \
-  --workspace-class-id public-research-browser \
-  --task-profile-id public-security-research \
-  --session-id browser-ci-public \
-  --run-id run-public \
-  --agent-id sr-browser-agent \
-  --tenant-id tenant-demo \
-  --user-intent "Collect cited public AI security references" \
-  --target-origin https://www.nist.gov \
-  --content-trust-level standards_body \
-  --auth-state logged_out \
-  --isolation-mode dedicated_agent_profile \
-  --action-class navigate \
-  --action-class read_page \
-  --action-class summarize \
-  --action-class copy_draft \
-  --data-class public_security_guidance \
-  --network-egress-policy origin_allowlist \
-  --browser-storage-policy ephemeral_or_scoped_storage \
-  --approval-state approved \
-  --telemetry-event-id telemetry-public \
-  --receipt-id receipt-public \
-  --control dedicated_agent_profile \
-  --control ephemeral_or_scoped_storage \
-  --control logged_out_by_default \
-  --control origin_allowlist \
-  --control metadata_only_telemetry \
-  --control run_receipt \
-  --expect-decision allow_isolated_browser_task
-```
 
 Evaluate a prompt-injected email attempting an external send:
 
-```bash
-python3 scripts/evaluate_browser_agent_boundary_decision.py \
-  --workspace-class-id email-document-browser-agent \
-  --task-profile-id email-document-triage \
-  --session-id browser-ci-kill \
-  --run-id run-kill \
-  --agent-id sr-browser-agent \
-  --tenant-id tenant-demo \
-  --user-intent "Summarize unread vendor emails" \
-  --target-origin https://mail.example.internal \
-  --content-trust-level email \
-  --auth-state scoped_agent_session \
-  --isolation-mode dedicated_agent_profile \
-  --action-class read_page \
-  --action-class draft_reply \
-  --data-class customer_pii \
-  --network-egress-policy origin_allowlist \
-  --browser-storage-policy ephemeral_or_scoped_storage \
-  --approval-state pending \
-  --telemetry-event-id telemetry-kill \
-  --receipt-id receipt-kill \
-  --control dedicated_agent_profile \
-  --control origin_allowlist \
-  --control no_raw_secret_capture \
-  --control draft_first_delivery \
-  --control human_confirmation_for_external_send \
-  --control metadata_only_telemetry \
-  --control run_receipt \
-  --control kill_switch \
-  --prompt-injection-signal \
-  --sends-external-message \
-  --expect-decision kill_session_on_browser_agent_signal
-```
 
 ## What is inside
 

@@ -5,12 +5,12 @@
       "label": "GitHub dependency PR handoff",
       "status": "curated",
       "workflow_value": "dependency",
-      "description": "Use GitHub repo + deps.dev context to draft a narrow dependency remediation packet for human review.",
+      "description": "Use GitHub repo, deps.dev, and OSV.dev context to draft a narrow dependency remediation packet for human review.",
       "default_recipe_query": "vulnerable dependency remediation",
       "default_context_pack": "Secure context trust pack",
       "default_report_profile_id": "remediation-pr-packet",
       "default_output_channel_id": "draft-pr-packet",
-      "default_input_channel_ids": ["page-context", "recipe-index", "github-repository", "deps-dev-advisories"],
+      "default_input_channel_ids": ["page-context", "recipe-index", "github-repository", "deps-dev-advisories", "osv-vulnerability-api"],
       "default_approval_gate": "Security reviewer required",
       "default_cadence": "Manual approval",
       "target_hint": "owner/repo package/CVE"
@@ -295,7 +295,7 @@
       "default_context_pack": "Secure context trust pack",
       "default_report_profile_id": "ticket-ready-brief",
       "default_output_channel_id": "linear-issue",
-      "default_input_channel_ids": ["page-context", "recipe-index", "github-repository", "deps-dev-advisories", "sbom-manual-import"],
+      "default_input_channel_ids": ["page-context", "recipe-index", "github-repository", "deps-dev-advisories", "osv-vulnerability-api", "sbom-manual-import"],
       "default_approval_gate": "Code owner required",
       "default_cadence": "Manual approval",
       "target_hint": "owner/repo package / team ID"

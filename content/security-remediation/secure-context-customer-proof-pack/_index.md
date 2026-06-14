@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Customer Proof Pack
 linkTitle: Customer Proof Pack
 weight: 15
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated customer-proof contract that tells design partners,
   reviewers, and reviewers exactly which runtime events, metrics, receipts,
@@ -34,8 +34,6 @@ replace assumptions.
 - `data/assurance/secure-context-customer-proof-profile.json` - source
   profile for proof claims, runtime event classes, metrics, renewal
   gates, reviewer readout, and proof risks.
-- `scripts/generate_secure_context_customer_proof_pack.py` -
-  deterministic generator and `--check` validator.
 - `data/evidence/secure-context-customer-proof-pack.json` - generated
   pack with source-pack hashes, 7 proof claims, 9 metrics, 9 runtime
   event classes, 5 renewal gates, and 6 proof risks.
@@ -43,12 +41,7 @@ replace assumptions.
   pack, one proof claim, event class, metric, renewal gate, risk, or
   status-filtered view.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_secure_context_customer_proof_pack.py
-python3 scripts/generate_secure_context_customer_proof_pack.py --check
-```
 
 ## What the pack contains
 
@@ -148,4 +141,4 @@ The profile is grounded in current primary sources:
 - [Enterprise Trust Center Export]({{< relref "/security-remediation/enterprise-trust-center-export" >}})
 - [Agentic Telemetry Contract]({{< relref "/security-remediation/agentic-telemetry-contract" >}})
 - [Agentic Run Receipts]({{< relref "/security-remediation/agentic-run-receipts" >}})
-- [Production MCP Server]({{< relref "/mcp-servers" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})

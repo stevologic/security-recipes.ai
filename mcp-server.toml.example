@@ -10,12 +10,52 @@ allowed_source_hosts = ["security-recipes.ai"]
 # Change this to your own hostname/subdomain when self-hosting.
 server_public_base_url = "https://mcp.security-recipes.ai"
 
+# Optional upstream MCP context servers.
+#
+# No upstream servers are configured by default because these connections often
+# require business credentials. Self-hosted deployments can opt in by adding one
+# table per approved HTTP or Streamable HTTP MCP endpoint. Keep secrets in
+# environment variables and pin allowed_tools for production.
+#
+# [[upstream_mcp_servers]]
+# id = "github"
+# label = "GitHub MCP Server"
+# description = "Repository, issue, PR, Actions, and code-security context."
+# url = "https://YOUR-GITHUB-MCP-ENDPOINT/mcp"
+# auth_token_env = "GITHUB_TOKEN"
+# allowed_tools = ["search_repositories", "get_issue", "get_pull_request"]
+# context_tool = "search_repositories"
+# context_query_argument = "query"
+# max_response_chars = 12000
+#
+# [[upstream_mcp_servers]]
+# id = "semgrep-docs"
+# label = "Semgrep docs MCP"
+# description = "Semgrep documentation and rule guidance."
+# url = "https://YOUR-SEMGREP-MCP-ENDPOINT/mcp"
+# allowed_tools = ["search"]
+# context_tool = "search"
+# context_query_argument = "query"
+#
+# If you intentionally operate an internal read-only gateway, you may allow
+# unlisted read-like tool names instead of pinning every name. Prefer explicit
+# allowed_tools whenever the upstream can access tenant, cloud, or source data.
+#
+# [[upstream_mcp_servers]]
+# id = "security-gateway"
+# label = "Internal security MCP gateway"
+# url = "https://mcp.example.com/security/mcp"
+# auth_token_env = "SECURITY_MCP_TOKEN"
+# allow_unlisted_read_only_tools = true
+# blocked_tools = ["create_issue", "write_file", "run_command"]
+# context_tool = "search"
+# context_query_argument = "query"
+
 # Local workflow-control-plane manifest exposed through the
 # recipes_workflow_control_plane MCP tool.
 control_plane_manifest_path = "./data/control-plane/workflow-manifests.json"
 
-# Generated policy pack exposed through the recipes_mcp_gateway_policy and
-# recipes_evaluate_mcp_gateway_decision MCP tools.
+# Generated policy pack exposed through the recipes_mcp_gateway_policy MCP tool.
 gateway_policy_path = "./data/policy/mcp-gateway-policy.json"
 
 # Generated assurance pack exposed through the recipes_agentic_assurance_pack MCP tool.
@@ -26,13 +66,11 @@ assurance_pack_path = "./data/evidence/agentic-assurance-pack.json"
 identity_ledger_path = "./data/evidence/agent-identity-delegation-ledger.json"
 
 # Generated agentic entitlement review pack exposed through the
-# recipes_agentic_entitlement_review_pack and
-# recipes_evaluate_agentic_entitlement_decision MCP tools.
+# recipes_agentic_entitlement_review_pack MCP tool.
 entitlement_review_pack_path = "./data/evidence/agentic-entitlement-review-pack.json"
 
 # Generated scope-bound approval receipt pack exposed through the
-# recipes_agentic_approval_receipt_pack and
-# recipes_evaluate_agentic_approval_receipt_decision MCP tools.
+# recipes_agentic_approval_receipt_pack MCP tool.
 approval_receipt_pack_path = "./data/evidence/agentic-approval-receipt-pack.json"
 
 # Generated MCP connector trust pack exposed through the
@@ -44,28 +82,23 @@ connector_trust_pack_path = "./data/evidence/mcp-connector-trust-pack.json"
 connector_intake_pack_path = "./data/evidence/mcp-connector-intake-pack.json"
 
 # Generated MCP STDIO launch boundary pack exposed through the
-# recipes_mcp_stdio_launch_boundary_pack and
-# recipes_evaluate_mcp_stdio_launch_decision MCP tools.
+# recipes_mcp_stdio_launch_boundary_pack MCP tool.
 mcp_stdio_launch_boundary_pack_path = "./data/evidence/mcp-stdio-launch-boundary-pack.json"
 
 # Generated MCP authorization conformance pack exposed through the
-# recipes_mcp_authorization_conformance_pack and
-# recipes_evaluate_mcp_authorization_decision MCP tools.
+# recipes_mcp_authorization_conformance_pack MCP tool.
 authorization_conformance_pack_path = "./data/evidence/mcp-authorization-conformance-pack.json"
 
 # Generated MCP elicitation boundary pack exposed through the
-# recipes_mcp_elicitation_boundary_pack and
-# recipes_evaluate_mcp_elicitation_boundary_decision MCP tools.
+# recipes_mcp_elicitation_boundary_pack MCP tool.
 elicitation_boundary_pack_path = "./data/evidence/mcp-elicitation-boundary-pack.json"
 
 # Generated MCP tool-risk contract exposed through the
-# recipes_mcp_tool_risk_contract and
-# recipes_evaluate_mcp_tool_risk_decision MCP tools.
+# recipes_mcp_tool_risk_contract MCP tool.
 tool_risk_contract_path = "./data/evidence/mcp-tool-risk-contract.json"
 
 # Generated MCP tool-surface drift pack exposed through the
-# recipes_mcp_tool_surface_drift_pack and
-# recipes_evaluate_mcp_tool_surface_drift_decision MCP tools.
+# recipes_mcp_tool_surface_drift_pack MCP tool.
 tool_surface_drift_pack_path = "./data/evidence/mcp-tool-surface-drift-pack.json"
 
 # Generated agentic red-team drill pack exposed through the
@@ -73,8 +106,7 @@ tool_surface_drift_pack_path = "./data/evidence/mcp-tool-surface-drift-pack.json
 red_team_drill_pack_path = "./data/evidence/agentic-red-team-drill-pack.json"
 
 # Generated agentic red-team replay harness exposed through the
-# recipes_agentic_red_team_replay_harness and
-# recipes_evaluate_agentic_red_team_replay_result MCP tools.
+# recipes_agentic_red_team_replay_harness MCP tool.
 red_team_replay_harness_path = "./data/evidence/agentic-red-team-replay-harness.json"
 
 # Generated agentic readiness scorecard exposed through the
@@ -86,23 +118,19 @@ readiness_scorecard_path = "./data/evidence/agentic-readiness-scorecard.json"
 capability_risk_register_path = "./data/evidence/agent-capability-risk-register.json"
 
 # Generated agent memory boundary pack exposed through the
-# recipes_agent_memory_boundary_pack and
-# recipes_evaluate_agent_memory_decision MCP tools.
+# recipes_agent_memory_boundary_pack MCP tool.
 agent_memory_boundary_pack_path = "./data/evidence/agent-memory-boundary-pack.json"
 
 # Generated agent skill supply-chain pack exposed through the
-# recipes_agent_skill_supply_chain_pack and
-# recipes_evaluate_agent_skill_decision MCP tools.
+# recipes_agent_skill_supply_chain_pack MCP tool.
 agent_skill_supply_chain_pack_path = "./data/evidence/agent-skill-supply-chain-pack.json"
 
 # Generated agent handoff boundary pack exposed through the
-# recipes_agent_handoff_boundary_pack and
-# recipes_evaluate_agent_handoff_decision MCP tools.
+# recipes_agent_handoff_boundary_pack MCP tool.
 agent_handoff_boundary_pack_path = "./data/evidence/agent-handoff-boundary-pack.json"
 
 # Generated A2A Agent Card trust profile exposed through the
-# recipes_a2a_agent_card_trust_profile and
-# recipes_evaluate_a2a_agent_card_trust_decision MCP tools.
+# recipes_a2a_agent_card_trust_profile MCP tool.
 a2a_agent_card_trust_profile_path = "./data/evidence/a2a-agent-card-trust-profile.json"
 
 # Generated Agentic System Bill of Materials exposed through the
@@ -114,23 +142,19 @@ agentic_system_bom_path = "./data/evidence/agentic-system-bom.json"
 agentic_run_receipt_pack_path = "./data/evidence/agentic-run-receipt-pack.json"
 
 # Generated secure context provenance and retrieval trust pack exposed through
-# the recipes_secure_context_trust_pack and
-# recipes_evaluate_context_retrieval_decision MCP tools.
+# the recipes_secure_context_trust_pack MCP tool.
 secure_context_trust_pack_path = "./data/evidence/secure-context-trust-pack.json"
 
 # Generated secure context attestation pack exposed through the
-# recipes_secure_context_attestation_pack and
-# recipes_evaluate_context_attestation_decision MCP tools.
+# recipes_secure_context_attestation_pack MCP tool.
 secure_context_attestation_pack_path = "./data/evidence/secure-context-attestation-pack.json"
 
 # Generated secure context lineage ledger exposed through the
-# recipes_secure_context_lineage_ledger and
-# recipes_evaluate_secure_context_lineage_decision MCP tools.
+# recipes_secure_context_lineage_ledger MCP tool.
 secure_context_lineage_ledger_path = "./data/evidence/secure-context-lineage-ledger.json"
 
 # Generated secure context eval pack exposed through the
-# recipes_secure_context_eval_pack and
-# recipes_evaluate_secure_context_eval_case MCP tools.
+# recipes_secure_context_eval_pack MCP tool.
 secure_context_eval_pack_path = "./data/evidence/secure-context-eval-pack.json"
 
 # Generated context poisoning guard pack exposed through the
@@ -138,8 +162,7 @@ secure_context_eval_pack_path = "./data/evidence/secure-context-eval-pack.json"
 context_poisoning_guard_pack_path = "./data/evidence/context-poisoning-guard-pack.json"
 
 # Generated context egress boundary pack exposed through the
-# recipes_context_egress_boundary_pack and
-# recipes_evaluate_context_egress_decision MCP tools.
+# recipes_context_egress_boundary_pack MCP tool.
 context_egress_boundary_pack_path = "./data/evidence/context-egress-boundary-pack.json"
 
 # Generated source-backed agentic threat and product radar exposed through
@@ -159,8 +182,7 @@ source_freshness_watch_path = "./data/evidence/agentic-source-freshness-watch.js
 mcp_risk_coverage_pack_path = "./data/evidence/mcp-risk-coverage-pack.json"
 
 # Generated agentic protocol conformance pack exposed through the
-# recipes_agentic_protocol_conformance_pack and
-# recipes_evaluate_agentic_protocol_conformance_decision MCP tools.
+# recipes_agentic_protocol_conformance_pack MCP tool.
 protocol_conformance_pack_path = "./data/evidence/agentic-protocol-conformance-pack.json"
 
 # Generated agentic control plane blueprint exposed through the
@@ -172,53 +194,43 @@ control_plane_blueprint_path = "./data/evidence/agentic-control-plane-blueprint.
 exposure_graph_path = "./data/evidence/agentic-exposure-graph.json"
 
 # Generated agentic posture snapshot exposed through the
-# recipes_agentic_posture_snapshot and
-# recipes_evaluate_agentic_posture_decision MCP tools.
+# recipes_agentic_posture_snapshot MCP tool.
 posture_snapshot_path = "./data/evidence/agentic-posture-snapshot.json"
 
 # Generated Agentic AIVSS risk scoring pack exposed through the
-# recipes_agentic_aivss_risk_scoring_pack and
-# recipes_evaluate_agentic_aivss_risk_decision MCP tools.
+# recipes_agentic_aivss_risk_scoring_pack MCP tool.
 agentic_aivss_risk_scoring_pack_path = "./data/evidence/agentic-aivss-risk-scoring-pack.json"
 
 # Generated agentic app intake pack exposed through the
-# recipes_agentic_app_intake_pack and
-# recipes_evaluate_agentic_app_intake_decision MCP tools.
+# recipes_agentic_app_intake_pack MCP tool.
 app_intake_pack_path = "./data/evidence/agentic-app-intake-pack.json"
 
 # Generated model provider routing pack exposed through the
-# recipes_model_provider_routing_pack and
-# recipes_evaluate_model_provider_routing_decision MCP tools.
+# recipes_model_provider_routing_pack MCP tool.
 model_provider_routing_pack_path = "./data/evidence/model-provider-routing-pack.json"
 
 # Generated agentic catastrophic-risk annex exposed through the
-# recipes_agentic_catastrophic_risk_annex and
-# recipes_evaluate_agentic_catastrophic_risk_decision MCP tools.
+# recipes_agentic_catastrophic_risk_annex MCP tool.
 catastrophic_risk_annex_path = "./data/evidence/agentic-catastrophic-risk-annex.json"
 
 # Generated critical-infrastructure secure-context pack exposed through the
-# recipes_critical_infrastructure_secure_context_pack and
-# recipes_evaluate_critical_infrastructure_context_decision MCP tools.
+# recipes_critical_infrastructure_secure_context_pack MCP tool.
 critical_infrastructure_pack_path = "./data/evidence/critical-infrastructure-secure-context-pack.json"
 
 # Generated agentic incident response pack exposed through the
-# recipes_agentic_incident_response_pack and
-# recipes_evaluate_agentic_incident_response_decision MCP tools.
+# recipes_agentic_incident_response_pack MCP tool.
 incident_response_pack_path = "./data/evidence/agentic-incident-response-pack.json"
 
 # Generated agentic action runtime pack exposed through the
-# recipes_agentic_action_runtime_pack and
-# recipes_evaluate_agentic_action_runtime_decision MCP tools.
+# recipes_agentic_action_runtime_pack MCP tool.
 action_runtime_pack_path = "./data/evidence/agentic-action-runtime-pack.json"
 
 # Generated Agent Trust Fabric pack exposed through the
-# recipes_agent_trust_fabric_pack and
-# recipes_evaluate_agent_trust_fabric_decision MCP tools.
+# recipes_agent_trust_fabric_pack MCP tool.
 agent_trust_fabric_pack_path = "./data/evidence/agent-trust-fabric-pack.json"
 
 # Generated browser-agent workspace boundary pack exposed through the
-# recipes_browser_agent_boundary_pack and
-# recipes_evaluate_browser_agent_boundary_decision MCP tools.
+# recipes_browser_agent_boundary_pack MCP tool.
 browser_agent_boundary_pack_path = "./data/evidence/browser-agent-boundary-pack.json"
 
 # Generated agentic measurement probe pack exposed through the
@@ -226,13 +238,11 @@ browser_agent_boundary_pack_path = "./data/evidence/browser-agent-boundary-pack.
 measurement_probe_pack_path = "./data/evidence/agentic-measurement-probe-pack.json"
 
 # Generated agentic telemetry contract exposed through the
-# recipes_agentic_telemetry_contract and
-# recipes_evaluate_agentic_telemetry_event MCP tools.
+# recipes_agentic_telemetry_contract MCP tool.
 telemetry_contract_path = "./data/evidence/agentic-telemetry-contract.json"
 
 # Generated agentic SOC detection pack exposed through the
-# recipes_agentic_soc_detection_pack and
-# recipes_evaluate_agentic_soc_detection_event MCP tools.
+# recipes_agentic_soc_detection_pack MCP tool.
 soc_detection_pack_path = "./data/evidence/agentic-soc-detection-pack.json"
 
 # Generated enterprise trust-center export exposed through the
@@ -256,8 +266,7 @@ buyer_diligence_brief_path = "./data/evidence/secure-context-buyer-diligence-bri
 customer_proof_pack_path = "./data/evidence/secure-context-customer-proof-pack.json"
 
 # Generated secure context evidence contract exposed through the
-# recipes_secure_context_evidence_contract and
-# recipes_evaluate_secure_context_evidence_release MCP tools.
+# recipes_secure_context_evidence_contract MCP tool.
 evidence_contract_path = "./data/evidence/secure-context-evidence-contract.json"
 
 # Generated hosted MCP readiness pack exposed through the

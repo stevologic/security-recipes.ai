@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Measurement Probes
 linkTitle: Measurement Probes
 weight: 6
 sidebar:
-  open: true
+  exclude: true
 description: >
   Generated measurement probes that verify agentic workflow traceability,
   context integrity, MCP authorization, memory, egress, red-team replay,
@@ -36,7 +36,6 @@ failure handling before they operate in high-stakes environments.
 - Profile:
   `data/assurance/agentic-measurement-probe-profile.json`
 - Generator:
-  `scripts/generate_agentic_measurement_probe_pack.py`
 - Evidence pack:
   `data/evidence/agentic-measurement-probe-pack.json`
 - MCP tool:
@@ -44,10 +43,6 @@ failure handling before they operate in high-stakes environments.
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_agentic_measurement_probe_pack.py
-python3 scripts/generate_agentic_measurement_probe_pack.py --check
-```
 
 ## Probe classes
 

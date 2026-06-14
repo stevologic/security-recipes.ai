@@ -1,0 +1,822 @@
+{
+  "suite": {
+    "name": "security-recipes.ai remediation suite",
+    "version": "2026.06",
+    "python_entrypoint": "scripts/security_recipes_remediation_suite.py",
+    "recipes_endpoint": "/api/recipes.json",
+    "mcp_tools": [
+      "recipes_search",
+      "recipes_get",
+      "recipes_match_finding"
+    ],
+    "llm_modes": [
+      "off",
+      "prompt",
+      "call"
+    ]
+  },
+  "domains": [
+    {
+      "id": "sensitive-data",
+      "title": "Sensitive Data Element Remediation",
+      "command": "sde",
+      "page": "/security-remediation/sensitive-data/",
+      "purpose": "Plan a scoped remediation for secrets, tokens, PII, PCI, PHI, or internal identifiers found in current source, logs, configs, schemas, fixtures, and IaC.",
+      "inputs": [
+        "secret scanning, DLP, or SDE finding payload",
+        "file path and line hint",
+        "data class and exposure state",
+        "approved secret store or redaction helper"
+      ],
+      "signals": [
+        "secret",
+        "token",
+        "credential",
+        "pii",
+        "pci",
+        "phi",
+        "gitleaks",
+        "trufflehog",
+        "dlp"
+      ],
+      "enterprise_tools": {
+        "source_control": ["GitHub secret scanning", "GitLab secret detection", "Bitbucket code insights", "Azure DevOps repos"],
+        "security": ["Gitleaks", "TruffleHog", "detect-secrets", "Wiz", "Snyk IaC", "Microsoft Purview DLP"],
+        "ticketing": ["Jira", "Linear", "ServiceNow Security Incident Response"],
+        "secrets": ["HashiCorp Vault", "AWS Secrets Manager", "GCP Secret Manager", "Azure Key Vault", "1Password SCIM"]
+      },
+      "allowed_actions": [
+        "replace a literal with an approved secret-store reference",
+        "redact or hash a field through an existing helper",
+        "drop an accidental field from a log or fixture",
+        "write a rotation and disclosure triage note for exposed material"
+      ],
+      "stop_conditions": [
+        "finding is already exposed in history, public logs, or released artifacts",
+        "fix requires database, public API, or privacy-design changes",
+        "no approved secret store, redaction helper, or scanner replay exists"
+      ],
+      "evidence": [
+        "scanner result before and after",
+        "files touched and data class",
+        "rotation ticket or pre-exposure rationale",
+        "test and lint command output"
+      ],
+      "outputs": [
+        "PR plan for pre-exposure cleanup",
+        "TRIAGE.md rotation packet for exposed data",
+        "machine-readable remediation packet JSON"
+      ],
+      "recipe_queries": ["sensitive data", "sde", "secret", "pii", "dlp", "token"],
+      "llm_assist": "Use the LLM to choose between redact, hash, drop, gate, or triage after deterministic scanner evidence is normalized. Never ask it to reason over raw secret values."
+    },
+    {
+      "id": "vulnerable-dependencies",
+      "title": "Vulnerable Dependency Remediation",
+      "command": "deps",
+      "page": "/security-remediation/vulnerable-dependencies/",
+      "purpose": "Convert SCA, CVE, OSV, Dependabot, or SBOM dependency findings into one lockfile-safe remediation run or a bounded triage note.",
+      "inputs": [
+        "CVE, GHSA, OSV, or vendor advisory",
+        "dependency manifest and lockfile evidence",
+        "package ecosystem and current resolved version",
+        "project test command"
+      ],
+      "signals": [
+        "cve",
+        "ghsa",
+        "osv",
+        "dependency",
+        "lockfile",
+        "dependabot",
+        "sca",
+        "sbom",
+        "npm",
+        "python",
+        "go"
+      ],
+      "enterprise_tools": {
+        "source_control": ["GitHub Dependabot", "GitLab Dependency Scanning", "Azure DevOps Advanced Security", "Bitbucket pipes"],
+        "security": ["Snyk Open Source", "Mend", "Black Duck", "OSV-Scanner", "JFrog Xray", "Sonatype Nexus IQ"],
+        "registries": ["npm", "PyPI", "Maven Central", "Go proxy", "RubyGems", "NuGet", "private artifact registries"],
+        "ticketing": ["Jira", "ServiceNow Vulnerability Response", "Linear"]
+      },
+      "allowed_actions": [
+        "select the lowest safe patched version",
+        "plan package-manager-native lockfile updates",
+        "separate direct and transitive remediation paths",
+        "route major-version or no-fix advisories to triage"
+      ],
+      "stop_conditions": [
+        "patched version crosses a direct dependency major boundary",
+        "affected package is not present in the lockfile",
+        "advisory is malicious-package rollback rather than forward bump",
+        "tests or package-manager resolution cannot be reproduced"
+      ],
+      "evidence": [
+        "advisory URL and affected range",
+        "current and target resolved versions",
+        "lockfile path",
+        "test command and result"
+      ],
+      "outputs": [
+        "dependency bump plan",
+        "triage note for major, transitive, yanked, or no-fix cases",
+        "agent handoff prompt"
+      ],
+      "recipe_queries": ["dependency", "cve", "dependabot", "sca", "lockfile", "osv", "ghsa"],
+      "llm_assist": "Use the LLM to explain the reviewer risk and draft PR body language after deterministic advisory and resolver checks choose the version."
+    },
+    {
+      "id": "sast-findings",
+      "title": "SAST Finding Remediation",
+      "command": "sast",
+      "page": "/security-remediation/sast-findings/",
+      "purpose": "Plan a narrow, testable fix for first-party code findings where source, sink, rule, and safe pattern are known.",
+      "inputs": [
+        "SARIF or scanner JSON result",
+        "rule id, source, sink, path, and line",
+        "language and framework",
+        "safe pattern or approved helper"
+      ],
+      "signals": [
+        "sast",
+        "sarif",
+        "codeql",
+        "semgrep",
+        "sonarqube",
+        "source",
+        "sink",
+        "injection",
+        "xss",
+        "ssrf"
+      ],
+      "enterprise_tools": {
+        "source_control": ["GitHub code scanning", "GitLab SAST", "Azure DevOps Advanced Security", "Bitbucket code insights"],
+        "security": ["CodeQL", "Semgrep", "SonarQube", "Snyk Code", "Veracode", "Checkmarx", "Fortify"],
+        "ticketing": ["Jira", "ServiceNow Application Vulnerability Response", "Azure Boards"],
+        "testing": ["unit tests", "integration tests", "framework security tests"]
+      },
+      "allowed_actions": [
+        "apply one approved sanitizer, validator, encoder, authorization, or parser-hardening pattern",
+        "add a regression test that fails before the fix",
+        "write a triage note when data flow is ambiguous"
+      ],
+      "stop_conditions": [
+        "finding spans multiple services or trust boundaries",
+        "fix requires architecture, auth model, schema, or product behavior changes",
+        "scanner result lacks source, sink, rule, or reproducible path"
+      ],
+      "evidence": [
+        "rule id and SARIF location",
+        "before and after scanner result",
+        "test proving the vulnerable path is closed",
+        "files touched"
+      ],
+      "outputs": [
+        "SAST remediation plan",
+        "test plan",
+        "triage note for ambiguous flow"
+      ],
+      "recipe_queries": ["sast", "codeql", "semgrep", "injection", "xss", "ssrf", "path traversal"],
+      "llm_assist": "Use the LLM to map the scanner rule to a safe local pattern and draft test cases. Do not let it invent a sanitizer when the repo lacks one."
+    },
+    {
+      "id": "base-images",
+      "title": "Base Image and Container Layer Remediation",
+      "command": "base-image",
+      "page": "/security-remediation/base-images/",
+      "purpose": "Plan updates for vulnerable base images, OS packages, Dockerfiles, and derived image rebuilds without broad deployment changes.",
+      "inputs": [
+        "container scanner finding",
+        "image reference, digest, Dockerfile, or SBOM",
+        "base image policy",
+        "rebuild and smoke-test command"
+      ],
+      "signals": [
+        "container",
+        "image",
+        "dockerfile",
+        "base image",
+        "trivy",
+        "grype",
+        "os package",
+        "digest",
+        "sbom"
+      ],
+      "enterprise_tools": {
+        "registries": ["Amazon ECR", "Google Artifact Registry", "Azure Container Registry", "Harbor", "Artifactory", "Quay"],
+        "security": ["Trivy", "Grype", "Snyk Container", "Prisma Cloud", "Aqua", "Wiz", "Microsoft Defender for Cloud"],
+        "orchestration": ["Kubernetes", "OpenShift", "ECS", "Nomad", "Helm", "Kustomize"],
+        "source_control": ["GitHub", "GitLab", "Azure DevOps", "Bitbucket"]
+      },
+      "allowed_actions": [
+        "select patched tag or digest from approved base-image policy",
+        "plan a Dockerfile or lockstep manifest update",
+        "require image rebuild, rescan, and startup smoke test",
+        "split curated-base and downstream-refresh work"
+      ],
+      "stop_conditions": [
+        "image is built outside the repo",
+        "base image is not on the approved publisher list",
+        "fix requires production rollout, migration, or runtime privilege changes",
+        "scanner cannot rescan the rebuilt image"
+      ],
+      "evidence": [
+        "old and new image digest",
+        "scanner result before and after",
+        "Dockerfile and deployment manifests touched",
+        "smoke-test result"
+      ],
+      "outputs": [
+        "base image bump plan",
+        "derived image refresh plan",
+        "operator triage note"
+      ],
+      "recipe_queries": ["base image", "container", "dockerfile", "trivy", "grype", "os package"],
+      "llm_assist": "Use the LLM to explain blast radius and draft operator notes after scanner and registry data have selected an approved tag or digest."
+    },
+    {
+      "id": "artifact-cache-purge",
+      "title": "Artifact Cache and Mirror Quarantine",
+      "command": "cache-purge",
+      "page": "/security-remediation/artifact-cache-purge/",
+      "purpose": "Plan quarantine, deny-listing, and cache purge activity for compromised packages, images, mirrors, build caches, and CI artifacts.",
+      "inputs": [
+        "compromised artifact identity",
+        "registry, mirror, or cache location",
+        "artifact digest or exact version",
+        "consumer inventory"
+      ],
+      "signals": [
+        "malicious package",
+        "compromised artifact",
+        "cache",
+        "mirror",
+        "registry",
+        "quarantine",
+        "yanked",
+        "digest"
+      ],
+      "enterprise_tools": {
+        "registries": ["Artifactory", "Nexus", "Harbor", "ECR", "ACR", "GAR", "npm Enterprise"],
+        "security": ["JFrog Xray", "Sonatype Nexus IQ", "Snyk", "Mend", "Sigstore", "Cosign"],
+        "ci": ["GitHub Actions cache", "GitLab CI cache", "Azure Pipelines cache", "Jenkins", "Buildkite"],
+        "ticketing": ["ServiceNow", "Jira", "PagerDuty"]
+      },
+      "allowed_actions": [
+        "identify exact artifact coordinates",
+        "plan deny-list, mirror removal, and cache invalidation",
+        "produce consumer impact list",
+        "separate purge from dependency or image remediation"
+      ],
+      "stop_conditions": [
+        "artifact identity is range-based or ambiguous",
+        "registry operation would delete audit evidence",
+        "consumer inventory is missing",
+        "purge requires production outage or customer-impacting action"
+      ],
+      "evidence": [
+        "artifact name, version, digest, and source advisory",
+        "affected registries and caches",
+        "consumer inventory",
+        "post-purge query result"
+      ],
+      "outputs": [
+        "quarantine plan",
+        "cache purge runbook",
+        "consumer notification packet"
+      ],
+      "recipe_queries": ["artifact cache", "malicious package", "mirror", "quarantine", "registry"],
+      "llm_assist": "Use the LLM to draft stakeholder communication and consumer impact summaries. Never use it as the source of truth for what to delete."
+    },
+    {
+      "id": "recipe-recommender",
+      "title": "Recipe Recommender",
+      "command": "recommend",
+      "page": "/security-remediation/recipe-recommender/",
+      "purpose": "Classify one finding, pick one safest recipe, and write the handoff contract before a remediation agent starts.",
+      "inputs": [
+        "scanner alert, ticket, advisory, or SARIF snippet",
+        "affected asset metadata",
+        "repository and owner context",
+        "available recipe index"
+      ],
+      "signals": [
+        "route",
+        "recommend",
+        "classify",
+        "finding",
+        "recipe",
+        "handoff",
+        "triage"
+      ],
+      "enterprise_tools": {
+        "source_control": ["GitHub", "GitLab", "Azure DevOps", "Bitbucket"],
+        "security": ["CodeQL", "Semgrep", "Snyk", "Wiz", "OSV", "Trivy", "SonarQube"],
+        "ticketing": ["Jira", "Linear", "ServiceNow"],
+        "context": ["security-recipes.ai MCP", "internal runbooks", "ownership registry", "CMDB"]
+      },
+      "allowed_actions": [
+        "normalize a finding into routing fields",
+        "score candidate recipes",
+        "select one recipe or triage",
+        "write a downstream agent handoff"
+      ],
+      "stop_conditions": [
+        "top recipe score is weak",
+        "finding spans multiple repos, owners, or services",
+        "required evidence would change the route but is missing"
+      ],
+      "evidence": [
+        "candidate scores",
+        "selected recipe URL",
+        "routing rationale",
+        "missing evidence if triaged"
+      ],
+      "outputs": [
+        "recipe handoff packet",
+        "triage note",
+        "dispatcher-ready JSON"
+      ],
+      "recipe_queries": ["recipe recommender", "route finding", "handoff", "triage"],
+      "llm_assist": "Use the LLM to summarize messy finding text. Keep scoring deterministic and require a single selected route."
+    },
+    {
+      "id": "gatekeeping",
+      "title": "Gatekeeping Patterns",
+      "command": "gate",
+      "page": "/security-remediation/gatekeeping/",
+      "purpose": "Evaluate whether a remediation run should be admitted, held mid-run, allowed to open a PR, or blocked before merge.",
+      "inputs": [
+        "workflow id",
+        "finding and route",
+        "agent identity and tool allowlist",
+        "policy and reviewer requirements"
+      ],
+      "signals": [
+        "gate",
+        "approval",
+        "admission",
+        "pre-merge",
+        "policy",
+        "hold",
+        "review"
+      ],
+      "enterprise_tools": {
+        "policy": ["OPA", "Conftest", "Open Policy Agent", "Cedar", "custom admission services"],
+        "source_control": ["GitHub branch protection", "GitLab approval rules", "Azure DevOps policies", "Bitbucket merge checks"],
+        "security": ["SOAR", "SIEM", "code scanning", "artifact scanning"],
+        "ticketing": ["Jira", "ServiceNow", "Linear"]
+      },
+      "allowed_actions": [
+        "evaluate admission, mid-run, pre-merge, and post-merge gates",
+        "produce allow, hold, deny, or triage decision",
+        "attach reviewer and evidence requirements"
+      ],
+      "stop_conditions": [
+        "workflow id is unknown",
+        "agent identity or authorization is missing",
+        "requested action exceeds the recipe scope",
+        "required reviewer gate is not configured"
+      ],
+      "evidence": [
+        "policy version",
+        "decision and reason",
+        "required reviewers",
+        "tool and file scopes"
+      ],
+      "outputs": [
+        "gate decision JSON",
+        "reviewer checklist",
+        "policy exception packet"
+      ],
+      "recipe_queries": ["gatekeeping", "approval", "policy", "pre-merge", "review gate"],
+      "llm_assist": "Use the LLM to explain the decision in human language after deterministic policy evaluation returns allow, hold, deny, or triage."
+    },
+    {
+      "id": "runtime-controls",
+      "title": "Runtime Controls",
+      "command": "runtime",
+      "page": "/security-remediation/runtime-controls/",
+      "purpose": "Plan scoped runtime controls for agent sessions, tool calls, telemetry, disablement, and active remediation boundaries.",
+      "inputs": [
+        "agent session metadata",
+        "tool call inventory",
+        "network and file scopes",
+        "telemetry stream or run receipt"
+      ],
+      "signals": [
+        "runtime",
+        "session",
+        "tool call",
+        "proxy",
+        "telemetry",
+        "disable",
+        "egress",
+        "sandbox"
+      ],
+      "enterprise_tools": {
+        "runtime": ["MCP gateways", "egress proxies", "workload identity", "Kubernetes admission", "service mesh"],
+        "security": ["SIEM", "SOAR", "EDR", "DLP", "cloud audit logs"],
+        "observability": ["OpenTelemetry", "Datadog", "Splunk", "Elastic", "Grafana"],
+        "identity": ["Okta", "Entra ID", "AWS IAM", "GCP IAM", "Vault"]
+      },
+      "allowed_actions": [
+        "define session scope and tool allowlist",
+        "plan telemetry and kill-switch checks",
+        "recommend hold conditions for abnormal tool use",
+        "produce runtime evidence requirements"
+      ],
+      "stop_conditions": [
+        "write-capable tool lacks explicit scope",
+        "telemetry cannot identify agent, workflow, and run",
+        "egress or identity boundary is unowned",
+        "runtime action would impact production without approval"
+      ],
+      "evidence": [
+        "agent id and workflow id",
+        "tool call and egress policy",
+        "telemetry fields",
+        "disablement decision"
+      ],
+      "outputs": [
+        "runtime control packet",
+        "session allowlist",
+        "telemetry and kill-switch checklist"
+      ],
+      "recipe_queries": ["runtime controls", "tool call", "telemetry", "egress", "sandbox"],
+      "llm_assist": "Use the LLM to summarize telemetry anomalies, not to approve tool calls. Policy remains deterministic."
+    },
+    {
+      "id": "classic-vulnerable-defaults",
+      "title": "Classic Vulnerable Defaults",
+      "command": "defaults",
+      "page": "/security-remediation/classic-vulnerable-defaults/",
+      "purpose": "Plan repeatable fixes for unsafe parser, deserialization, crypto, JWT, XML, HTTP client, shell, or framework defaults.",
+      "inputs": [
+        "vulnerable default pattern",
+        "language and framework",
+        "affected file and callsite",
+        "approved safer replacement"
+      ],
+      "signals": [
+        "yaml",
+        "pickle",
+        "xxe",
+        "jwt",
+        "deserialization",
+        "eval",
+        "shell",
+        "tls",
+        "unsafe default"
+      ],
+      "enterprise_tools": {
+        "source_control": ["GitHub", "GitLab", "Azure DevOps", "Bitbucket"],
+        "security": ["CodeQL", "Semgrep", "SonarQube", "Snyk Code", "custom pattern scanners"],
+        "testing": ["unit tests", "property tests", "negative security fixtures"],
+        "knowledge": ["approved secure coding standards", "internal platform helpers", "security-recipes.ai recipes"]
+      },
+      "allowed_actions": [
+        "map pattern to an approved safe default",
+        "add regression tests for unsafe input",
+        "preserve behavior for legitimate inputs",
+        "stop when compatibility risk is broad"
+      ],
+      "stop_conditions": [
+        "no approved safe replacement exists",
+        "fix changes public behavior without owner approval",
+        "callsite is generated, vendored, or shared across unrelated flows"
+      ],
+      "evidence": [
+        "pattern match",
+        "safe replacement selected",
+        "negative and compatibility tests",
+        "scanner rerun"
+      ],
+      "outputs": [
+        "safe-default remediation plan",
+        "test fixture list",
+        "compatibility triage note"
+      ],
+      "recipe_queries": ["classic vulnerable defaults", "unsafe yaml", "xxe", "jwt", "deserialization", "eval"],
+      "llm_assist": "Use the LLM to identify local helper conventions and draft compatibility tests. Do not let it invent a new cryptographic policy."
+    },
+    {
+      "id": "crypto-payments",
+      "title": "Crypto Payments Security",
+      "command": "crypto-payments",
+      "page": "/security-remediation/crypto-payments/",
+      "purpose": "Plan remediation for wallet, address integrity, settlement, custody, payment finality, nonce, and irreversible transaction workflows.",
+      "inputs": [
+        "payment finding or incident note",
+        "asset, chain, wallet, or processor context",
+        "transaction and authorization boundary",
+        "testnet or sandbox validation path"
+      ],
+      "signals": [
+        "wallet",
+        "address",
+        "payment",
+        "settlement",
+        "custody",
+        "nonce",
+        "chain",
+        "crypto"
+      ],
+      "enterprise_tools": {
+        "payment": ["Coinbase Commerce", "Fireblocks", "BitGo", "Stripe crypto rails", "internal treasury tools"],
+        "security": ["Chainalysis", "TRM Labs", "Elliptic", "SIEM", "transaction monitoring"],
+        "source_control": ["GitHub", "GitLab", "Azure DevOps"],
+        "ticketing": ["Jira", "ServiceNow", "incident response platforms"]
+      },
+      "allowed_actions": [
+        "plan validation for address, chain, amount, and replay controls",
+        "separate code fix from treasury or custody operations",
+        "require sandbox or testnet proof",
+        "route key or funds movement to human incident response"
+      ],
+      "stop_conditions": [
+        "fix requires moving funds, rotating custody keys, or touching production wallets",
+        "chain, asset, or processor ownership is unclear",
+        "no sandbox or testnet verification path exists"
+      ],
+      "evidence": [
+        "affected flow and asset",
+        "authorization and signing boundary",
+        "testnet or sandbox proof",
+        "operator actions excluded from agent scope"
+      ],
+      "outputs": [
+        "payment remediation plan",
+        "human custody action list",
+        "reviewer evidence packet"
+      ],
+      "recipe_queries": ["crypto payments", "wallet", "settlement", "address", "custody"],
+      "llm_assist": "Use the LLM to draft reviewer notes and threat-model questions. Never let it propose or execute funds movement."
+    },
+    {
+      "id": "defi-blockchain",
+      "title": "DeFi and Blockchain Protocol Security",
+      "command": "defi",
+      "page": "/security-remediation/defi-blockchain/",
+      "purpose": "Plan remediation for smart contracts, protocol upgrades, bridges, oracles, governance, multisig, and blockchain-specific controls.",
+      "inputs": [
+        "contract finding or audit note",
+        "chain, contract, bridge, oracle, or governance context",
+        "test suite and simulation path",
+        "upgrade and timelock policy"
+      ],
+      "signals": [
+        "smart contract",
+        "defi",
+        "bridge",
+        "oracle",
+        "governance",
+        "multisig",
+        "solidity",
+        "foundry"
+      ],
+      "enterprise_tools": {
+        "blockchain": ["Foundry", "Hardhat", "Tenderly", "OpenZeppelin Defender", "Chainlink", "The Graph"],
+        "security": ["Slither", "Mythril", "Echidna", "Scribble", "Certora", "Halmos"],
+        "governance": ["Safe", "Tally", "Snapshot", "timelock controllers"],
+        "ticketing": ["Jira", "Linear", "incident response platforms"]
+      },
+      "allowed_actions": [
+        "plan code-level contract remediation and invariant tests",
+        "require simulation before upgrade",
+        "separate governance proposal from code patch",
+        "document timelock and signer requirements"
+      ],
+      "stop_conditions": [
+        "remediation requires emergency pause, upgrade execution, or signer action",
+        "economic assumptions are disputed",
+        "contract ownership or upgradeability is unclear",
+        "simulation path is missing"
+      ],
+      "evidence": [
+        "contract address or source path",
+        "audit rule and exploit class",
+        "unit, fuzz, invariant, or fork simulation result",
+        "governance and timelock notes"
+      ],
+      "outputs": [
+        "contract remediation plan",
+        "simulation checklist",
+        "governance handoff packet"
+      ],
+      "recipe_queries": ["defi", "blockchain", "smart contract", "oracle", "bridge", "governance"],
+      "llm_assist": "Use the LLM to summarize protocol context and review risks after static analysis and simulations define the safe patch."
+    },
+    {
+      "id": "metrics",
+      "title": "Program Metrics and KPIs",
+      "command": "metrics",
+      "page": "/security-remediation/metrics/",
+      "purpose": "Build a measurement packet for agent-assisted remediation quality, speed, reviewer load, false positives, and automation ROI.",
+      "inputs": [
+        "remediation run records",
+        "PR and review metadata",
+        "scanner backlog data",
+        "incident, exception, or regression records"
+      ],
+      "signals": [
+        "metrics",
+        "kpi",
+        "mttr",
+        "reviewer burden",
+        "false positive",
+        "automation",
+        "quality"
+      ],
+      "enterprise_tools": {
+        "source_control": ["GitHub GraphQL", "GitLab API", "Azure DevOps Analytics", "Bitbucket API"],
+        "security": ["Snyk", "Wiz", "SonarQube", "CodeQL", "Semgrep", "DefectDojo"],
+        "analytics": ["BigQuery", "Snowflake", "Databricks", "Looker", "Power BI", "Tableau"],
+        "ticketing": ["Jira", "ServiceNow", "Linear"]
+      },
+      "allowed_actions": [
+        "normalize run, PR, scanner, and review facts",
+        "compute queue, quality, and reviewer metrics",
+        "separate automation wins from hidden human work",
+        "produce dashboard-ready JSON"
+      ],
+      "stop_conditions": [
+        "run id cannot be joined to PR or finding id",
+        "metric would encourage unsafe auto-merge behavior",
+        "data source omits failed or triaged runs"
+      ],
+      "evidence": [
+        "metric definitions",
+        "source systems and joins",
+        "sample records",
+        "known blind spots"
+      ],
+      "outputs": [
+        "metrics packet",
+        "dashboard field map",
+        "program review summary"
+      ],
+      "recipe_queries": ["metrics", "kpi", "mttr", "reviewer", "automation quality"],
+      "llm_assist": "Use the LLM to narrate metric changes for leadership. Do not use it to compute or alter source metrics."
+    },
+    {
+      "id": "reviewer-playbook",
+      "title": "Reviewer Playbook",
+      "command": "review",
+      "page": "/security-remediation/reviewer-playbook/",
+      "purpose": "Prepare a reviewer checklist and evidence packet for a security PR or triage note produced by an agent.",
+      "inputs": [
+        "PR diff or triage note",
+        "selected recipe and finding id",
+        "tests and scanner reruns",
+        "run receipt and tool history"
+      ],
+      "signals": [
+        "review",
+        "reviewer",
+        "pull request",
+        "pr",
+        "evidence",
+        "triage",
+        "merge"
+      ],
+      "enterprise_tools": {
+        "source_control": ["GitHub pull requests", "GitLab merge requests", "Azure DevOps pull requests", "Bitbucket pull requests"],
+        "security": ["code scanning", "secret scanning", "dependency scanning", "container scanning"],
+        "quality": ["CI", "coverage", "test reports", "artifact attestations"],
+        "ticketing": ["Jira", "ServiceNow", "Linear"]
+      },
+      "allowed_actions": [
+        "check recipe scope against diff",
+        "summarize evidence and missing proof",
+        "list reviewer questions",
+        "recommend approve, request changes, or triage"
+      ],
+      "stop_conditions": [
+        "diff touches files outside recipe scope",
+        "tests, scanner rerun, or run receipt is missing",
+        "agent made hidden infrastructure, credential, or production changes"
+      ],
+      "evidence": [
+        "recipe used",
+        "files touched",
+        "tests and scans run",
+        "approval and ownership requirements"
+      ],
+      "outputs": [
+        "review checklist",
+        "missing-evidence note",
+        "merge-readiness packet"
+      ],
+      "recipe_queries": ["reviewer playbook", "review", "pull request", "evidence"],
+      "llm_assist": "Use the LLM to summarize long diffs and draft reviewer questions. Keep final approval human-owned."
+    },
+    {
+      "id": "maturity",
+      "title": "Rollout and Maturity Model",
+      "command": "rollout",
+      "page": "/security-remediation/maturity/",
+      "purpose": "Plan crawl, walk, run adoption for agent-assisted remediation with promotion criteria, controls, and stop signals.",
+      "inputs": [
+        "current remediation workflows",
+        "agent capabilities and tool access",
+        "risk appetite and approval model",
+        "pilot metrics"
+      ],
+      "signals": [
+        "rollout",
+        "maturity",
+        "crawl",
+        "walk",
+        "run",
+        "adoption",
+        "pilot"
+      ],
+      "enterprise_tools": {
+        "program": ["roadmap tools", "service catalog", "ownership registry", "security champions"],
+        "source_control": ["GitHub", "GitLab", "Azure DevOps", "Bitbucket"],
+        "security": ["scanner portfolio", "SOAR", "SIEM", "GRC"],
+        "analytics": ["Looker", "Power BI", "Tableau", "Datadog"]
+      },
+      "allowed_actions": [
+        "score readiness by domain",
+        "recommend next maturity stage",
+        "define promotion and rollback criteria",
+        "attach control gaps and owner actions"
+      ],
+      "stop_conditions": [
+        "no reviewer capacity for the proposed stage",
+        "tool access is broader than workflow scope",
+        "metrics do not include failed and triaged runs"
+      ],
+      "evidence": [
+        "current stage",
+        "eligible domains",
+        "control gaps",
+        "promotion metrics"
+      ],
+      "outputs": [
+        "rollout plan",
+        "readiness scorecard",
+        "pilot control checklist"
+      ],
+      "recipe_queries": ["maturity", "rollout", "pilot", "readiness"],
+      "llm_assist": "Use the LLM to translate technical readiness gaps into program milestones. Do not let it waive controls."
+    },
+    {
+      "id": "compliance",
+      "title": "Compliance and Audit",
+      "command": "audit",
+      "page": "/security-remediation/compliance/",
+      "purpose": "Map remediation runs to audit-ready evidence for SOC 2, ISO 27001, PCI DSS, NIST SSDF, internal controls, and customer diligence.",
+      "inputs": [
+        "run receipt",
+        "recipe and finding id",
+        "review and approval evidence",
+        "control framework or customer request"
+      ],
+      "signals": [
+        "audit",
+        "compliance",
+        "soc 2",
+        "iso 27001",
+        "pci",
+        "nist",
+        "ssdf",
+        "evidence"
+      ],
+      "enterprise_tools": {
+        "grc": ["Drata", "Vanta", "Secureframe", "ServiceNow GRC", "Archer", "AuditBoard"],
+        "source_control": ["GitHub", "GitLab", "Azure DevOps", "Bitbucket"],
+        "security": ["SIEM", "SOAR", "scanner exports", "artifact attestations"],
+        "documents": ["Google Drive", "SharePoint", "Confluence", "customer trust centers"]
+      },
+      "allowed_actions": [
+        "map a run to controls and evidence",
+        "produce auditor-facing narrative",
+        "separate proof from model transcript",
+        "identify missing retention or approval artifacts"
+      ],
+      "stop_conditions": [
+        "run receipt is missing identity, tool, or approval data",
+        "control mapping would expose sensitive source or secrets",
+        "evidence is unverifiable or retained only in ephemeral chat"
+      ],
+      "evidence": [
+        "control mapping",
+        "run identity and tool history",
+        "reviewer approval",
+        "retention location"
+      ],
+      "outputs": [
+        "audit evidence packet",
+        "GRC field map",
+        "customer-ready summary"
+      ],
+      "recipe_queries": ["compliance", "audit", "soc 2", "iso 27001", "pci", "nist ssdf"],
+      "llm_assist": "Use the LLM to draft control narratives from retained evidence. Do not send source code, secrets, or private findings outside the approved boundary."
+    }
+  ]
+}

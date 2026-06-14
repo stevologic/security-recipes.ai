@@ -1,4 +1,4 @@
----
+﻿---
 title: Model Provider Routing Gate
 linkTitle: Model Provider Routing
 weight: 16
@@ -8,6 +8,8 @@ description: >
   provider and model route may receive secure context for an agentic
   workflow, with proof for data retention, residency, guardrails,
   telemetry, receipts, and approval before the model call starts.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -49,48 +51,17 @@ model registry while keeping the open evidence shape stable.
 - Source profile:
   `data/assurance/model-provider-routing-profile.json`
 - Generator:
-  `scripts/generate_model_provider_routing_pack.py`
 - Runtime evaluator:
-  `scripts/evaluate_model_provider_routing_decision.py`
 - Evidence pack:
   `data/evidence/model-provider-routing-pack.json`
 - MCP tools:
   `recipes_model_provider_routing_pack` and
-  `recipes_evaluate_model_provider_routing_decision`
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_model_provider_routing_pack.py
-python3 scripts/generate_model_provider_routing_pack.py --check
-```
 
 Evaluate a tenant-sensitive route before a model call starts:
 
-```bash
-python3 scripts/evaluate_model_provider_routing_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --provider-id frontier-enterprise-provider \
-  --model-id frontier-code-and-security-reasoning \
-  --route-class tenant_sensitive_remediation \
-  --data-class customer_source_code \
-  --data-class customer_finding_metadata \
-  --autonomy-level bounded_agent \
-  --tenant-id tenant-123 \
-  --tenant-region us \
-  --provider-region us \
-  --enterprise-contract \
-  --dpa-in-place \
-  --zero-data-retention \
-  --training-opt-out \
-  --mcp-gateway-enforced \
-  --tool-guardrails-enforced \
-  --output-guardrails-enforced \
-  --telemetry-redacted \
-  --run-receipt-attached \
-  --egress-decision allow_tenant_bound_egress \
-  --human-approval-id approval-123
-```
 
 ## Routing contract
 
@@ -172,30 +143,6 @@ recipes_model_provider_routing_pack(
 
 Evaluate a route:
 
-```text
-recipes_evaluate_model_provider_routing_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  provider_id="frontier-enterprise-provider",
-  model_id="frontier-code-and-security-reasoning",
-  route_class="tenant_sensitive_remediation",
-  data_classes=["customer_source_code", "customer_finding_metadata"],
-  autonomy_level="bounded_agent",
-  tenant_id="tenant-123",
-  tenant_region="us",
-  provider_region="us",
-  zero_data_retention=true,
-  training_opt_out=true,
-  dpa_in_place=true,
-  enterprise_contract=true,
-  mcp_gateway_enforced=true,
-  tool_guardrails_enforced=true,
-  output_guardrails_enforced=true,
-  telemetry_redacted=true,
-  run_receipt_attached=true,
-  egress_decision="allow_tenant_bound_egress",
-  human_approval_record={"approval_id": "approval-123"}
-)
-```
 
 ## Industry alignment
 

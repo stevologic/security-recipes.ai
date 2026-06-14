@@ -24,5 +24,11 @@ intended for bounded, auditable workflows with human approval.
 - [Smart-contract upgrade diff risk review]({{< relref "/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review" >}})
 - [DeFi oracle manipulation guardrails]({{< relref "/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails" >}})
 - [Bridge & multisig emergency response]({{< relref "/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
+- [DeFi reentrancy and callback hardening]({{< relref "/prompt-library/general/crypto-defi/defi-reentrancy-and-callback-hardening" >}})
+- [DeFi admin-key and role blast-radius review]({{< relref "/prompt-library/general/crypto-defi/defi-admin-key-and-role-blast-radius-review" >}})
+- [ERC-4626 vault inflation and rounding guardrails]({{< relref "/prompt-library/general/crypto-defi/erc4626-vault-inflation-and-rounding-guardrails" >}})
+- [Permit and meta-transaction replay guardrails]({{< relref "/prompt-library/general/crypto-defi/permit-and-meta-transaction-replay-guardrails" >}})
+- [Cross-chain message authenticity guardrails]({{< relref "/prompt-library/general/crypto-defi/cross-chain-message-authenticity-guardrails" >}})
+- [DEX slippage and MEV guardrails]({{< relref "/prompt-library/general/crypto-defi/dex-slippage-and-mev-guardrails" >}})
 
 {{< prompt-toc >}}

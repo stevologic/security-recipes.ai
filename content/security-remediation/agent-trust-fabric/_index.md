@@ -1,9 +1,9 @@
----
+﻿---
 title: Agent Trust Fabric
 linkTitle: Agent Trust Fabric
 weight: 16
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated zero-trust decision fabric for agent identity, context,
   scope, behavior, egress, telemetry, and containment evidence.
@@ -48,76 +48,18 @@ verdicts for customer-private agent runs.
 - `data/assurance/agent-trust-fabric-profile.json` - source contract for
   trust dimensions, tiers, runtime fields, source references, and
   trusted-source path.
-- `scripts/generate_agent_trust_fabric_pack.py` - deterministic generator
-  and `--check` validator.
-- `scripts/evaluate_agent_trust_fabric_decision.py` - deterministic
-  allow, hold, deny, or kill evaluator.
 - `data/evidence/agent-trust-fabric-pack.json` - generated MCP-readable
   trust fabric evidence.
 - `recipes_agent_trust_fabric_pack` - MCP lookup by dimension, workflow,
   trust tier, or status.
-- `recipes_evaluate_agent_trust_fabric_decision` - MCP runtime evaluator
-  for one proposed agent run.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_agent_trust_fabric_pack.py
-python3 scripts/generate_agent_trust_fabric_pack.py --check
-```
 
 Evaluate a trusted scoped run:
 
-```bash
-python3 scripts/evaluate_agent_trust_fabric_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --run-id run-trust \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
-  --tenant-id tenant-demo \
-  --correlation-id corr-trust \
-  --trust-event-id trust-evt-1 \
-  --requested-trust-tier operator \
-  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
-  --context-package-hash sha256:context \
-  --policy-pack-hash sha256:policy \
-  --authorization-decision allow_authorized_mcp_request \
-  --egress-decision allow_internal_context \
-  --action-runtime-decision allow_bounded_action \
-  --telemetry-decision telemetry_ready \
-  --soc-decision no_alert \
-  --telemetry-event-id trace-1 \
-  --receipt-id receipt-1 \
-  --source-freshness-decision current \
-  --approval-id approval-1 \
-  --approval-status approved \
-  --expect-decision allow_trusted_agent_context
-```
 
 Evaluate a trust break:
 
-```bash
-python3 scripts/evaluate_agent_trust_fabric_decision.py \
-  --workflow-id sensitive-data-remediation \
-  --run-id run-kill \
-  --agent-id sr-agent::sensitive-data-remediation::codex \
-  --identity-id sr-agent::sensitive-data-remediation::codex \
-  --tenant-id tenant-demo \
-  --correlation-id corr-kill \
-  --trust-event-id trust-evt-2 \
-  --requested-trust-tier operator \
-  --intent-summary "Investigate a possible token in logs" \
-  --context-package-hash sha256:context \
-  --policy-pack-hash sha256:policy \
-  --authorization-decision allow_authorized_mcp_request \
-  --egress-decision hold_for_redaction_or_dpa \
-  --telemetry-decision telemetry_ready \
-  --telemetry-event-id trace-2 \
-  --receipt-id receipt-2 \
-  --source-freshness-decision current \
-  --token-passthrough \
-  --expect-decision kill_session_on_agent_trust_break
-```
 
 ## What is inside
 

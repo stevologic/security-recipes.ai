@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Control Plane Blueprint
 linkTitle: Control Plane Blueprint
 weight: 17
@@ -8,13 +8,15 @@ description: >
   SecurityRecipes as the secure context and control plane for agentic AI,
   MCP authorization, connector trust, identity, egress, receipts, and
   measurement.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
 **What this is.** The blueprint is the executive and architecture layer
 above the generated packs. It explains how SecurityRecipes becomes a
 credible secure context layer for agentic AI, not just a documentation
-site or prompt library.
+site or recipe catalog.
 {{< /callout >}}
 
 SecurityRecipes already has the hard parts of an enterprise agentic
@@ -41,7 +43,6 @@ GRC reviewer, or reviewer can evaluate quickly:
 - Source model:
   `data/assurance/agentic-control-plane-blueprint.json`
 - Generator:
-  `scripts/generate_agentic_control_plane_blueprint.py`
 - Evidence pack:
   `data/evidence/agentic-control-plane-blueprint.json`
 - MCP tool:
@@ -49,10 +50,6 @@ GRC reviewer, or reviewer can evaluate quickly:
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_agentic_control_plane_blueprint.py
-python3 scripts/generate_agentic_control_plane_blueprint.py --check
-```
 
 ## Why this matters
 
@@ -97,12 +94,9 @@ reviewer asks for evidence:
 | --- | --- |
 | Which context sources are allowed into an agent run, and how is source drift detected? | `recipes_secure_context_trust_pack`, `recipes_context_poisoning_guard_pack` |
 | How does the product prevent token passthrough, wrong-audience tokens, scope creep, and unreviewed MCP tools? | `recipes_mcp_authorization_conformance_pack`, `recipes_mcp_connector_trust_pack` |
-| How does the product evaluate A2A Agent Cards and prevent hidden prompts, internal memory, raw traces, credentials, or high-impact authority from crossing an agent-to-agent boundary? | `recipes_a2a_agent_card_trust_profile`, `recipes_evaluate_a2a_agent_card_trust_decision`, `recipes_agent_handoff_boundary_pack`, `recipes_evaluate_agent_handoff_decision` |
-| Who owns an agent identity, what can it do, which permission lease proves current authority, and how is one unsafe run revoked? | `recipes_agent_identity_ledger`, `recipes_agentic_entitlement_review_pack`, `recipes_evaluate_agentic_entitlement_decision`, `recipes_agentic_run_receipt_pack` |
 | Can the team reconstruct the exact policy, context, tool, approval, verifier, and egress path after an incident? | `recipes_agentic_run_receipt_pack`, `recipes_agentic_system_bom` |
 | Which workflows are ready to scale, which stay in a guarded pilot, and which are blocked? | `recipes_agentic_readiness_scorecard`, `recipes_agentic_measurement_probe_pack` |
 | Which current agentic AI, MCP, NIST, and prompt-injection references map to generated evidence? | `recipes_agentic_standards_crosswalk` |
-| Which high-impact agent actions are held, denied, or killed before severe consequences? | `recipes_agentic_catastrophic_risk_annex`, `recipes_evaluate_agentic_catastrophic_risk_decision` |
 | What should a reviewer inspect first during procurement, platform review, or trust review diligence? | `recipes_enterprise_trust_center_export`, `recipes_agentic_control_plane_blueprint` |
 
 ## Product strategy

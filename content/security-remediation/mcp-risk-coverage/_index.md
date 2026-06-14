@@ -1,4 +1,4 @@
----
+﻿---
 title: MCP and Agentic Skills Risk Coverage
 linkTitle: MCP Risk Coverage
 weight: 18
@@ -7,6 +7,8 @@ description: >
   Generated OWASP MCP Top 10 and OWASP Agentic Skills Top 10 coverage
   map for SecurityRecipes controls, evidence packs, MCP tools, and
   hosted readiness gates.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -37,7 +39,6 @@ site.
 - Source model:
   `data/assurance/mcp-risk-coverage-profile.json`
 - Generator:
-  `scripts/generate_mcp_risk_coverage_pack.py`
 - Evidence pack:
   `data/evidence/mcp-risk-coverage-pack.json`
 - MCP tool:
@@ -45,10 +46,6 @@ site.
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_mcp_risk_coverage_pack.py
-python3 scripts/generate_mcp_risk_coverage_pack.py --check
-```
 
 ## Why this matters
 

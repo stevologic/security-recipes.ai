@@ -1,129 +1,146 @@
 # security-recipes.ai
 
-[security-recipes.ai](https://security-recipes.ai/) is a Hugo documentation site, prompt library, generated evidence corpus, and read-only MCP server for agentic security remediation.
+[security-recipes.ai](https://security-recipes.ai/) is a Hugo site for
+security recipes that AI agents can consume during remediation work.
 
-The project's thesis is simple: AI coding agents can help close security findings, but only when they are given trusted context, narrow scope, deterministic gates, reviewable evidence, and clear stop conditions. SecurityRecipes turns that operating model into open recipes, machine-readable workflow policy, runtime decision evaluators, and MCP-accessible evidence packs.
+The project is intentionally narrow:
 
-## What this project is
+- practical security remediation recipes,
+- prompt and rules-file examples,
+- agent setup guides,
+- MCP integration patterns,
+- a browser AI assistant,
+- an optional read-only MCP server for recipe search and approved upstream MCP
+  context.
 
-SecurityRecipes is the trusted secure context layer for agentic AI and MCP-based security work.
+It is not a scanner, ticketing system, SOAR platform, deployment tool, or custom
+security toolkit. Existing security tools should produce the findings; this
+site helps agents use the right remediation context and stop at the right time.
 
-It helps security, platform, and engineering teams answer:
+## What this project is for
 
-- Which AI coding agents can we use for remediation work?
-- What rules, prompts, skills, and guardrails should those agents follow?
-- Which workflows are safe enough to run, and under what scope?
-- Which MCP context can an agent read before acting?
-- What evidence should be produced for reviewers, auditors, buyers, and incident responders?
-- When should an agent run be allowed, held, denied, or killed?
+AI coding agents can help close security findings when their work is bounded:
+one finding, one recipe, one reviewed output.
 
-The site is intentionally tool-agnostic, but it includes concrete recipes for the major agent surfaces covered by the content today: GitHub Copilot, Devin, Cursor, Codex, and Claude.
+security-recipes.ai helps teams answer:
 
-## What is implemented
+- Which recipe matches this finding?
+- Which prompt should the agent use?
+- Where do I put the instructions for Copilot, Claude, Cursor, Codex, or Devin?
+- Which MCP servers should the agent read for advisory, scanner, repository, or
+  runbook context?
+- What should the PR or triage note include before a reviewer trusts it?
 
-This repository currently ships:
+## What ships
 
-- A Hugo + Hextra site published as `security-recipes.ai`.
-- A custom landing page and documentation experience.
-- 200+ content pages covering fundamentals, quick starts, agent setup, prompt reuse, MCP server access, control-plane concepts, secure-context patterns, and remediation workflows.
-- A prompt library for general security tasks, agent-specific workflows, CVE remediation, crypto/DeFi checks, classic vulnerable defaults, SAST triage, sensitive-data cleanup, dependency remediation, and OWASP-style audit/remediation prompts.
-- Agent recipes for GitHub Copilot, Devin, Cursor, Codex, and Claude.
-- A workflow control plane under `data/control-plane/` with schema validation and generated policy output.
-- 50+ generated evidence packs under `data/evidence/`.
-- 90+ Python generator, validator, and evaluator scripts under `scripts/`.
-- A read-only FastMCP server in `mcp_server.py` exposing search, recipe retrieval, evidence packs, and deterministic runtime evaluators.
-- A browser chatbot UI that accepts a user-supplied provider key and proxies provider calls through the same-origin site for that request.
-- A browser-side agent planner documented in `README.browser-agents.md`.
-- Docker images for the static site and MCP server.
-- A `docker-compose.yml` stack that serves the site, provider relay paths, and `/mcp` behind one origin.
-- Hugo output for static hosting, containerized DigitalOcean deployment, and forkable repo links.
+- Hugo + Hextra documentation site.
+- Custom home page for the recipe-focused identity.
+- Recipe hubs for dependency, SAST, sensitive-data, base-image, CVE, and
+  default-hardening remediation.
+- CVE intelligence intake policy, prompt, fixtures, and evaluator for routing
+  advisory signals before an agent patches.
+- Recipes with existing prompt collections preserved.
+- Agent setup guides for GitHub Copilot, Claude, Cursor, Codex, and Devin.
+- MCP integration guidance for public and organization-approved security data
+  sources.
+- Browser AI assistant that uses user-supplied provider credentials.
+- Optional read-only FastMCP server in `mcp_server.py` for recipe search,
+  retrieval, and opt-in upstream MCP context.
+- Docker and Docker Compose configuration for local or droplet hosting.
+- Helper scripts for site maintenance, validation, imports, and deployment.
 
 ## Repository map
 
 | Path | Purpose |
 | --- | --- |
-| `content/` | Hugo docs, recipes, prompt library entries, and security-remediation pages. |
-| `layouts/` | Custom Hugo templates, JSON indexes, shortcodes, and partials. |
-| `assets/` | Site CSS and JavaScript, including search, navigation, Mermaid viewing, and chatbot UI. |
-| `static/` | Static images, integration logos, schemas, CNAME, and generated visual assets. |
-| `data/control-plane/` | Workflow manifests and schema for governed agentic remediation workflows. |
-| `data/policy/` | Generated MCP gateway policy. |
-| `data/evidence/` | Generated assurance, trust, runtime, readiness, red-team, identity, and secure-context packs. |
-| `data/assurance/` | Source profiles and models used by evidence generators. |
-| `data/marketplace/` | Control-plane marketplace catalog data for inputs, outputs, reports, workflows, and readiness. |
-| `scripts/` | Generators, evaluators, validators, and GitHub Advisory Database import tooling. |
-| `mcp_server.py` | Read-only FastMCP server for recipes, packs, and runtime decisions. |
-| `chatbot_server.py` | Legacy local chatbot API kept for development experiments; not used by the production Compose stack. |
-| `Dockerfile` | Multi-stage Hugo/nginx site image with proxy routes for MCP and BYO-key provider relays. |
-| `Dockerfile.mcp-server` | Standalone MCP server image. |
-| `Dockerfile.chatbot-server` | Standalone chatbot API image. |
+| `content/` | Recipes, docs, recipes, and agent setup pages. |
+| `layouts/` | Hugo templates, home page, shortcodes, and JSON indexes. |
+| `assets/` | Site CSS and JavaScript, including the AI assistant. |
+| `static/` | Images, logos, schemas, and static assets. |
+| `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
+| `mcp-server.toml.example` | MCP server configuration template. |
+| `Dockerfile` | Site image. |
+| `Dockerfile.mcp-server` | Optional MCP server image. |
+| `docker-compose.yml` | Production-style local stack. |
+| `scripts/` | Helper scripts for maintenance and deployment. |
 
-## Site content
+## Core content areas
 
-The Hugo site is organized around the way a team adopts agentic remediation:
+- **Quick Start**: one finding to one reviewed PR or triage note.
+- **Recipes**: remediation playbooks agents can follow.
+- **Agent Setup**: how to feed recipes into Copilot, Claude, Cursor, Codex, and
+  Devin.
+- **Recipes**: reusable prompts, instructions, rules, skills, and review
+  checklists.
+- **MCP Integration**: how to connect security context safely.
+- **Docs**: site usage, agent consumption patterns, and contribution guidance.
 
-- `Quick Start`: a five-minute path to a first reviewer-gated agent PR.
-- `Fundamentals`: plain-English explanations of agents, MCP, prompts, skills, and threat models.
-- `Docs`: how to use the site, integrate an AI agent, and understand the marketplace/control-plane surface.
-- `Agents`: setup and guardrails for GitHub Copilot, Devin, Cursor, Codex, and Claude.
-- `Prompt Library`: reusable prompts, rules, skills, CVE playbooks, and remediation patterns.
-- `MCP Server Access`: the shipped read-only MCP server and its tool surface.
-- `Security Remediation`: generated policy, evidence, runtime evaluators, secure-context controls, incident response, readiness, red-team, identity, and trust packs.
-- `Automation`: where deterministic automation should still be preferred over agentic behavior.
-- `Contribute`: how to add recipes, prompts, and workflow content.
+## Helper scripts only
 
-## Control plane and evidence model
+The scripts in this repository support the content. They are useful for local
+maintenance, validation, advisory imports, and deployment, but they are not
+required for a company to use the recipes.
 
-SecurityRecipes treats each operated agentic workflow as a governed deployment unit.
+Recommended operating model:
 
-Workflow manifests declare:
+1. Let existing SCA, SAST, secrets, CI, cloud, and ticketing systems produce
+   findings.
+2. Attach a matching security-recipes.ai recipe and prompt.
+3. Let the agent read only the files and MCP context needed for the finding.
+4. Require tests and human review before merge.
+5. Keep broad automation, write access, and deployment outside the first loop.
 
-- eligible findings
-- deterministic automation that should run before an agent
-- allowed MCP context and access modes
-- file/path scope
-- admission, tool-call, output, pre-merge, post-merge, and runtime gates
-- required evidence
-- KPIs and promotion criteria
-- kill signals
+## AI assistant
 
-The validator and generators turn those declarations into policy and evidence artifacts. The MCP server exposes those artifacts so an agent, gateway, reviewer, or platform workflow can ask structured questions instead of scraping prose.
+The site includes a browser AI assistant implemented in:
 
-Important implemented pack families include:
+- `assets/js/ai-chatbot.js`
+- `assets/css/ai-chatbot.css`
 
-- MCP gateway policy, connector trust, connector intake, authorization conformance, elicitation boundaries, tool-risk contracts, tool-surface drift, and STDIO launch boundaries.
-- Agentic assurance, readiness, posture, AIVSS risk scoring, system BOM, run receipts, telemetry contracts, SOC detections, action runtime, approval receipts, and incident response.
-- Agent identity, delegation, entitlement review, memory boundaries, handoff boundaries, skill supply-chain controls, A2A Agent Card trust, and browser-agent boundaries.
-- Secure context trust, release, attestation, lineage, evals, evidence contracts, egress boundaries, poisoning guardrails, customer proof, buyer diligence, value modeling, and hosted MCP readiness.
-- Red-team drill packs, replay harnesses, measurement probes, exposure graphs, standards crosswalks, source freshness, critical infrastructure profiles, and catastrophic-risk annexes.
+Users bring their own provider credentials in the browser. The production
+Docker/nginx setup proxies provider requests through same-origin paths for the
+current request; the site does not require storing OpenAI, Anthropic, or xAI
+keys in server environment variables.
 
-## MCP server
+The intended architecture is BYO-key and browser-local for privacy and low
+operating cost. The same-origin provider relay is pass-through network plumbing
+only; it should not become a server-held-key chat backend.
 
-The shipped MCP server is read-only. It does not create pull requests, edit tickets, rotate secrets, run scanners, call cloud APIs, or write to external systems.
+Architecture notes and change points live in
+`content/docs/chatbot-architecture/_index.md`.
 
-It does expose:
+## Optional MCP server
 
-- `recipes_search`, `recipes_list`, `recipes_get`, and `recipes_match_finding`
-- workflow control-plane and MCP gateway policy tools
-- evidence-pack retrieval tools
-- deterministic evaluator tools that return decisions such as allow, hold, deny, kill-session, guarded, monitor, triage, contain, or fail depending on the pack
+The MCP server is read-only by default. Its baseline role is to let
+MCP-compatible agents search and retrieve recipes. Self-hosted deployments can
+also configure it as a context hub for approved upstream MCP servers without
+putting those credentials into the public site.
 
-The implementation is `mcp_server.py`, the config template is `mcp-server.toml.example`, and localhost setup is documented in `README.mcp-localhost.md`.
+Common tools:
 
-Run the MCP server in Docker:
+- `recipes_search`
+- `recipes_list`
+- `recipes_get`
+- `recipes_match_finding`
+- `recipes_mcp_upstream_servers`
+- `recipes_mcp_upstream_tools`
+- `recipes_mcp_upstream_call`
+- `recipes_mcp_upstream_context`
 
-```powershell
-docker build -f Dockerfile.mcp-server -t mcp.server .
-docker run --rm -it -p 8123:80 mcp.server
+Run it with Docker:
+
+```bash
+docker build -f Dockerfile.mcp-server -t security-recipes-mcp .
+docker run --rm -p 8123:80 security-recipes-mcp
 ```
 
-Then connect an MCP client to:
+Connect an MCP client to:
 
 ```text
 http://localhost:8123/mcp
 ```
 
-For Python local development:
+Run it locally with Python:
 
 ```bash
 python -m venv .venv
@@ -132,23 +149,12 @@ pip install -r requirements-mcp-server.txt
 python mcp_server.py
 ```
 
-On Windows PowerShell, activate with:
+Windows PowerShell activation:
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
+python mcp_server.py
 ```
-
-## Chatbot and browser planner
-
-The site includes an AI chatbot UI that uses user-supplied provider credentials. The production Docker stack does not store OpenAI, xAI/Grok, or Anthropic keys in server environment variables.
-
-- `assets/js/ai-chatbot.js` and `assets/css/ai-chatbot.css` implement the browser UI.
-- Users paste their provider key in the browser settings panel.
-- The key is held only in page memory for the current tab/session.
-- The Docker/nginx runtime proxies that single request through `/ai-provider-proxy/openai/`, `/ai-provider-proxy/xai/`, or `/ai-provider-proxy/anthropic/`.
-- `chatbot_server.py` remains in the repo as a legacy/local development helper, but the production Compose stack does not run it.
-
-The browser-side agent planner is beta and local-profile based. It gathers page, recipe, GitHub, and dependency context, asks the selected provider for a remediation handoff, and delivers draft outputs through user-selected routes. See `README.browser-agents.md` for its security model and limits.
 
 ## Run the site locally
 
@@ -157,8 +163,6 @@ Prerequisites:
 - Hugo extended `>= 0.139`
 - Go `>= 1.21`
 - Git
-
-From the repository root:
 
 ```bash
 hugo mod get -u
@@ -171,39 +175,42 @@ Open:
 http://localhost:1313
 ```
 
-## Run the production-style Docker stack
+If Hugo is not installed globally, download a Hugo extended release and run the
+binary directly.
 
-Copy the environment template and set at least the public URL. Do not put model-provider API keys in `.env`; users bring their own keys in the browser.
+## Docker Compose
+
+Create an environment file:
 
 ```bash
 cp .env.example .env
-docker compose up -d --build
 ```
 
-If a droplet only has the legacy Python `docker-compose` binary, install Compose
-v2 or run legacy Compose in detached mode. Attached legacy runs can throw a
-Python `compose.cli.log_printer` event-watcher exception even when the site
-container is healthy.
+Start the stack:
 
 ```bash
-sudo bash scripts/setup_digitalocean_droplet.sh --no-caddy --no-firewall --no-upgrade
 docker compose up -d --build
 ```
-
-The compose stack starts:
-
-- `security-recipes`: Hugo/nginx site
-- `mcp-server`: hosted read-only MCP server
 
 Default routes:
 
 ```text
-site: / 
-provider relay: /ai-provider-proxy/openai/v1/responses
+site: /
+AI provider relay: /ai-provider-proxy/openai/v1/responses
 MCP endpoint: /mcp
 ```
 
-For a fresh Ubuntu DigitalOcean droplet, you can use the bootstrap script:
+The Compose stack is intentionally small:
+
+- `security-recipes`: Hugo/nginx static site and provider relay routes.
+- `mcp-server`: optional read-only MCP server.
+
+Do not put model-provider API keys in `.env` for normal site use. Users provide
+their own keys in the browser assistant.
+
+## DigitalOcean droplet
+
+For a fresh Ubuntu droplet, use the helper script:
 
 ```bash
 sudo bash scripts/setup_digitalocean_droplet.sh \
@@ -211,162 +218,49 @@ sudo bash scripts/setup_digitalocean_droplet.sh \
   --email admin@security-recipes.ai
 ```
 
-The script installs Docker/Compose, creates a locked `security-recipes` host
-user to own the checkout and `.env`, enables unattended security updates,
-configures fail2ban and UFW, binds the compose site to localhost, starts the
-site/MCP stack, and places Caddy in front for HTTPS.
+The script installs Docker/Compose, configures a locked app user, enables basic
+host hardening, starts the Compose stack, and can place Caddy in front for
+HTTPS.
 
-The managed app user has no password, no sudo, no SSH keys by default, and is
-not added to the Docker group. This limits host file access if a web-facing
-process is compromised. Root still performs package, firewall, Caddy, and Docker
-orchestration.
-
-The setup script is idempotent: it can be run again after a pull to update
-packages, refresh managed host config, rebuild containers, repair checkout
-ownership, and restart the compose stack. It does not write model-provider API
-keys to `.env`.
-
-### GitHub Actions build
-
-The repository workflow only validates the Hugo build, chatbot JavaScript,
-Docker Compose config, and Docker image build. It does not deploy to the
-DigitalOcean droplet.
-
-### Server-side cron deploy
-
-Use the droplet-side redeploy script to pull from GitHub and rebuild the Compose
-stack when `origin/main` changes:
+For a local-only or pre-proxied droplet:
 
 ```bash
-sudo bash /opt/security-recipes.ai/scripts/redeploy_from_github.sh
+sudo bash scripts/setup_digitalocean_droplet.sh --no-caddy --no-firewall --no-upgrade
+docker compose up -d --build
 ```
 
-Example root cron entry to check every five minutes:
+## MCP integration philosophy
 
-```cron
-*/5 * * * * /usr/bin/bash /opt/security-recipes.ai/scripts/redeploy_from_github.sh >> /var/log/security-recipes-redeploy.log 2>&1
-```
+Use MCP to give agents context, not unchecked authority.
 
-The script uses a lock file, skips rebuilds when the branch has not changed,
-preserves `.env` and `mcp-server.toml`, repairs checkout ownership to the
-managed `security-recipes` app user, and runs:
+Good context sources include:
+
+- official GitHub MCP capabilities for repository and code-security context,
+- Semgrep and Snyk agentic/MCP integrations where approved,
+- OSV, GitHub Advisories, deps.dev, package registries, and NVD-backed mirrors,
+- SARIF, SBOM, CI, ownership, and internal runbook sources,
+- read-only documentation connectors.
+
+Write-capable connectors deserve separate review. Ticket creation, branch
+mutation, deployment, secret rotation, cloud changes, and SOAR actions should
+not be enabled just because an agent can read a recipe.
+
+## Contributing
+
+Contributions should improve the recipe library:
+
+- new remediation recipes,
+- better prompts,
+- clearer agent setup,
+- MCP integration examples,
+- reviewer checklists,
+- documentation fixes.
+
+Scrub secrets, internal hostnames, customer data, and private vulnerability
+details before opening a pull request.
+
+Run a local build before submitting:
 
 ```bash
-docker compose up -d --build --remove-orphans
+hugo --gc --minify
 ```
-
-Useful options:
-
-```bash
-sudo bash /opt/security-recipes.ai/scripts/redeploy_from_github.sh --force
-sudo bash /opt/security-recipes.ai/scripts/redeploy_from_github.sh --branch main --prune-images
-```
-
-To uninstall the managed deployment while leaving Docker packages and the repo in place:
-
-```bash
-sudo bash scripts/uninstall_digitalocean_droplet.sh
-```
-
-For deeper cleanup:
-
-```bash
-sudo bash scripts/uninstall_digitalocean_droplet.sh \
-  --remove-repo \
-  --remove-images \
-  --remove-app-user
-```
-
-## Regenerate artifacts
-
-The build and deployment workflow only builds the Hugo site. It does not run
-generator checks, checksum comparisons, or control-plane validations as required
-build gates.
-
-Generated artifacts can still be refreshed manually when you intentionally
-change source models, manifests, policies, or scripts:
-
-```bash
-python scripts/generate_agentic_assurance_pack.py
-```
-
-Optional maintenance scripts remain available for deeper local review, but they
-are not required before building or deploying the site:
-
-```bash
-python scripts/validate_workflow_control_plane.py
-python scripts/generate_agentic_assurance_pack.py --check
-```
-
-Representative generator and evaluator families:
-
-- `generate_*_pack.py`: produces JSON evidence packs under `data/evidence/`.
-- `evaluate_*_decision.py`: evaluates runtime requests against generated packs.
-- `generate_mcp_gateway_policy.py`: derives gateway policy from workflow manifests.
-- `validate_workflow_control_plane.py`: validates workflow manifests and emits an audit report.
-- `generate_cve_recipes_from_ghad.py`: drafts CVE recipe pages from a local GitHub Advisory Database checkout.
-
-Generated files are part of the repo's source-controlled evidence surface, but
-checksum and validation drift no longer blocks the site build.
-
-## Add content
-
-Add an agent recipe:
-
-```bash
-hugo new content/<agent-name>/_index.md
-```
-
-Add a prompt:
-
-```text
-content/prompt-library/<tool-or-category>/<prompt-name>.md
-```
-
-Prompts should include frontmatter with the author, team, maturity, and model they were validated against. Existing prompts in `content/prompt-library/general/` are good templates.
-
-Add or update workflow controls:
-
-```text
-data/control-plane/workflow-manifests.json
-data/control-plane/workflow-manifest.schema.json
-scripts/validate_workflow_control_plane.py
-```
-
-Then regenerate dependent policy and evidence packs.
-
-## Standards alignment
-
-The project content and evidence model are written to align with security and AI governance references such as:
-
-- OWASP application security and agentic AI/MCP risk guidance
-- NIST AI RMF
-- NIST SSDF
-- CISA Secure by Design
-- least-privilege, reviewable, auditable control design for MCP and agentic workflows
-
-The goal is not just to link to standards. The goal is to make workflow scope, runtime decisions, evidence, and review gates machine-readable enough that teams can operate them.
-
-## Deployment notes
-
-The repo is ready for containerized DigitalOcean hosting and can still be built
-as a static Hugo site for other platforms.
-
-For a single-origin production deployment, the provided Docker stack is the most complete shape. It serves the static site, proxies browser-supplied model-provider requests, and exposes the hosted MCP endpoint from the same public origin. Set `SECURITY_RECIPES_BASE_URL`, `SECURITY_RECIPES_REPO_URL`, and `RECIPES_MCP_PUBLIC_BASE_URL` in `.env`.
-
-Use TLS in front of the container through your platform load balancer or a host-level reverse proxy such as Caddy or Nginx.
-
-## Deeper docs
-
-- `README.mcp-localhost.md`: connect to the MCP server on localhost.
-- `README.browser-agents.md`: browser planner behavior, outputs, scheduling limits, and security notes.
-- `CONTRIBUTING.md`: contribution workflow and review expectations.
-- `SECURITY.md`: vulnerability reporting.
-- `GOVERNANCE.md`: project governance.
-- `content/docs/agent-integration/_index.md`: integration patterns for using the site from inside AI agents.
-- `content/security-remediation/control-plane/_index.md`: workflow control-plane design.
-- `content/mcp-servers/_index.md`: full MCP server documentation.
-
-## License
-
-This project is licensed under the MIT License. Logos, product names, and brand marks remain the property of their respective owners.

@@ -29,7 +29,7 @@ SecurityRecipes is meant to be read as a loop:
 {{< cards >}}
   {{< card link="/quickstart/" title="Quick Start" subtitle="The five-minute path to your first agentic remediation PR." >}}
   {{< card link="/agents/" title="Agents" subtitle="Pick the tool your team already uses and follow its recipe." >}}
-  {{< card link="/prompt-library/" title="Prompt Library" subtitle="Fork instruction files, skills, rules, and remediation prompts." >}}
+  {{< card link="/prompt-library/" title="Recipes" subtitle="Fork instruction files, skills, rules, and remediation prompts." >}}
   {{< card link="/mcp-servers/" title="MCP Servers" subtitle="Add controlled context and scoped enterprise tool access." >}}
   {{< card link="/security-remediation/" title="Security Remediation" subtitle="Operate reviewable workflows from intake to evidence." >}}
 {{< /cards >}}
@@ -37,7 +37,7 @@ SecurityRecipes is meant to be read as a loop:
 ## 1. Start with the map
 
 <figure class="visual-guide-figure">
-  <img src="../images/how-to-use/visual-site-map.png" alt="Visual map of the security-recipes.ai docs showing Start, Search, Pick, and Read across Quick Start, Agents, Prompt Library, MCP Servers, and Security Remediation." loading="lazy">
+  <img src="../images/how-to-use/visual-site-map.png" alt="Visual map of the security-recipes.ai docs showing Start, Search, Pick, and Read across Quick Start, Agents, Recipes, MCP Servers, and Security Remediation." loading="lazy">
   <figcaption>Start with Quick Start, use search when you know the problem, then pick the section that matches your job.</figcaption>
 </figure>
 
@@ -55,7 +55,7 @@ you do not have to read everything before doing something useful.
 
 For the first run, choose the AI coding tool your team already has:
 GitHub Copilot, Devin, Cursor, Codex, or Claude. Copy the matching
-house-rules file from the agent recipe or prompt library, give the
+house-rules file from the agent recipe or recipes section, give the
 agent one small finding, and review the pull request like any other
 change.
 
@@ -90,7 +90,7 @@ reviewable.
   path to a first PR.
 - [Agents]({{< relref "/agents" >}}) if you already know which AI tool
   your team uses.
-- [Prompt Library]({{< relref "/prompt-library" >}}) if you need rules,
+- [Recipes]({{< relref "/prompt-library" >}}) if you need rules,
   skills, or prompts to copy into a repo.
 - [MCP Servers]({{< relref "/mcp-servers" >}}) if you need controlled
   context and enterprise connectors.

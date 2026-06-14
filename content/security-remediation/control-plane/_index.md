@@ -1,9 +1,9 @@
----
+﻿---
 title: Workflow Control Plane
 linkTitle: Control Plane
 weight: 4
 sidebar:
-  open: true
+  exclude: true
 description: >
   Machine-readable workflow manifests for agentic remediation: scope,
   MCP context, gates, evidence, KPIs, and kill signals that agents,
@@ -20,7 +20,7 @@ retained, and when the workflow must be paused.
 
 ## The product idea
 
-SecurityRecipes should not stop at a prompt library. The durable value
+SecurityRecipes should not stop at recipes alone. The durable value
 is the **control layer between agents and enterprise security work**:
 
 - Recipes tell an agent how to remediate.

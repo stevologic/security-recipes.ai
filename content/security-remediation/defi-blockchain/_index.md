@@ -51,6 +51,10 @@ A finding is eligible when:
 - New protocol feature design.
 - Economic parameter tuning without risk committee sign-off.
 
+## Python remediation tool
+
+{{< remediation-tool domain="defi-blockchain" >}}
+
 ## See also
 
 - [Cryptocurrency & Crypto Payments Security]({{< relref "/security-remediation/crypto-payments" >}})

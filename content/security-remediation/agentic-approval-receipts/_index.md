@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Approval Receipt Pack
 linkTitle: Approval Receipts
 weight: 16
@@ -6,6 +6,8 @@ toc: true
 description: >
   Scope-bound approval receipts for agentic AI control planes, MCP tools,
   high-impact actions, and enterprise audit evidence.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -51,10 +53,7 @@ Approval receipts are a product-grade answer:
 | --- | --- |
 | `data/assurance/agentic-approval-receipt-profile.json` | Source profile with standards alignment, receipt contract, approval profiles, runtime policy, reviewer views, and trusted-source path. |
 | `data/evidence/agentic-approval-receipt-pack.json` | Generated pack joining approval profiles to action runtime, run receipts, telemetry, entitlement, identity, MCP gateway, elicitation, and catastrophic-risk evidence. |
-| `scripts/generate_agentic_approval_receipt_pack.py` | Dependency-free generator with `--check` support for CI freshness validation. |
-| `scripts/evaluate_agentic_approval_receipt_decision.py` | Deterministic evaluator for one runtime approval request. |
 | `recipes_agentic_approval_receipt_pack` | MCP tool for receipt profiles, workflow requirements, reviewer views, and evidence. |
-| `recipes_evaluate_agentic_approval_receipt_decision` | MCP tool for runtime allow / hold / deny / kill decisions. |
 
 ## Approval Profiles
 
@@ -82,36 +81,7 @@ Approval receipts are a product-grade answer:
 
 ## Runtime Example
 
-```bash
-python3 scripts/generate_agentic_approval_receipt_pack.py
-python3 scripts/generate_agentic_approval_receipt_pack.py --check
-```
 
-```bash
-python3 scripts/evaluate_agentic_approval_receipt_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --action-class repo_branch_write \
-  --run-id run-123 \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
-  --tenant-id tenant-123 \
-  --correlation-id corr-123 \
-  --approval-id approval-123 \
-  --approval-type pull_request_review \
-  --approval-status approved \
-  --approver-id reviewer-123 \
-  --approver-role security_reviewer \
-  --requester-id sr-agent::vulnerable-dependency-remediation::codex \
-  --requested-scope-hash sha256:scope-123 \
-  --approved-scope-hash sha256:scope-123 \
-  --issued-at 2099-01-01T00:00:00Z \
-  --expires-at 2099-01-02T00:00:00Z \
-  --now 2099-01-01T01:00:00Z \
-  --receipt-id receipt-123 \
-  --policy-pack-hash sha256:policy-123 \
-  --authorization-decision allow_authorized_mcp_request \
-  --expect-decision allow_scope_bound_approval
-```
 
 ## MCP Usage
 
@@ -124,7 +94,6 @@ receipt contract, all approval profiles, or one workflow's approval matrix.
 }
 ```
 
-Use `recipes_evaluate_agentic_approval_receipt_decision` before a high-impact
 agent action executes.
 
 ```json

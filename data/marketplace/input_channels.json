@@ -64,6 +64,37 @@
       }
     },
     {
+      "id": "osv-vulnerability-api",
+      "label": "OSV.dev vulnerability context",
+      "category": "Code and findings sources",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Checks public GitHub Dependency Graph SBOM package URLs against OSV.dev vulnerability records without a token.",
+      "auth_modes": ["public", "pat", "oauth"],
+      "config": {
+        "type": "osv_vulnerability_lookup",
+        "repository": "owner/repo",
+        "include": ["sbom_packages", "vulnerabilities", "aliases", "severity"],
+        "max_packages": 40,
+        "max_vulnerabilities": 12
+      }
+    },
+    {
+      "id": "mcp-http-gateway",
+      "label": "MCP HTTP gateway",
+      "category": "MCP and context gateways",
+      "status": "native",
+      "runtime_support": "live",
+      "description": "Calls one configured read-only MCP tool through a CORS-enabled Streamable HTTP gateway endpoint and attaches bounded text context to chat or agent runs.",
+      "auth_modes": ["none", "bearer_token", "oauth"],
+      "config": {
+        "type": "mcp_http_gateway",
+        "transport": "streamable_http",
+        "read_only_tool_pattern": "search|query|list|get|read|find|lookup|fetch|describe|inspect|analyze|scan",
+        "max_chars": 9000
+      }
+    },
+    {
       "id": "gitlab-project-context",
       "label": "GitLab project context",
       "category": "Code and findings sources",
@@ -90,7 +121,7 @@
       "config": {
         "type": "azure_devops_repository",
         "base_url": "https://dev.azure.com",
-        "organization": "example-org",
+        "organization": "YOUR-AZURE-DEVOPS-ORGANIZATION",
         "project": "security-platform",
         "repository": "payments-api",
         "include": ["repository", "default_branch", "readme", "security", "contributing", "manifests", "pull_requests", "work_items"],
@@ -328,7 +359,7 @@
       "auth_modes": ["api_token", "oauth"],
       "config": {
         "type": "defectdojo_findings",
-        "base_url": "https://dojo.example.com/api/v2",
+        "base_url": "https://YOUR-DEFECTDOJO-HOST/api/v2",
         "endpoint": "/findings",
         "include": ["product", "engagement", "test", "finding"],
         "filters": {
@@ -420,7 +451,7 @@
       "auth_modes": ["api_token"],
       "config": {
         "type": "sonarqube_issues",
-        "base_url": "https://sonarqube.example.com/api",
+        "base_url": "https://YOUR-SONARQUBE-HOST/api",
         "endpoint": "/issues/search",
         "filters": {
           "statuses": ["OPEN", "CONFIRMED", "REOPENED"],
@@ -547,7 +578,7 @@
       "auth_modes": ["api_token", "oauth"],
       "config": {
         "type": "confluence_search",
-        "base_url": "https://example.atlassian.net/wiki",
+        "base_url": "https://YOUR-ATLASSIAN-SITE.atlassian.net/wiki",
         "spaces": ["SEC", "ENG"],
         "max_pages": 10
       }

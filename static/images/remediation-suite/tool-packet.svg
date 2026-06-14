@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">remediation packet anatomy</title>
+  <desc id="desc">A remediation packet contains classification, imported recipes, enterprise tooling, workflow rules, agent handoff, optional LLM assist, and evidence requirements.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#05070b"/>
+      <stop offset="0.52" stop-color="#071014"/>
+      <stop offset="1" stop-color="#0f1117"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset="0.55" stop-color="#67e8f9"/>
+      <stop offset="1" stop-color="#fbbf24"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#000000" flood-opacity="0.36"/>
+    </filter>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="#ffffff" fill-opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="520" fill="url(#bg)"/>
+  <rect width="1200" height="520" fill="url(#dots)"/>
+  <text x="70" y="68" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="800">What a tool packet gives the agent</text>
+  <text x="70" y="102" fill="#aeb7c6" font-family="Segoe UI, Arial, sans-serif" font-size="17">A deterministic envelope around optional model help, enterprise context, and human review.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="145" width="320" height="300" rx="8" fill="#071018" stroke="#334155"/>
+    <text x="96" y="184" fill="#79f2e5" font-family="Consolas, monospace" font-size="16">remediation-packet.json</text>
+    <line x1="96" y1="205" x2="360" y2="205" stroke="url(#line)" stroke-width="2"/>
+    <text x="96" y="239" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">classification</text>
+    <text x="116" y="267" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">domain score and route</text>
+    <text x="96" y="303" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">recipe_import</text>
+    <text x="116" y="331" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">matched site recipes</text>
+    <text x="96" y="367" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="800">workflow</text>
+    <text x="116" y="395" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">allowed actions and stops</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="455" y="145" width="300" height="130" rx="8" fill="#0a1416" stroke="#2dd4bf"/>
+    <text x="483" y="184" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="800">Enterprise tooling</text>
+    <text x="483" y="216" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">GitHub, GitLab, Azure DevOps, Jira,</text>
+    <text x="483" y="238" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">ServiceNow, scanners, registries, GRC</text>
+
+    <rect x="455" y="315" width="300" height="130" rx="8" fill="#111018" stroke="#a78bfa"/>
+    <text x="483" y="354" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="800">Optional LLM assist</text>
+    <text x="483" y="386" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">off, prompt-only, or configured call</text>
+    <text x="483" y="408" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">after deterministic evidence is normalized</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="825" y="145" width="305" height="300" rx="8" fill="#0a120f" stroke="#86efac"/>
+    <text x="853" y="184" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="800">Human-review output</text>
+    <line x1="853" y1="205" x2="1100" y2="205" stroke="url(#line)" stroke-width="2"/>
+    <text x="853" y="239" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">PR handoff</text>
+    <text x="873" y="267" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">bounded patch plan and proof</text>
+    <text x="853" y="303" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">TRIAGE.md</text>
+    <text x="873" y="331" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">stop reason and owner action</text>
+    <text x="853" y="367" fill="#f5f7fb" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">Audit packet</text>
+    <text x="873" y="395" fill="#c8cdd9" font-family="Segoe UI, Arial, sans-serif" font-size="14">evidence, approvals, tool history</text>
+  </g>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M405 245C430 245 430 210 455 210" stroke="#67e8f9" stroke-width="4"/>
+    <path d="M455 210l-13-8m13 8l-13 8" stroke="#67e8f9" stroke-width="4"/>
+    <path d="M405 345C430 345 430 380 455 380" stroke="#a78bfa" stroke-width="4"/>
+    <path d="M455 380l-13-8m13 8l-13 8" stroke="#a78bfa" stroke-width="4"/>
+    <path d="M770 210C795 210 795 245 820 245" stroke="#86efac" stroke-width="4"/>
+    <path d="M820 245l-13-8m13 8l-13 8" stroke="#86efac" stroke-width="4"/>
+    <path d="M770 380C795 380 795 345 820 345" stroke="#fbbf24" stroke-width="4"/>
+    <path d="M820 345l-13-8m13 8l-13 8" stroke="#fbbf24" stroke-width="4"/>
+  </g>
+</svg>

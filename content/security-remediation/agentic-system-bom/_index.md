@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic System BOM
 linkTitle: System BOM
 weight: 8
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated Agent/AI Bill of Materials for the agentic remediation
   system: workflows, agent classes, identities, MCP connectors,
@@ -51,18 +51,12 @@ The BOM layer lives in three artifacts:
 - `data/assurance/agentic-system-bom-profile.json` - the source profile
   for positioning, standards alignment, required component types, and
   drift triggers.
-- `scripts/generate_agentic_system_bom.py` - a dependency-free
-  generator and validator with `--check` mode for CI drift detection.
 - `data/evidence/agentic-system-bom.json` - the generated BOM that joins
   workflow, policy, identity, connector trust, assurance, red-team, and
   readiness evidence.
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_agentic_system_bom.py
-python3 scripts/generate_agentic_system_bom.py --check
-```
 
 The local MCP server exposes the same bundle through
 `recipes_agentic_system_bom`.

@@ -211,8 +211,7 @@
       "status": "implemented",
       "evidence_paths": [
         "data/context/secure-context-registry.json",
-        "data/evidence/secure-context-trust-pack.json",
-        "scripts/generate_secure_context_trust_pack.py"
+        "data/evidence/secure-context-trust-pack.json"
       ],
       "mcp_tools": [
         "recipes_secure_context_trust_pack"
@@ -226,13 +225,10 @@
       "evidence_paths": [
         "data/assurance/secure-context-attestation-profile.json",
         "data/evidence/secure-context-attestation-pack.json",
-        "scripts/generate_secure_context_attestation_pack.py",
-        "scripts/evaluate_context_attestation_decision.py",
         "content/security-remediation/secure-context-attestation/_index.md"
       ],
       "mcp_tools": [
-        "recipes_secure_context_attestation_pack",
-        "recipes_evaluate_context_attestation_decision"
+        "recipes_secure_context_attestation_pack"
       ],
       "buyer_value": "Turns context sources and workflow packages into hash-verifiable attestation subjects with recertification and production signature-readiness policy."
     },
@@ -241,12 +237,9 @@
       "title": "Secure Context Firewall",
       "status": "implemented",
       "evidence_paths": [
-        "scripts/evaluate_secure_context_retrieval.py",
         "content/security-remediation/secure-context-firewall/_index.md"
       ],
-      "mcp_tools": [
-        "recipes_evaluate_context_retrieval_decision"
-      ],
+      "mcp_tools": [],
       "buyer_value": "Converts retrieval policy into deterministic allow, hold, deny, or kill-session decisions before agents receive context."
     },
     {
@@ -256,7 +249,6 @@
       "evidence_paths": [
         "data/assurance/context-poisoning-guard-profile.json",
         "data/evidence/context-poisoning-guard-pack.json",
-        "scripts/generate_context_poisoning_guard_pack.py",
         "content/security-remediation/context-poisoning-guard/_index.md"
       ],
       "mcp_tools": [
@@ -271,13 +263,10 @@
       "evidence_paths": [
         "data/assurance/context-egress-boundary-model.json",
         "data/evidence/context-egress-boundary-pack.json",
-        "scripts/generate_context_egress_boundary_pack.py",
-        "scripts/evaluate_context_egress_decision.py",
         "content/security-remediation/context-egress-boundary/_index.md"
       ],
       "mcp_tools": [
-        "recipes_context_egress_boundary_pack",
-        "recipes_evaluate_context_egress_decision"
+        "recipes_context_egress_boundary_pack"
       ],
       "buyer_value": "Turns data-class, destination, DPA, zero-data-retention, residency, and secret-egress requirements into deterministic MCP-readable decisions before context leaves a boundary."
     },
@@ -288,13 +277,10 @@
       "evidence_paths": [
         "data/assurance/agent-handoff-boundary-model.json",
         "data/evidence/agent-handoff-boundary-pack.json",
-        "scripts/generate_agent_handoff_boundary_pack.py",
-        "scripts/evaluate_agent_handoff_boundary_decision.py",
         "content/security-remediation/agent-handoff-boundary/_index.md"
       ],
       "mcp_tools": [
-        "recipes_agent_handoff_boundary_pack",
-        "recipes_evaluate_agent_handoff_decision"
+        "recipes_agent_handoff_boundary_pack"
       ],
       "buyer_value": "Governs MCP, A2A, provider-native, and approval-bridge handoffs before context, authority, or approval state crosses an agent boundary."
     },
@@ -303,12 +289,10 @@
       "title": "MCP Gateway Policy Pack",
       "status": "implemented",
       "evidence_paths": [
-        "data/policy/mcp-gateway-policy.json",
-        "scripts/generate_mcp_gateway_policy.py"
+        "data/policy/mcp-gateway-policy.json"
       ],
       "mcp_tools": [
-        "recipes_mcp_gateway_policy",
-        "recipes_evaluate_mcp_gateway_decision"
+        "recipes_mcp_gateway_policy"
       ],
       "buyer_value": "Enforces default-deny tool access, approval holds, scoped branch writes, and runtime kill decisions."
     },
@@ -317,8 +301,7 @@
       "title": "Agent Identity and Delegation Ledger",
       "status": "implemented",
       "evidence_paths": [
-        "data/evidence/agent-identity-delegation-ledger.json",
-        "scripts/generate_agent_identity_ledger.py"
+        "data/evidence/agent-identity-delegation-ledger.json"
       ],
       "mcp_tools": [
         "recipes_agent_identity_ledger"
@@ -331,8 +314,7 @@
       "status": "implemented",
       "evidence_paths": [
         "data/mcp/connector-trust-registry.json",
-        "data/evidence/mcp-connector-trust-pack.json",
-        "scripts/generate_mcp_connector_trust_pack.py"
+        "data/evidence/mcp-connector-trust-pack.json"
       ],
       "mcp_tools": [
         "recipes_mcp_connector_trust_pack"
@@ -346,7 +328,6 @@
       "evidence_paths": [
         "data/mcp/connector-intake-candidates.json",
         "data/evidence/mcp-connector-intake-pack.json",
-        "scripts/generate_mcp_connector_intake_pack.py",
         "content/security-remediation/mcp-connector-intake-scanner/_index.md"
       ],
       "mcp_tools": [
@@ -361,13 +342,10 @@
       "evidence_paths": [
         "data/assurance/mcp-authorization-conformance-profile.json",
         "data/evidence/mcp-authorization-conformance-pack.json",
-        "scripts/generate_mcp_authorization_conformance_pack.py",
-        "scripts/evaluate_mcp_authorization_decision.py",
         "content/security-remediation/mcp-authorization-conformance/_index.md"
       ],
       "mcp_tools": [
-        "recipes_mcp_authorization_conformance_pack",
-        "recipes_evaluate_mcp_authorization_decision"
+        "recipes_mcp_authorization_conformance_pack"
       ],
       "buyer_value": "Verifies MCP resource binding, token audience, PKCE, token-passthrough denial, session binding, and scope drift before tool calls execute."
     },
@@ -377,8 +355,7 @@
       "status": "implemented",
       "evidence_paths": [
         "data/assurance/agentic-red-team-scenario-map.json",
-        "data/evidence/agentic-red-team-drill-pack.json",
-        "scripts/generate_agentic_red_team_drill_pack.py"
+        "data/evidence/agentic-red-team-drill-pack.json"
       ],
       "mcp_tools": [
         "recipes_agentic_red_team_drill_pack"
@@ -391,8 +368,7 @@
       "status": "implemented",
       "evidence_paths": [
         "data/assurance/agentic-readiness-model.json",
-        "data/evidence/agentic-readiness-scorecard.json",
-        "scripts/generate_agentic_readiness_scorecard.py"
+        "data/evidence/agentic-readiness-scorecard.json"
       ],
       "mcp_tools": [
         "recipes_agentic_readiness_scorecard"
@@ -406,7 +382,6 @@
       "evidence_paths": [
         "data/assurance/agent-capability-risk-model.json",
         "data/evidence/agent-capability-risk-register.json",
-        "scripts/generate_agent_capability_risk_register.py",
         "content/security-remediation/agent-capability-risk-register/_index.md"
       ],
       "mcp_tools": [
@@ -420,8 +395,7 @@
       "status": "implemented",
       "evidence_paths": [
         "data/assurance/agentic-system-bom-profile.json",
-        "data/evidence/agentic-system-bom.json",
-        "scripts/generate_agentic_system_bom.py"
+        "data/evidence/agentic-system-bom.json"
       ],
       "mcp_tools": [
         "recipes_agentic_system_bom"
@@ -434,8 +408,7 @@
       "status": "implemented",
       "evidence_paths": [
         "data/assurance/agentic-assurance-control-map.json",
-        "data/evidence/agentic-assurance-pack.json",
-        "scripts/generate_agentic_assurance_pack.py"
+        "data/evidence/agentic-assurance-pack.json"
       ],
       "mcp_tools": [
         "recipes_agentic_assurance_pack"

@@ -256,6 +256,10 @@ A few practical notes:
   orchestration. The catalogue maps rule IDs to fix shapes;
   scanners produce rule IDs.
 
+## Python remediation tool
+
+{{< remediation-tool domain="sast-findings" >}}
+
 ## See also
 
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})

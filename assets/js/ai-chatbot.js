@@ -1,7 +1,8 @@
 /*
  * SecurityRecipes AI chatbot.
  * Uses browser-supplied provider credentials and a same-origin relay path for
- * production hosting. Model provider API keys are held in page memory only.
+ * production hosting. Model provider API keys are session-only unless the
+ * operator explicitly saves them as browser-local secrets.
  */
 (function () {
   'use strict';
@@ -58,6 +59,7 @@
     agentReportProfile: 'securityRecipes.ai.agent.reportProfile',
     agentOutputChannel: 'securityRecipes.ai.agent.outputChannel',
     settingsOpen: 'securityRecipes.ai.settingsOpen',
+    settingsDetailsOpen: 'securityRecipes.ai.settings.detailsOpen',
     chatHistory: 'securityRecipes.ai.chatHistory',
     credentialMode: 'securityRecipes.ai.credentialMode.',
     token: 'securityRecipes.ai.token.',
@@ -170,6 +172,13 @@
     genericWebhookAuthHeader: 'securityRecipes.ai.integrations.genericWebhookAuthHeader',
     genericWebhookHeaders: 'securityRecipes.ai.integrations.genericWebhookHeaders',
     depsDevContext: 'securityRecipes.ai.includeDepsDevContext',
+    osvContext: 'securityRecipes.ai.includeOsvContext',
+    mcpGatewayContext: 'securityRecipes.ai.includeMcpGatewayContext',
+    mcpGatewayEndpoint: 'securityRecipes.ai.integrations.mcpGatewayEndpoint',
+    mcpGatewayToken: 'securityRecipes.ai.integrations.mcpGatewayToken',
+    mcpGatewayProfile: 'securityRecipes.ai.integrations.mcpGatewayProfile',
+    mcpGatewayTool: 'securityRecipes.ai.integrations.mcpGatewayTool',
+    mcpGatewayQuery: 'securityRecipes.ai.integrations.mcpGatewayQuery',
     sarifContext: 'securityRecipes.ai.includeSarifContext',
     scannerExportContext: 'securityRecipes.ai.includeScannerExportContext',
     sbomContext: 'securityRecipes.ai.includeSbomContext',
@@ -177,7 +186,8 @@
     scannerExportUpload: 'securityRecipes.ai.upload.scannerExports',
     sbomUpload: 'securityRecipes.ai.upload.sbom',
     terminalRecords: 'securityRecipes.ai.terminal.records',
-    activityRecords: 'securityRecipes.ai.activity.records'
+    activityRecords: 'securityRecipes.ai.activity.records',
+    statisticsGeneratedInsights: 'securityRecipes.ai.statistics.generatedInsights'
   };
 
   var CHAT_HISTORY_COOKIE = 'securityRecipesAiChatHistory';
@@ -194,6 +204,11 @@
   var DEPS_DEV_MAX_PACKAGES = 40;
   var DEPS_DEV_MAX_ADVISORIES = 12;
   var DEPS_DEV_MAX_CONTEXT_CHARS = 9000;
+  var OSV_MAX_PACKAGES = 40;
+  var OSV_MAX_VULNS = 12;
+  var OSV_MAX_CONTEXT_CHARS = 9000;
+  var MCP_GATEWAY_MAX_CONTEXT_CHARS = 9000;
+  var MCP_GATEWAY_PROTOCOL_VERSION = '2025-11-25';
   var IMPORTED_CONTEXT_MAX_CHARS = 9000;
   var SARIF_SAMPLE_FINDINGS = 12;
   var SCANNER_EXPORT_SAMPLE_FINDINGS = 12;
@@ -204,6 +219,8 @@
   var TERMINAL_MAX_RECORDS = 80;
   var TERMINAL_CONTEXT_MAX_RECORDS = 12;
   var TERMINAL_CONTEXT_MAX_CHARS = 3000;
+  var AGENT_CONSOLE_MAX_RECORDS = 80;
+  var AGENT_CONSOLE_MAX_CHARS = 1600;
   var ACTIVITY_MAX_RECORDS = 160;
   var ACTIVITY_CONTEXT_MAX_RECORDS = 8;
   var ACTIVITY_CONTEXT_MAX_CHARS = 2200;
@@ -274,12 +291,23 @@
     'microsoft-defender-xdr-incidents': { warnHours: 4, staleHours: 12 },
     'microsoft-sentinel-incidents': { warnHours: 4, staleHours: 12 },
     'deps-dev-advisories': { warnHours: 12, staleHours: 24 },
+    'osv-vulnerability-api': { warnHours: 12, staleHours: 24 },
+    'mcp-http-gateway': { warnHours: 4, staleHours: 12 },
     'snyk-issues-api': { warnHours: 12, staleHours: 24 },
     'confluence-knowledge': { warnHours: 12, staleHours: 24 },
     'sarif-manual-import': { warnHours: 24, staleHours: 72 },
     'scanner-export-bundle': { warnHours: 24, staleHours: 72 },
     'sbom-manual-import': { warnHours: 24, staleHours: 72 }
   };
+  var STAT_SEVERITY_LEVELS = ['critical', 'high', 'medium', 'low', 'info'];
+  var STAT_REMEDIATION_STATES = ['remediated', 'mitigated', 'open', 'needs_case'];
+  var STAT_SENSITIVE_DATA_CATEGORIES = [
+    { key: 'secrets_tokens', label: 'Secrets / tokens', color: '#fb7185', pattern: /\b(secret|token|api[-_ ]?key|access[-_ ]?token|bearer)\b/gi },
+    { key: 'credentials', label: 'Credentials', color: '#fbbf24', pattern: /\b(password|credential|login|username|auth)\b/gi },
+    { key: 'private_keys', label: 'Private keys', color: '#a78bfa', pattern: /\b(private[-_ ]?key|ssh[-_ ]?key|key material|certificate)\b/gi },
+    { key: 'pii_customer', label: 'PII / customer data', color: '#67e8f9', pattern: /\b(pii|email|ssn|passport|customer data|personal data|phone number|address)\b/gi },
+    { key: 'vault_material', label: 'Vault / key material', color: '#34d399', pattern: /\b(vault|kms|keychain|keystore|secret manager)\b/gi }
+  ];
 
   var state = {
     provider: localStorage.getItem(STORE.provider) || 'openai',
@@ -298,6 +326,8 @@
     includeDefenderXdr: localStorage.getItem(STORE.defenderXdrContext) === 'true',
     includeSentinel: localStorage.getItem(STORE.sentinelContext) === 'true',
     includeDepsDev: localStorage.getItem(STORE.depsDevContext) === 'true',
+    includeOsv: localStorage.getItem(STORE.osvContext) === 'true',
+    includeMcpGateway: localStorage.getItem(STORE.mcpGatewayContext) === 'true',
     includeSnyk: localStorage.getItem(STORE.snykContext) === 'true',
     includeConfluence: localStorage.getItem(STORE.confluenceContext) === 'true',
     includeSarif: localStorage.getItem(STORE.sarifContext) === 'true',
@@ -330,6 +360,11 @@
     sentinelContextMeta: null,
     depsDevContextText: '',
     depsDevContextLoadedAt: '',
+    osvContextText: '',
+    osvContextLoadedAt: '',
+    mcpGatewayContextText: '',
+    mcpGatewayContextLoadedAt: '',
+    mcpGatewayContextMeta: null,
     snykContextText: '',
     snykContextLoadedAt: '',
     snykContextMeta: null,
@@ -387,6 +422,7 @@
     terminalRecords: normalizeTerminalRecords(loadStoredJson(STORE.terminalRecords, [])),
     terminalCwd: '/home/remediator',
     activityRecords: normalizeActivityRecords(loadStoredJson(STORE.activityRecords, [])),
+    statisticsGeneratedInsights: loadStoredJson(STORE.statisticsGeneratedInsights, {}),
     activitySelectedId: '',
     activitySessionSelectedId: '',
     activityFilterQuery: '',
@@ -396,9 +432,15 @@
     lastOperationSession: null
   };
   Object.keys(PROVIDERS).forEach(function (provider) {
+    var legacy = localStorage.getItem(STORE.token + provider) || '';
+    var apiKey = localStorage.getItem(STORE.token + provider + '.api_key') || legacy;
+    var oauth = localStorage.getItem(STORE.token + provider + '.oauth') || '';
+    if (apiKey) state.providerTokens[provider + '.api_key'] = apiKey;
+    if (oauth) state.providerTokens[provider + '.oauth'] = oauth;
+    if (legacy && !localStorage.getItem(STORE.token + provider + '.api_key')) {
+      localStorage.setItem(STORE.token + provider + '.api_key', legacy);
+    }
     localStorage.removeItem(STORE.token + provider);
-    localStorage.removeItem(STORE.token + provider + '.api_key');
-    localStorage.removeItem(STORE.token + provider + '.oauth');
   });
   if (!Array.isArray(state.agentActions)) state.agentActions = [];
   hydrateImportedContextState('sarif');
@@ -724,6 +766,26 @@
         config: { type: 'deps_dev_lookup' }
       },
       {
+        id: 'osv-vulnerability-api',
+        label: 'OSV.dev vulnerability context',
+        category: 'Code and findings sources',
+        status: 'native',
+        runtime_support: 'live',
+        description: 'Check GitHub dependency graph packages against OSV.dev vulnerability records.',
+        auth_modes: ['public', 'pat', 'oauth'],
+        config: { type: 'osv_vulnerability_lookup' }
+      },
+      {
+        id: 'mcp-http-gateway',
+        label: 'MCP HTTP gateway',
+        category: 'MCP and context gateways',
+        status: 'native',
+        runtime_support: 'live',
+        description: 'Call one configured read-only MCP tool through an HTTP gateway endpoint.',
+        auth_modes: ['none', 'bearer_token', 'oauth'],
+        config: { type: 'mcp_http_gateway' }
+      },
+      {
         id: 'snyk-issues-api',
         label: 'Snyk issues API',
         category: 'Scanner findings',
@@ -862,6 +924,31 @@
         storeKey: STORE.azureDevOpsRepositoryContext,
         clear: function () { clearAzureDevOpsRepositoryContext({ keepSettings: true }); },
         update: updateAzureDevOpsContextUI
+      },
+      {
+        key: 'osv',
+        channelId: 'osv-vulnerability-api',
+        label: 'OSV.dev vulnerabilities',
+        attr: 'data-osv-context',
+        elementKey: 'includeOsv',
+        stateKey: 'includeOsv',
+        storeKey: STORE.osvContext,
+        clear: function () {
+          state.osvContextText = '';
+          state.osvContextLoadedAt = '';
+        },
+        update: updateOsvUI
+      },
+      {
+        key: 'mcp-gateway',
+        channelId: 'mcp-http-gateway',
+        label: 'MCP HTTP gateway',
+        attr: 'data-mcp-gateway-context',
+        elementKey: 'includeMcpGateway',
+        stateKey: 'includeMcpGateway',
+        storeKey: STORE.mcpGatewayContext,
+        clear: function () { clearMcpGatewayContext({ keepSettings: true }); },
+        update: updateMcpGatewayUI
       },
       {
         key: 'snyk',
@@ -1116,13 +1203,13 @@
     els.marketplaceContextSources.innerHTML = visible.map(function (config) {
       return '<label class="ai-chatbot-check ai-chatbot-check-marketplace">' +
         '<input data-context-source="' + html(config.key) + '" ' + config.attr + ' type="checkbox">' +
-        '<span>' + html(config.label) + '</span><em>Marketplace</em>' +
+        '<span>' + html(config.label) + '</span><em>Optional</em>' +
         '</label>';
     }).join('');
     if (els.marketplaceContextNote) {
       els.marketplaceContextNote.textContent = visible.length
-        ? 'Marketplace-added sources are available below.'
-        : 'Add scanner, knowledge, or code-system inputs from Marketplace to show more sources here.';
+        ? 'Optional sources are available below.'
+        : 'Optional scanner, knowledge, or code-system inputs will appear here when configured.';
     }
     refreshOptionalContextSourceElements();
     visible.forEach(function (config) {
@@ -2170,6 +2257,7 @@
     if (els.agentApproval && planner.approval_gate) selectByText(els.agentApproval, planner.approval_gate);
     if (els.agentContextPack && planner.context_pack) selectByText(els.agentContextPack, planner.context_pack);
     if (els.agentNextRun) els.agentNextRun.value = planner.next_run && planner.next_run !== 'not scheduled' ? planner.next_run : '';
+    updateAgentScheduleFields();
     if (els.agentInputChannels && Array.isArray(planner.input_channel_ids)) {
       setSelectValues(els.agentInputChannels, planner.input_channel_ids);
       syncSelectedInputChannels();
@@ -3920,6 +4008,7 @@
       setAssetStatus('Register browser-local assets, owners, and criticality so exposures route with business context.', '');
     }
     renderRouter();
+    renderStatistics();
   }
 
   function severityRank(value) {
@@ -4432,6 +4521,7 @@
     var baseInputs = ['recipe-index', importedContextChannelId('sbom')];
     if (state.githubContextText) baseInputs.push('github-repository');
     if (state.depsDevContextText) baseInputs.push('deps-dev-advisories');
+    if (state.osvContextText) baseInputs.push('osv-vulnerability-api');
     if (!meta || (!vulnerabilityCount && !securityRefs)) return [];
     return [{
       id: 'exposure-sbom-' + sanitizeFilePart(meta.file_name || meta.format || 'sbom'),
@@ -4780,6 +4870,7 @@
       setExposureStatus('Build a bounded work queue from browser-local SARIF, SBOM, Snyk, and GitLab findings summaries, then load one item into Agents or capture it as a case.', '');
     }
     renderRouter();
+    renderStatistics();
   }
 
   function contributionInputChannelId(id) {
@@ -6611,6 +6702,8 @@
     if (localStorage.getItem(STORE.gitLabProjectContext) === 'true') ids.push('gitlab-project-context');
     if (localStorage.getItem(STORE.gitLabFindingsContext) === 'true') ids.push('gitlab-vulnerability-findings');
     if (localStorage.getItem(STORE.depsDevContext) === 'true') ids.push('deps-dev-advisories');
+    if (localStorage.getItem(STORE.osvContext) === 'true') ids.push('osv-vulnerability-api');
+    if (localStorage.getItem(STORE.mcpGatewayContext) === 'true') ids.push('mcp-http-gateway');
     if (localStorage.getItem(STORE.snykContext) === 'true') ids.push('snyk-issues-api');
     if (localStorage.getItem(STORE.confluenceContext) === 'true') ids.push('confluence-knowledge');
     if (localStorage.getItem(STORE.sarifContext) === 'true') ids.push(importedContextChannelId('sarif'));
@@ -6646,6 +6739,11 @@
 
   function setSelectValues(select, values) {
     if (!select || !select.options) return;
+    if (!select.multiple) {
+      var singleValue = (Array.isArray(values) ? values : [values]).filter(Boolean)[0];
+      if (singleValue) select.value = singleValue;
+      return;
+    }
     var wanted = {};
     (Array.isArray(values) ? values : [values]).filter(Boolean).forEach(function (value) {
       wanted[String(value)] = true;
@@ -7183,7 +7281,9 @@
       reset: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5v6h6M20 19v-6h-6M6.5 9A7 7 0 0 1 18 7.5M17.5 15A7 7 0 0 1 6 16.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       settings: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.8"/><path d="M19 12a7.8 7.8 0 0 0-.08-1.07l2.02-1.55-2-3.46-2.4.98a8.4 8.4 0 0 0-1.86-1.08L14.33 3h-4l-.35 2.82A8.4 8.4 0 0 0 8.12 6.9l-2.4-.98-2 3.46 2.02 1.55a7.6 7.6 0 0 0 0 2.14L3.72 14.62l2 3.46 2.4-.98c.56.45 1.18.82 1.86 1.08l.35 2.82h4l.35-2.82a8.4 8.4 0 0 0 1.86-1.08l2.4.98 2-3.46-2.02-1.55c.05-.35.08-.71.08-1.07Z" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"/></svg>',
       terminal: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4V5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m7 9 3 3-3 3M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      chart: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M9 16v-5M13 16V8M17 16v-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="m8.5 9.5 3-3 3 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".72"/></svg>',
       play: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 5.5v13l11-6.5-11-6.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+      spark: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m18 15 .8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8L18 15ZM5.5 14l.6 1.4 1.4.6-1.4.6-.6 1.4-.6-1.4-1.4-.6 1.4-.6.6-1.4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
       clock: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       plus: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
       trash: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M10 11v6M14 11v6M8 7l1-3h6l1 3M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -7194,6 +7294,7 @@
       cube: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="m4.5 7.8 7.5 4.3 7.5-4.3M12 12.1V21" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
       route: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM18 13a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" stroke="currentColor" stroke-width="1.8"/><path d="M9 8h3.5A3.5 3.5 0 0 1 16 11.5V13M15 16H8.5A3.5 3.5 0 0 1 5 12.5V11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
       database: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" stroke="currentColor" stroke-width="1.8"/></svg>',
+      download: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v10M8 10l4 4 4-4M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
       file: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3.5h8l4 4V20H6V3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3.5V8h4M9 12h6M9 15.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
     };
     return icons[name] || '';
@@ -7258,8 +7359,9 @@
 
   function providerRuntimeStatusText(provider) {
     var resolvedProvider = provider || state.provider;
+    var resolvedMode = getCredentialMode(resolvedProvider);
     var token = getToken(resolvedProvider);
-    if (token) return maskSessionToken(token);
+    if (token) return hasStoredProviderToken(resolvedProvider, resolvedMode) ? maskToken(token) : maskSessionToken(token);
     return 'No provider credential configured';
   }
 
@@ -7296,7 +7398,35 @@
   function getToken(provider, mode) {
     var resolvedProvider = provider || state.provider;
     var resolvedMode = mode || getCredentialMode(resolvedProvider);
-    return state.providerTokens[resolvedProvider + '.' + resolvedMode] || '';
+    var stateKey = resolvedProvider + '.' + resolvedMode;
+    var token = state.providerTokens[stateKey] || '';
+    var stored;
+    if (token) return token;
+    stored = localStorage.getItem(tokenKey(resolvedProvider, resolvedMode)) || '';
+    if (!stored && resolvedMode === 'api_key') {
+      stored = localStorage.getItem(legacyTokenKey(resolvedProvider)) || '';
+      if (stored) {
+        localStorage.setItem(tokenKey(resolvedProvider, 'api_key'), stored);
+        localStorage.removeItem(legacyTokenKey(resolvedProvider));
+      }
+    }
+    if (stored) state.providerTokens[stateKey] = stored;
+    return stored;
+  }
+
+  function hasStoredProviderToken(provider, mode) {
+    var resolvedProvider = provider || state.provider;
+    var resolvedMode = mode || getCredentialMode(resolvedProvider);
+    return !!localStorage.getItem(tokenKey(resolvedProvider, resolvedMode));
+  }
+
+  function rememberProviderToken(provider, mode, token) {
+    var resolvedProvider = provider || state.provider;
+    var resolvedMode = mode || getCredentialMode(resolvedProvider);
+    var value = trimText(token || '');
+    if (value) localStorage.setItem(tokenKey(resolvedProvider, resolvedMode), value);
+    else localStorage.removeItem(tokenKey(resolvedProvider, resolvedMode));
+    if (resolvedMode === 'api_key') localStorage.removeItem(legacyTokenKey(resolvedProvider));
   }
 
   function tokenLabel(provider, mode) {
@@ -7304,6 +7434,11 @@
     return (mode || getCredentialMode(provider || state.provider)) === 'oauth'
       ? cfg.label + ' OAuth bearer'
       : cfg.tokenLabel;
+  }
+
+  function tokenLabelWithArticle(provider, mode) {
+    var label = tokenLabel(provider, mode);
+    return (/^[aeiou]/i.test(label) ? 'an ' : 'a ') + label;
   }
 
   function oauthFieldKey(provider, field) {
@@ -7409,6 +7544,94 @@
     else localStorage.removeItem(key);
   }
 
+  var SETTINGS_AUTOSAVE_INTEGRATION_DATA = {
+    slackWebhook: 'slackWebhook',
+    pagerdutyRoutingKey: 'pagerDutyRoutingKey',
+    googleChatWebhook: 'googleChatWebhook',
+    tinesWebhook: 'tinesWebhook',
+    tinesWebhookAuthHeader: 'tinesWebhookAuthHeader',
+    tinesWebhookHeaders: 'tinesWebhookHeaders',
+    torqWebhook: 'torqWebhook',
+    torqWebhookAuthHeader: 'torqWebhookAuthHeader',
+    torqWebhookHeaders: 'torqWebhookHeaders',
+    xsoarBaseUrl: 'xsoarBaseUrl',
+    xsoarApiKeyId: 'xsoarApiKeyId',
+    xsoarApiKey: 'xsoarApiKey',
+    xsoarIncidentType: 'xsoarIncidentType',
+    xsoarCreateInvestigation: 'xsoarCreateInvestigation',
+    splunkSoarBaseUrl: 'splunkSoarBaseUrl',
+    splunkSoarToken: 'splunkSoarToken',
+    splunkSoarLabel: 'splunkSoarLabel',
+    splunkSoarContainerType: 'splunkSoarContainerType',
+    emailRecipient: 'emailRecipient',
+    smtpRelayUrl: 'smtpRelayUrl',
+    jiraBaseUrl: 'jiraBaseUrl',
+    jiraEmail: 'jiraEmail',
+    jiraToken: 'jiraToken',
+    jiraProject: 'jiraProject',
+    teamsWebhook: 'teamsWebhook',
+    servicenowBaseUrl: 'serviceNowBaseUrl',
+    servicenowTable: 'serviceNowTable',
+    servicenowToken: 'serviceNowToken',
+    linearApiKey: 'linearApiKey',
+    linearTeamId: 'linearTeamId',
+    githubCodeScanningState: 'githubCodeScanningStateFilter',
+    githubCodeScanningSeverity: 'githubCodeScanningSeverityFilter',
+    githubCodeScanningToolName: 'githubCodeScanningToolName',
+    githubCodeScanningPerPage: 'githubCodeScanningPerPage',
+    gitlabBaseUrl: 'gitLabBaseUrl',
+    gitlabProject: 'gitLabProject',
+    gitlabToken: 'gitLabToken',
+    gitlabLabels: 'gitLabLabels',
+    gitlabIssueType: 'gitLabIssueType',
+    azureDevopsBaseUrl: 'azureDevOpsBaseUrl',
+    azureDevopsOrganization: 'azureDevOpsOrganization',
+    azureDevopsProject: 'azureDevOpsProject',
+    azureDevopsRepository: 'azureDevOpsRepository',
+    azureDevopsWorkItemType: 'azureDevOpsWorkItemType',
+    azureDevopsToken: 'azureDevOpsToken',
+    snykApiBaseUrl: 'snykApiBaseUrl',
+    snykApiToken: 'snykApiToken',
+    snykOrgId: 'snykOrgId',
+    snykApiVersion: 'snykApiVersion',
+    confluenceBaseUrl: 'confluenceBaseUrl',
+    confluenceEmail: 'confluenceEmail',
+    confluenceToken: 'confluenceToken',
+    confluenceQuery: 'confluenceQuery',
+    confluenceSpaces: 'confluenceSpaces',
+    defenderXdrBaseUrl: 'defenderXdrBaseUrl',
+    defenderXdrToken: 'defenderXdrToken',
+    defenderXdrStatuses: 'defenderXdrStatuses',
+    defenderXdrSeverities: 'defenderXdrSeverities',
+    defenderXdrTop: 'defenderXdrTop',
+    sentinelBaseUrl: 'sentinelBaseUrl',
+    sentinelToken: 'sentinelToken',
+    sentinelSubscriptionId: 'sentinelSubscriptionId',
+    sentinelResourceGroup: 'sentinelResourceGroup',
+    sentinelWorkspaceName: 'sentinelWorkspaceName',
+    sentinelStatuses: 'sentinelStatuses',
+    sentinelSeverities: 'sentinelSeverities',
+    sentinelTop: 'sentinelTop',
+    sentinelApiVersion: 'sentinelApiVersion',
+    splunkHecUrl: 'splunkHecUrl',
+    splunkHecToken: 'splunkHecToken',
+    splunkIndex: 'splunkIndex',
+    splunkSourcetype: 'splunkSourceType',
+    elasticBaseUrl: 'elasticBaseUrl',
+    elasticApiKey: 'elasticApiKey',
+    elasticSpaceId: 'elasticSpaceId',
+    elasticOwner: 'elasticOwner',
+    genericWebhookUrl: 'genericWebhookUrl',
+    genericWebhookMethod: 'genericWebhookMethod',
+    genericWebhookAuthHeader: 'genericWebhookAuthHeader',
+    genericWebhookHeaders: 'genericWebhookHeaders',
+    mcpGatewayEndpoint: 'mcpGatewayEndpoint',
+    mcpGatewayToken: 'mcpGatewayToken',
+    mcpGatewayProfile: 'mcpGatewayProfile',
+    mcpGatewayTool: 'mcpGatewayTool',
+    mcpGatewayQuery: 'mcpGatewayQuery'
+  };
+
   function integrationFieldKey(name) {
     return {
       slackWebhook: STORE.slackWebhook,
@@ -7485,7 +7708,12 @@
       genericWebhookUrl: STORE.genericWebhookUrl,
       genericWebhookMethod: STORE.genericWebhookMethod,
       genericWebhookAuthHeader: STORE.genericWebhookAuthHeader,
-      genericWebhookHeaders: STORE.genericWebhookHeaders
+      genericWebhookHeaders: STORE.genericWebhookHeaders,
+      mcpGatewayEndpoint: STORE.mcpGatewayEndpoint,
+      mcpGatewayToken: STORE.mcpGatewayToken,
+      mcpGatewayProfile: STORE.mcpGatewayProfile,
+      mcpGatewayTool: STORE.mcpGatewayTool,
+      mcpGatewayQuery: STORE.mcpGatewayQuery
     }[name] || '';
   }
 
@@ -7500,6 +7728,97 @@
     var clean = collapseText(value || '');
     if (clean) localStorage.setItem(key, clean);
     else localStorage.removeItem(key);
+  }
+
+  function elementHasDataKey(element, key) {
+    return !!(element && element.dataset && Object.prototype.hasOwnProperty.call(element.dataset, key));
+  }
+
+  function settingsIntegrationFieldForElement(element) {
+    var keys = Object.keys(SETTINGS_AUTOSAVE_INTEGRATION_DATA);
+    for (var i = 0; i < keys.length; i += 1) {
+      if (elementHasDataKey(element, keys[i])) return SETTINGS_AUTOSAVE_INTEGRATION_DATA[keys[i]];
+    }
+    return '';
+  }
+
+  function persistProviderTokenFromSettings() {
+    var value = trimText(els.tokenInput && els.tokenInput.value);
+    var mode = getCredentialMode(state.provider);
+    if (!value) return false;
+    state.providerTokens[state.provider + '.' + mode] = value;
+    rememberProviderToken(state.provider, mode, value);
+    updateProviderSecretUI();
+    updateSettingsSummary();
+    setStatus(tokenLabel(state.provider, mode) + ' saved as a browser-local secret: ' + maskToken(value), 'ok');
+    scheduleProviderConnectivityChecks();
+    return true;
+  }
+
+  function persistGitHubTokenFromSettings() {
+    var value = trimText(els.githubTokenInput && els.githubTokenInput.value);
+    if (!value) return false;
+    localStorage.setItem(githubTokenKey(), value);
+    updateSettingsSummary();
+    setGitHubStatus('GitHub ' + githubCredentialLabel().toLowerCase() + ' autosaved in this browser: ' + maskToken(value), 'ok');
+    return true;
+  }
+
+  function persistOAuthSettingsFromElement(element) {
+    if (elementHasDataKey(element, 'oauthClientId')) setOAuthField(state.provider, 'clientId', element.value);
+    else if (elementHasDataKey(element, 'oauthScope')) setOAuthField(state.provider, 'scope', element.value);
+    else if (elementHasDataKey(element, 'oauthAuthUrl')) setOAuthField(state.provider, 'authUrl', element.value);
+    else if (elementHasDataKey(element, 'oauthTokenUrl')) setOAuthField(state.provider, 'tokenUrl', element.value);
+    else return false;
+    updateOAuthUI();
+    updateSettingsSummary();
+    return true;
+  }
+
+  function persistGitHubOAuthSettingsFromElement(element) {
+    if (elementHasDataKey(element, 'githubOauthClientId')) setGitHubOAuthField('clientId', element.value);
+    else if (elementHasDataKey(element, 'githubOauthScope')) setGitHubOAuthField('scope', element.value);
+    else if (elementHasDataKey(element, 'githubOauthAuthUrl')) setGitHubOAuthField('authUrl', element.value);
+    else if (elementHasDataKey(element, 'githubOauthTokenUrl')) setGitHubOAuthField('tokenUrl', element.value);
+    else return false;
+    updateGitHubAuthUI();
+    updateSettingsSummary();
+    return true;
+  }
+
+  function persistGitHubRepositoryFromSettings() {
+    state.githubRepoUrl = collapseText(els.githubRepoInput && els.githubRepoInput.value);
+    if (state.githubRepoUrl) localStorage.setItem(STORE.githubRepoUrl, state.githubRepoUrl);
+    else localStorage.removeItem(STORE.githubRepoUrl);
+    updateSettingsSummary();
+    updateDepsDevUI();
+    updateOsvUI();
+    setGitHubStatus(state.githubRepoUrl ? ('Repository autosaved in this browser: ' + state.githubRepoUrl) : 'Repository cleared from this browser.', state.githubRepoUrl ? 'ok' : '');
+    return true;
+  }
+
+  function persistSettingsInputToBrowser(element) {
+    var field;
+    if (!element || element.readOnly || element.type === 'file') return false;
+    if (element === els.tokenInput) return persistProviderTokenFromSettings();
+    if (element === els.githubTokenInput) return persistGitHubTokenFromSettings();
+    if (element === els.githubRepoInput) return persistGitHubRepositoryFromSettings();
+    if (persistOAuthSettingsFromElement(element)) return true;
+    if (persistGitHubOAuthSettingsFromElement(element)) return true;
+    field = settingsIntegrationFieldForElement(element);
+    if (field) {
+      setIntegrationField(field, element.value);
+      updateSettingsSummary();
+      return true;
+    }
+    return false;
+  }
+
+  function handleSettingsAutosave(event) {
+    var target = event && event.target;
+    if (!target || !els.settingsContent || !els.settingsContent.contains(target)) return;
+    if (!/^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName || '')) return;
+    persistSettingsInputToBrowser(target);
   }
 
   function trimText(value) {
@@ -7663,7 +7982,7 @@
     var tokenUrl = getOAuthField(provider, 'tokenUrl');
     var scope = getOAuthField(provider, 'scope');
     if (!clientId || !authUrl || !tokenUrl) {
-      var missing = cfg.label + ' browser sign-in is not configured for this site yet. Paste an OAuth bearer above, or ask the site owner to publish OAuth app details.';
+      var missing = cfg.label + ' OAuth app details are required before browser sign-in. Add the client ID, authorization URL, and token URL in OAuth app setup below.';
       setOAuthStatus(missing, 'error');
       setStatus(missing, 'error');
       return;
@@ -7707,7 +8026,7 @@
     url.searchParams.set('code_challenge_method', 'S256');
     if (scope) url.searchParams.set('scope', scope);
 
-    var message = 'Continue ' + cfg.label + ' sign-in in the popup. The bearer token will be held only for this page session.';
+    var message = 'Continue ' + cfg.label + ' sign-in in the popup. The bearer token stays browser-local and is session-only unless you save it.';
     setOAuthStatus(message, '');
     setStatus('Opening ' + cfg.label + ' sign-in...', '');
     if (popup && !popup.closed) {
@@ -7860,8 +8179,8 @@
 
   function maskToken(token) {
     if (!token) return 'No token saved';
-    if (token.length <= 8) return 'Token saved';
-    return 'Saved locally: ' + token.slice(0, 4) + '...' + token.slice(-4);
+    if (token.length <= 8) return 'Saved in this browser';
+    return 'Saved in this browser: ' + token.slice(0, 4) + '...' + token.slice(-4);
   }
 
   function maskSessionToken(token) {
@@ -7924,6 +8243,36 @@
 
   function setDepsDevStatus(text, kind, detail) {
     setElementStatus(els.depsDevStatus, text, kind, detail, 'deps-dev-advisories');
+  }
+
+  function setOsvStatus(text, kind, detail) {
+    setElementStatus(els.osvStatus, text, kind, detail, 'osv-vulnerability-api');
+  }
+
+  function setMcpGatewayStatus(text, kind, detail) {
+    setElementStatus(els.mcpGatewayStatus, text, kind, detail, 'mcp-http-gateway');
+  }
+
+  function osvFailureStatus(detail) {
+    var text = collapseText(detail);
+    if (/failed to fetch|content security policy|csp|cors|network/i.test(text)) {
+      return 'OSV.dev fetch was blocked by browser policy, CORS, or network.';
+    }
+    return 'OSV.dev check failed. Hover for details.';
+  }
+
+  function mcpGatewayFailureStatus(detail) {
+    var text = collapseText(detail);
+    if (/missing required authorization header|authorization header|401|unauthorized/i.test(text)) {
+      return 'MCP gateway needs a bearer token.';
+    }
+    if (/403|forbidden|insufficient.*scope/i.test(text)) {
+      return 'MCP gateway rejected the bearer token or scope.';
+    }
+    if (/failed to fetch|content security policy|csp|cors|network/i.test(text)) {
+      return 'MCP gateway fetch was blocked by browser policy, CORS, or network.';
+    }
+    return 'MCP gateway context failed. Hover for details.';
   }
 
   function setElementStatus(element, text, kind, detail, sourceId) {
@@ -8120,7 +8469,7 @@
     var last = state.connectivity[provider];
     if (!last) {
       return cfg.label + ' connectivity: not checked yet. Credential source: ' +
-        (token ? 'page-session ' + credentialModeLabel(provider).toLowerCase() : 'none') +
+        (token ? (hasStoredProviderToken(provider) ? 'browser-local secret ' : 'page-session ') + credentialModeLabel(provider).toLowerCase() : 'none') +
         ' Status code: n/a.';
     }
     if (last.checking) {
@@ -8435,6 +8784,12 @@
     return 'https://api.deps.dev' + safePath;
   }
 
+  function osvApiUrl(path) {
+    var safePath = String(path || '');
+    if (!safePath.startsWith('/')) safePath = '/' + safePath;
+    return 'https://api.osv.dev' + safePath;
+  }
+
   function githubHeaders() {
     var headers = {
       'Accept': 'application/vnd.github+json',
@@ -8518,6 +8873,36 @@
         // Keep the generic status detail.
       }
       throw new Error('deps.dev API returned ' + statusLine(response.status, response.statusText) + ': ' + detail);
+    }
+    return response.json();
+  }
+
+  async function osvFetch(path, requestOptions) {
+    requestOptions = requestOptions || {};
+    var options = {
+      method: requestOptions.method || 'GET',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: Object.assign({ 'Accept': 'application/json' }, requestOptions.headers || {})
+    };
+    if (typeof requestOptions.body !== 'undefined') options.body = requestOptions.body;
+    return fetch(osvApiUrl(path), options);
+  }
+
+  async function osvJson(path, requestOptions, allowMissing) {
+    requestOptions = requestOptions || {};
+    var response = await osvFetch(path, requestOptions);
+    if (allowMissing && response.status === 404) return null;
+    if (!response.ok) {
+      var detail = response.statusText || 'OSV.dev request failed';
+      try {
+        var text = await response.text();
+        var data = JSON.parse(text);
+        detail = data.error || data.message || text || detail;
+      } catch (e) {
+        // Keep the generic status detail.
+      }
+      throw new Error('OSV.dev API returned ' + statusLine(response.status, response.statusText) + ': ' + detail);
     }
     return response.json();
   }
@@ -8869,6 +9254,341 @@
     }
 
     return lines.join('\n').slice(0, DEPS_DEV_MAX_CONTEXT_CHARS);
+  }
+
+  function osvSeverityText(vuln) {
+    var severity = vuln && Array.isArray(vuln.severity) ? vuln.severity : [];
+    var cvss = severity.map(function (item) {
+      return item && item.score ? String(item.type || 'score') + ' ' + item.score : '';
+    }).filter(Boolean);
+    if (cvss.length) return cvss.slice(0, 3).join('; ');
+    if (vuln && Array.isArray(vuln.database_specific && vuln.database_specific.severity)) {
+      return vuln.database_specific.severity.slice(0, 3).join(', ');
+    }
+    return '';
+  }
+
+  function osvAliasText(vuln) {
+    return vuln && Array.isArray(vuln.aliases) ? vuln.aliases.filter(Boolean).slice(0, 5).join(', ') : '';
+  }
+
+  function osvBatchQueries(packages) {
+    return packages.map(function (pkg) {
+      return { package: { purl: pkg.purl } };
+    });
+  }
+
+  async function fetchOsvVulnerabilityContext(fullName) {
+    var sbomPackages = [];
+    var sbomError = '';
+    try {
+      sbomPackages = await fetchGitHubSbomPackages(fullName);
+    } catch (error) {
+      sbomError = error && error.message ? error.message : 'Dependency graph SBOM request failed.';
+    }
+
+    var packages = sbomPackages.slice(0, OSV_MAX_PACKAGES);
+    var vulnerable = [];
+    var vulnIds = [];
+    var vulnDetails = {};
+    var checked = packages.map(function (pkg) {
+      return pkg.system + ':' + pkg.name + '@' + pkg.version;
+    });
+
+    if (packages.length) {
+      var batch = await osvJson('/v1/querybatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queries: osvBatchQueries(packages) })
+      });
+      var results = batch && Array.isArray(batch.results) ? batch.results : [];
+      results.forEach(function (result, index) {
+        var vulns = result && Array.isArray(result.vulns) ? result.vulns : [];
+        var ids = vulns.map(function (vuln) { return vuln && vuln.id ? vuln.id : ''; }).filter(Boolean);
+        if (!ids.length) return;
+        vulnerable.push({ pkg: packages[index], vulnIds: ids.slice(0, 6) });
+        ids.forEach(function (id) {
+          if (vulnIds.indexOf(id) === -1 && vulnIds.length < OSV_MAX_VULNS) vulnIds.push(id);
+        });
+      });
+    }
+
+    for (var i = 0; i < vulnIds.length; i++) {
+      try {
+        vulnDetails[vulnIds[i]] = await osvJson('/v1/vulns/' + encodeURIComponent(vulnIds[i]), {}, true);
+      } catch (error) {
+        vulnDetails[vulnIds[i]] = null;
+      }
+    }
+
+    var lines = [
+      'OSV.dev vulnerability context for public GitHub repository: ' + fullName,
+      'Sources: GitHub Dependency Graph SBOM when accessible; OSV.dev v1 batch package vulnerability query.',
+      'Limitations: missing SBOM, disabled dependency graph, private repos without GitHub auth, rate limits, unsupported ecosystems, and version-range differences can make results partial.'
+    ];
+
+    if (sbomError) lines.push('GitHub dependency graph SBOM was unavailable: ' + sbomError);
+    else lines.push('GitHub dependency graph SBOM packages returned: ' + sbomPackages.length + '. OSV package versions checked: ' + checked.length + '.');
+
+    lines.push('Package versions sampled:');
+    if (checked.length) checked.slice(0, 12).forEach(function (item) { lines.push('- ' + item); });
+    else lines.push('- none; no package versions were available for OSV checks.');
+
+    lines.push('OSV vulnerabilities found for sampled package versions:');
+    if (vulnerable.length) {
+      vulnerable.forEach(function (hit) {
+        var details = hit.vulnIds.map(function (id) {
+          var detail = vulnDetails[id];
+          var summary = detail && detail.summary ? collapseText(detail.summary) : '';
+          var aliases = osvAliasText(detail);
+          var severity = osvSeverityText(detail);
+          return [id, summary, aliases ? 'aliases=' + aliases : '', severity].filter(Boolean).join(' | ');
+        });
+        lines.push('- ' + hit.pkg.system + ':' + hit.pkg.name + '@' + hit.pkg.version + ' -> ' + details.join('; '));
+      });
+    } else {
+      lines.push('- none returned for the sampled package versions.');
+    }
+
+    return lines.join('\n').slice(0, OSV_MAX_CONTEXT_CHARS);
+  }
+
+  function mcpGatewayProfileDefaults(profile) {
+    var key = collapseText(profile || '').toLowerCase();
+    var defaults = {
+      github: {
+        endpoint: 'https://api.githubcopilot.com/mcp/',
+        tool: '',
+        query: ''
+      },
+      semgrep: {
+        endpoint: 'https://docs.semgrep.dev/mcp',
+        tool: '',
+        query: ''
+      },
+      cloudflare: {
+        endpoint: 'https://mcp.cloudflare.com/mcp',
+        tool: '',
+        query: ''
+      },
+      docker: {
+        endpoint: 'http://localhost:8811/mcp',
+        tool: '',
+        query: ''
+      },
+      custom: {
+        endpoint: '',
+        tool: '',
+        query: ''
+      }
+    };
+    return defaults[key] || defaults.custom;
+  }
+
+  function currentMcpGatewayEndpoint() {
+    return collapseText(getIntegrationField('mcpGatewayEndpoint'));
+  }
+
+  function currentMcpGatewayProfile() {
+    return collapseText(getIntegrationField('mcpGatewayProfile')) || 'custom';
+  }
+
+  function currentMcpGatewayTool() {
+    return collapseText(getIntegrationField('mcpGatewayTool'));
+  }
+
+  function currentMcpGatewayQuery(fallback) {
+    return collapseText(getIntegrationField('mcpGatewayQuery')) || collapseText(fallback || '') || collapseText(currentGitHubRepositoryInput()) || document.title || 'security remediation context';
+  }
+
+  function isReadOnlyMcpToolName(name) {
+    return /^(search|query|list|get|read|find|lookup|fetch|describe|inspect|analyze|scan|retrieve|resolve)[a-z0-9_.:-]*$/i.test(collapseText(name));
+  }
+
+  function parseJsonRpcResponse(text) {
+    var raw = String(text || '').trim();
+    var lines;
+    var jsonLine;
+    if (!raw) return null;
+    if (raw.charAt(0) === '{' || raw.charAt(0) === '[') return JSON.parse(raw);
+    lines = raw.split(/\r?\n/).map(function (line) { return line.trim(); });
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].indexOf('data:') !== 0) continue;
+      jsonLine = lines[i].slice(5).trim();
+      if (!jsonLine || jsonLine === '[DONE]') continue;
+      try {
+        return JSON.parse(jsonLine);
+      } catch (error) {
+        // Continue through event-stream frames until a JSON-RPC payload appears.
+      }
+    }
+    return JSON.parse(raw);
+  }
+
+  async function mcpGatewayRpc(endpoint, token, session, method, params, id) {
+    var headers = {
+      'Accept': 'application/json, text/event-stream',
+      'Content-Type': 'application/json'
+    };
+    if (token) headers.Authorization = /^Bearer\s+/i.test(token) ? token : ('Bearer ' + token);
+    if (session.value) headers['Mcp-Session-Id'] = session.value;
+    var response = await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: headers,
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: id,
+        method: method,
+        params: params || {}
+      })
+    });
+    if (response.headers.get('Mcp-Session-Id')) session.value = response.headers.get('Mcp-Session-Id');
+    if (!response.ok) {
+      var errorText = '';
+      try { errorText = await response.text(); } catch (e) { errorText = ''; }
+      throw new Error('MCP gateway returned ' + statusLine(response.status, response.statusText) + (errorText ? ': ' + collapseText(errorText).slice(0, 240) : ''));
+    }
+    var parsed = parseJsonRpcResponse(await response.text());
+    if (parsed && parsed.error) {
+      throw new Error('MCP ' + method + ' failed: ' + collapseText(parsed.error.message || JSON.stringify(parsed.error)).slice(0, 240));
+    }
+    return parsed && typeof parsed.result !== 'undefined' ? parsed.result : parsed;
+  }
+
+  async function mcpGatewayNotify(endpoint, token, session, method, params) {
+    var headers = {
+      'Accept': 'application/json, text/event-stream',
+      'Content-Type': 'application/json'
+    };
+    if (token) headers.Authorization = /^Bearer\s+/i.test(token) ? token : ('Bearer ' + token);
+    if (session.value) headers['Mcp-Session-Id'] = session.value;
+    await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'omit',
+      cache: 'no-store',
+      headers: headers,
+      body: JSON.stringify({ jsonrpc: '2.0', method: method, params: params || {} })
+    });
+  }
+
+  function mcpToolList(result) {
+    if (result && Array.isArray(result.tools)) return result.tools;
+    if (Array.isArray(result)) return result;
+    return [];
+  }
+
+  function chooseMcpTool(tools, configured) {
+    var target = collapseText(configured);
+    var preferred;
+    if (target) {
+      preferred = tools.find(function (tool) { return collapseText(tool && tool.name) === target; }) || { name: target };
+      if (!isReadOnlyMcpToolName(preferred.name)) {
+        throw new Error('The configured MCP tool "' + preferred.name + '" does not look read-only. Use a search, list, get, read, lookup, or query tool.');
+      }
+      return preferred;
+    }
+    preferred = tools.find(function (tool) {
+      return tool && isReadOnlyMcpToolName(tool.name) && /search|query|lookup|find|list|get|read/i.test(tool.name);
+    });
+    if (!preferred) throw new Error('No read-only-looking MCP tool was found. Configure an explicit read-only tool name.');
+    return preferred;
+  }
+
+  function mcpToolArguments(tool, query) {
+    var schema = tool && tool.inputSchema && typeof tool.inputSchema === 'object' ? tool.inputSchema : {};
+    var properties = schema.properties && typeof schema.properties === 'object' ? schema.properties : {};
+    var required = Array.isArray(schema.required) ? schema.required : [];
+    var args = {};
+    var repo = collapseText(currentGitHubRepositoryInput());
+    var assignedQuery = false;
+    Object.keys(properties).forEach(function (key) {
+      var lower = key.toLowerCase();
+      var prop = properties[key] || {};
+      if (/^(query|q|search|searchquery|text|prompt|keywords)$/.test(lower)) {
+        args[key] = query;
+        assignedQuery = true;
+      } else if (/^(repository|repo|ownerrepo|owner_repo|repo_url|repository_url)$/.test(lower) && repo) {
+        args[key] = repo;
+      } else if (/^(limit|max|top|topk|top_k|per_page|page_size)$/.test(lower)) {
+        args[key] = 5;
+      } else if (required.indexOf(key) !== -1 && prop.type === 'string' && !assignedQuery) {
+        args[key] = query;
+        assignedQuery = true;
+      }
+    });
+    if (!Object.keys(args).length) args.query = query;
+    return args;
+  }
+
+  function mcpToolContentText(result) {
+    var content = result && Array.isArray(result.content) ? result.content : [];
+    var parts = [];
+    content.forEach(function (item) {
+      if (!item) return;
+      if (item.type === 'text' && item.text) parts.push(item.text);
+      else if (item.text) parts.push(item.text);
+      else if (item.type !== 'image') parts.push(JSON.stringify(item).slice(0, 1200));
+    });
+    if (parts.length) return parts.join('\n');
+    return collapseText(JSON.stringify(result || {}));
+  }
+
+  async function fetchMcpGatewayContext(queryText) {
+    var endpoint = currentMcpGatewayEndpoint();
+    var token = trimText(getIntegrationField('mcpGatewayToken'));
+    var query = currentMcpGatewayQuery(queryText);
+    var session = { value: '' };
+    var tools = [];
+    var tool;
+    var rpcId = 1;
+    if (!endpoint) throw new Error('MCP HTTP gateway endpoint is required.');
+    if (!/^https?:\/\//i.test(endpoint)) throw new Error('MCP HTTP gateway endpoint must start with http:// or https://.');
+
+    try {
+      await mcpGatewayRpc(endpoint, token, session, 'initialize', {
+        protocolVersion: MCP_GATEWAY_PROTOCOL_VERSION,
+        capabilities: {},
+        clientInfo: { name: 'security-recipes-ai-chatbot', version: '1.0.0' }
+      }, rpcId++);
+      await mcpGatewayNotify(endpoint, token, session, 'notifications/initialized', {});
+    } catch (error) {
+      // Some gateways are fronted by adapters that accept tools/list directly.
+    }
+
+    try {
+      tools = mcpToolList(await mcpGatewayRpc(endpoint, token, session, 'tools/list', {}, rpcId++));
+    } catch (error) {
+      if (!currentMcpGatewayTool()) throw error;
+    }
+
+    tool = chooseMcpTool(tools, currentMcpGatewayTool());
+    var result = await mcpGatewayRpc(endpoint, token, session, 'tools/call', {
+      name: tool.name,
+      arguments: mcpToolArguments(tool, query)
+    }, rpcId++);
+    var text = mcpToolContentText(result);
+    return {
+      loadedAt: nowIso(),
+      meta: {
+        endpoint: endpoint,
+        profile: currentMcpGatewayProfile(),
+        tool_name: tool.name,
+        query: query,
+        tool_count: tools.length
+      },
+      text: [
+        'MCP HTTP gateway context.',
+        'Profile: ' + currentMcpGatewayProfile() + '.',
+        'Endpoint: ' + endpoint + '.',
+        'Tool: ' + tool.name + '.',
+        'Query: ' + query + '.',
+        'Security boundary: browser called one read-only-looking MCP tool through a configured HTTP endpoint; stdio/local MCP servers are not launched by this page.',
+        '',
+        text
+      ].join('\n').slice(0, MCP_GATEWAY_MAX_CONTEXT_CHARS)
+    };
   }
 
   async function fetchGitHubRepoContext(fullName) {
@@ -9246,6 +9966,65 @@
     }
     renderControlPlane();
     renderRouter();
+  }
+
+  function updateOsvUI() {
+    if (els.includeOsv) els.includeOsv.checked = state.includeOsv;
+    updateSettingsSummary();
+    if (state.osvContextLoadedAt && state.osvContextText) {
+      setOsvStatus('OSV.dev vulnerability context ready for ' + state.githubRepoUrl + '. Checked ' + formatTimestamp(state.osvContextLoadedAt) + '.', 'ok');
+    } else if (state.includeOsv && state.githubRepoUrl) {
+      setOsvStatus('OSV.dev enabled. Dependency Graph SBOM will be checked when GitHub context is loaded or sent.', '');
+    } else if (state.includeOsv) {
+      setOsvStatus('OSV.dev enabled. Paste a public GitHub repository URL or owner/repo first.', '');
+    } else {
+      setOsvStatus('Optional: check public GitHub Dependency Graph SBOM package versions against OSV.dev vulnerabilities.', '');
+    }
+    renderControlPlane();
+    renderRouter();
+  }
+
+  function updateMcpGatewayUI() {
+    if (els.includeMcpGateway) els.includeMcpGateway.checked = state.includeMcpGateway;
+    if (els.mcpGatewayEndpoint) els.mcpGatewayEndpoint.value = currentMcpGatewayEndpoint();
+    if (els.mcpGatewayProfile) els.mcpGatewayProfile.value = currentMcpGatewayProfile();
+    if (els.mcpGatewayToken) els.mcpGatewayToken.value = getIntegrationField('mcpGatewayToken');
+    if (els.mcpGatewayTool) els.mcpGatewayTool.value = currentMcpGatewayTool();
+    if (els.mcpGatewayQuery) els.mcpGatewayQuery.value = getIntegrationField('mcpGatewayQuery');
+    updateSettingsSummary();
+    if (state.mcpGatewayContextLoadedAt && state.mcpGatewayContextMeta) {
+      setMcpGatewayStatus('MCP gateway ready from ' + state.mcpGatewayContextMeta.tool_name + '. Checked ' + formatTimestamp(state.mcpGatewayContextLoadedAt) + '.', 'ok');
+    } else if (state.includeMcpGateway && currentMcpGatewayEndpoint()) {
+      setMcpGatewayStatus('MCP gateway enabled. Load a bounded read-only tool response when needed.', '');
+    } else if (state.includeMcpGateway) {
+      setMcpGatewayStatus('MCP gateway enabled. Add an HTTP endpoint before loading context.', '');
+    } else {
+      setMcpGatewayStatus('Optional: connect a CORS-enabled MCP HTTP gateway for read-only context.', '');
+    }
+    renderControlPlane();
+    renderRouter();
+  }
+
+  function saveMcpGatewaySettingsFromUI() {
+    setIntegrationField('mcpGatewayProfile', els.mcpGatewayProfile && els.mcpGatewayProfile.value);
+    setIntegrationField('mcpGatewayEndpoint', els.mcpGatewayEndpoint && els.mcpGatewayEndpoint.value);
+    setIntegrationField('mcpGatewayToken', els.mcpGatewayToken && els.mcpGatewayToken.value);
+    setIntegrationField('mcpGatewayTool', els.mcpGatewayTool && els.mcpGatewayTool.value);
+    setIntegrationField('mcpGatewayQuery', els.mcpGatewayQuery && els.mcpGatewayQuery.value);
+  }
+
+  function applyMcpGatewayProfileDefaults() {
+    var profile = els.mcpGatewayProfile ? els.mcpGatewayProfile.value : currentMcpGatewayProfile();
+    var defaults = mcpGatewayProfileDefaults(profile);
+    if (els.mcpGatewayEndpoint && !collapseText(els.mcpGatewayEndpoint.value) && defaults.endpoint) {
+      els.mcpGatewayEndpoint.value = defaults.endpoint;
+    }
+    if (els.mcpGatewayTool && !collapseText(els.mcpGatewayTool.value) && defaults.tool) {
+      els.mcpGatewayTool.value = defaults.tool;
+    }
+    if (els.mcpGatewayQuery && !collapseText(els.mcpGatewayQuery.value) && defaults.query) {
+      els.mcpGatewayQuery.value = defaults.query;
+    }
   }
 
   function normalizeGitLabProjectReference(value) {
@@ -11252,6 +12031,118 @@
     return state.depsDevContextText;
   }
 
+  async function prepareOsvContext() {
+    state.osvContextText = '';
+    state.osvContextLoadedAt = '';
+    if (!state.includeOsv) return '';
+    var startedAt = Date.now();
+
+    var parsed = parseGitHubRepository(currentGitHubRepositoryInput());
+    if (!parsed) {
+      state.osvContextText = 'OSV.dev vulnerability context requested, but no valid public GitHub repository URL or owner/repo was provided.';
+      setOsvStatus('Enter a public GitHub repository before checking OSV.dev.', 'error');
+      recordSourceActivity(
+        'osv-vulnerability-api',
+        'error',
+        'OSV.dev check failed',
+        'A valid public GitHub repository is still required before vulnerability context can run.',
+        'OSV.dev uses the selected GitHub repository as the browser-side package source.',
+        { eventType: 'osv_failed', durationMs: Date.now() - startedAt, badges: ['setup required'] }
+      );
+      return state.osvContextText;
+    }
+
+    state.githubRepoUrl = parsed.fullName;
+    localStorage.setItem(STORE.githubRepoUrl, state.githubRepoUrl);
+    if (els.githubRepoInput) els.githubRepoInput.value = state.githubRepoUrl;
+
+    setOsvStatus('Checking GitHub Dependency Graph SBOM and OSV.dev for ' + state.githubRepoUrl + '...', '');
+    try {
+      state.osvContextText = await fetchOsvVulnerabilityContext(state.githubRepoUrl);
+      state.osvContextLoadedAt = nowIso();
+      setOsvStatus('OSV.dev vulnerability context ready for ' + state.githubRepoUrl + '.', 'ok');
+      updateOsvUI();
+      recordSourceActivity(
+        'osv-vulnerability-api',
+        'ok',
+        'OSV.dev vulnerability context refreshed',
+        'OSV.dev vulnerability context is ready for ' + state.githubRepoUrl + '.',
+        'GitHub Dependency Graph SBOM and OSV.dev vulnerability context were refreshed in this browser.',
+        { eventType: 'osv_loaded', durationMs: Date.now() - startedAt, badges: [state.githubRepoUrl] }
+      );
+    } catch (error) {
+      var detail = error && error.message ? error.message : 'unknown OSV.dev error';
+      state.osvContextText = 'OSV.dev vulnerability context requested, but loading failed: ' + detail;
+      setOsvStatus(osvFailureStatus(detail), 'error', detail);
+      recordSourceActivity(
+        'osv-vulnerability-api',
+        'error',
+        'OSV.dev refresh failed',
+        detail,
+        'OSV.dev vulnerability context did not reach a usable browser-local ready state.',
+        { eventType: 'osv_failed', durationMs: Date.now() - startedAt, badges: [state.githubRepoUrl || 'osv.dev'] }
+      );
+    }
+    updateSettingsSummary();
+    updateAgentMarketplacePreview();
+    return state.osvContextText;
+  }
+
+  function clearMcpGatewayContext(options) {
+    options = options || {};
+    state.mcpGatewayContextText = '';
+    state.mcpGatewayContextLoadedAt = '';
+    state.mcpGatewayContextMeta = null;
+    if (!options.keepSettings) {
+      ['mcpGatewayEndpoint', 'mcpGatewayToken', 'mcpGatewayProfile', 'mcpGatewayTool', 'mcpGatewayQuery'].forEach(function (field) {
+        setIntegrationField(field, '');
+      });
+      localStorage.removeItem(STORE.mcpGatewayContext);
+      state.includeMcpGateway = false;
+    }
+  }
+
+  async function prepareMcpGatewayContext(queryText) {
+    state.mcpGatewayContextText = '';
+    state.mcpGatewayContextLoadedAt = '';
+    state.mcpGatewayContextMeta = null;
+    if (!state.includeMcpGateway) return '';
+    var startedAt = Date.now();
+
+    setMcpGatewayStatus('Loading MCP gateway context...', '');
+    try {
+      var result = await fetchMcpGatewayContext(queryText || (els.prompt && els.prompt.value) || (els.agentScope && els.agentScope.value) || '');
+      state.mcpGatewayContextText = result.text;
+      state.mcpGatewayContextLoadedAt = result.loadedAt;
+      state.mcpGatewayContextMeta = result.meta;
+      setMcpGatewayStatus('MCP gateway context ready from ' + result.meta.tool_name + '.', 'ok');
+      updateMcpGatewayUI();
+      recordSourceActivity(
+        'mcp-http-gateway',
+        'ok',
+        'MCP gateway context refreshed',
+        'Read-only MCP tool ' + result.meta.tool_name + ' returned bounded context.',
+        'A configured MCP HTTP gateway supplied context for the current browser run.',
+        { eventType: 'mcp_gateway_loaded', durationMs: Date.now() - startedAt, badges: [result.meta.profile, result.meta.tool_name] }
+      );
+    } catch (error) {
+      var detail = error && error.message ? error.message : 'unknown MCP gateway error';
+      state.mcpGatewayContextText = 'MCP gateway context requested, but loading failed: ' + detail;
+      setMcpGatewayStatus(mcpGatewayFailureStatus(detail), 'error', detail);
+      recordSourceActivity(
+        'mcp-http-gateway',
+        'error',
+        'MCP gateway refresh failed',
+        detail,
+        'MCP HTTP gateway context did not reach a usable browser-local ready state.',
+        { eventType: 'mcp_gateway_failed', durationMs: Date.now() - startedAt, badges: [currentMcpGatewayProfile()] }
+      );
+    }
+    updateSettingsSummary();
+    updateAgentMarketplacePreview();
+    return state.mcpGatewayContextText;
+  }
+
   async function prepareGitLabProjectContext() {
     state.gitLabProjectContextText = '';
     state.gitLabProjectContextLoadedAt = '';
@@ -12793,6 +13684,18 @@
       parts.push(state.depsDevContextText || 'deps.dev dependency intelligence enabled but no dependency context was loaded.');
     }
 
+    if (state.includeOsv) {
+      parts.push('OSV.dev vulnerability context is enabled. Treat it as evidence from GitHub Dependency Graph SBOM package URLs and OSV.dev package vulnerability data. Call out missing SBOM data, unsupported ecosystems, version-range limitations, auth limits, rate limits, and partial sampled checks.');
+      if (state.osvContextLoadedAt) parts.push('OSV.dev vulnerability context checked: ' + formatTimestamp(state.osvContextLoadedAt));
+      parts.push(state.osvContextText || 'OSV.dev vulnerability context enabled but no vulnerability context was loaded.');
+    }
+
+    if (state.includeMcpGateway) {
+      parts.push('MCP HTTP gateway context is enabled. Treat it as bounded output from one configured read-only-looking MCP tool through a browser HTTP gateway. Do not assume arbitrary MCP tools were available, do not claim to have used stdio MCP, and call out endpoint, auth, CORS, tool-selection, and scope limits.');
+      if (state.mcpGatewayContextLoadedAt) parts.push('MCP gateway context checked: ' + formatTimestamp(state.mcpGatewayContextLoadedAt));
+      parts.push(state.mcpGatewayContextText || 'MCP HTTP gateway context is enabled but no gateway response was loaded.');
+    }
+
     if (state.includeSnyk) {
       parts.push('Snyk issues API context is enabled. Treat it as bounded organization issue data from the Snyk REST API. Call out rate limits, region mismatches, auth gaps, project-scope limitations, and partial first-page sampling.');
       if (state.snykContextLoadedAt) parts.push('Snyk issues context checked: ' + formatTimestamp(state.snykContextLoadedAt));
@@ -13102,7 +14005,7 @@
   }
 
   async function callServerChat(provider, model, system, history, options) {
-    throw new Error('Server-held provider keys are disabled. Paste a provider API key for this page session; requests are proxied only for the current call.');
+    throw new Error('Server-held provider keys are disabled. Paste a provider API key for this browser; the same-origin relay is pass-through only and does not store keys.');
   }
 
   async function sendToProvider(userText, options) {
@@ -13114,7 +14017,7 @@
     if (!history.length && userText) history = [{ role: 'user', content: userText }];
     var system = options.system || buildSystemPrompt(userText);
 
-    if (!token) throw new Error('Paste a ' + tokenLabel(provider) + ' in Settings before sending. The key is held only in page memory and proxied through the site for this request.');
+    if (!token) throw new Error('Paste ' + tokenLabelWithArticle(provider) + ' in Settings before sending. You can keep it session-only or save it as a browser-local secret. ' + providerTransportNote(provider));
 
     if (provider === 'openai') return callOpenAI(token, model, system, history, options);
     if (provider === 'grok') return callGrok(token, model, system, history, options);
@@ -13218,7 +14121,7 @@
         statusText: '',
         detail: 'No token supplied for this page session.'
       });
-      if (!options.silent) setStatus('Save a ' + tokenLabel(provider) + ' before checking connectivity.', 'error');
+      if (!options.silent) setStatus('Save ' + tokenLabelWithArticle(provider) + ' before checking connectivity.', 'error');
       return;
     }
 
@@ -13447,6 +14350,7 @@
     saveActivityRecords();
     if (searchPanelVisible()) refreshSearchSurface({ preserveStatus: true });
     if (els.reportPreviewMeta) renderReportWorkspace();
+    renderStatistics();
   }
 
   function clearActivityRecords() {
@@ -13533,6 +14437,48 @@
     renderTerminal();
   }
 
+  function normalizeAgentConsoleRecords(records) {
+    return (Array.isArray(records) ? records : []).map(function (record) {
+      return {
+        role: ['command', 'output', 'error', 'system'].indexOf(record && record.role) !== -1 ? record.role : 'output',
+        text: String(record && record.text || '').slice(0, AGENT_CONSOLE_MAX_CHARS),
+        createdAt: record && record.createdAt ? String(record.createdAt) : nowIso()
+      };
+    }).filter(function (record) {
+      return collapseText(record.text);
+    }).slice(-AGENT_CONSOLE_MAX_RECORDS);
+  }
+
+  function agentConsoleText(action) {
+    var records = normalizeAgentConsoleRecords(action && action.runLog);
+    if (!records.length) return 'No console output for this agent yet. Run the agent to capture browser-local stdout.';
+    return records.map(function (record) {
+      return [
+        '[' + formatTimestamp(record.createdAt) + ']',
+        terminalPromptForRole(record.role),
+        record.text
+      ].join(' ');
+    }).join('\n\n');
+  }
+
+  function appendAgentConsoleRecord(actionIndex, role, text, options) {
+    var action;
+    var record;
+    options = options || {};
+    if (options.terminal !== false) appendTerminalRecord(role, text);
+    if (typeof actionIndex !== 'number' || actionIndex < 0 || !state.agentActions || !state.agentActions[actionIndex]) return;
+    action = state.agentActions[actionIndex];
+    record = {
+      role: ['command', 'output', 'error', 'system'].indexOf(role) !== -1 ? role : 'output',
+      text: String(text || '').slice(0, AGENT_CONSOLE_MAX_CHARS),
+      createdAt: nowIso()
+    };
+    action.runLog = normalizeAgentConsoleRecords(action.runLog).concat([record]).slice(-AGENT_CONSOLE_MAX_RECORDS);
+    action.lastConsoleAt = record.createdAt;
+    saveAgentActions();
+    renderAgentActions();
+  }
+
   function activityHistoryPromptBlock() {
     if (!state.activityRecords || !state.activityRecords.length) return '';
     return state.activityRecords.slice(-ACTIVITY_CONTEXT_MAX_RECORDS).map(function (record) {
@@ -13599,6 +14545,8 @@
       'Defender XDR: ' + (state.includeDefenderXdr ? (state.defenderXdrContextLoadedAt ? 'loaded ' + formatTimestamp(state.defenderXdrContextLoadedAt) : 'enabled, not loaded') : 'off'),
       'Sentinel: ' + (state.includeSentinel ? (state.sentinelContextLoadedAt ? 'loaded ' + formatTimestamp(state.sentinelContextLoadedAt) : 'enabled, not loaded') : 'off'),
       'deps.dev: ' + (state.includeDepsDev ? (state.depsDevContextLoadedAt ? 'loaded ' + formatTimestamp(state.depsDevContextLoadedAt) : 'enabled, not loaded') : 'off'),
+      'OSV.dev: ' + (state.includeOsv ? (state.osvContextLoadedAt ? 'loaded ' + formatTimestamp(state.osvContextLoadedAt) : 'enabled, not loaded') : 'off'),
+      'MCP gateway: ' + (state.includeMcpGateway ? (state.mcpGatewayContextLoadedAt ? 'loaded ' + formatTimestamp(state.mcpGatewayContextLoadedAt) : 'enabled, not loaded') : 'off'),
       'Snyk: ' + (state.includeSnyk ? (state.snykContextLoadedAt ? 'loaded ' + formatTimestamp(state.snykContextLoadedAt) : 'enabled, not loaded') : 'off'),
       'Confluence: ' + (state.includeConfluence ? (state.confluenceContextLoadedAt ? 'loaded ' + formatTimestamp(state.confluenceContextLoadedAt) : 'enabled, not loaded') : 'off'),
       'SARIF: ' + (state.includeSarif ? (state.sarifContextLoadedAt ? 'imported ' + formatTimestamp(state.sarifContextLoadedAt) : 'enabled, no upload') : 'off'),
@@ -13635,7 +14583,7 @@
     if (!hasProviderRuntime(getAgentProvider())) gaps.push('Provider credential is missing, so LLM-backed chat and agent runs cannot call the selected model yet.');
     if (!collapseText(els.agentScope && els.agentScope.value)) gaps.push('Target scope is empty. Add a repo, package, CVE, service, file path, or case before running remediation.');
     if (!selectedRecipe() && !collapseText(els.agentRecipeInput && els.agentRecipeInput.value)) gaps.push('No recipe or finding is selected yet.');
-    if (!selectedInputs.length) gaps.push('No marketplace input/tool is selected for the agent planner.');
+    if (!selectedInputs.length) gaps.push('No optional input/tool is selected for the agent planner.');
     if (!evidenceRows.some(function (row) { return /loaded|imported|on/i.test(row); })) gaps.push('No loaded or imported evidence source is active yet.');
     return gaps.length ? gaps : ['No obvious browser-local context gaps detected. Review stale source timestamps before live remediation.'];
   }
@@ -13649,7 +14597,7 @@
       '- Recipe: ' + rows.recipe,
       '- Target: ' + rows.target,
       '- Output path: ' + rows.output + ' with ' + rows.approval,
-      '- Marketplace context/tools: ' + (rows.selectedInputs.length ? rows.selectedInputs.join(', ') : 'none selected'),
+      '- Optional context/tools: ' + (rows.selectedInputs.length ? rows.selectedInputs.join(', ') : 'none selected'),
       '- Terminal transcript: ' + rows.terminal,
       '- Evidence/source state:',
       rows.sourceRows.slice(0, 16).map(function (row) { return '  - ' + row; }).join('\n'),
@@ -13664,7 +14612,7 @@
       'Evidence and prompt-context sources:',
       rows.sourceRows.map(function (row) { return '- ' + row; }).join('\n'),
       '',
-      'Selected marketplace inputs/tools:',
+      'Selected optional inputs/tools:',
       rows.selectedInputs.length ? rows.selectedInputs.map(function (item) { return '- ' + item; }).join('\n') : '- none selected',
       '',
       'Cautions:',
@@ -13688,7 +14636,7 @@
 
   function terminalScheduleText() {
     if (!state.agentActions || !state.agentActions.length) {
-      return 'No scheduled agents yet. Configure the planner, choose Hourly/Daily/Weekly or a timestamp, then use Schedule agent.';
+      return 'No browser-local agents yet. Choose model, context source, repository, recipe, interval, then Create Agent.';
     }
     return state.agentActions.map(function (action, index) {
       return [
@@ -13707,7 +14655,7 @@
     var outputs = outputChannels().slice(0, 12).map(function (channel) {
       return '- output: ' + channel.label + ' [' + channel.runtime_support + ']';
     });
-    return ['Marketplace tools and add-ons:', inputs.join('\n'), outputs.join('\n')].filter(Boolean).join('\n');
+    return ['Available tools and add-ons:', inputs.join('\n'), outputs.join('\n')].filter(Boolean).join('\n');
   }
 
   function terminalNormalizePath(path) {
@@ -13769,7 +14717,7 @@
         target: record.target
       };
     });
-    return {
+    var files = {
       [home + '/README.md']: [
         '# SecurityRecipes MiniBox',
         '',
@@ -13782,7 +14730,8 @@
         '- cat queue.txt',
         '- recipes log4j',
         '- run dependency fix',
-        '- agent preview'
+        '- agent preview',
+        '- tail logs/agent-1.log'
       ].join('\n'),
       [home + '/context.json']: JSON.stringify({
         page: {
@@ -13812,6 +14761,10 @@
       [home + '/marketplace/tools.txt']: terminalToolsText(),
       [home + '/tmp/history.txt']: terminalHistoryText()
     };
+    (state.agentActions || []).forEach(function (action, index) {
+      files[home + '/logs/agent-' + String(index + 1) + '.log'] = agentConsoleText(action);
+    });
+    return files;
   }
 
   function terminalVirtualDirs(files) {
@@ -13829,6 +14782,7 @@
     addDir(terminalHomePath());
     addDir(terminalHomePath() + '/cases');
     addDir(terminalHomePath() + '/evidence');
+    addDir(terminalHomePath() + '/logs');
     addDir(terminalHomePath() + '/marketplace');
     addDir(terminalHomePath() + '/tmp');
     Object.keys(files || {}).forEach(function (filePath) {
@@ -14209,13 +15163,14 @@
       'recipe <query> - select the best matching recipe',
       'run <query>[; <query>] - queue one or many recipe runs',
       'agent queue - show queued browser-agent actions',
+      'agent console [N] - show console output for a created agent',
       'agent validate - audit readiness without calling the LLM',
       'agent preview - generate the current reviewed plan',
       'sources refresh - refresh due browser-safe context sources',
       'settings - open the consolidated settings drawer',
       'search <query> - open Search with a query',
       '',
-      'Files: README.md, context.json, recipe.txt, queue.txt, schedule.txt, routes.txt, cases/index.json, evidence/sources.txt, evidence/summary.txt, marketplace/tools.txt, tmp/history.txt'
+      'Files: README.md, context.json, recipe.txt, queue.txt, schedule.txt, routes.txt, cases/index.json, evidence/sources.txt, evidence/summary.txt, logs/agent-1.log, marketplace/tools.txt, tmp/history.txt'
     ].join('\n');
   }
 
@@ -14244,11 +15199,21 @@
     return uniqueStrings(commands, 5);
   }
 
-  async function executeAgentTerminalCommands(text) {
+  async function executeAgentTerminalCommands(text, options) {
     var commands = agentTerminalCommandsFromOutput(text);
-    for (var i = 0; i < commands.length; i += 1) {
-      await executeTerminalCommand(commands[i], { source: 'agent', allowAgentPreview: false });
+    var actionIndex;
+    var output;
+    options = options || {};
+    actionIndex = typeof options.actionIndex === 'number' ? options.actionIndex : -1;
+    if (commands.length) {
+      appendAgentConsoleRecord(actionIndex, 'system', 'agent requested ' + String(commands.length) + ' browser-terminal command' + (commands.length === 1 ? '' : 's'), { terminal: true });
     }
+    for (var i = 0; i < commands.length; i += 1) {
+      appendAgentConsoleRecord(actionIndex, 'command', commands[i], { terminal: false });
+      output = await executeTerminalCommand(commands[i], { source: 'agent', allowAgentPreview: false });
+      appendAgentConsoleRecord(actionIndex, 'output', output, { terminal: false });
+    }
+    return commands.length;
   }
 
   async function executeTerminalCommand(command, options) {
@@ -14351,6 +15316,10 @@
               return String(index + 1) + '. ' + agentStatusLabel(action) + ' - ' + agentActionTitle(action);
             }).join('\n')
           : 'No queued agent actions.';
+      } else if (/^agent\s+console(?:\s+|$)/i.test(raw)) {
+        var consoleNumber = parseInt(collapseText(raw.replace(/^agent\s+console\s*/i, '')) || '1', 10);
+        var consoleAction = state.agentActions[Number.isFinite(consoleNumber) ? consoleNumber - 1 : 0];
+        output = consoleAction ? agentConsoleText(consoleAction) : 'No agent console exists for that index.';
       } else if (lower === 'agent validate') {
         output = validateAgentPlanner({ terminal: true });
       } else if (lower === 'agent preview') {
@@ -14415,6 +15384,8 @@
     if (state.includeDefenderXdr) pieces.push(trimText(getIntegrationField('defenderXdrToken')) ? 'Defender XDR on' : 'Defender XDR needs token');
     if (state.includeSentinel) pieces.push(collapseText(getIntegrationField('sentinelWorkspaceName')) && trimText(getIntegrationField('sentinelToken')) ? 'Sentinel on' : 'Sentinel needs workspace/token');
     if (state.includeDepsDev) pieces.push(state.githubRepoUrl ? 'deps.dev on' : 'deps.dev needs repo');
+    if (state.includeOsv) pieces.push(state.githubRepoUrl ? 'OSV.dev on' : 'OSV.dev needs repo');
+    if (state.includeMcpGateway) pieces.push(currentMcpGatewayEndpoint() ? 'MCP gateway on' : 'MCP gateway needs endpoint');
     if (state.includeSnyk) pieces.push(currentSnykOrgId() ? 'Snyk on' : 'Snyk needs org');
     if (state.includeConfluence) pieces.push(currentConfluenceBaseUrl() ? 'Confluence on' : 'Confluence needs site');
     if (state.includeSarif) pieces.push(state.sarifContextLoadedAt ? 'SARIF on' : 'SARIF needs upload');
@@ -14434,6 +15405,7 @@
     if (getIntegrationField('azureDevOpsToken')) externalSourceBits.push('an Azure DevOps PAT or bearer token for repository context or work item delivery');
     if (getIntegrationField('defenderXdrToken')) externalSourceBits.push('a Defender XDR bearer token for incident intake');
     if (getIntegrationField('sentinelToken')) externalSourceBits.push('a Microsoft Sentinel bearer token for incident intake');
+    if (getIntegrationField('mcpGatewayToken')) externalSourceBits.push('an MCP gateway bearer token for read-only context calls');
     if (getIntegrationField('snykApiToken')) externalSourceBits.push('a Snyk API token for organization issue intake');
     if (getIntegrationField('confluenceToken')) externalSourceBits.push('a Confluence API token for runbook search');
     var externalSourceNote = externalSourceBits.length
@@ -14447,9 +15419,12 @@
       : '';
     var importNote = ' Imported SARIF, scanner export, and SBOM summaries, if you load them, are also stored in this browser profile until you clear them.';
     if (!getToken()) {
-      return 'No ' + cfg.label + ' credential is active. Paste a key to hold it only in page memory; it is proxied through this site for the current provider request and is not stored by the site.' + githubNote + externalSourceNote + caseboardNote + assetLibraryNote + importNote;
+      return 'No ' + cfg.label + ' credential is active. Paste a key to use it for this session, or save it as a browser-local secret. Provider requests are proxied through this site when configured; the site server does not store provider keys.' + githubNote + externalSourceNote + caseboardNote + assetLibraryNote + importNote;
     }
-    return cfg.label + ' ' + credentialModeLabel(state.provider).toLowerCase() + ' is held only in page memory for this tab. It is sent to the provider through the same-origin relay for each request and is not stored by the site.' + githubNote + externalSourceNote + caseboardNote + assetLibraryNote + importNote;
+    return cfg.label + ' ' + credentialModeLabel(state.provider).toLowerCase() + ' is ' +
+      (hasStoredProviderToken(state.provider) ? 'saved as a browser-local secret' : 'active only in page memory for this tab') +
+      '. It is sent to the provider through the same-origin relay for each request when configured; the site server does not store provider keys.' +
+      githubNote + externalSourceNote + caseboardNote + assetLibraryNote + importNote;
   }
 
   function updateSettingsSummary() {
@@ -14482,6 +15457,56 @@
   function setDefaultSettingsOpenForProvider() {
     state.settingsOpen = localStorage.getItem(STORE.settingsOpen) === 'true';
     localStorage.setItem(STORE.settingsOpen, state.settingsOpen ? 'true' : 'false');
+  }
+
+  function settingsDetailKey(detail) {
+    var attrs = [
+      'data-provider-credential-details',
+      'data-context-details',
+      'data-mcp-gateway-details',
+      'data-github-details',
+      'data-marketplace-settings-details',
+      'data-imported-context-details',
+      'data-delivery-settings-details'
+    ];
+    for (var i = 0; i < attrs.length; i += 1) {
+      if (detail && detail.hasAttribute(attrs[i])) return attrs[i].replace(/^data-/, '');
+    }
+    return '';
+  }
+
+  function settingsDetailsOpenState() {
+    return loadStoredJson(STORE.settingsDetailsOpen, {});
+  }
+
+  function saveSettingsDetailOpen(detail) {
+    var key = settingsDetailKey(detail);
+    var stateMap;
+    if (!key) return;
+    stateMap = settingsDetailsOpenState();
+    stateMap[key] = !!detail.open;
+    saveStoredJson(STORE.settingsDetailsOpen, stateMap);
+  }
+
+  function restoreSettingsDetailsOpen() {
+    var stateMap = settingsDetailsOpenState();
+    if (!els.settingsContent) return;
+    Array.prototype.forEach.call(els.settingsContent.querySelectorAll('details'), function (detail) {
+      var key = settingsDetailKey(detail);
+      if (key && Object.prototype.hasOwnProperty.call(stateMap, key)) {
+        detail.open = !!stateMap[key];
+      }
+    });
+  }
+
+  function bindSettingsDetailPersistence() {
+    if (!els.settingsContent) return;
+    Array.prototype.forEach.call(els.settingsContent.querySelectorAll('details'), function (detail) {
+      if (!settingsDetailKey(detail)) return;
+      detail.addEventListener('toggle', function () {
+        saveSettingsDetailOpen(detail);
+      });
+    });
   }
 
   function updateAgentUI() {
@@ -14521,11 +15546,12 @@
     populateReportLabOptions();
     populateWorkflowLabOptions();
     populateRoutingLabOptions();
+    updateAgentScheduleFields();
     renderAgentActions();
     if (els.agentStatus && !state.agentRunning) {
       els.agentStatus.textContent = hasProviderRuntime(provider)
-        ? 'Beta agents use ' + providerRuntimeStatusText(provider) + ', selected marketplace inputs, report pack, and optional delivery integrations. Browser schedules run only while this site is open in a tab.'
-        : 'Paste a ' + tokenLabel(provider) + ' in Settings before running this agent. The key is held only for this page session.';
+        ? 'Ready to create a browser-local remediation agent. Select one context source, repository, recipe, and run interval.'
+        : 'Paste ' + tokenLabelWithArticle(provider) + ' in Settings before creating this agent. You can keep it session-only or save it as a browser-local secret.';
       els.agentStatus.removeAttribute('data-kind');
     }
   }
@@ -14533,6 +15559,7 @@
   function updateOAuthUI() {
     var mode = getCredentialMode(state.provider);
     var cfg = providerConfig(state.provider);
+    var configured = hasOAuthBrowserConfig(state.provider);
     if (els.credentialModeButtons) {
       Array.prototype.forEach.call(els.credentialModeButtons, function (button) {
         button.setAttribute('aria-pressed', button.getAttribute('data-credential-mode') === mode ? 'true' : 'false');
@@ -14541,27 +15568,58 @@
     if (els.oauthDetails) {
       els.oauthDetails.hidden = mode !== 'oauth';
     }
+    if (els.oauthAppDetails) {
+      els.oauthAppDetails.open = mode === 'oauth' && !configured;
+    }
+    if (els.oauthAppSummary) {
+      els.oauthAppSummary.textContent = configured ? 'OAuth app saved in this browser' : 'Add app details to enable browser sign-in';
+    }
     if (els.oauthClientId) els.oauthClientId.value = getOAuthField(state.provider, 'clientId');
     if (els.oauthScope) els.oauthScope.value = getOAuthField(state.provider, 'scope');
     if (els.oauthAuthUrl) els.oauthAuthUrl.value = getOAuthField(state.provider, 'authUrl');
     if (els.oauthTokenUrl) els.oauthTokenUrl.value = getOAuthField(state.provider, 'tokenUrl');
+    if (els.oauthRedirectUri) els.oauthRedirectUri.value = oauthRedirectUri();
     if (els.oauthTitle) els.oauthTitle.textContent = 'Sign in with ' + cfg.label;
     if (els.oauthDescription) {
-      els.oauthDescription.textContent = hasOAuthBrowserConfig(state.provider)
+      els.oauthDescription.textContent = configured
         ? 'A popup will open and save the OAuth bearer locally after authorization.'
-        : 'One-click sign-in is waiting on site-level OAuth setup. You can still paste a bearer above.';
+        : 'Save an OAuth app below, then connect from the provider sign-in window.';
     }
     if (mode === 'oauth') {
       var token = getToken(state.provider, 'oauth');
       if (token) {
-        setOAuthStatus(cfg.label + ' connected for this page session: ' + maskSessionToken(token), 'ok');
-      } else if (hasOAuthBrowserConfig(state.provider)) {
+        setOAuthStatus(cfg.label + ' connected: ' + (hasStoredProviderToken(state.provider, 'oauth') ? maskToken(token) : maskSessionToken(token)), 'ok');
+      } else if (configured) {
         setOAuthStatus('Click Authorize in browser to connect ' + cfg.label + '. Tokens stay local to this browser.', '');
       } else {
-        setOAuthStatus('Authorize in browser will turn on once ' + cfg.label + ' OAuth details are published for this site. Paste a bearer token above for now.', '');
+        setOAuthStatus('Add OAuth app details below, then click Authorize in browser. Redirect URI: ' + oauthRedirectUri(), '');
       }
     } else {
       setOAuthStatus('', '');
+    }
+  }
+
+  function updateProviderSecretUI() {
+    var mode = getCredentialMode(state.provider);
+    var token = getToken(state.provider, mode);
+    var stored = hasStoredProviderToken(state.provider, mode);
+    if (els.rememberToken) {
+      els.rememberToken.checked = stored;
+      els.rememberToken.setAttribute('aria-label', 'Save ' + tokenLabel(state.provider, mode) + ' as a browser-local secret');
+    }
+    if (els.tokenInput) {
+      els.tokenInput.placeholder = stored
+        ? 'Saved in this browser; paste a replacement to rotate'
+        : 'Held only until this page is closed unless saved';
+    }
+    if (els.providerSecretNote) {
+      if (stored && token) {
+        els.providerSecretNote.textContent = tokenLabel(state.provider, mode) + ' is saved as a browser-local secret. Clear removes the saved and session copies.';
+      } else if (token) {
+        els.providerSecretNote.textContent = tokenLabel(state.provider, mode) + ' is active for this page session only.';
+      } else {
+        els.providerSecretNote.textContent = 'Provider tokens stay in memory unless you opt in to saving this browser-local secret.';
+      }
     }
   }
 
@@ -14571,6 +15629,7 @@
     populateModelSelect(els.model, state.provider);
     if (els.tokenLabel) els.tokenLabel.textContent = tokenLabel(state.provider);
     if (els.tokenInput) els.tokenInput.value = '';
+    updateProviderSecretUI();
     if (els.providerCredentialDetails) els.providerCredentialDetails.open = !hasProviderRuntime(state.provider);
     updateOAuthUI();
     setStatus(providerRuntimeStatusText(state.provider), hasProviderRuntime(state.provider) ? 'ok' : '');
@@ -14873,9 +15932,9 @@
           value: entry.id
         },
         secondary: {
-          label: 'Open marketplace',
+          label: 'Open agents',
           action: 'open-tab',
-          value: 'control-plane'
+          value: 'agents'
         }
       });
     });
@@ -15160,11 +16219,11 @@
     origin = options.originLabel || 'workbench';
     if (!action) return;
     if (action === 'open-tab') {
+      if (value === 'marketplace' || value === 'control-plane') value = 'agents';
       switchTab(value || 'chat');
       if (value === 'exposure') renderExposureBoard();
       else if (value === 'assets') renderAssetBoard();
       else if (value === 'cases') renderCaseboard();
-      else if (value === 'control-plane') renderControlPlane();
       else if (value === 'agents') updateAgentMarketplacePreview();
       else if (value === 'search') refreshSearchSurface();
       return;
@@ -15550,12 +16609,11 @@
       return;
     }
     if (action === 'focus-marketplace') {
-      entry = marketplaceEntryByKey(value);
-      if (els.controlPlaneSearch) els.controlPlaneSearch.value = entry ? (entry.label || entry.id || value) : value;
-      if (els.controlPlaneKind) els.controlPlaneKind.value = entry ? entry.kind : 'all';
-      if (els.controlPlaneRuntime) els.controlPlaneRuntime.value = 'all';
-      switchTab('control-plane');
-      renderControlPlane();
+      switchTab('agents');
+      if (els.agentStatus && !state.agentRunning) {
+        els.agentStatus.textContent = 'Use the Agents planner and settings drawer to configure inputs, workflow packs, reports, and output routes.';
+        els.agentStatus.removeAttribute('data-kind');
+      }
       return;
     }
     if (action === 'copy-portfolio-coverage') {
@@ -18225,15 +19283,1174 @@
       setCaseboardStatus('Generate a plan in Agents, then capture it as a reusable local case file with evidence, output contract, and timeline.', '');
     }
     renderRouter();
+    renderStatistics();
+  }
+
+  function statSeverityColor(level) {
+    level = normalizedSeverityLevel(level);
+    if (level === 'critical') return '#fb7185';
+    if (level === 'high') return '#fbbf24';
+    if (level === 'medium') return '#2dd4bf';
+    if (level === 'low') return '#60a5fa';
+    return '#94a3b8';
+  }
+
+  function statRemediationLabel(value) {
+    if (value === 'remediated') return 'Remediated';
+    if (value === 'mitigated') return 'Mitigated';
+    if (value === 'needs_case') return 'Needs case';
+    return 'Open';
+  }
+
+  function statRemediationColor(value) {
+    if (value === 'remediated') return '#34d399';
+    if (value === 'mitigated') return '#2dd4bf';
+    if (value === 'open') return '#fbbf24';
+    return '#fb7185';
+  }
+
+  function statNumber(value) {
+    var number = Number(value || 0);
+    if (!isFinite(number)) return '0';
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.max(0, Math.round(number)));
+  }
+
+  function statPercent(part, total) {
+    var value = Number(total || 0) > 0 ? (Number(part || 0) / Number(total)) * 100 : 0;
+    return Math.max(0, Math.min(100, value));
+  }
+
+  function statTotal(counts, keys) {
+    return (keys || Object.keys(counts || {})).reduce(function (sum, key) {
+      return sum + Number(counts && counts[key] || 0);
+    }, 0);
+  }
+
+  function statAddCount(counts, key, amount) {
+    var normalized = key || 'unknown';
+    counts[normalized] = Number(counts[normalized] || 0) + Number(amount || 0);
+  }
+
+  function statWeight(value) {
+    var parsed = Number(value || 0);
+    return isFinite(parsed) && parsed > 0 ? parsed : 1;
+  }
+
+  function statSortEntries(counts, limit) {
+    return Object.keys(counts || {}).map(function (key) {
+      return { key: key, count: Number(counts[key] || 0) };
+    }).filter(function (entry) {
+      return entry.count > 0;
+    }).sort(function (a, b) {
+      if (b.count !== a.count) return b.count - a.count;
+      return String(a.key || '').localeCompare(String(b.key || ''));
+    }).slice(0, limit || 8);
+  }
+
+  function statConicGradient(counts, keys, colorFn) {
+    var total = statTotal(counts, keys);
+    var cursor = 0;
+    var segments = [];
+    if (!total) {
+      return 'conic-gradient(rgba(148, 163, 184, 0.22) 0 100%)';
+    }
+    (keys || Object.keys(counts || {})).forEach(function (key) {
+      var next = cursor + statPercent(counts[key], total);
+      if (next > cursor) {
+        segments.push((colorFn ? colorFn(key) : '#2dd4bf') + ' ' + cursor.toFixed(2) + '% ' + next.toFixed(2) + '%');
+      }
+      cursor = next;
+    });
+    return 'conic-gradient(' + segments.join(', ') + ')';
+  }
+
+  function statBarRows(items, options) {
+    var max;
+    options = options || {};
+    max = Math.max.apply(null, [1].concat((items || []).map(function (item) { return Number(item.value || 0); })));
+    if (!items || !items.length) {
+      return '<div class="ai-chatbot-stat-empty">No signals yet.</div>';
+    }
+    return '<div class="ai-chatbot-stat-bars">' + items.map(function (item) {
+      var width = statPercent(item.value, max);
+      var color = item.color || '#2dd4bf';
+      return '<div class="ai-chatbot-stat-bar-row">' +
+        '<div><strong>' + html(item.label) + '</strong><span>' + html(item.detail || '') + '</span></div>' +
+        '<div class="ai-chatbot-stat-bar-track"><span style="width:' + width.toFixed(2) + '%; background:' + html(color) + '"></span></div>' +
+        '<em>' + html(statNumber(item.value)) + '</em>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
+  function statStackedBar(items) {
+    var total = (items || []).reduce(function (sum, item) { return sum + Number(item.value || 0); }, 0);
+    if (!total) {
+      return '<div class="ai-chatbot-stat-stack"><span style="width:100%; background:rgba(148, 163, 184, 0.22)"></span></div>';
+    }
+    return '<div class="ai-chatbot-stat-stack">' + items.map(function (item) {
+      return '<span title="' + html(item.label + ': ' + statNumber(item.value)) + '" style="width:' + statPercent(item.value, total).toFixed(2) + '%; background:' + html(item.color) + '"></span>';
+    }).join('') + '</div>';
+  }
+
+  function statisticsDatapointLabel(key) {
+    return {
+      'summary-active-risk': 'Active risk units',
+      'summary-critical-high': 'Critical / high',
+      'summary-context-ready': 'Context ready',
+      'summary-remediated': 'Remediated + mitigated',
+      'summary-linked-assets': 'Linked assets',
+      'summary-recent-activity': 'Recent activity',
+      severity: 'Risk Severity',
+      remediation: 'Remediation Flow',
+      context: 'Context Coverage',
+      assets: 'Asset Exposure',
+      dependencies: 'Dependency Posture',
+      'sensitive-data': 'Sensitive Data Exposure',
+      workflows: 'Workflow Mix',
+      freshness: 'Evidence Freshness',
+      drivers: 'Top Drivers',
+      activity: 'Recent Activity'
+    }[key] || 'Report datapoint';
+  }
+
+  function statisticsActionButtons(key) {
+    var label = statisticsDatapointLabel(key);
+    return '<div class="ai-chatbot-stat-actions" data-stat-actions="' + html(key) + '">' +
+      '<button class="ai-chatbot-stat-action-refresh" type="button" data-stat-action="reload" data-stat-key="' + html(key) + '" title="Refresh mapped evidence for ' + html(label) + '" aria-label="Refresh mapped evidence for ' + html(label) + '">' + icon('reset') + '<span>Refresh</span></button>' +
+      '<button class="ai-chatbot-stat-action-explain" type="button" data-stat-action="generate" data-stat-key="' + html(key) + '" title="Explain ' + html(label) + ' from the current dashboard data" aria-label="Explain ' + html(label) + ' from the current dashboard data">' + icon('spark') + '<span>Explain</span></button>' +
+    '</div>';
+  }
+
+  function statisticsGeneratedInsightHtml(key) {
+    var entry = state.statisticsGeneratedInsights && state.statisticsGeneratedInsights[key];
+    if (!entry || !entry.text) return '';
+    return '<div class="ai-chatbot-stat-generated" data-stat-generated="' + html(key) + '">' +
+      '<strong>Generated</strong>' +
+      '<span>' + html(entry.text) + '</span>' +
+      '<small>' + html(formatTimestamp(entry.generatedAt || nowIso())) + '</small>' +
+    '</div>';
+  }
+
+  function saveStatisticsGeneratedInsights() {
+    var normalized = {};
+    Object.keys(state.statisticsGeneratedInsights || {}).forEach(function (key) {
+      var entry = state.statisticsGeneratedInsights[key];
+      if (!entry || !entry.text) return;
+      normalized[key] = {
+        text: collapseText(entry.text).slice(0, 420),
+        generatedAt: entry.generatedAt || nowIso()
+      };
+    });
+    state.statisticsGeneratedInsights = normalized;
+    saveStoredJson(STORE.statisticsGeneratedInsights, normalized);
+  }
+
+  function statisticsHeaderBadge(text, attrs) {
+    return '<span' + (attrs ? ' ' + attrs : '') + '>' + html(text) + '</span>';
+  }
+
+  function statisticsCardHeader(key, title, summary, badgeHtml) {
+    return '<header><div><h3>' + html(title) + '</h3><p>' + html(summary) + '</p></div>' +
+      '<div class="ai-chatbot-stat-header-actions">' +
+        (badgeHtml || '') +
+        statisticsActionButtons(key) +
+      '</div></header>';
+  }
+
+  function statPatternMatchCount(text, pattern) {
+    var value = String(text || '');
+    var matches;
+    if (!value || !pattern) return 0;
+    pattern.lastIndex = 0;
+    matches = value.match(pattern);
+    pattern.lastIndex = 0;
+    return matches ? matches.length : 0;
+  }
+
+  function statisticsPreviewText(value) {
+    if (!value || typeof value !== 'object') return '';
+    try {
+      return JSON.stringify(value).slice(0, 2500);
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function statisticsRecordText(record) {
+    return [
+      record && record.title,
+      record && record.summary,
+      record && record.source_label,
+      record && record.source_summary,
+      record && record.artifact_file,
+      record && record.workflow_label,
+      record && record.workflow_value,
+      record && record.scope,
+      record && record.recipe_query,
+      statisticsPreviewText(record && record.preview)
+    ].join(' ');
+  }
+
+  function statisticsSourceState(ready, enabled) {
+    if (ready) return 'ready';
+    return enabled ? 'template' : 'available';
+  }
+
+  function statisticsIsDependencyRecord(record) {
+    var sourceId = collapseText(record && record.source_id);
+    var workflows = Array.isArray(record && record.recommended_workflows) ? record.recommended_workflows : [];
+    var text = statisticsRecordText(record).toLowerCase();
+    if (record && record.workflow_value === 'dependency') return true;
+    if (workflows.indexOf('dependency') !== -1) return true;
+    if (['deps-dev-advisories', 'osv-vulnerability-api', 'snyk-issues-api', importedContextChannelId('sbom')].indexOf(sourceId) !== -1) return true;
+    return /depend|package|library|module|artifact|container image|container-image|sbom|bom|purl|cve-|ghsa-|osv|cvss|vulnerab/.test(text);
+  }
+
+  function statisticsSensitiveCategoryForKey(key) {
+    return STAT_SENSITIVE_DATA_CATEGORIES.filter(function (category) {
+      return category.key === key;
+    })[0] || { key: key, label: 'Sensitive findings', color: '#94a3b8' };
+  }
+
+  function statisticsSensitiveMatchesText(text) {
+    return STAT_SENSITIVE_DATA_CATEGORIES.some(function (category) {
+      return statPatternMatchCount(text, category.pattern) > 0;
+    });
+  }
+
+  function statisticsPrimarySensitiveCategory(text) {
+    var category = STAT_SENSITIVE_DATA_CATEGORIES.filter(function (item) {
+      return statPatternMatchCount(text, item.pattern) > 0;
+    })[0];
+    return category || statisticsSensitiveCategoryForKey('other_sensitive');
+  }
+
+  function statisticsAddSensitiveCategories(counts, text, amount) {
+    var matched = false;
+    STAT_SENSITIVE_DATA_CATEGORIES.forEach(function (category) {
+      var matches = statPatternMatchCount(text, category.pattern);
+      if (matches) {
+        statAddCount(counts, category.key, amount || matches);
+        matched = true;
+      }
+    });
+    if (!matched && collapseText(text)) {
+      statAddCount(counts, 'other_sensitive', amount || 1);
+    }
+    return matched;
+  }
+
+  function statisticsIsSensitiveRecord(record) {
+    var workflows = Array.isArray(record && record.recommended_workflows) ? record.recommended_workflows : [];
+    var text = statisticsRecordText(record);
+    return !!(record && record.workflow_value === 'sensitive-data') ||
+      workflows.indexOf('sensitive-data') !== -1 ||
+      statisticsSensitiveMatchesText(text);
+  }
+
+  function statisticsSourceEnabled(sourceId) {
+    var config = optionalContextSourceConfigByChannel(sourceId);
+    if (sourceId === 'page-context') return !!state.includeContext;
+    if (sourceId === 'recipe-index') return !!state.includeRelated;
+    if (sourceId === 'github-repository') return !!state.includeGitHub;
+    if (sourceId === 'deps-dev-advisories') return !!state.includeDepsDev;
+    if (sourceId === 'osv-vulnerability-api') return !!state.includeOsv;
+    if (sourceId === 'mcp-http-gateway') return !!state.includeMcpGateway;
+    if (config && config.stateKey) return !!state[config.stateKey];
+    return currentInputChannelIds().indexOf(sourceId) !== -1;
+  }
+
+  function statisticsSourceRecords() {
+    var freshnessById = {};
+    var ids = uniqueStrings(inputChannels().map(function (channel) { return channel.id; })
+      .concat(['page-context', 'recipe-index'])
+      .concat(Object.keys(SOURCE_FRESHNESS_RULES)), 80);
+    sourceFreshnessItems().forEach(function (item) {
+      freshnessById[item.sourceId] = item;
+    });
+    return ids.map(function (sourceId) {
+      var channel = inputChannelById(sourceId);
+      var runtime = inputChannelRuntimeState(sourceId);
+      var freshness = freshnessById[sourceId] || null;
+      var config = optionalContextSourceConfigByChannel(sourceId);
+      var enabled = statisticsSourceEnabled(sourceId);
+      if (!channel && !config) return null;
+      return {
+        id: sourceId,
+        label: channel ? channel.label : config.label,
+        category: channel ? channel.category : 'Custom context',
+        enabled: enabled,
+        ready: !!runtime.ready,
+        loaded_at: runtime.loaded_at || '',
+        state: freshness ? freshness.state : (runtime.ready ? 'ready' : (enabled ? 'needs_config' : 'available')),
+        stateLabel: freshness ? freshness.stateLabel : (runtime.ready ? 'Ready' : (enabled ? 'Not loaded' : 'Available')),
+        summary: freshness ? freshness.summary : ((channel && channel.description) || ''),
+        selected: currentInputChannelIds().indexOf(sourceId) !== -1
+      };
+    }).filter(Boolean);
+  }
+
+  function statisticsRiskData() {
+    var exposures = exposureRecords();
+    var cases = state.caseFiles || [];
+    var activeSeverity = blankSeverityCounts();
+    var totalSeverity = blankSeverityCounts();
+    var itemSeverity = blankSeverityCounts();
+    var activeUnits = 0;
+    var totalUnits = 0;
+    var drivers = [];
+    exposures.forEach(function (record) {
+      var severity = normalizedSeverityLevel(record.severity);
+      var weight = statWeight(record.finding_count);
+      totalSeverity[severity] += weight;
+      itemSeverity[severity] += 1;
+      totalUnits += weight;
+      if (record.queue_status !== 'closed') {
+        activeSeverity[severity] += weight;
+        activeUnits += weight;
+      }
+      drivers.push({
+        title: record.title,
+        severity: severity,
+        source: record.source_label,
+        status: exposureQueueStatusLabel(record.queue_status),
+        count: weight,
+        score: severityRank(severity) * 1000 + weight + assetCriticalityRank(record.asset_criticality) * 10
+      });
+    });
+    if (!exposures.length) {
+      cases.forEach(function (record) {
+        var summary = record.summary || blankCaseSummary();
+        var status = normalizeCaseStatus(record.status);
+        var severity = normalizedSeverityLevel(summary.highest_severity);
+        var weight = statWeight(summary.finding_count);
+        totalSeverity[severity] += weight;
+        itemSeverity[severity] += 1;
+        totalUnits += weight;
+        if (status !== 'closed') {
+          activeSeverity[severity] += weight;
+          activeUnits += weight;
+        }
+        drivers.push({
+          title: record.title || 'Saved case',
+          severity: severity,
+          source: (record.planner && record.planner.workflow_label) || 'Caseboard',
+          status: caseStatusLabel(status),
+          count: weight,
+          score: severityRank(severity) * 1000 + weight
+        });
+      });
+    }
+    drivers.sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return String(a.title || '').localeCompare(String(b.title || ''));
+    });
+    return {
+      activeSeverity: activeSeverity,
+      totalSeverity: totalSeverity,
+      itemSeverity: itemSeverity,
+      activeUnits: activeUnits,
+      totalUnits: totalUnits,
+      drivers: drivers.slice(0, 7)
+    };
+  }
+
+  function statisticsRemediationData(exposures) {
+    var counts = {
+      remediated: 0,
+      mitigated: 0,
+      open: 0,
+      needs_case: 0
+    };
+    (state.caseFiles || []).forEach(function (record) {
+      var summary = record.summary || blankCaseSummary();
+      var weight = statWeight(summary.finding_count);
+      var status = normalizeCaseStatus(record.status);
+      if (status === 'closed') counts.remediated += weight;
+      else if (status === 'in_review') counts.mitigated += weight;
+      else counts.open += weight;
+    });
+    (exposures || exposureRecords()).forEach(function (record) {
+      if (record.queue_status === 'needs_case') counts.needs_case += statWeight(record.finding_count);
+    });
+    return counts;
+  }
+
+  function statisticsContextData() {
+    var sources = statisticsSourceRecords();
+    var categoryCounts = {};
+    var freshness = sourceFreshnessItems();
+    sources.forEach(function (source) {
+      var category = source.category || 'Custom context';
+      if (!categoryCounts[category]) categoryCounts[category] = { available: 0, ready: 0, enabled: 0 };
+      categoryCounts[category].available += 1;
+      if (source.ready) categoryCounts[category].ready += 1;
+      if (source.enabled || source.selected || source.ready) categoryCounts[category].enabled += 1;
+    });
+    return {
+      sources: sources,
+      categories: categoryCounts,
+      readyCount: sources.filter(function (source) { return source.ready; }).length,
+      enabledCount: sources.filter(function (source) { return source.enabled || source.selected || source.ready; }).length,
+      refreshSoonCount: freshness.filter(function (item) { return item.state === 'template'; }).length,
+      staleCount: freshness.filter(function (item) { return item.state === 'blocked'; }).length,
+      freshness: freshness
+    };
+  }
+
+  function statisticsAssetData(exposures) {
+    var criticalities = ['critical', 'high', 'medium', 'low', 'unassigned'];
+    var matrix = {};
+    var max = 0;
+    var linked = 0;
+    criticalities.forEach(function (criticality) {
+      matrix[criticality] = blankSeverityCounts();
+    });
+    (exposures || exposureRecords()).forEach(function (record) {
+      var criticality = normalizeAssetCriticality(record.asset_criticality);
+      var severity = normalizedSeverityLevel(record.severity);
+      var weight = statWeight(record.finding_count);
+      matrix[criticality][severity] += weight;
+      max = Math.max(max, matrix[criticality][severity]);
+    });
+    (state.assetRecords || []).forEach(function (record) {
+      if (linkedExposureCountForAsset(record.id) || linkedCaseCountForAsset(record.id)) linked += 1;
+    });
+    return {
+      criticalities: criticalities,
+      matrix: matrix,
+      max: max,
+      totalAssets: (state.assetRecords || []).length,
+      criticalHighAssets: (state.assetRecords || []).filter(function (record) {
+        return assetCriticalityRank(record.criticality) >= assetCriticalityRank('high');
+      }).length,
+      linkedAssets: linked,
+      portfolios: assetPortfolioRecords().length
+    };
+  }
+
+  function statisticsDependencyData(exposures) {
+    var sbom = importedContextBundle('sbom');
+    var meta = sbom && sbom.meta ? sbom.meta : {};
+    var records = (exposures || exposureRecords()).filter(statisticsIsDependencyRecord);
+    var severityCounts = blankSeverityCounts();
+    var sourceCounts = {};
+    var ecosystemCounts = {};
+    var exposureUnits = 0;
+    var openUnits = 0;
+    var componentCount = Number(meta.component_count || 0);
+    var packageCount = Number(meta.package_count || 0);
+    var serviceCount = Number(meta.service_count || 0);
+    var inventoryCount = componentCount + packageCount + serviceCount;
+    var dependencyEdges = Number(meta.dependency_count || meta.relationship_count || 0);
+    var vulnerabilityCount = Number(meta.vulnerability_count || 0);
+    var securityReferenceCount = Number(meta.security_reference_count || 0);
+    var advisoryText = [state.depsDevContextText, state.osvContextText, state.snykContextText].join('\n');
+    var advisoryIds = uniqueStrings((advisoryText.match(/(?:CVE-\d{4}-\d{4,7}|GHSA-[a-z0-9-]+|OSV-[a-z0-9-]+)/gi) || []), 80);
+    var advisorySignals = advisoryIds.length || Math.min(80, statPatternMatchCount(advisoryText, /\b(vulnerab|advisory|affected package|dependency)\b/gi));
+
+    records.forEach(function (record) {
+      var weight = statWeight(record.finding_count);
+      var severity = normalizedSeverityLevel(record.severity);
+      exposureUnits += weight;
+      if (record.queue_status !== 'closed') openUnits += weight;
+      statAddCount(severityCounts, severity, weight);
+      statAddCount(sourceCounts, record.source_label || record.source_id || 'Dependency source', weight);
+    });
+
+    (Array.isArray(meta.ecosystems) ? meta.ecosystems : []).forEach(function (entry) {
+      statAddCount(ecosystemCounts, entry && (entry.ecosystem || entry.key) || 'unknown', Number(entry && (entry.count || entry.finding_count) || 1));
+    });
+    if (!statTotal(ecosystemCounts) && Array.isArray(meta.sample_components)) {
+      meta.sample_components.forEach(function (component) {
+        statAddCount(ecosystemCounts, purlEcosystem(component && component.purl) || component && (component.type || component.purpose) || 'unknown', 1);
+      });
+    }
+
+    return {
+      records: records,
+      severityCounts: severityCounts,
+      exposureUnits: exposureUnits,
+      openUnits: openUnits,
+      inventoryCount: inventoryCount,
+      componentCount: componentCount,
+      packageCount: packageCount,
+      dependencyEdges: dependencyEdges,
+      vulnerabilityCount: vulnerabilityCount,
+      securityReferenceCount: securityReferenceCount,
+      advisorySignals: advisorySignals,
+      ecosystems: statSortEntries(ecosystemCounts, 5),
+      sources: statSortEntries(sourceCounts, 5),
+      sourceStates: [
+        { label: 'SBOM', state: statisticsSourceState(!!(sbom && sbom.loadedAt && meta.type), state.includeSbom) },
+        { label: 'deps.dev', state: statisticsSourceState(!!(state.depsDevContextLoadedAt && state.depsDevContextText), state.includeDepsDev) },
+        { label: 'OSV.dev', state: statisticsSourceState(!!(state.osvContextLoadedAt && state.osvContextText), state.includeOsv) },
+        { label: 'Snyk', state: statisticsSourceState(!!(state.snykContextLoadedAt && state.snykContextText), state.includeSnyk) }
+      ],
+      riskReferences: vulnerabilityCount + securityReferenceCount + advisorySignals
+    };
+  }
+
+  function statisticsSensitiveSourceSignals(sourceCategoryCounts) {
+    var signals = [];
+    function inspect(label, text, ready, enabled, recommended) {
+      var local = {};
+      var total = 0;
+      var forced = Array.isArray(recommended) && recommended.indexOf('sensitive-data') !== -1;
+      STAT_SENSITIVE_DATA_CATEGORIES.forEach(function (category) {
+        var matches = Math.min(80, statPatternMatchCount(text, category.pattern));
+        if (matches) {
+          local[category.key] = matches;
+          total += matches;
+        }
+      });
+      if (!total && !forced) return;
+      Object.keys(local).forEach(function (key) {
+        statAddCount(sourceCategoryCounts, key, local[key]);
+      });
+      signals.push({
+        label: label,
+        state: statisticsSourceState(ready, enabled),
+        count: total || 1
+      });
+    }
+
+    inspect('SARIF', [
+      state.sarifContextText,
+      statisticsPreviewText(state.sarifContextMeta && state.sarifContextMeta.sample_findings)
+    ].join(' '), !!(state.sarifContextLoadedAt && state.sarifContextText), state.includeSarif, state.sarifContextMeta && state.sarifContextMeta.recommended_workflows);
+    inspect('Scanner exports', [
+      state.scannerExportContextText,
+      statisticsPreviewText(state.scannerExportContextMeta && state.scannerExportContextMeta.sample_findings),
+      statisticsPreviewText(state.scannerExportContextMeta && state.scannerExportContextMeta.exports)
+    ].join(' '), !!(state.scannerExportContextLoadedAt && state.scannerExportContextText), state.includeScannerExport, state.scannerExportContextMeta && state.scannerExportContextMeta.recommended_workflows);
+    inspect('GitHub code scanning', [
+      state.githubCodeScanningContextText,
+      statisticsPreviewText(state.githubCodeScanningContextMeta && state.githubCodeScanningContextMeta.sample_findings),
+      statisticsPreviewText(state.githubCodeScanningContextMeta && state.githubCodeScanningContextMeta.rule_clusters)
+    ].join(' '), !!(state.githubCodeScanningContextLoadedAt && state.githubCodeScanningContextText), state.includeGitHubCodeScanning, state.githubCodeScanningContextMeta && state.githubCodeScanningContextMeta.recommended_workflows);
+    inspect('GitLab findings', [
+      state.gitLabFindingsContextText,
+      statisticsPreviewText(state.gitLabFindingsContextMeta && state.gitLabFindingsContextMeta.sample_findings)
+    ].join(' '), !!(state.gitLabFindingsContextLoadedAt && state.gitLabFindingsContextText), state.includeGitLabFindings, state.gitLabFindingsContextMeta && state.gitLabFindingsContextMeta.recommended_workflows);
+    inspect('Snyk issues', [
+      state.snykContextText,
+      statisticsPreviewText(state.snykContextMeta && state.snykContextMeta.sample_findings)
+    ].join(' '), !!(state.snykContextLoadedAt && state.snykContextText), state.includeSnyk, state.snykContextMeta && state.snykContextMeta.recommended_workflows);
+
+    return signals;
+  }
+
+  function statisticsSensitiveDataData(exposures) {
+    var records = (exposures || exposureRecords()).filter(statisticsIsSensitiveRecord);
+    var categoryCounts = {};
+    var sourceCategoryCounts = {};
+    var sourceCounts = {};
+    var drivers = [];
+    var units = 0;
+    var openUnits = 0;
+    var caseCount = 0;
+    var sourceSignals = statisticsSensitiveSourceSignals(sourceCategoryCounts);
+
+    records.forEach(function (record) {
+      var weight = statWeight(record.finding_count);
+      var text = statisticsRecordText(record);
+      var category = statisticsPrimarySensitiveCategory(text);
+      units += weight;
+      if (record.queue_status !== 'closed') openUnits += weight;
+      statisticsAddSensitiveCategories(categoryCounts, text, weight);
+      statAddCount(sourceCounts, record.source_label || record.source_id || 'Sensitive source', weight);
+      drivers.push({
+        label: category.label,
+        detail: (record.source_label || 'Exposure queue') + ' - ' + exposureQueueStatusLabel(record.queue_status),
+        count: weight,
+        score: severityRank(record.severity) * 1000 + weight
+      });
+    });
+
+    (state.caseFiles || []).forEach(function (record) {
+      var planner = record && record.planner ? record.planner : {};
+      var summary = record && record.summary ? record.summary : blankCaseSummary();
+      var text = [
+        record && record.title,
+        record && record.output_summary,
+        planner.workflow_value,
+        planner.workflow_label,
+        planner.workflow_prompt,
+        planner.scope,
+        (record && record.tags || []).join(' '),
+        (record && record.recommended_workflows || []).join(' ')
+      ].join(' ');
+      var isSensitive = collapseText(planner.workflow_value) === 'sensitive-data' || statisticsSensitiveMatchesText(text);
+      var weight;
+      var category;
+      if (!isSensitive) return;
+      weight = statWeight(summary.finding_count);
+      category = statisticsPrimarySensitiveCategory(text);
+      units += weight;
+      caseCount += 1;
+      if (normalizeCaseStatus(record.status) !== 'closed') openUnits += weight;
+      statisticsAddSensitiveCategories(categoryCounts, text, weight);
+      statAddCount(sourceCounts, 'Caseboard', weight);
+      drivers.push({
+        label: category.label,
+        detail: 'Caseboard - ' + caseStatusLabel(record.status),
+        count: weight,
+        score: severityRank(summary.highest_severity) * 1000 + weight
+      });
+    });
+
+    if (!statTotal(categoryCounts)) {
+      Object.keys(sourceCategoryCounts).forEach(function (key) {
+        statAddCount(categoryCounts, key, sourceCategoryCounts[key]);
+      });
+    }
+
+    drivers.sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return String(a.label || '').localeCompare(String(b.label || ''));
+    });
+
+    return {
+      records: records,
+      units: units,
+      displayUnits: units || statTotal(categoryCounts),
+      openUnits: openUnits,
+      caseCount: caseCount,
+      categoryCounts: categoryCounts,
+      sources: statSortEntries(sourceCounts, 5),
+      sourceSignals: sourceSignals,
+      drivers: drivers.slice(0, 4)
+    };
+  }
+
+  function statisticsWorkflowData(exposures) {
+    var workflowCounts = {};
+    var actionCounts = {};
+    (exposures || exposureRecords()).forEach(function (record) {
+      statAddCount(workflowCounts, record.workflow_label || record.workflow_value || 'Exposure triage', statWeight(record.finding_count));
+    });
+    (state.caseFiles || []).forEach(function (record) {
+      var summary = record.summary || blankCaseSummary();
+      statAddCount(workflowCounts, (record.planner && record.planner.workflow_label) || 'Saved case', statWeight(summary.finding_count));
+    });
+    (state.agentActions || []).forEach(function (action) {
+      statAddCount(actionCounts, collapseText(action.status || 'queued').replace(/[_-]+/g, ' '), 1);
+    });
+    return {
+      workflows: statSortEntries(workflowCounts, 6),
+      actions: statSortEntries(actionCounts, 5)
+    };
+  }
+
+  function statisticsData() {
+    var exposures = exposureRecords();
+    var risk = statisticsRiskData();
+    return {
+      generatedAt: nowIso(),
+      exposures: exposures,
+      cases: state.caseFiles || [],
+      assets: state.assetRecords || [],
+      activity: state.activityRecords || [],
+      risk: risk,
+      remediation: statisticsRemediationData(exposures),
+      context: statisticsContextData(),
+      assetsData: statisticsAssetData(exposures),
+      dependencies: statisticsDependencyData(exposures),
+      sensitiveData: statisticsSensitiveDataData(exposures),
+      workflows: statisticsWorkflowData(exposures),
+      mission: missionControlSummary()
+    };
+  }
+
+  function renderStatisticsSummary(data) {
+    var severity = data.risk.activeSeverity;
+    var criticalHigh = Number(severity.critical || 0) + Number(severity.high || 0);
+    var remediationTotal = statTotal(data.remediation, STAT_REMEDIATION_STATES);
+    var resolved = Number(data.remediation.remediated || 0) + Number(data.remediation.mitigated || 0);
+    var linkedAssets = data.assetsData.linkedAssets;
+    var items = [
+      { key: 'summary-active-risk', label: 'Active risk units', value: data.risk.activeUnits, detail: data.exposures.length + ' queue item(s)' },
+      { key: 'summary-critical-high', label: 'Critical / high', value: criticalHigh, detail: 'weighted by finding count' },
+      { key: 'summary-context-ready', label: 'Context ready', value: data.context.readyCount + '/' + data.context.sources.length, detail: data.context.enabledCount + ' enabled or selected' },
+      { key: 'summary-remediated', label: 'Remediated + mitigated', value: resolved, detail: Math.round(statPercent(resolved, remediationTotal)) + '% of tracked work' },
+      { key: 'summary-linked-assets', label: 'Linked assets', value: linkedAssets + '/' + data.assets.length, detail: data.assetsData.portfolios + ' portfolio(s)' },
+      { key: 'summary-recent-activity', label: 'Recent activity', value: data.activity.length, detail: 'browser-local events' }
+    ];
+    els.statisticsSummary.innerHTML = items.map(function (item) {
+      return '<article data-statistics-point="' + html(item.key) + '">' +
+        '<div class="ai-chatbot-stat-summary-top"><strong>' + html(String(item.value)) + '</strong>' + statisticsActionButtons(item.key) + '</div>' +
+        '<span>' + html(item.label) + '</span>' +
+        '<small>' + html(item.detail) + '</small>' +
+        statisticsGeneratedInsightHtml(item.key) +
+      '</article>';
+    }).join('');
+  }
+
+  function renderStatisticsSeverity(data) {
+    var counts = data.risk.activeSeverity;
+    var total = statTotal(counts, STAT_SEVERITY_LEVELS);
+    var dominant = highestSeverityLevel(counts);
+    var bars = STAT_SEVERITY_LEVELS.map(function (level) {
+      return {
+        label: severityBadgeLabel(level),
+        detail: Math.round(statPercent(counts[level], total)) + '%',
+        value: counts[level],
+        color: statSeverityColor(level)
+      };
+    });
+    els.statisticsSeverity.innerHTML =
+      statisticsCardHeader('severity', 'Risk Severity', 'Active exposure and open-case risk by severity.',
+        '<span class="ai-chatbot-severity-badge" data-severity="' + html(dominant) + '">' + html(total ? severityBadgeLabel(dominant) : 'NONE') + '</span>') +
+      '<div class="ai-chatbot-stat-severity-layout">' +
+        '<div class="ai-chatbot-stat-ring" style="background:' + html(statConicGradient(counts, STAT_SEVERITY_LEVELS, statSeverityColor)) + '">' +
+          '<div><strong>' + html(statNumber(total)) + '</strong><span>active units</span></div>' +
+        '</div>' +
+        statBarRows(bars) +
+      '</div>' +
+      statisticsGeneratedInsightHtml('severity');
+  }
+
+  function renderStatisticsRemediation(data) {
+    var counts = data.remediation;
+    var total = statTotal(counts, STAT_REMEDIATION_STATES);
+    var resolved = Number(counts.remediated || 0) + Number(counts.mitigated || 0);
+    var items = STAT_REMEDIATION_STATES.map(function (key) {
+      return {
+        key: key,
+        label: statRemediationLabel(key),
+        value: counts[key],
+        color: statRemediationColor(key)
+      };
+    });
+    els.statisticsRemediation.innerHTML =
+      statisticsCardHeader('remediation', 'Remediation Flow', 'Caseboard status plus queue items still needing a case.',
+        statisticsHeaderBadge(String(Math.round(statPercent(resolved, total))) + '% resolved')) +
+      statStackedBar(items) +
+      '<div class="ai-chatbot-stat-mini-grid">' + items.map(function (item) {
+        return '<article data-remediation="' + html(item.key) + '"><strong>' + html(statNumber(item.value)) + '</strong><span>' + html(item.label) + '</span></article>';
+      }).join('') + '</div>' +
+      statisticsGeneratedInsightHtml('remediation');
+  }
+
+  function renderStatisticsContext(data) {
+    var categoryItems = statSortEntries(Object.keys(data.context.categories).reduce(function (out, key) {
+      out[key] = data.context.categories[key].enabled || data.context.categories[key].available;
+      return out;
+    }, {}), 6).map(function (entry) {
+      var detail = data.context.categories[entry.key];
+      return {
+        label: entry.key,
+        value: detail.ready,
+        detail: detail.ready + ' ready / ' + detail.available + ' available',
+        color: '#67e8f9'
+      };
+    });
+    var sourceBadges = data.context.sources.filter(function (source) {
+      return source.ready || source.enabled || source.selected;
+    }).slice(0, 8).map(function (source) {
+      var state = source.ready ? 'ready' : source.state;
+      return '<span data-state="' + html(state) + '">' + html(source.label + ' - ' + source.stateLabel) + '</span>';
+    }).join('');
+    els.statisticsContext.innerHTML =
+      statisticsCardHeader('context', 'Context Coverage', 'Enabled, selected, and loaded evidence sources by type.',
+        statisticsHeaderBadge(String(data.context.readyCount) + ' ready')) +
+      statBarRows(categoryItems) +
+      '<div class="ai-chatbot-stat-chip-cloud">' + (sourceBadges || '<span data-state="available">No active sources yet</span>') + '</div>' +
+      statisticsGeneratedInsightHtml('context');
+  }
+
+  function renderStatisticsAssets(data) {
+    var assetData = data.assetsData;
+    var rows = assetData.criticalities.map(function (criticality) {
+      return '<div class="ai-chatbot-stat-heat-label">' + html(assetCriticalityLabel(criticality)) + '</div>' +
+        STAT_SEVERITY_LEVELS.map(function (severity) {
+          var value = Number(assetData.matrix[criticality][severity] || 0);
+          var heat = statPercent(value, assetData.max || 1) / 100;
+          return '<div class="ai-chatbot-stat-heat-cell" data-severity="' + html(severity) + '" style="--heat:' + heat.toFixed(3) + '"><span>' + html(statNumber(value)) + '</span></div>';
+        }).join('');
+    }).join('');
+    els.statisticsAssets.innerHTML =
+      statisticsCardHeader('assets', 'Asset Exposure', 'Risk intersection by asset criticality and finding severity.',
+        statisticsHeaderBadge(String(assetData.criticalHighAssets) + ' critical/high assets')) +
+      '<div class="ai-chatbot-stat-asset-kpis">' +
+        '<span><strong>' + html(statNumber(assetData.totalAssets)) + '</strong> assets</span>' +
+        '<span><strong>' + html(statNumber(assetData.linkedAssets)) + '</strong> linked</span>' +
+        '<span><strong>' + html(statNumber(assetData.portfolios)) + '</strong> portfolios</span>' +
+      '</div>' +
+      '<div class="ai-chatbot-stat-heatmap">' +
+        '<div></div>' + STAT_SEVERITY_LEVELS.map(function (severity) {
+          return '<div class="ai-chatbot-stat-heat-head">' + html(severityBadgeLabel(severity)) + '</div>';
+        }).join('') + rows +
+      '</div>' +
+      statisticsGeneratedInsightHtml('assets');
+  }
+
+  function renderStatisticsDependencies(data) {
+    var dep = data.dependencies;
+    var rowSource = dep.ecosystems.length ? dep.ecosystems : dep.sources;
+    var rows = rowSource.map(function (entry) {
+      return {
+        label: entry.key,
+        value: entry.count,
+        detail: dep.ecosystems.length ? 'ecosystem inventory' : 'dependency source',
+        color: dep.ecosystems.length ? '#67e8f9' : '#2dd4bf'
+      };
+    });
+    var chips = dep.sourceStates.map(function (source) {
+      return '<span data-state="' + html(source.state) + '">' + html(source.label + ' - ' + (source.state === 'ready' ? 'ready' : (source.state === 'template' ? 'needs refresh' : 'available'))) + '</span>';
+    }).join('');
+    var miniItems = [
+      { label: 'Inventory items', value: dep.inventoryCount },
+      { label: 'Risk references', value: dep.riskReferences },
+      { label: 'Open risk units', value: dep.openUnits },
+      { label: 'Dependency edges', value: dep.dependencyEdges }
+    ];
+    els.statisticsDependencies.innerHTML =
+      statisticsCardHeader('dependencies', 'Dependency Posture', 'SBOM inventory, advisory context, and dependency remediation signals.',
+        statisticsHeaderBadge(statNumber(dep.riskReferences) + ' refs')) +
+      '<div class="ai-chatbot-stat-mini-grid">' + miniItems.map(function (item) {
+        return '<article><strong>' + html(statNumber(item.value)) + '</strong><span>' + html(item.label) + '</span></article>';
+      }).join('') + '</div>' +
+      statBarRows(rows) +
+      '<div class="ai-chatbot-stat-chip-cloud">' + chips + '</div>' +
+      statisticsGeneratedInsightHtml('dependencies');
+  }
+
+  function renderStatisticsSensitiveData(data) {
+    var sensitive = data.sensitiveData;
+    var categoryRows = statSortEntries(sensitive.categoryCounts, 5).map(function (entry) {
+      var category = statisticsSensitiveCategoryForKey(entry.key);
+      return {
+        label: category.label,
+        value: entry.count,
+        detail: 'sensitive-data element signals',
+        color: category.color
+      };
+    });
+    var sourceChips = sensitive.sourceSignals.slice(0, 5).map(function (signal) {
+      return '<span data-state="' + html(signal.state) + '">' + html(signal.label + ' ' + statNumber(signal.count)) + '</span>';
+    }).join('');
+    var miniItems = [
+      { label: 'Signal units', value: sensitive.displayUnits },
+      { label: 'Open units', value: sensitive.openUnits },
+      { label: 'Linked cases', value: sensitive.caseCount },
+      { label: 'Source signals', value: sensitive.sourceSignals.length }
+    ];
+    var drivers = sensitive.drivers.length ? '<div class="ai-chatbot-stat-list">' + sensitive.drivers.map(function (driver) {
+      return '<article>' +
+        '<div><strong>' + html(driver.label) + '</strong><span>' + html(driver.detail) + '</span></div>' +
+        '<em>' + html(statNumber(driver.count)) + '</em>' +
+      '</article>';
+    }).join('') + '</div>' : '';
+    els.statisticsSensitiveData.innerHTML =
+      statisticsCardHeader('sensitive-data', 'Sensitive Data Exposure', 'Secrets, credentials, keys, and privacy-bearing finding categories.',
+        statisticsHeaderBadge(statNumber(sensitive.openUnits) + ' open')) +
+      '<div class="ai-chatbot-stat-mini-grid">' + miniItems.map(function (item) {
+        return '<article><strong>' + html(statNumber(item.value)) + '</strong><span>' + html(item.label) + '</span></article>';
+      }).join('') + '</div>' +
+      statBarRows(categoryRows) +
+      (sourceChips ? '<div class="ai-chatbot-stat-chip-cloud">' + sourceChips + '</div>' : '') +
+      drivers +
+      statisticsGeneratedInsightHtml('sensitive-data');
+  }
+
+  function renderStatisticsWorkflows(data) {
+    var workflowRows = data.workflows.workflows.map(function (entry) {
+      return {
+        label: entry.key,
+        value: entry.count,
+        detail: 'risk/work units',
+        color: '#2dd4bf'
+      };
+    });
+    var actionRows = data.workflows.actions.map(function (entry) {
+      return '<span>' + html(entry.key + ' ' + statNumber(entry.count)) + '</span>';
+    }).join('');
+    els.statisticsWorkflows.innerHTML =
+      statisticsCardHeader('workflows', 'Workflow Mix', 'Where risk is flowing through recipes, cases, and queued agents.',
+        statisticsHeaderBadge(String(data.workflows.workflows.length) + ' workflows')) +
+      statBarRows(workflowRows) +
+      '<div class="ai-chatbot-stat-chip-cloud">' + (actionRows || '<span>no queued agents</span>') + '</div>' +
+      statisticsGeneratedInsightHtml('workflows');
+  }
+
+  function renderStatisticsFreshness(data) {
+    var items = data.context.freshness.slice(0, 6);
+    els.statisticsFreshness.innerHTML =
+      statisticsCardHeader('freshness', 'Evidence Freshness', 'Current, aging, and stale source snapshots.',
+        statisticsHeaderBadge(String(data.context.staleCount) + ' stale')) +
+      (items.length ? '<div class="ai-chatbot-stat-list">' + items.map(function (item) {
+        return '<article data-state="' + html(item.state) + '">' +
+          '<div><strong>' + html(item.title) + '</strong><span>' + html(item.summary) + '</span></div>' +
+          '<em>' + html(item.stateLabel) + '</em>' +
+        '</article>';
+      }).join('') + '</div>' : '<div class="ai-chatbot-stat-empty">No aging source snapshots yet.</div>') +
+      statisticsGeneratedInsightHtml('freshness');
+  }
+
+  function renderStatisticsDrivers(data) {
+    els.statisticsDrivers.innerHTML =
+      statisticsCardHeader('drivers', 'Top Drivers', 'Highest-priority risk signals by severity, asset criticality, and count.',
+        statisticsHeaderBadge(String(data.risk.drivers.length) + ' drivers')) +
+      (data.risk.drivers.length ? '<div class="ai-chatbot-stat-driver-list">' + data.risk.drivers.map(function (driver) {
+        return '<article>' +
+          '<span class="ai-chatbot-severity-badge" data-severity="' + html(driver.severity) + '">' + html(severityBadgeLabel(driver.severity)) + '</span>' +
+          '<div><strong>' + html(driver.title) + '</strong><span>' + html(driver.source + ' - ' + driver.status) + '</span></div>' +
+          '<em>' + html(statNumber(driver.count)) + '</em>' +
+        '</article>';
+      }).join('') + '</div>' : '<div class="ai-chatbot-stat-empty">No risk drivers yet.</div>') +
+      statisticsGeneratedInsightHtml('drivers');
+  }
+
+  function renderStatisticsActivity(data) {
+    var records = (data.activity || []).slice(-7).reverse();
+    els.statisticsActivity.innerHTML =
+      statisticsCardHeader('activity', 'Recent Activity', 'Browser-local remediation events and evidence movement.',
+        statisticsHeaderBadge(String(records.length) + ' shown')) +
+      (records.length ? '<div class="ai-chatbot-stat-timeline">' + records.map(function (record) {
+        return '<article data-status="' + html(record.status) + '">' +
+          '<time>' + html(formatTimestamp(record.createdAt)) + '</time>' +
+          '<div><strong>' + html(record.title) + '</strong><span>' + html(record.summary || normalizeActivityCategory(record.category)) + '</span></div>' +
+        '</article>';
+      }).join('') + '</div>' : '<div class="ai-chatbot-stat-empty">No browser-local activity history yet.</div>') +
+      statisticsGeneratedInsightHtml('activity');
+  }
+
+  function statisticsRefreshSourceIdsForKey(key) {
+    var allRefreshable = refreshBatchSourceIds('all');
+    var dueRefreshable = refreshBatchSourceIds('due');
+    var mapped = {
+      dependencies: ['deps-dev-advisories', 'osv-vulnerability-api', 'snyk-issues-api'],
+      'sensitive-data': ['github-code-scanning-alerts', 'gitlab-vulnerability-findings', 'snyk-issues-api', 'microsoft-defender-xdr-incidents', 'microsoft-sentinel-incidents'],
+      context: allRefreshable,
+      freshness: allRefreshable,
+      'summary-context-ready': allRefreshable
+    };
+    var riskKeys = [
+      'summary-active-risk',
+      'summary-critical-high',
+      'summary-remediated',
+      'summary-linked-assets',
+      'severity',
+      'remediation',
+      'assets',
+      'workflows',
+      'drivers'
+    ];
+    var candidates = mapped[key] || (riskKeys.indexOf(key) !== -1 ? dueRefreshable : []);
+    return uniqueStrings(candidates.filter(function (sourceId) {
+      return allRefreshable.indexOf(sourceId) !== -1;
+    }), 12);
+  }
+
+  function statisticsTopEntry(entries) {
+    return entries && entries.length ? entries[0] : null;
+  }
+
+  function statisticsInsightText(key, data) {
+    var severityCounts = data.risk.activeSeverity;
+    var severityTotal = statTotal(severityCounts, STAT_SEVERITY_LEVELS);
+    var dominantSeverity = highestSeverityLevel(severityCounts);
+    var remediationTotal = statTotal(data.remediation, STAT_REMEDIATION_STATES);
+    var resolved = Number(data.remediation.remediated || 0) + Number(data.remediation.mitigated || 0);
+    var topWorkflow = statisticsTopEntry(data.workflows.workflows);
+    var topDriver = statisticsTopEntry(data.risk.drivers);
+    var topSensitive = statisticsTopEntry(statSortEntries(data.sensitiveData.categoryCounts, 1));
+    var topDependency = statisticsTopEntry(data.dependencies.ecosystems) || statisticsTopEntry(data.dependencies.sources);
+    if (key === 'summary-active-risk') {
+      return statNumber(data.risk.activeUnits) + ' active risk unit(s) are represented across ' + statNumber(data.exposures.length) + ' queue item(s). Reload source evidence before using this as an executive snapshot.';
+    }
+    if (key === 'summary-critical-high') {
+      return statNumber(Number(severityCounts.critical || 0) + Number(severityCounts.high || 0)) + ' critical/high unit(s) are currently weighted by finding count; ' + severityBadgeLabel(dominantSeverity).toLowerCase() + ' is the highest active severity.';
+    }
+    if (key === 'summary-context-ready') {
+      return statNumber(data.context.readyCount) + ' of ' + statNumber(data.context.sources.length) + ' evidence source(s) are ready, with ' + statNumber(data.context.staleCount) + ' stale and ' + statNumber(data.context.refreshSoonCount) + ' due soon.';
+    }
+    if (key === 'summary-remediated') {
+      return statNumber(resolved) + ' tracked unit(s) are remediated or mitigated, representing ' + String(Math.round(statPercent(resolved, remediationTotal))) + '% of tracked remediation work.';
+    }
+    if (key === 'summary-linked-assets') {
+      return statNumber(data.assetsData.linkedAssets) + ' of ' + statNumber(data.assets.length) + ' asset(s) are linked to risk or cases, across ' + statNumber(data.assetsData.portfolios) + ' portfolio(s).';
+    }
+    if (key === 'summary-recent-activity') {
+      return statNumber(data.activity.length) + ' browser-local event(s) are available for report evidence and audit reconstruction.';
+    }
+    if (key === 'severity') {
+      return severityTotal
+        ? severityBadgeLabel(dominantSeverity) + ' is the dominant active severity across ' + statNumber(severityTotal) + ' weighted risk unit(s).'
+        : 'No active weighted risk units are present in the current exposure and case context.';
+    }
+    if (key === 'remediation') {
+      return statNumber(resolved) + ' unit(s) are resolved while ' + statNumber(data.remediation.open || 0) + ' remain open and ' + statNumber(data.remediation.needs_case || 0) + ' still need a case.';
+    }
+    if (key === 'context') {
+      return statNumber(data.context.readyCount) + ' evidence source(s) are ready out of ' + statNumber(data.context.sources.length) + '; reload stale sources before final export.';
+    }
+    if (key === 'assets') {
+      return statNumber(data.assetsData.criticalHighAssets) + ' critical/high asset(s) exist, and ' + statNumber(data.assetsData.linkedAssets) + ' asset(s) are linked to cases or exposure records.';
+    }
+    if (key === 'dependencies') {
+      return statNumber(data.dependencies.inventoryCount) + ' dependency inventory item(s) and ' + statNumber(data.dependencies.riskReferences) + ' advisory/reference signal(s) are represented' +
+        (topDependency ? ', led by ' + topDependency.key + '.' : '.');
+    }
+    if (key === 'sensitive-data') {
+      return statNumber(data.sensitiveData.openUnits) + ' sensitive-data unit(s) remain open' +
+        (topSensitive ? ', with ' + statisticsSensitiveCategoryForKey(topSensitive.key).label + ' as the leading category.' : '.');
+    }
+    if (key === 'workflows') {
+      return topWorkflow
+        ? topWorkflow.key + ' is the largest workflow lane with ' + statNumber(topWorkflow.count) + ' risk/work unit(s).'
+        : 'No workflow lanes are active yet; generated agent runs and case captures will populate this view.';
+    }
+    if (key === 'freshness') {
+      return statNumber(data.context.staleCount) + ' source snapshot(s) are stale and ' + statNumber(data.context.refreshSoonCount) + ' should be refreshed soon.';
+    }
+    if (key === 'drivers') {
+      return topDriver
+        ? topDriver.title + ' is the top current driver, ranked by ' + severityBadgeLabel(topDriver.severity).toLowerCase() + ' severity and ' + statNumber(topDriver.count) + ' unit(s).'
+        : 'No ranked drivers are available until exposures or case findings are present.';
+    }
+    if (key === 'activity') {
+      return statNumber((data.activity || []).length) + ' activity record(s) are available; recent report generation and reload events are included here.';
+    }
+    return 'Generated insight for ' + statisticsDatapointLabel(key) + ' from the current browser-local report data.';
+  }
+
+  async function reloadStatisticsDatapoint(key) {
+    var label = statisticsDatapointLabel(key);
+    var targets = statisticsRefreshSourceIdsForKey(key);
+    var refreshed = 0;
+    var failed = 0;
+    var i;
+    if (els.statisticsStatus) {
+      els.statisticsStatus.textContent = 'Reloading ' + label + '...';
+      els.statisticsStatus.setAttribute('data-kind', 'loading');
+    }
+    for (i = 0; i < targets.length; i += 1) {
+      try {
+        if (await refreshSourceContext(targets[i], { silent: true })) refreshed += 1;
+        else failed += 1;
+      } catch (error) {
+        failed += 1;
+        console.warn('Report datapoint refresh failed for ' + targets[i], error);
+      }
+    }
+    appendActivityRecord({
+      category: 'report',
+      eventType: 'report_datapoint_reloaded',
+      status: failed ? 'warning' : 'ok',
+      title: label + ' reloaded',
+      summary: targets.length
+        ? (statNumber(refreshed) + ' live source(s) refreshed; ' + statNumber(failed) + ' still need setup or a successful browser fetch.')
+        : 'Recalculated from current browser-local report state.',
+      targetId: key,
+      targetLabel: label,
+      badges: ['report', targets.length ? 'live refresh' : 'local recalculation']
+    });
+    if (els.statisticsStatus) {
+      els.statisticsStatus.textContent = targets.length
+        ? (label + ' reloaded. ' + statNumber(refreshed) + ' live source(s) refreshed; ' + statNumber(failed) + ' still need setup or a successful browser fetch.')
+        : (label + ' recalculated from current browser-local report state. No configured live source is mapped to this datapoint yet.');
+      els.statisticsStatus.setAttribute('data-kind', failed ? 'warning' : 'ok');
+    }
+  }
+
+  function generateStatisticsDatapoint(key) {
+    var label = statisticsDatapointLabel(key);
+    state.statisticsGeneratedInsights = state.statisticsGeneratedInsights || {};
+    state.statisticsGeneratedInsights[key] = {
+      text: statisticsInsightText(key, statisticsData()),
+      generatedAt: nowIso()
+    };
+    saveStatisticsGeneratedInsights();
+    appendActivityRecord({
+      category: 'report',
+      eventType: 'report_datapoint_generated',
+      status: 'ok',
+      title: label + ' insight generated',
+      summary: state.statisticsGeneratedInsights[key].text,
+      targetId: key,
+      targetLabel: label,
+      badges: ['report', 'generated insight']
+    });
+    if (els.statisticsStatus) {
+      els.statisticsStatus.textContent = 'Generated ' + label + ' insight from current browser-local report data.';
+      els.statisticsStatus.setAttribute('data-kind', 'ok');
+    }
+  }
+
+  async function handleStatisticsAction(event) {
+    var button = event.target.closest('[data-stat-action][data-stat-key]');
+    var action = button && button.getAttribute('data-stat-action');
+    var key = button && button.getAttribute('data-stat-key');
+    if (!button || !action || !key) return;
+    event.preventDefault();
+    button.disabled = true;
+    try {
+      if (action === 'reload') await reloadStatisticsDatapoint(key);
+      else if (action === 'generate') generateStatisticsDatapoint(key);
+    } catch (error) {
+      console.warn('Report datapoint action failed', error);
+      if (els.statisticsStatus) {
+        els.statisticsStatus.textContent = statisticsDatapointLabel(key) + ' action failed: ' + (error && error.message ? error.message : String(error || 'Unknown error'));
+        els.statisticsStatus.setAttribute('data-kind', 'error');
+      }
+    } finally {
+      if (button.isConnected) button.disabled = false;
+    }
+  }
+
+  function renderStatistics() {
+    var data;
+    if (!els.statisticsSummary) return;
+    data = statisticsData();
+    renderStatisticsSummary(data);
+    renderStatisticsSeverity(data);
+    renderStatisticsRemediation(data);
+    renderStatisticsContext(data);
+    renderStatisticsAssets(data);
+    renderStatisticsDependencies(data);
+    renderStatisticsSensitiveData(data);
+    renderStatisticsWorkflows(data);
+    renderStatisticsFreshness(data);
+    renderStatisticsDrivers(data);
+    renderStatisticsActivity(data);
+    if (els.statisticsStatus) {
+      els.statisticsStatus.textContent = 'Generated ' + formatTimestamp(data.generatedAt) + ' from ' +
+        String(data.context.readyCount) + ' ready source(s), ' +
+        String(data.exposures.length) + ' exposure item(s), ' +
+        String(data.dependencies.openUnits) + ' open dependency risk unit(s), ' +
+        String(data.sensitiveData.displayUnits) + ' sensitive-data signal unit(s), ' +
+        String(data.cases.length) + ' case(s), and ' +
+        String(data.assets.length) + ' asset(s).';
+      els.statisticsStatus.removeAttribute('data-kind');
+    }
+  }
+
+  function exportStatisticsPdf() {
+    renderStatistics();
+    document.documentElement.classList.add('ai-chatbot-statistics-printing');
+    if (els.statisticsStatus) {
+      els.statisticsStatus.textContent = 'Preparing PDF export from the Report tab.';
+      els.statisticsStatus.setAttribute('data-kind', 'ok');
+    }
+    window.setTimeout(function () {
+      window.print();
+    }, 80);
+    window.setTimeout(function () {
+      document.documentElement.classList.remove('ai-chatbot-statistics-printing');
+      renderStatistics();
+    }, 1600);
   }
 
   function panelForTab(tab) {
-    if (tab === 'marketplace') return 'control-plane';
+    if (tab === 'marketplace' || tab === 'control-plane') return 'agents';
     return tab || 'chat';
   }
 
   function primaryTabForPanel(panel) {
-    if (panel === 'control-plane') return 'marketplace';
+    if (panel === 'control-plane') return 'agents';
     if (['router', 'assets', 'exposure', 'cases', 'reports'].indexOf(panel) !== -1) return 'agents';
     return panel || 'chat';
   }
@@ -18262,6 +20479,7 @@
       updateChatQuickActions();
     }
     if (panelName === 'terminal') renderTerminal();
+    else if (panelName === 'statistics') renderStatistics();
     else if (panelName === 'control-plane') renderControlPlane();
     else if (panelName === 'router') renderRouter();
     else if (panelName === 'assets') renderAssetBoard();
@@ -18332,6 +20550,18 @@
       return {
         detailSelector: '[data-context-details]',
         focusTarget: els.includeDepsDev || els.githubContextDepsDev || els.githubRepoInput
+      };
+    }
+    if (sourceId === 'osv-vulnerability-api') {
+      return {
+        detailSelector: '[data-context-details]',
+        focusTarget: els.includeOsv || els.githubRepoInput
+      };
+    }
+    if (sourceId === 'mcp-http-gateway') {
+      return {
+        detailSelector: '[data-mcp-gateway-details]',
+        focusTarget: els.mcpGatewayEndpoint || els.mcpGatewayProfile || els.includeMcpGateway
       };
     }
     if (sourceId === 'gitlab-project-context') {
@@ -18408,6 +20638,8 @@
       sourceId === 'gitlab-vulnerability-findings' ||
       sourceId === 'azure-devops-repository' ||
       sourceId === 'deps-dev-advisories' ||
+      sourceId === 'osv-vulnerability-api' ||
+      sourceId === 'mcp-http-gateway' ||
       sourceId === 'snyk-issues-api' ||
       sourceId === 'confluence-knowledge' ||
       sourceId === 'microsoft-defender-xdr-incidents' ||
@@ -18444,8 +20676,12 @@
   function sourceConfigurationState(sourceId) {
     var missing = [];
     var runtimeState;
-    if (sourceId === 'github-repository' || sourceId === 'deps-dev-advisories') {
+    if (sourceId === 'github-repository' || sourceId === 'deps-dev-advisories' || sourceId === 'osv-vulnerability-api') {
       if (!parseGitHubRepository(currentGitHubRepositoryInput())) missing.push('repository');
+      return { configured: !missing.length, missing: missing };
+    }
+    if (sourceId === 'mcp-http-gateway') {
+      if (!currentMcpGatewayEndpoint()) missing.push('HTTP endpoint');
       return { configured: !missing.length, missing: missing };
     }
     if (sourceId === 'github-code-scanning-alerts') {
@@ -18504,8 +20740,16 @@
   }
 
   function sourceHasSetupValue(sourceId) {
-    if (sourceId === 'github-repository' || sourceId === 'deps-dev-advisories') {
+    if (sourceId === 'github-repository' || sourceId === 'deps-dev-advisories' || sourceId === 'osv-vulnerability-api') {
       return !!collapseText(currentGitHubRepositoryInput());
+    }
+    if (sourceId === 'mcp-http-gateway') {
+      return !!(
+        currentMcpGatewayEndpoint() ||
+        trimText(getIntegrationField('mcpGatewayToken')) ||
+        currentMcpGatewayTool() ||
+        collapseText(getIntegrationField('mcpGatewayQuery'))
+      );
     }
     if (sourceId === 'github-code-scanning-alerts') {
       return !!(
@@ -18603,7 +20847,7 @@
           state: 'blocked'
         };
       }
-      if (/repository|owner\/repo|project path|project id|organization|organization id|org id|site url|account email|api token|pat|base url|public github repository|subscription id|resource group|workspace name|bearer token|incident read access/.test(lower)) {
+      if (/repository|owner\/repo|project path|project id|organization|organization id|org id|site url|account email|api token|pat|base url|http endpoint|mcp endpoint|public github repository|subscription id|resource group|workspace name|bearer token|incident read access/.test(lower)) {
         return {
           label: 'Setup gap',
           hint: 'Complete the required source fields, then retry the source load.',
@@ -18833,6 +21077,18 @@
       if (els.includeDepsDev) els.includeDepsDev.checked = true;
       return;
     }
+    if (sourceId === 'osv-vulnerability-api') {
+      state.includeOsv = true;
+      localStorage.setItem(STORE.osvContext, 'true');
+      if (els.includeOsv) els.includeOsv.checked = true;
+      return;
+    }
+    if (sourceId === 'mcp-http-gateway') {
+      state.includeMcpGateway = true;
+      localStorage.setItem(STORE.mcpGatewayContext, 'true');
+      if (els.includeMcpGateway) els.includeMcpGateway.checked = true;
+      return;
+    }
     if (sourceId === 'snyk-issues-api') {
       state.includeSnyk = true;
       localStorage.setItem(STORE.snykContext, 'true');
@@ -18893,6 +21149,10 @@
         await prepareAzureDevOpsRepositoryContext();
       } else if (sourceId === 'deps-dev-advisories') {
         await prepareDepsDevContext();
+      } else if (sourceId === 'osv-vulnerability-api') {
+        await prepareOsvContext();
+      } else if (sourceId === 'mcp-http-gateway') {
+        await prepareMcpGatewayContext((els.prompt && els.prompt.value) || (els.agentScope && els.agentScope.value) || '');
       } else if (sourceId === 'snyk-issues-api') {
         await prepareSnykContext();
       } else if (sourceId === 'confluence-knowledge') {
@@ -19414,62 +21674,7 @@
   }
 
   function marketplaceSearchItems(query) {
-    var terms = termsFor(query);
-    return marketplaceEntries().map(function (entry) {
-      var score = searchTextScore(entry.label, [
-        entry.description,
-        entry.category,
-        entry.status,
-        entry.runtime,
-        entry.keywords
-      ], query, terms);
-      if (!score) return null;
-      if (entry.runtime === 'live' || entry.runtime === 'live_or_copy') score += 4;
-      if (entry.kind === 'workflow' || entry.kind === 'report') score += 2;
-      return {
-        group: 'marketplace',
-        score: score,
-        kindLabel: entry.kindLabel,
-        title: entry.label,
-        summary: entry.description || 'Marketplace contract.',
-        state: entry.runtime === 'planned' || entry.runtime === 'config_only' ? 'needs_config' : (entry.runtime === 'copy_only' || entry.runtime === 'contract' ? 'template' : 'ready'),
-        stateLabel: entry.runtime,
-        badges: uniqueStrings([
-          entry.status,
-          entry.category,
-          entry.kind === 'output' && entry.raw && entry.raw.driver ? entry.raw.driver : '',
-          entry.kind === 'report' && entry.raw && entry.raw.format ? entry.raw.format : '',
-          entry.kind === 'workflow' && entry.raw ? agentWorkflowByValue(entry.raw.workflow_value).label : ''
-        ], 5),
-        primary: entry.kind === 'workflow'
-          ? {
-              label: 'Apply pack',
-              action: 'apply-template',
-              value: entry.id
-            }
-          : (entry.kind === 'report'
-            ? {
-                label: 'Apply report',
-                action: 'apply-report',
-                value: entry.id
-              }
-            : {
-                label: 'Open marketplace',
-                action: 'focus-marketplace',
-                value: entry.key
-              }),
-        secondary: entry.kind === 'workflow' || entry.kind === 'report'
-          ? {
-              label: 'Open marketplace',
-              action: 'focus-marketplace',
-              value: entry.key
-            }
-          : null
-      };
-    }).filter(Boolean).sort(function (a, b) {
-      if (b.score !== a.score) return b.score - a.score;
-      return String(a.title || '').localeCompare(String(b.title || ''));
-    }).slice(0, 8);
+    return [];
   }
 
   function isRecipeDocPath(path) {
@@ -19690,7 +21895,7 @@
       if (summary.scheduled_action_count || summary.queue_item_count || summary.open_case_count) {
         return 'Local schedules, queue state, cases, source health, and route readiness are stable right now. Export a browser-side daily brief or drill into the next reviewed run.';
       }
-      return 'No scheduled runs, queue items, or active cases yet. Use the Agents planner, imports, and Control Plane to seed the first governed workflow.';
+      return 'No scheduled runs, queue items, or active cases yet. Use the Agents planner, imports, and settings to seed the first governed workflow.';
     }
     return parts.join(' | ') + '.';
   }
@@ -20970,6 +23175,7 @@
     updatePanelOffset();
     els.panel.hidden = false;
     els.launch.setAttribute('aria-expanded', 'true');
+    syncPanelOpenState();
     switchTab(panelName);
     window.setTimeout(function () {
       if (panelName === 'search' && els.searchInput) {
@@ -20992,6 +23198,11 @@
         els.prompt.focus();
       }
     }, 0);
+  }
+
+  function syncPanelOpenState() {
+    if (!els.shell || !els.panel) return;
+    els.shell.classList.toggle('is-open', !els.panel.hidden);
   }
 
   function setExpanded(expanded) {
@@ -21115,6 +23326,20 @@
         ready: !!state.depsDevContextText && !!state.depsDevContextLoadedAt,
         loaded_at: state.depsDevContextLoadedAt || '',
         summary: state.githubRepoUrl ? { repository: state.githubRepoUrl } : null
+      };
+    }
+    if (channelId === 'osv-vulnerability-api') {
+      return {
+        ready: !!state.osvContextText && !!state.osvContextLoadedAt,
+        loaded_at: state.osvContextLoadedAt || '',
+        summary: state.githubRepoUrl ? { repository: state.githubRepoUrl } : null
+      };
+    }
+    if (channelId === 'mcp-http-gateway') {
+      return {
+        ready: !!state.mcpGatewayContextText && !!state.mcpGatewayContextLoadedAt,
+        loaded_at: state.mcpGatewayContextLoadedAt || '',
+        summary: state.mcpGatewayContextMeta || null
       };
     }
     if (channelId === 'snyk-issues-api') {
@@ -21676,19 +23901,21 @@
       label: 'Provider runtime',
       state: ready ? 'ready' : 'blocked',
       summary: token
-        ? (label + ' ' + credentialModeLabel(provider, mode).toLowerCase() + ' is held only for this page session.')
-        : ('Paste a ' + tokenLabel(provider, mode).toLowerCase() + ' before generating a run plan.'),
-      badges: uniqueStrings([label, credentialModeLabel(provider, mode), token ? 'page session' : 'key required'], 3),
+        ? (label + ' ' + credentialModeLabel(provider, mode).toLowerCase() + ' is ' + (hasStoredProviderToken(provider, mode) ? 'saved in this browser.' : 'active for this page session.'))
+        : ('Paste ' + tokenLabelWithArticle(provider, mode).toLowerCase() + ' before generating a run plan.'),
+      badges: uniqueStrings([label, credentialModeLabel(provider, mode), token ? (hasStoredProviderToken(provider, mode) ? 'browser secret' : 'page session') : 'key required'], 3),
       notes: token
         ? [
             providerRelayLikelyAvailable()
               ? 'Requests run from this browser via the configured same-origin relay path.'
               : 'Requests run directly from this browser to the provider API because no server relay is configured.',
-            'Provider secrets are not stored by the site and are cleared when this page reloads or closes.'
+            hasStoredProviderToken(provider, mode)
+              ? 'This provider secret is saved in the current browser profile until Clear removes it.'
+              : 'This provider secret is only active in page memory until this page reloads or closes.'
           ]
         : [
-            'Use the settings drawer to provide an API key or OAuth bearer for this page session.',
-            'The deployed site proxies the request without storing provider credentials.'
+            'Use the settings drawer to provide an API key or OAuth bearer.',
+            'You can keep provider credentials session-only or save them as browser-local secrets.'
           ],
       action: {
         label: ready ? 'Review provider setup' : 'Open provider settings',
@@ -21867,9 +24094,9 @@
       ], 4),
       notes: uniqueStrings(readiness.blockers.concat(readiness.requirements).slice(0, 5), 5),
       action: {
-        label: readiness.blockers.length ? 'Inspect workflow pack' : 'Open workflow pack',
-        action: 'focus-marketplace',
-        value: actionValue
+        label: readiness.blockers.length ? 'Open agents' : 'Open agents',
+        action: 'open-tab',
+        value: 'agents'
       }
     };
   }
@@ -21888,15 +24115,15 @@
       };
     } else if (runtimeState.state === 'template') {
       action = {
-        label: 'Inspect route contract',
-        action: 'focus-marketplace',
-        value: (entry && entry.key) || (route && (route.label || route.id)) || 'output route'
+        label: 'Open agents',
+        action: 'open-tab',
+        value: 'agents'
       };
     } else {
       action = {
-        label: 'Open Control Plane',
+        label: 'Open agents',
         action: 'open-tab',
-        value: 'control-plane'
+        value: 'agents'
       };
     }
     return {
@@ -23327,6 +25554,7 @@
     if (els.reportStatus && !collapseText(els.reportStatus.textContent)) {
       setReportWorkspaceStatus('Seed a report from a saved case, queue item, or grouped browser session, then copy, download, or route the result downstream.', '');
     }
+    renderStatistics();
   }
 
   async function deliverReportWorkspaceOutput() {
@@ -23422,8 +25650,7 @@
     if (!els.agentInputChannels) return;
     var selected = currentInputChannelIds();
     els.agentInputChannels.innerHTML = inputChannels().map(function (channel) {
-      var meta = [channel.category, channel.runtime_support].filter(Boolean).join(' · ');
-      return '<option value="' + html(channel.id) + '">' + html(channel.label + (meta ? ' - ' + meta : '')) + '</option>';
+      return '<option value="' + html(channel.id) + '">' + html(channel.label) + '</option>';
     }).join('');
     setSelectValues(els.agentInputChannels, selected.length ? selected : defaultInputChannelIds());
   }
@@ -23457,13 +25684,13 @@
 
   function updateAgentScheduleFields() {
     if (!els.agentCadence) return;
-    var cadence = selectedText(els.agentCadence) || 'Manual approval';
-    var scheduled = cadence !== 'Manual approval';
-    if (els.agentNextRunField) els.agentNextRunField.hidden = !scheduled;
+    var cadence = selectedText(els.agentCadence) || 'Minute';
+    var needsFirstRun = agentCadenceNeedsFirstRun(cadence);
+    if (els.agentNextRunField) els.agentNextRunField.hidden = !needsFirstRun;
     if (!els.agentNextRun) return;
-    if (scheduled && !els.agentNextRun.value) {
+    if (needsFirstRun && !els.agentNextRun.value) {
       els.agentNextRun.value = defaultAgentScheduleValue(cadence);
-    } else if (!scheduled && els.agentNextRun.value) {
+    } else if (!needsFirstRun && els.agentNextRun.value) {
       els.agentNextRun.value = '';
     }
   }
@@ -23532,6 +25759,7 @@
     if (next.approvalGate && els.agentApproval) selectByText(els.agentApproval, next.approvalGate);
     if (next.contextPack && els.agentContextPack) selectByText(els.agentContextPack, next.contextPack);
     if (next.cadence && els.agentCadence) selectByText(els.agentCadence, next.cadence);
+    updateAgentScheduleFields();
     state.agentRoutingDecision = decision;
     updateAgentIntegrationUI();
     updateAgentRouteHint();
@@ -23560,6 +25788,8 @@
     state.includeGitLabFindings = ids.indexOf('gitlab-vulnerability-findings') !== -1;
     state.includeAzureDevOpsRepository = ids.indexOf('azure-devops-repository') !== -1;
     state.includeDepsDev = ids.indexOf('deps-dev-advisories') !== -1;
+    state.includeOsv = ids.indexOf('osv-vulnerability-api') !== -1;
+    state.includeMcpGateway = ids.indexOf('mcp-http-gateway') !== -1;
     state.includeSnyk = ids.indexOf('snyk-issues-api') !== -1;
     state.includeConfluence = ids.indexOf('confluence-knowledge') !== -1;
     state.includeDefenderXdr = ids.indexOf('microsoft-defender-xdr-incidents') !== -1;
@@ -23577,6 +25807,8 @@
     if (els.includeGitLabFindings) els.includeGitLabFindings.checked = state.includeGitLabFindings;
     if (els.includeAzureDevOpsRepository) els.includeAzureDevOpsRepository.checked = state.includeAzureDevOpsRepository;
     if (els.includeDepsDev) els.includeDepsDev.checked = state.includeDepsDev;
+    if (els.includeOsv) els.includeOsv.checked = state.includeOsv;
+    if (els.includeMcpGateway) els.includeMcpGateway.checked = state.includeMcpGateway;
     if (els.includeSnyk) els.includeSnyk.checked = state.includeSnyk;
     if (els.includeConfluence) els.includeConfluence.checked = state.includeConfluence;
     if (els.includeDefenderXdr) els.includeDefenderXdr.checked = state.includeDefenderXdr;
@@ -23592,6 +25824,8 @@
     localStorage.setItem(STORE.gitLabFindingsContext, String(state.includeGitLabFindings));
     localStorage.setItem(STORE.azureDevOpsRepositoryContext, String(state.includeAzureDevOpsRepository));
     localStorage.setItem(STORE.depsDevContext, String(state.includeDepsDev));
+    localStorage.setItem(STORE.osvContext, String(state.includeOsv));
+    localStorage.setItem(STORE.mcpGatewayContext, String(state.includeMcpGateway));
     localStorage.setItem(STORE.snykContext, String(state.includeSnyk));
     localStorage.setItem(STORE.confluenceContext, String(state.includeConfluence));
     localStorage.setItem(STORE.defenderXdrContext, String(state.includeDefenderXdr));
@@ -23604,6 +25838,8 @@
     updateGitLabContextUI();
     updateAzureDevOpsContextUI();
     updateDepsDevUI();
+    updateOsvUI();
+    updateMcpGatewayUI();
     updateSnykUI();
     updateConfluenceUI();
     updateDefenderXdrUI();
@@ -23625,6 +25861,8 @@
         'gitlab-vulnerability-findings',
         'azure-devops-repository',
         'deps-dev-advisories',
+        'osv-vulnerability-api',
+        'mcp-http-gateway',
         'snyk-issues-api',
         'confluence-knowledge',
         'microsoft-defender-xdr-incidents',
@@ -23642,6 +25880,8 @@
     if (state.includeGitLabFindings) ids.push('gitlab-vulnerability-findings');
     if (state.includeAzureDevOpsRepository) ids.push('azure-devops-repository');
     if (state.includeDepsDev) ids.push('deps-dev-advisories');
+    if (state.includeOsv) ids.push('osv-vulnerability-api');
+    if (state.includeMcpGateway) ids.push('mcp-http-gateway');
     if (state.includeSnyk) ids.push('snyk-issues-api');
     if (state.includeConfluence) ids.push('confluence-knowledge');
     if (state.includeDefenderXdr) ids.push('microsoft-defender-xdr-incidents');
@@ -23691,6 +25931,7 @@
     if (els.agentApproval && template.default_approval_gate) selectByText(els.agentApproval, template.default_approval_gate);
     if (els.agentCadence && template.default_cadence) selectByText(els.agentCadence, template.default_cadence);
     if (els.agentContextPack && template.default_context_pack) selectByText(els.agentContextPack, template.default_context_pack);
+    updateAgentScheduleFields();
     if (els.agentScope && template.target_hint) {
       els.agentScope.placeholder = 'repo/package/CVE/file path, e.g. ' + template.target_hint;
     }
@@ -23884,10 +26125,44 @@
 
   function agentCadenceIntervalMs(cadence) {
     var label = collapseText(cadence || '').toLowerCase();
-    if (label === 'hourly' || label.indexOf('hourly') !== -1) return 60 * 60 * 1000;
-    if (label === 'daily' || label.indexOf('daily') !== -1) return 24 * 60 * 60 * 1000;
-    if (label === 'weekly' || label.indexOf('weekly') !== -1) return 7 * 24 * 60 * 60 * 1000;
+    if (label === 'once' || label.indexOf('once') !== -1) return 0;
+    if (label === 'minute' || label === 'minutely' || label.indexOf('minute') !== -1) return 60 * 1000;
+    if (label === 'hour' || label === 'hourly' || label.indexOf('hour') !== -1) return 60 * 60 * 1000;
+    if (label === 'day' || label === 'daily' || label.indexOf('day') !== -1) return 24 * 60 * 60 * 1000;
+    if (label === 'month' || label === 'monthly' || label.indexOf('month') !== -1) return 30 * 24 * 60 * 60 * 1000;
     return 0;
+  }
+
+  function isAgentOnceCadence(cadence) {
+    var label = collapseText(cadence || '').toLowerCase();
+    return label === 'once' || label.indexOf('once') !== -1;
+  }
+
+  function agentCadenceNeedsFirstRun(cadence) {
+    var label = collapseText(cadence || '').toLowerCase();
+    return isAgentOnceCadence(cadence) ||
+      label === 'hour' ||
+      label === 'hourly' ||
+      label.indexOf('hour') !== -1 ||
+      label === 'day' ||
+      label === 'daily' ||
+      label.indexOf('day') !== -1 ||
+      label === 'month' ||
+      label === 'monthly' ||
+      label.indexOf('month') !== -1;
+  }
+
+  function isSchedulableAgentCadence(cadence) {
+    return isAgentOnceCadence(cadence) || agentCadenceIntervalMs(cadence) > 0;
+  }
+
+  function agentCadenceFrequencyText(cadence) {
+    var label = collapseText(cadence || '').toLowerCase();
+    if (label === 'minute' || label === 'minutely' || label.indexOf('minute') !== -1) return 'minute';
+    if (label === 'hour' || label === 'hourly' || label.indexOf('hour') !== -1) return 'hour';
+    if (label === 'day' || label === 'daily' || label.indexOf('day') !== -1) return 'day';
+    if (label === 'month' || label === 'monthly' || label.indexOf('month') !== -1) return 'month';
+    return label || 'selected interval';
   }
 
   function localDateTimeInputValue(date) {
@@ -23911,15 +26186,15 @@
 
   function defaultAgentScheduleValue(cadence) {
     var label = collapseText(cadence || '').toLowerCase();
-    var date = new Date(Date.now() + 5 * 60 * 1000);
-    if (label.indexOf('hourly') !== -1) date = new Date(Date.now() + 60 * 60 * 1000);
-    else if (label.indexOf('daily') !== -1) {
+    var date = new Date(Date.now() + 60 * 1000);
+    if (label.indexOf('hour') !== -1) date = new Date(Date.now() + 60 * 60 * 1000);
+    else if (label === 'day' || label === 'daily' || label.indexOf('day') !== -1) {
       date = new Date();
       date.setDate(date.getDate() + 1);
       date.setHours(9, 0, 0, 0);
-    } else if (label.indexOf('weekly') !== -1) {
+    } else if (label.indexOf('month') !== -1) {
       date = new Date();
-      date.setDate(date.getDate() + ((8 - date.getDay()) % 7 || 7));
+      date.setMonth(date.getMonth() + 1);
       date.setHours(9, 0, 0, 0);
     }
     return localDateTimeInputValue(date);
@@ -24016,10 +26291,15 @@
   function renderAgentActions() {
     if (!els.agentActionList) return;
     if (!state.agentActions.length) {
-      els.agentActionList.innerHTML = '<div class="ai-chatbot-agent-empty">No queued actions yet. Configure one precise action and add it to the queue.</div>';
+      els.agentActionList.innerHTML = '<div class="ai-chatbot-agent-empty">No agents created yet. Complete the six steps, then choose Create Agent.</div>';
       return;
     }
     els.agentActionList.innerHTML = state.agentActions.map(function (action, index) {
+      var consoleRecords = normalizeAgentConsoleRecords(action.runLog);
+      var consoleOpen = !!action.consoleOpen;
+      var consoleLabel = consoleRecords.length
+        ? 'Console (' + String(consoleRecords.length) + ')'
+        : 'Console';
       var bits = [
         action.recipeTitle ? 'Recipe: ' + action.recipeTitle : '',
         action.workflowTemplateLabel ? 'Pack: ' + action.workflowTemplateLabel : '',
@@ -24029,12 +26309,15 @@
         agentScheduleRuntime(action),
         action.reportProfileLabel ? 'Report: ' + action.reportProfileLabel : ''
       ].filter(Boolean).join(' | ');
-      return '<article class="ai-chatbot-agent-queued">' +
+      return '<article class="ai-chatbot-agent-queued" data-agent-console-open="' + (consoleOpen ? 'true' : 'false') + '">' +
         '<div><span class="ai-chatbot-agent-status-pill" data-status="' + html(action.status || 'queued') + '">' + html(agentStatusLabel(action)) + '</span><strong>' + html(agentActionTitle(action)) + '</strong><small>' + html(bits) + '</small></div>' +
         '<div class="ai-chatbot-agent-queued-actions">' +
-          '<button class="ai-chatbot-agent-remove" type="button" data-agent-run-action="' + index + '">' + html(action.status === 'scheduled-draft' ? 'Run now' : 'Run') + '</button>' +
-          '<button class="ai-chatbot-agent-remove" type="button" data-agent-remove-action="' + index + '" aria-label="Remove action">Remove</button>' +
+          '<button class="ai-chatbot-agent-run" type="button" data-agent-run-action="' + index + '" title="Run this browser-local remediation agent now" aria-label="Run ' + html(agentActionTitle(action)) + ' now">' + icon('play') + '<span>' + html(action.status === 'scheduled-draft' ? 'Run now' : 'Run plan') + '</span></button>' +
+          '<a class="ai-chatbot-agent-console-link" href="#ai-chatbot-agent-console-' + index + '" data-agent-console-action="' + index + '" aria-expanded="' + (consoleOpen ? 'true' : 'false') + '">' + html(consoleLabel) + '</a>' +
+          '<a class="ai-chatbot-agent-console-link" href="#ai-chatbot-terminal" data-agent-terminal-action="' + index + '">Open terminal</a>' +
+          '<button class="ai-chatbot-agent-remove" type="button" data-agent-remove-action="' + index + '" aria-label="Remove ' + html(agentActionTitle(action)) + '">Remove</button>' +
         '</div>' +
+        (consoleOpen ? '<pre class="ai-chatbot-agent-console" id="ai-chatbot-agent-console-' + index + '">' + html(agentConsoleText(action)) + '</pre>' : '') +
       '</article>';
     }).join('');
   }
@@ -25215,52 +27498,85 @@
     renderRouter();
   }
 
-  function saveScheduleDraft() {
-    var now = nowIso();
-    var cadence = selectedText(els.agentCadence) || 'Once at next run';
-    var nextRun = els.agentNextRun && els.agentNextRun.value ? els.agentNextRun.value : '';
-    if (!nextRun && cadence !== 'Manual approval') {
-      nextRun = defaultAgentScheduleValue(cadence);
-      if (els.agentNextRun) els.agentNextRun.value = nextRun;
+  function agentCreationBlocker() {
+    var provider = getAgentProvider();
+    if (!hasProviderRuntime(provider)) {
+      return 'Add ' + tokenLabelWithArticle(provider) + ' in Settings before creating this agent.';
     }
-    if (!nextRun && cadence === 'Manual approval') {
-      cadence = 'Once at next run';
-      if (els.agentCadence) selectByText(els.agentCadence, cadence);
-      nextRun = defaultAgentScheduleValue('Once at next run');
-      if (els.agentNextRun) els.agentNextRun.value = nextRun;
+    if (!collapseText(els.agentModel && els.agentModel.value)) {
+      return 'Choose a model before creating this agent.';
+    }
+    if (!currentInputChannelIds().length) {
+      return 'Select one context source before creating this agent.';
+    }
+    if (!collapseText(els.agentScope && els.agentScope.value)) {
+      return 'Choose a repository before creating this agent.';
+    }
+    if (!collapseText(els.agentRecipeInput && els.agentRecipeInput.value)) {
+      return 'Choose a recipe before creating this agent.';
+    }
+    var cadence = selectedText(els.agentCadence);
+    if (!cadence || !isSchedulableAgentCadence(cadence)) {
+      return 'Select a run interval before creating this agent.';
+    }
+    if (agentCadenceNeedsFirstRun(cadence) && !collapseText(els.agentNextRun && els.agentNextRun.value)) {
+      return 'Pick a First run time before creating this agent.';
+    }
+    return '';
+  }
+
+  function saveScheduleDraft() {
+    var blocker = agentCreationBlocker();
+    if (blocker) {
+      if (els.agentStatus) {
+        els.agentStatus.textContent = blocker;
+        els.agentStatus.setAttribute('data-kind', 'error');
+      }
+      appendTerminalRecord('system', 'agent creation blocked: ' + blocker);
+      return;
+    }
+    var now = nowIso();
+    var cadence = selectedText(els.agentCadence) || 'Minute';
+    var needsFirstRun = agentCadenceNeedsFirstRun(cadence);
+    var nextRun = needsFirstRun && els.agentNextRun && els.agentNextRun.value ? els.agentNextRun.value : '';
+    if (!nextRun) {
+      nextRun = defaultAgentScheduleValue(cadence);
+      if (needsFirstRun && els.agentNextRun) els.agentNextRun.value = nextRun;
     }
     updateAgentScheduleFields();
-    if (!state.agentActions.length) state.agentActions.push(agentDraftAction());
-    state.agentActions = state.agentActions.map(function (action) {
-      var provider = action.provider || getAgentProvider();
-      action.status = 'scheduled-draft';
-      action.provider = provider;
-      action.model = action.model || (els.agentModel ? collapseText(els.agentModel.value) || getModel(provider) : getModel(provider));
-      action.cadence = cadence;
-      action.nextRun = nextRun;
-      action.updatedAt = now;
-      action.scheduledAt = now;
-      action.scheduledFor = nextRun;
-      return action;
-    });
+    var action = agentDraftAction();
+    var provider = action.provider || getAgentProvider();
+    action.status = 'scheduled-draft';
+    action.provider = provider;
+    action.model = action.model || (els.agentModel ? collapseText(els.agentModel.value) || getModel(provider) : getModel(provider));
+    action.cadence = cadence;
+    action.nextRun = nextRun;
+    action.updatedAt = now;
+    action.scheduledAt = now;
+    action.scheduledFor = nextRun;
+    state.agentActions = [action].concat((state.agentActions || []).filter(function (existing) {
+      return existing.status === 'scheduled-draft' || existing.status === 'running';
+    })).slice(0, 6);
     saveAgentActions();
     renderAgentActions();
     if (els.agentStatus) {
-      els.agentStatus.textContent = 'Browser schedule saved for ' + state.agentActions.length + ' action(s), starting ' + formatTimestamp(nextRun) + '. This tab checks due actions while the site is open; closed browsers will not run them.';
+      els.agentStatus.textContent = isAgentOnceCadence(cadence)
+        ? 'Agent created for ' + action.scope + '. It will run once at ' + formatTimestamp(nextRun) + ' while this site stays open.'
+        : 'Agent created for ' + action.scope + '. It will run every ' + agentCadenceFrequencyText(cadence) + ', starting ' + formatTimestamp(nextRun) + ', while this site stays open.';
       els.agentStatus.setAttribute('data-kind', 'ok');
     }
-    appendTerminalRecord('system', 'scheduled ' + String(state.agentActions.length) + ' agent action(s) for ' + formatTimestamp(nextRun) + ' (' + cadence + ')');
+    appendTerminalRecord('system', isAgentOnceCadence(cadence)
+      ? 'created one-time agent for ' + action.scope + ', running at ' + formatTimestamp(nextRun)
+      : 'created agent for ' + action.scope + ' on ' + cadence + ' interval, starting ' + formatTimestamp(nextRun));
     appendActivityRecord({
       category: 'schedule',
-      eventType: 'browser_schedule_saved',
+      eventType: 'browser_agent_created',
       status: 'saved',
-      title: 'Saved browser agent schedule',
-      summary: state.agentActions.length + ' action(s) will run only while this site stays open in the browser.',
-      detail: 'The browser scheduler will check due actions locally and does not create a server-side background worker.',
+      title: 'Created browser remediation agent',
+      summary: 'A browser-local remediation agent will run only while this site stays open.',
+      detail: 'The browser scheduler checks due actions locally and does not create a server-side background worker.',
       targetLabel: 'Agents',
-      badges: uniqueStrings((state.agentActions || []).slice(0, 4).map(function (action) {
-        return action.workflowLabel || action.workflow || 'workflow';
-      }), 4)
+      badges: uniqueStrings([action.workflowLabel || action.workflow || 'workflow', cadence, action.outputRoute || 'reviewer gated'], 4)
     });
     checkBrowserAgentScheduleSoon();
   }
@@ -25290,8 +27606,20 @@
     try {
       var config = agentConfigForAction(state.agentActions[index]);
       var sessionContext = createActivitySession('agent_run', agentRunSessionLabel(config, true));
-      await prepareAgentRunContext({ activityContext: sessionContext });
+      state.agentActions[index].runLog = [];
+      state.agentActions[index].lastConsoleAt = nowIso();
+      saveAgentActions();
+      renderAgentActions();
+      await prepareAgentRunContext({ activityContext: sessionContext, actionIndex: index });
       await runAgentPreview(config, { actionIndex: index, scheduled: true, activityContext: sessionContext });
+    } catch (error) {
+      if (state.agentActions[index]) {
+        state.agentActions[index].status = 'failed';
+        state.agentActions[index].updatedAt = nowIso();
+        appendAgentConsoleRecord(index, 'error', error && error.message ? error.message : 'Scheduled agent failed during context preparation.', { terminal: true });
+        saveAgentActions();
+        renderAgentActions();
+      }
     } finally {
       state.agentScheduleRunning = false;
     }
@@ -25324,6 +27652,12 @@
   async function prepareAgentRunContext(options) {
     options = options || {};
     return withActivityContext(options.activityContext, async function () {
+      var actionIndex = typeof options.actionIndex === 'number' ? options.actionIndex : -1;
+      var channelLabels = currentInputChannelIds().map(function (id) {
+        var channel = inputChannelById(id);
+        return channel ? channel.label : id;
+      });
+      appendAgentConsoleRecord(actionIndex, 'system', 'agent context preparation started' + (channelLabels.length ? ': ' + channelLabels.join(', ') : ''), { terminal: true });
       await ensureDocsIndex();
       if (state.includeGitHub) await prepareGitHubContext();
       if (state.includeGitHubCodeScanning) await prepareGitHubCodeScanningContext();
@@ -25333,12 +27667,15 @@
       if (state.includeDefenderXdr) await prepareDefenderXdrContext();
       if (state.includeSentinel) await prepareSentinelContext();
       if (state.includeDepsDev) await prepareDepsDevContext();
+      if (state.includeOsv) await prepareOsvContext();
+      if (state.includeMcpGateway) await prepareMcpGatewayContext((els.agentScope && els.agentScope.value) || (els.agentRecipeInput && els.agentRecipeInput.value) || '');
       if (state.includeSnyk) await prepareSnykContext();
       if (state.includeConfluence) await prepareConfluenceContext((els.agentScope && els.agentScope.value) || (els.agentRecipeInput && els.agentRecipeInput.value) || '');
       if (!state.agentRecipePath && els.agentRecipeInput && collapseText(els.agentRecipeInput.value)) {
         var inferredRecipe = selectedRecipe();
         if (inferredRecipe) selectAgentRecipe(inferredRecipe);
       }
+      appendAgentConsoleRecord(actionIndex, 'output', 'agent context preparation completed', { terminal: true });
     });
   }
 
@@ -25363,7 +27700,7 @@
         els.agentStatus.textContent = 'Running ' + config.workflow + ' with ' + providerConfig(config.provider).label + (options.scheduled ? ' from browser schedule' : '') + '...';
         els.agentStatus.removeAttribute('data-kind');
       }
-      appendTerminalRecord('system', 'agent preview started: ' + config.workflow + ' / ' + config.scope);
+      appendAgentConsoleRecord(actionIndex, 'system', 'agent run started: ' + config.workflow + ' / ' + config.scope, { terminal: true });
       appendActivityRecord({
         category: 'agent',
         eventType: options.scheduled ? 'scheduled_agent_started' : 'agent_preview_started',
@@ -25379,16 +27716,21 @@
         var prompt = agentPrompt(config);
         var system = buildSystemPrompt(prompt) +
           '\n\nYou are running as a browser-scheduled remediation agent preview. Do not claim to have created tickets, commits, pull requests, or background jobs.';
+        appendAgentConsoleRecord(actionIndex, 'system', 'provider request started: ' + providerConfig(config.provider).label + ' / ' + config.model, { terminal: true });
         var answer = await sendToProvider(prompt, {
           provider: config.provider,
           model: config.model,
           history: [],
           system: system
         });
+        appendAgentConsoleRecord(actionIndex, 'output', 'provider response received: ' + String(String(answer || '').length) + ' characters', { terminal: true });
+        if (collapseText(answer)) {
+          appendAgentConsoleRecord(actionIndex, 'output', 'agent output excerpt:\n' + String(answer || '').trim().slice(0, 1200), { terminal: true });
+        }
         state.agentLastOutput = answer;
         state.agentLastConfig = config;
         state.caseboardLastSavedId = '';
-        await executeAgentTerminalCommands(answer);
+        await executeAgentTerminalCommands(answer, { actionIndex: actionIndex });
         var finishedAt = nowIso();
         if (actionIndex >= 0 && state.agentActions[actionIndex]) {
           var completedAction = state.agentActions[actionIndex];
@@ -25400,7 +27742,7 @@
             completedAction.lastRunStatus = 'generated';
             completedAction.nextRun = nextRecurringRun;
             completedAction.scheduledFor = nextRecurringRun;
-            appendTerminalRecord('system', 'agent rescheduled: ' + agentActionTitle(completedAction) + ' -> ' + formatTimestamp(nextRecurringRun));
+            appendAgentConsoleRecord(actionIndex, 'system', 'agent rescheduled: ' + agentActionTitle(completedAction) + ' -> ' + formatTimestamp(nextRecurringRun), { terminal: true });
           } else {
             completedAction.status = 'generated';
           }
@@ -25420,7 +27762,7 @@
           els.agentStatus.textContent = 'Preview completed with ' + providerConfig(config.provider).label + ' / ' + config.model + '.';
           els.agentStatus.setAttribute('data-kind', 'ok');
         }
-        appendTerminalRecord('system', 'agent preview completed: ' + providerConfig(config.provider).label + ' / ' + config.model);
+        appendAgentConsoleRecord(actionIndex, 'system', 'agent run completed: ' + providerConfig(config.provider).label + ' / ' + config.model, { terminal: true });
         appendActivityRecord({
           category: 'agent',
           eventType: options.scheduled ? 'scheduled_agent_completed' : 'agent_preview_completed',
@@ -25444,7 +27786,7 @@
           els.agentStatus.textContent = 'Agent preview failed.';
           els.agentStatus.setAttribute('data-kind', 'error');
         }
-        appendTerminalRecord('error', error && error.message ? error.message : 'Agent preview failed.');
+        appendAgentConsoleRecord(actionIndex, 'error', error && error.message ? error.message : 'Agent preview failed.', { terminal: true });
         appendActivityRecord({
           category: 'agent',
           eventType: options.scheduled ? 'scheduled_agent_failed' : 'agent_preview_failed',
@@ -25477,8 +27819,27 @@
     if (!action) return;
     var config = agentConfigForAction(action);
     var sessionContext = createActivitySession('agent_run', agentRunSessionLabel(config, true));
-    await prepareAgentRunContext({ activityContext: sessionContext });
-    await runAgentPreview(config, { actionIndex: index, scheduled: action.status === 'scheduled-draft', activityContext: sessionContext });
+    try {
+      state.agentActions[index].runLog = [];
+      state.agentActions[index].lastConsoleAt = nowIso();
+      saveAgentActions();
+      renderAgentActions();
+      await prepareAgentRunContext({ activityContext: sessionContext, actionIndex: index });
+      await runAgentPreview(config, { actionIndex: index, scheduled: action.status === 'scheduled-draft', activityContext: sessionContext });
+    } catch (error) {
+      if (state.agentActions[index]) {
+        state.agentActions[index].status = 'failed';
+        state.agentActions[index].updatedAt = nowIso();
+        appendAgentConsoleRecord(index, 'error', error && error.message ? error.message : 'Agent failed during context preparation.', { terminal: true });
+        saveAgentActions();
+        renderAgentActions();
+      }
+      renderAgentOutput(failureMessage(error), true);
+      if (els.agentStatus) {
+        els.agentStatus.textContent = 'Agent preview failed.';
+        els.agentStatus.setAttribute('data-kind', 'error');
+      }
+    }
   }
 
   async function handleContextCheckQuickAction() {
@@ -25509,13 +27870,13 @@
     renderMessages();
     appendTerminalRecord('system', 'context check requested');
     if (!hasProviderRuntime(getAgentProvider())) {
-      setStatus('Context check generated locally. Paste a provider key for this page session to enable LLM summarization.', 'ok');
+      setStatus('Context check generated locally. Paste or save a provider key to enable LLM summarization.', 'ok');
       appendActivityRecord({
         category: 'chat',
         eventType: 'context_check_local',
         status: 'ok',
         title: 'Generated local context check',
-        summary: 'Context sources, marketplace inputs, terminal transcript, and gaps were summarized without calling an LLM.',
+        summary: 'Context sources, optional inputs, terminal transcript, and gaps were summarized without calling an LLM.',
         targetLabel: 'Chat context',
         badges: ['local summary', String(rows.selectedInputs.length) + ' inputs']
       });
@@ -25629,6 +27990,8 @@
           if (state.includeDefenderXdr) await prepareDefenderXdrContext();
           if (state.includeSentinel) await prepareSentinelContext();
           if (state.includeDepsDev) await prepareDepsDevContext();
+          if (state.includeOsv) await prepareOsvContext();
+          if (state.includeMcpGateway) await prepareMcpGatewayContext(text);
           if (state.includeSnyk) await prepareSnykContext();
           if (state.includeConfluence) await prepareConfluenceContext(text);
           var history = apiHistory();
@@ -25636,7 +27999,11 @@
           assistantMessage = { role: 'assistant', content: '', createdAt: nowIso(), streaming: true, provider: state.provider };
           state.messages.push(assistantMessage);
           renderMessages();
-          setStatus('Streaming from ' + providerConfig().label + ' through the same-origin relay...', '');
+          setStatus(
+            'Streaming from ' + providerConfig().label +
+            (providerRelayLikelyAvailable() ? ' through the same-origin relay...' : ' directly from this browser...'),
+            ''
+          );
           var answer = await sendToProvider(text, {
             history: history,
             system: system,
@@ -25744,8 +28111,8 @@
           '<button class="ai-chatbot-tab" type="button" data-tab="chat" aria-selected="true">' + icon('bot') + '<span>Chat</span></button>' +
           '<button class="ai-chatbot-tab" type="button" data-tab="search" aria-selected="false">' + icon('scan') + '<span>Search</span></button>' +
           '<button class="ai-chatbot-tab" type="button" data-tab="agents" aria-selected="false">' + icon('route') + '<span>Agents</span></button>' +
+          '<button class="ai-chatbot-tab" type="button" data-tab="statistics" aria-selected="false">' + icon('chart') + '<span>Report</span></button>' +
           '<button class="ai-chatbot-tab" type="button" data-tab="terminal" aria-selected="false">' + icon('terminal') + '<span>Terminal</span></button>' +
-          '<button class="ai-chatbot-tab" type="button" data-tab="marketplace" aria-selected="false">' + icon('package') + '<span>Marketplace</span></button>' +
         '</div>' +
         '<div class="ai-chatbot-panel-body">' +
           '<div class="ai-chatbot-tab-panel" data-panel="chat">' +
@@ -25767,7 +28134,7 @@
               '</button>' +
               '<div id="ai-chatbot-settings-content" class="ai-chatbot-settings-content" data-settings-content hidden>' +
                 '<details class="ai-chatbot-settings-block" data-provider-credential-details>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('settings') + '<span>Model Provider</span><small>Provider, model, and a BYO key held only for this page session.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('settings') + '<span>Model Provider</span><small>Provider, model, and optional browser-local secret.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-settings-row">' +
                       '<label class="ai-chatbot-field"><span>Provider</span><select data-provider><option value="openai">OpenAI</option><option value="grok">Grok</option><option value="claude">Claude</option></select></label>' +
@@ -25778,39 +28145,84 @@
                       '<button class="ai-chatbot-mode-button" type="button" data-credential-mode="oauth" aria-pressed="false">OAuth bearer</button>' +
                     '</div>' +
                     '<div class="ai-chatbot-token-row">' +
-                      '<label class="ai-chatbot-field"><span data-token-label>API token</span><input data-token type="password" autocomplete="off" placeholder="Held only until this page is closed"></label>' +
+                      '<label class="ai-chatbot-field"><span data-token-label>API token</span><input data-token type="password" autocomplete="off" placeholder="Held for this session unless saved"></label>' +
                       '<button class="ai-chatbot-action" type="button" data-save-token>' + icon('save') + '<span>Use</span></button>' +
                       '<button class="ai-chatbot-action danger" type="button" data-clear-token>Clear</button>' +
                     '</div>' +
+                    '<label class="ai-chatbot-check ai-chatbot-secret-save"><input data-remember-token type="checkbox"><span>Save as browser-local secret</span></label>' +
+                    '<div class="ai-chatbot-context-marketplace-note" data-provider-secret-note></div>' +
                     '<section class="ai-chatbot-oauth-block ai-chatbot-oauth-simple" data-oauth-details hidden>' +
                       '<div class="ai-chatbot-oauth-heading">' + icon('key') + '<span>Browser sign-in</span><small>Connect the provider from a popup; the bearer stays in this browser.</small></div>' +
                       '<div class="ai-chatbot-oauth-content">' +
                         '<div class="ai-chatbot-oauth-card">' +
                           icon('shield') +
-                          '<div><strong data-oauth-title>Authorize in browser</strong><span data-oauth-description>Use the provider sign-in window. No OAuth app fields are required here.</span></div>' +
+                          '<div><strong data-oauth-title>Authorize in browser</strong><span data-oauth-description>Use the provider sign-in window with the saved OAuth app config.</span></div>' +
                           '<button class="ai-chatbot-action" type="button" data-start-oauth>' + icon('play') + '<span>Authorize in browser</span></button>' +
                         '</div>' +
-                        '<input data-oauth-client-id type="hidden">' +
-                        '<input data-oauth-scope type="hidden">' +
-                        '<input data-oauth-auth-url type="hidden">' +
-                        '<input data-oauth-token-url type="hidden">' +
-                        '<button class="ai-chatbot-action secondary" type="button" data-save-oauth-config hidden>Save OAuth config</button>' +
+                        '<details class="ai-chatbot-oauth-app-details" data-oauth-app-details>' +
+                          '<summary><span>OAuth app setup</span><small data-oauth-app-summary>Provider authorization settings</small></summary>' +
+                          '<div class="ai-chatbot-oauth-grid">' +
+                            '<label class="ai-chatbot-field"><span>Client ID</span><input data-oauth-client-id type="text" autocomplete="off" placeholder="OAuth client ID"></label>' +
+                            '<label class="ai-chatbot-field"><span>Scope</span><input data-oauth-scope type="text" autocomplete="off" placeholder="Optional scopes"></label>' +
+                            '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Authorization URL</span><input data-oauth-auth-url type="url" autocomplete="off" placeholder="https://provider.example/oauth/authorize"></label>' +
+                            '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Token URL</span><input data-oauth-token-url type="url" autocomplete="off" placeholder="https://provider.example/oauth/token"></label>' +
+                            '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Redirect URI</span><input data-oauth-redirect-uri type="url" readonly></label>' +
+                          '</div>' +
+                          '<div class="ai-chatbot-oauth-actions">' +
+                            '<button class="ai-chatbot-action secondary" type="button" data-save-oauth-config>Save OAuth app</button>' +
+                          '</div>' +
+                        '</details>' +
                         '<div class="ai-chatbot-status" data-oauth-status></div>' +
                         '</div>' +
                     '</section>' +
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-context-details>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('database') + '<span>Context sources</span><small>Core prompt context; add more from Marketplace.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('database') + '<span>Context sources</span><small>Core prompt context and configured optional inputs.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-context-row">' +
                       '<label class="ai-chatbot-check"><input data-context type="checkbox"><span>Page context</span></label>' +
                       '<label class="ai-chatbot-check"><input data-related type="checkbox"><span>Recipes</span></label>' +
                       '<label class="ai-chatbot-check"><input data-github-context type="checkbox"><span>GitHub repository</span></label>' +
                       '<label class="ai-chatbot-check"><input data-depsdev-context type="checkbox"><span>deps.dev</span></label>' +
+                      '<label class="ai-chatbot-check"><input data-osv-context type="checkbox"><span>OSV.dev</span></label>' +
+                      '<label class="ai-chatbot-check"><input data-mcp-gateway-context type="checkbox"><span>MCP gateway</span></label>' +
                     '</div>' +
                     '<div class="ai-chatbot-context-marketplace-note" data-marketplace-context-note></div>' +
                     '<div class="ai-chatbot-context-row ai-chatbot-context-row-marketplace" data-marketplace-context-sources></div>' +
+                  '</div>' +
+                '</details>' +
+                '<details class="ai-chatbot-settings-block" data-mcp-gateway-details>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('route') + '<span>MCP and public intelligence</span><small>Zero-token APIs plus one configured read-only MCP HTTP gateway.</small></summary>' +
+                  '<div class="ai-chatbot-github-content">' +
+                    '<div class="ai-chatbot-capability-list">' +
+                      '<span>deps.dev <em>No token; uses GitHub Dependency Graph SBOM package versions.</em></span>' +
+                      '<span>OSV.dev <em>No token; uses GitHub Dependency Graph SBOM package URLs.</em></span>' +
+                      '<span>MCP HTTP gateway <em>Requires a CORS-enabled endpoint; token optional by gateway.</em></span>' +
+                    '</div>' +
+                    '<div class="ai-chatbot-agent-grid">' +
+                      '<label class="ai-chatbot-field"><span>MCP profile</span><select data-mcp-gateway-profile><option value="custom">Custom gateway</option><option value="github">GitHub MCP Server</option><option value="semgrep">Semgrep docs MCP</option><option value="cloudflare">Cloudflare MCP</option><option value="docker">Docker MCP gateway</option><option value="snyk">Snyk via gateway</option><option value="aws">AWS via gateway</option><option value="azure">Azure via gateway</option></select></label>' +
+                      '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>MCP HTTP endpoint</span><input data-mcp-gateway-endpoint type="url" autocomplete="off" placeholder="https://example.internal/mcp"></label>' +
+                      '<label class="ai-chatbot-field"><span>Bearer token</span><input data-mcp-gateway-token type="password" autocomplete="off" placeholder="Optional, stored in this browser"></label>' +
+                      '<label class="ai-chatbot-field"><span>Read-only tool</span><input data-mcp-gateway-tool type="text" autocomplete="off" placeholder="Optional: search, list, get, query"></label>' +
+                      '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>MCP query</span><input data-mcp-gateway-query type="text" autocomplete="off" placeholder="Optional. Falls back to the current task or repository."></label>' +
+                    '</div>' +
+                    '<div class="ai-chatbot-actions-row">' +
+                      '<div class="ai-chatbot-status" data-mcp-gateway-status></div>' +
+                      '<div class="ai-chatbot-inline-actions">' +
+                        '<button class="ai-chatbot-action secondary" type="button" data-save-mcp-gateway-settings>Save</button>' +
+                        '<button class="ai-chatbot-action" type="button" data-load-mcp-gateway-context>Load MCP</button>' +
+                        '<button class="ai-chatbot-action danger" type="button" data-clear-mcp-gateway-context>Clear</button>' +
+                      '</div>' +
+                    '</div>' +
+                    '<div class="ai-chatbot-actions-row">' +
+                      '<div class="ai-chatbot-status" data-depsdev-status></div>' +
+                      '<button class="ai-chatbot-action secondary" type="button" data-load-depsdev-context>Load deps.dev</button>' +
+                    '</div>' +
+                    '<div class="ai-chatbot-actions-row">' +
+                      '<div class="ai-chatbot-status" data-osv-status></div>' +
+                      '<button class="ai-chatbot-action secondary" type="button" data-load-osv-context>Load OSV</button>' +
+                    '</div>' +
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-github-block" data-github-details>' +
@@ -25862,7 +28274,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-marketplace-settings-details hidden>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('route') + '<span>Installed marketplace settings</span><small>Configure added inputs, context tools, and browser-local credentials.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('route') + '<span>Installed source settings</span><small>Configure added inputs, context tools, and browser-local credentials.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-agent-grid">' +
                       '<div class="ai-chatbot-settings-block" data-marketplace-settings-card="snyk-issues-api" hidden>' +
@@ -25936,10 +28348,10 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-imported-context-details hidden>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('file') + '<span>Imported scan evidence</span><small>Marketplace-installed upload sources only.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('file') + '<span>Imported scan evidence</span><small>Configured upload sources only.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-capability-list">' +
-                      '<span>Installed scan inputs <em>Upload controls appear here after adding SARIF, scanner export, or SBOM from Marketplace.</em></span>' +
+                      '<span>Installed scan inputs <em>Upload controls appear here after enabling SARIF, scanner export, or SBOM sources.</em></span>' +
                     '</div>' +
                     '<div class="ai-chatbot-agent-grid">' +
                       '<div class="ai-chatbot-settings-block" data-imported-settings-card="sarif-manual-import" hidden>' +
@@ -25971,7 +28383,7 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-delivery-settings-details>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('send') + '<span>Delivery integrations</span><small>Default GitHub handoff and terminal output; add other routes from Marketplace.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('send') + '<span>Delivery integrations</span><small>Default GitHub handoff and terminal output, with optional configured routes.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-capability-list">' +
                       '<span>Draft PR packet <em>Copy-ready GitHub branch, PR body, tests, rollback, and reviewer checklist.</em></span>' +
@@ -26104,6 +28516,34 @@
               '<div class="ai-chatbot-status" data-search-status></div>' +
             '</div>' +
           '</div>' +
+          '<div class="ai-chatbot-tab-panel ai-chatbot-statistics-panel" data-panel="statistics" hidden>' +
+            '<div class="ai-chatbot-statistics" data-statistics-export-surface>' +
+              '<div class="ai-chatbot-statistics-hero">' +
+                '<div><strong>Security dashboard</strong><span>Live posture from browser-local context, dependencies, sensitive data, exposure queues, assets, cases, routes, and agent activity.</span></div>' +
+                '<button class="ai-chatbot-action" type="button" data-statistics-export-pdf>' + icon('download') + '<span>Export PDF</span></button>' +
+              '</div>' +
+              '<div class="ai-chatbot-statistics-guide" aria-label="Dashboard controls">' +
+                '<span><strong>Refresh</strong> updates mapped evidence sources, then recalculates the card.</span>' +
+                '<span><strong>Explain</strong> adds a short interpretation from the current browser-local data.</span>' +
+              '</div>' +
+              '<div class="ai-chatbot-statistics-summary" data-statistics-summary></div>' +
+              '<div class="ai-chatbot-statistics-grid">' +
+                '<section class="ai-chatbot-stat-card ai-chatbot-stat-card-major" data-statistics-severity></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-remediation></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-context></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-assets></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-dependencies></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-sensitive-data></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-workflows></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-freshness></section>' +
+              '</div>' +
+              '<div class="ai-chatbot-statistics-grid ai-chatbot-statistics-grid-wide">' +
+                '<section class="ai-chatbot-stat-card" data-statistics-drivers></section>' +
+                '<section class="ai-chatbot-stat-card" data-statistics-activity></section>' +
+              '</div>' +
+              '<div class="ai-chatbot-status" data-statistics-status>Report is generated from browser-local evidence and saved workbench state.</div>' +
+            '</div>' +
+          '</div>' +
           '<div class="ai-chatbot-tab-panel ai-chatbot-terminal-panel" data-panel="terminal" hidden>' +
             '<div class="ai-chatbot-terminal-view">' +
               '<section class="ai-chatbot-terminal ai-chatbot-terminal-primary" data-terminal>' +
@@ -26121,6 +28561,7 @@
                 '<button type="button" data-terminal-command="evidence">evidence</button>' +
                 '<button type="button" data-terminal-command="routes">routes</button>' +
                 '<button type="button" data-terminal-command="schedule">schedule</button>' +
+                '<button type="button" data-terminal-command="agent console 1">console</button>' +
                 '<button type="button" data-terminal-command="agent validate">agent validate</button>' +
                 '<button type="button" data-terminal-command="ping localhost">ping</button>' +
                 '<button type="button" data-terminal-command="nc -vz localhost 8080">nc</button>' +
@@ -26457,7 +28898,7 @@
           '<div class="ai-chatbot-tab-panel ai-chatbot-report-panel" data-panel="reports" hidden>' +
             '<div class="ai-chatbot-report-desk">' +
               '<div class="ai-chatbot-control-plane-intro">' +
-                '<div><strong>Reports desk</strong><span>Seed a downstream-ready report from a saved case, an exposure queue item, or a grouped browser-local investigation session, then copy, download, or route it with the selected marketplace contract.</span></div>' +
+                '<div><strong>Reports desk</strong><span>Seed a downstream-ready report from a saved case, an exposure queue item, or a grouped browser-local investigation session, then copy, download, or route it with the selected output contract.</span></div>' +
                 '<a href="' + html(siteHref('docs/control-plane-marketplace/#report-desk')) + '" target="_blank" rel="noopener noreferrer">Why this matters</a>' +
               '</div>' +
               '<div class="ai-chatbot-control-plane-stats" data-report-stats></div>' +
@@ -26490,118 +28931,69 @@
             '</div>' +
           '</div>' +
           '<div class="ai-chatbot-tab-panel" data-panel="agents" hidden>' +
-            '<div class="ai-chatbot-agents">' +
+            '<div class="ai-chatbot-agents ai-chatbot-agents-simple">' +
               '<div class="ai-chatbot-agent-hero">' +
-                '<div class="ai-chatbot-agent-hero-copy"><strong>Remediation agent selection</strong><span>Choose the runtime once, then walk through input, recipe, tool, output, and delivery.</span><div class="ai-chatbot-agent-path" aria-label="Agent setup steps"><span>Input</span><span>Recipe</span><span>Tool</span><span>Output</span><span>Run</span></div></div>' +
-                '<div class="ai-chatbot-agent-runtime">' +
-                  '<label class="ai-chatbot-field"><span>Provider</span><select data-agent-provider><option value="openai">OpenAI</option><option value="grok">Grok</option><option value="claude">Claude</option></select></label>' +
-                  '<label class="ai-chatbot-field"><span>Model</span><select data-agent-model></select></label>' +
-                '</div>' +
+                '<div class="ai-chatbot-agent-hero-copy"><strong>Create remediation agent</strong><span>Choose a model, one context source, one repository, one recipe, and a run interval. The agent remains browser-local unless an approved output route is configured.</span><div class="ai-chatbot-agent-path" aria-label="Agent setup steps"><span>Model</span><span>Context</span><span>Repository</span><span>Recipe</span><span>Interval</span><span>Create</span></div></div>' +
               '</div>' +
               '<div class="ai-chatbot-agent-workbench">' +
                 '<div class="ai-chatbot-agent-main">' +
                   '<section class="ai-chatbot-agent-step">' +
-                    '<div class="ai-chatbot-agent-step-title"><span>1</span><div><strong>Select input</strong><small>Start with a GitHub path, package, CVE, uploaded evidence, or installed marketplace source.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-step-title"><span>1</span><div><strong>Choose model</strong><small>Select the provider and model the remediation agent should use.</small></div></div>' +
                     '<div class="ai-chatbot-agent-grid">' +
-                      '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>GitHub path or target</span><input data-agent-scope type="text" autocomplete="off" placeholder="owner/repo, package, service, CVE, or file path"></label>' +
-                      '<label class="ai-chatbot-field ai-chatbot-wide-field ai-chatbot-agent-input-select"><span>Context source</span><select data-agent-input-channels multiple></select></label>' +
+                      '<label class="ai-chatbot-field"><span>Provider</span><select data-agent-provider><option value="openai">OpenAI</option><option value="grok">Grok</option><option value="claude">Claude</option></select></label>' +
+                      '<label class="ai-chatbot-field"><span>Model</span><select data-agent-model></select></label>' +
                     '</div>' +
-                    '<div class="ai-chatbot-agent-hint ai-chatbot-agent-hint-inline ai-chatbot-agent-context-line">' + icon('package') + '<span data-agent-template-hint></span><button class="ai-chatbot-agent-button secondary" type="button" data-open-panel="control-plane">Add input</button></div>' +
                   '</section>' +
                   '<section class="ai-chatbot-agent-step">' +
-                    '<div class="ai-chatbot-agent-step-title"><span>2</span><div><strong>Select recipe</strong><small>Pick the remediation recipe, CVE, scanner finding, or runbook to apply.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-step-title"><span>2</span><div><strong>Select context source</strong><small>Pick the read-only context source the agent can use for this run.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-grid">' +
+                      '<label class="ai-chatbot-field ai-chatbot-wide-field ai-chatbot-agent-input-select"><span>Context source</span><select data-agent-input-channels></select></label>' +
+                    '</div>' +
+                    '<div class="ai-chatbot-agent-hint ai-chatbot-agent-hint-inline ai-chatbot-agent-context-line">' + icon('package') + '<span data-agent-template-hint></span></div>' +
+                  '</section>' +
+                  '<section class="ai-chatbot-agent-step">' +
+                    '<div class="ai-chatbot-agent-step-title"><span>3</span><div><strong>Choose repository</strong><small>Use an owner/repo path or the repository URL the agent should inspect.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-grid">' +
+                      '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Repository</span><input data-agent-scope type="text" autocomplete="off" placeholder="owner/repo or https://github.com/owner/repo"></label>' +
+                    '</div>' +
+                  '</section>' +
+                  '<section class="ai-chatbot-agent-step">' +
+                    '<div class="ai-chatbot-agent-step-title"><span>4</span><div><strong>Choose recipe</strong><small>Pick the recipe or CVE prompt the agent should follow.</small></div></div>' +
                     '<div class="ai-chatbot-agent-grid">' +
                       '<div class="ai-chatbot-field ai-chatbot-typeahead ai-chatbot-wide-field">' +
                         '<label for="ai-chatbot-agent-recipe"><span>Recipe</span></label>' +
-                        '<input id="ai-chatbot-agent-recipe" data-agent-recipe type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ai-chatbot-agent-recipe-results" placeholder="CVE-2024..., log4j, dependency fix, SAST triage">' +
+                        '<input id="ai-chatbot-agent-recipe" data-agent-recipe type="search" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ai-chatbot-agent-recipe-results" placeholder="dependency remediation, SAST triage, CVE-2026..., secrets cleanup">' +
                         '<div id="ai-chatbot-agent-recipe-results" class="ai-chatbot-typeahead-results" data-agent-recipe-results hidden></div>' +
                       '</div>' +
                     '</div>' +
                   '</section>' +
                   '<section class="ai-chatbot-agent-step">' +
-                    '<div class="ai-chatbot-agent-step-title"><span>3</span><div><strong>Select tool</strong><small>Choose the remediation tool shape the agent should use.</small></div></div>' +
-                    '<select data-agent-workflow hidden><option value="dependency">Vulnerable dependency remediation</option><option value="sast">SAST finding triage</option><option value="sensitive-data">Sensitive data remediation</option><option value="mcp-guardrail">MCP connector guardrail review</option><option value="base-image">Base image update</option><option value="recipe-runbook">Apply SecurityRecipes runbook</option></select>' +
-                    '<div class="ai-chatbot-agent-cards" role="group" aria-label="Agent action type">' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="dependency" data-accent="teal" aria-pressed="true">' + icon('package') + '<h3>Dependency fix</h3></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="sast" data-accent="blue" aria-pressed="false">' + icon('scan') + '<h3>SAST triage</h3></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="sensitive-data" data-accent="rose" aria-pressed="false">' + icon('key') + '<h3>Secrets</h3></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="mcp-guardrail" data-accent="violet" aria-pressed="false">' + icon('shield') + '<h3>MCP guardrail</h3></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="base-image" data-accent="slate" aria-pressed="false">' + icon('cube') + '<h3>Base image</h3></button>' +
-                      '<button class="ai-chatbot-agent-card" type="button" data-agent-workflow-card="recipe-runbook" data-accent="teal" aria-pressed="false">' + icon('file') + '<h3>Runbook</h3></button>' +
+                    '<div class="ai-chatbot-agent-step-title"><span>5</span><div><strong>Select run interval</strong><small>Choose how often this browser-local agent should check and run while the site is open.</small></div></div>' +
+                    '<div class="ai-chatbot-agent-grid">' +
+                      '<label class="ai-chatbot-field"><span>Run interval</span><select data-agent-cadence><option value="minute">Minute</option><option value="once">Once</option><option value="hour">Hourly</option><option value="day">Daily</option><option value="month">Monthly</option></select></label>' +
+                      '<label class="ai-chatbot-field" data-agent-next-run-field hidden><span>First run time</span><input data-agent-next-run type="datetime-local"></label>' +
                     '</div>' +
                   '</section>' +
-                  '<section class="ai-chatbot-agent-step" data-agent-deliver-step>' +
-                    '<div class="ai-chatbot-agent-step-title"><span>4</span><div><strong>Select output</strong><small>Choose where the result goes. Defaults stay reviewer-gated.</small></div></div>' +
-                    '<div class="ai-chatbot-agent-grid ai-chatbot-agent-deliver-grid">' +
-                      '<label class="ai-chatbot-field" hidden><span>Workflow pack</span><select data-agent-template></select></label>' +
-                      '<label class="ai-chatbot-field" hidden><span>Report profile</span><select data-agent-report-profile></select></label>' +
-                      '<label class="ai-chatbot-field"><span>Output</span><select data-agent-output-route></select></label>' +
-                      '<label class="ai-chatbot-field"><span>When</span><select data-agent-cadence><option>Manual approval</option><option>Once at next run</option><option>Hourly</option><option>Daily</option><option>Weekly</option></select></label>' +
-                      '<label class="ai-chatbot-field" data-agent-next-run-field hidden><span>Start at</span><input data-agent-next-run type="datetime-local"></label>' +
-                      '<label class="ai-chatbot-field" hidden><span>Approval gate</span><select data-agent-approval><option>Security reviewer required</option><option>Code owner required</option><option>Ticket required</option><option>Two-person review</option></select></label>' +
-                      '<label class="ai-chatbot-field" hidden><span>Context pack</span><select data-agent-context-pack><option>Secure context trust pack</option><option>Agentic assurance pack</option><option>MCP gateway policy</option><option>Runtime controls</option></select></label>' +
-                    '</div>' +
-                    '<div class="ai-chatbot-agent-hint" data-agent-route-hint hidden></div>' +
-                    '<div class="ai-chatbot-agent-hint" data-agent-routing-hint hidden></div>' +
-                    '<details class="ai-chatbot-agent-integrations" hidden>' +
-                      '<summary class="ai-chatbot-github-heading"><span>Launch readiness</span><small>Audit credential, target, source, workflow-pack, report, and route blockers before you run.</small></summary>' +
-                      '<div class="ai-chatbot-github-content ai-chatbot-agent-readiness-wrap">' +
-                        '<div class="ai-chatbot-agent-readiness-summary" data-agent-readiness-summary></div>' +
-                        '<div class="ai-chatbot-agent-readiness-grid" data-agent-readiness-grid></div>' +
-                        '<pre class="ai-chatbot-agent-json" data-agent-readiness-preview></pre>' +
-                        '<div class="ai-chatbot-agent-actions">' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-readiness-fix disabled>No blocker</button>' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-readiness-refresh disabled>No source refresh needed</button>' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-readiness-control-plane>Open Control Plane</button>' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-readiness-copy>Copy readiness JSON</button>' +
-                        '</div>' +
-                      '</div>' +
-                    '</details>' +
-                    '<details class="ai-chatbot-agent-integrations" hidden>' +
-                      '<summary class="ai-chatbot-github-heading"><span>Routing explainability</span><small>See policy matches, defaults, and planner drift.</small></summary>' +
-                      '<div class="ai-chatbot-github-content">' +
-                        '<div data-agent-routing-summary></div>' +
-                        '<pre class="ai-chatbot-agent-json" data-agent-routing-preview></pre>' +
-                        '<div class="ai-chatbot-agent-actions">' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-copy-routing>Copy routing JSON</button>' +
-                        '</div>' +
-                      '</div>' +
-                    '</details>' +
-                    '<details class="ai-chatbot-agent-integrations" hidden>' +
-                      '<summary class="ai-chatbot-github-heading"><span>Report and config JSON</span><small>Inspect the browser-side contract and normalized downstream bundle.</small></summary>' +
-                      '<div class="ai-chatbot-github-content">' +
-                        '<div class="ai-chatbot-agent-hint">Config contract</div>' +
-                        '<pre class="ai-chatbot-agent-json" data-agent-marketplace-preview></pre>' +
-                        '<div class="ai-chatbot-agent-hint">Generated report bundle</div>' +
-                        '<pre class="ai-chatbot-agent-json" data-agent-report-preview></pre>' +
-                        '<div class="ai-chatbot-agent-actions">' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-copy-config>Copy config JSON</button>' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-copy-report>Copy report JSON</button>' +
-                          '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-download-report>Download report JSON</button>' +
-                        '</div>' +
-                      '</div>' +
-                    '</details>' +
-                  '</section>' +
+                  '<div hidden>' +
+                    '<select data-agent-workflow><option value="recipe-runbook">Apply SecurityRecipes runbook</option><option value="dependency">Vulnerable dependency remediation</option><option value="sast">SAST finding triage</option><option value="sensitive-data">Sensitive data remediation</option><option value="mcp-guardrail">MCP connector guardrail review</option><option value="base-image">Base image update</option></select>' +
+                    '<select data-agent-template></select>' +
+                    '<select data-agent-report-profile></select>' +
+                    '<select data-agent-output-route></select>' +
+                    '<select data-agent-approval><option>Security reviewer required</option><option>Code owner required</option><option>Ticket required</option><option>Two-person review</option></select>' +
+                    '<select data-agent-context-pack><option>Recipe context only</option><option>Secure context trust pack</option><option>Agentic assurance pack</option><option>MCP gateway policy</option><option>Runtime controls</option></select>' +
+                    '<div data-agent-route-hint></div><div data-agent-routing-hint></div><div data-agent-readiness-summary></div><div data-agent-readiness-grid></div><pre data-agent-readiness-preview></pre><pre data-agent-routing-preview></pre><div data-agent-routing-summary></div><pre data-agent-marketplace-preview></pre><pre data-agent-report-preview></pre>' +
+                  '</div>' +
                 '</div>' +
                 '<aside class="ai-chatbot-agent-sidecar">' +
                   '<section class="ai-chatbot-agent-step ai-chatbot-agent-sidecard">' +
-                    '<div class="ai-chatbot-agent-step-title"><span>5</span><div><strong>Run and deliver</strong><small>Validate the setup, queue the action, then run now or schedule it.</small></div></div>' +
-                    '<div class="ai-chatbot-agent-sidecard-head"><div>' + icon('route') + '<span>Run queue</span></div><small>One or many recipes</small></div>' +
-                    '<div class="ai-chatbot-agent-queue" data-agent-action-list></div>' +
-                    '<div class="ai-chatbot-agent-actions ai-chatbot-agent-primary-actions">' +
-                      '<button class="ai-chatbot-agent-button" type="button" data-agent-add-action>' + icon('plus') + '<span>Add to queue</span></button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-clear-actions>' + icon('trash') + '<span>Clear queue</span></button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-apply-routing disabled hidden>' + icon('route') + '<span>Apply route</span></button>' +
-                    '</div>' +
-                    '<div class="ai-chatbot-status" data-agent-status>Validate, run now, or schedule this remediation agent. Browser schedules run while this tab is open.</div>' +
+                    '<div class="ai-chatbot-agent-step-title"><span>6</span><div><strong>Create agent</strong><small>Create a scheduled remediation agent for the selected repository and recipe.</small></div></div>' +
+                    '<div class="ai-chatbot-status" data-agent-status>Choose a model, context source, repository, recipe, and run interval before creating the agent.</div>' +
                     '<div class="ai-chatbot-agent-output" data-agent-output hidden></div>' +
-                    '<div class="ai-chatbot-agent-actions ai-chatbot-agent-run-actions">' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-validate>' + icon('shield') + '<span>Validate agent</span></button>' +
-                      '<button class="ai-chatbot-agent-button" type="button" data-agent-preview>' + icon('play') + '<span>Run now</span></button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-schedule>' + icon('clock') + '<span>Schedule agent</span></button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-save-case hidden>Save case</button>' +
-                      '<button class="ai-chatbot-agent-button secondary" type="button" data-agent-deliver hidden>Run output</button>' +
+                    '<div class="ai-chatbot-agent-actions ai-chatbot-agent-run-actions ai-chatbot-agent-create-actions">' +
+                      '<button class="ai-chatbot-agent-button" type="button" data-agent-schedule>' + icon('clock') + '<span>Create Agent</span></button>' +
                     '</div>' +
+                    '<div class="ai-chatbot-agent-sidecard-head"><div>' + icon('route') + '<span>Created agents</span></div><small>Browser-local</small></div>' +
+                    '<div class="ai-chatbot-agent-queue" data-agent-action-list></div>' +
                   '</section>' +
                 '</aside>' +
               '</div>' +
@@ -26628,12 +29020,17 @@
     els.contextDetails = shell.querySelector('[data-context-details]');
     els.tokenLabel = shell.querySelector('[data-token-label]');
     els.tokenInput = shell.querySelector('[data-token]');
+    els.rememberToken = shell.querySelector('[data-remember-token]');
+    els.providerSecretNote = shell.querySelector('[data-provider-secret-note]');
     els.credentialModeButtons = shell.querySelectorAll('[data-credential-mode]');
     els.oauthDetails = shell.querySelector('[data-oauth-details]');
+    els.oauthAppDetails = shell.querySelector('[data-oauth-app-details]');
+    els.oauthAppSummary = shell.querySelector('[data-oauth-app-summary]');
     els.oauthClientId = shell.querySelector('[data-oauth-client-id]');
     els.oauthScope = shell.querySelector('[data-oauth-scope]');
     els.oauthAuthUrl = shell.querySelector('[data-oauth-auth-url]');
     els.oauthTokenUrl = shell.querySelector('[data-oauth-token-url]');
+    els.oauthRedirectUri = shell.querySelector('[data-oauth-redirect-uri]');
     els.oauthStatus = shell.querySelector('[data-oauth-status]');
     els.oauthTitle = shell.querySelector('[data-oauth-title]');
     els.oauthDescription = shell.querySelector('[data-oauth-description]');
@@ -26647,6 +29044,8 @@
     els.includeRelated = shell.querySelector('[data-related]');
     els.includeGitHub = shell.querySelector('[data-github-context]');
     els.includeDepsDev = shell.querySelector('[data-depsdev-context]');
+    els.includeOsv = shell.querySelector('[data-osv-context]');
+    els.includeMcpGateway = shell.querySelector('[data-mcp-gateway-context]');
     els.marketplaceContextNote = shell.querySelector('[data-marketplace-context-note]');
     els.marketplaceContextSources = shell.querySelector('[data-marketplace-context-sources]');
     els.marketplaceSettingsDetails = shell.querySelector('[data-marketplace-settings-details]');
@@ -26678,6 +29077,14 @@
     els.githubCodeScanningPerPage = shell.querySelector('[data-github-code-scanning-per-page]');
     els.githubCodeScanningStatus = shell.querySelector('[data-github-code-scanning-status]');
     els.depsDevStatus = shell.querySelector('[data-depsdev-status]');
+    els.osvStatus = shell.querySelector('[data-osv-status]');
+    els.mcpGatewayDetails = shell.querySelector('[data-mcp-gateway-details]');
+    els.mcpGatewayProfile = shell.querySelector('[data-mcp-gateway-profile]');
+    els.mcpGatewayEndpoint = shell.querySelector('[data-mcp-gateway-endpoint]');
+    els.mcpGatewayToken = shell.querySelector('[data-mcp-gateway-token]');
+    els.mcpGatewayTool = shell.querySelector('[data-mcp-gateway-tool]');
+    els.mcpGatewayQuery = shell.querySelector('[data-mcp-gateway-query]');
+    els.mcpGatewayStatus = shell.querySelector('[data-mcp-gateway-status]');
     els.snykApiBaseUrl = shell.querySelector('[data-snyk-api-base-url]');
     els.snykApiToken = shell.querySelector('[data-snyk-api-token]');
     els.snykOrgId = shell.querySelector('[data-snyk-org-id]');
@@ -26718,6 +29125,20 @@
     els.searchStats = shell.querySelector('[data-search-stats]');
     els.searchResults = shell.querySelector('[data-search-results]');
     els.searchStatus = shell.querySelector('[data-search-status]');
+    els.statisticsPanel = shell.querySelector('[data-panel="statistics"]');
+    els.statisticsSummary = shell.querySelector('[data-statistics-summary]');
+    els.statisticsSeverity = shell.querySelector('[data-statistics-severity]');
+    els.statisticsRemediation = shell.querySelector('[data-statistics-remediation]');
+    els.statisticsContext = shell.querySelector('[data-statistics-context]');
+    els.statisticsAssets = shell.querySelector('[data-statistics-assets]');
+    els.statisticsDependencies = shell.querySelector('[data-statistics-dependencies]');
+    els.statisticsSensitiveData = shell.querySelector('[data-statistics-sensitive-data]');
+    els.statisticsWorkflows = shell.querySelector('[data-statistics-workflows]');
+    els.statisticsFreshness = shell.querySelector('[data-statistics-freshness]');
+    els.statisticsDrivers = shell.querySelector('[data-statistics-drivers]');
+    els.statisticsActivity = shell.querySelector('[data-statistics-activity]');
+    els.statisticsStatus = shell.querySelector('[data-statistics-status]');
+    els.statisticsExportPdf = shell.querySelector('[data-statistics-export-pdf]');
     els.routerPanel = shell.querySelector('[data-panel="router"]');
     els.routerHeadline = shell.querySelector('[data-router-headline]');
     els.routerStats = shell.querySelector('[data-router-stats]');
@@ -27012,6 +29433,8 @@
     if (els.includeGitLabFindings) els.includeGitLabFindings.checked = state.includeGitLabFindings;
     if (els.includeAzureDevOpsRepository) els.includeAzureDevOpsRepository.checked = state.includeAzureDevOpsRepository;
     els.includeDepsDev.checked = state.includeDepsDev;
+    if (els.includeOsv) els.includeOsv.checked = state.includeOsv;
+    if (els.includeMcpGateway) els.includeMcpGateway.checked = state.includeMcpGateway;
     if (els.includeSnyk) els.includeSnyk.checked = state.includeSnyk;
     if (els.includeConfluence) els.includeConfluence.checked = state.includeConfluence;
     if (els.includeDefenderXdr) els.includeDefenderXdr.checked = state.includeDefenderXdr;
@@ -27027,6 +29450,8 @@
     updateGitLabContextUI();
     updateAzureDevOpsContextUI();
     updateDepsDevUI();
+    updateOsvUI();
+    updateMcpGatewayUI();
     updateSnykUI();
     updateConfluenceUI();
     updateDefenderXdrUI();
@@ -27041,15 +29466,23 @@
     renderExposureBoard();
     renderCaseboard();
     renderReportWorkspace();
+    renderStatistics();
     resetAssetDraft({ silent: true });
     resetReportLabDraft({ silent: true });
     resetIntegrationLabDraft({ kind: 'input', silent: true });
     resetRoutingLabDraft({ silent: true });
+    restoreSettingsDetailsOpen();
+    bindSettingsDetailPersistence();
+    if (els.settingsContent) {
+      els.settingsContent.addEventListener('input', handleSettingsAutosave);
+      els.settingsContent.addEventListener('change', handleSettingsAutosave);
+    }
 
     els.launch.addEventListener('click', function () {
       var isOpen = !els.panel.hidden;
       els.panel.hidden = isOpen;
       els.launch.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      syncPanelOpenState();
       if (isOpen) {
         setExpanded(false);
         return;
@@ -27082,6 +29515,7 @@
       setExpanded(false);
       els.panel.hidden = true;
       els.launch.setAttribute('aria-expanded', 'false');
+      syncPanelOpenState();
       els.launch.focus();
     });
 
@@ -27134,14 +29568,14 @@
       var button = event.target.closest('[data-open-panel]');
       if (!button || !shell.contains(button)) return;
       var target = button.getAttribute('data-open-panel') || 'agents';
+      if (target === 'marketplace' || target === 'control-plane') target = 'agents';
       if (button.getAttribute('data-focus-terminal') === 'true') {
         focusTerminalWorkbench();
         return;
       }
       switchTab(target);
       window.setTimeout(function () {
-        if (target === 'control-plane' && els.controlPlaneSearch) els.controlPlaneSearch.focus();
-        else if (target === 'router' && els.routerRecommendations) {
+        if (target === 'router' && els.routerRecommendations) {
           var routerButton = els.routerRecommendations.querySelector('button');
           if (routerButton) routerButton.focus();
         } else if (target === 'assets' && els.assetSearch) els.assetSearch.focus();
@@ -27177,6 +29611,13 @@
       syncWorkbenchMenuHeight(false);
     }
 
+    if (els.statisticsExportPdf) {
+      els.statisticsExportPdf.addEventListener('click', exportStatisticsPdf);
+    }
+    if (els.statisticsPanel) {
+      els.statisticsPanel.addEventListener('click', handleStatisticsAction);
+    }
+
     if (els.chatQuickActions) {
       els.chatQuickActions.addEventListener('click', function (event) {
         var button = event.target.closest('[data-chat-quick]');
@@ -27191,7 +29632,7 @@
           clearChatMessages();
           return;
         }
-        text = 'Run the best matching SecurityRecipes remediation recipe using the current page context, selected marketplace inputs, uploaded evidence, and reviewer-gated output route. Produce commands, checks, rollback, and the handoff packet.';
+        text = 'Run the best matching SecurityRecipes remediation recipe using the current page context, selected optional inputs, uploaded evidence, and reviewer-gated output route. Produce commands, checks, rollback, and the handoff packet.';
         if (els.prompt) {
           els.prompt.value = text;
           els.prompt.focus();
@@ -28109,6 +30550,25 @@
       });
     });
 
+    if (els.rememberToken) {
+      els.rememberToken.addEventListener('change', function () {
+        var mode = getCredentialMode(state.provider);
+        var token = getToken(state.provider, mode);
+        if (els.rememberToken.checked) {
+          if (token) {
+            rememberProviderToken(state.provider, mode, token);
+            setStatus(maskToken(token), 'ok');
+          } else {
+            setStatus('Paste ' + tokenLabelWithArticle(state.provider, mode) + ' before saving it as a browser-local secret.', 'error');
+          }
+        } else {
+          rememberProviderToken(state.provider, mode, '');
+          setStatus(token ? maskSessionToken(token) : 'Provider secret removed from this browser.', token ? 'ok' : '');
+        }
+        updateProviderUI();
+      });
+    }
+
     els.agentProvider.addEventListener('change', function () {
       localStorage.setItem(STORE.agentProvider, els.agentProvider.value);
       updateAgentUI();
@@ -28208,10 +30668,8 @@
 
     if (els.agentCadence) els.agentCadence.addEventListener('change', function () {
       state.agentRoutingDecision = null;
-      var cadence = selectedText(els.agentCadence);
-      if (els.agentNextRun && cadence !== 'Manual approval' && !els.agentNextRun.value) {
-        els.agentNextRun.value = defaultAgentScheduleValue(cadence);
-      }
+      if (els.agentNextRun) els.agentNextRun.value = '';
+      updateAgentScheduleFields();
       updateAgentMarketplacePreview();
     });
     if (els.agentNextRun) els.agentNextRun.addEventListener('change', function () {
@@ -28236,13 +30694,13 @@
         copyText(JSON.stringify(marketplacePreviewPayload(agentConfig()), null, 2))
           .then(function () {
             if (els.agentStatus && !state.agentRunning) {
-              els.agentStatus.textContent = 'Marketplace config JSON copied locally.';
+              els.agentStatus.textContent = 'Agent configuration JSON copied locally.';
               els.agentStatus.setAttribute('data-kind', 'ok');
             }
           })
           .catch(function () {
             if (els.agentStatus && !state.agentRunning) {
-              els.agentStatus.textContent = 'Marketplace config JSON is shown above. Clipboard copy was unavailable.';
+              els.agentStatus.textContent = 'Agent configuration JSON is shown above. Clipboard copy was unavailable.';
               els.agentStatus.setAttribute('data-kind', 'error');
             }
           });
@@ -28324,7 +30782,8 @@
       });
     }
 
-    shell.querySelector('[data-agent-add-action]').addEventListener('click', addAgentAction);
+    var addAgentActionButton = shell.querySelector('[data-agent-add-action]');
+    if (addAgentActionButton) addAgentActionButton.addEventListener('click', addAgentAction);
 
     shell.querySelector('[data-agent-save-integrations]').addEventListener('click', saveAgentIntegrationSettings);
 
@@ -28380,7 +30839,7 @@
 
     if (els.agentReadinessControlPlane) {
       els.agentReadinessControlPlane.addEventListener('click', function () {
-        executeWorkbenchAction('open-tab', 'control-plane', { originLabel: 'Launch readiness' });
+        executeWorkbenchAction('open-tab', 'agents', { originLabel: 'Launch readiness' });
       });
     }
 
@@ -28437,21 +30896,42 @@
       executeTerminalCommand(command, { source: 'terminal' });
     });
 
-    shell.querySelector('[data-agent-clear-actions]').addEventListener('click', function () {
-      state.agentActions = [];
-      saveAgentActions();
-      renderAgentActions();
-      updateAgentMarketplacePreview();
-      if (els.agentStatus && !state.agentRunning) {
-        els.agentStatus.textContent = 'Action queue cleared.';
-        els.agentStatus.removeAttribute('data-kind');
-      }
-    });
+    var clearAgentActionsButton = shell.querySelector('[data-agent-clear-actions]');
+    if (clearAgentActionsButton) {
+      clearAgentActionsButton.addEventListener('click', function () {
+        state.agentActions = [];
+        saveAgentActions();
+        renderAgentActions();
+        updateAgentMarketplacePreview();
+        if (els.agentStatus && !state.agentRunning) {
+          els.agentStatus.textContent = 'Agent list cleared.';
+          els.agentStatus.removeAttribute('data-kind');
+        }
+      });
+    }
 
     els.agentActionList.addEventListener('click', function (event) {
       var runButton = event.target.closest('[data-agent-run-action]');
       if (runButton) {
         runAgentActionNow(Number(runButton.getAttribute('data-agent-run-action')));
+        return;
+      }
+      var consoleLink = event.target.closest('[data-agent-console-action]');
+      if (consoleLink) {
+        event.preventDefault();
+        var consoleIndex = Number(consoleLink.getAttribute('data-agent-console-action'));
+        if (Number.isFinite(consoleIndex) && state.agentActions[consoleIndex]) {
+          state.agentActions[consoleIndex].consoleOpen = !state.agentActions[consoleIndex].consoleOpen;
+          saveAgentActions();
+          renderAgentActions();
+        }
+        return;
+      }
+      var terminalLink = event.target.closest('[data-agent-terminal-action]');
+      if (terminalLink) {
+        event.preventDefault();
+        switchTab('terminal');
+        renderTerminal();
         return;
       }
       var button = event.target.closest('[data-agent-remove-action]');
@@ -28464,15 +30944,20 @@
 
     shell.querySelector('[data-save-token]').addEventListener('click', function () {
       var value = els.tokenInput.value.trim();
+      var mode = getCredentialMode(state.provider);
       if (!value) {
         setStatus('Paste a token first.', 'error');
         return;
       }
-      state.providerTokens[state.provider + '.' + getCredentialMode(state.provider)] = value;
-      if (getCredentialMode(state.provider) === 'api_key') localStorage.removeItem(legacyTokenKey(state.provider));
+      state.providerTokens[state.provider + '.' + mode] = value;
+      if (els.rememberToken && els.rememberToken.checked) {
+        rememberProviderToken(state.provider, mode, value);
+      } else {
+        rememberProviderToken(state.provider, mode, '');
+      }
       els.tokenInput.value = '';
-      updateProviderBadge();
-      setStatus(maskSessionToken(value), 'ok');
+      updateProviderUI();
+      setStatus(hasStoredProviderToken(state.provider, mode) ? maskToken(value) : maskSessionToken(value), 'ok');
       updateAgentUI();
       scheduleProviderConnectivityChecks();
     });
@@ -28487,23 +30972,35 @@
       updateProviderUI();
     });
 
-    shell.querySelector('[data-save-oauth-config]').addEventListener('click', function () {
-      setOAuthField(state.provider, 'clientId', els.oauthClientId.value);
-      setOAuthField(state.provider, 'scope', els.oauthScope.value);
-      setOAuthField(state.provider, 'authUrl', els.oauthAuthUrl.value);
-      setOAuthField(state.provider, 'tokenUrl', els.oauthTokenUrl.value);
-      setOAuthStatus('OAuth browser config saved locally for ' + providerConfig().label + '. Redirect URI: ' + oauthRedirectUri(), 'ok');
-    });
-
-    shell.querySelector('[data-start-oauth]').addEventListener('click', function () {
-      setOAuthField(state.provider, 'clientId', els.oauthClientId.value);
-      setOAuthField(state.provider, 'scope', els.oauthScope.value);
-      setOAuthField(state.provider, 'authUrl', els.oauthAuthUrl.value);
-      setOAuthField(state.provider, 'tokenUrl', els.oauthTokenUrl.value);
-      startOAuthBrowserFlow().catch(function (error) {
-        setOAuthStatus(error && error.message ? error.message : 'OAuth browser authorization could not start.', 'error');
+    var saveOAuthConfigButton = shell.querySelector('[data-save-oauth-config]');
+    if (saveOAuthConfigButton) {
+      saveOAuthConfigButton.addEventListener('click', function () {
+        setOAuthField(state.provider, 'clientId', els.oauthClientId && els.oauthClientId.value);
+        setOAuthField(state.provider, 'scope', els.oauthScope && els.oauthScope.value);
+        setOAuthField(state.provider, 'authUrl', els.oauthAuthUrl && els.oauthAuthUrl.value);
+        setOAuthField(state.provider, 'tokenUrl', els.oauthTokenUrl && els.oauthTokenUrl.value);
+        updateOAuthUI();
+        if (hasOAuthBrowserConfig(state.provider)) {
+          setOAuthStatus('OAuth app saved locally for ' + providerConfig().label + '. Redirect URI: ' + oauthRedirectUri(), 'ok');
+        } else {
+          setOAuthStatus('OAuth app details cleared. Add app details below, then click Authorize in browser. Redirect URI: ' + oauthRedirectUri(), '');
+        }
       });
-    });
+    }
+
+    var startOAuthButton = shell.querySelector('[data-start-oauth]');
+    if (startOAuthButton) {
+      startOAuthButton.addEventListener('click', function () {
+        setOAuthField(state.provider, 'clientId', els.oauthClientId && els.oauthClientId.value);
+        setOAuthField(state.provider, 'scope', els.oauthScope && els.oauthScope.value);
+        setOAuthField(state.provider, 'authUrl', els.oauthAuthUrl && els.oauthAuthUrl.value);
+        setOAuthField(state.provider, 'tokenUrl', els.oauthTokenUrl && els.oauthTokenUrl.value);
+        updateOAuthUI();
+        startOAuthBrowserFlow().catch(function (error) {
+          setOAuthStatus(error && error.message ? error.message : 'OAuth browser authorization could not start.', 'error');
+        });
+      });
+    }
 
     Array.prototype.forEach.call(els.githubAuthModeButtons, function (button) {
       button.addEventListener('click', function () {
@@ -28601,6 +31098,7 @@
       (async function () {
         await prepareGitHubContext();
         if (state.includeDepsDev) await prepareDepsDevContext();
+        if (state.includeOsv) await prepareOsvContext();
       })().catch(function (error) {
         var detail = error && error.message ? error.message : 'GitHub context load failed.';
         setGitHubStatus('GitHub context failed to load. Hover for details.', 'error', detail);
@@ -28884,10 +31382,13 @@
       state.githubContextLoadedAt = '';
       state.depsDevContextText = '';
       state.depsDevContextLoadedAt = '';
+      state.osvContextText = '';
+      state.osvContextLoadedAt = '';
       localStorage.removeItem(STORE.githubRepoUrl);
       if (els.githubRepoInput) els.githubRepoInput.value = '';
       updateGitHubUI();
       updateDepsDevUI();
+      updateOsvUI();
       updateAgentMarketplacePreview();
     });
 
@@ -28898,10 +31399,13 @@
       state.githubContextLoadedAt = '';
       state.depsDevContextText = '';
       state.depsDevContextLoadedAt = '';
+      state.osvContextText = '';
+      state.osvContextLoadedAt = '';
       if (state.githubRepoUrl) localStorage.setItem(STORE.githubRepoUrl, state.githubRepoUrl);
       else localStorage.removeItem(STORE.githubRepoUrl);
       updateGitHubUI();
       updateDepsDevUI();
+      updateOsvUI();
       updateAgentMarketplacePreview();
     });
 
@@ -28971,6 +31475,99 @@
       updateDepsDevUI();
       syncAgentInputSelectionsFromToggles();
     });
+
+    if (els.includeOsv) {
+      els.includeOsv.addEventListener('change', function () {
+        state.includeOsv = els.includeOsv.checked;
+        localStorage.setItem(STORE.osvContext, String(state.includeOsv));
+        if (!state.includeOsv) {
+          state.osvContextText = '';
+          state.osvContextLoadedAt = '';
+        }
+        updateOsvUI();
+        syncAgentInputSelectionsFromToggles();
+      });
+    }
+
+    if (els.includeMcpGateway) {
+      els.includeMcpGateway.addEventListener('change', function () {
+        state.includeMcpGateway = els.includeMcpGateway.checked;
+        localStorage.setItem(STORE.mcpGatewayContext, String(state.includeMcpGateway));
+        if (!state.includeMcpGateway) clearMcpGatewayContext({ keepSettings: true });
+        updateMcpGatewayUI();
+        syncAgentInputSelectionsFromToggles();
+      });
+    }
+
+    var loadDepsDevContext = shell.querySelector('[data-load-depsdev-context]');
+    if (loadDepsDevContext) {
+      loadDepsDevContext.addEventListener('click', function () {
+        state.includeDepsDev = true;
+        localStorage.setItem(STORE.depsDevContext, 'true');
+        if (els.includeDepsDev) els.includeDepsDev.checked = true;
+        if (els.githubContextDepsDev) els.githubContextDepsDev.checked = true;
+        prepareDepsDevContext().catch(function (error) {
+          var detail = error && error.message ? error.message : 'deps.dev context load failed.';
+          setDepsDevStatus('deps.dev dependency check failed. Hover for details.', 'error', detail);
+        });
+        syncAgentInputSelectionsFromToggles();
+      });
+    }
+
+    var loadOsvContext = shell.querySelector('[data-load-osv-context]');
+    if (loadOsvContext) {
+      loadOsvContext.addEventListener('click', function () {
+        state.includeOsv = true;
+        localStorage.setItem(STORE.osvContext, 'true');
+        if (els.includeOsv) els.includeOsv.checked = true;
+        prepareOsvContext().catch(function (error) {
+          var detail = error && error.message ? error.message : 'OSV.dev context load failed.';
+          setOsvStatus(osvFailureStatus(detail), 'error', detail);
+        });
+        syncAgentInputSelectionsFromToggles();
+      });
+    }
+
+    if (els.mcpGatewayProfile) {
+      els.mcpGatewayProfile.addEventListener('change', function () {
+        applyMcpGatewayProfileDefaults();
+        saveMcpGatewaySettingsFromUI();
+        updateMcpGatewayUI();
+      });
+    }
+
+    var saveMcpGatewaySettings = shell.querySelector('[data-save-mcp-gateway-settings]');
+    if (saveMcpGatewaySettings) {
+      saveMcpGatewaySettings.addEventListener('click', function () {
+        saveMcpGatewaySettingsFromUI();
+        updateMcpGatewayUI();
+        setMcpGatewayStatus('MCP gateway settings saved in this browser.', 'ok');
+      });
+    }
+
+    var loadMcpGatewayContext = shell.querySelector('[data-load-mcp-gateway-context]');
+    if (loadMcpGatewayContext) {
+      loadMcpGatewayContext.addEventListener('click', function () {
+        saveMcpGatewaySettingsFromUI();
+        state.includeMcpGateway = true;
+        localStorage.setItem(STORE.mcpGatewayContext, 'true');
+        if (els.includeMcpGateway) els.includeMcpGateway.checked = true;
+        prepareMcpGatewayContext((els.prompt && els.prompt.value) || (els.agentScope && els.agentScope.value) || '').catch(function (error) {
+          var detail = error && error.message ? error.message : 'MCP gateway context load failed.';
+          setMcpGatewayStatus(mcpGatewayFailureStatus(detail), 'error', detail);
+        });
+        syncAgentInputSelectionsFromToggles();
+      });
+    }
+
+    var clearMcpGatewayContextButton = shell.querySelector('[data-clear-mcp-gateway-context]');
+    if (clearMcpGatewayContextButton) {
+      clearMcpGatewayContextButton.addEventListener('click', function () {
+        clearMcpGatewayContext({ keepSettings: false });
+        updateMcpGatewayUI();
+        syncAgentInputSelectionsFromToggles();
+      });
+    }
 
     if (els.includeSnyk) {
       els.includeSnyk.addEventListener('change', function () {
@@ -29100,7 +31697,7 @@
       updateProviderUI();
       setSettingsOpen(true);
       if (data.ok) {
-        setOAuthStatus(providerConfig(state.provider).label + ' connected for this page session: ' + (data.tokenPreview || maskSessionToken(getToken(state.provider, 'oauth'))), 'ok');
+        setOAuthStatus(providerConfig(state.provider).label + ' connected: ' + (data.tokenPreview || maskSessionToken(getToken(state.provider, 'oauth'))), 'ok');
       } else {
         setOAuthStatus(data.error || 'OAuth sign-in did not complete.', 'error');
       }

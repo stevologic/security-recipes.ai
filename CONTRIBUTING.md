@@ -171,7 +171,7 @@ Things reviewers look for in a recipe PR:
 
 ## Contributing a prompt
 
-The Prompt Library lives under `content/prompt-library/`:
+Recipes live under `content/prompt-library/`:
 
 ```text
 content/prompt-library/
@@ -281,7 +281,7 @@ The dropdown menus in `hugo.yaml` show **section hubs only**:
   it. Individual workflow pages (`sast-findings/`,
   `base-images/`, `artifact-cache-purge/`, …) **do not**
   appear here.
-- `Prompt Library → Claude / Cursor / Codex / Devin / Copilot
+- `Recipes → Claude / Cursor / Codex / Devin / Copilot
   / General / Reputable Sources / CVE Recipes / Classic
   Vulnerable Defaults` — per-tool and cross-cutting hubs.
   Individual prompts and CVE recipes **do not** appear here.
@@ -315,7 +315,7 @@ through one of three shortcodes that walk the section tree:
 To add a new recipe, drop a markdown file in the section
 folder with the right frontmatter:
 
-**Prompt-library prompts** (`content/prompt-library/<tool>/*.md` and
+**Recipe prompts** (`content/prompt-library/<tool>/*.md` and
 `content/prompt-library/general/classic-vulnerable-defaults/*.md`):
 
 ```yaml
@@ -360,7 +360,7 @@ disclosed: "YYYY-MM-DD"                   # the catalogue sorts on this
 
 When you push your branch, the next site build picks the new
 file up automatically. No menu edits, no hub-page edits, and no
-sidebar edits. Prompt Library leaf pages are excluded from the
+sidebar edits. Recipes leaf pages are excluded from the
 left sidebar by the section cascade; browse them through the hub
 catalogues instead.
 
@@ -397,7 +397,7 @@ If you find yourself wanting to split, ask:
 - **Adding a brand-new hub category?** *Only then* edit
   `hugo.yaml` to add the dropdown entry, and add a
   `cascade` block in the new hub's `_index.md` to
-  propagate sidebar settings to descendants. For Prompt Library
+  propagate sidebar settings to descendants. For Recipes
   style hubs, the cascade should exclude regular pages from the
   left sidebar and keep section hubs collapsed.
 

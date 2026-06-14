@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Incident Response Pack
 linkTitle: Incident Response Pack
 weight: 14
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated incident response, containment, forensics, replay, and
   disclosure pack for secure-context and MCP-backed agentic AI failures.
@@ -43,49 +43,16 @@ artifact instead of reverse-engineering a failure from chat transcripts.
 - `data/assurance/agentic-incident-response-profile.json` - source
   contract for incident classes, response phases, required evidence,
   severity thresholds, standards alignment, and operational packaging.
-- `scripts/generate_agentic_incident_response_pack.py` - deterministic
-  generator and `--check` validator.
-- `scripts/evaluate_agentic_incident_response_decision.py` -
-  deterministic monitor, triage, hold, contain, or kill evaluator.
 - `data/evidence/agentic-incident-response-pack.json` - generated
   incident response pack for MCP clients, CI drift checks, and reviewer
   diligence.
 - `recipes_agentic_incident_response_pack` - MCP lookup by incident
   class, workflow, severity, or response decision.
-- `recipes_evaluate_agentic_incident_response_decision` - MCP runtime
-  evaluator for one incident signal.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_agentic_incident_response_pack.py
-python3 scripts/generate_agentic_incident_response_pack.py --check
-```
 
 Evaluate a token passthrough incident:
 
-```bash
-python3 scripts/evaluate_agentic_incident_response_decision.py \
-  --incident-id inc-ci-token \
-  --workflow-id vulnerable-dependency-remediation \
-  --run-id run-ci-token \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
-  --tenant-id tenant-demo \
-  --correlation-id corr-ci-token \
-  --incident-class-id mcp-authorization-confused-deputy \
-  --severity-signal sev1 \
-  --source-event-id event-authz-1 \
-  --receipt-id receipt-ci-token \
-  --context-source-id workflow-manifest \
-  --context-source-hash hash-ci \
-  --mcp-namespace repo.contents \
-  --authorization-decision allow_authorized_mcp_request \
-  --containment-action-id freeze_mcp_namespace_or_scope \
-  --indicator raw_token_passthrough \
-  --token-passthrough \
-  --expect-decision kill_session_and_escalate_board
-```
 
 ## What is inside
 
@@ -159,7 +126,7 @@ Evaluate one runtime incident signal:
 The prevention layer creates trust. The incident layer creates
 operational confidence.
 
-The site should not be only a documentation archive or prompt library.
+The site should not be only a documentation archive or recipe catalog.
 It needs a control-plane story that a security team can inspect, run,
 and improve. Agentic incident response becomes useful when the open
 evidence can support:

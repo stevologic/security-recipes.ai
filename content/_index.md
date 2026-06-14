@@ -1,9 +1,9 @@
 ---
 title: security-recipes.ai
 description: >
-  The trusted secure context layer for agentic AI and MCP servers.
-  SecurityRecipes combines free open recipes with an agent-verified
-  production MCP server for faster, reviewable remediation workflows.
+  Security recipes for agentic AI remediation. Browse playbooks,
+  prompts, agent setup guides, and MCP integration patterns for
+  narrower, safer security fixes.
 keywords:
   - "agentic security remediation"
   - "AI security agents"
@@ -26,7 +26,6 @@ toc: false
 ---
 
 <!--
-  This page is rendered by `layouts/index.html` (a fully custom layout
-  matching the uploaded index.html design). Anything written below is
-  ignored on the home page.
+  This page is rendered by `layouts/index.html`. Anything written below
+  is ignored on the home page.
 -->

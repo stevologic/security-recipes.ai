@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Readiness Scorecard
 linkTitle: Readiness Scorecard
 weight: 7
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated enterprise promotion gate that turns workflow, MCP policy,
   connector trust, identity, assurance, and red-team evidence into
@@ -40,8 +40,6 @@ The readiness layer lives in source-controlled and generated artifacts:
 
 - `data/assurance/agentic-readiness-model.json` - the scoring model,
   weights, scale gates, blockers, and industry references.
-- `scripts/generate_agentic_readiness_scorecard.py` - a deterministic
-  generator with `--check` mode for CI drift detection.
 - `data/evidence/agentic-readiness-scorecard.json` - the generated
   scale, pilot, gate, or block decision artifact.
 - `recipes_agentic_readiness_scorecard` - the MCP tool that exposes
@@ -50,10 +48,6 @@ The readiness layer lives in source-controlled and generated artifacts:
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_agentic_readiness_scorecard.py
-python3 scripts/generate_agentic_readiness_scorecard.py --check
-```
 
 ## What is inside the scorecard
 

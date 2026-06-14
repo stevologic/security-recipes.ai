@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Evals
 linkTitle: Secure Context Evals
 weight: 11
 sidebar:
-  open: true
+  exclude: true
 description: >
   Scenario-backed evals for the SecurityRecipes secure context layer:
   retrieval correctness, attestation, poisoning resilience, egress
@@ -35,31 +35,16 @@ keep remote-agent handoffs metadata-only?
 
 - `data/assurance/secure-context-eval-scenarios.json` - the source
   scenario profile.
-- `scripts/generate_secure_context_eval_pack.py` - deterministic pack
-  generator with `--check` and `--update-if-stale` support.
-- `scripts/evaluate_secure_context_eval_case.py` - runtime evaluator for
-  observed answers, citations, decisions, and handoff payloads.
 - `data/evidence/secure-context-eval-pack.json` - generated evidence
   pack for CI, MCP, diligence, and trust-center review.
 - MCP tools:
   `recipes_secure_context_eval_pack` and
-  `recipes_evaluate_secure_context_eval_case`.
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_secure_context_eval_pack.py
-python3 scripts/generate_secure_context_eval_pack.py --check
-```
 
 Evaluate one runtime answer:
 
-```bash
-python3 scripts/evaluate_secure_context_eval_case.py \
-  --scenario-id ctx-eval-prohibited-data-kill \
-  --answer-text "kill_session" \
-  --expect-decision eval_ready
-```
 
 ## Eval scenario classes
 

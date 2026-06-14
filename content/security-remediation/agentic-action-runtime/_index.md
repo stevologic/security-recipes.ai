@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Action Runtime Pack
 linkTitle: Action Runtime Pack
 weight: 15
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated action-runtime pack and deterministic evaluator for allow,
   hold, deny, or kill decisions before MCP-backed agents execute side
@@ -47,61 +47,18 @@ firewall that enterprises put in front of agent hosts.
 - `data/assurance/agentic-action-runtime-profile.json` - source contract
   for action classes, required evidence, standards alignment, runtime
   policy, and trusted-source path.
-- `scripts/generate_agentic_action_runtime_pack.py` - deterministic
-  generator and `--check` validator.
-- `scripts/evaluate_agentic_action_runtime_decision.py` - deterministic
-  allow, hold, deny, or kill evaluator.
 - `data/evidence/agentic-action-runtime-pack.json` - generated action
   runtime pack for MCP clients, CI drift checks, and reviewer diligence.
 - `recipes_agentic_action_runtime_pack` - MCP lookup by action class,
   workflow, risk tier, or decision.
-- `recipes_evaluate_agentic_action_runtime_decision` - MCP runtime
-  evaluator for one proposed autonomous action.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_agentic_action_runtime_pack.py
-python3 scripts/generate_agentic_action_runtime_pack.py --check
-```
 
 Evaluate a bounded repository write:
 
-```bash
-python3 scripts/evaluate_agentic_action_runtime_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --action-class repo_branch_write \
-  --run-id run-branch \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
-  --tenant-id tenant-demo \
-  --correlation-id corr-branch \
-  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
-  --policy-pack-hash sha256:policy \
-  --authorization-decision allow_authorized_mcp_request \
-  --receipt-id receipt-branch \
-  --expect-decision allow_bounded_action
-```
 
 Evaluate a secret-bearing action:
 
-```bash
-python3 scripts/evaluate_agentic_action_runtime_decision.py \
-  --workflow-id sensitive-data-remediation \
-  --action-class credential_or_secret_access \
-  --run-id run-secret \
-  --agent-id sr-agent::sensitive-data-remediation::codex \
-  --identity-id sr-agent::sensitive-data-remediation::codex \
-  --tenant-id tenant-demo \
-  --correlation-id corr-secret \
-  --intent-summary "Inspect whether a candidate finding contains a token" \
-  --policy-pack-hash sha256:policy \
-  --authorization-decision allow_authorized_mcp_request \
-  --egress-decision hold_for_redaction_or_dpa \
-  --receipt-id receipt-secret \
-  --contains-secret \
-  --expect-decision kill_session_on_runtime_action_signal
-```
 
 ## What is inside
 

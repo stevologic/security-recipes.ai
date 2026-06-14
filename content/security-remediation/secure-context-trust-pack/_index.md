@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Trust Pack
 linkTitle: Secure Context Trust
 weight: 9
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated provenance and retrieval trust pack for the SecurityRecipes
   secure context layer: approved context roots, owners, trust tiers,
@@ -43,25 +43,15 @@ The secure context layer has three artifacts:
 - `data/context/secure-context-registry.json` - the source registry for
   context roots, owners, trust tiers, retrieval decisions, freshness
   expectations, poisoning controls, and prohibited context classes.
-- `scripts/generate_secure_context_trust_pack.py` - a dependency-free
-  generator and validator with `--check` mode for CI drift detection.
-- `scripts/evaluate_secure_context_retrieval.py` - a dependency-free
-  runtime evaluator that turns the pack into an allow, hold, deny, or
-  kill-session retrieval decision.
 - `data/evidence/secure-context-trust-pack.json` - the generated pack
   with source hashes, registered file counts, retrieval contracts, and
   per-workflow context package hashes.
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_secure_context_trust_pack.py
-python3 scripts/generate_secure_context_trust_pack.py --check
-```
 
 The local MCP server exposes the same bundle through
 `recipes_secure_context_trust_pack`, and exposes runtime retrieval
-decisions through `recipes_evaluate_context_retrieval_decision`.
 
 ## What is inside the pack
 
@@ -138,14 +128,6 @@ for tenant-side controls; prohibited context kills the session.
 For runtime enforcement, evaluate the specific context request before
 retrieval:
 
-```text
-recipes_evaluate_context_retrieval_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  source_id="prompt-library-recipes",
-  retrieval_mode="workflow_prompt_context",
-  requested_path="content/prompt-library/general/base-image-bump.md"
-)
-```
 
 ## CI contract
 

@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Firewall
 linkTitle: Secure Context Firewall
 weight: 10
 sidebar:
-  open: true
+  exclude: true
 description: >
   A deterministic runtime evaluator for secure-context retrieval:
   allow, hold, deny, or kill-session decisions before MCP-backed
@@ -45,21 +45,9 @@ That is the enterprise shape reviewers and platform teams expect:
 
 The firewall has two runtime surfaces:
 
-- `scripts/evaluate_secure_context_retrieval.py` - a dependency-free CLI
-  evaluator for CI, gateway sidecars, and audit replay.
-- `recipes_evaluate_context_retrieval_decision` - the MCP tool that
-  exposes the same decision function to agent hosts.
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/evaluate_secure_context_retrieval.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --source-id prompt-library-recipes \
-  --retrieval-mode workflow_prompt_context \
-  --requested-path content/prompt-library/general/base-image-bump.md \
-  --expect-decision allow_public_context
-```
 
 The output is a structured decision record with:
 
@@ -82,33 +70,12 @@ agent request -> MCP gateway -> secure context firewall -> retrieval
 
 For an allowed public prompt context request:
 
-```bash
-python3 scripts/evaluate_secure_context_retrieval.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --source-id prompt-library-recipes \
-  --retrieval-mode workflow_prompt_context \
-  --requested-path content/prompt-library/general/base-image-bump.md
-```
 
 For a policy-context request:
 
-```bash
-python3 scripts/evaluate_secure_context_retrieval.py \
-  --workflow-id sensitive-data-remediation \
-  --source-id workflow-control-plane \
-  --retrieval-mode policy_context \
-  --requested-path data/control-plane/workflow-manifests.json
-```
 
 For a prohibited retrieval attempt:
 
-```bash
-python3 scripts/evaluate_secure_context_retrieval.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --source-id prompt-library-recipes \
-  --retrieval-mode workflow_prompt_context \
-  --data-class production_credential
-```
 
 That last request returns `kill_session_on_prohibited_context`. The
 gateway should stop the agent session and preserve the decision record as
@@ -140,14 +107,6 @@ This feature is intentionally boring and enforceable:
 
 Agent hosts can call the runtime tool directly:
 
-```text
-recipes_evaluate_context_retrieval_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  source_id="prompt-library-recipes",
-  retrieval_mode="workflow_prompt_context",
-  requested_path="content/prompt-library/general/base-image-bump.md"
-)
-```
 
 The tool does not retrieve the context. It only answers whether the
 retrieval may proceed and what evidence must be attached to the run log.

@@ -20,7 +20,7 @@ libraries published by vendors, standards bodies, or academic
 groups. This page is the shortlist of where to start.
 {{< /callout >}}
 
-The Prompt Library on this site is **internal to the
+The Recipes section on this site is **internal to the
 community-driven recipes** — production-shaped prompts teams have
 shared back. Alongside that, any healthy program draws on
 **external sources** of pre-engineered prompts and probes:
@@ -47,7 +47,7 @@ leaning on it.
   it is how programs get burned. Every prompt runs under the
   same guardrails as an internal one.
 - **Attribute upstream.** When you adapt a prompt from one of
-  these sources into this repo's Prompt Library, keep the
+  these sources into this repo's Recipes section, keep the
   upstream attribution in the `source:` frontmatter field.
 
 ---
@@ -142,9 +142,9 @@ These are where to look when you want a starting point prompt
 *shaped for a specific model*. The security-relevant ones are
 noted explicitly.
 
-### Anthropic Prompt Library and Cookbook
+### Anthropic prompt examples and Cookbook
 
-- **Prompt Library.** Anthropic's public prompt library ships
+- **Prompt examples.** Anthropic's public prompt examples include
   ready-to-run prompts including code review, threat modeling,
   and security analysis entries. The structure (system /
   user / examples) makes them easy to fork for in-house use.
@@ -155,7 +155,7 @@ noted explicitly.
 - **Skills.** Anthropic's published skills (`anthropics/skills`
   on GitHub) are longer-form, heavier-weight prompts packaged
   with scripts — a good reference for skill-shaped contributions
-  to this site's Prompt Library.
+  to this site's Recipes section.
 - **Prompting guide.** `docs.claude.com/en/docs/build-with-claude/prompt-engineering`
   is the up-to-date canonical reference for Claude prompting
   patterns (XML tags, chain-of-thought, prompt chaining).
@@ -343,7 +343,7 @@ Before leaning on a prompt source you haven't used before:
   placeholder text or doesn't run, move on.
 - **Read the license.** Some academic or vendor prompt
   collections carry restrictive licenses. If you plan to fork
-  into this repo's Prompt Library, the source license has to be
+  into this repo's Recipes section, the source license has to be
   compatible (MIT-equivalent or clearly permissive).
 - **Attribute.** When a prompt here was adapted from an external
   source, the entry's frontmatter should carry a `source:` field
@@ -361,7 +361,7 @@ judge fit in under thirty seconds.
 
 ## See also
 
-- [Prompt Library]({{< relref "/prompt-library" >}}) — internal, community-curated prompts
+- [Recipes]({{< relref "/prompt-library" >}}) — internal, community-curated prompts
 - [Fundamentals]({{< relref "/fundamentals" >}}) — plain-English primer on prompts, agents, and MCP
 - [Fundamentals → Emerging Patterns]({{< relref "/fundamentals/emerging-patterns" >}}) — what else is maturing in the agentic remediation space
 - [Automation]({{< relref "/automation" >}}) — deterministic tools that pair with these prompts

@@ -293,6 +293,10 @@ is defended in one layer.
   is what the reviewer reads after the gates have done their
   filtering.
 
+## Python remediation tool
+
+{{< remediation-tool domain="gatekeeping" >}}
+
 ## See also
 
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})

@@ -200,6 +200,10 @@ The seven-question checklist is their running reference.
   a steadily-rising line is the signal that the habit is
   degrading even though no single PR looks wrong.
 
+## Python remediation tool
+
+{{< remediation-tool domain="reviewer-playbook" >}}
+
 ## See also
 
 - [Program Metrics & KPIs]({{< relref "/security-remediation/metrics" >}}) — the reviewer-burden and merge-as-is numbers

@@ -4,2091 +4,1408 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{ .Site.Title }}</title>
-{{ $homeDescription := "SecurityRecipes is the Secure Context Layer for Agentic AI: open security remediation knowledge, reviewer-ready prompts, generated trust evidence, and a production-oriented read-only MCP server." }}
+{{ $homeDescription := "Security recipes for agentic AI remediation: reviewed playbooks, prompt patterns, agent setup guides, and MCP integration notes for safer security fixes." }}
 <meta name="description" content="{{ $homeDescription }}">
-{{/*
-  Hardening — same as content pages. No PWA manifest (kills the
-  "Install app" / "Use an app / extension" banner Chrome otherwise
-  offers), no translate banner, no external resource loads.
-*/}}
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="no">
 <meta name="mobile-web-app-capable" content="no">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://services.nvd.nist.gov https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev https://*.snyk.io https://*.atlassian.net https://api.atlassian.com https://gitlab.com https://*.gitlab.com https://dev.azure.com https://*.dev.azure.com https://*.visualstudio.com https://api.security.microsoft.com https://*.security.microsoft.com https://management.azure.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev https://api.osv.dev https://api.githubcopilot.com https://docs.semgrep.dev https://mcp.cloudflare.com http://localhost:8811 http://127.0.0.1:8811 https://*.snyk.io https://*.atlassian.net https://api.atlassian.com https://gitlab.com https://*.gitlab.com https://dev.azure.com https://*.dev.azure.com https://*.visualstudio.com https://api.security.microsoft.com https://*.security.microsoft.com https://management.azure.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
 <link rel="icon" type="image/svg+xml" href="{{ "/images/logo.svg" | relURL }}">
 {{ with resources.Get "css/ai-chatbot.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
 {{ end }}
-{{/*
-  Self-contained font strategy: the site ships zero external asset
-  dependencies so it works behind corporate proxies / air-gapped
-  environments and cannot leak traffic to third parties. All typography
-  uses platform fonts present on modern Windows / macOS / Linux / iOS /
-  Android. The stacks below deliver a near-identical visual to Inter +
-  JetBrains Mono on every major OS.
-*/}}
 <style>
   :root {
-    /* Self-hosted / system font stacks — no external requests. */
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
-                 "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
-                 "Liberation Sans", sans-serif,
-                 "Apple Color Emoji", "Segoe UI Emoji";
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-                 "Liberation Mono", "JetBrains Mono", "Fira Code",
-                 "Cascadia Code", monospace;
-
-    --bg-0: #05060a;
-    --bg-1: #0a0c14;
-    --bg-2: #11141f;
-    --ink-0: #f5f7fb;
-    --ink-1: #c8cdd9;
-    --ink-2: #8a92a6;
-    --ink-3: #555c70;
-    --accent-1: #14b8a6;
-    --accent-2: #f59e0b;
-    --accent-3: #8b5cf6;
-    --accent-glow: rgba(20, 184, 166, 0.36);
-    --card-bg: rgba(255, 255, 255, 0.025);
-    --card-border: rgba(255, 255, 255, 0.07);
-    --card-hover-border: rgba(255, 255, 255, 0.18);
-    --noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+      "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --bg: #05070b;
+    --bg-2: #080d12;
+    --surface: rgba(255, 255, 255, 0.045);
+    --surface-2: rgba(255, 255, 255, 0.07);
+    --border: rgba(255, 255, 255, 0.12);
+    --border-strong: rgba(255, 255, 255, 0.2);
+    --text: #f5f7fb;
+    --muted: #aeb7c6;
+    --soft: #7f8a9f;
+    --teal: #2dd4bf;
+    --amber: #fbbf24;
+    --rose: #fb7185;
+    --blue: #60a5fa;
+    --green: #86efac;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+    --shadow-tight: 0 18px 55px rgba(0, 0, 0, 0.34);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
-    font-family: var(--font-sans);
-    background: var(--bg-0);
-    color: var(--ink-0);
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    line-height: 1.5;
-    position: relative;
+    margin: 0;
     min-height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--text);
+    overflow-x: hidden;
+    background:
+      radial-gradient(58rem 36rem at 84% 20%, rgba(45, 212, 191, 0.13), transparent 68%),
+      radial-gradient(44rem 30rem at 8% 86%, rgba(251, 113, 133, 0.06), transparent 62%),
+      radial-gradient(34rem 28rem at 58% 116%, rgba(96, 165, 250, 0.07), transparent 60%),
+      linear-gradient(160deg, #030607 0%, #07100f 54%, #05070c 100%);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.026) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.023) 1px, transparent 1px);
+    background-size: 54px 54px;
+    mask-image: radial-gradient(ellipse at center, black 16%, transparent 78%);
+    opacity: 0.42;
+    animation: home-grid-drift 28s linear infinite;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, transparent 68%, rgba(0, 0, 0, 0.78) 100%),
+      linear-gradient(110deg, transparent 0 38%, rgba(103, 232, 249, 0.07) 48%, transparent 59% 100%),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.42), transparent 45%, rgba(0, 0, 0, 0.34));
+    mix-blend-mode: screen;
+    opacity: 0.7;
   }
 
   a { color: inherit; text-decoration: none; }
 
-  /* ============ BACKGROUND LAYERS ============ */
-  .bg-stage {
+  .home-signal-canvas {
     position: fixed;
     inset: 0;
-    z-index: -2;
-    overflow: hidden;
-    background:
-      radial-gradient(ellipse 120% 70% at 50% -20%, rgba(20, 184, 166, 0.14), transparent 58%),
-      linear-gradient(135deg, #05060a 0%, #0b1014 48%, #101016 100%);
-  }
-
-  /* Subtle grid */
-  .grid-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background-image:
-      linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
-    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
-    pointer-events: none;
-  }
-
-  /* Noise */
-  .noise {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background-image: var(--noise);
-    opacity: 0.35;
-    pointer-events: none;
-    mix-blend-mode: overlay;
-  }
-
-  /* SVG flowing lines canvas */
-  .lines {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
+    z-index: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    opacity: 0.5;
-  }
-  .lines path {
-    fill: none;
-    stroke: url(#lineGrad);
-    stroke-width: 1;
-    stroke-linecap: round;
-    stroke-dasharray: 6 14;
-    animation: flow 18s linear infinite;
-  }
-  .lines path:nth-child(2) { animation-duration: 22s; animation-delay: -4s; }
-  .lines path:nth-child(3) { animation-duration: 26s; animation-delay: -10s; }
-  .lines path:nth-child(4) { animation-duration: 30s; animation-delay: -14s; }
-
-  @keyframes flow {
-    to { stroke-dashoffset: -400; }
   }
 
-  /* ============ NAV ============ */
-  .nav {
+  .site-shell {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
     position: relative;
-    z-index: 10;
-    padding: 28px 48px;
+    z-index: 1;
+  }
+
+  .site-ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .site-ambient span {
+    position: absolute;
+    display: block;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.34), rgba(251, 191, 36, 0.18), transparent);
+    opacity: 0.18;
+    transform-origin: left center;
+    animation: packet-path 13s linear infinite;
+  }
+
+  .site-ambient span:nth-child(1) {
+    top: 18%;
+    left: 7%;
+    width: 28vw;
+    animation-delay: -2s;
+  }
+
+  .site-ambient span:nth-child(2) {
+    top: 44%;
+    right: -6%;
+    width: 34vw;
+    transform: rotate(-7deg);
+    animation-delay: -7s;
+  }
+
+  .site-ambient span:nth-child(3) {
+    bottom: 18%;
+    left: 30%;
+    width: 24vw;
+    transform: rotate(4deg);
+    animation-delay: -10s;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    backdrop-filter: blur(18px);
+    background: rgba(4, 6, 9, 0.82);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .topbar-inner {
+    width: min(1180px, calc(100% - 40px));
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    backdrop-filter: blur(8px);
+    min-height: 66px;
+    gap: 24px;
   }
 
   .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: -0.01em;
-  }
-  .brand-mark {
-    width: 28px; height: 28px;
-    border-radius: 8px;
-    background: conic-gradient(from 180deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-1));
-    position: relative;
-    box-shadow: 0 0 24px var(--accent-glow);
-    animation: spinSlow 12s linear infinite;
-  }
-  .brand-mark::after {
-    content: '';
-    position: absolute;
-    inset: 4px;
-    border-radius: 5px;
-    background: var(--bg-0);
-  }
-  .brand-mark::before {
-    content: '';
-    position: absolute;
-    inset: 9px;
-    border-radius: 50%;
-    background: var(--ink-0);
-    z-index: 1;
-    box-shadow: 0 0 12px rgba(255,255,255,0.6);
-  }
-  @keyframes spinSlow {
-    to { transform: rotate(360deg); }
-  }
-
-  .nav-pills {
-    display: flex;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--ink-2);
-  }
-  .pill {
-    padding: 8px 14px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    transition: all .25s ease;
-    cursor: pointer;
-    color: var(--ink-2);
-  }
-  .pill:hover {
-    color: var(--ink-0);
-    border-color: var(--card-border);
-    background: var(--card-bg);
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.3); }
-  }
-
-  /* ============ HERO ============ */
-  .hero {
-    position: relative;
-    z-index: 5;
-    padding: 80px 48px 40px;
-    text-align: center;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-
-  .hero-cve-ticker {
-    width: min(760px, 100%);
-    min-height: 38px;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 12px;
-    margin: 0 auto 28px;
-    padding: 5px 6px 5px 12px;
-    border: 1px solid rgba(20, 184, 166, 0.2);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.035);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
-    backdrop-filter: blur(12px);
-    overflow: hidden;
-  }
-
-  .hero-cve-ticker-label {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    color: #99f6e4;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    white-space: nowrap;
+    gap: 10px;
+    font-weight: 760;
+    letter-spacing: 0;
   }
 
-  .hero-cve-ticker-label::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #2dd4bf;
-    box-shadow: 0 0 12px rgba(45, 212, 191, 0.9);
-    animation: pulse 1.8s ease-in-out infinite;
+  .brand::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--teal);
+    box-shadow: 0 0 18px rgba(45, 212, 191, 0.72);
   }
 
-  .hero-cve-ticker-window {
-    min-width: 0;
-    overflow: hidden;
-    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  .brand img {
+    width: 30px;
+    height: 30px;
   }
 
-  .hero-cve-ticker-track {
-    width: max-content;
+  .nav-links {
     display: flex;
     align-items: center;
-    gap: 8px;
-    animation: cveTicker 38s linear infinite;
+    gap: 18px;
+    color: var(--muted);
+    font-size: 0.94rem;
   }
 
-  .hero-cve-ticker:hover .hero-cve-ticker-track,
-  .hero-cve-ticker:focus-within .hero-cve-ticker-track {
-    animation-play-state: paused;
+  .nav-links a {
+    padding: 8px 0;
+    border-bottom: 2px solid transparent;
+    transition: color 160ms ease, border-color 160ms ease;
   }
 
-  .hero-cve-ticker-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    max-width: 320px;
-    padding: 5px 9px;
-    border: 1px solid rgba(56, 189, 248, 0.18);
-    border-radius: 999px;
-    background: rgba(2, 6, 23, 0.5);
-    color: var(--ink-1);
-    font-size: 12px;
-    line-height: 1.2;
-    white-space: nowrap;
-  }
-
-  .hero-cve-ticker-item:hover,
-  .hero-cve-ticker-item:focus-visible {
-    border-color: rgba(20, 184, 166, 0.42);
-    color: var(--ink-0);
+  .nav-links a:hover,
+  .nav-links a:focus-visible {
+    color: var(--text);
+    border-color: var(--teal);
     outline: none;
   }
 
-  .hero-cve-id {
-    flex: none;
-    color: #67e8f9;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  .hero-cve-title {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .hero-cve-date {
-    flex: none;
-    color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    text-transform: uppercase;
-  }
-
-  @keyframes cveTicker {
-    to { transform: translateX(-50%); }
-  }
-
-  h1.title {
-    font-size: clamp(40px, 6.5vw, 84px);
-    font-weight: 800;
-    letter-spacing: -0.035em;
-    line-height: 1.02;
-    background: linear-gradient(180deg, #ffffff 0%, #b9c0d4 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 22px;
-  }
-
-  h1.title .accent {
-    background: linear-gradient(120deg, var(--accent-1) 0%, var(--accent-2) 50%, var(--accent-3) 100%);
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: shimmer 8s ease-in-out infinite;
-  }
-  @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  .subtitle {
-    font-size: clamp(15px, 1.4vw, 18px);
-    color: var(--ink-2);
-    max-width: 680px;
-    margin: 0 auto 18px;
-    font-weight: 400;
-  }
-
-  /* ============ LANDING SEARCH ============ */
-  .home-search {
-    margin: 26px auto 0;
-    width: min(760px, 100%);
+  .hero {
     position: relative;
-    text-align: left;
+    padding: 54px 0 48px;
   }
-  .home-search-label {
+
+  .hero-grid > div:first-child {
+    position: relative;
+  }
+
+  .hero-grid > div:first-child::before {
+    content: "";
+    position: absolute;
+    top: -42px;
+    left: -28px;
+    width: 140px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--teal), var(--amber), transparent);
+    box-shadow: 0 0 26px rgba(45, 212, 191, 0.34);
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(440px, 0.96fr);
+    gap: 48px;
+    align-items: center;
+  }
+
+  .hero h1 {
+    margin: 0;
+    max-width: 690px;
+    font-size: clamp(3.25rem, 6.1vw, 5.9rem);
+    line-height: 0.95;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .hero h1 span {
     display: block;
-    margin-bottom: 10px;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-family: var(--font-mono);
-    color: var(--ink-3);
   }
-  .home-search-input-wrap {
+
+  .hero-copy {
+    margin: 22px 0 0;
+    max-width: 650px;
+    color: #d8e2ef;
+    font-size: clamp(1.06rem, 1.65vw, 1.22rem);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 0.98rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  }
+
+  .button.primary {
+    color: #03120f;
+    background: linear-gradient(135deg, #2dd4bf, #67e8f9);
+    border-color: rgba(45, 212, 191, 0.88);
+    box-shadow: 0 12px 34px rgba(45, 212, 191, 0.18);
+  }
+
+  .button:hover,
+  .button:focus-visible {
+    transform: translateY(-1px);
+    border-color: var(--border-strong);
+    outline: none;
+  }
+
+  .hero-media {
+    position: relative;
+    min-height: 628px;
+    margin: 0;
+  }
+
+  .hero-media::before {
+    content: "";
+    position: absolute;
+    inset: 8% -3% -5% 5%;
+    background:
+      linear-gradient(135deg, rgba(45, 212, 191, 0.12), rgba(96, 165, 250, 0.08) 42%, rgba(251, 191, 36, 0.07)),
+      repeating-linear-gradient(90deg, transparent 0 17px, rgba(255, 255, 255, 0.045) 17px 18px);
+    filter: blur(26px);
+    border-radius: 8px;
+    z-index: -1;
+  }
+
+  .security-console {
+    position: relative;
+    min-height: 628px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
+      linear-gradient(135deg, rgba(45, 212, 191, 0.06), transparent 34%, rgba(96, 165, 250, 0.065) 68%, rgba(251, 191, 36, 0.035)),
+      #050b10;
+    box-shadow: var(--shadow-tight);
+  }
+
+  .security-console::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(45, 212, 191, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(96, 165, 250, 0.06) 1px, transparent 1px);
+    background-size: 38px 38px;
+    opacity: 0.3;
+    animation: console-grid 18s linear infinite;
+  }
+
+  .security-console::after {
+    content: "";
+    position: absolute;
+    inset: -30% 46% -30% auto;
+    width: 110px;
+    background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.18), transparent);
+    transform: rotate(11deg) translateX(-320%);
+    animation: console-sweep 8s ease-in-out infinite;
+  }
+
+  .console-top,
+  .console-pipeline,
+  .console-status,
+  .console-footer {
+    position: relative;
+    z-index: 1;
+  }
+
+  .console-top {
     display: flex;
     align-items: center;
-    gap: 10px;
-    border-radius: 14px;
-    border: 1px solid var(--card-border);
-    background: rgba(255,255,255,0.03);
-    backdrop-filter: blur(10px);
-    padding: 0 12px;
-  }
-  .home-search-input-wrap:focus-within {
-    border-color: rgba(0,229,255,0.4);
-    box-shadow: 0 0 0 2px rgba(0,229,255,0.12);
-  }
-  .home-search-icon {
-    color: var(--ink-3);
-    flex: none;
-    width: 18px;
-    height: 18px;
-  }
-  .home-search-input {
-    flex: 1;
-    height: 48px;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--ink-0);
-    font-size: 15px;
-    font-family: var(--font-sans);
-  }
-  .home-search-input::placeholder { color: var(--ink-3); }
-  .home-search-hint {
-    flex: none;
-    font-size: 11px;
-    color: var(--ink-3);
-    border: 1px solid var(--card-border);
-    border-radius: 6px;
-    padding: 3px 7px;
-    font-family: var(--font-mono);
-  }
-  .home-search-results {
-    margin-top: 10px;
-    border: 1px solid var(--card-border);
-    border-radius: 14px;
-    overflow: hidden;
-    background: rgba(8,10,16,0.95);
-    backdrop-filter: blur(12px);
-    display: none;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(2, 6, 23, 0.36);
   }
 
-  /* ============ PROOF STRIP ============ */
-  .proof-strip {
-    position: relative;
-    z-index: 5;
-    width: min(1120px, calc(100% - 96px));
-    margin: 18px auto 36px;
+  .console-title {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px;
+    gap: 2px;
+  }
+
+  .console-title strong {
+    font-size: 0.94rem;
+    line-height: 1.2;
+  }
+
+  .console-title span {
+    color: var(--soft);
+    font-size: 0.78rem;
+  }
+
+  .console-health {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: 8px;
+    min-height: 32px;
+    padding: 7px 10px;
+    border: 1px solid rgba(64, 224, 208, 0.28);
+    border-radius: 999px;
+    background: rgba(8, 22, 26, 0.72);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    color: #d8fff9;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .console-health::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--green);
+    box-shadow: 0 0 18px rgba(134, 239, 172, 0.72);
+    animation: status-pulse 2.6s ease-in-out infinite;
+  }
+
+  .console-pipeline {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 16px 18px 14px;
+  }
+
+  .console-pipeline::before {
+    content: "";
+    position: absolute;
+    top: 36px;
+    bottom: 36px;
+    left: 32px;
+    width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #67e8f9, #86efac 36%, #a78bfa 68%, #fbbf24);
+    opacity: 0.58;
+  }
+
+  .lane {
+    position: relative;
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 86px;
+    padding: 10px;
     overflow: hidden;
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    background: var(--card-border);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(8, 13, 20, 0.72);
   }
-  .proof-item {
-    min-height: 112px;
-    padding: 18px 20px;
-    background: rgba(5, 6, 10, 0.72);
+
+  .lane::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 3px;
+    background: linear-gradient(180deg, currentColor, transparent);
+    opacity: 0.62;
+    animation: lane-trace 4.5s ease-in-out infinite;
   }
-  .proof-label {
-    margin-bottom: 8px;
+
+  .lane:nth-child(1) { color: #67e8f9; }
+  .lane:nth-child(2) { color: #86efac; }
+  .lane:nth-child(3) { color: #a78bfa; }
+  .lane:nth-child(4) { color: #fbbf24; }
+
+  .lane-index {
+    position: relative;
+    z-index: 1;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 14%, transparent);
+    color: currentColor;
     font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--accent-2);
+    font-size: 0.76rem;
+    font-weight: 800;
   }
-  .proof-item strong {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 16px;
-    letter-spacing: -0.01em;
+
+  .lane-body {
+    min-width: 0;
   }
-  .proof-item span {
+
+  .lane h3 {
+    margin: 0 0 7px;
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.2;
+  }
+
+  .lane ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lane li {
+    padding: 6px 7px;
+    border: 1px solid rgba(255, 255, 255, 0.085);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.035);
+    color: #c9d6e6;
+    font-size: 0.7rem;
+    line-height: 1.28;
+  }
+
+  .lane li strong {
     display: block;
-    color: var(--ink-2);
-    font-size: 13px;
+    margin-bottom: 2px;
+    color: var(--text);
+    font-size: 0.72rem;
+  }
+
+  .lane li span {
+    display: block;
+  }
+
+  .console-flow {
+    display: none;
+    position: absolute;
+    top: 315px;
+    left: 6%;
+    right: 6%;
+    height: 2px;
+    z-index: 2;
+    background: linear-gradient(90deg, rgba(103, 232, 249, 0.08), rgba(134, 239, 172, 0.62), rgba(167, 139, 250, 0.58), rgba(251, 191, 36, 0.36));
+  }
+
+  .console-flow::before,
+  .console-flow::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #67e8f9;
+    box-shadow: 0 0 20px rgba(103, 232, 249, 0.8);
+    animation: packet-dot 5.2s linear infinite;
+  }
+
+  .console-flow::after {
+    animation-delay: -2.6s;
+    background: #fbbf24;
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.68);
+  }
+
+  .console-status {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 0 18px 12px;
+  }
+
+  .status-card {
+    min-height: 76px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.48);
+  }
+
+  .status-card h3 {
+    margin: 0 0 6px;
+    font-size: 0.86rem;
+  }
+
+  .status-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.78rem;
     line-height: 1.45;
   }
-  .home-search-results[data-open="1"] { display: block; }
-  .home-search-empty {
-    padding: 14px 16px;
-    color: var(--ink-2);
-    font-size: 14px;
+
+  .signal-bars {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    align-items: end;
+    gap: 4px;
+    height: 40px;
+    margin-top: 12px;
   }
-  .home-search-item {
+
+  .signal-bars span {
     display: block;
-    padding: 12px 16px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-  }
-  .home-search-item:first-child { border-top: 0; }
-  .home-search-item:hover,
-  .home-search-item[data-active="1"] {
-    background: rgba(255,255,255,0.04);
-  }
-  .home-search-item-title {
-    color: var(--ink-0);
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-  .home-search-item-meta {
-    color: var(--ink-2);
-    font-size: 12px;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    min-height: 9px;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(180deg, #67e8f9, rgba(45, 212, 191, 0.36));
+    animation: signal-rise 2.8s ease-in-out infinite;
   }
 
-  /* ============ HERO CTA ROW ============ */
-  .hero-cta-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 14px;
-    margin: 8px 0 22px;
+  .signal-bars span:nth-child(2n) { animation-delay: -0.6s; }
+  .signal-bars span:nth-child(3n) { animation-delay: -1.2s; }
+  .signal-bars span:nth-child(4n) { animation-delay: -1.8s; }
+
+  .console-footer {
+    display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-  }
-  .hero-cta-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 24px;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: #05060a;
-    background: linear-gradient(135deg, var(--accent-2) 0%, var(--accent-1) 100%);
-    box-shadow: 0 8px 28px -8px var(--accent-glow),
-                0 0 0 1px rgba(255,255,255,0.08) inset;
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
-  .hero-cta-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 36px -8px var(--accent-glow),
-                0 0 0 1px rgba(255,255,255,0.14) inset;
-  }
-  .hero-cta-primary svg { transition: transform .25s ease; }
-  .hero-cta-primary:hover svg { transform: translateX(3px); }
-  .hero-cta-kbd {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: rgba(5,6,10,0.65);
-    padding: 2px 7px;
-    border-radius: 5px;
-    background: rgba(5,6,10,0.12);
-    letter-spacing: 0.04em;
-  }
-  .hero-cta-secondary {
-    display: inline-flex;
-    align-items: center;
     gap: 8px;
-    padding: 13px 20px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--ink-1);
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    transition: border-color .2s ease, color .2s ease, background .2s ease;
-  }
-  .hero-cta-secondary:hover {
-    color: var(--ink-0);
-    border-color: var(--card-hover-border);
-    background: rgba(255,255,255,0.04);
+    padding: 0 18px 14px;
   }
 
-  /* ============ TOOL GRID ============ */
-  .tools-section {
-    position: relative;
-    z-index: 5;
-    padding: 80px 48px 40px;
-    max-width: 1280px;
-    margin: 0 auto;
+  .console-footer span {
+    padding: 5px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #c8d4e4;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
   }
 
-  .section-header {
+  main {
+    padding-bottom: 68px;
+  }
+
+  section {
+    padding: 56px 0;
+  }
+
+  .section-head {
     display: flex;
     align-items: end;
     justify-content: space-between;
-    margin-bottom: 40px;
-    gap: 24px;
-  }
-  .section-header h2 {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  .section-header p {
-    color: var(--ink-2);
-    font-size: 13px;
-    max-width: 380px;
-    text-align: right;
+    gap: 32px;
+    margin-bottom: 26px;
   }
 
-  .tools-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
+  .section-head h2 {
+    margin: 0;
+    max-width: 760px;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1;
+    letter-spacing: 0;
   }
 
-  .tool-card {
-    position: relative;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    padding: 28px 24px 24px;
-    cursor: pointer;
-    overflow: hidden;
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s, background .3s;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    isolation: isolate;
-    min-height: 220px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    color: inherit;
-    text-decoration: none;
+  .section-head p {
+    margin: 0;
+    max-width: 410px;
+    color: var(--muted);
+    font-size: 1rem;
   }
 
-  .tool-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at var(--mx, 50%) var(--my, 0%), rgba(255,255,255,0.08), transparent 60%);
-    opacity: 0;
-    transition: opacity .35s ease;
-    pointer-events: none;
-    z-index: -1;
-  }
-  .tool-card:hover::before { opacity: 1; }
-
-  .tool-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    padding: 1px;
-    background: linear-gradient(135deg, transparent 30%, var(--card-accent, var(--accent-1)) 60%, transparent 95%);
-    -webkit-mask: linear-gradient(#000, #000) content-box, linear-gradient(#000, #000);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity .35s ease;
-    pointer-events: none;
-  }
-  .tool-card:hover::after { opacity: 0.9; }
-
-  .tool-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--card-hover-border);
-    background: rgba(255, 255, 255, 0.04);
-  }
-
-  .tool-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.06);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 22px;
-    transition: transform .4s cubic-bezier(.2,.8,.2,1);
-    position: relative;
-  }
-  .tool-card:hover .tool-icon {
-    transform: scale(1.05) rotate(-2deg);
-  }
-  .tool-icon svg { width: 30px; height: 30px; }
-
-  .tool-icon::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: 14px;
-    background: var(--card-accent, var(--accent-1));
-    opacity: 0;
-    filter: blur(20px);
-    transition: opacity .35s ease;
-    z-index: -1;
-  }
-  .tool-card:hover .tool-icon::after { opacity: 0.4; }
-
-  .tool-name {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    margin-bottom: 6px;
-  }
-  .tool-tag {
-    font-size: 12px;
-    color: var(--ink-3);
-    font-family: var(--font-mono);
-    letter-spacing: 0.02em;
-    margin-bottom: 18px;
-  }
-
-  .tool-cta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    color: var(--ink-2);
-    font-size: 12px;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    transition: color .3s;
-  }
-  .tool-card:hover .tool-cta { color: var(--ink-0); }
-  .tool-cta svg { transition: transform .3s; }
-  .tool-card:hover .tool-cta svg { transform: translateX(4px); }
-
-  /* Tool accents */
-  .tool-card[data-tool="copilot"] { --card-accent: #00e5ff; }
-  .tool-card[data-tool="devin"]   { --card-accent: #ff4ecb; }
-  .tool-card[data-tool="cursor"]  { --card-accent: #ffffff; }
-  .tool-card[data-tool="codex"]   { --card-accent: #4ade80; }
-  .tool-card[data-tool="claude"]  { --card-accent: #d97757; }
-
-  /* ============ PROMPT LIBRARY SECTION ============ */
-  .promptlib-section {
-    position: relative;
-    z-index: 5;
-    padding: 40px 48px 120px;
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-
-  .promptlib-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 24px;
-    border: 1px solid var(--card-border);
-    background:
-      radial-gradient(ellipse 80% 120% at 0% 0%, rgba(124, 92, 255, 0.18), transparent 60%),
-      radial-gradient(ellipse 80% 120% at 100% 100%, rgba(0, 229, 255, 0.12), transparent 60%),
-      rgba(255, 255, 255, 0.025);
-    padding: 44px 44px 40px;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 36px;
-    align-items: center;
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s;
-  }
-  .promptlib-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--card-hover-border);
-  }
-
-  .promptlib-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(0, 229, 255, 0.08);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    color: var(--accent-2);
-    font-size: 11px;
-    font-family: var(--font-mono);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 18px;
-  }
-  .promptlib-eyebrow .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--accent-2);
-    box-shadow: 0 0 10px var(--accent-2);
-  }
-
-  .promptlib-card h2 {
-    font-size: clamp(26px, 3vw, 36px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    margin-bottom: 14px;
-    background: linear-gradient(180deg, #ffffff 0%, #b9c0d4 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .promptlib-card p {
-    color: var(--ink-2);
-    font-size: 15px;
-    margin-bottom: 22px;
-  }
-
-  .promptlib-ctas {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .btn-primary,
-  .btn-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 11px 18px;
-    border-radius: 999px;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    transition: all .25s ease;
-    border: 1px solid transparent;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-    color: #0a0c14;
-    font-weight: 600;
-    box-shadow: 0 6px 24px rgba(124, 92, 255, 0.35);
-  }
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 28px rgba(124, 92, 255, 0.5);
-  }
-  .btn-secondary {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: var(--card-border);
-    color: var(--ink-1);
-  }
-  .btn-secondary:hover {
-    color: var(--ink-0);
-    border-color: var(--card-hover-border);
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .promptlib-chips {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    align-self: stretch;
-  }
-  .chip {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--card-border);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--ink-1);
-  }
-  .chip .chip-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--chip-accent, var(--accent-1));
-    box-shadow: 0 0 10px var(--chip-accent, var(--accent-1));
-    flex: none;
-  }
-  .chip[data-for="copilot"] { --chip-accent: #00e5ff; }
-  .chip[data-for="claude"]  { --chip-accent: #d97757; }
-  .chip[data-for="cursor"]  { --chip-accent: #ffffff; }
-  .chip[data-for="codex"]   { --chip-accent: #4ade80; }
-  .chip[data-for="devin"]   { --chip-accent: #ff4ecb; }
-
-  /* ============ LATEST CVE RECIPES ============ */
-  .latest-cves-section {
-    position: relative;
-    z-index: 5;
-    padding: 40px 48px 72px;
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-  .latest-cves-kicker {
-    margin-bottom: 8px;
-    color: #5eead4;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .latest-cves-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 18px;
-  }
-  .latest-cve-card {
-    position: relative;
-    overflow: hidden;
-    min-height: 278px;
-    display: flex;
-    flex-direction: column;
-    padding: 24px 22px 22px;
-    border: 1px solid var(--card-border);
-    border-radius: 18px;
-    background:
-      radial-gradient(ellipse 90% 120% at 0% 0%, rgba(20, 184, 166, 0.12), transparent 58%),
-      radial-gradient(ellipse 90% 120% at 100% 100%, rgba(56, 189, 248, 0.1), transparent 58%),
-      rgba(255, 255, 255, 0.024);
-    color: inherit;
-    text-decoration: none;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transition: transform .28s ease, border-color .28s ease, background .28s ease;
-  }
-  .latest-cve-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--card-hover-border);
-    background:
-      radial-gradient(ellipse 90% 120% at 0% 0%, rgba(20, 184, 166, 0.16), transparent 58%),
-      radial-gradient(ellipse 90% 120% at 100% 100%, rgba(56, 189, 248, 0.13), transparent 58%),
-      rgba(255, 255, 255, 0.034);
-  }
-  .latest-cve-card-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 18px;
-  }
-  .latest-cve-badges {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 5px;
-  }
-  .latest-cve-id,
-  .latest-cve-badge,
-  .latest-cve-meta span {
-    overflow-wrap: anywhere;
-  }
-  .latest-cve-id {
-    flex: none;
-    max-width: 62%;
-    padding: 4px 9px;
-    border: 1px solid rgba(20, 184, 166, 0.28);
-    border-radius: 999px;
-    background: rgba(20, 184, 166, 0.09);
-    color: #5eead4;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .latest-cve-badge {
-    padding: 4px 8px;
-    border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .latest-cve-badge--severity-critical {
-    background: rgba(239, 68, 68, 0.13);
-    border: 1px solid rgba(239, 68, 68, 0.34);
-    color: #fca5a5;
-  }
-  .latest-cve-badge--severity-high {
-    background: rgba(56, 189, 248, 0.13);
-    border: 1px solid rgba(56, 189, 248, 0.34);
-    color: #bae6fd;
-  }
-  .latest-cve-badge--severity-medium {
-    background: rgba(234, 179, 8, 0.13);
-    border: 1px solid rgba(234, 179, 8, 0.34);
-    color: #fde047;
-  }
-  .latest-cve-badge--severity-low {
-    background: rgba(34, 197, 94, 0.13);
-    border: 1px solid rgba(34, 197, 94, 0.34);
-    color: #86efac;
-  }
-  .latest-cve-badge--kev {
-    background: rgba(139, 92, 246, 0.14);
-    border: 1px solid rgba(139, 92, 246, 0.36);
-    color: #c4b5fd;
-  }
-  .latest-cve-card h3 {
-    margin-bottom: 10px;
-    color: var(--ink-0);
-    font-size: 18px;
-    font-weight: 650;
-    line-height: 1.24;
-  }
-  .latest-cve-card p {
-    color: var(--ink-2);
-    font-size: 13.5px;
-    line-height: 1.55;
-    flex: 1;
-  }
-  .latest-cve-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px 14px;
-    margin-top: 18px;
-    color: var(--ink-2);
-    font-size: 12px;
-  }
-  .latest-cve-meta-label {
-    margin-right: 4px;
-    color: var(--ink-3);
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-  .latest-cve-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 20px;
-    color: #5eead4;
-    font-size: 13.5px;
-    font-weight: 600;
-    transition: gap .22s ease;
-  }
-  .latest-cve-card:hover .latest-cve-link {
-    gap: 12px;
-  }
-
-  /* ============ DUAL CTA SECTION (Automation + MCP) ============ */
-  .dual-cta-section {
-    position: relative;
-    z-index: 5;
-    padding: 0 48px 80px;
-    max-width: 1280px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 24px;
-  }
-  .dual-cta-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 24px;
-    border: 1px solid var(--card-border);
-    background: rgba(255, 255, 255, 0.025);
-    padding: 36px 32px 32px;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .3s;
-    display: flex;
-    flex-direction: column;
-  }
-  .dual-cta-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--card-hover-border);
-  }
-  .dual-cta-card.automation {
-    background:
-      radial-gradient(ellipse 80% 120% at 0% 0%, rgba(74, 222, 128, 0.16), transparent 60%),
-      radial-gradient(ellipse 80% 120% at 100% 100%, rgba(0, 229, 255, 0.08), transparent 60%),
-      rgba(255, 255, 255, 0.025);
-  }
-  .dual-cta-card.mcp {
-    background:
-      radial-gradient(ellipse 80% 120% at 0% 0%, rgba(0, 229, 255, 0.18), transparent 60%),
-      radial-gradient(ellipse 80% 120% at 100% 100%, rgba(124, 92, 255, 0.14), transparent 60%),
-      rgba(255, 255, 255, 0.025);
-  }
-  .dual-cta-card.secrem {
-    background:
-      radial-gradient(ellipse 80% 120% at 0% 0%, rgba(255, 78, 203, 0.18), transparent 60%),
-      radial-gradient(ellipse 80% 120% at 100% 100%, rgba(124, 92, 255, 0.14), transparent 60%),
-      rgba(255, 255, 255, 0.025);
-  }
-  .dual-cta-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 11px;
-    border-radius: 999px;
-    font-size: 10.5px;
-    font-family: var(--font-mono);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    align-self: flex-start;
-  }
-  .dual-cta-card.automation .dual-cta-eyebrow {
-    background: rgba(74, 222, 128, 0.08);
-    border: 1px solid rgba(74, 222, 128, 0.24);
-    color: #86efac;
-  }
-  .dual-cta-card.mcp .dual-cta-eyebrow {
-    background: rgba(0, 229, 255, 0.08);
-    border: 1px solid rgba(0, 229, 255, 0.24);
-    color: var(--accent-2);
-  }
-  .dual-cta-card.secrem .dual-cta-eyebrow {
-    background: rgba(255, 78, 203, 0.08);
-    border: 1px solid rgba(255, 78, 203, 0.28);
-    color: #ff9be0;
-  }
-  .dual-cta-eyebrow .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-  }
-  .dual-cta-card.automation .dual-cta-eyebrow .dot {
-    background: #86efac;
-    box-shadow: 0 0 10px #86efac;
-  }
-  .dual-cta-card.mcp .dual-cta-eyebrow .dot {
-    background: var(--accent-2);
-    box-shadow: 0 0 10px var(--accent-2);
-  }
-  .dual-cta-card.secrem .dual-cta-eyebrow .dot {
-    background: #ff9be0;
-    box-shadow: 0 0 10px #ff9be0;
-  }
-  .dual-cta-card h3 {
-    font-size: clamp(22px, 2.4vw, 28px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    margin-bottom: 12px;
-    background: linear-gradient(180deg, #ffffff 0%, #b9c0d4 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .dual-cta-card p {
-    color: var(--ink-2);
-    font-size: 14.5px;
-    line-height: 1.55;
-    margin-bottom: 20px;
-    flex: 1;
-  }
-  .dual-cta-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 22px;
-  }
-  .dual-cta-tag {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--card-border);
-    color: var(--ink-1);
-  }
-  .dual-cta-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13.5px;
-    font-weight: 500;
-    color: var(--ink-0);
-    align-self: flex-start;
-    transition: gap .25s ease, color .25s ease;
-  }
-  .dual-cta-card.automation .dual-cta-link { color: #86efac; }
-  .dual-cta-card.mcp .dual-cta-link { color: var(--accent-2); }
-  .dual-cta-card.secrem .dual-cta-link { color: #ff9be0; }
-  .dual-cta-card:hover .dual-cta-link { gap: 12px; }
-
-  /* ============ TRUST STACK ============ */
-  .trust-stack {
-    position: relative;
-    z-index: 5;
-    padding: 8px 48px 84px;
-    max-width: 1280px;
-    margin: 0 auto;
-  }
-  .trust-grid {
+  .cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .card {
+    display: block;
+    min-height: 214px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
+      rgba(4, 8, 12, 0.44);
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+
+  .card:hover,
+  .card:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    background:
+      linear-gradient(180deg, rgba(45, 212, 191, 0.08), rgba(255, 255, 255, 0.025)),
+      rgba(4, 8, 12, 0.56);
+    outline: none;
+  }
+
+  .card .mark {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    background: rgba(45, 212, 191, 0.14);
+    color: var(--teal);
+    font-family: var(--font-mono);
+    font-weight: 800;
+  }
+
+  .card h3 {
+    margin: 0 0 10px;
+    font-size: 1.1rem;
+    line-height: 1.2;
+  }
+
+  .card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.96rem;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: 0.82fr 1.18fr;
     gap: 18px;
   }
-  .trust-card {
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.024);
-    padding: 24px 22px;
-  }
-  .trust-card h3 {
-    margin-bottom: 10px;
-    font-size: 17px;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-  }
-  .trust-card p {
-    color: var(--ink-2);
-    font-size: 13.5px;
-    line-height: 1.55;
-  }
-  .trust-card .dual-cta-tags {
-    margin: 18px 0 0;
+
+  .step-list {
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 8px;
+    background: rgba(4, 8, 12, 0.48);
+    overflow: hidden;
   }
 
-  /* ============ FOOTER ============ */
-  footer {
-    position: relative;
-    z-index: 5;
-    padding: 28px 48px 36px;
-    text-align: center;
-    color: var(--ink-3);
-    font-size: 12px;
+  .step-row {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 12px;
+    padding: 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .step-row:last-child {
+    border-bottom: 0;
+  }
+
+  .step-row b {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    background: rgba(251, 191, 36, 0.14);
+    color: var(--amber);
     font-family: var(--font-mono);
-    letter-spacing: 0.04em;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-  }
-  footer .footer-line {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  footer .footer-line .sep {
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: var(--ink-3);
-  }
-  footer .infosec {
-    color: var(--ink-1);
-    font-family: var(--font-sans);
-    font-size: 12px;
-    letter-spacing: 0;
-    text-transform: none;
-  }
-  footer .heart {
-    display: inline-block;
-    color: var(--accent-3);
-    animation: pulse 2s ease-in-out infinite;
   }
 
-  /* ============ RESPONSIVE ============ */
-  @media (max-width: 820px) {
-    .promptlib-card {
+  .step-row h3 {
+    margin: 0 0 4px;
+    font-size: 1rem;
+  }
+
+  .step-row p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.94rem;
+  }
+
+  .code-panel {
+    min-height: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(45, 212, 191, 0.08), transparent 28%),
+      rgba(4, 8, 12, 0.84);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .code-panel pre {
+    margin: 0;
+    white-space: pre-wrap;
+    color: #d8fdf7;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+  }
+
+  .matrix {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .matrix-item {
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 8px;
+    background: rgba(4, 8, 12, 0.48);
+    padding: 20px;
+  }
+
+  .matrix-item h3 {
+    margin: 0 0 10px;
+    font-size: 1.08rem;
+  }
+
+  .matrix-item p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+
+  .muted-band {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 26px;
+    background:
+      linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(251, 113, 133, 0.08)),
+      rgba(255, 255, 255, 0.045);
+  }
+
+  .muted-band h2 {
+    margin: 0 0 10px;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    line-height: 1.05;
+  }
+
+  .muted-band p {
+    max-width: 840px;
+    margin: 0;
+    color: #d6deeb;
+  }
+
+  .footer {
+    padding: 34px 0 48px;
+    color: var(--soft);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 0.94rem;
+  }
+
+  .footer a {
+    color: var(--muted);
+  }
+
+  @keyframes home-grid-drift {
+    from { background-position: 0 0, 0 0; }
+    to { background-position: 54px 54px, 54px 54px; }
+  }
+
+  @keyframes packet-path {
+    0% { opacity: 0; clip-path: inset(0 100% 0 0); }
+    18% { opacity: 0.24; }
+    56% { clip-path: inset(0 0 0 0); }
+    100% { opacity: 0; clip-path: inset(0 0 0 100%); }
+  }
+
+  @keyframes console-grid {
+    from { background-position: 0 0, 0 0; }
+    to { background-position: 38px 38px, 38px 38px; }
+  }
+
+  @keyframes console-sweep {
+    0%, 28% { transform: rotate(11deg) translateX(-330%); opacity: 0; }
+    46% { opacity: 1; }
+    76%, 100% { transform: rotate(11deg) translateX(420%); opacity: 0; }
+  }
+
+  @keyframes status-pulse {
+    0%, 100% { opacity: 0.72; transform: scale(0.96); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+
+  @keyframes lane-trace {
+    0%, 100% { transform: translateX(-8%); opacity: 0.22; }
+    50% { transform: translateX(8%); opacity: 0.72; }
+  }
+
+  @keyframes packet-dot {
+    from { left: 0; opacity: 0; }
+    10%, 86% { opacity: 1; }
+    to { left: calc(100% - 10px); opacity: 0; }
+  }
+
+  @keyframes signal-rise {
+    0%, 100% { height: 18%; opacity: 0.58; }
+    50% { height: 96%; opacity: 0.96; }
+  }
+
+  @media (max-width: 980px) {
+    .hero-grid,
+    .steps {
       grid-template-columns: 1fr;
-      padding: 32px 26px;
     }
-    .promptlib-chips {
+
+    .hero {
+      padding-top: 44px;
+    }
+
+    .hero-media,
+    .security-console {
+      min-height: 540px;
+    }
+
+    .cards,
+    .matrix {
       grid-template-columns: repeat(2, 1fr);
     }
-    .proof-strip {
-      width: min(100% - 48px, 1120px);
-      grid-template-columns: 1fr 1fr;
+
+    .section-head {
+      display: block;
     }
-    .dual-cta-section {
-      grid-template-columns: 1fr;
+
+    .section-head p {
+      margin-top: 12px;
     }
-    .latest-cves-grid {
-      grid-template-columns: 1fr;
-    }
-    .trust-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  @media (min-width: 821px) and (max-width: 1080px) {
-    .dual-cta-section {
-      grid-template-columns: 1fr 1fr;
-    }
-    .proof-strip,
-    .latest-cves-grid,
-    .trust-grid {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-  @media (max-width: 720px) {
-    .nav { padding: 20px 24px; }
-    .hero { padding: 48px 24px 24px; }
-    .hero-cve-ticker {
-      grid-template-columns: minmax(0, 1fr);
-      border-radius: 18px;
-      padding: 9px 10px;
-      text-align: left;
-    }
-    .hero-cve-ticker-window {
-      width: 100%;
-    }
-    .tools-section { padding: 48px 24px 16px; }
-    .latest-cves-section { padding: 28px 24px 48px; }
-    .promptlib-section { padding: 24px 24px 40px; }
-    .proof-strip { grid-template-columns: 1fr; }
-    .dual-cta-section { padding: 0 24px 72px; }
-    .dual-cta-card { padding: 28px 24px; }
-    .trust-stack { padding: 0 24px 56px; }
-    .section-header { flex-direction: column; align-items: flex-start; }
-    .section-header p { text-align: left; }
-    footer { padding: 24px; }
   }
 
-  /* Reveal animation */
-  .reveal {
-    opacity: 0;
-    transform: translateY(20px);
-    animation: rise .8s cubic-bezier(.2,.8,.2,1) forwards;
+  @media (max-width: 720px) {
+    .site-shell,
+    .topbar-inner {
+      width: min(100% - 44px, 1180px);
+    }
+
+    .topbar-inner {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 14px 0;
+      gap: 10px;
+    }
+
+    .nav-links {
+      width: 100%;
+      flex-wrap: wrap;
+      overflow-x: visible;
+      padding-bottom: 4px;
+      gap: 8px 16px;
+      font-size: 0.9rem;
+    }
+
+    .nav-links::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero {
+      padding: 34px 0 42px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.72rem, 12vw, 3.25rem);
+      line-height: 1.02;
+      max-width: 100%;
+    }
+
+    .hero-copy {
+      font-size: 1rem;
+      line-height: 1.48;
+      max-width: 32ch;
+    }
+
+    .hero-media,
+    .security-console {
+      min-height: auto;
+    }
+
+    .console-top {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 14px;
+      gap: 8px;
+    }
+
+    .console-pipeline {
+      gap: 8px;
+      padding: 14px;
+    }
+
+    .console-pipeline::before {
+      left: 28px;
+      top: 32px;
+      bottom: 32px;
+    }
+
+    .console-status {
+      grid-template-columns: 1fr;
+      padding: 0 14px 12px;
+    }
+
+    .lane {
+      grid-template-columns: 32px minmax(0, 1fr);
+      min-height: 0;
+      padding: 10px;
+      gap: 9px;
+    }
+
+    .lane-index {
+      width: 26px;
+      height: 26px;
+      font-size: 0.72rem;
+    }
+
+    .lane h3 {
+      margin-bottom: 7px;
+      font-size: 0.92rem;
+    }
+
+    .lane ul {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+
+    .lane li {
+      padding: 7px;
+      font-size: 0.72rem;
+    }
+
+    .status-card {
+      padding: 12px;
+    }
+
+    .console-footer {
+      padding: 0 14px 14px;
+    }
+
+    .console-footer span {
+      font-size: 0.66rem;
+    }
+
+    .console-flow {
+      display: none;
+    }
+
+    .cards,
+    .matrix {
+      grid-template-columns: 1fr;
+    }
+
+    .console-status {
+      display: none;
+    }
+
+    section {
+      padding: 44px 0;
+    }
+
+    .footer-inner {
+      flex-direction: column;
+    }
   }
-  @keyframes rise {
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .reveal.d1 { animation-delay: 0.05s; }
-  .reveal.d2 { animation-delay: 0.15s; }
-  .reveal.d3 { animation-delay: 0.25s; }
-  .reveal.d4 { animation-delay: 0.35s; }
-  .reveal.d5 { animation-delay: 0.45s; }
-  .reveal.d6 { animation-delay: 0.55s; }
 
   @media (prefers-reduced-motion: reduce) {
-    .hero-cve-ticker-track {
-      animation: none;
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
     }
   }
 </style>
 </head>
 <body>
-
-<!-- Background layers -->
-<div class="bg-stage">
-</div>
-<div class="grid-overlay"></div>
-<svg class="lines" preserveAspectRatio="none" viewBox="0 0 1440 900">
-  <defs>
-    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%"   stop-color="#7c5cff" stop-opacity="0"/>
-      <stop offset="50%"  stop-color="#00e5ff" stop-opacity="0.7"/>
-      <stop offset="100%" stop-color="#ff4ecb" stop-opacity="0"/>
-    </linearGradient>
-  </defs>
-  <path d="M-50,200 C300,140 540,420 800,300 C1080,170 1280,520 1500,360" />
-  <path d="M-50,500 C260,440 520,680 820,560 C1100,450 1300,720 1500,600" />
-  <path d="M-50,720 C240,620 540,860 820,720 C1100,580 1320,820 1500,740" />
-  <path d="M-50,80  C320,40  520,260 800,160 C1080,60  1300,300 1500,200" />
-</svg>
-<div class="noise"></div>
-
-{{/* Dynamic repo URL — set HUGO_PARAMS_REPOURL at build time (see GH Action).
-     Falls back to editURL base or a sensible default. */}}
-{{ $repoURL := .Site.Params.repoURL | default "https://github.com" }}
-{{- $allCveRecipes := slice -}}
-{{- with site.GetPage "/prompt-library/cve" -}}
-  {{- range $recipe := .Pages -}}
-    {{- if $recipe.Params.cve -}}
-      {{- $allCveRecipes = $allCveRecipes | append $recipe -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-{{- $latestCveRecipes := first 6 (sort $allCveRecipes "Date" "desc") -}}
-
-<!-- Nav -->
-<nav class="nav reveal">
-  <a href="{{ "/" | relURL }}" class="brand">
-    <div class="brand-mark"></div>
-    <span>{{ .Site.Title }}</span>
-  </a>
-  <div class="nav-pills">
-    <a class="pill" href="{{ "/quickstart/" | relURL }}">Quick Start</a>
-    <a class="pill" href="{{ "/fundamentals/" | relURL }}">Fundamentals</a>
-    <a class="pill" href="{{ "/docs/" | relURL }}">Docs</a>
-    <a class="pill" href="{{ "/agents/" | relURL }}">Agents</a>
-    <a class="pill" href="{{ "/prompt-library/" | relURL }}">Prompt Library</a>
-    <a class="pill" href="{{ "/mcp-servers/" | relURL }}">MCP Servers</a>
-    <a class="pill" href="{{ "/security-remediation/" | relURL }}">Security Remediation</a>
-    <a class="pill" href="{{ "/automation/" | relURL }}">Automation</a>
-    <a class="pill" href="{{ "/contribute/" | relURL }}">Contribute</a>
+  <canvas class="home-signal-canvas" id="homeSignalCanvas" aria-hidden="true"></canvas>
+  <div class="site-ambient" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
   </div>
-</nav>
-
-<!-- Hero -->
-<section class="hero">
-  <div class="hero-cve-ticker reveal d1" data-cve-ticker aria-label="Latest NVD CVEs">
-    <span class="hero-cve-ticker-label">Latest NVD CVEs</span>
-    <div class="hero-cve-ticker-window">
-      <div class="hero-cve-ticker-track" data-cve-ticker-track>
-        {{- range $latestCveRecipes }}
-          <a class="hero-cve-ticker-item" href="https://nvd.nist.gov/vuln/detail/{{ .Params.cve }}" target="_blank" rel="noopener">
-            <span class="hero-cve-id">{{ .Params.cve }}</span>
-            <span class="hero-cve-title">{{ .Title | plainify | truncate 72 }}</span>
-            <span class="hero-cve-date">{{ .Date.Format "Jan 2" }}</span>
-          </a>
-        {{- else }}
-          <a class="hero-cve-ticker-item" href="https://nvd.nist.gov/vuln/search" target="_blank" rel="noopener">
-            <span class="hero-cve-id">NVD</span>
-            <span class="hero-cve-title">Loading latest published CVEs</span>
-          </a>
-        {{- end }}
-      </div>
-    </div>
-  </div>
-  <h1 class="title reveal d2">
-    The Secure Context Layer<br/>
-    for <span class="accent">Agentic AI</span>.
-  </h1>
-  <p class="subtitle reveal d3">
-    Open remediation knowledge plus a production-oriented MCP server for teams that need AI agents to act with bounded, reviewable security context.
-  </p>
-  <div class="hero-cta-row reveal d3">
-    <a class="hero-cta-primary" href="{{ "/quickstart/" | relURL }}">
-      <span>Start With Quick Start</span>
-      <span class="hero-cta-kbd">Open</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
-    <a class="hero-cta-secondary" href="{{ "/mcp-servers/" | relURL }}">
-      <span>Explore the MCP Server</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </a>
-  </div>
-  <div class="home-search reveal d4">
-    <label class="home-search-label" for="home-search-input">Search docs</label>
-    <div class="home-search-input-wrap">
-      <svg class="home-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <input id="home-search-input" class="home-search-input" type="search" placeholder="Find docs, agents, prompts, and remediation workflows…" autocomplete="off" />
-      <span class="home-search-hint">/</span>
-    </div>
-    <div id="home-search-results" class="home-search-results" role="listbox" aria-label="Search results"></div>
-  </div>
-</section>
-
-<section class="proof-strip" aria-label="SecurityRecipes proof points">
-  <div class="proof-item reveal d1">
-    <div class="proof-label">Context Layer</div>
-    <strong>Trusted retrieval before action</strong>
-    <span>Recipes, prompts, and generated packs are served as bounded context instead of improvised agent instructions.</span>
-  </div>
-  <div class="proof-item reveal d2">
-    <div class="proof-label">Evidence</div>
-    <strong>Generated trust artifacts</strong>
-    <span>Source hashes, policy decisions, SOC detections, attestation records, and run receipts make context provenance reviewable.</span>
-  </div>
-  <div class="proof-item reveal d3">
-    <div class="proof-label">MCP</div>
-    <strong>Read-only production surface</strong>
-    <span>The shipped FastMCP server exposes typed retrieval and decision tools without hidden vendor-side effects.</span>
-  </div>
-  <div class="proof-item reveal d4">
-    <div class="proof-label">Adoption</div>
-    <strong>Trusted source first</strong>
-    <span>Open knowledge compounds through reviewed recipes, transparent evidence, and community contribution before future hosting work.</span>
-  </div>
-</section>
-
-<section class="trust-stack">
-  <div class="section-header reveal d2">
-    <h2>Browser Security Control Plane</h2>
-    <p>Inputs, recipes, scans, reports, and output routes now map to one contributed marketplace so the browser workbench feels like an actual product surface instead of an isolated prompt box.</p>
-  </div>
-  <div class="trust-grid">
-    <div class="trust-card reveal d1">
-      <h3>Input Channels</h3>
-      <p>GitHub, deps.dev, local page context, and upload/API templates define how findings and reference material enter a run. Native browser sources stay live; future connectors ship as explicit JSON contracts first.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">repo context</span>
-        <span class="dual-cta-tag">scanner intake</span>
-      </div>
-    </div>
-    <div class="trust-card reveal d2">
-      <h3>Recipe Middle Layer</h3>
-      <p>Recipes remain the decision core. Workflow templates now bundle a recipe shape, context pack, report profile, approval gate, and output route into one reusable operating motion.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">workflow packs</span>
-        <span class="dual-cta-tag">review gates</span>
-      </div>
-    </div>
-    <div class="trust-card reveal d3">
-      <h3>Scan + Report Packs</h3>
-      <p>The agent workbench can now turn imported SARIF and SBOM evidence into a normalized scan bundle, remediation packet, executive brief, connector-intake decision, or run receipt before the result ever leaves the browser.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">report contracts</span>
-        <span class="dual-cta-tag">downloadable JSON</span>
-        <span class="dual-cta-tag">run receipts</span>
-      </div>
-    </div>
-    <div class="trust-card reveal d4">
-      <h3>Downstream Outputs</h3>
-      <p>Slack, Jira, GitHub, email, PR packets, SIEM payloads, and ticket templates are all represented as inspectable JSON configurations with honest runtime maturity states.</p>
-      <div class="dual-cta-tags">
-        <a class="dual-cta-tag" href="{{ "/docs/control-plane-marketplace/" | relURL }}">marketplace docs</a>
-        <span class="dual-cta-tag">BYO tokens</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Tools Grid -->
-<section class="tools-section">
-  <div class="section-header reveal d4">
-    <h2>Pick your agent</h2>
-    <p>Click any tool to see the step-by-step recipe for enabling reviewer-gated remediation in your environment.</p>
-  </div>
-
-  <div class="tools-grid">
-
-    <!-- GitHub Copilot -->
-    <a class="tool-card reveal d1" data-tool="copilot" href="{{ "/github_copilot/" | relURL }}">
-      <div>
-        <div class="tool-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.5 2 2 6.5 2 12c0 1.4.3 2.7.8 3.9.3.7.9 1.1 1.6 1.1h3.1c.6 0 1.1-.5 1.1-1.1 0-1.6 1.3-2.9 2.9-2.9h.5c1.6 0 2.9 1.3 2.9 2.9 0 .6.5 1.1 1.1 1.1h3.1c.7 0 1.3-.4 1.6-1.1.5-1.2.8-2.5.8-3.9C22 6.5 17.5 2 12 2z" fill="#00e5ff" opacity="0.9"/>
-            <circle cx="8.5" cy="11" r="1.5" fill="#0a0c14"/>
-            <circle cx="15.5" cy="11" r="1.5" fill="#0a0c14"/>
-            <path d="M7 18c0 1.1.9 2 2 2h6c1.1 0 2-.9 2-2v-1H7v1z" fill="#00e5ff" opacity="0.7"/>
-          </svg>
-        </div>
-        <div class="tool-name">GitHub Copilot</div>
-        <div class="tool-tag">copilot.github.com</div>
-      </div>
-      <div class="tool-cta">
-        <span>View recipe</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-
-    <!-- Devin -->
-    <a class="tool-card reveal d2" data-tool="devin" href="{{ "/devin/" | relURL }}">
-      <div>
-        <div class="tool-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" stroke="#ff4ecb" stroke-width="1.5" fill="rgba(255,78,203,0.1)"/>
-            <path d="M12 7v10M7 9.5v5M17 9.5v5" stroke="#ff4ecb" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="12" cy="12" r="2" fill="#ff4ecb"/>
-          </svg>
-        </div>
-        <div class="tool-name">Devin</div>
-        <div class="tool-tag">cognition.dev</div>
-      </div>
-      <div class="tool-cta">
-        <span>View recipe</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-
-    <!-- Cursor -->
-    <a class="tool-card reveal d3" data-tool="cursor" href="{{ "/cursor/" | relURL }}">
-      <div>
-        <div class="tool-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 3l16 9-7 2-2 7L4 3z" fill="#ffffff" opacity="0.95" stroke="#ffffff" stroke-width="0.5" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="tool-name">Cursor</div>
-        <div class="tool-tag">cursor.com</div>
-      </div>
-      <div class="tool-cta">
-        <span>View recipe</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-
-    <!-- Codex -->
-    <a class="tool-card reveal d4" data-tool="codex" href="{{ "/codex/" | relURL }}">
-      <div>
-        <div class="tool-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="3" y="4" width="18" height="16" rx="3" stroke="#4ade80" stroke-width="1.5" fill="rgba(74,222,128,0.08)"/>
-            <path d="M8 10l-2 2 2 2M16 10l2 2-2 2M13 9l-2 6" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="tool-name">Codex</div>
-        <div class="tool-tag">openai.com/codex</div>
-      </div>
-      <div class="tool-cta">
-        <span>View recipe</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-
-    <!-- Claude -->
-    <a class="tool-card reveal d5" data-tool="claude" href="{{ "/claude/" | relURL }}">
-      <div>
-        <div class="tool-icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 4h3l4 8-4 8H6l4-8-4-8zM15 4h3l-4 8 4 8h-3l-4-8 4-8z" fill="#d97757"/>
-          </svg>
-        </div>
-        <div class="tool-name">Claude</div>
-        <div class="tool-tag">claude.com / claude code</div>
-      </div>
-      <div class="tool-cta">
-        <span>View recipe</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </div>
-    </a>
-
-  </div>
-</section>
-
-<!-- Prompt Library CTA -->
-<section class="promptlib-section">
-  <div class="promptlib-card reveal d2">
-    <div>
-      <div class="promptlib-eyebrow">
-        <span class="dot"></span>
-        <span>Prompt Library - Community + Reviewed Examples</span>
-      </div>
-      <h2>Prompt Library</h2>
-      <p>
-        Prompt Library collects the actual prompts, rules files, skills, and instruction snippets teams use to steer agents safely. Browse by tool, copy the entry that matches your agent, keep the guardrails and stop conditions intact, and adapt the house rules to your repo.
-      </p>
-      <div class="promptlib-ctas">
-        <a class="btn-primary" href="{{ "/prompt-library/" | relURL }}">
-          Browse Prompt Library
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-        <a class="btn-secondary" href="{{ "/contribute/" | relURL }}#contributing-a-prompt">
-          Submit a community prompt
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
-      </div>
-    </div>
-    <div class="promptlib-chips">
-      <div class="chip" data-for="copilot"><span class="chip-dot"></span> copilot-instructions.md</div>
-      <div class="chip" data-for="claude"><span class="chip-dot"></span> CLAUDE.md + skills</div>
-      <div class="chip" data-for="cursor"><span class="chip-dot"></span> .cursor/rules/*.mdc</div>
-      <div class="chip" data-for="codex"><span class="chip-dot"></span> AGENTS.md</div>
-      <div class="chip" data-for="devin"><span class="chip-dot"></span> Devin Knowledge entries</div>
-      <div class="chip"><span class="chip-dot"></span> PreToolUse hooks</div>
-    </div>
-  </div>
-</section>
-
-{{- if $latestCveRecipes }}
-<!-- Latest CVE recipes -->
-<section class="latest-cves-section" aria-labelledby="latest-cves-title">
-  <div class="section-header reveal d2">
-    <div>
-      <div class="latest-cves-kicker">New in the catalogue</div>
-      <h2 id="latest-cves-title">Latest CVE recipes published</h2>
-    </div>
-    <p>Fresh per-advisory prompts with scoped fixes, verification steps, and reviewer-ready boundaries.</p>
-  </div>
-
-  <div class="latest-cves-grid">
-    {{- range $latestCveRecipes }}
-      <a class="latest-cve-card reveal d2" href="{{ .RelPermalink }}">
-        <div class="latest-cve-card-top">
-          <span class="latest-cve-id">{{ .Params.cve }}</span>
-          <span class="latest-cve-badges">
-            {{- with .Params.severity }}
-              <span class="latest-cve-badge latest-cve-badge--severity-{{ . | lower }}">{{ . }}</span>
-            {{- end }}
-            {{- if .Params.kev }}
-              <span class="latest-cve-badge latest-cve-badge--kev" title="CISA Known Exploited Vulnerability">KEV</span>
-            {{- end }}
-          </span>
-        </div>
-
-        <h3>{{ .Title }}</h3>
-        {{- with .Description }}
-          <p>{{ . | plainify | truncate 155 }}</p>
-        {{- else }}
-          <p>{{ .Summary | plainify | truncate 155 }}</p>
-        {{- end }}
-
-        <div class="latest-cve-meta">
-          <span><span class="latest-cve-meta-label">published</span>{{ .Date.Format "Jan 2, 2006" }}</span>
-          {{- with .Params.ecosystem }}
-            <span><span class="latest-cve-meta-label">ecosystem</span>{{ . }}</span>
-          {{- end }}
-        </div>
-
-        <span class="latest-cve-link">
-          View recipe
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="{{ "/" | relURL }}" aria-label="security-recipes.ai home">
+        <img src="{{ "/images/logo.svg" | relURL }}" alt="" width="30" height="30">
+        <span>security-recipes.ai</span>
       </a>
-    {{- end }}
-  </div>
-</section>
-{{- end }}
-
-<!-- Triple CTA: Automation + Agentic Security Remediation + MCP Server access -->
-<section class="dual-cta-section">
-
-  <!-- Automation, not agentic -->
-  <a class="dual-cta-card automation reveal d2" href="{{ "/automation/" | relURL }}">
-    <div class="dual-cta-eyebrow">
-      <span class="dot"></span>
-      <span>Automation · Deterministic</span>
+      <nav class="nav-links" aria-label="Primary navigation">
+        {{- range site.Menus.main -}}
+          {{- $url := .URL -}}
+          {{- with site.GetPage .PageRef -}}
+            {{- $url = .RelPermalink -}}
+          {{- end -}}
+          <a href="{{ $url }}">{{ .Name }}</a>
+        {{- end -}}
+      </nav>
     </div>
-    <h3>Automation, not agentic</h3>
-    <p>
-      Before you reach for a model, reach for a <code>--fix</code> flag.
-      Dependabot, Renovate, <code>npm audit fix</code>, <code>pip-audit</code>,
-      <code>go mod tidy</code>, and GitHub code scanning do a huge amount of
-      risk-reduction work without an LLM in the loop — and they pair well
-      with the agentic flows on this site. Use deterministic tools where you
-      can; save the agent for the places deterministic tools can't reach.
-    </p>
-    <div class="dual-cta-tags">
-      <span class="dual-cta-tag">dependabot</span>
-      <span class="dual-cta-tag">renovate</span>
-      <span class="dual-cta-tag">npm audit</span>
-      <span class="dual-cta-tag">pip-audit</span>
-      <span class="dual-cta-tag">code scanning</span>
-    </div>
-    <span class="dual-cta-link">
-      Click to find out more
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </span>
-  </a>
+  </header>
 
-  <!-- Agentic workflows a security team operates -->
-  <a class="dual-cta-card secrem reveal d3" href="{{ "/security-remediation/" | relURL }}">
-    <div class="dual-cta-eyebrow">
-      <span class="dot"></span>
-      <span>Security-operated · Reviewer-gated</span>
-    </div>
-    <h3>Agentic workflows a security team operates</h3>
-    <p>
-      Reference workflows <strong>a security team operates</strong> on engineering's
-      behalf — not ones engineering teams are asked to run. Bounded scope, reversible
-      output (always a PR, never a merge), measurable outcomes, and clean failure
-      modes. The output is PRs tagged with an auto-remediation label (rename to your
-      org's convention), or triage tickets when the agent stops cleanly.
-    </p>
-    <div class="dual-cta-tags">
-      <span class="dual-cta-tag">sensitive data elements</span>
-      <span class="dual-cta-tag">vulnerable dependencies</span>
-    </div>
-    <span class="dual-cta-link">
-      Click to find out more
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </span>
-  </a>
-
-  <!-- MCP Server access -->
-  <a class="dual-cta-card mcp reveal d4" href="{{ "/mcp-servers/" | relURL }}">
-    <div class="dual-cta-eyebrow">
-      <span class="dot"></span>
-      <span>MCP Native · Read-Only Context</span>
-    </div>
-    <h3>Repo-shipped MCP Server</h3>
-    <p>
-      The included FastMCP server searches SecurityRecipes pages and local generated JSON packs, then exposes deterministic retrieval, authorization, egress, eval, and tool-policy decisions. It is read-only by design: no PR creation, no ticket edits, no secret storage, and no live vendor connector calls hidden behind the tool surface.
-    </p>
-    <div class="dual-cta-tags">
-      <span class="dual-cta-tag">read-only tools</span>
-      <span class="dual-cta-tag">typed tools</span>
-      <span class="dual-cta-tag">site index</span>
-      <span class="dual-cta-tag">generated packs</span>
-      <span class="dual-cta-tag">runtime decisions</span>
-      <span class="dual-cta-tag">secure context evals</span>
-      <span class="dual-cta-tag">egress boundaries</span>
-    </div>
-    <span class="dual-cta-link">
-      Click to find out more
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </span>
-  </a>
-
-</section>
-
-
-<section class="trust-stack">
-  <div class="section-header reveal d2">
-    <h2>Built for Trust</h2>
-    <p>SecurityRecipes is shaped as a credible open foundation: auditable context, deterministic controls, and artifacts a platform or security team can inspect.</p>
-  </div>
-  <div class="trust-grid">
-    <div class="trust-card reveal d1">
-      <h3>Open Knowledge Base</h3>
-      <p>Reviewed recipes and CVE prompts give security teams practical, inspectable remediation context they can return to, fork, contribute to, and improve over time.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">MIT docs</span>
-        <span class="dual-cta-tag">reviewed prompts</span>
+  <div class="site-shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <h1><span>Security</span> <span>recipes for</span> <span>agentic</span> <span>remediation.</span></h1>
+          <p class="hero-copy">
+            Turn security findings into reviewable agent work. Browse recipes, wire them into the AI coding agent your team already uses, add public security context through MCP, and keep every fix bounded by evidence.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="{{ "/recipes/" | relURL }}">Browse Recipes</a>
+            <a class="button" href="{{ "/docs/agent-integration/" | relURL }}">Set Up Agents</a>
+            <a class="button" href="{{ "/mcp-servers/" | relURL }}">Connect MCP Context</a>
+          </div>
+        </div>
+        <figure class="hero-media">
+          <div class="security-console" role="img" aria-label="Live security remediation workflow from finding intake to reviewed pull request">
+            <div class="console-top">
+              <div class="console-title">
+                <strong>Recipe-guided remediation</strong>
+                <span>Read-only context, bounded agent work, human-reviewed output</span>
+              </div>
+              <div class="console-health">Carefully Curated</div>
+            </div>
+            <div class="console-pipeline">
+              <article class="lane">
+                <span class="lane-index">1</span>
+                <div class="lane-body">
+                  <h3>Finding arrives</h3>
+                  <ul>
+                    <li><strong>Signal</strong><span>CVE, SCA, SAST, secret, or container alert</span></li>
+                    <li><strong>Target</strong><span>repo, file path, package, owner, and severity</span></li>
+                  </ul>
+                </div>
+              </article>
+              <article class="lane">
+                <span class="lane-index">2</span>
+                <div class="lane-body">
+                  <h3>Recipe scopes the work</h3>
+                  <ul>
+                    <li><strong>Allowed fix</strong><span>what the agent may touch and must avoid</span></li>
+                    <li><strong>Proof needed</strong><span>tests, evidence, and residual-risk note</span></li>
+                  </ul>
+                </div>
+              </article>
+              <article class="lane">
+                <span class="lane-index">3</span>
+                <div class="lane-body">
+                  <h3>Agent runs inside bounds</h3>
+                  <ul>
+                    <li><strong>Repo rules</strong><span>AGENTS.md, instructions, and touched files</span></li>
+                    <li><strong>Context</strong><span>MCP and scanner data stay read-only evidence</span></li>
+                  </ul>
+                </div>
+              </article>
+              <article class="lane">
+                <span class="lane-index">4</span>
+                <div class="lane-body">
+                  <h3>Human reviews the result</h3>
+                  <ul>
+                    <li><strong>Output</strong><span>small PR or triage note with tests run</span></li>
+                    <li><strong>Stop gate</strong><span>broad refactor, unclear owner, or missing proof</span></li>
+                  </ul>
+                </div>
+              </article>
+            </div>
+            <div class="console-flow" aria-hidden="true"></div>
+            <div class="console-status">
+              <div class="status-card">
+                <h3>Agent run contract</h3>
+                <p>One finding enters. One recipe narrows the job. The agent returns either a bounded patch or a clear reason to stop.</p>
+              </div>
+            </div>
+            <div class="console-footer" aria-hidden="true">
+              <span>recipes.index</span>
+              <span>mcp.readonly</span>
+              <span>review.gated</span>
+            </div>
+          </div>
+        </figure>
       </div>
-    </div>
-    <div class="trust-card reveal d2">
-      <h3>Secure Context Layer</h3>
-      <p>The MCP server turns static knowledge into governed context retrieval, policy decisions, eval evidence, run receipts, SOC detections, and reviewable handoff artifacts.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">FastMCP</span>
-        <span class="dual-cta-tag">typed tools</span>
-      </div>
-    </div>
-    <div class="trust-card reveal d3">
-      <h3>Trust Center Ready</h3>
-      <p>Generated JSON packs give platform teams and security reviewers concrete artifacts instead of vague claims about agent safety.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">attestation</span>
-        <span class="dual-cta-tag">provenance</span>
-      </div>
-    </div>
-    <div class="trust-card reveal d4">
-      <h3>Trusted Source First</h3>
-      <p>The priority is a dependable public corpus: clear sources, conservative claims, reproducible context packs, and remediation workflows that security teams can verify before they rely on the tool.</p>
-      <div class="dual-cta-tags">
-        <span class="dual-cta-tag">clear sources</span>
-        <span class="dual-cta-tag">reviewed recipes</span>
-        <span class="dual-cta-tag">community trust</span>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<footer>
-  <div class="footer-line">
-    <span>SECURITYRECIPES</span>
-    <span class="sep"></span>
-    <span>THE SECURE CONTEXT LAYER FOR AGENTIC AI</span>
-    <span class="sep"></span>
-    <span>© 2026</span>
-  </div>
-  <div class="infosec">
-    An open, community-driven playbook for <strong>security engineering teams</strong> <span class="heart">♥</span>
-  </div>
-</footer>
+    <main>
+      <section>
+        <div class="section-head">
+          <h2>What belongs here</h2>
+          <p>The site is centered on reusable security knowledge that agents can consume. The code in the repository supports that knowledge; it is not the product surface.</p>
+        </div>
+        <div class="cards">
+          <a class="card" href="{{ "/security-remediation/" | relURL }}">
+            <span class="mark">01</span>
+            <h3>Remediation recipes</h3>
+            <p>Practical playbooks for bounded security fixes, triage notes, reviewer expectations, and safe stop conditions.</p>
+          </a>
+          <a class="card" href="{{ "/recipes/" | relURL }}">
+            <span class="mark">02</span>
+            <h3>Prompts that carry the recipe</h3>
+            <p>Agent-ready instructions that tell the model what to fix, what not to touch, and what evidence to return.</p>
+          </a>
+          <a class="card" href="{{ "/agents/" | relURL }}">
+            <span class="mark">03</span>
+            <h3>Agent setup guides</h3>
+            <p>Concrete configuration for the agent your team already uses, with repository rules and review gates first.</p>
+          </a>
+          <a class="card" href="{{ "/mcp-servers/" | relURL }}">
+            <span class="mark">04</span>
+            <h3>MCP integration patterns</h3>
+            <p>Use public and internal security context servers as read-only inputs for findings, advisories, code scanning, SBOMs, and runbooks.</p>
+          </a>
+        </div>
+      </section>
 
-<script>
+      <section>
+        <div class="section-head">
+          <h2>How an agent consumes a recipe</h2>
+          <p>The useful loop is small on purpose: one finding, one recipe, one agent run, one reviewed output.</p>
+        </div>
+        <div class="steps">
+          <div class="step-list">
+            <div class="step-row">
+              <b>1</b>
+              <div>
+                <h3>Pick a finding and recipe</h3>
+                <p>Start with a dependency, SAST, SDE, container, or CVE recipe that matches the issue.</p>
+              </div>
+            </div>
+            <div class="step-row">
+              <b>2</b>
+              <div>
+                <h3>Load rules into the agent</h3>
+                <p>Use `AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, Copilot instructions, or Devin Knowledge.</p>
+              </div>
+            </div>
+            <div class="step-row">
+              <b>3</b>
+              <div>
+                <h3>Add scoped context</h3>
+                <p>Expose only the MCP servers and files needed for the finding. Prefer read-only context first.</p>
+              </div>
+            </div>
+            <div class="step-row">
+              <b>4</b>
+              <div>
+                <h3>Review the output</h3>
+                <p>The agent should produce a PR, a test result, or a triage note. Humans still approve the change.</p>
+              </div>
+            </div>
+          </div>
+          <div class="code-panel" aria-label="Example agent instruction">
+            <pre># Agent task
+Remediate one security finding using the matching security-recipes.ai recipe.
+
+Rules:
+- Fix only the finding named in the task.
+- Read the recipe and repo instructions before editing.
+- Use MCP context as read-only evidence unless explicitly approved.
+- Run the existing tests that cover the touched area.
+- Open a PR with the finding ID, files changed, tests run, and residual risk.
+- If the fix requires broad refactoring or unclear ownership, stop with a triage note.</pre>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>MCP is context, not a permission slip</h2>
+          <p>Security agents get better when they can read the right data. They get risky when every connector becomes an action surface.</p>
+        </div>
+        <div class="matrix">
+          <div class="matrix-item">
+            <h3>Advisory intelligence</h3>
+            <p>Connect public vulnerability and package data such as OSV, GitHub Advisories, deps.dev, NVD-backed mirrors, and package registries.</p>
+          </div>
+          <div class="matrix-item">
+            <h3>Repository evidence</h3>
+            <p>Use GitHub, GitLab, Azure DevOps, SARIF, SBOM, Semgrep, CodeQL, and dependency metadata as scoped read-only context.</p>
+          </div>
+          <div class="matrix-item">
+            <h3>Security system context</h3>
+            <p>Bring in approved SCA, SAST, SIEM, SOAR, ticketing, documentation, and cloud-security MCP servers with narrow tokens and audit logs.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="muted-band">
+          <h2>Keep the tooling boring.</h2>
+          <p>
+            security-recipes.ai should not ask teams to adopt a custom security toolkit before they can use a recipe. Helper scripts are fine for indexing, validation, local examples, and deployment. Scanning, ticketing, policy enforcement, and CI should come from the systems teams already trust, then feed the recipes and AI assistant as context.
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="site-shell footer-inner">
+      <span>Open security recipes for agent-assisted remediation.</span>
+      <a href="{{ .Site.Params.repoURL }}">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
   (function () {
-    const input = document.getElementById('home-search-input');
-    const resultsEl = document.getElementById('home-search-results');
-    if (!input || !resultsEl) return;
+    var canvas = document.getElementById("homeSignalCanvas");
+    if (!canvas || !canvas.getContext) return;
 
-    let docs = [];
-    let loading = null;
-    let activeIndex = -1;
+    var ctx = canvas.getContext("2d", { alpha: true });
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var width = 0;
+    var height = 0;
+    var dpr = 1;
+    var points = [];
+    var pointer = {
+      x: window.innerWidth * 0.72,
+      y: window.innerHeight * 0.34,
+      tx: window.innerWidth * 0.72,
+      ty: window.innerHeight * 0.34
+    };
+    var raf = null;
 
-    function escapeHtml(s) {
-      return (s || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+    function noise(value) {
+      var raw = Math.sin(value * 12.9898) * 43758.5453;
+      return raw - Math.floor(raw);
     }
 
-    function ensureIndexLoaded() {
-      if (loading) return loading;
-      loading = fetch('{{ "/recipes-index.json" | relURL }}', { credentials: 'same-origin' })
-        .then(r => r.ok ? r.json() : Promise.reject(new Error('index-unavailable')))
-        .then(data => {
-          docs = Array.isArray(data) ? data : [];
-          return docs;
-        })
-        .catch(() => {
-          docs = [];
-          return docs;
-        });
-      return loading;
+    function lerp(a, b, amount) {
+      return a + (b - a) * amount;
     }
 
-    function scoreDoc(doc, q) {
-      const title = (doc.title || '').toLowerCase();
-      const section = (doc.section || '').toLowerCase();
-      const summary = (doc.summary || '').toLowerCase();
-      const content = (doc.content || '').toLowerCase();
-
-      let score = 0;
-      if (title === q) score += 120;
-      if (title.startsWith(q)) score += 90;
-      if (title.includes(q)) score += 60;
-      if (section.includes(q)) score += 25;
-      if (summary.includes(q)) score += 15;
-      if (content.includes(q)) score += 10;
-      return score;
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      buildPoints();
+      draw(0);
     }
 
-    function renderResults(items, query) {
-      if (!query) {
-        resultsEl.innerHTML = '';
-        resultsEl.removeAttribute('data-open');
-        activeIndex = -1;
-        return;
-      }
-      if (!items.length) {
-        resultsEl.innerHTML = '<div class="home-search-empty">No matches found.</div>';
-        resultsEl.setAttribute('data-open', '1');
-        activeIndex = -1;
-        return;
-      }
+    function buildPoints() {
+      var columns = Math.ceil(width / 105);
+      var rows = Math.ceil(height / 100);
+      points = [];
 
-      resultsEl.innerHTML = items.map((d, i) => (
-        `<a class="home-search-item" data-index="${i}" href="${escapeHtml(d.path || d.url || '#')}">
-          <div class="home-search-item-title">${escapeHtml(d.title || 'Untitled')}</div>
-          <div class="home-search-item-meta">${escapeHtml(d.section || 'page')}</div>
-        </a>`
-      )).join('');
-      resultsEl.setAttribute('data-open', '1');
-      activeIndex = -1;
-    }
-
-    function setActive(index) {
-      const nodes = resultsEl.querySelectorAll('.home-search-item');
-      nodes.forEach(n => n.removeAttribute('data-active'));
-      if (index < 0 || index >= nodes.length) return;
-      nodes[index].setAttribute('data-active', '1');
-      nodes[index].scrollIntoView({ block: 'nearest' });
-      activeIndex = index;
-    }
-
-    async function runSearch() {
-      const q = input.value.trim().toLowerCase();
-      const index = await ensureIndexLoaded();
-      if (!q) {
-        renderResults([], '');
-        return;
-      }
-      const matched = index
-        .map(d => ({ ...d, _score: scoreDoc(d, q) }))
-        .filter(d => d._score > 0)
-        .sort((a, b) => b._score - a._score)
-        .slice(0, 8);
-      renderResults(matched, q);
-    }
-
-    function isTypingTarget(target) {
-      const node = target && target.nodeType === 1 ? target : document.activeElement;
-      if (!node) return false;
-      const tag = node.tagName ? node.tagName.toLowerCase() : '';
-      if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
-      if (node.isContentEditable) return true;
-      if (node.closest) {
-        return !!node.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]');
-      }
-      return false;
-    }
-
-    input.addEventListener('input', runSearch);
-    input.addEventListener('focus', () => { if (input.value.trim()) runSearch(); });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === '/' && document.activeElement !== input && !isTypingTarget(e.target) && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        input.focus();
-      }
-      if (!resultsEl.hasAttribute('data-open')) return;
-      const items = resultsEl.querySelectorAll('.home-search-item');
-      if (!items.length) return;
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setActive(Math.min(activeIndex + 1, items.length - 1));
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setActive(Math.max(activeIndex - 1, 0));
-      } else if (e.key === 'Enter' && activeIndex >= 0 && items[activeIndex]) {
-        items[activeIndex].click();
-      } else if (e.key === 'Escape') {
-        resultsEl.removeAttribute('data-open');
-      }
-    });
-
-    document.addEventListener('click', (e) => {
-      if (resultsEl.contains(e.target) || e.target === input) return;
-      resultsEl.removeAttribute('data-open');
-    });
-  })();
-
-  (function () {
-    const ticker = document.querySelector('[data-cve-ticker]');
-    const track = document.querySelector('[data-cve-ticker-track]');
-    if (!ticker || !track) return;
-
-    function escapeHtml(s) {
-      return String(s || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function truncate(s, max) {
-      const value = String(s || '').replace(/\s+/g, ' ').trim();
-      return value.length > max ? value.slice(0, max - 1).trim() + '...' : value;
-    }
-
-    function dateLabel(value) {
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return '';
-      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    }
-
-    function nvdDescription(cve) {
-      const descriptions = Array.isArray(cve.descriptions) ? cve.descriptions : [];
-      const english = descriptions.find(item => item && item.lang === 'en') || descriptions[0];
-      return english && english.value ? english.value : 'Newly published NVD vulnerability record';
-    }
-
-    function nvdSeverity(cve) {
-      const metrics = cve.metrics || {};
-      const groups = [metrics.cvssMetricV40, metrics.cvssMetricV31, metrics.cvssMetricV30, metrics.cvssMetricV2];
-      for (const group of groups) {
-        if (Array.isArray(group) && group[0] && group[0].cvssData && group[0].cvssData.baseSeverity) {
-          return group[0].cvssData.baseSeverity;
+      for (var y = -1; y <= rows; y += 1) {
+        for (var x = -1; x <= columns; x += 1) {
+          points.push({
+            x: x * 105 + (y % 2) * 36 + noise(x * 3.1 + y) * 24,
+            y: y * 100 + noise(y * 4.8 - x) * 24,
+            phase: noise(x * 12.3 + y * 9.7) * Math.PI * 2,
+            cx: 0,
+            cy: 0
+          });
         }
       }
-      return '';
     }
 
-    function renderItems(items, state) {
-      if (!items.length) return;
-      const html = items.concat(items).map(item => (
-        `<a class="hero-cve-ticker-item" href="${escapeHtml(item.href)}" target="_blank" rel="noopener">
-          <span class="hero-cve-id">${escapeHtml(item.id)}</span>
-          <span class="hero-cve-title">${escapeHtml(item.title)}</span>
-          ${item.meta ? `<span class="hero-cve-date">${escapeHtml(item.meta)}</span>` : ''}
-        </a>`
-      )).join('');
-      track.innerHTML = html;
-      ticker.setAttribute('data-state', state || 'ready');
+    function movePointer(event) {
+      pointer.tx = event.clientX;
+      pointer.ty = event.clientY;
+      if (reduceMotion.matches) {
+        pointer.x = pointer.tx;
+        pointer.y = pointer.ty;
+        draw(0);
+      }
     }
 
-    function duplicateFallbackItems() {
-      if (track.children.length === 0 || track.getAttribute('data-duplicated')) return;
-      Array.from(track.children).forEach(item => track.appendChild(item.cloneNode(true)));
-      track.setAttribute('data-duplicated', 'true');
-    }
+    function draw(time) {
+      var t = reduceMotion.matches ? 0 : time;
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
 
-    function nvdUrl(days) {
-      const end = new Date();
-      const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
-      const url = new URL('https://services.nvd.nist.gov/rest/json/cves/2.0');
-      url.searchParams.set('pubStartDate', start.toISOString());
-      url.searchParams.set('pubEndDate', end.toISOString());
-      url.searchParams.set('resultsPerPage', '12');
-      return url;
-    }
+      for (var i = 0; i < points.length; i += 1) {
+        var point = points[i];
+        var wobble = Math.sin(t * 0.001 + point.phase) * 9;
+        var px = point.x + wobble + Math.sin(t * 0.0007 + point.phase) * 8;
+        var py = point.y + Math.cos(t * 0.0009 + point.phase) * 8;
+        var dx = pointer.x - px;
+        var dy = pointer.y - py;
+        var distance = Math.hypot(dx, dy);
+        var pull = Math.max(0, 1 - distance / 260) * 22;
+        point.cx = px - (dx / Math.max(distance, 1)) * pull;
+        point.cy = py - (dy / Math.max(distance, 1)) * pull;
+      }
 
-    async function loadNvd() {
-      for (const days of [7, 30]) {
-        try {
-          const response = await fetch(nvdUrl(days).href, { cache: 'no-store' });
-          if (!response.ok) continue;
-          const payload = await response.json();
-          const records = Array.isArray(payload.vulnerabilities) ? payload.vulnerabilities : [];
-          const items = records
-            .map(record => record && record.cve)
-            .filter(Boolean)
-            .sort((a, b) => new Date(b.published || 0) - new Date(a.published || 0))
-            .slice(0, 8)
-            .map(cve => ({
-              id: cve.id || 'CVE',
-              title: truncate(nvdDescription(cve), 88),
-              meta: nvdSeverity(cve) || dateLabel(cve.published),
-              href: 'https://nvd.nist.gov/vuln/detail/' + encodeURIComponent(cve.id || '')
-            }));
-          if (items.length) {
-            renderItems(items, 'nvd');
-            return;
+      for (var a = 0; a < points.length; a += 1) {
+        for (var b = a + 1; b < points.length; b += 1) {
+          var start = points[a];
+          var end = points[b];
+          var gap = Math.hypot(start.cx - end.cx, start.cy - end.cy);
+          if (gap < 145) {
+            ctx.strokeStyle = "rgba(103, 232, 249, " + (0.14 * (1 - gap / 145)) + ")";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(start.cx, start.cy);
+            ctx.lineTo(end.cx, end.cy);
+            ctx.stroke();
           }
-        } catch (error) {
-          break;
         }
       }
-      duplicateFallbackItems();
-      ticker.setAttribute('data-state', 'local');
+
+      for (var p = 0; p < points.length; p += 1) {
+        var dot = points[p];
+        var near = Math.max(0, 1 - Math.hypot(pointer.x - dot.cx, pointer.y - dot.cy) / 280);
+        ctx.fillStyle = p % 7 === 0 ? "#fbbf24" : p % 3 === 0 ? "#67e8f9" : "#2dd4bf";
+        ctx.globalAlpha = 0.18 + near * 0.62;
+        ctx.beginPath();
+        ctx.arc(dot.cx, dot.cy, 1.7 + near * 2.7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
     }
 
-    duplicateFallbackItems();
-    loadNvd();
-  })();
+    function frame(time) {
+      pointer.x = lerp(pointer.x, pointer.tx, 0.09);
+      pointer.y = lerp(pointer.y, pointer.ty, 0.09);
+      draw(time);
+      if (!reduceMotion.matches) {
+        raf = window.requestAnimationFrame(frame);
+      }
+    }
 
-  // Mouse-tracked card glow (matches uploaded design)
-  document.querySelectorAll('.tool-card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r = card.getBoundingClientRect();
-      const x = ((e.clientX - r.left) / r.width) * 100;
-      const y = ((e.clientY - r.top) / r.height) * 100;
-      card.style.setProperty('--mx', x + '%');
-      card.style.setProperty('--my', y + '%');
-    });
-  });
-</script>
-<script>
-window.__SITE_BASE_PREFIX = {{ "/" | relURL | printf "%q" | safeJS }};
-window.__SECURITY_RECIPES_MARKETPLACE = {
-  catalog: {{ site.Data.marketplace.catalog | jsonify | safeJS }},
-  inputChannels: {{ site.Data.marketplace.input_channels | jsonify | safeJS }},
-  outputChannels: {{ site.Data.marketplace.output_channels | jsonify | safeJS }},
-  reportProfiles: {{ site.Data.marketplace.report_profiles | jsonify | safeJS }},
-  workflowTemplates: {{ site.Data.marketplace.workflow_templates | jsonify | safeJS }},
-  readinessProfiles: {{ site.Data.marketplace.readiness_profiles | jsonify | safeJS }}
-};
-window.__SECURITY_RECIPES_MARKETPLACE_FEEDS = {
-  manifest: {{ "/marketplace-control-plane.json" | relURL | jsonify | safeJS }},
-  catalog: {{ "/marketplace-catalog.json" | relURL | jsonify | safeJS }},
-  inputChannels: {{ "/marketplace-input-channels.json" | relURL | jsonify | safeJS }},
-  outputChannels: {{ "/marketplace-output-channels.json" | relURL | jsonify | safeJS }},
-  reportProfiles: {{ "/marketplace-report-profiles.json" | relURL | jsonify | safeJS }},
-  workflowTemplates: {{ "/marketplace-workflow-templates.json" | relURL | jsonify | safeJS }},
-  readiness: {{ "/marketplace-readiness.json" | relURL | jsonify | safeJS }}
-};
-window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
-  index: {{ "/marketplace-schemas/index.json" | relURL | jsonify | safeJS }},
-  inputChannelContribution: {{ "/marketplace-schemas/input-channel-contribution.schema.json" | relURL | jsonify | safeJS }},
-  outputChannelContribution: {{ "/marketplace-schemas/output-channel-contribution.schema.json" | relURL | jsonify | safeJS }},
-  reportProfileContribution: {{ "/marketplace-schemas/report-profile-contribution.schema.json" | relURL | jsonify | safeJS }},
-  workflowTemplateContribution: {{ "/marketplace-schemas/workflow-template-contribution.schema.json" | relURL | jsonify | safeJS }},
-  localLibrary: {{ "/marketplace-schemas/local-library.schema.json" | relURL | jsonify | safeJS }},
-  caseFile: {{ "/marketplace-schemas/case-file.schema.json" | relURL | jsonify | safeJS }},
-  caseLibrary: {{ "/marketplace-schemas/case-library.schema.json" | relURL | jsonify | safeJS }},
-  assetLibrary: {{ "/marketplace-schemas/asset-library.schema.json" | relURL | jsonify | safeJS }},
-  operationsHistory: {{ "/marketplace-schemas/operations-history.schema.json" | relURL | jsonify | safeJS }},
-  operationsSession: {{ "/marketplace-schemas/operations-session.schema.json" | relURL | jsonify | safeJS }},
-  portfolioCoverage: {{ "/marketplace-schemas/portfolio-coverage.schema.json" | relURL | jsonify | safeJS }},
-  routingPolicy: {{ "/marketplace-schemas/routing-policy.schema.json" | relURL | jsonify | safeJS }},
-  routingLibrary: {{ "/marketplace-schemas/routing-library.schema.json" | relURL | jsonify | safeJS }}
-};
-{{ $chatApiPath := site.Params.chatApiPath | default site.Params.chatapipath | default "" }}
-{{ $aiProviderRelay := site.Params.aiProviderRelay | default site.Params.aiproviderrelay | default "" }}
-window.__SECURITY_RECIPES_CHAT_API__ = {{ $chatApiPath | jsonify | safeJS }};
-window.__SECURITY_RECIPES_AI_PROVIDER_RELAY__ = {{ $aiProviderRelay | jsonify | safeJS }};
-</script>
-{{ with resources.Get "js/ai-chatbot.js" | fingerprint }}
-<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+    function start() {
+      if (raf !== null) {
+        window.cancelAnimationFrame(raf);
+        raf = null;
+      }
+      if (reduceMotion.matches) {
+        draw(0);
+      } else {
+        raf = window.requestAnimationFrame(frame);
+      }
+    }
+
+    window.addEventListener("resize", resize);
+    window.addEventListener("pointermove", movePointer, { passive: true });
+    if (reduceMotion.addEventListener) {
+      reduceMotion.addEventListener("change", start);
+    }
+
+    resize();
+    start();
+  })();
+  </script>
+{{ with resources.Get "js/ai-chatbot.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
 </body>
 </html>

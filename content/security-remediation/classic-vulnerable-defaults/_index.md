@@ -101,7 +101,7 @@ the repo's policy.
 
 ## Catalogue of recipes
 
-The full prompts live in the prompt library. The
+The full prompts live in Recipes. The
 [Classic Vulnerable Defaults]({{< relref "/prompt-library/general/classic-vulnerable-defaults" >}})
 hub catalogues each one; the per-recipe pages have the agent
 prompts.
@@ -202,6 +202,10 @@ template, and a regression-set entry.
 - Free-form refactoring. Recipes are bounded to the unsafe
   call and its immediate surroundings. "While you're in there"
   is how a small fix becomes an unreviewable change.
+
+## Python remediation tool
+
+{{< remediation-tool domain="classic-vulnerable-defaults" >}}
 
 ## See also
 

@@ -175,6 +175,10 @@ inputs evolve.
   PHP `composer.lock`) plug in as MCP servers without touching
   the orchestrator.
 
+## Python remediation tool
+
+{{< remediation-tool domain="vulnerable-dependencies" >}}
+
 ## Changelog
 
 - 2026-04-21 — v1 reference workflow, covers Node, Python, and

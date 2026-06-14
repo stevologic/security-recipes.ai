@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Exposure Graph
 linkTitle: Exposure Graph
 weight: 18
@@ -7,6 +7,8 @@ description: >
   Generated relationship graph that ranks exposure paths across secure
   context, agent identities, MCP namespaces, authorization, egress,
   readiness, capability risk, and run receipts.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -37,7 +39,6 @@ an exposure-management surface for agentic AI.
 - Source profile:
   `data/assurance/agentic-exposure-graph-profile.json`
 - Generator:
-  `scripts/generate_agentic_exposure_graph.py`
 - Evidence pack:
   `data/evidence/agentic-exposure-graph.json`
 - MCP tool:
@@ -45,10 +46,6 @@ an exposure-management surface for agentic AI.
 
 Regenerate and validate the graph:
 
-```bash
-python3 scripts/generate_agentic_exposure_graph.py
-python3 scripts/generate_agentic_exposure_graph.py --check
-```
 
 ## Why this matters now
 

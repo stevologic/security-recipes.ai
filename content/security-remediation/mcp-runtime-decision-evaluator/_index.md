@@ -1,9 +1,9 @@
----
+﻿---
 title: MCP Runtime Decision Evaluator
 linkTitle: Runtime Decision Evaluator
 weight: 6
 sidebar:
-  open: true
+  exclude: true
 description: >
   A deterministic runtime evaluator that turns the generated MCP gateway
   policy into allow, hold, deny, and kill-session decisions for agent
@@ -45,57 +45,17 @@ tool call was allowed.
 
 The evaluator lives in the runtime surface, not just the docs:
 
-- `scripts/evaluate_mcp_gateway_decision.py` - a dependency-free CLI and
-  importable Python decision function.
-- `recipes_evaluate_mcp_gateway_decision` - an MCP tool that exposes the
-  same decision function to connected agent hosts and policy sidecars.
 - CI checks that exercise allow, deny, hold, and kill decisions against
   the checked-in gateway policy.
 
 Example allowed branch write:
 
-```bash
-python3 scripts/evaluate_mcp_gateway_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
-  --run-id run-123 \
-  --tool-namespace repo.contents \
-  --tool-access-mode write_branch \
-  --branch-name sec-auto-remediation/fix-cve \
-  --changed-path package.json \
-  --changed-path package-lock.json \
-  --diff-line-count 120 \
-  --gate-phase tool_call
-```
 
 Example approval hold:
 
-```bash
-python3 scripts/evaluate_mcp_gateway_decision.py \
-  --workflow-id artifact-cache-quarantine \
-  --agent-id sr-agent::artifact-cache-quarantine::codex \
-  --run-id incident-77 \
-  --tool-namespace registries.quarantine \
-  --tool-access-mode approval_required \
-  --gate-phase tool_call \
-  --expect-decision hold_for_approval
-```
 
 Example MCP tool call:
 
-```text
-recipes_evaluate_mcp_gateway_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  agent_id="sr-agent::vulnerable-dependency-remediation::codex",
-  run_id="run-123",
-  tool_namespace="repo.contents",
-  tool_access_mode="write_branch",
-  gate_phase="tool_call",
-  branch_name="sec-auto-remediation/fix-cve",
-  changed_paths=["package.json", "package-lock.json"],
-  diff_line_count=120
-)
-```
 
 The response includes the decision, matched workflow, matched scope,
 violations, approval state, source manifest hash, and observed runtime

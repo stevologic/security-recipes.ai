@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Threat Radar
 linkTitle: Agentic Threat Radar
 weight: 18
@@ -7,6 +7,8 @@ description: >
   Source-backed radar that maps current agentic AI and MCP security
   guidance to SecurityRecipes controls, MCP tools, reviewer triggers, and
   source roadmap priorities.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -37,7 +39,6 @@ guidance into a generated evidence pack:
 - Source registry:
   `data/intelligence/agentic-threat-radar-sources.json`
 - Generator:
-  `scripts/generate_agentic_threat_radar.py`
 - Evidence pack:
   `data/evidence/agentic-threat-radar.json`
 - MCP tool:
@@ -45,10 +46,6 @@ guidance into a generated evidence pack:
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_agentic_threat_radar.py
-python3 scripts/generate_agentic_threat_radar.py --check
-```
 
 ## Current source-backed signals
 

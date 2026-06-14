@@ -218,6 +218,10 @@ a well-tuned pilot silently degrades in production.
   postmortem digs them out. Put the dashboard on a wall or on a
   weekly review agenda.
 
+## Python remediation tool
+
+{{< remediation-tool domain="maturity" >}}
+
 ## See also
 
 - [Program Metrics & KPIs]({{< relref "/security-remediation/metrics" >}}) — the numbers every stage must clear

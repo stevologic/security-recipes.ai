@@ -3,6 +3,8 @@ title: Secure Context Release Gate
 linkTitle: Secure Context Release
 weight: 6
 toc: true
+sidebar:
+  exclude: true
 description: >
   A generated release gate for promoting SecurityRecipes context into
   open-reference, production MCP, and trust-center channels.
@@ -36,18 +38,12 @@ JSON rather than prose-only claims.
 - Profile:
   `data/context/secure-context-release-profile.json`
 - Generator:
-  `scripts/generate_secure_context_release_pack.py`
 - Runtime evaluator:
-  `scripts/evaluate_secure_context_release_decision.py`
 - Generated release pack:
   `data/context/secure-context-release-pack.json`
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_secure_context_release_pack.py
-python3 scripts/generate_secure_context_release_pack.py --check
-```
 
 ## Release Channels
 
@@ -78,33 +74,12 @@ The evaluator returns:
 
 Open-reference release:
 
-```bash
-python3 scripts/evaluate_secure_context_release_decision.py \
-  --release-id open-remediation-context-release \
-  --channel-id open-reference \
-  --environment open_reference \
-  --expect-decision allow_open_reference_release
-```
 
 Production MCP release without signature:
 
-```bash
-python3 scripts/evaluate_secure_context_release_decision.py \
-  --release-id production-policy-context-release \
-  --channel-id production-mcp \
-  --environment production_mcp \
-  --expect-decision hold_for_signature
-```
 
 Assurance model release with actionable poisoning findings:
 
-```bash
-python3 scripts/evaluate_secure_context_release_decision.py \
-  --release-id assurance-model-source-release \
-  --channel-id trust-center \
-  --environment enterprise_trust_center \
-  --expect-decision hold_for_poisoning_review
-```
 
 ## Product Path
 

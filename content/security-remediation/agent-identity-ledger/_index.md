@@ -1,9 +1,9 @@
----
+﻿---
 title: Agent Identity & Delegation Ledger
 linkTitle: Identity Ledger
 weight: 7
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated non-human identity ledger for agentic remediation:
   approved agent classes, delegated authority, MCP scopes, explicit
@@ -48,8 +48,6 @@ one JSON artifact and make a default-deny decision.
 
 The identity layer lives in two generated artifacts and one MCP tool:
 
-- `scripts/generate_agent_identity_ledger.py` - a dependency-free
-  generator and validator with `--check` mode for CI drift detection.
 - `data/evidence/agent-identity-delegation-ledger.json` - the generated
   ledger that joins workflow manifests, MCP gateway policy, and the
   workflow validation report.
@@ -58,10 +56,6 @@ The identity layer lives in two generated artifacts and one MCP tool:
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_agent_identity_ledger.py
-python3 scripts/generate_agent_identity_ledger.py --check
-```
 
 CI runs the same `--check` command after the workflow control plane,
 gateway policy pack, and assurance pack checks.

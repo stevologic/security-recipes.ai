@@ -66,86 +66,61 @@ After connecting, the server exposes these tools:
 - `recipes_get`
 - `recipes_workflow_control_plane`
 - `recipes_mcp_gateway_policy`
-- `recipes_evaluate_mcp_gateway_decision`
 - `recipes_agentic_assurance_pack`
 - `recipes_agent_identity_ledger`
 - `recipes_agentic_entitlement_review_pack`
-- `recipes_evaluate_agentic_entitlement_decision`
 - `recipes_agentic_approval_receipt_pack`
-- `recipes_evaluate_agentic_approval_receipt_decision`
 - `recipes_mcp_connector_trust_pack`
 - `recipes_mcp_connector_intake_pack`
 - `recipes_mcp_stdio_launch_boundary_pack`
-- `recipes_evaluate_mcp_stdio_launch_decision`
 - `recipes_mcp_authorization_conformance_pack`
-- `recipes_evaluate_mcp_authorization_decision`
 - `recipes_mcp_elicitation_boundary_pack`
-- `recipes_evaluate_mcp_elicitation_boundary_decision`
 - `recipes_mcp_tool_risk_contract`
-- `recipes_evaluate_mcp_tool_risk_decision`
 - `recipes_mcp_tool_surface_drift_pack`
-- `recipes_evaluate_mcp_tool_surface_drift_decision`
 - `recipes_agentic_red_team_drill_pack`
 - `recipes_agentic_readiness_scorecard`
 - `recipes_agent_capability_risk_register`
 - `recipes_agent_memory_boundary_pack`
-- `recipes_evaluate_agent_memory_decision`
 - `recipes_agent_skill_supply_chain_pack`
-- `recipes_evaluate_agent_skill_decision`
 - `recipes_agent_handoff_boundary_pack`
-- `recipes_evaluate_agent_handoff_decision`
 - `recipes_a2a_agent_card_trust_profile`
-- `recipes_evaluate_a2a_agent_card_trust_decision`
 - `recipes_agentic_system_bom`
 - `recipes_agentic_run_receipt_pack`
 - `recipes_secure_context_trust_pack`
-- `recipes_evaluate_context_retrieval_decision`
 - `recipes_secure_context_attestation_pack`
-- `recipes_evaluate_context_attestation_decision`
 - `recipes_secure_context_lineage_ledger`
-- `recipes_evaluate_secure_context_lineage_decision`
 - `recipes_secure_context_eval_pack`
-- `recipes_evaluate_secure_context_eval_case`
 - `recipes_context_poisoning_guard_pack`
 - `recipes_context_egress_boundary_pack`
-- `recipes_evaluate_context_egress_decision`
 - `recipes_agentic_threat_radar`
 - `recipes_agentic_standards_crosswalk`
 - `recipes_agentic_source_freshness_watch`
 - `recipes_mcp_risk_coverage_pack`
 - `recipes_agentic_protocol_conformance_pack`
-- `recipes_evaluate_agentic_protocol_conformance_decision`
 - `recipes_agentic_control_plane_blueprint`
 - `recipes_agentic_exposure_graph`
 - `recipes_agentic_posture_snapshot`
-- `recipes_evaluate_agentic_posture_decision`
 - `recipes_agentic_aivss_risk_scoring_pack`
-- `recipes_evaluate_agentic_aivss_risk_decision`
 - `recipes_agentic_app_intake_pack`
-- `recipes_evaluate_agentic_app_intake_decision`
 - `recipes_model_provider_routing_pack`
-- `recipes_evaluate_model_provider_routing_decision`
 - `recipes_agentic_catastrophic_risk_annex`
-- `recipes_evaluate_agentic_catastrophic_risk_decision`
 - `recipes_critical_infrastructure_secure_context_pack`
-- `recipes_evaluate_critical_infrastructure_context_decision`
 - `recipes_agentic_incident_response_pack`
-- `recipes_evaluate_agentic_incident_response_decision`
 - `recipes_agentic_action_runtime_pack`
-- `recipes_evaluate_agentic_action_runtime_decision`
 - `recipes_browser_agent_boundary_pack`
-- `recipes_evaluate_browser_agent_boundary_decision`
 - `recipes_agentic_measurement_probe_pack`
 - `recipes_agentic_telemetry_contract`
-- `recipes_evaluate_agentic_telemetry_event`
 - `recipes_agentic_soc_detection_pack`
-- `recipes_evaluate_agentic_soc_detection_event`
 - `recipes_enterprise_trust_center_export`
 - `recipes_secure_context_value_model`
 - `recipes_design_partner_pilot_pack`
 - `recipes_secure_context_buyer_diligence_brief`
 - `recipes_secure_context_customer_proof_pack`
 - `recipes_hosted_mcp_readiness_pack`
+- `recipes_mcp_upstream_servers`
+- `recipes_mcp_upstream_tools`
+- `recipes_mcp_upstream_call`
+- `recipes_mcp_upstream_context`
 - `recipes_match_finding`
 
 ## Use a custom config
@@ -187,6 +162,52 @@ tool-surface drift, protocol-conformance, catastrophic-risk, incident-response, 
 critical-infrastructure, browser-agent boundary, entitlement-review, AIVSS risk, posture, model-provider
 red-team replay, routing, telemetry, SOC-detection, approval-receipt, and egress evaluators use those generated packs and
 do not require separate config paths.
+
+## Add optional upstream MCP context
+
+The Security Recipes MCP server can also act as a read-only context hub for
+other MCP servers, but no upstream servers are enabled by default. This keeps
+the public/site deployment from holding or spending anyone else's credentials.
+
+For a business deployment, add one `[[upstream_mcp_servers]]` table per
+approved HTTP or Streamable HTTP MCP endpoint in `mcp-server.toml`. Keep tokens
+in environment variables and pin the exact read-only tools the Security Recipes
+server may call:
+
+```toml
+[[upstream_mcp_servers]]
+id = "github"
+label = "GitHub MCP Server"
+url = "https://YOUR-GITHUB-MCP-ENDPOINT/mcp"
+auth_token_env = "GITHUB_TOKEN"
+allowed_tools = ["search_repositories", "get_issue", "get_pull_request"]
+context_tool = "search_repositories"
+context_query_argument = "query"
+max_response_chars = 12000
+```
+
+Then run the container with the token in the environment:
+
+```powershell
+docker run --rm -it -p 8123:80 `
+  -e GITHUB_TOKEN="$env:GITHUB_TOKEN" `
+  -v "${PWD}/mcp-server.toml:/app/mcp-server.toml:ro" `
+  mcp.server
+```
+
+The upstream bridge exposes four tools:
+
+- `recipes_mcp_upstream_servers` lists configured upstreams without returning
+  secrets.
+- `recipes_mcp_upstream_tools` lists a configured upstream server's tools and
+  shows whether each tool is allowed locally.
+- `recipes_mcp_upstream_call` calls one allowed upstream tool.
+- `recipes_mcp_upstream_context` calls each configured server's `context_tool`
+  and returns bounded text context for a remediation query.
+
+Only HTTP or Streamable HTTP upstreams are called directly. If a connector is
+stdio-only, run it behind a reviewed internal gateway first, then point this
+server at that gateway URL.
 
 ## Change the local port
 

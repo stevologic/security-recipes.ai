@@ -1,9 +1,9 @@
----
+﻿---
 title: MCP Gateway Policy Pack
 linkTitle: Gateway Policy
 weight: 5
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated policy pack that turns workflow manifests into enforceable
   MCP gateway decisions for scoped tool access, reviewer-gated writes,
@@ -43,23 +43,11 @@ audit.
 The policy pack is generated from the workflow control-plane manifest:
 
 - `data/policy/mcp-gateway-policy.json` - the generated policy bundle.
-- `scripts/generate_mcp_gateway_policy.py` - a dependency-free generator
-  with `--check` mode for CI drift detection.
-- `scripts/evaluate_mcp_gateway_decision.py` - a dependency-free runtime
-  evaluator that turns the generated policy into per-call decisions.
 - `recipes_mcp_gateway_policy` - an MCP tool that exposes the pack to
   connected agents and gateways.
-- `recipes_evaluate_mcp_gateway_decision` - an MCP tool that lets an
-  agent host or gateway evaluate one runtime request against the pack.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_mcp_gateway_policy.py
-python3 scripts/generate_mcp_gateway_policy.py --check
-```
 
-GitHub Actions runs the check before the Hugo build, so a workflow
 manifest cannot change without updating the generated enforcement
 contract.
 

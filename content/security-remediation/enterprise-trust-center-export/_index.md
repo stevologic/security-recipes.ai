@@ -1,9 +1,9 @@
----
+﻿---
 title: Enterprise Trust Center Export
 linkTitle: Trust Center Export
 weight: 13
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated review packet that bundles SecurityRecipes
   secure-context, MCP, identity, eval, readiness, runtime evidence, and
@@ -53,20 +53,13 @@ question that matters.
 - `data/assurance/enterprise-trust-center-profile.json` - source
   contract for standards alignment, required packs, trust-center
   sections, diligence questions, runtime evidence, and trusted-source path.
-- `scripts/generate_enterprise_trust_center_export.py` - deterministic
-  generator and `--check` validator.
 - `data/evidence/enterprise-trust-center-export.json` - generated export
   for reviewer diligence, MCP clients, and CI drift detection.
 - `recipes_enterprise_trust_center_export` - MCP tool for the full
   export, a section, an evidence pack, a diligence question, or filtered
   category/status views.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_enterprise_trust_center_export.py
-python3 scripts/generate_enterprise_trust_center_export.py --check
-```
 
 ## What is inside
 
@@ -178,4 +171,4 @@ The export is anchored in current primary guidance:
 - [Secure Context Attestation]({{< relref "/security-remediation/secure-context-attestation" >}})
 - [Agent Handoff Boundary]({{< relref "/security-remediation/agent-handoff-boundary" >}})
 - [A2A Agent Card Trust]({{< relref "/security-remediation/a2a-agent-card-trust" >}})
-- [Production MCP Server]({{< relref "/mcp-servers" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})

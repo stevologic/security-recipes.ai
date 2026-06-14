@@ -62,7 +62,7 @@
       "description": "Generates a browser mail draft or sends through a configured relay endpoint.",
       "config": {
         "type": "email_handoff",
-        "to": ["security@example.com"],
+        "to": ["security-team@YOUR-DOMAIN"],
         "subject_prefix": "[SecurityRecipes]",
         "relay_url": ""
       }
@@ -79,7 +79,7 @@
       "description": "Creates a Jira task with a structured remediation or scan summary.",
       "config": {
         "type": "jira_issue",
-        "base_url": "https://example.atlassian.net",
+        "base_url": "https://YOUR-ATLASSIAN-SITE.atlassian.net",
         "project_key": "SEC",
         "issue_type": "Task"
       }
@@ -143,7 +143,7 @@
       "description": "Creates a ServiceNow incident or task record with a normalized remediation or scan summary.",
       "config": {
         "type": "servicenow_incident",
-        "instance_url": "https://example.service-now.com",
+        "instance_url": "https://YOUR-SERVICENOW-INSTANCE.service-now.com",
         "table": "incident",
         "priority_map": {
           "critical": "1",
@@ -181,7 +181,7 @@
       "description": "Posts the normalized report bundle directly to Splunk HTTP Event Collector for SIEM or analytics use.",
       "config": {
         "type": "splunk_hec",
-        "hec_url": "https://splunk.example.com:8088/services/collector",
+        "hec_url": "https://YOUR-SPLUNK-HOST:8088/services/collector",
         "sourcetype": "securityrecipes:report",
         "index": "secops"
       }
@@ -285,7 +285,7 @@
       "description": "Browser-side route for creating a Cortex XSOAR incident from a reviewed SecurityRecipes packet, with incident-shaped payloads and local preview fallback when direct delivery is blocked.",
       "config": {
         "type": "cortex_xsoar_incident",
-        "base_url": "https://xsoar.example.com/xsoar/public/v1/incident",
+        "base_url": "https://YOUR-XSOAR-HOST/xsoar/public/v1/incident",
         "api_key_header": "Authorization",
         "api_key_id_header": "x-xdr-auth-id",
         "create_investigation": true,
@@ -305,7 +305,7 @@
       "description": "Starter browser-side route for creating an IBM SOAR incident from a structured SecurityRecipes packet.",
       "config": {
         "type": "ibm_soar_incident",
-        "base_url": "https://soar.example.com/rest/orgs/{orgId}/incidents",
+        "base_url": "https://YOUR-IBM-SOAR-HOST/rest/orgs/{orgId}/incidents",
         "incident_type_ids": [123],
         "handle_format": "names"
       }
@@ -373,7 +373,7 @@
       "description": "Browser-side route for creating a Splunk SOAR container from a reviewed SecurityRecipes packet, with container-shaped payloads and local preview fallback when direct delivery is blocked.",
       "config": {
         "type": "splunk_soar_container",
-        "base_url": "https://phantom.example.com/rest/container",
+        "base_url": "https://YOUR-SPLUNK-SOAR-HOST/rest/container",
         "auth_header": "ph-auth-token",
         "label": "events",
         "container_type": "case",
@@ -392,7 +392,7 @@
       "description": "Starter browser-side route for creating a Swimlane case or work item from a reviewed SecurityRecipes packet.",
       "config": {
         "type": "swimlane_record",
-        "base_url": "https://swimlane.example.com/api",
+        "base_url": "https://YOUR-SWIMLANE-HOST/api",
         "app": "Security Cases",
         "record_type": "case"
       }
@@ -409,7 +409,7 @@
       "description": "Posts the full SecurityRecipes delivery envelope to a custom SOAR, queue, or workflow endpoint.",
       "config": {
         "type": "generic_webhook",
-        "url": "https://example.internal/hooks/security-recipes",
+        "url": "https://YOUR-INTERNAL-WORKFLOW-HOST/hooks/security-recipes",
         "method": "POST",
         "headers": {
           "Content-Type": "application/json"

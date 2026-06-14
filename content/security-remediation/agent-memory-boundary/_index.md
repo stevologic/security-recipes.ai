@@ -1,4 +1,4 @@
----
+﻿---
 title: Agent Memory Boundary
 linkTitle: Agent Memory Boundary
 weight: 13
@@ -8,6 +8,8 @@ description: >
   scratchpads, append-only receipts, read-only policy memory, tenant
   runtime memory, vector memory, TTLs, provenance, rollback, and
   prohibited persistence.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -44,33 +46,17 @@ remembered it" into an auditable decision.
 - Source model:
   `data/assurance/agent-memory-boundary-model.json`
 - Generator:
-  `scripts/generate_agent_memory_boundary_pack.py`
 - Runtime evaluator:
-  `scripts/evaluate_agent_memory_boundary_decision.py`
 - Evidence pack:
   `data/evidence/agent-memory-boundary-pack.json`
 - MCP tools:
   `recipes_agent_memory_boundary_pack` and
-  `recipes_evaluate_agent_memory_decision`
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_agent_memory_boundary_pack.py
-python3 scripts/generate_agent_memory_boundary_pack.py --check
-```
 
 Evaluate one memory operation:
 
-```bash
-python3 scripts/evaluate_agent_memory_boundary_decision.py \
-  --workflow-id vulnerable-dependency-remediation \
-  --memory-class-id run-receipt-evidence \
-  --operation write \
-  --tenant-id tenant-123 \
-  --provenance-hash example-source-hash \
-  --expect-decision allow_append_only_evidence_memory
-```
 
 ## Memory classes
 
@@ -128,14 +114,6 @@ recipes_agent_memory_boundary_pack(
 
 Evaluate a policy-memory mutation attempt:
 
-```text
-recipes_evaluate_agent_memory_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  memory_class_id="workflow-policy-memory",
-  operation="write",
-  provenance_hash="example-source-hash"
-)
-```
 
 That returns `deny_runtime_memory_write` because workflow policy memory
 is source-controlled and read-only at runtime.

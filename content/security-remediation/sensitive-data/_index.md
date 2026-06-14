@@ -153,6 +153,10 @@ review. What changes:
 - **Tools.** When a new scanner joins intake, it's added as another
   MCP connector; the orchestrator itself doesn't change.
 
+## Python remediation tool
+
+{{< remediation-tool domain="sensitive-data" >}}
+
 ## Changelog
 
 - 2026-04-21 — v1, rolled out to opt-in repos. YAML, JSON, and

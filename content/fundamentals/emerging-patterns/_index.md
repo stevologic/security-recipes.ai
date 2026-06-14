@@ -1,4 +1,4 @@
----
+﻿---
 title: Emerging Patterns & Tools
 linkTitle: Emerging Patterns
 weight: 6
@@ -7,7 +7,7 @@ sidebar:
   open: true
 description: >
   What's maturing in the agentic remediation space beyond the
-  baseline shape this site documents — reachability-aware
+  baseline shape this site documents â€” reachability-aware
   triage, supervisor / worker orchestration, sandbox runtimes,
   guardrail frameworks, AI-assisted SAST, observability, and
   verifiable patches.
@@ -44,7 +44,7 @@ betting on it in a production program.
   are not in code your service ever executes.
 - **Why it matters.** Reachability filtering collapses the CVE
   queue by an order of magnitude in most codebases, which makes
-  the remaining queue small enough to actually remediate —
+  the remaining queue small enough to actually remediate â€”
   whether by an agent or a human. It also flips the default
   behaviour of an agent from "bump everything" to "bump the
   reachable ones first."
@@ -65,7 +65,7 @@ betting on it in a production program.
   the deterministic scanner, not in place of it.
 - **Why it matters.** SAST false-positive rates are the single
   biggest reason SAST programs stall out. AI-assisted triage
-  flips the economics — the scanner is still the source of
+  flips the economics â€” the scanner is still the source of
   truth, but reviewer time goes to the findings the assistant
   couldn't resolve on its own.
 - **Watch for.** The assistant accepting bad findings (false
@@ -82,14 +82,14 @@ betting on it in a production program.
   churn, typo-squat proximity, capability-manifest drift,
   unusual network / filesystem calls) surfaced alongside
   version metadata at install time. The agent's dispatch layer
-  uses the score as an eligibility gate — "can we auto-bump this
+  uses the score as an eligibility gate â€” "can we auto-bump this
   package?" is a function of reputation, not just of CVE
   severity.
 - **Watch for.** Scoring is opaque by default. If you integrate
   a reputation feed, require evidence for any score that gates
   behaviour, and keep an override path.
 - **Representative tooling.** Socket.dev, Phylum, Snyk, GitHub
-  dependency review — plus the OpenSSF Scorecard project for an
+  dependency review â€” plus the OpenSSF Scorecard project for an
   open-source signal bundle.
 
 ---
@@ -145,7 +145,7 @@ flowchart TB
   separate **executor** runs each step with tightly scoped tool
   access. A human (or a verifier agent) can approve the plan
   before execution begins.
-- **Why it matters.** Plan review is a natural checkpoint —
+- **Why it matters.** Plan review is a natural checkpoint â€”
   cheaper to catch "the agent is about to do the wrong thing"
   at plan-time than at execution-time.
 - **Watch for.** If the executor can't deviate from the plan
@@ -157,18 +157,18 @@ flowchart TB
 
 - **What it is.** The code-hosting platform itself exposes a
   "hand this finding to an agent" button on the native finding
-  UI — dependency advisories, scanning alerts, dependabot
-  entries — and the platform spawns the agent run, opens the
+  UI â€” dependency advisories, scanning alerts, dependabot
+  entries â€” and the platform spawns the agent run, opens the
   draft PR, and wires it back to the alert. The assignee
   abstraction is generic: you pick an agent (Copilot, Claude,
-  Codex, …), and the platform handles dispatch, auth, and
+  Codex, â€¦), and the platform handles dispatch, auth, and
   result plumbing.
 - **Why it matters.** It collapses the whole orchestrator layer
   for teams that don't want to build one. For small orgs, this
   is the shortest path from "we have an SCA queue" to "most of
   the queue is draft PRs waiting for review." For larger orgs
   already running their own orchestrator, it's still useful as
-  a *fallback* intake — anything that falls off the main queue
+  a *fallback* intake â€” anything that falls off the main queue
   can still be agent-assigned from the native UI.
 - **Watch for.** The platform-spawned agent runs under the
   platform's identity, not your orchestrator's, so your audit
@@ -177,7 +177,7 @@ flowchart TB
   assigned agent), which is great for compare-and-pick but
   requires a review convention so the loser PRs get closed
   rather than lingering. And the same reviewer-gate discipline
-  still applies — "the platform assigned it" is not a trust
+  still applies â€” "the platform assigned it" is not a trust
   signal; it's just a dispatch mechanism.
 - **Representative shape.** GitHub's Dependabot alert
   assignees (Copilot / Claude / Codex, 2026). Expect
@@ -203,8 +203,8 @@ flowchart TB
   agent *is* the thing behaving badly. For remediation
   specifically, budgets give you an easy dispatcher-level
   eligibility gate: "if the workflow class's p95 budget is 40k
-  tokens, any run exceeding 2× is an anomaly to investigate."
-- **Watch for.** Budgets don't replace stop-and-ask semantics —
+  tokens, any run exceeding 2Ã— is an anomaly to investigate."
+- **Watch for.** Budgets don't replace stop-and-ask semantics â€”
   a run that hits its budget should *stop and triage*, not
   silently emit a partial answer. Wire the budget-exhausted
   exit path into the same triage-note surface the agent uses
@@ -236,11 +236,11 @@ flowchart TB
 ## Agent platform primitives
 
 A short run of protocol-level primitives that changed what
-counts as a sensible agent design in 2025–2026. These map
+counts as a sensible agent design in 2025â€“2026. These map
 one-to-one onto features shipped in the Claude API and the MCP
 spec, and they're summarised here because each of them re-opens
 design decisions elsewhere on this site. See
-[MCP Server Access → Where MCP is heading in 2026]({{< relref "/mcp-servers#where-mcp-is-heading-in-2026" >}})
+[MCP Integration â†’ Where MCP is heading in 2026]({{< relref "/mcp-servers#where-mcp-is-heading-in-2026" >}})
 for the roadmap context.
 
 ### Progressive tool discovery and tool search
@@ -249,7 +249,7 @@ for the roadmap context.
 flowchart LR
     USER[User intent] --> AGENT[Agent with search tool]
     AGENT -->|discovery query| SEARCH[tool_search_tool]
-    SEARCH -->|3–5 tool_reference blocks| AGENT
+    SEARCH -->|3â€“5 tool_reference blocks| AGENT
     AGENT -->|loads only discovered tools| RUN[Tool execution]
     CAT[(Catalog of 100s of tools<br/><i>defer_loading: true</i>)] -.-> SEARCH
 
@@ -264,7 +264,7 @@ flowchart LR
 - **What it is.** Instead of loading every tool definition into
   the system-prompt prefix, tools are marked `defer_loading:
   true` and surfaced on demand via a **tool search tool** (regex
-  or BM25). The agent searches the catalog, the API returns 3–5
+  or BM25). The agent searches the catalog, the API returns 3â€“5
   `tool_reference` blocks, and those are expanded inline into
   full tool definitions for this turn. The catalog stays outside
   the context; only what's needed gets loaded.
@@ -272,7 +272,7 @@ flowchart LR
   percentage of context. A typical multi-server setup (GitHub +
   Slack + Sentry + Grafana + Splunk) can consume ~55k tokens in
   definitions before any real work happens. Tool selection
-  accuracy also drops noticeably past 30–50 visible tools.
+  accuracy also drops noticeably past 30â€“50 visible tools.
   Progressive discovery reports ~85%+ reductions in
   tool-definition token cost, and Claude Code applies it
   automatically, deferring servers whose definitions would
@@ -284,9 +284,9 @@ flowchart LR
 - **Watch for.** More reachable tools means more tool-poisoning
   surface area (descriptions are prompt-layer input). Pin
   descriptions, diff them on update, and keep the gateway's
-  allowlist as the real scoping boundary — see
-  [Threat Model → tool poisoning]({{< relref "/fundamentals/threat-model#2-poisoned-mcp-responses-and-tool-descriptions" >}}).
-  Also: keep 3–5 highest-frequency tools non-deferred;
+  allowlist as the real scoping boundary â€” see
+  [Threat Model â†’ tool poisoning]({{< relref "/fundamentals/threat-model#2-poisoned-mcp-responses-and-tool-descriptions" >}}).
+  Also: keep 3â€“5 highest-frequency tools non-deferred;
   discovery latency is real.
 - **Representative tooling.** Anthropic's
   [tool search tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
@@ -300,7 +300,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     P[Prompt] --> M[Model]
-    M -->|"writes orchestration code"| S["Code-execution sandbox<br/><i>loops · branches · filters</i>"]
+    M -->|"writes orchestration code"| S["Code-execution sandbox<br/><i>loops Â· branches Â· filters</i>"]
     S -->|tool_use| T[(Tool: database / MCP / API)]
     T -->|tool_result stays in sandbox| S
     S -->|final summary only| M
@@ -317,7 +317,7 @@ flowchart LR
 - **What it is.** Instead of round-tripping the model once per
   tool call, the model writes a Python script inside a
   code-execution sandbox that invokes tools as async functions
-  — with loops, conditionals, early-termination, filtering,
+  â€” with loops, conditionals, early-termination, filtering,
   aggregation, error handling. Tools are opted in with
   `allowed_callers: ["code_execution_20260120"]`. Intermediate
   `tool_result` payloads stay in the sandbox; only the final
@@ -331,12 +331,12 @@ flowchart LR
   where file contents never enter context.
 - **Watch for.** Tools served by the Anthropic
   [MCP connector](https://platform.claude.com/docs/en/agents-and-tools/mcp-connector)
-  are currently **not** callable programmatically — the feature
+  are currently **not** callable programmatically â€” the feature
   works against first-party API tools plus self-hosted tools
   in the sandbox. If you want the pattern over MCP today, you
   implement the sandbox + tool-routing yourself. Expect this to
   change; track the feature-gate. Security implication: tool
-  results become strings the sandbox may interpret as code —
+  results become strings the sandbox may interpret as code â€”
   validate external tool output the same way you'd validate
   any untrusted string reaching an eval boundary.
 - **Representative tooling.** Anthropic's
@@ -352,7 +352,7 @@ flowchart LR
 
 - **What it is.** An MCP primitive (shipped September 2025) that
   lets a server pause mid-execution and ask the user for
-  *structured* input — a JSON-schema form rather than a free-
+  *structured* input â€” a JSON-schema form rather than a free-
   text prompt. The agent is a participant in the handoff, not
   the target of the question.
 - **Why it matters.** Remediation workflows frequently need
@@ -364,7 +364,7 @@ flowchart LR
   to elicit one-time credentials without storing them in a
   prompt.
 - **Watch for.** Elicitation requests are *also* prompt-layer
-  surface — a compromised server could craft an elicitation that
+  surface â€” a compromised server could craft an elicitation that
   reads like a social-engineering payload. Schema-constrain the
   fields and surface the elicitation in the orchestrator's UI,
   not in the raw model stream.
@@ -381,14 +381,14 @@ flowchart LR
   (or an orchestrator queue) polls or receives callbacks as
   state evolves. Designed for CI runs, long test suites, staged
   rollouts, and anything measured in minutes-to-hours.
-- **Why it matters.** The dominant 2024–2025 workaround was
+- **Why it matters.** The dominant 2024â€“2025 workaround was
   "agent holds connection open and retries" or "orchestrator
   queues its own tasks and polls each server in a bespoke way."
   The tasks primitive formalises the pattern into the protocol,
   so both sides of the connection agree on the lifecycle.
 - **Watch for.** A single user intent can fan out into a tree
   of tasks across several servers. Plan for a correlation ID
-  that spans the tree — otherwise your audit trail fragments
+  that spans the tree â€” otherwise your audit trail fragments
   and postmortems get painful.
 - **Representative tooling.** The 2025-12 MCP spec's
   experimental tasks primitive; MCP SDKs as they adopt it;
@@ -424,7 +424,7 @@ flowchart LR
 ### Agent identity as a first-class principal
 
 - **What it is.** Treating every agent run as its own
-  identifiable actor — not a shared "bot" account, not the
+  identifiable actor â€” not a shared "bot" account, not the
   human who dispatched it, not a workload identity bound to
   the sandbox container. The run presents credentials tied to
   **(agent class, workflow, invoking principal, task ID)**,
@@ -435,9 +435,9 @@ flowchart LR
 - **Why it matters.** A workload identity can prove which
   container ran; it cannot prove what the reasoning inside
   that container was permitted to do. For security-scoped
-  remediation — where an agent may hold read access to
+  remediation â€” where an agent may hold read access to
   findings, write access to a repo, and call credentials
-  scoped to bumps — the difference between "who ran the
+  scoped to bumps â€” the difference between "who ran the
   process" and "what the process was authorized to do" is
   the difference between a recoverable incident and a
   confused-deputy blast radius. Regulated programs are
@@ -454,14 +454,14 @@ flowchart LR
       more to set up once but remove the entire class.
     - *Shared "bot" accounts.* If every agent run authenticates
       as `ci-bot` or `copilot-bot`, every tool call is
-      indistinguishable in the log — and so is every
+      indistinguishable in the log â€” and so is every
       compromise.
     - *No human-owner link.* Every agent identity should name
       a mandatory human owner, the way every SSH key names a
       person. "Who do you page when this identity misbehaves?"
       must have an answer before the identity is issued.
     - *No revocation path.* A kill switch for the *fleet* is
-      not a kill switch for *this run* — revocation needs to
+      not a kill switch for *this run* â€” revocation needs to
       be per-identity and near-instant.
 - **Representative shapes.** Per-run workload-identity issuance
   (SPIFFE/SPIRE patterns adapted for agents), OIDC-bound
@@ -470,7 +470,7 @@ flowchart LR
   Entrust and others), and the emerging class of "agent IAM"
   controls Gartner is tracking alongside traditional IAM. The
   2026 design posture: agent identities are their own
-  principal class — not humans, not workloads — with mandatory
+  principal class â€” not humans, not workloads â€” with mandatory
   ownership, just-in-time scoping, and instant revocation.
 
 ---
@@ -495,7 +495,7 @@ flowchart LR
 
 - **What it is.** Instead of running agents inside a
   long-lived container, each run gets a fresh, ephemeral
-  execution environment — a VM, micro-VM, or container created
+  execution environment â€” a VM, micro-VM, or container created
   at dispatch and torn down at completion. Filesystem, network,
   credentials, and process state are all fresh.
 - **Why it matters.** Blast radius of a compromised or runaway
@@ -510,7 +510,7 @@ flowchart LR
 
 - **What it is.** Agents that need web access run inside a
   heavily instrumented browser (Playwright, Puppeteer, or a
-  custom agent browser) with DOM-level policy — not inside the
+  custom agent browser) with DOM-level policy â€” not inside the
   host browser.
 - **Why it matters.** A browser is the highest-risk tool an
   agent can hold: every page is a potential prompt-injection
@@ -564,14 +564,14 @@ flowchart LR
   never reads attacker-influenced text. A **quarantined LLM**
   reads the untrusted content (advisory bodies, PR comments,
   MCP responses, web pages) and emits a *typed, schema-
-  validated* handoff — never free text — back to the
+  validated* handoff â€” never free text â€” back to the
   privileged side. The original Google DeepMind framing
   (CaMeL, 2025) is now the reference shape for prompt-injection-
   resistant agents; 2026 enterprise extensions add capability
   metadata, output auditing, and a small intermediate
   language for the handoff.
 - **Why it matters.** It's a *positive* architectural answer
-  to the lethal trifecta — instead of "remove one of {private
+  to the lethal trifecta â€” instead of "remove one of {private
   data, untrusted content, outbound channel}," it removes the
   *path* between them. For remediation specifically, the shape
   is natural: one agent reads the vulnerability report and
@@ -584,9 +584,9 @@ flowchart LR
   unbounded `paths` array) re-creates the channel you just
   removed. Treat the schema like a security policy: minimum
   fields, bounded sizes, enumerated where possible. Also: the
-  privileged side still trusts tool *responses* — pair with
+  privileged side still trusts tool *responses* â€” pair with
   the size caps and trust tiers in
-  [Threat Model → poisoned MCP responses]({{< relref "/fundamentals/threat-model#2-poisoned-mcp-responses-and-tool-descriptions" >}}).
+  [Threat Model â†’ poisoned MCP responses]({{< relref "/fundamentals/threat-model#2-poisoned-mcp-responses-and-tool-descriptions" >}}).
 - **Representative shapes.** Google DeepMind's CaMeL pattern;
   Simon Willison's "two LLMs" framing; supervisor / worker
   splits where the supervisor reads only typed worker output;
@@ -656,7 +656,7 @@ flowchart LR
     class REV good
 ```
 
-- **What it is.** The agent's output is not just a diff — it's a
+- **What it is.** The agent's output is not just a diff â€” it's a
   diff **plus a machine-checkable artifact** (a CodeQL query
   result, a Semgrep rule match, a passing property test) that
   proves the diff resolves the original finding. The reviewer
@@ -675,14 +675,14 @@ flowchart LR
 ### SLSA provenance for agent-produced PRs
 
 - **What it is.** Cryptographic provenance on the build
-  artifacts produced from an agent-authored PR — what source
+  artifacts produced from an agent-authored PR â€” what source
   produced this binary, on what runner, invoked by whom. SLSA
   (Supply-chain Levels for Software Artifacts) formalises the
   requirements.
 - **Why it matters.** Provides an audit trail for "who
   authored this code, and what actually ran in CI". Useful when
   compliance asks "how do we know a human approved this
-  change?" — the SLSA statement can record the reviewer.
+  change?" â€” the SLSA statement can record the reviewer.
 - **Where.** `slsa.dev`. Tooling: `cosign`, `witness`, and
   in-toto attestations.
 
@@ -755,8 +755,8 @@ flowchart LR
 
 - **What it is.** A centrally owned set of pre-hardened base
   container images that every team starts from. Scanned,
-  signed, SBOM-embedded, and rebuilt on a known cadence — see
-  [Automation → Golden images]({{< relref
+  signed, SBOM-embedded, and rebuilt on a known cadence â€” see
+  [Automation â†’ Golden images]({{< relref
   "/automation#golden-images-and-base-image-hygiene" >}})
   for the full treatment.
 - **Why it matters here.** Golden images turn container-image
@@ -766,13 +766,13 @@ flowchart LR
   with the
   [Vulnerable Dependency Remediation]({{< relref
   "/security-remediation/vulnerable-dependencies" >}})
-  workflow — with golden images, the agent's PR is almost
+  workflow â€” with golden images, the agent's PR is almost
   always a single-line `FROM` bump.
 
 ### Capability-scoped container runtimes
 
 - **What it is.** Runtimes that enforce seccomp, AppArmor /
-  SELinux, and capability drops by default — often as a
+  SELinux, and capability drops by default â€” often as a
   required admission policy. Agents running inside such a
   sandbox can't easily escape even if their prompt is
   compromised.
@@ -787,8 +787,8 @@ flowchart LR
 ### Cross-host agent skills
 
 - **What it is.** The "skill" concept that originated with
-  Claude Code — a named, packaged workflow (folder + instruction
-  file + helper scripts) an agent can invoke — has evolved into a
+  Claude Code â€” a named, packaged workflow (folder + instruction
+  file + helper scripts) an agent can invoke â€” has evolved into a
   portable unit that multiple agent hosts (Claude Code, Copilot,
   Cursor, Codex CLI, and others) can load and run. Package
   managers and CLIs (for example, `gh skill` in the GitHub CLI)
@@ -797,7 +797,7 @@ flowchart LR
 - **Why it matters.** Until recently, writing a
   "CVE-triage" or "SDE-remediation" workflow meant porting the
   same logic into four different file formats
-  (`.claude/skills/…`, `.cursor/rules/…`, a Codex driver script,
+  (`.claude/skills/â€¦`, `.cursor/rules/â€¦`, a Codex driver script,
   a Copilot instructions block). A portable skill format
   collapses that duplication and lets a team ship one artifact
   against whichever host each developer happens to use.

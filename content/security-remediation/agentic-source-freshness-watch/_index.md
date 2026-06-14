@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Source Freshness Watch
 linkTitle: Source Freshness Watch
 weight: 19
@@ -7,6 +7,8 @@ description: >
   Generated source-freshness and standards-drift evidence for the secure
   context layer across OWASP, NIST, MCP, A2A, CISA, OpenAI, CSA, and
   related agentic AI security sources.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -40,7 +42,6 @@ This run considered three high-value product directions:
 - Profile:
   `data/assurance/agentic-source-freshness-profile.json`
 - Generator:
-  `scripts/generate_agentic_source_freshness_watch.py`
 - Evidence pack:
   `data/evidence/agentic-source-freshness-watch.json`
 - MCP tool:
@@ -48,10 +49,6 @@ This run considered three high-value product directions:
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_agentic_source_freshness_watch.py
-python3 scripts/generate_agentic_source_freshness_watch.py --check
-```
 
 ## What it watches
 

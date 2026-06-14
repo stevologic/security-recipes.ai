@@ -1,4 +1,4 @@
----
+﻿---
 title: Agentic Run Receipts
 linkTitle: Agentic Run Receipts
 weight: 12
@@ -8,6 +8,8 @@ description: >
   context retrieval, poisoning scan, MCP tool decisions, egress decisions,
   approvals, verifier results, evidence retention, and revocation in one
   portable proof object.
+sidebar:
+  exclude: true
 ---
 
 {{< callout type="info" >}}
@@ -40,7 +42,6 @@ system after the run closes.
 - Source profile:
   `data/assurance/agentic-run-receipt-profile.json`
 - Generator:
-  `scripts/generate_agentic_run_receipt_pack.py`
 - Evidence pack:
   `data/evidence/agentic-run-receipt-pack.json`
 - MCP tool:
@@ -48,10 +49,6 @@ system after the run closes.
 
 Regenerate and validate the pack:
 
-```bash
-python3 scripts/generate_agentic_run_receipt_pack.py
-python3 scripts/generate_agentic_run_receipt_pack.py --check
-```
 
 ## Receipt chain
 

@@ -259,6 +259,10 @@ deploys. A human reviewer is the gate between "PR merged" and
   structured findings; the agent doesn't know which scanner
   produced them.
 
+## Python remediation tool
+
+{{< remediation-tool domain="base-images" >}}
+
 ## See also
 
 - [Vulnerable Dependency Remediation]({{< relref "/security-remediation/vulnerable-dependencies" >}})

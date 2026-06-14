@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Entitlement Review Pack
 linkTitle: Entitlement Review
 weight: 16
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated entitlement-review pack and deterministic evaluator for
   expiring, reviewable, revocable agent permissions across MCP scopes,
@@ -48,66 +48,18 @@ webhooks, and IdP/SIEM integrations.
 - `data/assurance/agentic-entitlement-review-profile.json` - source
   contract for entitlement tiers, review cadences, lease TTLs,
   standards alignment, reviewer views, and trusted-source path.
-- `scripts/generate_agentic_entitlement_review_pack.py` - deterministic
-  generator and `--check` validator.
-- `scripts/evaluate_agentic_entitlement_decision.py` - deterministic
-  allow, hold, deny, or kill evaluator.
 - `data/evidence/agentic-entitlement-review-pack.json` - generated
   entitlement pack for MCP clients, CI drift checks, and reviewer diligence.
 - `recipes_agentic_entitlement_review_pack` - MCP lookup by entitlement,
   identity, workflow, namespace, risk tier, or access mode.
-- `recipes_evaluate_agentic_entitlement_decision` - MCP runtime evaluator
-  for one proposed agent entitlement use.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_agentic_entitlement_review_pack.py
-python3 scripts/generate_agentic_entitlement_review_pack.py --check
-```
 
 Evaluate an active scoped branch-write entitlement:
 
-```bash
-python3 scripts/evaluate_agentic_entitlement_decision.py \
-  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
-  --workflow-id vulnerable-dependency-remediation \
-  --agent-class codex \
-  --namespace repo.contents \
-  --requested-access-mode write_branch \
-  --lease-id lease-ci \
-  --lease-status active \
-  --lease-expires-at 2099-01-01T00:00:00Z \
-  --review-status current \
-  --authorization-decision allow_authorized_mcp_request \
-  --run-id run-ci \
-  --tenant-id tenant-ci \
-  --correlation-id corr-ci \
-  --receipt-id receipt-ci \
-  --policy-pack-hash sha256:policy \
-  --expect-decision allow_active_entitlement
-```
 
 Evaluate an expired lease:
 
-```bash
-python3 scripts/evaluate_agentic_entitlement_decision.py \
-  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
-  --workflow-id vulnerable-dependency-remediation \
-  --agent-class codex \
-  --namespace repo.contents \
-  --requested-access-mode write_branch \
-  --lease-id lease-expired \
-  --lease-status expired \
-  --lease-expires-at 2026-01-01T00:00:00Z \
-  --review-status current \
-  --authorization-decision allow_authorized_mcp_request \
-  --run-id run-expired \
-  --tenant-id tenant-ci \
-  --correlation-id corr-expired \
-  --receipt-id receipt-expired \
-  --expect-decision deny_expired_or_missing_lease
-```
 
 ## What is inside
 

@@ -1,9 +1,9 @@
----
+﻿---
 title: MCP Connector Intake Scanner
 linkTitle: Connector Intake Scanner
 weight: 7
 sidebar:
-  open: true
+  exclude: true
 description: >
   A deterministic intake gate for new or changed MCP servers that scores
   auth, token, network, schema, data, write, approval, evidence, and
@@ -42,8 +42,6 @@ promotion plans, and an MCP-readable evidence pack.
 
 - `data/mcp/connector-intake-candidates.json` - source-controlled
   intake examples and the review contract for candidate MCP servers.
-- `scripts/generate_mcp_connector_intake_pack.py` - dependency-free
-  generator and validator with `--check` mode for CI.
 - `data/evidence/mcp-connector-intake-pack.json` - generated intake
   decisions, risk findings, control gaps, registry patch previews, and
   red-team drills.
@@ -52,10 +50,6 @@ promotion plans, and an MCP-readable evidence pack.
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_mcp_connector_intake_pack.py
-python3 scripts/generate_mcp_connector_intake_pack.py --check
-```
 
 ## Intake decisions
 

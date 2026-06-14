@@ -136,7 +136,6 @@
       ],
       "id": "runtime-kill-signal-override",
       "mcp_tools": [
-        "recipes_evaluate_mcp_gateway_decision",
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_red_team_drill_pack"
       ],
@@ -185,7 +184,6 @@
       "id": "token-and-identity-containment",
       "mcp_tools": [
         "recipes_mcp_authorization_conformance_pack",
-        "recipes_evaluate_mcp_authorization_decision",
         "recipes_agent_identity_ledger"
       ],
       "ready_evidence_count": 3,
@@ -226,7 +224,6 @@
       "id": "cross-agent-containment",
       "mcp_tools": [
         "recipes_agent_handoff_boundary_pack",
-        "recipes_evaluate_agent_handoff_decision",
         "recipes_context_egress_boundary_pack"
       ],
       "ready_evidence_count": 3,
@@ -508,7 +505,6 @@
           ],
           "id": "runtime-kill-signal-override",
           "mcp_tools": [
-            "recipes_evaluate_mcp_gateway_decision",
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_red_team_drill_pack"
           ],
@@ -620,7 +616,6 @@
           "id": "token-and-identity-containment",
           "mcp_tools": [
             "recipes_mcp_authorization_conformance_pack",
-            "recipes_evaluate_mcp_authorization_decision",
             "recipes_agent_identity_ledger"
           ],
           "ready_evidence_count": 3,
@@ -661,7 +656,6 @@
           "id": "cross-agent-containment",
           "mcp_tools": [
             "recipes_agent_handoff_boundary_pack",
-            "recipes_evaluate_agent_handoff_decision",
             "recipes_context_egress_boundary_pack"
           ],
           "ready_evidence_count": 3,
@@ -728,7 +722,6 @@
           ],
           "id": "runtime-kill-signal-override",
           "mcp_tools": [
-            "recipes_evaluate_mcp_gateway_decision",
             "recipes_agentic_measurement_probe_pack",
             "recipes_agentic_red_team_drill_pack"
           ],
@@ -986,7 +979,6 @@
       "promotion_gate": "Expansion requires loop detection, deny-after-deny kill signals, red-team replay, and receipt reconstruction for the full action chain.",
       "ready_evidence_count": 4,
       "required_mcp_tools": [
-        "recipes_evaluate_mcp_gateway_decision",
         "recipes_agentic_red_team_drill_pack",
         "recipes_agentic_measurement_probe_pack",
         "recipes_agentic_run_receipt_pack"
@@ -1022,7 +1014,6 @@
       "ready_evidence_count": 4,
       "required_mcp_tools": [
         "recipes_mcp_authorization_conformance_pack",
-        "recipes_evaluate_mcp_authorization_decision",
         "recipes_agent_identity_ledger",
         "recipes_agentic_run_receipt_pack"
       ],
@@ -1057,7 +1048,6 @@
       "ready_evidence_count": 4,
       "required_mcp_tools": [
         "recipes_agent_handoff_boundary_pack",
-        "recipes_evaluate_agent_handoff_decision",
         "recipes_context_egress_boundary_pack",
         "recipes_agentic_red_team_drill_pack"
       ],
@@ -1131,7 +1121,6 @@
       "required_mcp_tools": [
         "recipes_secure_context_trust_pack",
         "recipes_context_egress_boundary_pack",
-        "recipes_evaluate_context_egress_decision",
         "recipes_agent_memory_boundary_pack",
         "recipes_agentic_run_receipt_pack"
       ],
@@ -1295,8 +1284,7 @@
         "failure_count": 0,
         "id": "mcp-gateway-policy",
         "mcp_tools": [
-          "recipes_mcp_gateway_policy",
-          "recipes_evaluate_mcp_gateway_decision"
+          "recipes_mcp_gateway_policy"
         ],
         "path": "data/policy/mcp-gateway-policy.json",
         "schema_version": "1.0",
@@ -1325,8 +1313,7 @@
         "failure_count": 0,
         "id": "mcp-authorization-conformance",
         "mcp_tools": [
-          "recipes_mcp_authorization_conformance_pack",
-          "recipes_evaluate_mcp_authorization_decision"
+          "recipes_mcp_authorization_conformance_pack"
         ],
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
         "schema_version": "1.0",
@@ -1646,8 +1633,7 @@
         "failure_count": 0,
         "id": "secure-context-trust-pack",
         "mcp_tools": [
-          "recipes_secure_context_trust_pack",
-          "recipes_evaluate_context_retrieval_decision"
+          "recipes_secure_context_trust_pack"
         ],
         "path": "data/evidence/secure-context-trust-pack.json",
         "schema_version": "1.0",
@@ -1661,8 +1647,7 @@
         "failure_count": 0,
         "id": "context-egress-boundary-pack",
         "mcp_tools": [
-          "recipes_context_egress_boundary_pack",
-          "recipes_evaluate_context_egress_decision"
+          "recipes_context_egress_boundary_pack"
         ],
         "path": "data/evidence/context-egress-boundary-pack.json",
         "schema_version": "1.0",
@@ -1703,8 +1688,7 @@
         "failure_count": 0,
         "id": "agent-handoff-boundary-pack",
         "mcp_tools": [
-          "recipes_agent_handoff_boundary_pack",
-          "recipes_evaluate_agent_handoff_decision"
+          "recipes_agent_handoff_boundary_pack"
         ],
         "path": "data/evidence/agent-handoff-boundary-pack.json",
         "schema_version": "1.0",
@@ -1739,8 +1723,7 @@
         "failure_count": 0,
         "id": "agent-memory-boundary-pack",
         "mcp_tools": [
-          "recipes_agent_memory_boundary_pack",
-          "recipes_evaluate_agent_memory_decision"
+          "recipes_agent_memory_boundary_pack"
         ],
         "path": "data/evidence/agent-memory-boundary-pack.json",
         "schema_version": "1.0",
@@ -1754,8 +1737,7 @@
         "failure_count": 0,
         "id": "agent-skill-supply-chain-pack",
         "mcp_tools": [
-          "recipes_agent_skill_supply_chain_pack",
-          "recipes_evaluate_agent_skill_decision"
+          "recipes_agent_skill_supply_chain_pack"
         ],
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
         "schema_version": "1.0",

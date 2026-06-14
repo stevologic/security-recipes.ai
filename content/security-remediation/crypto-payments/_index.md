@@ -55,6 +55,10 @@ Use the following prompt recipes for this workflow:
 - Trading or market-making actions.
 - On-chain signing from unreviewed prompts.
 
+## Python remediation tool
+
+{{< remediation-tool domain="crypto-payments" >}}
+
 ## See also
 
 - [DeFi & Blockchain Protocol Security]({{< relref "/security-remediation/defi-blockchain" >}})

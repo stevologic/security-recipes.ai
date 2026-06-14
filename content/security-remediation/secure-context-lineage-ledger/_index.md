@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Lineage Ledger
 linkTitle: Secure Context Lineage
 weight: 10
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated context-lineage ledger for agentic AI: source hashes,
   attestations, poisoning scan state, retrieval decisions, model routes,
@@ -41,11 +41,6 @@ The lineage layer has four artifacts:
 - `data/assurance/secure-context-lineage-profile.json` - the source
   profile for context lineage stages, reuse policy, runtime fields,
   standards alignment, reviewer views, and trusted-source path.
-- `scripts/generate_secure_context_lineage_ledger.py` - a dependency-free
-  generator and validator with `--check` mode for CI drift detection.
-- `scripts/evaluate_secure_context_lineage_decision.py` - a dependency-free
-  runtime evaluator that returns allow, hold, deny, or kill decisions for
-  context lineage and reuse.
 - `data/evidence/secure-context-lineage-ledger.json` - the generated
   ledger joining the trust pack, attestation pack, poisoning guard,
   egress boundary, handoff boundary, telemetry contract, run receipts,
@@ -53,14 +48,9 @@ The lineage layer has four artifacts:
 
 Run it locally from the repo root:
 
-```bash
-python3 scripts/generate_secure_context_lineage_ledger.py
-python3 scripts/generate_secure_context_lineage_ledger.py --check
-```
 
 The local MCP server exposes the ledger through
 `recipes_secure_context_lineage_ledger` and exposes runtime lineage
-decisions through `recipes_evaluate_secure_context_lineage_decision`.
 
 ## Lineage stages
 
@@ -118,29 +108,6 @@ recipes_secure_context_lineage_ledger(
 
 Evaluate runtime context reuse before an agent uses it:
 
-```text
-recipes_evaluate_secure_context_lineage_decision(
-  workflow_id="vulnerable-dependency-remediation",
-  run_id="run-123",
-  agent_id="sr-agent::vulnerable-dependency-remediation::codex",
-  tenant_id="tenant-1",
-  correlation_id="corr-123",
-  trace_id="trace-123",
-  source_ids=["prompt-library-recipes", "workflow-control-plane"],
-  source_hashes=["..."],
-  context_package_hash="...",
-  context_retrieval_decision="allow_public_context",
-  attestation_decision="allow_attested_workflow_context",
-  poisoning_scan_state="clean",
-  model_route_id="tenant-remediation-frontier-route",
-  model_route_decision="allow_guarded_route",
-  egress_decision="allow_public_egress_with_citation",
-  handoff_decision="allow_metadata_handoff",
-  telemetry_event_id="otel-123",
-  telemetry_decision="telemetry_ready",
-  receipt_id="sr-run-receipt::vulnerable-dependency-remediation"
-)
-```
 
 ## Industry alignment
 

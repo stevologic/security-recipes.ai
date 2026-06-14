@@ -1,9 +1,9 @@
----
+﻿---
 title: Agentic Protocol Conformance Pack
 linkTitle: Protocol Conformance
 weight: 14
 sidebar:
-  open: true
+  exclude: true
 description: >
   Generated MCP and A2A protocol conformance evidence with deterministic
   runtime decisions for authorization, tool annotations, tool-surface
@@ -33,39 +33,17 @@ procurement reviewer, or reviewer can inspect through MCP.
 - Source profile:
   `data/assurance/agentic-protocol-conformance-profile.json`
 - Generator:
-  `scripts/generate_agentic_protocol_conformance_pack.py`
 - Evidence pack:
   `data/evidence/agentic-protocol-conformance-pack.json`
 - Runtime evaluator:
-  `scripts/evaluate_agentic_protocol_conformance_decision.py`
 - MCP tools:
   `recipes_agentic_protocol_conformance_pack` and
-  `recipes_evaluate_agentic_protocol_conformance_decision`
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_agentic_protocol_conformance_pack.py
-python3 scripts/generate_agentic_protocol_conformance_pack.py --check
-```
 
 Evaluate an MCP authorization boundary:
 
-```bash
-python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
-  --protocol-id mcp-authorization-2025-11-25 \
-  --workflow-id vulnerable-dependency-remediation \
-  --agent-id sec-auto-remediator \
-  --run-id run-2026-05-04-001 \
-  --session-id sess-001 \
-  --correlation-id corr-001 \
-  --transport streamable-http \
-  --resource-indicator-present \
-  --token-audience-bound \
-  --pkce-verified \
-  --client-metadata-reviewed \
-  --expect-decision allow_with_protocol_receipt
-```
 
 ## Decision model
 
@@ -159,19 +137,6 @@ recipes_agentic_protocol_conformance_pack(
 
 Evaluate one A2A boundary:
 
-```text
-recipes_evaluate_agentic_protocol_conformance_decision(
-  protocol_id="a2a-agent-discovery",
-  workflow_id="agentic-app-intake",
-  agent_id="platform-intake-agent",
-  run_id="run-001",
-  https_transport=true,
-  agent_card_present=true,
-  provider_identity_verified=true,
-  extended_card_authenticated=true,
-  a2a_version_header=true
-)
-```
 
 ## See also
 

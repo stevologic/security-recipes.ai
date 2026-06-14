@@ -1,9 +1,9 @@
----
+﻿---
 title: Secure Context Reviewer Brief
 linkTitle: Reviewer Brief
 weight: 14
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated security reviewer brief that compresses the
   SecurityRecipes secure-context, MCP, telemetry, pilot, source-freshness,
@@ -39,8 +39,6 @@ telemetry contract, run receipts, app intake, and posture snapshot.
 - `data/assurance/secure-context-buyer-diligence-profile.json` - source
   profile for reviewer briefs, enterprise questions, objection handlers,
   industry bets, and evidence-room next steps.
-- `scripts/generate_secure_context_buyer_diligence_brief.py` -
-  deterministic generator and `--check` validator.
 - `data/evidence/secure-context-buyer-diligence-brief.json` - generated
   brief with source-pack hashes, 5 reviewer briefs, 12 enterprise
   questions, 8 objection handlers, 4 industry bets, and 4 next proof
@@ -49,12 +47,7 @@ telemetry contract, run receipts, app intake, and posture snapshot.
   brief, a reviewer persona, enterprise question, objection, industry bet,
   source reference, or status-filtered view.
 
-Run it from the repo root:
 
-```bash
-python3 scripts/generate_secure_context_buyer_diligence_brief.py
-python3 scripts/generate_secure_context_buyer_diligence_brief.py --check
-```
 
 ## What the brief contains
 
@@ -156,4 +149,4 @@ The profile is grounded in current primary and authoritative sources:
 - [Secure Context Customer Proof Pack]({{< relref "/security-remediation/secure-context-customer-proof-pack" >}})
 - [Agentic Source Freshness Watch]({{< relref "/security-remediation/agentic-source-freshness-watch" >}})
 - [Agentic Control Plane Blueprint]({{< relref "/security-remediation/agentic-control-plane-blueprint" >}})
-- [Production MCP Server]({{< relref "/mcp-servers" >}})
+- [MCP Integration]({{< relref "/mcp-servers" >}})

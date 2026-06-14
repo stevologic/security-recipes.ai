@@ -29,10 +29,7 @@
     "workflow_count": 8
   },
   "change_control_contract": {
-    "ci_commands": [
-      "python3 scripts/generate_agentic_system_bom.py",
-      "python3 scripts/generate_agentic_system_bom.py --check"
-    ],
+    "ci_commands": [],
     "manual_review_required_for": [
       "model_changed",
       "memory_changed",
@@ -4475,7 +4472,7 @@
       "component_type": "knowledge_sources",
       "id": "knowledge_changed",
       "required_action": "Regenerate the BOM and prove source artifact hashes align.",
-      "trigger": "Recipe root, prompt library, workflow manifest, policy pack, or evidence pack changes."
+      "trigger": "Recipe root, recipes section, workflow manifest, policy pack, or evidence pack changes."
     },
     {
       "component_type": "agent_classes",

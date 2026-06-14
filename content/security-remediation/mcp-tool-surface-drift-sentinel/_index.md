@@ -1,9 +1,9 @@
----
+﻿---
 title: MCP Tool Surface Drift Sentinel
 linkTitle: Tool Surface Drift
 weight: 8
 sidebar:
-  open: true
+  exclude: true
 description: >
   A generated MCP tool-surface drift pack that fingerprints approved
   tool descriptions, schemas, annotations, and capability metadata, then
@@ -39,47 +39,20 @@ surface, then decide before the agent trusts it.
 - Profile:
   `data/assurance/mcp-tool-surface-drift-profile.json`
 - Generator:
-  `scripts/generate_mcp_tool_surface_drift_pack.py`
 - Runtime evaluator:
-  `scripts/evaluate_mcp_tool_surface_drift_decision.py`
 - Evidence pack:
   `data/evidence/mcp-tool-surface-drift-pack.json`
 - MCP tools:
   `recipes_mcp_tool_surface_drift_pack` and
-  `recipes_evaluate_mcp_tool_surface_drift_decision`
 
 Regenerate and validate:
 
-```bash
-python3 scripts/generate_mcp_tool_surface_drift_pack.py
-python3 scripts/generate_mcp_tool_surface_drift_pack.py --check
-```
 
 Evaluate a pinned live surface:
 
-```bash
-python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
-  --namespace repo.contents \
-  --tool-name repo.contents.patch_scoped_branch \
-  --workflow-id vulnerable-dependency-remediation \
-  --requested-access-mode write_branch \
-  --use-baseline-hashes \
-  --expect-decision allow_pinned_tool_surface
-```
 
 Evaluate capability expansion:
 
-```bash
-python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
-  --namespace registries.quarantine \
-  --tool-name registries.quarantine.stage_plan \
-  --workflow-id artifact-cache-quarantine \
-  --requested-access-mode approval_required \
-  --capability-expansion \
-  --added-capability-flag delete \
-  --added-capability-flag production_credential \
-  --expect-decision kill_session_on_tool_surface_signal
-```
 
 ## Decision model
 

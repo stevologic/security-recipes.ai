@@ -2,7 +2,7 @@
  * Sidebar collapse defaults - security-recipes.ai.
  *
  * Keep left-nav tree menus collapsed by default, but preserve the open
- * ancestry for the current page so readers still see context. Prompt Library
+ * ancestry for the current page so readers still see context. Recipes
  * pages are the exception: the sidebar should stay flat and show only hub
  * links. Its leaf recipe pages are excluded from the sidebar by frontmatter
  * cascade, so adding hundreds of .md files does not flood the menu.
@@ -10,7 +10,7 @@
 (function () {
   'use strict';
 
-  var PROMPT_LIBRARY_PATH = /(^|\/)prompt-library(\/|$)/;
+  var PROMPT_LIBRARY_PATH = /(^|\/)(prompt-library|recipes)(\/|$)/;
 
   function isPromptLibraryPath() {
     return PROMPT_LIBRARY_PATH.test(window.location.pathname || '');
