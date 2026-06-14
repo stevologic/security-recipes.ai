@@ -2,11 +2,13 @@
 public/
 resources/_gen/
 .hugo_build.lock
+tmp/
 
 # VCS / tooling
 .git/
 .github/
 .gitignore
+.codex/
 
 # Editor noise
 .idea/
@@ -15,6 +17,20 @@ resources/_gen/
 Thumbs.db
 *.swp
 *.swo
+
+# Local caches and generated test artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+reports/
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Secrets
 .env

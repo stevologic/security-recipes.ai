@@ -375,6 +375,8 @@ write_env_file() {
 SECURITY_RECIPES_BASE_URL=https://${DOMAIN}/
 SECURITY_RECIPES_REPO_URL=${REPO_URL%.git}
 SECURITY_RECIPES_HTTP_PORT=${APP_BIND}
+SECURITY_RECIPES_HUGO_MINIFY=false
+SECURITY_RECIPES_HUGO_GOMAXPROCS=1
 
 RECIPES_MCP_SOURCE_INDEX_URL=https://${DOMAIN}/recipes-index.json
 RECIPES_MCP_ALLOWED_SOURCE_HOSTS=${DOMAIN}
@@ -486,7 +488,7 @@ Container bind:
 Useful commands:
   cd ${APP_DIR}
   docker compose ps || docker-compose ps
-  docker compose logs -f security-recipes || docker-compose logs -f security-recipes
+  docker compose logs -f security-recipes || docker logs -f "\$(docker-compose ps -q security-recipes)"
   bash ${APP_DIR}/scripts/redeploy_from_github.sh
   systemctl status caddy
   ufw status verbose

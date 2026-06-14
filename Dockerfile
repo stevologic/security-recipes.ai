@@ -46,6 +46,8 @@ ARG TARGETARCH=amd64
 #   --build-arg BASE_URL=https://example.com/docs/
 ARG BASE_URL="http://localhost/"
 ARG REPO_URL=""
+ARG HUGO_MINIFY="true"
+ARG HUGO_GOMAXPROCS="2"
 
 # HUGO_ENABLEGITINFO=false overrides `enableGitInfo: true` from hugo.yaml *for
 # container builds only*. We intentionally exclude `.git/` via .dockerignore to
@@ -118,9 +120,15 @@ RUN BASE_PATH=$(printf '%s' "${BASE_URL}" | sed -E 's|^https?://[^/]+||; s|/$||'
 # template. `--baseURL` overrides the value in hugo.yaml so the image's
 # generated links don't carry a GitHub Pages project subpath
 # into a container that's served from `/`.
-RUN HUGO_PARAMS_REPOURL="${REPO_URL:-https://github.com/stevologic/security-recipes.ai}" \
+RUN set -eux; \
+    HUGO_MINIFY_FLAG=""; \
+    if [ "${HUGO_MINIFY}" != "false" ]; then \
+        HUGO_MINIFY_FLAG="--minify"; \
+    fi; \
+    GOMAXPROCS="${HUGO_GOMAXPROCS}" \
+    HUGO_PARAMS_REPOURL="${REPO_URL:-https://github.com/stevologic/security-recipes.ai}" \
     HUGO_PARAMS_AIPROVIDERRELAY="same-origin" \
-    hugo --gc --minify \
+    hugo --gc ${HUGO_MINIFY_FLAG} \
         --baseURL="${BASE_URL}" \
     && touch public/.nojekyll
 

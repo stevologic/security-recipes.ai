@@ -192,10 +192,22 @@ Start the stack:
 docker compose up -d --build
 ```
 
+Use the Docker Compose v2 plugin (`docker compose`) when possible. The legacy
+Python `docker-compose` v1 package can throw `KeyError: 'id'` from
+`compose/cli/log_printer.py` while following logs; that is a Compose watcher
+crash, not an nginx or site-container crash. If you only have v1 installed, run
+the stack detached and inspect logs through Docker directly:
+
+```bash
+docker-compose up -d --build
+docker ps
+docker logs -f "$(docker-compose ps -q security-recipes)"
+```
+
 Default routes:
 
 ```text
-site: /
+site: http://127.0.0.1:8080/
 AI provider relay: /ai-provider-proxy/openai/v1/responses
 MCP endpoint: /mcp
 ```
@@ -207,6 +219,24 @@ The Compose stack is intentionally small:
 
 Do not put model-provider API keys in `.env` for normal site use. Users provide
 their own keys in the browser assistant.
+
+For an nginx or Caddy reverse proxy with Let's Encrypt, keep Docker bound to
+loopback and let the proxy own public ports `80` and `443`:
+
+```env
+SECURITY_RECIPES_HTTP_PORT=127.0.0.1:8080
+```
+
+Then proxy to:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
 
 ## DigitalOcean droplet
 
@@ -228,6 +258,29 @@ For a local-only or pre-proxied droplet:
 sudo bash scripts/setup_digitalocean_droplet.sh --no-caddy --no-firewall --no-upgrade
 docker compose up -d --build
 ```
+
+If the Hugo build is killed with exit code `137` during the `hugo --gc
+--minify` step, the droplet is out of memory. Use one or more of these
+options:
+
+```bash
+# Lower Hugo build concurrency and skip minification on small droplets.
+SECURITY_RECIPES_HUGO_GOMAXPROCS=1 \
+SECURITY_RECIPES_HUGO_MINIFY=false \
+docker compose up -d --build
+```
+
+You can also add temporary swap before rebuilding:
+
+```bash
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+`SECURITY_RECIPES_HUGO_MINIFY` defaults to `true`; disabling it only affects
+the generated asset size, not the site content or routes.
 
 ## MCP integration philosophy
 
