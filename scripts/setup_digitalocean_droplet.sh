@@ -210,6 +210,7 @@ EOF
 install_docker_stack() {
   if docker compose version >/dev/null 2>&1; then
     log "Docker Compose v2 is already available."
+    install_compose_legacy_alias
     return 0
   fi
 
@@ -217,6 +218,7 @@ install_docker_stack() {
     if apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin; then
       if docker compose version >/dev/null 2>&1; then
         log "Installed Docker Engine and Compose v2 plugin from Docker upstream packages."
+        install_compose_legacy_alias
         return 0
       fi
     fi
@@ -226,13 +228,21 @@ install_docker_stack() {
   if apt-get install -y docker.io docker-compose-plugin; then
     if docker compose version >/dev/null 2>&1; then
       log "Installed Docker and Compose v2 plugin from distro packages."
+      install_compose_legacy_alias
       return 0
     fi
   fi
 
-  log "Compose v2 is unavailable; installing legacy docker-compose fallback."
-  log "Use legacy docker-compose in detached mode only: docker-compose up -d --build"
-  run apt-get install -y docker.io docker-compose
+  die "Docker Compose v2 is unavailable. Install docker-compose-plugin and rerun this script."
+}
+
+install_compose_legacy_alias() {
+  cat >/usr/local/bin/docker-compose <<'EOF'
+#!/usr/bin/env sh
+exec docker compose "$@"
+EOF
+  chmod 755 /usr/local/bin/docker-compose
+  log "Installed docker-compose compatibility shim at /usr/local/bin/docker-compose."
 }
 
 install_packages() {
@@ -447,10 +457,8 @@ EOF
 compose_cmd() {
   if docker compose version >/dev/null 2>&1; then
     docker compose "$@"
-  elif command -v docker-compose >/dev/null 2>&1; then
-    docker-compose "$@"
   else
-    die "Docker Compose is not installed."
+    die "Docker Compose v2 is not installed. Run scripts/install_docker_compose_v2.sh."
   fi
 }
 
@@ -487,8 +495,8 @@ Container bind:
 
 Useful commands:
   cd ${APP_DIR}
-  docker compose ps || docker-compose ps
-  docker compose logs -f security-recipes || docker logs -f "\$(docker-compose ps -q security-recipes)"
+  docker compose ps
+  docker compose logs -f security-recipes
   bash ${APP_DIR}/scripts/redeploy_from_github.sh
   systemctl status caddy
   ufw status verbose

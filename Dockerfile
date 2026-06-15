@@ -145,6 +145,9 @@ LABEL org.opencontainers.image.title="security-recipes.ai" \
 RUN rm /etc/nginx/conf.d/default.conf
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /src/public /usr/share/nginx/html
+COPY scripts/configure_nginx_letsencrypt.sh /opt/security-recipes/scripts/configure_nginx_letsencrypt.sh
+COPY README.nginx-letsencrypt.md /opt/security-recipes/README.nginx-letsencrypt.md
+RUN chmod 755 /opt/security-recipes/scripts/configure_nginx_letsencrypt.sh
 
 EXPOSE 80
 

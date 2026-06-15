@@ -92,10 +92,8 @@ fi
 compose_cmd() {
   if docker compose version >/dev/null 2>&1; then
     docker compose "$@"
-  elif command -v docker-compose >/dev/null 2>&1; then
-    docker-compose "$@"
   else
-    die "Docker Compose is not installed."
+    die "Docker Compose v2 is not installed. Run scripts/install_docker_compose_v2.sh."
   fi
 }
 

@@ -81,6 +81,15 @@ The scripts in this repository support the content. They are useful for local
 maintenance, validation, advisory imports, and deployment, but they are not
 required for a company to use the recipes.
 
+Deployment helpers worth knowing:
+
+- `scripts/setup_digitalocean_droplet.sh`: Ubuntu droplet bootstrap with
+  Docker, host hardening, and optional Caddy-managed HTTPS.
+- `scripts/configure_nginx_letsencrypt.sh`: host nginx reverse proxy setup for
+  teams that want Let's Encrypt on nginx instead of Caddy.
+- `README.nginx-letsencrypt.md`: operator-focused walkthrough for the nginx
+  deployment path.
+
 Recommended operating model:
 
 1. Let existing SCA, SAST, secrets, CI, cloud, and ticketing systems produce
@@ -192,16 +201,15 @@ Start the stack:
 docker compose up -d --build
 ```
 
-Use the Docker Compose v2 plugin (`docker compose`) when possible. The legacy
-Python `docker-compose` v1 package can throw `KeyError: 'id'` from
-`compose/cli/log_printer.py` while following logs; that is a Compose watcher
-crash, not an nginx or site-container crash. If you only have v1 installed, run
-the stack detached and inspect logs through Docker directly:
+Use the Docker Compose v2 plugin (`docker compose`). The legacy Python
+`docker-compose` v1 package is not supported for this stack; it can crash with
+`KeyError: 'id'` while following logs or `KeyError: 'ContainerConfig'` while
+recreating containers on newer Docker Engine releases.
+
+On Ubuntu/Debian hosts, install Compose v2 and a compatibility shim with:
 
 ```bash
-docker-compose up -d --build
-docker ps
-docker logs -f "$(docker-compose ps -q security-recipes)"
+sudo bash scripts/install_docker_compose_v2.sh
 ```
 
 Default routes:
@@ -216,6 +224,10 @@ The Compose stack is intentionally small:
 
 - `security-recipes`: Hugo/nginx static site and provider relay routes.
 - `mcp-server`: optional read-only MCP server.
+
+`security-recipes` no longer waits for the MCP container to become healthy
+before the site starts. That keeps the docs site available even if the optional
+MCP sidecar is still warming up or temporarily unhealthy.
 
 Do not put model-provider API keys in `.env` for normal site use. Users provide
 their own keys in the browser assistant.
@@ -238,6 +250,16 @@ location / {
 }
 ```
 
+If you want a turnkey host nginx + Let's Encrypt setup, run:
+
+```bash
+sudo bash scripts/configure_nginx_letsencrypt.sh \
+  --domain security-recipes.ai \
+  --email admin@security-recipes.ai
+```
+
+The full operator guide lives in `README.nginx-letsencrypt.md`.
+
 ## DigitalOcean droplet
 
 For a fresh Ubuntu droplet, use the helper script:
@@ -252,11 +274,32 @@ The script installs Docker/Compose, configures a locked app user, enables basic
 host hardening, starts the Compose stack, and can place Caddy in front for
 HTTPS.
 
+If you prefer nginx instead of Caddy on the droplet, bootstrap the host without
+the proxy and then run the nginx helper:
+
+```bash
+sudo bash scripts/setup_digitalocean_droplet.sh --no-caddy
+sudo bash scripts/configure_nginx_letsencrypt.sh \
+  --domain security-recipes.ai \
+  --email admin@security-recipes.ai
+```
+
 For a local-only or pre-proxied droplet:
 
 ```bash
 sudo bash scripts/setup_digitalocean_droplet.sh --no-caddy --no-firewall --no-upgrade
 docker compose up -d --build
+```
+
+If a previous `docker-compose` v1 run failed with `KeyError:
+'ContainerConfig'`, upgrade Compose and remove the stale project containers
+before recreating the stack:
+
+```bash
+sudo bash scripts/install_docker_compose_v2.sh
+docker compose down --remove-orphans
+docker compose up -d --build --remove-orphans
+docker compose ps
 ```
 
 If the Hugo build is killed with exit code `137` during the `hugo --gc
