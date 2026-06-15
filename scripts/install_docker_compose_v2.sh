@@ -100,13 +100,30 @@ install_compose_v2() {
 install_legacy_shim() {
   [[ "${CREATE_LEGACY_SHIM}" == "true" ]] || return 0
 
-  cat >/usr/local/bin/docker-compose <<'EOF'
+  local shim_path
+  local target_paths=("/usr/local/bin/docker-compose")
+
+  if [[ -e "/usr/bin/docker-compose" ]] || [[ -L "/usr/bin/docker-compose" ]]; then
+    target_paths+=("/usr/bin/docker-compose")
+  fi
+
+  for shim_path in "${target_paths[@]}"; do
+    if [[ -e "${shim_path}" ]] || [[ -L "${shim_path}" ]]; then
+      if ! grep -qs "exec docker compose" "${shim_path}"; then
+        mv "${shim_path}" "${shim_path}.v1-disabled"
+        log "Moved legacy docker-compose aside: ${shim_path}.v1-disabled"
+      fi
+    fi
+
+    cat >"${shim_path}" <<'EOF'
 #!/usr/bin/env sh
 exec docker compose "$@"
 EOF
-  chmod 755 /usr/local/bin/docker-compose
+    chmod 755 "${shim_path}"
+    log "Installed ${shim_path} shim -> docker compose."
+  done
 
-  log "Installed /usr/local/bin/docker-compose shim -> docker compose."
+  hash -r 2>/dev/null || true
 }
 
 install_compose_v2

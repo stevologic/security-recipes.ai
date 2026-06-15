@@ -296,10 +296,10 @@ If a previous `docker-compose` v1 run failed with `KeyError:
 before recreating the stack:
 
 ```bash
-sudo bash scripts/install_docker_compose_v2.sh
-docker compose down --remove-orphans
-docker compose up -d --build --remove-orphans
-docker compose ps
+sudo bash scripts/repair_docker_compose_containerconfig.sh
+hash -r
+command -v docker-compose
+docker-compose version
 ```
 
 If the Hugo build is killed with exit code `137` during the `hugo --gc
