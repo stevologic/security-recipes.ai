@@ -10613,11 +10613,6 @@ async def recipes_match_finding(
 def main() -> None:
     if _env_bool("RECIPES_MCP_EAGER_REFRESH", False):
         asyncio.run(index.refresh(force=False))
-    else:
-        try:
-            asyncio.run(index.refresh(force=False))
-        except Exception as exc:  # pragma: no cover - startup resilience for hosted containers.
-            print(f"warning: initial recipe index refresh failed; MCP server will retry lazily: {exc}", flush=True)
     run_mcp_server()
 
 
