@@ -95,10 +95,6 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"/></svg>
           <span>JSON</span>
         </button>
-        <button type="button" class="recipe-browser__icon-button recipe-browser__icon-button--primary" data-recipe-open-ai aria-label="Open AI Remediation planner">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8V4H8m4 0 5 5-5 5m5-5H7a4 4 0 0 0 0 8h1m4-1v4h4m-4 0-5-5 5-5m-5 5h10a4 4 0 0 0 0-8h-1"/></svg>
-          <span>AI Remediation</span>
-        </button>
       </div>
     </div>
   </div>
@@ -157,7 +153,7 @@
   </div>
 
   <div class="recipe-browser__categories" aria-label="Category filters">
-    <button type="button" class="recipe-browser__category is-active" data-recipe-filter="all" data-recipe-filter-label="All">
+    <button type="button" class="recipe-browser__category recipe-browser__category--all is-active" data-recipe-filter="all" data-recipe-filter-label="All">
       <span class="recipe-browser__category-mark"></span>
       <strong>All</strong>
       <small>{{ len $pages }} recipes</small>
@@ -170,7 +166,7 @@
     {{- range $cat := $categories -}}
       {{- $count := index $categoryCounts $cat.slug | default 0 -}}
       {{- if gt $count 0 -}}
-        <button type="button" class="recipe-browser__category" data-recipe-filter="{{ $cat.slug }}" data-recipe-filter-label="{{ $cat.label }}">
+        <button type="button" class="recipe-browser__category recipe-browser__category--{{ $cat.slug }}" data-recipe-filter="{{ $cat.slug }}" data-recipe-filter-label="{{ $cat.label }}">
           <span class="recipe-browser__category-mark"></span>
           <strong>{{ $cat.label }}</strong>
           <small>{{ $count }} recipe{{ if ne $count 1 }}s{{ end }}</small>

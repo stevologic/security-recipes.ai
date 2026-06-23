@@ -823,6 +823,7 @@ html[data-recipe-browser-page="true"] #content > .content {
 }
 
 .recipe-browser__category {
+  --recipe-category-accent: #00e5ff;
   min-height: 86px;
   padding: 0.85rem;
   text-align: left;
@@ -835,15 +836,27 @@ html[data-recipe-browser-page="true"] #content > .content {
 .recipe-browser__category:hover,
 .recipe-browser__category:focus-visible,
 .recipe-browser__category.is-active {
-  border-color: rgba(0, 229, 255, 0.42);
+  border-color: color-mix(in srgb, var(--recipe-category-accent) 42%, transparent);
   background:
-    linear-gradient(180deg, rgba(0, 229, 255, 0.095), rgba(255, 255, 255, 0.02)),
+    linear-gradient(180deg, color-mix(in srgb, var(--recipe-category-accent) 9.5%, transparent), rgba(255, 255, 255, 0.02)),
     rgba(5, 8, 13, 0.82);
   outline: none;
   transform: translateY(-1px);
 }
 
+.recipe-browser__category--all { --recipe-category-accent: #22d3ee; }
+.recipe-browser__category--cve { --recipe-category-accent: #f59e0b; }
+.recipe-browser__category--general { --recipe-category-accent: #d946ef; }
+.recipe-browser__category--classic-defaults { --recipe-category-accent: #22d3ee; }
+.recipe-browser__category--crypto-defi { --recipe-category-accent: #f59e0b; }
+.recipe-browser__category--claude { --recipe-category-accent: #22d3ee; }
+.recipe-browser__category--github-copilot { --recipe-category-accent: #d946ef; }
+.recipe-browser__category--cursor { --recipe-category-accent: #f59e0b; }
+.recipe-browser__category--codex { --recipe-category-accent: #22d3ee; }
+.recipe-browser__category--devin { --recipe-category-accent: #22d3ee; }
+
 .recipe-browser__category--zero-day {
+  --recipe-category-accent: #facc15;
   border-color: rgba(250, 204, 21, 0.28);
   background:
     linear-gradient(145deg, rgba(250, 204, 21, 0.08), rgba(34, 211, 238, 0.055)),
@@ -865,19 +878,11 @@ html[data-recipe-browser-page="true"] #content > .content {
   height: 0.18rem;
   margin-bottom: 0.7rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, #00e5ff, transparent);
+  background: linear-gradient(90deg, var(--recipe-category-accent), transparent);
 }
 
 .recipe-browser__category--zero-day .recipe-browser__category-mark {
   background: linear-gradient(90deg, #facc15, #22d3ee, transparent);
-}
-
-.recipe-browser__category:nth-child(3n) .recipe-browser__category-mark {
-  background: linear-gradient(90deg, #ffb84e, transparent);
-}
-
-.recipe-browser__category:nth-child(4n) .recipe-browser__category-mark {
-  background: linear-gradient(90deg, #ff4ecb, transparent);
 }
 
 .recipe-browser__category strong,
@@ -974,14 +979,14 @@ html[data-recipe-browser-page="true"] #content > .content {
   transform: translateY(-2px);
 }
 
-.recipe-browser-card--cve { --recipe-accent: #22d3ee; }
-.recipe-browser-card--classic-defaults { --recipe-accent: #f59e0b; }
-.recipe-browser-card--crypto-defi { --recipe-accent: #34d399; }
-.recipe-browser-card--claude { --recipe-accent: #fb7185; }
-.recipe-browser-card--github-copilot { --recipe-accent: #60a5fa; }
-.recipe-browser-card--cursor { --recipe-accent: #a3e635; }
-.recipe-browser-card--codex { --recipe-accent: #38bdf8; }
-.recipe-browser-card--devin { --recipe-accent: #f97316; }
+.recipe-browser-card--cve { --recipe-accent: #f59e0b; }
+.recipe-browser-card--classic-defaults { --recipe-accent: #22d3ee; }
+.recipe-browser-card--crypto-defi { --recipe-accent: #f59e0b; }
+.recipe-browser-card--claude { --recipe-accent: #22d3ee; }
+.recipe-browser-card--github-copilot { --recipe-accent: #d946ef; }
+.recipe-browser-card--cursor { --recipe-accent: #f59e0b; }
+.recipe-browser-card--codex { --recipe-accent: #22d3ee; }
+.recipe-browser-card--devin { --recipe-accent: #22d3ee; }
 
 .recipe-browser-card__visual {
   position: absolute;

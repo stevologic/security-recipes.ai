@@ -97,12 +97,29 @@ remove_containers_for_project() {
   docker rm -f ${ids}
 }
 
+remove_containers_by_name() {
+  local name_pattern="$1"
+  [[ -n "${name_pattern}" ]] || return 0
+
+  local ids
+  ids="$(docker ps -aq --filter "name=${name_pattern}")"
+  if [[ -z "${ids}" ]]; then
+    log "No stale containers found with name matching: ${name_pattern}"
+    return 0
+  fi
+
+  log "Removing stale containers with name matching: ${name_pattern}"
+  # shellcheck disable=SC2086
+  docker rm -f ${ids}
+}
+
 cleanup_stale_stack() {
   log "Stopping current Compose stack if v2 can identify it."
   docker compose down --remove-orphans || true
 
   remove_containers_for_project "${PROJECT_NAME}"
   remove_containers_for_project "security-recipesai"
+  remove_containers_by_name "security-recipesai"
 }
 
 restart_stack() {
