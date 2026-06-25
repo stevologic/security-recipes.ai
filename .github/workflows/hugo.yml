@@ -39,6 +39,23 @@ jobs:
           go-version: "1.22"
           cache: false
 
+      - name: Setup Python for checks
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node for checks
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install Python check dependencies
+        run: python3 -m pip install --upgrade pip && python3 -m pip install -r requirements-dev.txt
+
+      - name: Run lint and tests
+        run: |
+          python3 scripts/run_checks.py
+
       - name: Install Hugo extended
         run: |
           wget -O "${RUNNER_TEMP}/hugo.deb" \
@@ -59,9 +76,6 @@ jobs:
 
       - name: Install Hugo modules
         run: hugo mod get -u
-
-      - name: Check chatbot JavaScript syntax
-        run: node --check assets/js/ai-chatbot.js
 
       - name: Build Hugo site
         env:

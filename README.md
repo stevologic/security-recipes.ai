@@ -136,6 +136,12 @@ Common tools:
 - `recipes_mcp_upstream_call`
 - `recipes_mcp_upstream_context`
 
+The MCP server accepts both generated recipe feeds:
+
+- `/api/recipes.json` is the preferred agent feed with category, severity,
+  CVE/GHSA, ecosystem, and handoff metadata.
+- `/recipes-index.json` remains supported for legacy consumers.
+
 Run it with Docker:
 
 ```bash
@@ -216,6 +222,7 @@ Default routes:
 
 ```text
 site: http://127.0.0.1:8080/
+agent recipe feed: /api/recipes.json
 AI provider relay: /ai-provider-proxy/openai/v1/responses
 MCP endpoint: /mcp
 ```
@@ -223,11 +230,14 @@ MCP endpoint: /mcp
 The Compose stack is intentionally small:
 
 - `security-recipes`: Hugo/nginx static site and provider relay routes.
-- `mcp-server`: optional read-only MCP server.
+- `mcp-server`: optional read-only MCP server. In Compose it reads the
+  locally built site feed at `http://security-recipes/api/recipes.json`, so a
+  fork or droplet serves its own recipes instead of depending on the public
+  production index.
 
-`security-recipes` no longer waits for the MCP container to become healthy
-before the site starts. That keeps the docs site available even if the optional
-MCP sidecar is still warming up or temporarily unhealthy.
+`security-recipes` does not wait for the MCP container before the site starts.
+That keeps the docs site available even if the optional MCP sidecar is still
+warming up or temporarily unhealthy.
 
 Do not put model-provider API keys in `.env` for normal site use. Users provide
 their own keys in the browser assistant.
@@ -358,5 +368,7 @@ details before opening a pull request.
 Run a local build before submitting:
 
 ```bash
+python -m pip install -r requirements-dev.txt
+python scripts/run_checks.py
 hugo --gc --minify
 ```

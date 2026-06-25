@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """security-recipes.ai MCP server.
 
-Exposes a read-only MCP tool surface backed by Hugo's recipes-index.json.
+Exposes a read-only MCP tool surface backed by Hugo's generated recipe feeds.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 import httpx
 import tomli
@@ -706,6 +706,8 @@ class RecipeIndex:
 
     def _assert_allowed_host(self) -> None:
         parsed = urlparse(self.config.source_index_url)
+        if parsed.scheme not in {"http", "https"}:
+            return
         host = parsed.hostname
         if not host:
             raise ValueError("source_index_url must include a hostname")
@@ -713,6 +715,103 @@ class RecipeIndex:
             raise ValueError(
                 f"source host '{host}' is not in allowed_source_hosts={self.config.allowed_source_hosts}"
             )
+
+    async def _fetch_payload(self, headers: dict[str, str]) -> tuple[Any, str | None, int | None]:
+        parsed = urlparse(self.config.source_index_url)
+        if parsed.scheme in {"http", "https"}:
+            timeout = httpx.Timeout(self.config.request_timeout_seconds)
+            async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+                response = await client.get(self.config.source_index_url, headers=headers)
+
+            if response.status_code == 304:
+                return None, response.headers.get("ETag"), 304
+
+            response.raise_for_status()
+            return response.json(), response.headers.get("ETag"), response.status_code
+
+        if parsed.scheme == "file":
+            path_text = unquote(parsed.path)
+            if re.match(r"^/[A-Za-z]:", path_text):
+                path_text = path_text[1:]
+            source_path = Path(path_text)
+        else:
+            source_path = Path(self.config.source_index_url)
+        if not source_path.is_absolute():
+            source_path = Path.cwd() / source_path
+        return json.loads(source_path.read_text(encoding="utf-8")), None, None
+
+    @staticmethod
+    def _category_slug(doc: dict[str, Any]) -> str:
+        category = doc.get("category")
+        if isinstance(category, dict):
+            return str(category.get("slug") or category.get("label") or "").strip()
+        return str(category or "").strip()
+
+    @staticmethod
+    def _normalize_doc(row: dict[str, Any]) -> dict[str, Any]:
+        doc = dict(row)
+        doc["content"] = str(doc.get("content") or doc.get("content_text") or "")
+        doc["summary"] = str(doc.get("summary") or doc.get("description") or "")
+
+        category_slug = RecipeIndex._category_slug(doc)
+        source_file = str(doc.get("source_file") or doc.get("sourceFile") or "").replace("\\", "/")
+        path = str(doc.get("path") or "").strip()
+        if not doc.get("section"):
+            if source_file:
+                doc["section"] = source_file.split("/", 1)[0]
+            elif path:
+                doc["section"] = path.strip("/").split("/", 1)[0]
+            elif category_slug:
+                doc["section"] = category_slug
+
+        if category_slug and not isinstance(doc.get("category"), dict):
+            doc["category"] = {"slug": category_slug, "label": category_slug}
+        if source_file:
+            doc["source_file"] = source_file
+
+        return doc
+
+    @staticmethod
+    def _normalize_payload(payload: Any) -> list[dict[str, Any]]:
+        if isinstance(payload, dict) and isinstance(payload.get("recipes"), list):
+            payload = payload["recipes"]
+        if not isinstance(payload, list) or not payload:
+            raise ValueError("recipe index payload must be a non-empty JSON array or an object with a non-empty recipes array")
+
+        required = {"slug", "title", "url", "content"}
+        normalized = []
+        for idx, row in enumerate(payload):
+            if not isinstance(row, dict):
+                raise ValueError(f"row[{idx}] must be an object")
+            doc = RecipeIndex._normalize_doc(row)
+            missing = sorted(required - {key for key, value in doc.items() if value not in (None, "")})
+            if missing:
+                raise ValueError(f"row[{idx}] missing required fields: {missing}")
+            normalized.append(doc)
+        return normalized
+
+    @staticmethod
+    def _candidate_keys(value: Any) -> list[str]:
+        raw = str(value or "").strip()
+        if not raw:
+            return []
+        keys = [raw]
+        stripped = raw.strip("/")
+        if stripped and stripped != raw:
+            keys.append(stripped)
+        if stripped:
+            keys.append(f"/{stripped}/")
+            keys.append(f"/{stripped}")
+        return list(dict.fromkeys(keys))
+
+    @classmethod
+    def _index_by_keys(cls, docs: list[dict[str, Any]], fields: list[str]) -> dict[str, dict[str, Any]]:
+        indexed: dict[str, dict[str, Any]] = {}
+        for doc in docs:
+            for field_name in fields:
+                for key in cls._candidate_keys(doc.get(field_name)):
+                    indexed.setdefault(key, doc)
+        return indexed
 
     async def refresh(self, force: bool = False) -> dict[str, Any]:
         async with self._lock:
@@ -728,11 +827,8 @@ class RecipeIndex:
             if self._etag and not force:
                 headers["If-None-Match"] = self._etag
 
-            timeout = httpx.Timeout(self.config.request_timeout_seconds)
-            async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-                response = await client.get(self.config.source_index_url, headers=headers)
-
-            if response.status_code == 304:
+            payload, etag, status_code = await self._fetch_payload(headers=headers)
+            if status_code == 304:
                 self._fetched_at = time.time()
                 return {
                     "status": "not_modified",
@@ -740,22 +836,12 @@ class RecipeIndex:
                     "doc_count": len(self._docs),
                 }
 
-            response.raise_for_status()
-            payload = response.json()
-            if not isinstance(payload, list) or not payload:
-                raise ValueError("recipes-index payload must be a non-empty JSON array")
-
-            required = {"slug", "title", "url", "content"}
-            for idx, row in enumerate(payload[:20]):
-                missing = sorted(required - set(row.keys()))
-                if missing:
-                    raise ValueError(f"row[{idx}] missing required fields: {missing}")
-
+            payload = self._normalize_payload(payload)
             self._docs = payload
-            self._doc_by_slug = {str(doc.get("slug", "")).strip(): doc for doc in payload if doc.get("slug")}
-            self._doc_by_path = {str(doc.get("path", "")).strip(): doc for doc in payload if doc.get("path")}
+            self._doc_by_slug = self._index_by_keys(payload, ["slug"])
+            self._doc_by_path = self._index_by_keys(payload, ["path", "source_file", "url"])
             self._fetched_at = time.time()
-            self._etag = response.headers.get("ETag")
+            self._etag = etag
 
             return {
                 "status": "refreshed",
@@ -779,7 +865,7 @@ class RecipeIndex:
         docs = self._docs
 
         if section:
-            docs = [d for d in docs if str(d.get("section", "")).lower() == section.lower()]
+            docs = [d for d in docs if self._section_matches(d, section)]
         if agent:
             docs = [d for d in docs if str(d.get("agent", "")).lower() == agent.lower()]
         if severity:
@@ -801,7 +887,11 @@ class RecipeIndex:
     async def get_doc(self, slug_or_path: str) -> dict[str, Any] | None:
         await self.ensure_fresh()
         key = slug_or_path.strip()
-        return self._doc_by_slug.get(key) or self._doc_by_path.get(key)
+        for candidate in self._candidate_keys(key):
+            doc = self._doc_by_slug.get(candidate) or self._doc_by_path.get(candidate)
+            if doc:
+                return doc
+        return None
 
     async def search(
         self,
@@ -818,7 +908,7 @@ class RecipeIndex:
 
         candidates: list[dict[str, Any]] = self._docs
         if section:
-            candidates = [d for d in candidates if str(d.get("section", "")).lower() == section.lower()]
+            candidates = [d for d in candidates if self._section_matches(d, section)]
         if agent:
             candidates = [d for d in candidates if str(d.get("agent", "")).lower() == agent.lower()]
         if tags:
@@ -837,8 +927,16 @@ class RecipeIndex:
                     str(d.get("summary", "")),
                     str(d.get("content", ""))[:8000],
                     " ".join([str(x) for x in (d.get("tags") or [])]),
+                    " ".join([str(x) for x in (d.get("aliases") or [])]),
                     str(d.get("slug", "")),
                     str(d.get("path", "")),
+                    str(d.get("source_file", "")),
+                    str(d.get("agent", "")),
+                    str(d.get("severity", "")),
+                    str(d.get("ecosystem", "")),
+                    str(d.get("cve", "")),
+                    str(d.get("ghsa", "")),
+                    RecipeIndex._category_slug(d),
                 ]
             ).lower()
             score = 0.0
@@ -862,6 +960,17 @@ class RecipeIndex:
 
         return [self._shape_preview(d, score=s) for s, d in scored[:limit]]
 
+    @classmethod
+    def _section_matches(cls, doc: dict[str, Any], section: str) -> bool:
+        target = section.lower().strip()
+        candidates = {
+            str(doc.get("section", "")).lower(),
+            cls._category_slug(doc).lower(),
+            str(doc.get("path", "")).strip("/").split("/", 1)[0].lower(),
+            str(doc.get("source_file", "")).split("/", 1)[0].lower(),
+        }
+        return target in candidates
+
     @staticmethod
     def _shape_preview(doc: dict[str, Any], score: float | None = None) -> dict[str, Any]:
         out = {
@@ -870,9 +979,16 @@ class RecipeIndex:
             "path": doc.get("path"),
             "url": doc.get("url"),
             "section": doc.get("section"),
+            "category": doc.get("category"),
             "agent": doc.get("agent"),
             "severity": doc.get("severity"),
+            "maturity": doc.get("maturity"),
+            "ecosystem": doc.get("ecosystem"),
+            "cve": doc.get("cve"),
+            "ghsa": doc.get("ghsa"),
+            "zero_day": doc.get("zero_day"),
             "tags": doc.get("tags") or [],
+            "aliases": doc.get("aliases") or [],
             "summary": doc.get("summary"),
             "last_updated": doc.get("last_updated"),
             "source_file": doc.get("source_file"),

@@ -16,6 +16,17 @@
 {{- $zeroDaySince := ((time.AsTime $zeroDayReferenceDate).AddDate 0 0 -4).Format "2006-01-02" -}}
 
 {{- $categoryCounts := dict -}}
+{{- $categoryLabels := dict
+  "cve" "CVE"
+  "classic-defaults" "Classic Vulnerable Defaults"
+  "crypto-defi" "Crypto/DeFi"
+  "claude" "Claude"
+  "github-copilot" "GitHub Copilot"
+  "cursor" "Cursor"
+  "codex" "Codex"
+  "devin" "Devin"
+  "general" "General"
+-}}
 {{- $zeroDayCount := 0 -}}
 {{- $recipes := slice -}}
 {{- range $pages -}}
@@ -86,6 +97,12 @@
     "last_updated" (.Lastmod.Format "2006-01-02")
     "summary" $summary
     "content_text" .Plain
+    "agent_handoff" (dict
+      "mcp_lookup_keys" (slice $slug .RelPermalink $source)
+      "recommended_mcp_tools" (slice "recipes_search" "recipes_get" "recipes_match_finding")
+      "source_text_field" "content_text"
+      "portable_download" (printf "security-recipe-%s.json" $slug)
+    )
     "download" (dict
       "content_type" "application/json"
       "suggested_filename" (printf "security-recipe-%s.json" $slug)
@@ -96,7 +113,7 @@
 
 {{- $categories := slice -}}
 {{- range $slug, $count := $categoryCounts -}}
-  {{- $categories = $categories | append (dict "slug" $slug "count" $count) -}}
+  {{- $categories = $categories | append (dict "slug" $slug "label" (index $categoryLabels $slug | default $slug) "count" $count) -}}
 {{- end -}}
 
 {{- dict
@@ -105,8 +122,16 @@
   "site" site.Title
   "endpoint" ("/api/recipes.json" | absURL)
   "legacy_endpoint" ("/recipes-index.json" | absURL)
+  "mcp_endpoint" ("/mcp" | absURL)
   "generated_at" (now.Format "2006-01-02T15:04:05Z07:00")
   "recipe_count" (len $recipes)
+  "agent_contract" (dict
+    "read_only" true
+    "primary_lookup_fields" (slice "slug" "path" "source_file" "cve" "ghsa" "aliases")
+    "search_fields" (slice "title" "summary" "content_text" "tags" "ecosystem" "agent" "severity")
+    "mcp_tools" (slice "recipes_search" "recipes_list" "recipes_get" "recipes_match_finding")
+    "download_schema" "https://security-recipes.ai/schemas/recipe-download/v1"
+  )
   "zero_day" (dict
     "label" "0-Day"
     "window_days" $zeroDayWindowDays

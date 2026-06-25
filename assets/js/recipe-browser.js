@@ -60,6 +60,28 @@
     });
   }
 
+  function mcpEndpoint(root) {
+    return absoluteUrl(root.getAttribute('data-recipe-mcp') || '/mcp');
+  }
+
+  function agentPrompt(root) {
+    var jsonEndpoint = absoluteUrl(root.getAttribute('data-recipe-api') || '/api/recipes.json');
+    var mcp = mcpEndpoint(root);
+    return [
+      'Use Security Recipes as read-only remediation context.',
+      '',
+      'Recipe JSON endpoint: ' + jsonEndpoint,
+      'MCP endpoint: ' + mcp,
+      '',
+      'Preferred MCP tools:',
+      '- recipes_search: search by finding title, package, CVE/GHSA, ecosystem, rule id, or keywords.',
+      '- recipes_get: retrieve the selected recipe by slug, path, URL, or source_file.',
+      '- recipes_match_finding: suggest best-fit recipes for one concrete finding.',
+      '',
+      'Use one recipe for one finding, preserve the recipe stop conditions, run the requested tests, and produce a reviewer-ready PR or triage note. Do not use MCP for writes, ticket creation, deployments, secret rotation, or cloud changes unless this task explicitly grants that permission.'
+    ].join('\n');
+  }
+
   function normalizeIndexPayload(data) {
     if (Array.isArray(data)) {
       return {
@@ -313,6 +335,16 @@
       }
     }
 
+    async function copyAgentPrompt() {
+      var prompt = agentPrompt(root);
+      try {
+        await navigator.clipboard.writeText(prompt);
+        setStatus('Copied agent recipe instructions.', 'ok');
+      } catch (error) {
+        setStatus(prompt, 'info');
+      }
+    }
+
     function openAiRemediation() {
       var shell = document.querySelector('.ai-chatbot-shell');
       var panel = shell && shell.querySelector('.ai-chatbot-panel');
@@ -405,6 +437,12 @@
     if (copyButton) {
       stopGlobalHandlers(copyButton);
       copyButton.addEventListener('click', copyEndpoint);
+    }
+
+    var copyPromptButton = root.querySelector('[data-recipe-copy-agent-prompt]');
+    if (copyPromptButton) {
+      stopGlobalHandlers(copyPromptButton);
+      copyPromptButton.addEventListener('click', copyAgentPrompt);
     }
 
     if (openAiButton) {

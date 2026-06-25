@@ -1,7 +1,9 @@
 # security-recipes MCP server configuration
 
-# URL to the generated index.json from your Hugo site (GitHub Pages or custom host).
-source_index_url = "https://security-recipes.ai/recipes-index.json"
+# URL or local file path to the generated recipe feed from your Hugo site.
+# Prefer /api/recipes.json for agent metadata. The legacy /recipes-index.json
+# array is still accepted for compatibility.
+source_index_url = "https://security-recipes.ai/api/recipes.json"
 
 # Security allow-list: hostname from source_index_url MUST exist here.
 allowed_source_hosts = ["security-recipes.ai"]

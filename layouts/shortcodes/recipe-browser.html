@@ -70,8 +70,9 @@
 
 {{- $apiEndpoint := "/api/recipes.json" | relURL -}}
 {{- $legacyEndpoint := "/recipes-index.json" | relURL -}}
+{{- $mcpEndpoint := "/mcp" | relURL -}}
 
-<section class="recipe-browser" data-recipe-browser data-recipe-api="{{ $apiEndpoint }}" data-recipe-legacy-api="{{ $legacyEndpoint }}">
+<section class="recipe-browser" data-recipe-browser data-recipe-api="{{ $apiEndpoint }}" data-recipe-legacy-api="{{ $legacyEndpoint }}" data-recipe-mcp="{{ $mcpEndpoint }}">
   <div class="recipe-browser__hero">
     <div class="recipe-browser__intro">
       <h2>Recipes</h2>
@@ -83,13 +84,26 @@
     </div>
     <div class="recipe-browser__agent-endpoint">
       <div>
-        <span class="recipe-browser__eyeline">Agent endpoint</span>
-        <code>{{ $apiEndpoint }}</code>
+        <span class="recipe-browser__eyeline">Agent endpoints</span>
+        <div class="recipe-browser__endpoint-list">
+          <div>
+            <span>JSON feed</span>
+            <code>{{ $apiEndpoint }}</code>
+          </div>
+          <div>
+            <span>MCP server</span>
+            <code>{{ $mcpEndpoint }}</code>
+          </div>
+        </div>
       </div>
       <div class="recipe-browser__endpoint-actions">
         <button type="button" class="recipe-browser__icon-button" data-recipe-copy-endpoint aria-label="Copy agent endpoint">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8V6.6A2.6 2.6 0 0 1 10.6 4h6.8A2.6 2.6 0 0 1 20 6.6v6.8a2.6 2.6 0 0 1-2.6 2.6H16M6.6 8h6.8A2.6 2.6 0 0 1 16 10.6v6.8a2.6 2.6 0 0 1-2.6 2.6H6.6A2.6 2.6 0 0 1 4 17.4v-6.8A2.6 2.6 0 0 1 6.6 8Z"/></svg>
           <span>Copy</span>
+        </button>
+        <button type="button" class="recipe-browser__icon-button" data-recipe-copy-agent-prompt aria-label="Copy agent recipe instructions">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7h8M8 11h8M8 15h5M5.8 3.8h12.4A1.8 1.8 0 0 1 20 5.6v12.8a1.8 1.8 0 0 1-1.8 1.8H5.8A1.8 1.8 0 0 1 4 18.4V5.6a1.8 1.8 0 0 1 1.8-1.8Z"/></svg>
+          <span>Prompt</span>
         </button>
         <button type="button" class="recipe-browser__icon-button" data-recipe-download-all aria-label="Download recipe endpoint JSON">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"/></svg>

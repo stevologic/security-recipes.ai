@@ -183,7 +183,8 @@ docker run --rm -p 8123:80 `
 
 Use `mcp-server.toml` to change:
 
-- `source_index_url`: the generated `recipes-index.json` to read.
+- `source_index_url`: the generated `/api/recipes.json` agent feed to read.
+  The legacy `/recipes-index.json` array is still accepted.
 - `allowed_source_hosts`: the host allow-list for that index.
 - generated evidence-pack file paths.
 - cache TTL, request timeout, and result limits.
