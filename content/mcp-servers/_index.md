@@ -106,6 +106,78 @@ Opening `/mcp` in a normal browser can show an MCP or HTTP method error. That is
 expected. MCP clients connect by sending JSON-RPC messages over the selected
 transport.
 
+## Configure this Security Recipes MCP server
+
+Use the values below for the page you are viewing now. They update from the
+browser's current host, so a local Docker port such as `127.0.0.1:18080`, a
+plain localhost run, and the hosted `security-recipes.ai` site all produce the
+right client URL and public metadata.
+
+<div class="sr-mcp-config-helper" data-mcp-config-helper>
+  <div class="sr-mcp-config-helper__header">
+    <div>
+      <p class="sr-mcp-config-helper__eyebrow">Current host</p>
+      <h3 data-mcp-config-mode>Detecting host</h3>
+      <p data-mcp-config-summary>Preparing MCP endpoint details for this deployment.</p>
+    </div>
+    <span data-mcp-config-badge>dynamic</span>
+  </div>
+
+  <div class="sr-mcp-config-helper__facts">
+    <div>
+      <span>MCP client URL</span>
+      <code data-mcp-config-url>...</code>
+    </div>
+    <div>
+      <span>Recipe feed</span>
+      <code data-mcp-config-feed>...</code>
+    </div>
+    <div>
+      <span>Source allow-list</span>
+      <code data-mcp-config-hosts>...</code>
+    </div>
+  </div>
+
+  <div class="sr-mcp-config-helper__grid">
+    <section>
+      <div class="sr-mcp-config-helper__section-head">
+        <h4>MCP client JSON</h4>
+        <button type="button" data-mcp-config-copy="client">Copy</button>
+      </div>
+      <pre><code data-mcp-config-client-json>{}</code></pre>
+    </section>
+    <section>
+      <div class="sr-mcp-config-helper__section-head">
+        <h4>Docker Compose environment</h4>
+        <button type="button" data-mcp-config-copy="env">Copy</button>
+      </div>
+      <pre><code data-mcp-config-env>RECIPES_MCP_SOURCE_INDEX_URL=...</code></pre>
+    </section>
+    <section>
+      <div class="sr-mcp-config-helper__section-head">
+        <h4>Standalone `mcp-server.toml`</h4>
+        <button type="button" data-mcp-config-copy="toml">Copy</button>
+      </div>
+      <pre><code data-mcp-config-toml>source_index_url = "..."</code></pre>
+    </section>
+    <section>
+      <div class="sr-mcp-config-helper__section-head">
+        <h4>Health check commands</h4>
+        <button type="button" data-mcp-config-copy="checks">Copy</button>
+      </div>
+      <pre><code data-mcp-config-checks>docker compose ps</code></pre>
+    </section>
+  </div>
+
+  <p class="sr-mcp-config-helper__status" data-mcp-config-status aria-live="polite"></p>
+</div>
+
+For Docker Compose, keep `RECIPES_MCP_SOURCE_INDEX_URL` on the internal
+`http://security-recipes/api/recipes.json` feed. That lets the MCP container
+read the exact recipes built from this checkout, even before a public domain or
+TLS certificate is ready. For a standalone MCP server, point `source_index_url`
+at the public recipe feed shown above.
+
 ## Quick local setup
 
 Run the site and MCP server together:

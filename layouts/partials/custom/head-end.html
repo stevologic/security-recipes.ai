@@ -112,6 +112,9 @@ window.__NAV_ROUTES = (function () {
 {{ with resources.Get "js/recipe-browser.js" | minify | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
+{{ with resources.Get "js/mcp-config-helper.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
 
 <script>
 window.__SITE_BASE_PREFIX = {{ "/" | relURL | printf "%q" | safeJS }};

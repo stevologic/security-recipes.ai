@@ -563,6 +563,61 @@
     line-height: 1.45;
   }
 
+  .mcp-context-card {
+    display: grid;
+    gap: 10px;
+    border-color: rgba(45, 212, 191, 0.24);
+    background:
+      linear-gradient(135deg, rgba(45, 212, 191, 0.09), rgba(96, 165, 250, 0.05)),
+      rgba(2, 6, 23, 0.58);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  }
+
+  .mcp-card-head,
+  .mcp-endpoint-row,
+  .mcp-tool-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mcp-card-head {
+    justify-content: space-between;
+  }
+
+  .mcp-card-head span {
+    color: #67e8f9;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .mcp-card-head code,
+  .mcp-endpoint-row code,
+  .mcp-tool-list code {
+    min-height: 24px;
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 4px 7px;
+    border: 1px solid rgba(103, 232, 249, 0.18);
+    border-radius: 7px;
+    background: rgba(15, 23, 42, 0.68);
+    color: #d8fff9;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    overflow-wrap: anywhere;
+  }
+
+  .mcp-endpoint-row span {
+    color: var(--soft);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
   .signal-bars {
     display: grid;
     grid-template-columns: repeat(12, 1fr);
@@ -956,6 +1011,11 @@
       padding: 0 14px 12px;
     }
 
+    .mcp-card-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
     .lane {
       grid-template-columns: 32px minmax(0, 1fr);
       min-height: 0;
@@ -1006,7 +1066,7 @@
     }
 
     .console-status {
-      display: none;
+      display: grid;
     }
 
     section {
@@ -1072,10 +1132,10 @@
           <div class="security-console" role="img" aria-label="Live security remediation workflow from finding intake to reviewed pull request">
             <div class="console-top">
               <div class="console-title">
-                <strong>Recipe-guided remediation</strong>
-                <span>Read-only context, bounded agent work, human-reviewed output</span>
+                <strong>Recipe + MCP remediation context</strong>
+                <span>Connect agents to security-recipes.ai/mcp before they patch</span>
               </div>
-              <div class="console-health">Carefully Curated</div>
+              <div class="console-health">MCP Ready</div>
             </div>
             <div class="console-pipeline">
               <article class="lane">
@@ -1101,10 +1161,10 @@
               <article class="lane">
                 <span class="lane-index">3</span>
                 <div class="lane-body">
-                  <h3>Agent runs inside bounds</h3>
+                  <h3>Agent connects to MCP</h3>
                   <ul>
-                    <li><strong>Repo rules</strong><span>AGENTS.md, instructions, and touched files</span></li>
-                    <li><strong>Context</strong><span>MCP and scanner data stay read-only evidence</span></li>
+                    <li><strong>Server</strong><span>security-recipes.ai/mcp via Streamable HTTP</span></li>
+                    <li><strong>Tools</strong><span>recipes_search, recipes_get, match finding</span></li>
                   </ul>
                 </div>
               </article>
@@ -1121,14 +1181,27 @@
             </div>
             <div class="console-flow" aria-hidden="true"></div>
             <div class="console-status">
-              <div class="status-card">
-                <h3>Agent run contract</h3>
-                <p>One finding enters. One recipe narrows the job. The agent returns either a bounded patch or a clear reason to stop.</p>
+              <div class="status-card mcp-context-card">
+                <div class="mcp-card-head">
+                  <span>Agent MCP configuration</span>
+                  <code>security-recipes</code>
+                </div>
+                <h3>Use Security Recipes as read-only remediation context</h3>
+                <p>Add the MCP server to your agent, then let the agent call recipe tools to fetch bounded fix instructions, proof requirements, and stop conditions.</p>
+                <div class="mcp-endpoint-row">
+                  <span>Server URL</span>
+                  <code>https://security-recipes.ai/mcp</code>
+                </div>
+                <div class="mcp-tool-list" aria-hidden="true">
+                  <code>recipes_search</code>
+                  <code>recipes_get</code>
+                  <code>recipes_match_finding</code>
+                </div>
               </div>
             </div>
             <div class="console-footer" aria-hidden="true">
-              <span>recipes.index</span>
-              <span>mcp.readonly</span>
+              <span>security-recipes/mcp</span>
+              <span>streamable-http</span>
               <span>review.gated</span>
             </div>
           </div>
