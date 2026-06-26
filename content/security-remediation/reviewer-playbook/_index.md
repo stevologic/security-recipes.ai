@@ -31,6 +31,63 @@ An agent-opened PR needs two reviews overlaid on the same diff:
 The provenance review is where most agent-PR regressions get
 caught. It's also the step reviewers most often skip.
 
+## Proof by default
+
+Proof by default does not mean the reviewer manually hunts for evidence after
+the agent opens a PR. It means the recipe defines the evidence contract before
+the agent starts, and the agent must return that proof packet as part of the
+work.
+
+The automated part is collection and formatting. A good recipe tells the agent
+which command outputs, scanner re-runs, changed files, lockfile diffs, test
+results, screenshots, logs, or reproduction checks belong in the PR body or
+attached report. The agent can run those checks, summarize the results, and
+link to the generated artifacts without asking the reviewer to discover them
+from scratch.
+
+The manual part is judgment. A human still decides whether the proof is relevant
+and sufficient. Green tests are not proof if they did not exercise the vulnerable
+path. A scanner clean result is not proof if the scanner did not cover the
+changed component. A screenshot is not proof if it shows the wrong state. The
+reviewer is checking the fit between claim, diff, and evidence.
+
+A proof packet should answer four questions:
+
+- **Scope:** Which one finding is this PR claiming to close?
+- **Change:** Which files changed, and are they inside the recipe allowlist?
+- **Validation:** Which tests, scanner re-runs, or reproduction checks ran?
+- **Residual risk:** What was not checked, and why is that acceptable or a
+  reason to stop?
+
+If a PR arrives without that packet, treat it as incomplete. Ask the agent or
+workflow owner to regenerate the run with the required proof instead of trying
+to reconstruct it manually during review.
+
+## Human in the loop
+
+Human in the loop means humans own the merge decision, not every keystroke. The
+agent can draft a patch, run checks, assemble the proof packet, and explain the
+blast radius. A person still approves the scope, interprets ambiguous risk, and
+decides whether the change is safe to merge.
+
+The loop has three human gates:
+
+1. **Before the run:** choose the matching recipe and confirm the finding is
+   narrow enough for agent work.
+2. **During the run:** stop or redirect when the agent hits an out-of-scope
+   file, missing context, risky dependency, or unclear owner.
+3. **Before merge:** review the diff and proof packet, then approve, reject, or
+   send the PR back for a narrower retry.
+
+This is why "human review" should link here instead of a generic agent setup
+page. Agent setup explains how to give a tool instructions; this playbook
+explains how a team keeps ownership of the result.
+
+Do not turn the human gate into a ceremonial click. Require a named reviewer,
+a visible checklist result, and a rejection path. If the workflow is routine
+enough that reviewers start approving without reading, pause or narrow the
+workflow before auto-approve drift becomes policy by accident.
+
 ## The seven-question checklist
 
 Every agent PR gets the same seven questions before approval.

@@ -29,6 +29,34 @@ The goal is not to automate every security task. The goal is to make safe,
 bounded fixes easier to delegate to an agent while keeping humans in the review
 loop.
 
+## Exact scope
+
+Exact scope means a recipe is allowed to handle one concrete finding, not a
+general backlog theme. The recipe should be narrow enough that a reviewer can
+tell whether the agent stayed inside the boundary without reconstructing the
+whole system.
+
+A scoped recipe names:
+
+- the finding identity, such as a CVE, scanner rule, SARIF alert, package,
+  endpoint, or source/sink pair;
+- the files, manifests, tests, and configuration the agent may inspect or
+  change;
+- the files and actions that are explicitly out of scope;
+- the evidence that must be returned before review starts;
+- the stop conditions that turn the run into a triage note instead of a patch.
+
+The boundary is useful because it makes failure legible. If an agent needs to
+touch unrelated ownership areas, change deployment topology, migrate data, edit
+secrets, broaden permissions, or fix several findings at once, the recipe should
+stop and ask for a human-owned plan. That is not a failed automation run; it is
+the guardrail working.
+
+Use [Recipe Recommender]({{< relref "/security-remediation/recipe-recommender" >}})
+to choose the single safest recipe before work starts, and use
+[Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
+to reject PRs that drift outside the declared scope.
+
 ## Python remediation suite
 
 {{< cards >}}

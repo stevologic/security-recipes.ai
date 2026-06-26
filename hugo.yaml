@@ -92,36 +92,30 @@ outputFormats:
 # through section sidebars and search.
 menu:
   main:
-    - identifier: quickstart
-      name: Quick Start
-      pageRef: quickstart
+    - identifier: recipes
+      name: Recipes
+      pageRef: prompt-library
       weight: 1
 
-    - identifier: recipes
-      name: Remediation
-      pageRef: security-remediation
+    - identifier: mcp-servers
+      name: MCP Sources
+      pageRef: mcp-servers
       weight: 2
 
     - identifier: agents
-      name: Agent Setup
+      name: Agents
       pageRef: agents
       weight: 3
 
-    - identifier: prompt-library
-      name: Recipes
-      pageRef: prompt-library
-      url: /recipes/
+    - identifier: review
+      name: Review
+      pageRef: security-remediation/reviewer-playbook
       weight: 4
-
-    - identifier: mcp-servers
-      name: MCP Integration
-      pageRef: mcp-servers
-      weight: 5
 
     - identifier: docs
       name: Docs
       pageRef: docs
-      weight: 6
+      weight: 5
 
   sidebar:
     - identifier: more
@@ -136,12 +130,12 @@ menu:
 
 params:
   description: >
-    Security recipes for agentic AI remediation: reviewed playbooks,
-    prompts, agent setup guides, and MCP integration patterns for teams
-    that want narrower, safer security fixes.
+    Security recipes for AI-assisted remediation: reviewed playbooks,
+    prompts, agent setup guides, and MCP context patterns that keep agents
+    scoped, evidence-driven, and human-reviewed.
 
   seo:
-    siteName: "SecurityRecipes"
+    siteName: "Security Recipes"
     author: "security-recipes.ai contributors"
     twitter: ""
     defaultImage: "images/og-card.svg"
@@ -182,7 +176,7 @@ params:
   footer:
     displayCopyright: true
     displayPoweredBy: false
-    copyright: "Copyright 2026 security-recipes.ai - open security recipes for agent-assisted remediation"
+    copyright: "Copyright 2026 security-recipes.ai - bounded recipes for agent-assisted security remediation"
 
   page:
     width: normal

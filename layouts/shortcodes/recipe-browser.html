@@ -18,6 +18,7 @@
   (dict "slug" "cve" "label" "CVE" "description" "Named advisory and vulnerability recipes")
   (dict "slug" "general" "label" "General" "description" "Tool-agnostic prompts and review patterns")
   (dict "slug" "classic-defaults" "label" "Defaults" "description" "Recurring unsafe defaults and hardening prompts")
+  (dict "slug" "compliance-standards" "label" "Compliance" "description" "Audit evidence and standards-readiness checks")
   (dict "slug" "crypto-defi" "label" "Crypto/DeFi" "description" "Blockchain, wallet, bridge, and payment recipes")
   (dict "slug" "claude" "label" "Claude" "description" "Claude skills, hooks, and project instructions")
   (dict "slug" "github-copilot" "label" "Copilot" "description" "Copilot instructions and coding-agent prompts")
@@ -40,6 +41,8 @@
     {{- $cveCount = add $cveCount 1 -}}
   {{- else if hasPrefix $source "prompt-library/general/classic-vulnerable-defaults/" -}}
     {{- $catSlug = "classic-defaults" -}}
+  {{- else if hasPrefix $source "prompt-library/general/compliance-standards/" -}}
+    {{- $catSlug = "compliance-standards" -}}
   {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
     {{- $catSlug = "crypto-defi" -}}
   {{- else if hasPrefix $source "prompt-library/claude/" -}}
@@ -213,6 +216,8 @@
         {{- $catSlug = "cve" -}}{{- $catLabel = "CVE" -}}
       {{- else if hasPrefix $source "prompt-library/general/classic-vulnerable-defaults/" -}}
         {{- $catSlug = "classic-defaults" -}}{{- $catLabel = "Defaults" -}}
+      {{- else if hasPrefix $source "prompt-library/general/compliance-standards/" -}}
+        {{- $catSlug = "compliance-standards" -}}{{- $catLabel = "Compliance" -}}
       {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
         {{- $catSlug = "crypto-defi" -}}{{- $catLabel = "Crypto/DeFi" -}}
       {{- else if hasPrefix $source "prompt-library/claude/" -}}
