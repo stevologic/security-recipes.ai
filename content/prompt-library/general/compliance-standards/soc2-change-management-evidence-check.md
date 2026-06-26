@@ -159,6 +159,22 @@ Stop and produce a partial report if:
 - No code edits, settings changes, approvals, merges, or ticket updates.
 - Clear separation between observed evidence and candidate control mapping.
 
+## Verification
+
+Before handing the report to a control owner or auditor-facing reviewer,
+verify that:
+
+- every reviewed change has a request source, implementer, human reviewer,
+  test/CI evidence, merge evidence, or an explicit gap;
+- agent-assisted changes identify both the agent/tool attribution and the
+  human approval evidence;
+- missing PR metadata, CI logs, branch protection data, or ticket links are
+  listed as gaps instead of inferred;
+- candidate control mapping does not claim SOC 2 control effectiveness or
+  auditor acceptance;
+- customer data, incident details, private audit workpapers, and secrets are
+  redacted or excluded.
+
 ## Guardrails
 
 - Never mark a control as passing solely because a PR exists.
@@ -166,8 +182,14 @@ Stop and produce a partial report if:
 - Agent-generated code requires both agent attribution and human approval.
 - Treat missing CI logs as a gap, not as implicit failure or success.
 
+## Related recipes
+
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
+- [SLSA provenance evidence check]({{< relref "/prompt-library/general/compliance-standards/slsa-provenance-evidence-check" >}})
+- [Source code audit - dependency and build integrity]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
+
 ## References
 
 - [AICPA Trust Services Criteria with revised points of focus (2022)](https://www.aicpa-cima.com/resources/download/2017-trust-services-criteria-with-revised-points-of-focus-2022)
 - [Security Remediation - Compliance & Audit]({{< relref "/security-remediation/compliance" >}})
-

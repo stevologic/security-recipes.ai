@@ -193,6 +193,40 @@ repo. Output a PR or a TRIAGE.md.
   applications on the same JVM if any. Prefer per-stream
   filters when the JVM hosts multiple applications.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no production data migration without explicit
+  operator approval.
+- Call-site inventory includes every `ObjectInputStream`, framework
+  deserialization hook, persisted binary payload reader, and writer path found.
+- Mitigation explains the chosen JEP 290 allowlist, global filter, helper
+  wrapper, or JSON uplift strategy.
+- Tests prove allowed payloads still work and representative gadget or
+  non-allowlisted payloads fail closed.
+- Migration notes name any legacy reader, persisted-data format, rollback
+  path, and owner review required before removal.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- every deserialization call site is either filtered, uplifted, or documented
+  as framework-owned with a stop condition;
+- the allowlist is minimal and does not include broad packages, reflective
+  gadget classes, or application superclasses without review rationale;
+- tests cover both accepted and rejected payload paths;
+- no serialized production data, secrets, or customer records are committed as
+  fixtures;
+- reviewers can see whether the fix is mitigation-only, full uplift, or staged
+  migration.
+
+## Guardrails
+
+- Keep binary-format compatibility unless the operator approves a migration.
+- Do not broaden an allowlist to make tests pass; fix the model or fixture.
+- Do not remove legacy readers until data migration and rollback are reviewed.
+- Do not attempt live gadget-chain exploitation against production systems.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

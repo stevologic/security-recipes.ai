@@ -163,6 +163,22 @@ Stop immediately and write an incident-style top finding if you find:
 - No unredacted account data in output.
 - No final PCI DSS compliance claim.
 
+## Verification
+
+Before handing the report to a PCI or payment-platform owner, verify that:
+
+- every payment surface, agent, CI workflow, MCP server, and model-provider
+  path has a repository path, configuration reference, or `out of scope`
+  marker;
+- PAN, CVV/CVC, track data, PIN data, payment credentials, gateway tokens, and
+  customer IDs are redacted in all examples;
+- ambiguous payment-adjacent paths are marked `CDE-adjacent` rather than
+  excluded without owner review;
+- each finding states whether it affects data, secrets, logging, build access,
+  deployment access, or review/approval evidence;
+- no validation step required a live payment, production query, credential
+  test, or external model upload.
+
 ## Guardrails
 
 - Treat payment tokens and gateway customer IDs as sensitive even when they are
@@ -170,9 +186,15 @@ Stop immediately and write an incident-style top finding if you find:
 - Default to "CDE-adjacent" when evidence is ambiguous.
 - Require human compliance-owner review before changing CDE scope.
 
+## Related recipes
+
+- [Source code audit - secrets and data exposure]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code audit - auth and tenant boundaries]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [SOC 2 change-management evidence check]({{< relref "/prompt-library/general/compliance-standards/soc2-change-management-evidence-check" >}})
+- [Context egress boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
+
 ## References
 
 - [PCI DSS overview](https://www.pcisecuritystandards.org/standards/pci-dss/)
 - [PCI Security Standards Council document library](https://www.pcisecuritystandards.org/document_library/)
 - [Security Remediation - Compliance & Audit]({{< relref "/security-remediation/compliance" >}})
-

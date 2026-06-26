@@ -28,6 +28,25 @@ privileged lifecycle boundary: the server may have source code, generated
 artifacts, browser state, credentials, local files, and network access that the
 agent used during execution.
 
+## When to use it
+
+Use this recipe when a repository, agent workspace service, or Paperclip
+deployment allows users or agents to configure execution-workspace lifecycle
+actions. It is designed for source-code remediation, command-injection review,
+workspace cleanup hardening, and audit evidence that lifecycle hooks cannot
+execute arbitrary shell strings.
+
+## Inputs
+
+- Paperclip version, deployment config, execution-workspace API routes, and
+  all code paths that read or persist `cleanupCommand`.
+- Source paths for workspace cleanup, lifecycle action dispatch, process
+  execution, config validation, and authorization checks.
+- Regression fixtures for shell metacharacters, command arrays, allow-listed
+  cleanup actions, and denied custom commands.
+- Runtime boundary evidence: workspace files, generated artifacts, browser
+  state, credentials, network reach, and which users can patch workspace config.
+
 ## Affected versions
 
 - **Vulnerable:** `@paperclipai/server <2026.416.0`
@@ -159,6 +178,16 @@ cleanupCommand OS command injection). Produce exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades Paperclip, removes
+  shell-backed cleanup strings, adds lifecycle-action allow-list tests, and
+  documents cleanup/operator follow-up.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  workspace API exposure, cleanup boundary, required fix, and residual risk.
+- The output must include exact validation commands and must not execute shell
+  payloads, delete real workspaces, or expose credentials from agent sessions.
+
 ## Verification - what the reviewer looks for
 
 - No controlled package, lockfile, image, SBOM, or deployment target resolves
@@ -178,6 +207,13 @@ cleanupCommand OS command injection). Produce exactly one output:
 - Treating localhost APIs as safe while browsers, extensions, or other local
   processes can reach them.
 - Logging command strings that contain secrets or file paths.
+
+## Related recipes
+
+- [Source code injection sink audit]({{< relref "/prompt-library/general/source-code-injection-sink-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [SAST finding triage and fix]({{< relref "/prompt-library/general/sast-finding-triage-and-fix" >}})
 
 ## References
 

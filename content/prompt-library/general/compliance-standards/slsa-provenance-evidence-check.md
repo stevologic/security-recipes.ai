@@ -155,6 +155,22 @@ Stop and write a partial report if:
 - No builds, publishes, signatures, uploads, deployments, or credential use.
 - Candidate posture only unless a formal assessment method is supplied.
 
+## Verification
+
+Before handing the report to a release, build, or supply-chain owner, verify
+that:
+
+- every artifact row includes a source path, build workflow, package registry,
+  container registry, release process, or explicit `out of repo` marker;
+- provenance evidence binds source revision, builder identity, artifact digest,
+  and signing/attestation mechanism when available;
+- mutable tags, manual release notes, and unsigned checksums are labeled as
+  weak evidence rather than accepted provenance;
+- no verification step required publish rights, signing keys, release
+  credentials, or production deployment access;
+- candidate posture does not claim a formal SLSA level unless the operator
+  supplied an approved assessment method.
+
 ## Guardrails
 
 - Treat provenance as incomplete unless it binds source, builder, and artifact
@@ -162,9 +178,15 @@ Stop and write a partial report if:
 - Do not trust mutable tags or manual release notes as provenance.
 - Prefer verification commands that reviewers can run without publish rights.
 
+## Related recipes
+
+- [Source code audit - dependency and build integrity]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
+- [SOC 2 change-management evidence check]({{< relref "/prompt-library/general/compliance-standards/soc2-change-management-evidence-check" >}})
+- [Compromised package cache quarantine]({{< relref "/prompt-library/general/compromised-package-cache-quarantine" >}})
+
 ## References
 
 - [SLSA framework overview](https://slsa.dev/)
 - [SLSA specification](https://slsa.dev/spec/v1.1/)
 - [Source code audit - dependency and build integrity]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
-

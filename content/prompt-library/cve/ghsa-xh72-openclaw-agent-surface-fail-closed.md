@@ -39,6 +39,27 @@ The four advisories covered by this recipe are:
   local or UNC-style paths into host-side embedding before enforcing
   `localRoots`, risking host file reads or Windows network credential exposure.
 
+## When to use it
+
+Use this recipe when a repository, OpenClaw deployment, or external-agent
+gateway receives chat/webhook ingress, browser media, Matrix commands, or
+Gateway traffic from lower-trust users. It is designed for source-code
+remediation, fail-closed boundary review, multi-surface audit, and evidence
+that every external agent input denies by default when auth context is missing
+or stale.
+
+## Inputs
+
+- OpenClaw version, Feishu webhook config, Gateway bearer-token config,
+  SecretRef rotation behavior, Matrix pairing store, webchat media roots, and
+  deployment exposure.
+- Source paths for webhook signature/callback checks, WebSocket/HTTP auth,
+  Matrix room authorization, media path normalization, and fail-closed tests.
+- Regression fixtures for missing signing config, stale bearer tokens, rotated
+  secrets, DM-vs-room senders, local media paths, UNC paths, and denied actions.
+- Boundary evidence: active tokens, webhooks, Matrix rooms, media roots,
+  impacted sessions, logs, and operator cleanup/rotation owners.
+
 ## Affected versions
 
 - **OpenClaw Feishu webhook/card-action validation:**
@@ -211,6 +232,16 @@ GHSA-mr34-9552-qr95. Produce exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades OpenClaw, fails closed on
+  every external agent input, adds trust-boundary regression tests, and
+  documents token/media/session cleanup.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  affected agent surfaces, boundary gaps, required fix, and residual risk.
+- The output must include exact validation commands and must not expose real
+  tokens, chat contents, local files, customer data, or production logs.
+
 ## Verification - what the reviewer looks for
 
 - No controlled lockfile, image, SBOM, or deployment target resolves OpenClaw
@@ -235,6 +266,13 @@ GHSA-mr34-9552-qr95. Produce exactly one output:
 - Treating Matrix DM pairing as equivalent to room command authorization.
 - Checking local-root containment after `stat`, preview generation, or media
   metadata probing has already touched the path.
+
+## Related recipes
+
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [AI governance oversight evidence check]({{< relref "/prompt-library/general/compliance-standards/ai-governance-oversight-evidence-check" >}})
 
 ## References
 

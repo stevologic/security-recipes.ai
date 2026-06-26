@@ -148,6 +148,38 @@ Add behavior-preservation tests:
   eventually written into that table.
 - **Over-broad allowlists** that reintroduce gadget surfaces.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no coordinated cross-service schema migration unless
+  explicitly approved.
+- Inventory lists every `unserialize`, wrapper decoder, base64 payload wrapper,
+  session/queue deserializer, and class reachable from deserialize paths.
+- Each call site is classified as untrusted, trusted-only legacy, ambiguous, or
+  framework-owned.
+- Fix is labeled as JSON/DTO uplift, `allowed_classes` mitigation, or triage.
+- Tests prove valid payloads still decode, disallowed classes are rejected, and
+  malformed payloads fail closed.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- attacker-controlled or ambiguous payloads do not reach unrestricted
+  `unserialize`;
+- `allowed_classes` is `false` or narrowly enumerated with class rationale;
+- legacy serialized data has a dated removal or migration note;
+- framework/session internals are not changed unless explicitly in scope;
+- no production serialized blobs, secrets, or customer data are committed as
+  fixtures.
+
+## Guardrails
+
+- Do not expand allowed class lists to make tests pass without owner review.
+- Do not assume database-stored serialized data is trusted if users can write
+  to that table indirectly.
+- Do not remove compatibility readers without migration and rollback planning.
+- Do not bundle unrelated DTO or framework refactors.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

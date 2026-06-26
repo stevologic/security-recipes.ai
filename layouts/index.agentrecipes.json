@@ -77,7 +77,7 @@
   {{- if or (eq $catSlug "cve") (in $facetText "risk") (in $facetText "threat") (in $facetText "vulnerab") (in $facetText "exploit") (in $facetText "critical") (in $facetText "high") -}}{{- $facets = $facets | append "risk" -}}{{- end -}}
   {{- if or (in $facetText "source-code") (in $facetText "code") (in $facetText "sast") (in $facetText "secret") (in $facetText "dependency") (in $facetText "supply-chain") (in $facetText "hygiene") (in $facetText "unsafe default") -}}{{- $facets = $facets | append "code-hygiene" -}}{{- end -}}
   {{- $facets = uniq $facets -}}
-  {{- $plainLower := lower .Plain -}}
+  {{- $plainLower := lower (printf "%s\n%s" .RawContent .Plain) -}}
   {{- $qualitySignals := slice -}}
   {{- $qualityScore := 20 -}}
   {{- if or (in $plainLower "## inputs") (in $plainLower "## input") -}}{{- $qualitySignals = $qualitySignals | append "inputs" -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}

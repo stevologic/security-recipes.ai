@@ -30,6 +30,25 @@ Flowise Custom MCP advisories. If Custom MCP stdio remains enabled, stopping at
 `3.1.0` or `3.1.1` is not a mergeable fix; reviewers should require `3.1.2+`
 plus authorization, import, and runtime containment checks.
 
+## When to use it
+
+Use this recipe when a repository deploys Flowise Custom MCP, embeds
+`flowise-components`, or maintains MCP command validation policy. It is
+designed for source-code remediation, MCP command-execution hardening,
+deny-list replacement, and audit evidence that Custom MCP tools are limited to
+an approved registry instead of shell-like command construction.
+
+## Inputs
+
+- Flowise and `flowise-components` versions, Custom MCP configuration,
+  deployment manifests, command validation code, and allowed MCP tool registry.
+- Source paths that invoke `docker`, `npx`, `node`, local file paths, package
+  installers, or child processes for Custom MCP tools.
+- Regression fixtures for bypass spellings, long-form aliases, absolute paths,
+  package-manager command variants, and expected reject/allow decisions.
+- Evidence of runtime reach: server filesystem, package tokens, Docker socket,
+  network egress, environment variables, and workspace data.
+
 ## Affected versions
 
 - **Vulnerable:** `flowise <=3.1.1`
@@ -197,6 +216,18 @@ Produce exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades Flowise components,
+  replaces deny-list command validation with an approved registry, adds bypass
+  regression tests, and documents operator cleanup.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed versions,
+  Custom MCP exposure, command-execution boundary, required fix, and residual
+  risk.
+- The output must include exact validation commands and must not run Docker,
+  package installers, arbitrary Node files, or payloads against production
+  Flowise instances.
+
 ## Verification - what the reviewer looks for
 
 - No controlled package, lockfile, image, SBOM, or deployment target resolves
@@ -222,9 +253,15 @@ Produce exactly one output:
 - Logging command arguments, MCP environment values, uploaded file contents,
   prompt content, or provider credentials while adding validation.
 
+## Related recipes
+
+- [Source code injection sink audit]({{< relref "/prompt-library/general/source-code-injection-sink-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [Source code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [SAST finding triage and fix]({{< relref "/prompt-library/general/sast-finding-triage-and-fix" >}})
+
 ## References
 
 - GitHub Advisory: <https://github.com/advisories/GHSA-m99r-2hxc-cp3q>
 - OSV: <https://osv.dev/vulnerability/GHSA-m99r-2hxc-cp3q>
 - Flowise `flowise@3.1.2` release: <https://github.com/FlowiseAI/Flowise/releases/tag/flowise%403.1.2>
-

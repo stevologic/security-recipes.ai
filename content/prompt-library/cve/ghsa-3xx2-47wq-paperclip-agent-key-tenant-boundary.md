@@ -28,6 +28,25 @@ revoke that agent's keys, and mint a new plaintext agent token bound to the
 victim tenant. For an agent platform, that is a full cross-tenant control-plane
 compromise.
 
+## When to use it
+
+Use this recipe when a repository, agent platform, or Paperclip deployment
+manages agent API keys across companies, workspaces, or tenants. It is built
+for source-code remediation, authorization boundary review, secret rotation
+planning, and audit evidence that agent key routes enforce company ownership
+before list, create, or revoke operations.
+
+## Inputs
+
+- Paperclip version, agent key API routes, session/tenant model, company
+  membership checks, and deployment boundary.
+- Source paths for `/agents/:id/keys`, key creation, key listing, key revocation,
+  board sessions, company ownership lookup, and token storage.
+- Regression fixtures for same-company, cross-company, revoked-agent, missing
+  session, and low-privilege caller cases.
+- Evidence of token exposure: plaintext key response paths, logs, audit events,
+  existing keys, rotation owner, and impacted tenants.
+
 ## Affected versions
 
 - **Vulnerable:** `@paperclipai/server <2026.416.0`
@@ -163,6 +182,16 @@ GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp. Produce exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades Paperclip, enforces
+  company access on key routes, adds negative RBAC tests, and documents agent
+  token rotation.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  tenant boundary, key exposure, required fix, and rotation recommendation.
+- The output must include exact validation commands and must not print real
+  agent tokens, tenant data, bearer headers, or production audit logs.
+
 ## Verification - what the reviewer looks for
 
 - No controlled package, lockfile, image, SBOM, or deployment target resolves
@@ -182,6 +211,13 @@ GHSA-3xx2-mqjm-hg9x and GHSA-47wq-cj9q-wpmp. Produce exactly one output:
 - Revoking by key ID alone when key IDs are globally unique and guessable from
   logs or frontend state.
 - Logging plaintext `pcp_*` tokens in tests, audit events, or PR comments.
+
+## Related recipes
+
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [SOC 2 change management evidence check]({{< relref "/prompt-library/general/compliance-standards/soc2-change-management-evidence-check" >}})
 
 ## References
 

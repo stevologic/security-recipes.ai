@@ -207,13 +207,20 @@ reasoning trace.
   remove it — those need `git filter-repo` treatment, not a
   normal commit.
 
-## Outputs
+## Output contract
 
 - Success (pre-exposure): a pushed branch + opened PR, plus a
   passing regression-guard test.
 - Exposed SDE: a triage branch with `TRIAGE.md`, zero code
   edits on the offending file.
 ~~~
+
+## Related recipes
+
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Sensitive data remediation]({{< relref "/security-remediation/sensitive-data" >}})
+- [Context egress boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
 
 ## Known limitations
 
