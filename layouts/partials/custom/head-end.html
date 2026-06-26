@@ -29,11 +29,17 @@
   Load the custom stylesheet on every page.
   Hextra exposes a "custom/head-end.html" partial hook for exactly this.
 */}}
+<script>
+document.documentElement.dataset.siteSignalBackground = "true";
 {{ if eq .RelPermalink "/recipes/" }}
-  <script>document.documentElement.dataset.recipeBrowserPage = "true";</script>
+document.documentElement.dataset.recipeBrowserPage = "true";
 {{ end }}
+</script>
 {{ with resources.Get "css/custom.css" | minify | fingerprint }}
   <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+{{ end }}
+{{ with resources.Get "js/signal-background.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
 {{ with resources.Get "css/ai-chatbot.css" | minify | fingerprint }}
   <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">

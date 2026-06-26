@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{ .Site.Title }}</title>
-{{ $homeDescription := "Security recipes for agentic AI remediation: reviewed playbooks, prompt patterns, agent setup guides, and MCP integration notes for safer security fixes." }}
+{{ $homeDescription := "Security recipes for AI-assisted remediation: reviewed playbooks, prompt patterns, agent setup guides, and MCP context notes for scoped, evidence-driven security fixes." }}
 <meta name="description" content="{{ $homeDescription }}">
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
@@ -20,8 +20,8 @@
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
       "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    --bg: #05070b;
-    --bg-2: #080d12;
+    --bg: #020506;
+    --bg-2: #06100f;
     --surface: rgba(255, 255, 255, 0.045);
     --surface-2: rgba(255, 255, 255, 0.07);
     --border: rgba(255, 255, 255, 0.12);
@@ -32,25 +32,31 @@
     --teal: #2dd4bf;
     --amber: #fbbf24;
     --rose: #fb7185;
-    --blue: #60a5fa;
+    --blue: #67e8f9;
     --green: #86efac;
     --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
     --shadow-tight: 0 18px 55px rgba(0, 0, 0, 0.34);
+    --shell: min(1450px, calc(100% - 88px));
   }
 
   * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  html {
+    min-height: 100%;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+
   body {
     margin: 0;
     min-height: 100vh;
     font-family: var(--font-sans);
     color: var(--text);
     overflow-x: hidden;
+    overflow-y: auto;
     background:
-      radial-gradient(58rem 36rem at 84% 20%, rgba(45, 212, 191, 0.13), transparent 68%),
-      radial-gradient(44rem 30rem at 8% 86%, rgba(251, 113, 133, 0.06), transparent 62%),
-      radial-gradient(34rem 28rem at 58% 116%, rgba(96, 165, 250, 0.07), transparent 60%),
-      linear-gradient(160deg, #030607 0%, #07100f 54%, #05070c 100%);
+      radial-gradient(circle at 52% 18%, rgba(45, 212, 191, 0.055), transparent 34%),
+      radial-gradient(circle at 82% 52%, rgba(251, 191, 36, 0.045), transparent 30%),
+      linear-gradient(180deg, #020405 0%, #04100f 70%, #030707 100%);
     -webkit-font-smoothing: antialiased;
     line-height: 1.55;
   }
@@ -75,9 +81,9 @@
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(to bottom, transparent 68%, rgba(0, 0, 0, 0.78) 100%),
-      linear-gradient(110deg, transparent 0 38%, rgba(103, 232, 249, 0.07) 48%, transparent 59% 100%),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.42), transparent 45%, rgba(0, 0, 0, 0.34));
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.08), transparent 46%, rgba(2, 18, 15, 0.36) 100%),
+      linear-gradient(110deg, transparent 0 36%, rgba(45, 212, 191, 0.035) 48%, transparent 61% 100%),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.5), transparent 46%, rgba(0, 0, 0, 0.42));
     mix-blend-mode: screen;
     opacity: 0.7;
   }
@@ -90,11 +96,18 @@
     z-index: 0;
     width: 100%;
     height: 100%;
+    opacity: 0;
     pointer-events: none;
+    transition: opacity 1400ms ease;
+    will-change: opacity;
+  }
+
+  html[data-signal-background-ready="true"] .home-signal-canvas {
+    opacity: 0.92;
   }
 
   .site-shell {
-    width: min(1180px, calc(100% - 40px));
+    width: var(--shell);
     margin: 0 auto;
     position: relative;
     z-index: 1;
@@ -106,6 +119,13 @@
     pointer-events: none;
     overflow: hidden;
     z-index: 0;
+    opacity: 0;
+    transition: opacity 1600ms ease 120ms;
+    will-change: opacity;
+  }
+
+  html[data-signal-background-ready="true"] .site-ambient {
+    opacity: 1;
   }
 
   .site-ambient span {
@@ -146,48 +166,41 @@
     top: 0;
     z-index: 20;
     backdrop-filter: blur(18px);
-    background: rgba(4, 6, 9, 0.82);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(1, 4, 5, 0.88);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   }
 
   .topbar-inner {
-    width: min(1180px, calc(100% - 40px));
+    width: var(--shell);
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 66px;
+    min-height: 80px;
     gap: 24px;
   }
 
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 760;
+    gap: 14px;
+    font-size: 1.42rem;
+    font-weight: 780;
     letter-spacing: 0;
   }
 
-  .brand::after {
-    content: "";
-    width: 7px;
-    height: 7px;
-    border-radius: 999px;
-    background: var(--teal);
-    box-shadow: 0 0 18px rgba(45, 212, 191, 0.72);
-  }
-
   .brand img {
-    width: 30px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
   }
 
   .nav-links {
     display: flex;
     align-items: center;
-    gap: 18px;
-    color: var(--muted);
+    gap: 34px;
+    color: #eef3f8;
     font-size: 0.94rem;
+    font-weight: 520;
   }
 
   .nav-links a {
@@ -203,81 +216,133 @@
     outline: none;
   }
 
+  .top-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 24px;
+    flex: 0 0 auto;
+  }
+
+  .github-link,
+  .header-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .github-link {
+    width: 36px;
+    height: 36px;
+    color: #ffffff;
+  }
+
+  .github-link svg,
+  .header-cta svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+  }
+
+  .header-cta {
+    min-height: 45px;
+    padding: 0 22px;
+    border: 1px solid rgba(45, 212, 191, 0.9);
+    border-radius: 7px;
+    color: #33ecd1;
+    font-size: 0.95rem;
+    font-weight: 760;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .header-cta:hover,
+  .header-cta:focus-visible {
+    background: rgba(45, 212, 191, 0.1);
+    color: #9ffff1;
+    outline: none;
+    transform: translateY(-1px);
+  }
+
   .hero {
     position: relative;
-    padding: 54px 0 48px;
+    min-height: 642px;
+    padding: 68px 0 26px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.11);
   }
 
   .hero-grid > div:first-child {
     position: relative;
   }
 
-  .hero-grid > div:first-child::before {
-    content: "";
-    position: absolute;
-    top: -42px;
-    left: -28px;
-    width: 140px;
-    height: 3px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--teal), var(--amber), transparent);
-    box-shadow: 0 0 26px rgba(45, 212, 191, 0.34);
-  }
-
   .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 0.9fr) minmax(440px, 0.96fr);
-    gap: 48px;
+    grid-template-columns: minmax(590px, 0.82fr) minmax(832px, 1fr);
+    gap: 28px;
     align-items: center;
   }
 
   .hero h1 {
     margin: 0;
-    max-width: 690px;
-    font-size: clamp(3.25rem, 6.1vw, 5.9rem);
-    line-height: 0.95;
+    max-width: 620px;
+    font-size: clamp(3.25rem, 3.9vw, 3.9rem);
+    line-height: 1.16;
     letter-spacing: 0;
     text-wrap: balance;
   }
 
-  .hero h1 span {
+  .hero h1 > span {
     display: block;
+    white-space: nowrap;
+  }
+
+  .accent-dot {
+    display: inline;
+    color: var(--teal);
   }
 
   .hero-copy {
     margin: 22px 0 0;
-    max-width: 650px;
-    color: #d8e2ef;
-    font-size: clamp(1.06rem, 1.65vw, 1.22rem);
+    max-width: 500px;
+    color: #cbd3db;
+    font-size: clamp(1.1rem, 1.52vw, 1.22rem);
+    line-height: 1.52;
   }
 
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin-top: 30px;
+    margin-top: 42px;
   }
 
   .button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 44px;
-    padding: 0 18px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
+    min-height: 50px;
+    padding: 0 16px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.34);
     color: var(--text);
     font-weight: 700;
-    font-size: 0.98rem;
+    font-size: 0.93rem;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
     transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
   }
 
   .button.primary {
-    color: #03120f;
-    background: linear-gradient(135deg, #2dd4bf, #67e8f9);
+    color: #021d1b;
+    background: linear-gradient(135deg, #2bd3bd, #33dfca);
     border-color: rgba(45, 212, 191, 0.88);
-    box-shadow: 0 12px 34px rgba(45, 212, 191, 0.18);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      0 12px 34px rgba(45, 212, 191, 0.22);
+  }
+
+  .button.primary:hover,
+  .button.primary:focus-visible {
+    color: #010f0e;
+    border-color: rgba(153, 246, 228, 0.92);
   }
 
   .button:hover,
@@ -289,7 +354,7 @@
 
   .hero-media {
     position: relative;
-    min-height: 628px;
+    min-height: 0;
     margin: 0;
   }
 
@@ -298,7 +363,7 @@
     position: absolute;
     inset: 8% -3% -5% 5%;
     background:
-      linear-gradient(135deg, rgba(45, 212, 191, 0.12), rgba(96, 165, 250, 0.08) 42%, rgba(251, 191, 36, 0.07)),
+      linear-gradient(135deg, rgba(45, 212, 191, 0.12), rgba(103, 232, 249, 0.08) 42%, rgba(251, 191, 36, 0.07)),
       repeating-linear-gradient(90deg, transparent 0 17px, rgba(255, 255, 255, 0.045) 17px 18px);
     filter: blur(26px);
     border-radius: 8px;
@@ -307,15 +372,79 @@
 
   .security-console {
     position: relative;
-    min-height: 628px;
+    min-height: 0;
     overflow: hidden;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
-      linear-gradient(135deg, rgba(45, 212, 191, 0.06), transparent 34%, rgba(96, 165, 250, 0.065) 68%, rgba(251, 191, 36, 0.035)),
+      linear-gradient(135deg, rgba(45, 212, 191, 0.06), transparent 34%, rgba(103, 232, 249, 0.065) 68%, rgba(251, 191, 36, 0.035)),
       #050b10;
     box-shadow: var(--shadow-tight);
+  }
+
+  .hero h1 em {
+    color: #67e8f9;
+    font-style: normal;
+  }
+
+  .hero-proof {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 64px;
+    max-width: 620px;
+  }
+
+  .hero-proof-item {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    min-width: 0;
+  }
+
+  .hero-proof-icon {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 0;
+    border: 0;
+    color: var(--teal);
+    background: transparent;
+  }
+
+  .hero-proof-icon svg,
+  .button svg,
+  .recipe-tab svg,
+  .context-source svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .hero-proof strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.77rem;
+    line-height: 1.22;
+  }
+
+  .hero-proof span:not(.hero-proof-icon) {
+    display: block;
+    margin-top: 2px;
+    color: #9ca6ad;
+    font-size: 0.65rem;
+    line-height: 1.32;
+  }
+
+  .button {
+    gap: 9px;
   }
 
   .security-console::before {
@@ -324,7 +453,7 @@
     inset: 0;
     background-image:
       linear-gradient(rgba(45, 212, 191, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(96, 165, 250, 0.06) 1px, transparent 1px);
+      linear-gradient(90deg, rgba(103, 232, 249, 0.06) 1px, transparent 1px);
     background-size: 38px 38px;
     opacity: 0.3;
     animation: console-grid 18s linear infinite;
@@ -353,7 +482,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 18px 20px;
+    padding: 14px 18px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.09);
     background: rgba(2, 6, 23, 0.36);
   }
@@ -371,6 +500,280 @@
   .console-title span {
     color: var(--soft);
     font-size: 0.78rem;
+  }
+
+  .recipe-console-body {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(140px, 0.58fr) minmax(0, 1.42fr);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .recipe-list,
+  .active-recipe,
+  .context-proof {
+    min-width: 0;
+  }
+
+  .recipe-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .console-label {
+    color: var(--soft);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .recipe-tab {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 8px;
+    min-height: 56px;
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 8px;
+    background: rgba(8, 13, 20, 0.66);
+    color: var(--muted);
+  }
+
+  .recipe-tab strong {
+    display: block;
+    color: var(--text);
+    font-size: 0.76rem;
+    line-height: 1.25;
+  }
+
+  .recipe-tab span {
+    display: inline-flex;
+    margin-top: 5px;
+    color: var(--soft);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+  }
+
+  .recipe-tab.is-active {
+    border-color: rgba(45, 212, 191, 0.66);
+    background:
+      linear-gradient(135deg, rgba(45, 212, 191, 0.13), rgba(103, 232, 249, 0.07)),
+      rgba(6, 17, 20, 0.78);
+    color: #67e8f9;
+    box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.12);
+  }
+
+  .view-all-recipes {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    margin-top: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #d8e2ef;
+    font-size: 0.78rem;
+    font-weight: 760;
+  }
+
+  .active-recipe {
+    display: grid;
+    gap: 10px;
+  }
+
+  .active-recipe-card,
+  .context-source,
+  .proof-panel,
+  .review-gate {
+    border: 1px solid rgba(255, 255, 255, 0.105);
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.46);
+  }
+
+  .active-recipe-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .active-recipe-card > .console-label,
+  .active-recipe-card > div:first-of-type,
+  .active-recipe-card > .status-chips {
+    grid-column: 1 / -1;
+  }
+
+  .active-recipe-card h2,
+  .proof-panel h3,
+  .review-gate h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.22;
+  }
+
+  .active-recipe-card p {
+    margin: 3px 0 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+    line-height: 1.42;
+  }
+
+  .scope-block,
+  .plan-block {
+    padding: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(7, 12, 18, 0.68);
+  }
+
+  .scope-block code {
+    display: block;
+    margin-top: 6px;
+    color: #cdeee8;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1.42;
+    overflow-wrap: anywhere;
+  }
+
+  .plan-block ol {
+    display: grid;
+    gap: 3px;
+    margin: 6px 0 0 16px;
+    padding: 0;
+    color: #cbd7e5;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1.34;
+  }
+
+  .status-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .status-chips span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 4px 7px;
+    border: 1px solid rgba(134, 239, 172, 0.22);
+    border-radius: 7px;
+    background: rgba(134, 239, 172, 0.07);
+    color: #bbf7d0;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 800;
+  }
+
+  .context-proof {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .context-sources,
+  .proof-panel {
+    display: grid;
+    gap: 7px;
+  }
+
+  .context-source {
+    display: grid;
+    grid-template-columns: 21px minmax(0, 1fr) auto;
+    gap: 7px;
+    align-items: center;
+    min-height: 31px;
+    padding: 6px;
+    color: #67e8f9;
+  }
+
+  .context-source strong {
+    color: #d8fff9;
+    font-size: 0.66rem;
+  }
+
+  .context-source span {
+    color: #86efac;
+    font-size: 0.58rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .proof-panel,
+  .review-gate {
+    padding: 9px;
+  }
+
+  .proof-panel {
+    border-color: rgba(251, 191, 36, 0.26);
+    background:
+      linear-gradient(135deg, rgba(251, 191, 36, 0.08), transparent 54%),
+      rgba(2, 6, 23, 0.52);
+  }
+
+  .proof-checks {
+    display: grid;
+    gap: 5px;
+    margin: 7px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .proof-checks li {
+    display: grid;
+    grid-template-columns: 14px minmax(0, 1fr);
+    gap: 7px;
+    align-items: start;
+    color: #d5deea;
+    font-size: 0.66rem;
+    line-height: 1.35;
+  }
+
+  .proof-checks li::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    margin-top: 3px;
+    border: 1px solid #fbbf24;
+    border-radius: 2px;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.28);
+  }
+
+  .review-gate {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    border-color: rgba(251, 191, 36, 0.24);
+  }
+
+  .review-gate p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.68rem;
+    line-height: 1.38;
+  }
+
+  .review-gate a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.055);
+    color: var(--text);
+    font-size: 0.72rem;
+    font-weight: 800;
   }
 
   .console-health {
@@ -417,7 +820,7 @@
     left: 32px;
     width: 2px;
     border-radius: 999px;
-    background: linear-gradient(180deg, #67e8f9, #86efac 36%, #a78bfa 68%, #fbbf24);
+    background: linear-gradient(180deg, #67e8f9, #86efac 36%, #fbbf24 68%, #fb7185);
     opacity: 0.58;
   }
 
@@ -446,7 +849,7 @@
 
   .lane:nth-child(1) { color: #67e8f9; }
   .lane:nth-child(2) { color: #86efac; }
-  .lane:nth-child(3) { color: #a78bfa; }
+  .lane:nth-child(3) { color: #fbbf24; }
   .lane:nth-child(4) { color: #fbbf24; }
 
   .lane-index {
@@ -568,7 +971,7 @@
     gap: 10px;
     border-color: rgba(45, 212, 191, 0.24);
     background:
-      linear-gradient(135deg, rgba(45, 212, 191, 0.09), rgba(96, 165, 250, 0.05)),
+      linear-gradient(135deg, rgba(45, 212, 191, 0.09), rgba(103, 232, 249, 0.05)),
       rgba(2, 6, 23, 0.58);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
   }
@@ -640,7 +1043,7 @@
   .signal-bars span:nth-child(4n) { animation-delay: -1.8s; }
 
   .console-footer {
-    display: flex;
+    display: none;
     flex-wrap: wrap;
     gap: 8px;
     padding: 0 18px 14px;
@@ -654,6 +1057,537 @@
     color: #c8d4e4;
     font-family: var(--font-mono);
     font-size: 0.72rem;
+  }
+
+  .process-diagram {
+    position: relative;
+    width: min(100%, 832px);
+    min-height: 490px;
+    margin-left: auto;
+    display: grid;
+    grid-template-columns: 150px 260px 158px 198px;
+    gap: 22px;
+    align-items: center;
+    color: #f5f7fb;
+    transform: translateY(-24px);
+  }
+
+  .process-col {
+    position: relative;
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .process-label {
+    height: 32px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+    color: #eef3f8;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .process-label.teal {
+    border-bottom-color: rgba(45, 212, 191, 0.38);
+    color: #24ecd3;
+    font-size: 0.86rem;
+    letter-spacing: 0.05em;
+    line-height: 1.15;
+  }
+
+  .process-label.amber {
+    border-bottom-color: rgba(251, 191, 36, 0.34);
+    color: #f8c84c;
+  }
+
+  .finding-stack,
+  .agent-stack,
+  .review-stack {
+    display: grid;
+    gap: 34px;
+  }
+
+  .finding-card,
+  .agent-card,
+  .proof-stack-card,
+  .context-layer {
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 7px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+      rgba(7, 13, 16, 0.64);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.045),
+      0 14px 36px rgba(0, 0, 0, 0.28);
+  }
+
+  .finding-card {
+    min-height: 103px;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding: 18px 13px;
+  }
+
+  .finding-card::after,
+  .layer-section::after,
+  .agent-card::after {
+    content: "";
+    position: absolute;
+    right: -25px;
+    top: 50%;
+    width: 24px;
+    border-top: 2px dashed rgba(45, 212, 191, 0.78);
+    transform: translateY(-50%);
+  }
+
+  .finding-card::before,
+  .layer-section::before,
+  .agent-card::before {
+    content: "";
+    position: absolute;
+    right: -26px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-top: 2px solid rgba(45, 212, 191, 0.9);
+    border-right: 2px solid rgba(45, 212, 191, 0.9);
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .finding-icon,
+  .agent-icon,
+  .review-icon,
+  .recipe-icon,
+  .trust-card-icon {
+    display: grid;
+    place-items: center;
+    color: currentColor;
+  }
+
+  .finding-icon {
+    color: #eef3f8;
+  }
+
+  .finding-icon svg,
+  .agent-icon svg,
+  .review-icon svg,
+  .recipe-icon svg,
+  .trust-card-icon svg,
+  .source-row svg,
+  .content-row svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .finding-icon svg,
+  .agent-icon svg,
+  .review-icon svg {
+    stroke-width: 1.9;
+  }
+
+  .finding-copy strong {
+    display: block;
+    color: #f6f8fb;
+    font-size: 0.84rem;
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .finding-copy code {
+    display: block;
+    margin-top: 4px;
+    color: #a8b1ba;
+    font-family: var(--font-sans);
+    font-size: 0.76rem;
+  }
+
+  .severity {
+    display: inline-flex;
+    margin-top: 7px;
+    color: #f3b826;
+    font-size: 0.74rem;
+    font-weight: 740;
+  }
+
+  .context-layer {
+    min-height: 462px;
+    padding: 16px 13px;
+    border-color: rgba(45, 212, 191, 0.86);
+    background:
+      linear-gradient(180deg, rgba(45, 212, 191, 0.085), rgba(45, 212, 191, 0.025)),
+      rgba(3, 16, 16, 0.78);
+    box-shadow:
+      0 0 0 1px rgba(45, 212, 191, 0.22) inset,
+      0 0 36px rgba(45, 212, 191, 0.14),
+      0 24px 70px rgba(0, 0, 0, 0.36);
+  }
+
+  .layer-section {
+    position: relative;
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(45, 212, 191, 0.48);
+    border-radius: 7px;
+    background: rgba(5, 24, 22, 0.76);
+  }
+
+  .layer-section + .layer-section {
+    margin-top: 10px;
+  }
+
+  .layer-section.recipe-head {
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .recipe-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 6px;
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(45, 212, 191, 0.64), rgba(45, 212, 191, 0.22));
+  }
+
+  .recipe-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 2;
+  }
+
+  .layer-kicker,
+  .proof-kicker {
+    color: #5ffce6;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .recipe-title {
+    display: block;
+    margin-top: 3px;
+    color: #f6f9fb;
+    font-size: 0.83rem;
+    font-weight: 650;
+  }
+
+  .recipe-meta {
+    display: block;
+    margin-top: 4px;
+    color: #9daab2;
+    font-size: 0.66rem;
+    line-height: 1.34;
+  }
+
+  .source-list,
+  .content-list {
+    display: grid;
+    gap: 9px;
+  }
+
+  .source-row,
+  .content-row {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto 14px;
+    gap: 9px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .content-row {
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+
+  .source-row svg,
+  .content-row svg {
+    color: #f3f8f9;
+    stroke-width: 1.8;
+  }
+
+  .source-row span,
+  .content-row span {
+    color: #eef5f7;
+    font-size: 0.74rem;
+  }
+
+  .source-row em {
+    color: #98a4a8;
+    font-size: 0.58rem;
+    font-style: normal;
+    white-space: nowrap;
+  }
+
+  .source-row b {
+    position: relative;
+    width: 12px;
+    height: 10px;
+    display: inline-block;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    color: #64d9c7;
+  }
+
+  .source-row b::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: -7px;
+    width: 6px;
+    height: 7px;
+    border: 1px solid currentColor;
+    border-bottom: 0;
+    border-radius: 6px 6px 0 0;
+  }
+
+  .agent-card {
+    min-height: 78px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 24px;
+    gap: 11px;
+    align-items: center;
+    padding: 15px 11px;
+  }
+
+  .agent-card::after {
+    right: -25px;
+    border-color: rgba(45, 212, 191, 0.72);
+  }
+
+  .agent-card::before {
+    right: -26px;
+    border-color: rgba(45, 212, 191, 0.86);
+  }
+
+  .agent-icon {
+    width: 34px;
+    height: 34px;
+    color: #3be4d0;
+  }
+
+  .agent-card strong {
+    display: block;
+    color: #f6f8fb;
+    font-size: 0.82rem;
+    font-weight: 650;
+    line-height: 1.2;
+  }
+
+  .check-dot {
+    width: 21px;
+    height: 21px;
+    display: grid;
+    place-items: center;
+    border: 1px solid #22c55e;
+    border-radius: 999px;
+    color: #22c55e;
+  }
+
+  .check-dot svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .proof-stack {
+    min-height: 438px;
+    padding: 16px 12px;
+    border: 1px solid rgba(251, 191, 36, 0.78);
+    border-radius: 7px;
+    background:
+      linear-gradient(180deg, rgba(251, 191, 36, 0.08), rgba(251, 191, 36, 0.02)),
+      rgba(16, 12, 3, 0.52);
+    box-shadow:
+      0 0 0 1px rgba(251, 191, 36, 0.12) inset,
+      0 0 32px rgba(251, 191, 36, 0.09);
+  }
+
+  .proof-stack-card {
+    display: grid;
+    gap: 11px;
+    padding: 13px 14px;
+    border-color: rgba(251, 191, 36, 0.42);
+    background: rgba(22, 17, 6, 0.78);
+  }
+
+  .proof-head {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    padding-bottom: 9px;
+    border-bottom: 1px solid rgba(251, 191, 36, 0.24);
+  }
+
+  .review-icon {
+    width: 34px;
+    height: 34px;
+    color: #f3b826;
+  }
+
+  .proof-kicker {
+    color: #f3c84d;
+  }
+
+  .proof-list {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .proof-list li {
+    display: grid;
+    grid-template-columns: 15px minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+    color: #ecf0f4;
+    font-size: 0.75rem;
+  }
+
+  .proof-list li::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border: 1px solid #f3b826;
+    border-radius: 999px;
+    background:
+      linear-gradient(135deg, transparent 45%, #f3b826 46% 55%, transparent 56%);
+  }
+
+  .review-step {
+    position: relative;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    min-height: 61px;
+    padding: 12px 13px;
+    border: 1px solid rgba(251, 191, 36, 0.42);
+    border-radius: 7px;
+    color: #f3b826;
+    background: rgba(22, 17, 6, 0.64);
+  }
+
+  .review-step::before {
+    content: "";
+    position: absolute;
+    top: -27px;
+    left: 50%;
+    height: 25px;
+    border-left: 2px dashed rgba(251, 191, 36, 0.72);
+    transform: translateX(-50%);
+  }
+
+  .review-step::after {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid rgba(251, 191, 36, 0.86);
+    border-bottom: 2px solid rgba(251, 191, 36, 0.86);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .review-step strong {
+    display: block;
+    color: #f3c84d;
+    font-size: 0.72rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .review-step span {
+    display: block;
+    margin-top: 3px;
+    color: #f7f2e0;
+    font-size: 0.74rem;
+  }
+
+  .context-layer-section {
+    margin-inline: calc(50% - 50vw);
+    padding: 52px calc(50vw - min(50vw, 725px)) 58px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      radial-gradient(circle at 12% 0%, rgba(45, 212, 191, 0.1), transparent 34%),
+      linear-gradient(180deg, rgba(2, 19, 16, 0.72), rgba(2, 10, 10, 0.54));
+  }
+
+  .context-layer-section .section-head {
+    display: block;
+    margin-bottom: 30px;
+  }
+
+  .context-layer-section .section-head h2 {
+    max-width: none;
+    font-size: clamp(1.25rem, 2vw, 1.6rem);
+    line-height: 1.25;
+    font-weight: 540;
+  }
+
+  .trust-cards {
+    gap: 24px;
+  }
+
+  .trust-card {
+    min-height: 170px;
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 20px;
+    align-content: start;
+    padding: 27px 29px;
+  }
+
+  .card.trust-card .mark {
+    display: none;
+  }
+
+  .ai-chatbot-shell {
+    display: none !important;
+  }
+
+  .trust-card-icon {
+    width: 44px;
+    height: 44px;
+    color: var(--teal);
+  }
+
+  .trust-card-icon svg {
+    stroke-width: 1.8;
+  }
+
+  .trust-card h3 {
+    margin-top: 5px;
+    font-size: 1.1rem;
+    font-weight: 580;
+  }
+
+  .trust-card p {
+    max-width: 230px;
+    color: #b9c1c8;
+    font-size: 0.92rem;
+    line-height: 1.5;
   }
 
   main {
@@ -835,7 +1769,7 @@
     border-radius: 8px;
     padding: 26px;
     background:
-      linear-gradient(135deg, rgba(96, 165, 250, 0.1), rgba(251, 113, 133, 0.08)),
+      linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(251, 191, 36, 0.08)),
       rgba(255, 255, 255, 0.045);
   }
 
@@ -912,6 +1846,20 @@
     50% { height: 96%; opacity: 0.96; }
   }
 
+  @media (max-width: 1360px) {
+    .hero {
+      min-height: auto;
+    }
+
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .process-diagram {
+      margin: 28px auto 0;
+    }
+  }
+
   @media (max-width: 980px) {
     .hero-grid,
     .steps {
@@ -924,7 +1872,11 @@
 
     .hero-media,
     .security-console {
-      min-height: 540px;
+      min-height: 0;
+    }
+
+    .hero-proof {
+      max-width: none;
     }
 
     .cards,
@@ -977,10 +1929,28 @@
       max-width: 100%;
     }
 
+    .hero h1 > span {
+      white-space: normal;
+    }
+
     .hero-copy {
       font-size: 1rem;
       line-height: 1.48;
       max-width: 32ch;
+    }
+
+    .hero-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .button {
+      width: 100%;
+    }
+
+    .hero-proof,
+    .hero-media {
+      display: none;
     }
 
     .hero-media,
@@ -993,6 +1963,24 @@
       flex-direction: column;
       padding: 14px;
       gap: 8px;
+    }
+
+    .recipe-console-body,
+    .context-proof {
+      grid-template-columns: 1fr;
+    }
+
+    .active-recipe-card,
+    .review-gate {
+      grid-template-columns: 1fr;
+    }
+
+    .recipe-console-body {
+      padding: 14px;
+    }
+
+    .recipe-tab {
+      min-height: 58px;
     }
 
     .console-pipeline {
@@ -1069,12 +2057,30 @@
       display: grid;
     }
 
+    .context-layer-section {
+      margin-inline: 0;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
     section {
       padding: 44px 0;
     }
 
     .footer-inner {
       flex-direction: column;
+    }
+  }
+
+  @media (max-width: 460px) {
+    .hero-proof {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (min-width: 980px) and (max-height: 760px) {
+    .ai-chatbot-shell {
+      display: none;
     }
   }
 
@@ -1111,6 +2117,12 @@
           <a href="{{ $url }}">{{ .Name }}</a>
         {{- end -}}
       </nav>
+      <div class="top-actions">
+        <a class="github-link" href="{{ .Site.Params.repoURL }}" aria-label="GitHub repository">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 .6a11.5 11.5 0 0 0-3.64 22.42c.58.11.79-.25.79-.56v-2.2c-3.22.7-3.9-1.38-3.9-1.38-.53-1.35-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.1-.75.4-1.27.73-1.56-2.57-.29-5.27-1.28-5.27-5.72 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.47.11-3.06 0 0 .98-.31 3.18 1.18a10.9 10.9 0 0 1 5.8 0c2.21-1.49 3.18-1.18 3.18-1.18.63 1.59.23 2.77.11 3.06.74.81 1.19 1.84 1.19 3.1 0 4.45-2.71 5.43-5.29 5.71.42.37.79 1.09.79 2.19v3.25c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .6Z"/></svg>
+        </a>
+        <a class="header-cta" href="{{ "/quickstart/" | relURL }}">Get Started</a>
+      </div>
     </div>
   </header>
 
@@ -1118,91 +2130,163 @@
     <section class="hero">
       <div class="hero-grid">
         <div>
-          <h1><span>Security</span> <span>recipes for</span> <span>agentic</span> <span>remediation.</span></h1>
+          <h1><span>Security recipes for</span> <span>AI-assisted fixes<span class="accent-dot">.</span></span></h1>
           <p class="hero-copy">
-            Turn security findings into reviewable agent work. Browse recipes, wire them into the AI coding agent your team already uses, add public security context through MCP, and keep every fix bounded by evidence.
+            Turn security findings into bounded agent work: one recipe, scoped context, required proof, and a human-reviewed result.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="{{ "/recipes/" | relURL }}">Browse Recipes</a>
-            <a class="button" href="{{ "/docs/agent-integration/" | relURL }}">Set Up Agents</a>
-            <a class="button" href="{{ "/mcp-servers/" | relURL }}">Connect MCP Context</a>
+            <a class="button primary" href="{{ "/recipes/" | relURL }}">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5Z"/><path d="M4 19a3 3 0 0 1 3-3h13"/><path d="M8 7h8M8 11h6"/></svg>
+              Browse Recipes
+            </a>
+            <a class="button" href="{{ "/docs/agent-integration/" | relURL }}">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 7 5 5-5 5"/><path d="M11 17h9"/></svg>
+              Set Up Agents
+            </a>
+            <a class="button" href="{{ "/mcp-servers/" | relURL }}">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/></svg>
+              Connect MCP Context
+            </a>
+          </div>
+          <div class="hero-proof" aria-label="Security Recipes operating principles">
+            <div class="hero-proof-item">
+              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 6.5v5.8c0 4.7-3 8-8 9.7-5-1.7-8-5-8-9.7V6.5L12 3Z"/><path d="m8.8 12.1 2.2 2.2 4.4-5"/></svg></span>
+              <span><strong>Bounded by design</strong><span>One finding, one recipe</span></span>
+            </div>
+            <div class="hero-proof-item">
+              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/></svg></span>
+              <span><strong>Scoped context</strong><span>Read-only MCP sources</span></span>
+            </div>
+            <div class="hero-proof-item">
+              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 7 2 2 4-5"/><path d="m8 14 2 2 4-5"/><path d="M17 8h3M17 15h3"/></svg></span>
+              <span><strong>Required proof</strong><span>Evidence before merge</span></span>
+            </div>
+            <div class="hero-proof-item">
+              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/><path d="M19 8v6M16 11h6"/></svg></span>
+              <span><strong>Human review</strong><span>You own the result</span></span>
+            </div>
           </div>
         </div>
-        <figure class="hero-media">
-          <div class="security-console" role="img" aria-label="Live security remediation workflow from finding intake to reviewed pull request">
-            <div class="console-top">
-              <div class="console-title">
-                <strong>Recipe + MCP remediation context</strong>
-                <span>Connect agents to security-recipes.ai/mcp before they patch</span>
-              </div>
-              <div class="console-health">MCP Ready</div>
-            </div>
-            <div class="console-pipeline">
-              <article class="lane">
-                <span class="lane-index">1</span>
-                <div class="lane-body">
-                  <h3>Finding arrives</h3>
-                  <ul>
-                    <li><strong>Signal</strong><span>CVE, SCA, SAST, secret, or container alert</span></li>
-                    <li><strong>Target</strong><span>repo, file path, package, owner, and severity</span></li>
-                  </ul>
-                </div>
-              </article>
-              <article class="lane">
-                <span class="lane-index">2</span>
-                <div class="lane-body">
-                  <h3>Recipe scopes the work</h3>
-                  <ul>
-                    <li><strong>Allowed fix</strong><span>what the agent may touch and must avoid</span></li>
-                    <li><strong>Proof needed</strong><span>tests, evidence, and residual-risk note</span></li>
-                  </ul>
-                </div>
-              </article>
-              <article class="lane">
-                <span class="lane-index">3</span>
-                <div class="lane-body">
-                  <h3>Agent connects to MCP</h3>
-                  <ul>
-                    <li><strong>Server</strong><span>security-recipes.ai/mcp via Streamable HTTP</span></li>
-                    <li><strong>Tools</strong><span>recipes_search, recipes_get, match finding</span></li>
-                  </ul>
-                </div>
-              </article>
-              <article class="lane">
-                <span class="lane-index">4</span>
-                <div class="lane-body">
-                  <h3>Human reviews the result</h3>
-                  <ul>
-                    <li><strong>Output</strong><span>small PR or triage note with tests run</span></li>
-                    <li><strong>Stop gate</strong><span>broad refactor, unclear owner, or missing proof</span></li>
-                  </ul>
-                </div>
-              </article>
-            </div>
-            <div class="console-flow" aria-hidden="true"></div>
-            <div class="console-status">
-              <div class="status-card mcp-context-card">
-                <div class="mcp-card-head">
-                  <span>Agent MCP configuration</span>
-                  <code>security-recipes</code>
-                </div>
-                <h3>Use Security Recipes as read-only remediation context</h3>
-                <p>Add the MCP server to your agent, then let the agent call recipe tools to fetch bounded fix instructions, proof requirements, and stop conditions.</p>
-                <div class="mcp-endpoint-row">
-                  <span>Server URL</span>
-                  <code>https://security-recipes.ai/mcp</code>
-                </div>
-                <div class="mcp-tool-list" aria-hidden="true">
-                  <code>recipes_search</code>
-                  <code>recipes_get</code>
-                  <code>recipes_match_finding</code>
-                </div>
+        <figure class="hero-media" aria-label="Security recipes context-layer workflow">
+          <div class="process-diagram">
+            <div class="process-col findings-col">
+              <div class="process-label">Findings</div>
+              <div class="finding-stack">
+                <article class="finding-card">
+                  <span class="finding-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.8-3.1 8.1-8 9-4.9-.9-8-4.2-8-9V7l8-4Z"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg></span>
+                  <span class="finding-copy"><strong>SQL Injection</strong><code>/api/search</code><span class="severity">High</span></span>
+                </article>
+                <article class="finding-card">
+                  <span class="finding-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.8-3.1 8.1-8 9-4.9-.9-8-4.2-8-9V7l8-4Z"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg></span>
+                  <span class="finding-copy"><strong>Auth Bypass</strong><code>/api/admin</code><span class="severity">High</span></span>
+                </article>
+                <article class="finding-card">
+                  <span class="finding-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.8-3.1 8.1-8 9-4.9-.9-8-4.2-8-9V7l8-4Z"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg></span>
+                  <span class="finding-copy"><strong>Secrets Leak</strong><code>config/.env</code><span class="severity">Medium</span></span>
+                </article>
               </div>
             </div>
-            <div class="console-footer" aria-hidden="true">
-              <span>security-recipes/mcp</span>
-              <span>streamable-http</span>
-              <span>review.gated</span>
+
+            <div class="process-col layer-col">
+              <div class="process-label teal">security-recipes.ai<br>context layer</div>
+              <div class="context-layer">
+                <section class="layer-section recipe-head">
+                  <span class="recipe-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m10 8-4 4 4 4"/><path d="m14 8 4 4-4 4"/><path d="m13 5-2 14"/></svg></span>
+                  <span>
+                    <span class="layer-kicker">Recipe</span>
+                    <strong class="recipe-title">Parameterized SQL</strong>
+                    <span class="recipe-meta">id: sql-injection.parameterize<br>version: 1.4.0</span>
+                  </span>
+                </section>
+
+                <section class="layer-section">
+                  <span class="layer-kicker">MCP Context (read-only)</span>
+                  <div class="source-list">
+                    <div class="source-row">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M4 8h16"/><path d="M4 16h16"/><path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
+                      <span>Code Repository</span>
+                      <em>read-only</em>
+                      <b aria-hidden="true"></b>
+                    </div>
+                    <div class="source-row">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.5-3 7.6-8 9-5-1.4-8-4.5-8-9V7l8-4Z"/><path d="M9 12h6"/></svg>
+                      <span>OWASP ASVS</span>
+                      <em>read-only</em>
+                      <b aria-hidden="true"></b>
+                    </div>
+                    <div class="source-row">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 7h4M10 11h4M10 15h3"/></svg>
+                      <span>Internal Standards</span>
+                      <em>read-only</em>
+                      <b aria-hidden="true"></b>
+                    </div>
+                    <div class="source-row">
+                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v10l-8 4-8-4V7l8-4Z"/><path d="M8 9l4 2 4-2"/><path d="M8 15l4 2 4-2"/></svg>
+                      <span>Dependency Docs</span>
+                      <em>read-only</em>
+                      <b aria-hidden="true"></b>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="layer-section">
+                  <span class="layer-kicker">Recipe Content</span>
+                  <div class="content-list">
+                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Intent &amp; Scope</span></div>
+                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Change Plan</span></div>
+                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Validation Steps</span></div>
+                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Proof Requirements</span></div>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <div class="process-col agents-col">
+              <div class="process-label">Coding Agents</div>
+              <div class="agent-stack">
+                <article class="agent-card">
+                  <span class="agent-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="2"/><path d="M9 8V5h6v3"/><path d="M4 13h2M18 13h2"/><path d="M10 13h.01M14 13h.01"/></svg></span>
+                  <strong>Agent<br>(Code)</strong>
+                  <span class="check-dot"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>
+                </article>
+                <article class="agent-card">
+                  <span class="agent-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="2"/><path d="M9 8V5h6v3"/><path d="M4 13h2M18 13h2"/><path d="M10 13h.01M14 13h.01"/></svg></span>
+                  <strong>Agent<br>(Test)</strong>
+                  <span class="check-dot"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>
+                </article>
+                <article class="agent-card">
+                  <span class="agent-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="2"/><path d="M9 8V5h6v3"/><path d="M4 13h2M18 13h2"/><path d="M10 13h.01M14 13h.01"/></svg></span>
+                  <strong>Agent<br>(Docs)</strong>
+                  <span class="check-dot"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>
+                </article>
+              </div>
+            </div>
+
+            <div class="process-col review-col">
+              <div class="process-label amber">Review &amp; Merge</div>
+              <div class="review-stack proof-stack">
+                <article class="proof-stack-card">
+                  <div class="proof-head">
+                    <span class="review-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h5"/><path d="M9 15l2 2 4-5"/></svg></span>
+                    <span class="proof-kicker">Proof Packet</span>
+                  </div>
+                  <ul class="proof-list">
+                    <li>Changes</li>
+                    <li>Tests</li>
+                    <li>Screenshots</li>
+                    <li>Logs</li>
+                    <li>Docs</li>
+                  </ul>
+                </article>
+                <article class="review-step">
+                  <span class="review-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/></svg></span>
+                  <span><strong>Human Review</strong><span>Approve &amp; Merge</span></span>
+                </article>
+                <article class="review-step">
+                  <span class="review-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="10" cy="18" r="2"/><path d="M8 7.4 10 16"/><path d="M16.4 7.2 11.5 16.4"/></svg></span>
+                  <span><strong>Result</strong><span>Reviewed PR</span></span>
+                </article>
+              </div>
             </div>
           </div>
         </figure>
@@ -1210,68 +2294,79 @@
     </section>
 
     <main>
-      <section>
+      <section class="context-layer-section">
         <div class="section-head">
-          <h2>What belongs here</h2>
-          <p>The site is centered on reusable security knowledge that agents can consume. The code in the repository supports that knowledge; it is not the product surface.</p>
+          <h2>A context layer purpose-built for secure AI-assisted remediation.</h2>
         </div>
-        <div class="cards">
-          <a class="card" href="{{ "/security-remediation/" | relURL }}">
+        <div class="cards trust-cards">
+          <a class="card trust-card" href="{{ "/security-remediation/#exact-scope" | relURL }}">
             <span class="mark">01</span>
-            <h3>Remediation recipes</h3>
-            <p>Practical playbooks for bounded security fixes, triage notes, reviewer expectations, and safe stop conditions.</p>
+            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="m5 5 2.2 2.2"/><path d="m16.8 16.8 2.2 2.2"/></svg></span>
+            <span>
+              <h3>Exact scope</h3>
+              <p>Recipes map to one finding and define the exact change boundary.</p>
+            </span>
           </a>
-          <a class="card" href="{{ "/recipes/" | relURL }}">
+          <a class="card trust-card" href="{{ "/mcp-servers/#read-only-context" | relURL }}">
             <span class="mark">02</span>
-            <h3>Prompts that carry the recipe</h3>
-            <p>Agent-ready instructions that tell the model what to fix, what not to touch, and what evidence to return.</p>
+            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+            <span>
+              <h3>Read-only context</h3>
+              <p>Agents get the right context without write access.</p>
+            </span>
           </a>
-          <a class="card" href="{{ "/agents/" | relURL }}">
+          <a class="card trust-card" href="{{ "/security-remediation/reviewer-playbook/#proof-by-default" | relURL }}">
             <span class="mark">03</span>
-            <h3>Agent setup guides</h3>
-            <p>Concrete configuration for the agent your team already uses, with repository rules and review gates first.</p>
+            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="m8.5 12 2.4 2.4 4.8-5"/></svg></span>
+            <span>
+              <h3>Proof by default</h3>
+              <p>Required evidence and validation steps prevent guesswork.</p>
+            </span>
           </a>
-          <a class="card" href="{{ "/mcp-servers/" | relURL }}">
+          <a class="card trust-card" href="{{ "/security-remediation/reviewer-playbook/#human-in-the-loop" | relURL }}">
             <span class="mark">04</span>
-            <h3>MCP integration patterns</h3>
-            <p>Use public and internal security context servers as read-only inputs for findings, advisories, code scanning, SBOMs, and runbooks.</p>
+            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/><path d="M19 8v6M16 11h6"/></svg></span>
+            <span>
+              <h3>Human in the loop</h3>
+              <p>Nothing merges without human review and approval.</p>
+            </span>
           </a>
         </div>
       </section>
 
       <section>
         <div class="section-head">
-          <h2>How an agent consumes a recipe</h2>
-          <p>The useful loop is small on purpose: one finding, one recipe, one agent run, one reviewed output.</p>
+          <h2>One finding, one recipe, one reviewed output</h2>
+          <p>The useful loop is small on purpose: attach a recipe, constrain the agent, require proof, and review the result.</p>
         </div>
         <div class="steps">
           <div class="step-list">
             <div class="step-row">
               <b>1</b>
               <div>
-                <h3>Pick a finding and recipe</h3>
-                <p>Start with a dependency, SAST, SDE, container, or CVE recipe that matches the issue.</p>
+                <h3>Pick the matching recipe</h3>
+                <p>Start with a dependency, SAST, sensitive-data, container, or CVE recipe that matches the finding.</p>
               </div>
             </div>
             <div class="step-row">
               <b>2</b>
               <div>
                 <h3>Load rules into the agent</h3>
-                <p>Use `AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, Copilot instructions, or Devin Knowledge.</p>
+                <p>Use `AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, Copilot instructions, Codex guidance, or Devin Knowledge.</p>
               </div>
             </div>
             <div class="step-row">
               <b>3</b>
               <div>
                 <h3>Add scoped context</h3>
-                <p>Expose only the MCP servers and files needed for the finding. Prefer read-only context first.</p>
+                <p>Expose only the MCP servers and files needed for the finding. Keep context read-only by default.</p>
               </div>
             </div>
             <div class="step-row">
               <b>4</b>
               <div>
                 <h3>Review the output</h3>
-                <p>The agent should produce a PR, a test result, or a triage note. Humans still approve the change.</p>
+                <p>The agent should produce a PR, test result, or triage note. Humans approve the change.</p>
               </div>
             </div>
           </div>
@@ -1292,7 +2387,7 @@ Rules:
 
       <section>
         <div class="section-head">
-          <h2>MCP is context, not a permission slip</h2>
+          <h2>MCP is context, not authority</h2>
           <p>Security agents get better when they can read the right data. They get risky when every connector becomes an action surface.</p>
         </div>
         <div class="matrix">
@@ -1313,9 +2408,9 @@ Rules:
 
       <section>
         <div class="muted-band">
-          <h2>Keep the tooling boring.</h2>
+          <h2>Bring recipes to the tools teams already trust.</h2>
           <p>
-            security-recipes.ai should not ask teams to adopt a custom security toolkit before they can use a recipe. Helper scripts are fine for indexing, validation, local examples, and deployment. Scanning, ticketing, policy enforcement, and CI should come from the systems teams already trust, then feed the recipes and AI assistant as context.
+            security-recipes.ai should not ask teams to adopt a custom scanner, ticketing system, SOAR platform, or deployment tool before they can use a recipe. Existing systems should produce the findings; recipes help agents use the right context, return the right proof, and stop at the right time.
           </p>
         </div>
       </section>
@@ -1324,7 +2419,7 @@ Rules:
 
   <footer class="footer">
     <div class="site-shell footer-inner">
-      <span>Open security recipes for agent-assisted remediation.</span>
+      <span>Bounded recipes for agent-assisted security remediation.</span>
       <a href="{{ .Site.Params.repoURL }}">GitHub</a>
     </div>
   </footer>
@@ -1347,6 +2442,7 @@ Rules:
       ty: window.innerHeight * 0.34
     };
     var raf = null;
+    var didReveal = false;
 
     function noise(value) {
       var raw = Math.sin(value * 12.9898) * 43758.5453;
@@ -1467,6 +2563,16 @@ Rules:
       }
     }
 
+    function revealBackground() {
+      if (didReveal) return;
+      didReveal = true;
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          document.documentElement.dataset.signalBackgroundReady = "true";
+        });
+      });
+    }
+
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", movePointer, { passive: true });
     if (reduceMotion.addEventListener) {
@@ -1475,6 +2581,7 @@ Rules:
 
     resize();
     start();
+    revealBackground();
   })();
   </script>
 {{ with resources.Get "js/ai-chatbot.js" | minify | fingerprint }}

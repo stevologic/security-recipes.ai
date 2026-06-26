@@ -1,9 +1,9 @@
 ---
 title: security-recipes.ai
 description: >
-  Security recipes for agentic AI remediation. Browse playbooks,
-  prompts, agent setup guides, and MCP integration patterns for
-  narrower, safer security fixes.
+  Security recipes for AI-assisted remediation. Browse playbooks,
+  prompts, agent setup guides, and MCP context patterns that keep
+  fixes scoped, evidenced, and human-reviewed.
 keywords:
   - "agentic security remediation"
   - "AI security agents"

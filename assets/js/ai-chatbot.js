@@ -419,7 +419,7 @@
     sourceHealth: {},
     persistentNavigationEnabled: false,
     siteNavigating: false,
-    terminalRecords: normalizeTerminalRecords(loadStoredJson(STORE.terminalRecords, [])),
+    terminalRecords: [],
     terminalCwd: '/home/remediator',
     activityRecords: normalizeActivityRecords(loadStoredJson(STORE.activityRecords, [])),
     statisticsGeneratedInsights: loadStoredJson(STORE.statisticsGeneratedInsights, {}),
@@ -4804,7 +4804,6 @@
       els.exposurePreview.textContent = '';
       if (els.exposureApply) els.exposureApply.disabled = true;
       if (els.exposureSaveCase) els.exposureSaveCase.disabled = true;
-      if (els.exposureOpenReport) els.exposureOpenReport.disabled = true;
       if (els.exposureCopy) els.exposureCopy.disabled = true;
       return;
     }
@@ -4844,7 +4843,6 @@
     els.exposurePreview.textContent = JSON.stringify(record, null, 2);
     if (els.exposureApply) els.exposureApply.disabled = false;
     if (els.exposureSaveCase) els.exposureSaveCase.disabled = false;
-    if (els.exposureOpenReport) els.exposureOpenReport.disabled = false;
     if (els.exposureCopy) els.exposureCopy.disabled = false;
   }
 
@@ -13594,17 +13592,11 @@
       'When using site context, cite page titles or paths from the provided context instead of inventing sources.'
     ];
 
-    var terminalContext = terminalContextBlock();
-    if (terminalContext) {
-      parts.push('Recent MiniBox terminal transcript. This is a browser-local virtual terminal with a small allowlisted filesystem, not an operating-system shell. Treat it as current workbench state:');
-      parts.push(terminalContext);
-    }
     var activityContext = activityHistoryPromptBlock();
     if (activityContext) {
       parts.push('Recent browser-local workbench activity log. Use it as operator history for source sync, agent runs, case actions, and exports:');
       parts.push(activityContext);
     }
-      parts.push('The browser terminal supports safe commands such as whoami, pwd, ls, cd, cat, tail, diff, echo, date, uname, env, history, ping, nc, wget, git status, status, context, ops, tools, recipes <query>, recipe <query>, run <query>, agent queue, agent preview, sources refresh, settings, and search <query>. Network and git commands are browser-local probes/summaries, not operating-system shell execution.');
 
     if (state.includeContext) {
       parts.push('Current page title: ' + page.title);
@@ -14157,7 +14149,7 @@
   function renderMessages() {
     if (!els.messages) return;
     if (!state.messages.length) {
-      els.messages.innerHTML = '<div class="ai-chatbot-empty">Ask for a fix plan, run a recipe, or issue a browser terminal command.</div>';
+      els.messages.innerHTML = '<div class="ai-chatbot-empty">Ask for a fix plan, run a recipe, or request a context check.</div>';
       updateChatQuickActions();
       return;
     }
@@ -14359,82 +14351,11 @@
     if (searchPanelVisible()) refreshSearchSurface({ preserveStatus: true });
   }
 
-  function normalizeTerminalRecords(records) {
-    return (Array.isArray(records) ? records : []).map(function (record) {
-      return {
-        role: ['command', 'output', 'error', 'system'].indexOf(record && record.role) !== -1 ? record.role : 'output',
-        text: String(record && record.text || '').slice(0, 2400),
-        createdAt: record && record.createdAt ? String(record.createdAt) : nowIso()
-      };
-    }).filter(function (record) {
-      return collapseText(record.text);
-    }).slice(-TERMINAL_MAX_RECORDS);
-  }
-
-  function saveTerminalRecords() {
-    state.terminalRecords = normalizeTerminalRecords(state.terminalRecords).slice(-TERMINAL_MAX_RECORDS);
-    saveStoredJson(STORE.terminalRecords, state.terminalRecords);
-  }
-
-  function terminalPromptForRole(role) {
+  function consolePromptForRole(role) {
     if (role === 'command') return '$ ';
     if (role === 'error') return '! ';
     if (role === 'system') return '# ';
     return '> ';
-  }
-
-  function terminalHomePath() {
-    return '/home/remediator';
-  }
-
-  function terminalDisplayPath(path) {
-    var home = terminalHomePath();
-    var normalized = terminalNormalizePath(path || state.terminalCwd || home);
-    if (normalized === home) return '~';
-    if (normalized.indexOf(home + '/') === 0) return '~/' + normalized.slice(home.length + 1);
-    return normalized;
-  }
-
-  function updateTerminalPrompt() {
-    var prompts = els.terminalPrompts && els.terminalPrompts.length
-      ? els.terminalPrompts
-      : (els.terminalPrompt ? [els.terminalPrompt] : []);
-    Array.prototype.forEach.call(prompts, function (prompt) {
-      prompt.textContent = 'remediator@minibox:' + terminalDisplayPath(state.terminalCwd) + '$';
-    });
-  }
-
-  function renderTerminal() {
-    var outputs = els.terminalOutputs && els.terminalOutputs.length
-      ? els.terminalOutputs
-      : (els.terminalOutput ? [els.terminalOutput] : []);
-    if (!outputs.length) return;
-    updateTerminalPrompt();
-    var text;
-    if (!state.terminalRecords.length) {
-      text = [
-        'SecurityRecipes MiniBox (browser-local)',
-        'Try: status, context, evidence, routes, schedule, ping localhost, wget /recipes-index.json, git status'
-      ].join('\n');
-    } else {
-      text = state.terminalRecords.map(function (record) {
-        return terminalPromptForRole(record.role) + record.text;
-      }).join('\n\n');
-    }
-    Array.prototype.forEach.call(outputs, function (output) {
-      output.textContent = text;
-      output.scrollTop = output.scrollHeight;
-    });
-  }
-
-  function appendTerminalRecord(role, text) {
-    state.terminalRecords.push({
-      role: role || 'output',
-      text: String(text || '').slice(0, 2400),
-      createdAt: nowIso()
-    });
-    saveTerminalRecords();
-    renderTerminal();
   }
 
   function normalizeAgentConsoleRecords(records) {
@@ -14451,11 +14372,11 @@
 
   function agentConsoleText(action) {
     var records = normalizeAgentConsoleRecords(action && action.runLog);
-    if (!records.length) return 'No console output for this agent yet. Run the agent to capture browser-local stdout.';
+    if (!records.length) return 'No console output for this agent yet. Run the agent to capture browser-local run logs.';
     return records.map(function (record) {
       return [
         '[' + formatTimestamp(record.createdAt) + ']',
-        terminalPromptForRole(record.role),
+        consolePromptForRole(record.role),
         record.text
       ].join(' ');
     }).join('\n\n');
@@ -14465,7 +14386,6 @@
     var action;
     var record;
     options = options || {};
-    if (options.terminal !== false) appendTerminalRecord(role, text);
     if (typeof actionIndex !== 'number' || actionIndex < 0 || !state.agentActions || !state.agentActions[actionIndex]) return;
     action = state.agentActions[actionIndex];
     record = {
@@ -14493,47 +14413,7 @@
     }).join('\n').slice(-ACTIVITY_CONTEXT_MAX_CHARS);
   }
 
-  function terminalContextBlock() {
-    if (!state.terminalRecords || !state.terminalRecords.length) return '';
-    return state.terminalRecords.slice(-TERMINAL_CONTEXT_MAX_RECORDS).map(function (record) {
-      return terminalPromptForRole(record.role) + record.text;
-    }).join('\n').slice(-TERMINAL_CONTEXT_MAX_CHARS);
-  }
-
-  function terminalHistoryText() {
-    if (!state.activityRecords || !state.activityRecords.length) return 'No browser-local activity history yet.';
-    return state.activityRecords.slice(-8).reverse().map(function (record, index) {
-      var bits = [
-        String(index + 1) + '.',
-        formatTimestamp(record.createdAt),
-        '[' + normalizeActivityCategory(record.category) + ']',
-        record.title
-      ];
-      if (record.summary) bits.push('- ' + record.summary);
-      if (record.durationMs) bits.push('(' + formatDurationMs(record.durationMs) + ')');
-      return bits.join(' ');
-    }).join('\n');
-  }
-
-  function terminalStatusText() {
-    var provider = getAgentProvider();
-    var selectedInputs = currentInputChannelIds().map(function (id) {
-      var channel = inputChannelById(id);
-      return channel ? channel.label : id;
-    });
-    return [
-      'Provider: ' + providerConfig(provider).label + ' / ' + getModel(provider) + (hasProviderRuntime(provider) ? ' (' + providerRuntimeStatusText(provider) + ')' : ' (credential missing)'),
-      'Recipe: ' + (collapseText(els.agentRecipeInput && els.agentRecipeInput.value) || 'none selected'),
-      'Target: ' + (collapseText(els.agentScope && els.agentScope.value) || 'not set'),
-      'Workflow: ' + currentAgentWorkflow().label,
-      'Inputs: ' + (selectedInputs.length ? selectedInputs.join(', ') : 'none selected'),
-      'Output: ' + (currentAgentOutputRoute() ? currentAgentOutputRoute().label : 'none'),
-      'Queue: ' + String((state.agentActions || []).length) + ' action(s)',
-      'Cases: ' + String((state.caseFiles || []).length) + ' local case(s)'
-    ].join('\n');
-  }
-
-  function terminalContextText() {
+  function contextSourceText() {
     var rows = [
       'Page context: ' + (state.includeContext ? 'on' : 'off'),
       'Recipe index: ' + (state.includeRelated ? 'on' : 'off'),
@@ -14561,8 +14441,8 @@
       var channel = inputChannelById(id);
       return channel ? channel.label + ' (' + channel.runtime_support + ')' : id;
     });
-    var evidenceRows = terminalContextText().split('\n').filter(Boolean);
-    var terminalCount = (state.terminalRecords || []).length;
+    var evidenceRows = contextSourceText().split('\n').filter(Boolean);
+    var activityCount = (state.activityRecords || []).length;
     var route = currentAgentOutputRoute();
     var recipe = selectedRecipe();
     return {
@@ -14573,7 +14453,7 @@
       selectedInputs: selectedInputs,
       output: route ? route.label : 'No output route selected',
       approval: selectedText(els.agentApproval) || 'Security reviewer required',
-      terminal: terminalCount ? String(terminalCount) + ' terminal record(s) available to the chat context window' : 'No terminal transcript yet',
+      activity: activityCount ? String(activityCount) + ' recent workbench activity item(s) available to the chat context window' : 'No workbench activity yet',
       gaps: contextAuditGaps(selectedInputs, evidenceRows)
     };
   }
@@ -14598,7 +14478,7 @@
       '- Target: ' + rows.target,
       '- Output path: ' + rows.output + ' with ' + rows.approval,
       '- Optional context/tools: ' + (rows.selectedInputs.length ? rows.selectedInputs.join(', ') : 'none selected'),
-      '- Terminal transcript: ' + rows.terminal,
+      '- Activity history: ' + rows.activity,
       '- Evidence/source state:',
       rows.sourceRows.slice(0, 16).map(function (row) { return '  - ' + row; }).join('\n'),
       '- Gaps or cautions:',
@@ -15179,14 +15059,13 @@
   }
 
   function commandFromChatText(text) {
-    var raw = String(text || '').trim();
-    if (/^\/terminal\s+/i.test(raw)) return cleanTerminalCommand(raw.replace(/^\/terminal\s+/i, ''));
-    if (/^\/term\s+/i.test(raw)) return cleanTerminalCommand(raw.replace(/^\/term\s+/i, ''));
-    if (/^\$\s*/.test(raw)) return cleanTerminalCommand(raw);
+    void text;
     return '';
   }
 
   function agentTerminalCommandsFromOutput(text) {
+    void text;
+    return [];
     var commands = [];
     var pattern = /```(?:browser-terminal|terminal)\s*\n([\s\S]*?)```/gi;
     var match;
@@ -15200,6 +15079,9 @@
   }
 
   async function executeAgentTerminalCommands(text, options) {
+    void text;
+    void options;
+    return 0;
     var commands = agentTerminalCommandsFromOutput(text);
     var actionIndex;
     var output;
@@ -15217,6 +15099,9 @@
   }
 
   async function executeTerminalCommand(command, options) {
+    void command;
+    void options;
+    return 'Terminal capability is disabled.';
     var raw = cleanTerminalCommand(command);
     var lower = raw.toLowerCase();
     var args = raw.replace(/^\S+\s*/, '');
@@ -16566,21 +16451,6 @@
       record = caseFileById(value);
       if (!record) return;
       applyCaseFileToAgentPlanner(record);
-      return;
-    }
-    if (action === 'seed-report') {
-      var parts = String(value || '').split(':');
-      var sourceType = normalizeReportWorkspaceSourceType(parts[0] || 'case');
-      var sourceId = parts.slice(1).join(':');
-      if (!seedReportWorkspaceFromSource(sourceType, sourceId)) {
-        if (els.searchStatus) els.searchStatus.textContent = 'That report source is no longer available in this browser.';
-        return;
-      }
-      switchTab('reports');
-      if (els.reportStatus) {
-        els.reportStatus.textContent = reportWorkspaceSourceLabel(sourceType, reportWorkspaceSourceRecord(sourceType, sourceId)) + ' loaded into the Reports desk from ' + origin + '.';
-        els.reportStatus.setAttribute('data-kind', 'ok');
-      }
       return;
     }
     if (action === 'open-case') {
@@ -19202,7 +19072,6 @@
       els.caseboardPreviewMeta.innerHTML = '<div class="ai-chatbot-workflow-lab-empty">Select a saved case to inspect the full JSON bundle, replay its planner settings, or export it.</div>';
       els.caseboardPreview.textContent = '';
       if (els.caseboardApply) els.caseboardApply.disabled = true;
-      if (els.caseboardOpenReport) els.caseboardOpenReport.disabled = true;
       if (els.caseboardValidate) els.caseboardValidate.disabled = true;
       if (els.caseboardCopy) els.caseboardCopy.disabled = true;
       if (els.caseboardDownload) els.caseboardDownload.disabled = true;
@@ -19255,7 +19124,6 @@
       (timelineText ? '<div class="ai-chatbot-caseboard-timeline">' + timelineText + '</div>' : '');
     els.caseboardPreview.textContent = JSON.stringify(record, null, 2);
     if (els.caseboardApply) els.caseboardApply.disabled = false;
-    if (els.caseboardOpenReport) els.caseboardOpenReport.disabled = false;
     if (els.caseboardValidate) els.caseboardValidate.disabled = false;
     if (els.caseboardCopy) els.caseboardCopy.disabled = false;
     if (els.caseboardDownload) els.caseboardDownload.disabled = false;
@@ -20432,7 +20300,7 @@
     renderStatistics();
     document.documentElement.classList.add('ai-chatbot-statistics-printing');
     if (els.statisticsStatus) {
-      els.statisticsStatus.textContent = 'Preparing PDF export from the Report tab.';
+      els.statisticsStatus.textContent = 'Preparing PDF export from browser-local data.';
       els.statisticsStatus.setAttribute('data-kind', 'ok');
     }
     window.setTimeout(function () {
@@ -20451,7 +20319,7 @@
 
   function primaryTabForPanel(panel) {
     if (panel === 'control-plane') return 'agents';
-    if (['router', 'assets', 'exposure', 'cases', 'reports'].indexOf(panel) !== -1) return 'agents';
+    if (['router', 'assets', 'exposure', 'cases'].indexOf(panel) !== -1) return 'agents';
     return panel || 'chat';
   }
 
@@ -20478,14 +20346,11 @@
       }, 0);
       updateChatQuickActions();
     }
-    if (panelName === 'terminal') renderTerminal();
-    else if (panelName === 'statistics') renderStatistics();
-    else if (panelName === 'control-plane') renderControlPlane();
+    if (panelName === 'control-plane') renderControlPlane();
     else if (panelName === 'router') renderRouter();
     else if (panelName === 'assets') renderAssetBoard();
     else if (panelName === 'exposure') renderExposureBoard();
     else if (panelName === 'cases') renderCaseboard();
-    else if (panelName === 'reports') renderReportWorkspace();
   }
 
   function selectedSearchScope() {
@@ -22689,29 +22554,8 @@
   }
 
   function activitySessionSecondaryAction(session) {
-    if (!session) return null;
-    var caseId = (session.targetIds || []).find(function (targetId) {
-      return caseFileById(targetId);
-    });
-    if (caseId) {
-      return {
-        label: 'Build report',
-        action: 'seed-report',
-        value: 'session:' + session.id
-      };
-    }
-    if (session.kind === 'agent_run' || session.reportCount || session.caseCount) {
-      return {
-        label: 'Build report',
-        action: 'seed-report',
-        value: 'session:' + session.id
-      };
-    }
-    return {
-      label: 'Build report',
-      action: 'seed-report',
-      value: 'session:' + session.id
-    };
+    void session;
+    return null;
   }
 
   function activitySessionSummary(sessions) {
@@ -23158,18 +23002,6 @@
     renderSearchResults(searchSectionsForQuery(query, scope), query);
   }
 
-  function focusTerminalWorkbench() {
-    switchTab('terminal');
-    window.setTimeout(function () {
-      var input = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
-      var terminal = input && input.closest('.ai-chatbot-terminal');
-      if (terminal && terminal.scrollIntoView) {
-        terminal.scrollIntoView({ block: 'center', behavior: 'smooth' });
-      }
-      if (input) input.focus();
-    }, 0);
-  }
-
   function openPanel(tabName) {
     var panelName = panelForTab(tabName || 'chat');
     updatePanelOffset();
@@ -23189,11 +23021,6 @@
         els.exposureSearch.focus();
       } else if (panelName === 'cases' && els.caseboardSearch) {
         els.caseboardSearch.focus();
-      } else if (panelName === 'reports' && els.reportSourceId) {
-        els.reportSourceId.focus();
-      } else if (panelName === 'terminal') {
-        var terminalInput = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
-        if (terminalInput) terminalInput.focus();
       } else {
         els.prompt.focus();
       }
@@ -23203,6 +23030,17 @@
   function syncPanelOpenState() {
     if (!els.shell || !els.panel) return;
     els.shell.classList.toggle('is-open', !els.panel.hidden);
+    syncDocumentScrollLock();
+  }
+
+  function syncDocumentScrollLock() {
+    if (!els.panel) {
+      document.documentElement.classList.remove('ai-chatbot-fullscreen-open');
+      return;
+    }
+
+    var shouldLock = !els.panel.hidden && els.panel.getAttribute('data-expanded') === 'true';
+    document.documentElement.classList.toggle('ai-chatbot-fullscreen-open', shouldLock);
   }
 
   function setExpanded(expanded) {
@@ -23211,7 +23049,7 @@
     var isExpanded = !!expanded;
     els.panel.setAttribute('data-expanded', isExpanded ? 'true' : 'false');
     els.shell.classList.toggle('is-expanded', isExpanded);
-    document.documentElement.classList.toggle('ai-chatbot-fullscreen-open', isExpanded && !els.panel.hidden);
+    syncDocumentScrollLock();
     els.expand.innerHTML = icon(isExpanded ? 'collapse' : 'expand');
     els.expand.setAttribute('aria-label', isExpanded ? 'Exit full screen' : 'Expand full screen');
     els.expand.setAttribute('aria-pressed', isExpanded ? 'true' : 'false');
@@ -23845,7 +23683,7 @@
   function launchReadinessSummary(snapshot) {
     return snapshot && snapshot.summary
       ? snapshot.summary
-      : 'Launch readiness was not captured in this artifact. Reopen the planner or Reports desk to refresh it against current browser setup.';
+      : 'Launch readiness was not captured in this artifact. Reopen the planner to refresh it against current browser setup.';
   }
 
   function launchReadinessMatches(a, b) {
@@ -26057,7 +25895,6 @@
       lines.push('Next action: ' + snapshot.primary_action.label);
     }
     if (!options.terminal) {
-      appendTerminalRecord('system', 'agent validation: ' + snapshot.overall_label);
       if (els.agentStatus && !state.agentRunning) {
         els.agentStatus.textContent = snapshot.overall_label + '. ' + snapshot.summary;
         els.agentStatus.setAttribute('data-kind', snapshot.overall_state === 'blocked' ? 'error' : 'ok');
@@ -26314,7 +26151,6 @@
         '<div class="ai-chatbot-agent-queued-actions">' +
           '<button class="ai-chatbot-agent-run" type="button" data-agent-run-action="' + index + '" title="Run this browser-local remediation agent now" aria-label="Run ' + html(agentActionTitle(action)) + ' now">' + icon('play') + '<span>' + html(action.status === 'scheduled-draft' ? 'Run now' : 'Run plan') + '</span></button>' +
           '<a class="ai-chatbot-agent-console-link" href="#ai-chatbot-agent-console-' + index + '" data-agent-console-action="' + index + '" aria-expanded="' + (consoleOpen ? 'true' : 'false') + '">' + html(consoleLabel) + '</a>' +
-          '<a class="ai-chatbot-agent-console-link" href="#ai-chatbot-terminal" data-agent-terminal-action="' + index + '">Open terminal</a>' +
           '<button class="ai-chatbot-agent-remove" type="button" data-agent-remove-action="' + index + '" aria-label="Remove ' + html(agentActionTitle(action)) + '">Remove</button>' +
         '</div>' +
         (consoleOpen ? '<pre class="ai-chatbot-agent-console" id="ai-chatbot-agent-console-' + index + '">' + html(agentConsoleText(action)) + '</pre>' : '') +
@@ -26432,8 +26268,6 @@
       'Output route: ' + config.outputRoute,
       'Output route requirement: ' + route.requirement,
       'Output route runtime support: ' + route.runtime_support,
-      terminalContextBlock() ? 'Recent browser terminal transcript:\n' + terminalContextBlock() : '',
-      'If the browser terminal should queue, inspect, or refresh local workbench state, include a fenced code block labeled browser-terminal with one allowlisted command per line. Do not request operating-system shell commands from this terminal.',
       'Return a concise, route-specific draft that can be delivered by the browser if the required integration is configured.',
       'For Draft PR packet: include branch name, commit summary, PR title, PR body, test plan, rollback, and reviewer checklist.',
       'For GitHub issue, Jira, Slack, Teams, ServiceNow, Linear, Elastic, or Email: include a title or subject and a body/message suitable for that destination.',
@@ -27532,7 +27366,6 @@
         els.agentStatus.textContent = blocker;
         els.agentStatus.setAttribute('data-kind', 'error');
       }
-      appendTerminalRecord('system', 'agent creation blocked: ' + blocker);
       return;
     }
     var now = nowIso();
@@ -27565,9 +27398,6 @@
         : 'Agent created for ' + action.scope + '. It will run every ' + agentCadenceFrequencyText(cadence) + ', starting ' + formatTimestamp(nextRun) + ', while this site stays open.';
       els.agentStatus.setAttribute('data-kind', 'ok');
     }
-    appendTerminalRecord('system', isAgentOnceCadence(cadence)
-      ? 'created one-time agent for ' + action.scope + ', running at ' + formatTimestamp(nextRun)
-      : 'created agent for ' + action.scope + ' on ' + cadence + ' interval, starting ' + formatTimestamp(nextRun));
     appendActivityRecord({
       category: 'schedule',
       eventType: 'browser_agent_created',
@@ -27730,7 +27560,6 @@
         state.agentLastOutput = answer;
         state.agentLastConfig = config;
         state.caseboardLastSavedId = '';
-        await executeAgentTerminalCommands(answer, { actionIndex: actionIndex });
         var finishedAt = nowIso();
         if (actionIndex >= 0 && state.agentActions[actionIndex]) {
           var completedAction = state.agentActions[actionIndex];
@@ -27868,7 +27697,6 @@
     state.messages.push(userMessage, assistantMessage);
     saveChatHistoryStorage();
     renderMessages();
-    appendTerminalRecord('system', 'context check requested');
     if (!hasProviderRuntime(getAgentProvider())) {
       setStatus('Context check generated locally. Paste or save a provider key to enable LLM summarization.', 'ok');
       appendActivityRecord({
@@ -27876,7 +27704,7 @@
         eventType: 'context_check_local',
         status: 'ok',
         title: 'Generated local context check',
-        summary: 'Context sources, optional inputs, terminal transcript, and gaps were summarized without calling an LLM.',
+        summary: 'Context sources, optional inputs, activity history, and gaps were summarized without calling an LLM.',
         targetLabel: 'Chat context',
         badges: ['local summary', String(rows.selectedInputs.length) + ' inputs']
       });
@@ -27940,37 +27768,6 @@
     saveChatHistoryStorage();
     els.prompt.value = '';
     renderMessages();
-
-    var terminalCommand = commandFromChatText(text);
-    if (terminalCommand) {
-      setStatus('Running browser terminal command...', '');
-      state.sending = true;
-      els.send.disabled = true;
-      try {
-        var terminalOutput = await executeTerminalCommand(terminalCommand, { source: 'chat' });
-        state.messages.push({
-          role: 'assistant',
-          content: 'Terminal result:\n\n```text\n' + terminalOutput + '\n```',
-          createdAt: nowIso()
-        });
-        saveChatHistoryStorage();
-        setStatus('Terminal command completed', 'ok');
-      } catch (error) {
-        state.messages.push({
-          role: 'assistant',
-          content: failureMessage(error),
-          error: true,
-          createdAt: nowIso()
-        });
-        saveChatHistoryStorage();
-        setStatus('Terminal command failed', 'error');
-      } finally {
-        state.sending = false;
-        els.send.disabled = false;
-        renderMessages();
-      }
-      return;
-    }
 
     setStatus('Building site context...', '');
     state.sending = true;
@@ -28109,10 +27906,8 @@
         '</header>' +
         '<div class="ai-chatbot-tabs" role="tablist" aria-label="AI assistant views">' +
           '<button class="ai-chatbot-tab" type="button" data-tab="chat" aria-selected="true">' + icon('bot') + '<span>Chat</span></button>' +
-          '<button class="ai-chatbot-tab" type="button" data-tab="search" aria-selected="false">' + icon('scan') + '<span>Search</span></button>' +
+          '<button class="ai-chatbot-tab" type="button" data-tab="search" aria-selected="false">' + icon('scan') + '<span>Recipe Search</span></button>' +
           '<button class="ai-chatbot-tab" type="button" data-tab="agents" aria-selected="false">' + icon('route') + '<span>Agents</span></button>' +
-          '<button class="ai-chatbot-tab" type="button" data-tab="statistics" aria-selected="false">' + icon('chart') + '<span>Report</span></button>' +
-          '<button class="ai-chatbot-tab" type="button" data-tab="terminal" aria-selected="false">' + icon('terminal') + '<span>Terminal</span></button>' +
         '</div>' +
         '<div class="ai-chatbot-panel-body">' +
           '<div class="ai-chatbot-tab-panel" data-panel="chat">' +
@@ -28383,12 +28178,12 @@
                   '</div>' +
                 '</details>' +
                 '<details class="ai-chatbot-settings-block" data-delivery-settings-details>' +
-                  '<summary class="ai-chatbot-github-heading">' + icon('send') + '<span>Delivery integrations</span><small>Default GitHub handoff and terminal output, with optional configured routes.</small></summary>' +
+                  '<summary class="ai-chatbot-github-heading">' + icon('send') + '<span>Delivery integrations</span><small>Default GitHub handoff, with optional configured routes.</small></summary>' +
                   '<div class="ai-chatbot-github-content">' +
                     '<div class="ai-chatbot-capability-list">' +
                       '<span>Draft PR packet <em>Copy-ready GitHub branch, PR body, tests, rollback, and reviewer checklist.</em></span>' +
                       '<span>GitHub issue <em>Uses the GitHub repository login or token when issue creation is selected.</em></span>' +
-                      '<span>Terminal stdout <em>Runbook receipts stay available in the MiniBox terminal for local review.</em></span>' +
+                      '<span>Runbook receipt <em>Copy-ready steps, evidence, stop conditions, and rollback for reviewer handoff.</em></span>' +
                     '</div>' +
                     '<div class="ai-chatbot-agent-grid">' +
                       '<label class="ai-chatbot-field" data-delivery-settings-card="slack-webhook slack" hidden><span>Slack webhook</span><input data-slack-webhook type="url" autocomplete="off" placeholder="https://hooks.slack.com/services/..."></label>' +
@@ -28514,62 +28309,6 @@
               '</div>' +
               '<div class="ai-chatbot-search-results" data-search-results></div>' +
               '<div class="ai-chatbot-status" data-search-status></div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="ai-chatbot-tab-panel ai-chatbot-statistics-panel" data-panel="statistics" hidden>' +
-            '<div class="ai-chatbot-statistics" data-statistics-export-surface>' +
-              '<div class="ai-chatbot-statistics-hero">' +
-                '<div><strong>Security dashboard</strong><span>Live posture from browser-local context, dependencies, sensitive data, exposure queues, assets, cases, routes, and agent activity.</span></div>' +
-                '<button class="ai-chatbot-action" type="button" data-statistics-export-pdf>' + icon('download') + '<span>Export PDF</span></button>' +
-              '</div>' +
-              '<div class="ai-chatbot-statistics-guide" aria-label="Dashboard controls">' +
-                '<span><strong>Refresh</strong> updates mapped evidence sources, then recalculates the card.</span>' +
-                '<span><strong>Explain</strong> adds a short interpretation from the current browser-local data.</span>' +
-              '</div>' +
-              '<div class="ai-chatbot-statistics-summary" data-statistics-summary></div>' +
-              '<div class="ai-chatbot-statistics-grid">' +
-                '<section class="ai-chatbot-stat-card ai-chatbot-stat-card-major" data-statistics-severity></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-remediation></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-context></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-assets></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-dependencies></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-sensitive-data></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-workflows></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-freshness></section>' +
-              '</div>' +
-              '<div class="ai-chatbot-statistics-grid ai-chatbot-statistics-grid-wide">' +
-                '<section class="ai-chatbot-stat-card" data-statistics-drivers></section>' +
-                '<section class="ai-chatbot-stat-card" data-statistics-activity></section>' +
-              '</div>' +
-              '<div class="ai-chatbot-status" data-statistics-status>Report is generated from browser-local evidence and saved workbench state.</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="ai-chatbot-tab-panel ai-chatbot-terminal-panel" data-panel="terminal" hidden>' +
-            '<div class="ai-chatbot-terminal-view">' +
-              '<section class="ai-chatbot-terminal ai-chatbot-terminal-primary" data-terminal>' +
-                '<div class="ai-chatbot-terminal-head"><div>' + icon('terminal') + '<span>MiniBox terminal</span></div><button class="ai-chatbot-agent-button secondary" type="button" data-terminal-clear>Clear</button></div>' +
-                '<pre class="ai-chatbot-terminal-screen" data-terminal-output></pre>' +
-                '<form class="ai-chatbot-terminal-form" data-terminal-form>' +
-                  '<span class="ai-chatbot-terminal-prompt" data-terminal-prompt>remediator@minibox:~$</span>' +
-                  '<input data-terminal-input type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" placeholder="status, ping localhost, wget /recipes-index.json, git status">' +
-                  '<button class="ai-chatbot-agent-button ai-chatbot-terminal-run" type="submit" data-terminal-run title="Run command" aria-label="Run terminal command">' + icon('play') + '<span>Run</span></button>' +
-                '</form>' +
-              '</section>' +
-              '<div class="ai-chatbot-terminal-command-grid" aria-label="Useful MiniBox commands">' +
-                '<button type="button" data-terminal-command="status">status</button>' +
-                '<button type="button" data-terminal-command="context">context</button>' +
-                '<button type="button" data-terminal-command="evidence">evidence</button>' +
-                '<button type="button" data-terminal-command="routes">routes</button>' +
-                '<button type="button" data-terminal-command="schedule">schedule</button>' +
-                '<button type="button" data-terminal-command="agent console 1">console</button>' +
-                '<button type="button" data-terminal-command="agent validate">agent validate</button>' +
-                '<button type="button" data-terminal-command="ping localhost">ping</button>' +
-                '<button type="button" data-terminal-command="nc -vz localhost 8080">nc</button>' +
-                '<button type="button" data-terminal-command="wget --spider /recipes-index.json">wget</button>' +
-                '<button type="button" data-terminal-command="tail -n 8 tmp/history.txt">tail</button>' +
-                '<button type="button" data-terminal-command="diff context.json recipe.txt">diff</button>' +
-                '<button type="button" data-terminal-command="git status">git</button>' +
-              '</div>' +
             '</div>' +
           '</div>' +
           '<div class="ai-chatbot-tab-panel ai-chatbot-router-panel" data-panel="router" hidden>' +
@@ -28850,7 +28589,6 @@
                   '<div class="ai-chatbot-agent-actions">' +
                     '<button class="ai-chatbot-agent-button secondary" type="button" data-exposure-apply disabled>Load into planner</button>' +
                     '<button class="ai-chatbot-agent-button secondary" type="button" data-exposure-save-case disabled>Save case</button>' +
-                    '<button class="ai-chatbot-agent-button secondary" type="button" data-exposure-open-report disabled>Build report</button>' +
                     '<button class="ai-chatbot-agent-button secondary" type="button" data-exposure-copy disabled>Copy JSON</button>' +
                   '</div>' +
                 '</div>' +
@@ -28883,7 +28621,6 @@
                   '<pre class="ai-chatbot-agent-json" data-caseboard-preview></pre>' +
                   '<div class="ai-chatbot-agent-actions">' +
                     '<button class="ai-chatbot-agent-button secondary" type="button" data-caseboard-apply disabled>Apply to planner</button>' +
-                    '<button class="ai-chatbot-agent-button secondary" type="button" data-caseboard-open-report disabled>Build report</button>' +
                     '<button class="ai-chatbot-agent-button secondary" type="button" data-caseboard-status-toggle disabled>Mark in review</button>' +
                     '<button class="ai-chatbot-agent-button secondary" type="button" data-caseboard-validate disabled>Validate JSON</button>' +
                     '<button class="ai-chatbot-agent-button secondary" type="button" data-caseboard-copy disabled>Copy JSON</button>' +
@@ -28893,41 +28630,6 @@
                 '</div>' +
               '</div>' +
               '<div class="ai-chatbot-status" data-caseboard-status>Generate a plan in Agents, then capture it as a reusable local case file with evidence, output contract, and timeline.</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="ai-chatbot-tab-panel ai-chatbot-report-panel" data-panel="reports" hidden>' +
-            '<div class="ai-chatbot-report-desk">' +
-              '<div class="ai-chatbot-control-plane-intro">' +
-                '<div><strong>Reports desk</strong><span>Seed a downstream-ready report from a saved case, an exposure queue item, or a grouped browser-local investigation session, then copy, download, or route it with the selected output contract.</span></div>' +
-                '<a href="' + html(siteHref('docs/control-plane-marketplace/#report-desk')) + '" target="_blank" rel="noopener noreferrer">Why this matters</a>' +
-              '</div>' +
-              '<div class="ai-chatbot-control-plane-stats" data-report-stats></div>' +
-              '<div class="ai-chatbot-report-layout">' +
-                '<section class="ai-chatbot-agent-step">' +
-                  '<div class="ai-chatbot-agent-step-title"><span>1</span><div><strong>Pick a source</strong><small>Choose the browser-local artifact you want to turn into a reviewer-ready report or handoff packet.</small></div></div>' +
-                  '<div class="ai-chatbot-agent-grid">' +
-                    '<label class="ai-chatbot-field"><span>Source type</span><select data-report-source-type><option value="case">Caseboard case</option><option value="exposure">Exposure Board item</option><option value="session">Investigation session</option></select></label>' +
-                    '<label class="ai-chatbot-field"><span>Source record</span><select data-report-source-id></select></label>' +
-                    '<label class="ai-chatbot-field"><span>Report profile</span><select data-report-profile></select></label>' +
-                    '<label class="ai-chatbot-field"><span>Output channel</span><select data-report-output-channel></select></label>' +
-                    '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Title override</span><input data-report-title type="text" autocomplete="off" placeholder="Optional. Override the default report title."></label>' +
-                    '<label class="ai-chatbot-field ai-chatbot-wide-field"><span>Analyst notes</span><textarea data-report-notes placeholder="Optional reviewer notes, escalation context, or reminders for downstream handoff."></textarea></label>' +
-                  '</div>' +
-                  '<div class="ai-chatbot-agent-hint" data-report-source-summary>Select a source to generate a report preview in this browser.</div>' +
-                '</section>' +
-                '<div class="ai-chatbot-caseboard-preview-wrap">' +
-                  '<div class="ai-chatbot-caseboard-preview-meta" data-report-preview-meta></div>' +
-                  '<pre class="ai-chatbot-agent-json" data-report-preview></pre>' +
-                  '<div class="ai-chatbot-agent-actions">' +
-                    '<button class="ai-chatbot-agent-button secondary" type="button" data-report-open-source disabled>Open source</button>' +
-                    '<button class="ai-chatbot-agent-button secondary" type="button" data-report-apply-source disabled>Apply to planner</button>' +
-                    '<button class="ai-chatbot-agent-button secondary" type="button" data-report-copy disabled>Copy JSON</button>' +
-                    '<button class="ai-chatbot-agent-button secondary" type="button" data-report-download disabled>Download JSON</button>' +
-                    '<button class="ai-chatbot-agent-button secondary" type="button" data-report-deliver disabled>Run selected output</button>' +
-                  '</div>' +
-                '</div>' +
-              '</div>' +
-              '<div class="ai-chatbot-status" data-report-status>Seed a report from a case, queue item, or grouped browser session, then copy, download, or route the result downstream.</div>' +
             '</div>' +
           '</div>' +
           '<div class="ai-chatbot-tab-panel" data-panel="agents" hidden>' +
@@ -29125,20 +28827,6 @@
     els.searchStats = shell.querySelector('[data-search-stats]');
     els.searchResults = shell.querySelector('[data-search-results]');
     els.searchStatus = shell.querySelector('[data-search-status]');
-    els.statisticsPanel = shell.querySelector('[data-panel="statistics"]');
-    els.statisticsSummary = shell.querySelector('[data-statistics-summary]');
-    els.statisticsSeverity = shell.querySelector('[data-statistics-severity]');
-    els.statisticsRemediation = shell.querySelector('[data-statistics-remediation]');
-    els.statisticsContext = shell.querySelector('[data-statistics-context]');
-    els.statisticsAssets = shell.querySelector('[data-statistics-assets]');
-    els.statisticsDependencies = shell.querySelector('[data-statistics-dependencies]');
-    els.statisticsSensitiveData = shell.querySelector('[data-statistics-sensitive-data]');
-    els.statisticsWorkflows = shell.querySelector('[data-statistics-workflows]');
-    els.statisticsFreshness = shell.querySelector('[data-statistics-freshness]');
-    els.statisticsDrivers = shell.querySelector('[data-statistics-drivers]');
-    els.statisticsActivity = shell.querySelector('[data-statistics-activity]');
-    els.statisticsStatus = shell.querySelector('[data-statistics-status]');
-    els.statisticsExportPdf = shell.querySelector('[data-statistics-export-pdf]');
     els.routerPanel = shell.querySelector('[data-panel="router"]');
     els.routerHeadline = shell.querySelector('[data-router-headline]');
     els.routerStats = shell.querySelector('[data-router-stats]');
@@ -29201,7 +28889,6 @@
     els.exposureStatus = shell.querySelector('[data-exposure-status]');
     els.exposureApply = shell.querySelector('[data-exposure-apply]');
     els.exposureSaveCase = shell.querySelector('[data-exposure-save-case]');
-    els.exposureOpenReport = shell.querySelector('[data-exposure-open-report]');
     els.exposureCopy = shell.querySelector('[data-exposure-copy]');
     els.caseboardSearch = shell.querySelector('[data-caseboard-search]');
     els.caseboardFilter = shell.querySelector('[data-caseboard-filter]');
@@ -29212,29 +28899,11 @@
     els.caseboardPreview = shell.querySelector('[data-caseboard-preview]');
     els.caseboardStatus = shell.querySelector('[data-caseboard-status]');
     els.caseboardApply = shell.querySelector('[data-caseboard-apply]');
-    els.caseboardOpenReport = shell.querySelector('[data-caseboard-open-report]');
     els.caseboardStatusToggle = shell.querySelector('[data-caseboard-status-toggle]');
     els.caseboardValidate = shell.querySelector('[data-caseboard-validate]');
     els.caseboardCopy = shell.querySelector('[data-caseboard-copy]');
     els.caseboardDownload = shell.querySelector('[data-caseboard-download]');
     els.caseboardDelete = shell.querySelector('[data-caseboard-delete]');
-    els.reportPanel = shell.querySelector('[data-panel="reports"]');
-    els.reportStats = shell.querySelector('[data-report-stats]');
-    els.reportSourceType = shell.querySelector('[data-report-source-type]');
-    els.reportSourceId = shell.querySelector('[data-report-source-id]');
-    els.reportProfile = shell.querySelector('[data-report-profile]');
-    els.reportOutputChannel = shell.querySelector('[data-report-output-channel]');
-    els.reportTitle = shell.querySelector('[data-report-title]');
-    els.reportNotes = shell.querySelector('[data-report-notes]');
-    els.reportSourceSummary = shell.querySelector('[data-report-source-summary]');
-    els.reportPreviewMeta = shell.querySelector('[data-report-preview-meta]');
-    els.reportPreview = shell.querySelector('[data-report-preview]');
-    els.reportStatus = shell.querySelector('[data-report-status]');
-    els.reportOpenSource = shell.querySelector('[data-report-open-source]');
-    els.reportApplySource = shell.querySelector('[data-report-apply-source]');
-    els.reportCopy = shell.querySelector('[data-report-copy]');
-    els.reportDownload = shell.querySelector('[data-report-download]');
-    els.reportDeliver = shell.querySelector('[data-report-deliver]');
     els.workflowLabLabel = shell.querySelector('[data-workflow-lab-label]');
     els.workflowLabId = shell.querySelector('[data-workflow-lab-id]');
     els.workflowLabWorkflow = shell.querySelector('[data-workflow-lab-workflow]');
@@ -29352,14 +29021,6 @@
     els.agentSaveCase = shell.querySelector('[data-agent-save-case]');
     els.agentDeliver = shell.querySelector('[data-agent-deliver]');
     els.agentSchedule = shell.querySelector('[data-agent-schedule]');
-    els.terminalOutputs = shell.querySelectorAll('[data-terminal-output]');
-    els.terminalForms = shell.querySelectorAll('[data-terminal-form]');
-    els.terminalInputs = shell.querySelectorAll('[data-terminal-input]');
-    els.terminalPrompts = shell.querySelectorAll('[data-terminal-prompt]');
-    els.terminalOutput = els.terminalOutputs[0];
-    els.terminalForm = els.terminalForms[0];
-    els.terminalInput = els.terminalInputs[0];
-    els.terminalPrompt = els.terminalPrompts[0];
     els.slackWebhook = shell.querySelector('[data-slack-webhook]');
     els.pagerDutyRoutingKey = shell.querySelector('[data-pagerduty-routing-key]');
     els.googleChatWebhook = shell.querySelector('[data-google-chat-webhook]');
@@ -29460,7 +29121,6 @@
     updateImportedContextUI('scanner');
     updateImportedContextUI('sbom');
     renderMessages();
-    renderTerminal();
     renderSearchResults([], '');
     renderAssetBoard();
     renderExposureBoard();
@@ -29547,19 +29207,12 @@
           }, 0);
         } else if (panelName === 'control-plane' && els.controlPlaneSearch) {
           window.setTimeout(function () { els.controlPlaneSearch.focus(); }, 0);
-        } else if (panelName === 'terminal') {
-          window.setTimeout(function () {
-            var terminalInput = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
-            if (terminalInput) terminalInput.focus();
-          }, 0);
         } else if (panelName === 'assets' && els.assetSearch) {
           window.setTimeout(function () { els.assetSearch.focus(); }, 0);
         } else if (panelName === 'exposure' && els.exposureSearch) {
           window.setTimeout(function () { els.exposureSearch.focus(); }, 0);
         } else if (panelName === 'cases' && els.caseboardSearch) {
           window.setTimeout(function () { els.caseboardSearch.focus(); }, 0);
-        } else if (panelName === 'reports' && els.reportSourceId) {
-          window.setTimeout(function () { els.reportSourceId.focus(); }, 0);
         }
       });
     });
@@ -29569,10 +29222,6 @@
       if (!button || !shell.contains(button)) return;
       var target = button.getAttribute('data-open-panel') || 'agents';
       if (target === 'marketplace' || target === 'control-plane') target = 'agents';
-      if (button.getAttribute('data-focus-terminal') === 'true') {
-        focusTerminalWorkbench();
-        return;
-      }
       switchTab(target);
       window.setTimeout(function () {
         if (target === 'router' && els.routerRecommendations) {
@@ -29581,7 +29230,6 @@
         } else if (target === 'assets' && els.assetSearch) els.assetSearch.focus();
         else if (target === 'exposure' && els.exposureSearch) els.exposureSearch.focus();
         else if (target === 'cases' && els.caseboardSearch) els.caseboardSearch.focus();
-        else if (target === 'reports' && els.reportSourceId) els.reportSourceId.focus();
         else if (els.agentRecipeInput) els.agentRecipeInput.focus();
       }, 0);
     });
@@ -29609,13 +29257,6 @@
         syncWorkbenchMenuHeight(workbenchMenuToggle.getAttribute('aria-expanded') === 'true');
       });
       syncWorkbenchMenuHeight(false);
-    }
-
-    if (els.statisticsExportPdf) {
-      els.statisticsExportPdf.addEventListener('click', exportStatisticsPdf);
-    }
-    if (els.statisticsPanel) {
-      els.statisticsPanel.addEventListener('click', handleStatisticsAction);
     }
 
     if (els.chatQuickActions) {
@@ -29898,15 +29539,6 @@
         setExposureStatus(saved.title + ' captured in the local Caseboard.', 'ok');
       });
     }
-    if (els.exposureOpenReport) {
-      els.exposureOpenReport.addEventListener('click', function () {
-        var record = selectedExposureRecord();
-        if (!record) return;
-        seedReportWorkspaceFromSource('exposure', record.id);
-        switchTab('reports');
-        setReportWorkspaceStatus(record.title + ' loaded into the Reports desk from the Exposure Board.', 'ok');
-      });
-    }
     if (els.exposureCopy) {
       els.exposureCopy.addEventListener('click', function () {
         var record = selectedExposureRecord();
@@ -29948,15 +29580,6 @@
         var record = selectedCaseFile();
         if (!record) return;
         applyCaseFileToAgentPlanner(record);
-      });
-    }
-    if (els.caseboardOpenReport) {
-      els.caseboardOpenReport.addEventListener('click', function () {
-        var record = selectedCaseFile();
-        if (!record) return;
-        seedReportWorkspaceFromSource('case', record.id);
-        switchTab('reports');
-        setReportWorkspaceStatus(record.title + ' loaded into the Reports desk from Caseboard.', 'ok');
       });
     }
     if (shell.querySelector('[data-caseboard-copy-library]')) {
@@ -30054,140 +29677,6 @@
           setCaseboardStatus(removed.title + ' removed from this browser.', 'ok');
         }
       });
-    }
-    if (els.reportSourceType) {
-      els.reportSourceType.addEventListener('change', function () {
-        var sourceType = normalizeReportWorkspaceSourceType(els.reportSourceType.value);
-        var records = reportWorkspaceSourceRecords(sourceType);
-        if (!records.length) {
-          state.reportWorkspace = normalizeReportWorkspaceDraft({
-            sourceType: sourceType,
-            sourceId: '',
-            reportProfileId: '',
-            outputChannelId: '',
-            title: '',
-            notes: ''
-          });
-          saveReportWorkspaceDraft();
-          renderReportWorkspace();
-          return;
-        }
-        seedReportWorkspaceFromSource(sourceType, records[0].id, {
-          notes: state.reportWorkspace && state.reportWorkspace.notes ? state.reportWorkspace.notes : ''
-        });
-      });
-    }
-    if (els.reportSourceId) {
-      els.reportSourceId.addEventListener('change', function () {
-        if (!els.reportSourceId.value) return;
-        seedReportWorkspaceFromSource(normalizeReportWorkspaceSourceType(els.reportSourceType && els.reportSourceType.value), els.reportSourceId.value, {
-          notes: state.reportWorkspace && state.reportWorkspace.notes ? state.reportWorkspace.notes : ''
-        });
-      });
-    }
-    if (els.reportProfile) {
-      els.reportProfile.addEventListener('change', function () {
-        state.reportWorkspace.reportProfileId = els.reportProfile.value || '';
-        saveReportWorkspaceDraft();
-        renderReportWorkspace();
-      });
-    }
-    if (els.reportOutputChannel) {
-      els.reportOutputChannel.addEventListener('change', function () {
-        state.reportWorkspace.outputChannelId = els.reportOutputChannel.value || '';
-        saveReportWorkspaceDraft();
-        renderReportWorkspace();
-      });
-    }
-    if (els.reportTitle) {
-      els.reportTitle.addEventListener('change', function () {
-        state.reportWorkspace.title = collapseText(els.reportTitle.value || '').slice(0, 180);
-        saveReportWorkspaceDraft();
-        renderReportWorkspace();
-      });
-    }
-    if (els.reportNotes) {
-      els.reportNotes.addEventListener('change', function () {
-        state.reportWorkspace.notes = collapseText(els.reportNotes.value || '').slice(0, 1600);
-        saveReportWorkspaceDraft();
-        renderReportWorkspace();
-      });
-    }
-    if (els.reportOpenSource) {
-      els.reportOpenSource.addEventListener('click', function () {
-        var current = ensureReportWorkspaceSelection();
-        if (!current) return;
-        executeWorkbenchAction('open-tab', current.draft.sourceType === 'case' ? 'cases' : (current.draft.sourceType === 'exposure' ? 'exposure' : 'search'), {
-          originLabel: 'Reports desk'
-        });
-        if (current.draft.sourceType === 'case') {
-          setCaseboardSelected(current.record.id);
-          renderCaseboard();
-        } else if (current.draft.sourceType === 'exposure') {
-          setExposureSelected(current.record.id);
-          renderExposureBoard();
-        } else {
-          focusActivitySession(current.record.id, { openTab: true, silent: true });
-        }
-      });
-    }
-    if (els.reportApplySource) {
-      els.reportApplySource.addEventListener('click', function () {
-        var current = ensureReportWorkspaceSelection();
-        if (!current || current.draft.sourceType === 'session') return;
-        if (current.draft.sourceType === 'case') {
-          applyCaseFileToAgentPlanner(current.record);
-        } else {
-          applyCaseFileToAgentPlanner(exposureCaseSnapshot(current.record));
-          setReportWorkspaceStatus(current.record.title + ' loaded into the agent planner from the Reports desk.', 'ok');
-        }
-      });
-    }
-    if (els.reportCopy) {
-      els.reportCopy.addEventListener('click', function () {
-        var current = ensureReportWorkspaceSelection();
-        var payload = reportWorkspacePayload();
-        if (!current || !payload) return;
-        copyText(JSON.stringify(payload, null, 2))
-          .then(function () {
-            appendActivityRecord({
-              category: 'report',
-              eventType: 'report_workspace_copied',
-              status: 'copied',
-              title: 'Copied report workspace JSON',
-              summary: reportWorkspaceSourceLabel(current.draft.sourceType, current.record) + ' report JSON copied locally.',
-              targetId: current.record.id,
-              targetLabel: reportWorkspaceSourceLabel(current.draft.sourceType, current.record),
-              badges: uniqueStrings([payload.report_label || '', current.draft.sourceType], 4)
-            });
-            setReportWorkspaceStatus((payload.title || 'Report') + ' JSON copied locally.', 'ok');
-          })
-          .catch(function () {
-            setReportWorkspaceStatus('Report JSON is shown above, but clipboard copy was unavailable.', 'error');
-          });
-      });
-    }
-    if (els.reportDownload) {
-      els.reportDownload.addEventListener('click', function () {
-        var current = ensureReportWorkspaceSelection();
-        var payload = reportWorkspacePayload();
-        if (!current || !payload) return;
-        downloadJsonFile(reportWorkspaceDownloadName(payload), payload);
-        appendActivityRecord({
-          category: 'report',
-          eventType: 'report_workspace_downloaded',
-          status: 'downloaded',
-          title: 'Downloaded report workspace JSON',
-          summary: reportWorkspaceSourceLabel(current.draft.sourceType, current.record) + ' report JSON downloaded.',
-          targetId: current.record.id,
-          targetLabel: reportWorkspaceSourceLabel(current.draft.sourceType, current.record),
-          badges: uniqueStrings([payload.report_label || '', current.draft.sourceType], 4)
-        });
-        setReportWorkspaceStatus((payload.title || 'Report') + ' JSON downloaded locally.', 'ok');
-      });
-    }
-    if (els.reportDeliver) {
-      els.reportDeliver.addEventListener('click', deliverReportWorkspaceOutput);
     }
     if (els.workflowLabLabel) {
       els.workflowLabLabel.addEventListener('input', function () {
@@ -30869,33 +30358,6 @@
       });
     }
 
-    Array.prototype.forEach.call(els.terminalForms || [], function (form) {
-      form.addEventListener('submit', function (event) {
-        event.preventDefault();
-        var input = form.querySelector('[data-terminal-input]');
-        var command = collapseText(input && input.value);
-        if (input) input.value = '';
-        executeTerminalCommand(command, { source: 'terminal' });
-      });
-    });
-
-    Array.prototype.forEach.call(shell.querySelectorAll('[data-terminal-clear]'), function (terminalClear) {
-      terminalClear.addEventListener('click', function () {
-        executeTerminalCommand('clear', { source: 'terminal' });
-        var input = terminalClear.closest('.ai-chatbot-terminal') && terminalClear.closest('.ai-chatbot-terminal').querySelector('[data-terminal-input]');
-        if (input) input.focus();
-      });
-    });
-
-    shell.addEventListener('click', function (event) {
-      var commandButton = event.target.closest('[data-terminal-command]');
-      if (!commandButton || !shell.contains(commandButton)) return;
-      var command = commandButton.getAttribute('data-terminal-command');
-      var input = (els.terminalInputs && els.terminalInputs[0]) || els.terminalInput;
-      if (input) input.value = command;
-      executeTerminalCommand(command, { source: 'terminal' });
-    });
-
     var clearAgentActionsButton = shell.querySelector('[data-agent-clear-actions]');
     if (clearAgentActionsButton) {
       clearAgentActionsButton.addEventListener('click', function () {
@@ -30925,13 +30387,6 @@
           saveAgentActions();
           renderAgentActions();
         }
-        return;
-      }
-      var terminalLink = event.target.closest('[data-agent-terminal-action]');
-      if (terminalLink) {
-        event.preventDefault();
-        switchTab('terminal');
-        renderTerminal();
         return;
       }
       var button = event.target.closest('[data-agent-remove-action]');
@@ -31705,13 +31160,14 @@
 
     window.addEventListener('resize', updatePanelOffset);
     window.addEventListener('scroll', updatePanelOffset, { passive: true });
+    window.addEventListener('pageshow', syncDocumentScrollLock);
+    syncDocumentScrollLock();
     enablePersistentSiteNavigation();
     startBrowserAgentScheduler();
 
     if (els.agentValidate) {
       els.agentValidate.addEventListener('click', function () {
-        var output = validateAgentPlanner();
-        appendTerminalRecord('output', output);
+        validateAgentPlanner();
       });
     }
     if (els.agentPreview) els.agentPreview.addEventListener('click', handleAgentPreview);

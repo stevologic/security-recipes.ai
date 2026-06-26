@@ -67,6 +67,34 @@ need only the recipe, package metadata, lockfile, and CI. A SAST remediation may
 need the SARIF alert, affected source file, related tests, and secure coding
 rule.
 
+## Read-only context
+
+Read-only context means the agent can retrieve evidence, but the context layer
+does not give it mutation authority. The agent may search recipes, fetch a
+scanner finding, read an advisory, inspect a repository file, or collect CI
+status. It should not create tickets, push branches, edit secrets, rotate keys,
+deploy, dismiss alerts, or write back to source systems through the same
+connector.
+
+That split matters because context gathering is high-volume and low-risk, while
+mutation is where authorization mistakes become durable. Keep the default MCP
+profile read-only and route write-capable tools through a separate approval
+path.
+
+For a remediation run, a read-only context packet usually includes:
+
+- the selected recipe and its stop conditions;
+- the specific finding, alert, CVE, GHSA, package, rule, or source/sink pair;
+- affected source files, manifests, lockfiles, SBOMs, SARIF, and CI logs;
+- relevant ownership and review policy, such as CODEOWNERS or branch
+  protection;
+- generated evidence requirements that the PR must satisfy.
+
+If a workflow truly needs mutation, split the flow: use read-only MCP to gather
+context first, then ask for a narrower write grant tied to one action, one
+repository, one branch, one ticket, or one output route. The review step should
+be able to see which grant was used and why.
+
 ## Security Recipes MCP server
 
 This repository includes an optional FastMCP server in `mcp_server.py`. It is a
