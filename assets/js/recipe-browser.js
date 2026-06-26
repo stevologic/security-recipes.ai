@@ -77,6 +77,9 @@
       '- recipes_search: search by finding title, package, CVE/GHSA, ecosystem, rule id, or keywords.',
       '- recipes_get: retrieve the selected recipe by slug, path, URL, or source_file.',
       '- recipes_match_finding: suggest best-fit recipes for one concrete finding.',
+      '- recipes_quality_report: inspect quality tiers and find recipes missing world-class signals.',
+      '',
+      'Select by facet before acting: remediation for patch work, risk for exploitability and impact, audit for evidence mapping, compliance for standards readiness, and code-hygiene for cleanup or hardening work.',
       '',
       'Use one recipe for one finding, preserve the recipe stop conditions, run the requested tests, and produce a reviewer-ready PR or triage note. Do not use MCP for writes, ticket creation, deployments, secret rotation, or cloud changes unless this task explicitly grants that permission.'
     ].join('\n');
@@ -145,6 +148,9 @@
       url: absoluteUrl(card.dataset.recipePath || ''),
       category: card.dataset.recipeCategory || 'general',
       severity: card.dataset.recipeSeverity || 'unspecified',
+      facets: tokens(card.dataset.recipeFacets || ''),
+      quality: Number(card.dataset.recipeQuality || 0),
+      readiness: card.dataset.recipeReadiness || 'starter',
       maturity: card.dataset.recipeMaturity || 'unspecified',
       published: card.dataset.recipePublished || '',
       summary: card.dataset.recipeSummary || '',
@@ -173,13 +179,14 @@
 
     var searchInput = root.querySelector('[data-recipe-search]');
     var severityFilter = root.querySelector('[data-recipe-severity-filter]');
+    var facetFilter = root.querySelector('[data-recipe-facet-filter]');
+    var qualityFilter = root.querySelector('[data-recipe-quality-filter]');
     var sortSelect = root.querySelector('[data-recipe-sort]');
     var clearSearchButton = root.querySelector('[data-recipe-clear-search]');
     var summary = root.querySelector('[data-recipe-summary]');
     var empty = root.querySelector('[data-recipe-empty]');
     var status = root.querySelector('[data-recipe-status]');
     var grid = root.querySelector('[data-recipe-grid]');
-    var openAiButton = root.querySelector('[data-recipe-open-ai]');
     var filterButtons = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-filter]'));
     var filterLabels = {};
     var cards = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-card]')).map(function (node, index) {
@@ -190,6 +197,8 @@
         category: node.dataset.recipeCategory || 'general',
         zeroDay: node.dataset.recipeZeroDay === 'true',
         severity: node.dataset.recipeSeverity || 'unspecified',
+        facets: tokens(node.dataset.recipeFacets || ''),
+        quality: Number(node.dataset.recipeQuality || 0),
         title: normalize(node.dataset.recipeTitle || ''),
         date: node.dataset.recipeDate || ''
       };
@@ -244,6 +253,11 @@
           if (severityDelta) return severityDelta;
           return b.date.localeCompare(a.date);
         }
+        if (mode === 'quality') {
+          var qualityDelta = b.quality - a.quality;
+          if (qualityDelta) return qualityDelta;
+          return b.date.localeCompare(a.date);
+        }
         var dateDelta = b.date.localeCompare(a.date);
         if (dateDelta) return dateDelta;
         return a.initialIndex - b.initialIndex;
@@ -253,16 +267,20 @@
     function applyFilters() {
       var queryTokens = tokens(searchInput ? searchInput.value : '');
       var severity = severityFilter ? severityFilter.value : 'all';
+      var facet = facetFilter ? facetFilter.value : 'all';
+      var minimumQuality = qualityFilter ? Number(qualityFilter.value || 0) : 0;
       var visible = [];
 
       cards.forEach(function (card) {
         var categoryMatch = activeCategory === 'all' ||
           (activeCategory === 'zero-day' ? card.zeroDay : card.category === activeCategory);
         var severityMatch = severity === 'all' || card.severity === severity;
+        var facetMatch = facet === 'all' || card.facets.indexOf(facet) !== -1;
+        var qualityMatch = !minimumQuality || card.quality >= minimumQuality;
         var queryMatch = !queryTokens.length || queryTokens.every(function (token) {
           return card.indexText.indexOf(token) !== -1;
         });
-        var show = categoryMatch && severityMatch && queryMatch;
+        var show = categoryMatch && severityMatch && facetMatch && qualityMatch && queryMatch;
         card.node.hidden = !show;
         if (show) visible.push(card);
       });
@@ -275,7 +293,7 @@
       if (empty) empty.hidden = visible.length > 0;
       if (clearSearchButton) clearSearchButton.hidden = queryTokens.length === 0;
       renderSummary(visible.length);
-      root.dataset.filtered = queryTokens.length || activeCategory !== 'all' || severity !== 'all' ? 'true' : 'false';
+      root.dataset.filtered = queryTokens.length || activeCategory !== 'all' || severity !== 'all' || facet !== 'all' || minimumQuality > 0 ? 'true' : 'false';
     }
 
     function setActiveCategory(nextCategory) {
@@ -345,27 +363,6 @@
       }
     }
 
-    function openAiRemediation() {
-      var shell = document.querySelector('.ai-chatbot-shell');
-      var panel = shell && shell.querySelector('.ai-chatbot-panel');
-      var launch = shell && shell.querySelector('.ai-chatbot-launch');
-      var agentsTab = shell && shell.querySelector('.ai-chatbot-tab[data-tab="agents"]');
-
-      if (!shell || !panel || !launch || !agentsTab) {
-        setStatus('AI Remediation is still loading. Try again in a moment.', 'error');
-        return;
-      }
-
-      if (panel.hidden) launch.click();
-      agentsTab.click();
-      setStatus('Opened AI Remediation.', 'ok');
-
-      window.setTimeout(function () {
-        var recipeInput = shell.querySelector('[data-agent-recipe]');
-        if (recipeInput) recipeInput.focus();
-      }, 0);
-    }
-
     if (searchInput) {
       searchInput.addEventListener('input', applyFilters);
       searchInput.addEventListener('search', applyFilters);
@@ -390,6 +387,14 @@
     if (severityFilter) {
       severityFilter.addEventListener('change', applyFilters);
       stopGlobalHandlers(severityFilter);
+    }
+    if (facetFilter) {
+      facetFilter.addEventListener('change', applyFilters);
+      stopGlobalHandlers(facetFilter);
+    }
+    if (qualityFilter) {
+      qualityFilter.addEventListener('change', applyFilters);
+      stopGlobalHandlers(qualityFilter);
     }
     if (sortSelect) {
       sortSelect.addEventListener('change', applyFilters);
@@ -443,11 +448,6 @@
     if (copyPromptButton) {
       stopGlobalHandlers(copyPromptButton);
       copyPromptButton.addEventListener('click', copyAgentPrompt);
-    }
-
-    if (openAiButton) {
-      stopGlobalHandlers(openAiButton);
-      openAiButton.addEventListener('click', openAiRemediation);
     }
 
     root.dataset.recipeBrowserReady = 'true';

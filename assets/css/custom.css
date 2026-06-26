@@ -261,13 +261,11 @@ html[data-site-signal-background="true"] .nextra-nav-container-blur,
 html[data-site-signal-background="true"] main,
 html[data-site-signal-background="true"] footer,
 html[data-site-signal-background="true"] .docs-search-shell,
-html[data-site-signal-background="true"] .ai-chatbot-shell,
 html[data-recipe-browser-page="true"] .nextra-nav-container,
 html[data-recipe-browser-page="true"] .nextra-nav-container-blur,
 html[data-recipe-browser-page="true"] main,
 html[data-recipe-browser-page="true"] footer,
-html[data-recipe-browser-page="true"] .docs-search-shell,
-html[data-recipe-browser-page="true"] .ai-chatbot-shell {
+html[data-recipe-browser-page="true"] .docs-search-shell {
   position: relative;
   z-index: 1;
 }
@@ -1265,7 +1263,8 @@ html[data-recipe-browser-page="true"] #content > .content {
   color: color-mix(in srgb, var(--recipe-accent) 54%, #ffffff);
 }
 
-.recipe-browser-card__severity {
+.recipe-browser-card__severity,
+.recipe-browser-card__quality {
   padding: 0.08rem 0.38rem;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 999px;
@@ -1279,6 +1278,20 @@ html[data-recipe-browser-page="true"] #content > .content {
   border-radius: 999px;
   background: rgba(250, 204, 21, 0.045);
   color: #e7c978;
+}
+
+.recipe-browser-card__quality {
+  border-color: rgba(103, 232, 249, 0.16);
+  color: #9ddff0;
+}
+
+.recipe-browser-card__quality--world-class {
+  border-color: rgba(134, 239, 172, 0.2);
+  color: #9ce7b4;
+}
+
+.recipe-browser-card__quality--starter {
+  color: #aeb7c6;
 }
 
 .recipe-browser-card__severity--critical { color: #eba6a6; }
@@ -1314,6 +1327,24 @@ html[data-recipe-browser-page="true"] #content > .content {
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.recipe-browser-card__facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.recipe-browser-card__facets span {
+  padding: 0.12rem 0.42rem;
+  border: 1px solid color-mix(in srgb, var(--recipe-accent) 25%, rgba(255, 255, 255, 0.12));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--recipe-accent) 10%, rgba(255, 255, 255, 0.04));
+  color: color-mix(in srgb, var(--recipe-accent) 45%, #e5edf7);
+  font-family: var(--arr-font-mono);
+  font-size: 0.66rem;
+  line-height: 1.35;
+  text-transform: uppercase;
 }
 
 .recipe-browser-card__meta span {

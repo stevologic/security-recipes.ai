@@ -9,7 +9,6 @@ The project is intentionally narrow:
 - prompt and rules-file examples,
 - agent setup guides,
 - MCP integration patterns,
-- a browser AI assistant,
 - an optional read-only MCP server for recipe search and approved upstream MCP
   context.
 
@@ -43,7 +42,6 @@ security-recipes.ai helps teams answer:
 - Agent setup guides for GitHub Copilot, Claude, Cursor, Codex, and Devin.
 - MCP integration guidance for public and organization-approved security data
   sources.
-- Browser AI assistant that uses user-supplied provider credentials.
 - Optional read-only FastMCP server in `mcp_server.py` for recipe search,
   retrieval, and opt-in upstream MCP context.
 - Docker and Docker Compose configuration for local or droplet hosting.
@@ -55,7 +53,7 @@ security-recipes.ai helps teams answer:
 | --- | --- |
 | `content/` | Recipes, docs, recipes, and agent setup pages. |
 | `layouts/` | Hugo templates, home page, shortcodes, and JSON indexes. |
-| `assets/` | Site CSS and JavaScript, including the AI assistant. |
+| `assets/` | Site CSS and JavaScript for the recipe browser, navigation, and helper tools. |
 | `static/` | Images, logos, schemas, and static assets. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
 | `mcp-server.toml.example` | MCP server configuration template. |
@@ -99,24 +97,16 @@ Recommended operating model:
 4. Require tests and human review before merge.
 5. Keep broad automation, write access, and deployment outside the first loop.
 
-## AI assistant
+## Guidebook and helper tools
 
-The site includes a browser AI assistant implemented in:
+The site is a guidebook for remediation work: recipes, prompts, agent setup,
+MCP/API integration notes, and review patterns. Runtime automation belongs in
+the user's approved agent host, CI system, ticketing workflow, or scanner
+platform rather than a site-hosted chatbot.
 
-- `assets/js/ai-chatbot.js`
-- `assets/css/ai-chatbot.css`
-
-Users bring their own provider credentials in the browser. The production
-Docker/nginx setup proxies provider requests through same-origin paths for the
-current request; the site does not require storing OpenAI, Anthropic, or xAI
-keys in server environment variables.
-
-The intended architecture is BYO-key and browser-local for privacy and low
-operating cost. The same-origin provider relay is pass-through network plumbing
-only; it should not become a server-held-key chat backend.
-
-Architecture notes and change points live in
-`content/docs/chatbot-architecture/_index.md`.
+Python helper tools in `scripts/`, `tools/`, and `mcp_server.py` support
+maintainers and self-hosters with validation, advisory import, recipe search,
+and optional read-only MCP access.
 
 ## Optional MCP server
 
@@ -223,13 +213,12 @@ Default routes:
 ```text
 site: http://127.0.0.1:8080/
 agent recipe feed: /api/recipes.json
-AI provider relay: /ai-provider-proxy/openai/v1/responses
 MCP endpoint: /mcp
 ```
 
 The Compose stack is intentionally small:
 
-- `security-recipes`: Hugo/nginx static site and provider relay routes.
+- `security-recipes`: Hugo/nginx static site and recipe/API routes.
 - `mcp-server`: optional read-only MCP server. In Compose it reads the
   locally built site feed at `http://security-recipes/api/recipes.json`, so a
   fork or droplet serves its own recipes instead of depending on the public
@@ -238,9 +227,6 @@ The Compose stack is intentionally small:
 `security-recipes` does not wait for the MCP container before the site starts.
 That keeps the docs site available even if the optional MCP sidecar is still
 warming up or temporarily unhealthy.
-
-Do not put model-provider API keys in `.env` for normal site use. Users provide
-their own keys in the browser assistant.
 
 For an nginx or Caddy reverse proxy with Let's Encrypt, keep Docker bound to
 loopback and let the proxy own public ports `80` and `443`:

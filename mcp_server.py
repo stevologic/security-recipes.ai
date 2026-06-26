@@ -752,6 +752,21 @@ class RecipeIndex:
         doc = dict(row)
         doc["content"] = str(doc.get("content") or doc.get("content_text") or "")
         doc["summary"] = str(doc.get("summary") or doc.get("description") or "")
+        facets = doc.get("facets") or []
+        if isinstance(facets, str):
+            facets = [part for part in re.split(r"[\s,]+", facets) if part]
+        doc["facets"] = [str(facet).strip().lower() for facet in facets if str(facet).strip()]
+        quality = doc.get("quality") if isinstance(doc.get("quality"), dict) else {}
+        try:
+            quality_score = int(quality.get("score", doc.get("quality_score", 0)))
+        except (TypeError, ValueError):
+            quality_score = 0
+        doc["quality"] = {
+            **quality,
+            "score": quality_score,
+            "tier": str(quality.get("tier") or doc.get("readiness") or "starter"),
+            "signals": quality.get("signals") or [],
+        }
 
         category_slug = RecipeIndex._category_slug(doc)
         source_file = str(doc.get("source_file") or doc.get("sourceFile") or "").replace("\\", "/")
@@ -859,6 +874,8 @@ class RecipeIndex:
         agent: str | None = None,
         severity: str | None = None,
         tags: list[str] | None = None,
+        facets: list[str] | None = None,
+        min_quality: int | None = None,
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
         await self.ensure_fresh()
@@ -877,6 +894,15 @@ class RecipeIndex:
                 for d in docs
                 if tags_lower.intersection({str(tag).lower() for tag in (d.get("tags") or [])})
             ]
+        if facets:
+            facets_lower = {f.lower() for f in facets}
+            docs = [
+                d
+                for d in docs
+                if facets_lower.intersection({str(facet).lower() for facet in (d.get("facets") or [])})
+            ]
+        if min_quality is not None:
+            docs = [d for d in docs if int((d.get("quality") or {}).get("score") or 0) >= min_quality]
 
         cap = self.config.max_results_cap
         if limit is None:
@@ -893,12 +919,77 @@ class RecipeIndex:
                 return doc
         return None
 
+    async def quality_report(
+        self,
+        facet: str | None = None,
+        tier: str | None = None,
+        limit: int | None = None,
+    ) -> dict[str, Any]:
+        await self.ensure_fresh()
+        docs = self._docs
+        if facet:
+            facet_key = facet.lower().strip()
+            docs = [d for d in docs if facet_key in {str(f).lower() for f in (d.get("facets") or [])}]
+        if tier:
+            tier_key = tier.lower().strip()
+            docs = [d for d in docs if str((d.get("quality") or {}).get("tier", "")).lower() == tier_key]
+
+        required_signals = [
+            "inputs",
+            "selection-guidance",
+            "output-contract",
+            "verification",
+            "guardrails",
+            "related-context",
+        ]
+        tier_counts: dict[str, int] = {}
+        facet_counts: dict[str, int] = {}
+        gaps: list[dict[str, Any]] = []
+
+        for doc in docs:
+            quality = doc.get("quality") or {}
+            doc_tier = str(quality.get("tier") or "starter")
+            tier_counts[doc_tier] = tier_counts.get(doc_tier, 0) + 1
+            for doc_facet in doc.get("facets") or []:
+                key = str(doc_facet)
+                facet_counts[key] = facet_counts.get(key, 0) + 1
+
+            signals = {str(signal) for signal in quality.get("signals") or []}
+            missing = [signal for signal in required_signals if signal not in signals]
+            score = int(quality.get("score") or 0)
+            if missing or score < 85:
+                gaps.append(
+                    {
+                        **self._shape_preview(doc),
+                        "missing_quality_signals": missing,
+                        "next_action": self._quality_next_action(missing, score),
+                    }
+                )
+
+        gaps.sort(key=lambda item: (int((item.get("quality") or {}).get("score") or 0), item.get("title") or ""))
+        cap = self.config.max_results_cap
+        if limit is None:
+            limit = self.config.max_results_default
+        limit = max(1, min(limit, cap))
+
+        return {
+            "recipe_count": len(docs),
+            "tier_counts": dict(sorted(tier_counts.items())),
+            "facet_counts": dict(sorted(facet_counts.items())),
+            "world_class_threshold": 85,
+            "required_signals": required_signals,
+            "gap_count": len(gaps),
+            "gaps": gaps[:limit],
+        }
+
     async def search(
         self,
         query: str,
         section: str | None = None,
         agent: str | None = None,
         tags: list[str] | None = None,
+        facets: list[str] | None = None,
+        min_quality: int | None = None,
         limit: int | None = None,
     ) -> list[dict[str, Any]]:
         await self.ensure_fresh()
@@ -918,6 +1009,17 @@ class RecipeIndex:
                 for d in candidates
                 if tags_lower.intersection({str(tag).lower() for tag in (d.get("tags") or [])})
             ]
+        if facets:
+            facets_lower = {f.lower() for f in facets}
+            candidates = [
+                d
+                for d in candidates
+                if facets_lower.intersection({str(facet).lower() for facet in (d.get("facets") or [])})
+            ]
+        if min_quality is not None:
+            candidates = [
+                d for d in candidates if int((d.get("quality") or {}).get("score") or 0) >= min_quality
+            ]
 
         scored: list[tuple[float, dict[str, Any]]] = []
         for d in candidates:
@@ -934,6 +1036,8 @@ class RecipeIndex:
                     str(d.get("agent", "")),
                     str(d.get("severity", "")),
                     str(d.get("ecosystem", "")),
+                    " ".join([str(x) for x in (d.get("facets") or [])]),
+                    str((d.get("quality") or {}).get("tier", "")),
                     str(d.get("cve", "")),
                     str(d.get("ghsa", "")),
                     RecipeIndex._category_slug(d),
@@ -988,6 +1092,8 @@ class RecipeIndex:
             "ghsa": doc.get("ghsa"),
             "zero_day": doc.get("zero_day"),
             "tags": doc.get("tags") or [],
+            "facets": doc.get("facets") or [],
+            "quality": doc.get("quality") or {},
             "aliases": doc.get("aliases") or [],
             "summary": doc.get("summary"),
             "last_updated": doc.get("last_updated"),
@@ -996,6 +1102,24 @@ class RecipeIndex:
         if score is not None:
             out["score"] = round(score, 4)
         return out
+
+    @staticmethod
+    def _quality_next_action(missing: list[str], score: int) -> str:
+        if "output-contract" in missing:
+            return "Add an explicit Output contract section with expected artifact, review evidence, and prohibited outputs."
+        if "verification" in missing:
+            return "Add concrete verification commands, tests, or evidence checks the agent must run or report as unavailable."
+        if "guardrails" in missing:
+            return "Add guardrails and stop conditions for scope, secrets, production systems, and unsafe actions."
+        if "inputs" in missing:
+            return "Add an Inputs section that names the finding, repo scope, evidence, and optional context."
+        if "selection-guidance" in missing:
+            return "Add When to use guidance so agents can choose this recipe over broader or narrower alternatives."
+        if "related-context" in missing:
+            return "Link related recipes or standards so agents can hand off to the next best context pack."
+        if score < 85:
+            return "Promote this recipe by adding stronger contracts, verification, and related context until it reaches world-class readiness."
+        return "No immediate quality gap detected."
 
 
 class WorkflowControlPlane:
@@ -9715,10 +9839,20 @@ async def recipes_search(
     section: str | None = None,
     agent: str | None = None,
     tags: list[str] | None = None,
+    facets: list[str] | None = None,
+    min_quality: int | None = None,
     limit: int | None = None,
 ) -> dict[str, Any]:
     """Full-text search over security-recipes documents."""
-    results = await index.search(query=query, section=section, agent=agent, tags=tags, limit=limit)
+    results = await index.search(
+        query=query,
+        section=section,
+        agent=agent,
+        tags=tags,
+        facets=facets,
+        min_quality=min_quality,
+        limit=limit,
+    )
     return {"query": query, "count": len(results), "results": results}
 
 
@@ -9728,6 +9862,8 @@ async def recipes_list(
     agent: str | None = None,
     severity: str | None = None,
     tags: list[str] | None = None,
+    facets: list[str] | None = None,
+    min_quality: int | None = None,
     limit: int | None = None,
 ) -> dict[str, Any]:
     """List recipes with optional metadata filtering."""
@@ -9736,6 +9872,8 @@ async def recipes_list(
         agent=agent,
         severity=severity,
         tags=tags,
+        facets=facets,
+        min_quality=min_quality,
         limit=limit,
     )
     return {"count": len(results), "results": results}
@@ -9748,6 +9886,16 @@ async def recipes_get(slug_or_path: str) -> dict[str, Any]:
     if not doc:
         return {"found": False, "slug_or_path": slug_or_path}
     return {"found": True, "recipe": doc}
+
+
+@mcp.tool()
+async def recipes_quality_report(
+    facet: str | None = None,
+    tier: str | None = None,
+    limit: int | None = None,
+) -> dict[str, Any]:
+    """Summarize recipe quality tiers and list recipes missing world-class signals."""
+    return await index.quality_report(facet=facet, tier=tier, limit=limit)
 
 
 @mcp.tool()
@@ -10700,6 +10848,8 @@ async def recipes_match_finding(
     ecosystem: str | None = None,
     rule_id: str | None = None,
     keywords: list[str] | None = None,
+    facets: list[str] | None = None,
+    min_quality: int | None = None,
     limit: int = 5,
 ) -> dict[str, Any]:
     """Heuristic matcher that suggests best-fit recipes for a security finding."""
@@ -10710,7 +10860,7 @@ async def recipes_match_finding(
     if not query:
         return {"query": "", "count": 0, "results": []}
 
-    results = await index.search(query=query, limit=limit)
+    results = await index.search(query=query, facets=facets, min_quality=min_quality, limit=limit)
     max_score = max([r.get("score", 0.0) for r in results], default=0.0)
 
     shaped = []

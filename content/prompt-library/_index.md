@@ -6,8 +6,8 @@ aliases:
   - /prompt-library/
 weight: 4
 description: >
-  Browse reusable prompts, rules, skills, and instruction files for
-  recipe-backed security remediation.
+  Browse remediation recipes that humans can inspect, agents can fetch as
+  JSON, and MCP clients can select as bounded context packs.
 sidebar:
   open: false
 cascade:
@@ -21,10 +21,19 @@ cascade:
       open: false
 ---
 
-Recipes are the working shelf for agent instructions. Search across the full
-library, filter by agent or problem class, open the recipe that matches the
+Recipes are the working shelf for agent instructions and MCP-ready context
+packs. Search across the full library, filter by agent, risk, audit,
+compliance, code hygiene, or problem class, open the recipe that matches the
 finding, or download a portable JSON copy for downstream review and agent
 handoff.
+
+Each recipe should be narrow enough for one source-code finding or evidence
+question, but rich enough to carry scope, stop conditions, verification,
+review expectations, and the context another agent needs to act safely.
+
+Agents and maintainers can use `recipes_quality_report` over MCP to find
+recipes that need stronger inputs, output contracts, verification, guardrails,
+or related context before they are treated as world-class context packs.
 
 {{< callout type="info" >}}
 **Prompts are guidance, not enforcement.** Pair them with branch protections,

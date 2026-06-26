@@ -133,6 +133,10 @@
       <strong>{{ $highImpactCount }}</strong>
       <span>High-impact advisories</span>
     </article>
+    <article>
+      <strong>5</strong>
+      <span>Agent selection facets</span>
+    </article>
   </div>
 
   <div class="recipe-browser__controls">
@@ -159,11 +163,32 @@
         </select>
       </label>
       <label>
+        <span>Facet</span>
+        <select data-recipe-facet-filter>
+          <option value="all">All facets</option>
+          <option value="remediation">Remediation</option>
+          <option value="risk">Risk</option>
+          <option value="audit">Audit</option>
+          <option value="compliance">Compliance</option>
+          <option value="code-hygiene">Code hygiene</option>
+        </select>
+      </label>
+      <label>
+        <span>Quality</span>
+        <select data-recipe-quality-filter>
+          <option value="0">All quality</option>
+          <option value="85">World-class</option>
+          <option value="70">Strong+</option>
+          <option value="50">Usable+</option>
+        </select>
+      </label>
+      <label>
         <span>Sort</span>
         <select data-recipe-sort>
           <option value="newest">Newest</option>
           <option value="title">Title</option>
           <option value="severity">Severity</option>
+          <option value="quality">Quality</option>
         </select>
       </label>
     </div>
@@ -248,7 +273,27 @@
       {{- $summary := .Description | default (.Summary | plainify | truncate 180) -}}
       {{- $tagText := "" -}}
       {{- with .Params.tags }}{{ $tagText = delimit . " " }}{{ end -}}
-      {{- $searchParts := slice .Title $summary $identity $catLabel $severity $maturity $tagText (.Params.ecosystem | default "") (.Params.author | default "") (.Params.team | default "") (.Params.model | default "") (.Params.cve | default "") (.Params.ghsa | default "") $publishedDate -}}
+      {{- $facetText := lower (printf "%s %s %s %s %s %s" $source .Title $summary $tagText (.Params.tool | default "") (.Params.agent | default "")) -}}
+      {{- $facets := slice "remediation" -}}
+      {{- if or (in $facetText "audit") (in $facetText "evidence") (in $facetText "review") (in $facetText "attestation") -}}{{- $facets = $facets | append "audit" -}}{{- end -}}
+      {{- if or (in $facetText "compliance") (in $facetText "nist") (in $facetText "ssdf") (in $facetText "slsa") (in $facetText "owasp") (in $facetText "pci") (in $facetText "soc2") -}}{{- $facets = $facets | append "compliance" -}}{{- end -}}
+      {{- if or (eq $catSlug "cve") (in $facetText "risk") (in $facetText "threat") (in $facetText "vulnerab") (in $facetText "exploit") (in $facetText "critical") (in $facetText "high") -}}{{- $facets = $facets | append "risk" -}}{{- end -}}
+      {{- if or (in $facetText "source-code") (in $facetText "code") (in $facetText "sast") (in $facetText "secret") (in $facetText "dependency") (in $facetText "supply-chain") (in $facetText "hygiene") (in $facetText "unsafe default") -}}{{- $facets = $facets | append "code-hygiene" -}}{{- end -}}
+      {{- $facets = uniq $facets -}}
+      {{- $facetString := delimit $facets " " -}}
+      {{- $plainLower := lower .Plain -}}
+      {{- $qualityScore := 20 -}}
+      {{- if or (in $plainLower "## inputs") (in $plainLower "## input") -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+      {{- if or (in $plainLower "## when to use") (in $plainLower "when to use it") -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+      {{- if in $plainLower "## output contract" -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+      {{- if or (in $plainLower "## verification") (in $plainLower "verification") (in $plainLower "tests") -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+      {{- if or (in $plainLower "## guardrails") (in $plainLower "stop condition") (in $plainLower "do not") -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+      {{- if or (in $plainLower "## related") (in $plainLower "## see also") -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+      {{- if ge (len $facets) 3 -}}{{- $qualityScore = add $qualityScore 5 -}}{{- end -}}
+      {{- if gt $qualityScore 100 -}}{{- $qualityScore = 100 -}}{{- end -}}
+      {{- $readinessTier := "starter" -}}
+      {{- if ge $qualityScore 85 -}}{{- $readinessTier = "world-class" -}}{{- else if ge $qualityScore 70 -}}{{- $readinessTier = "strong" -}}{{- else if ge $qualityScore 50 -}}{{- $readinessTier = "usable" -}}{{- end -}}
+      {{- $searchParts := slice .Title $summary $identity $catLabel $severity $maturity $tagText $facetString (.Params.ecosystem | default "") (.Params.author | default "") (.Params.team | default "") (.Params.model | default "") (.Params.cve | default "") (.Params.ghsa | default "") $publishedDate -}}
       {{- if $isZeroDay -}}
         {{- $searchParts = $searchParts | append "0-day zero-day recent latest" -}}
       {{- end -}}
@@ -262,6 +307,9 @@
         data-recipe-category="{{ $catSlug }}"
         data-recipe-zero-day="{{ $isZeroDay }}"
         data-recipe-severity="{{ $severity }}"
+        data-recipe-facets="{{ $facetString }}"
+        data-recipe-quality="{{ $qualityScore }}"
+        data-recipe-readiness="{{ $readinessTier }}"
         data-recipe-maturity="{{ $maturity }}"
         data-recipe-date="{{ $recipeDate }}"
         data-recipe-published="{{ $publishedDate }}"
@@ -285,9 +333,15 @@
             {{- else -}}
               <span>{{ $maturity }}</span>
             {{- end -}}
+            <span class="recipe-browser-card__quality recipe-browser-card__quality--{{ $readinessTier }}">{{ $readinessTier }} {{ $qualityScore }}</span>
           </div>
           <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
           {{- with $summary -}}<p>{{ . }}</p>{{- end -}}
+          <div class="recipe-browser-card__facets" aria-label="Recipe facets">
+            {{- range $facets -}}
+              <span>{{ replace . "-" " " }}</span>
+            {{- end -}}
+          </div>
           <div class="recipe-browser-card__meta">
             {{- with $identity -}}<span>{{ . }}</span>{{- end -}}
             {{- with $publishedDate -}}<span>Published {{ . }}</span>{{- end -}}
