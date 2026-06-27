@@ -28,6 +28,24 @@ For agentic AI workbenches, this is a control-plane issue: browser-origin
 policy, admin code-extension features, and session lifecycle must be treated as
 production security boundaries.
 
+## When to use it
+
+- A repository deploys Open WebUI before `0.3.33`.
+- Admin users access Open WebUI from browsers that also visit untrusted sites.
+- Credentialed CORS, session invalidation, or admin code-extension routes are
+  configured or overridden by app, proxy, or ingress layers.
+- You need a bounded PR or triage note that upgrades Open WebUI and proves
+  browser-origin/session boundaries for admin routes.
+
+## Inputs
+
+- Open WebUI package/image versions, compose/Helm/K8s manifests, reverse-proxy
+  config, environment variables, SBOMs, and generated deployment artifacts.
+- CORS settings, trusted origins, session/cookie config, logout behavior,
+  function/filter/tool creation routes, and admin exposure model.
+- Available auth/CORS/session tests, container build, deployment render, SBOM,
+  and dependency/security scan commands.
+
 ## Affected versions
 
 | Package | Vulnerable versions | Fixed versions |
@@ -143,12 +161,29 @@ output:
 - Admin code-extension routes are not callable from untrusted browser origins.
 - No exploit code or secrets are committed.
 
+## Output contract
+
+- Reviewer-ready PR upgrading Open WebUI to `0.3.33+` and refreshing images,
+  manifests, SBOMs, docs, and generated artifacts.
+- Exact-origin credentialed CORS, tested logout/session invalidation, and
+  admin route checks for code-extension surfaces.
+- Operator notes for allowed origins, exposed instances, logs/secrets review,
+  session invalidation, and remaining rollout targets.
+- `TRIAGE.md` when trusted origins or deployment ownership require an external
+  decision.
+
 ## Watch for
 
 - Reverse proxies or ingress controllers that override application CORS.
 - Admin users who access Open WebUI from the same browser used for untrusted
   sites.
 - Separate Open WebUI worker images that lag behind the main service tag.
+
+## Related recipes
+
+- [CVE-2026-5760 SGLang GGUF template RCE]({{< relref "/prompt-library/cve/cve-2026-5760-sglang-gguf-rce" >}})
+- [Browser agent boundary]({{< relref "/security-remediation/browser-agent-boundary" >}})
+- [CVE intelligence intake gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}})
 
 ## References
 

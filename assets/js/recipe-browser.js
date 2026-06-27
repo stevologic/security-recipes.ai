@@ -189,17 +189,26 @@
     var grid = root.querySelector('[data-recipe-grid]');
     var filterButtons = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-filter]'));
     var filterLabels = {};
+    var typeahead = null;
+    var typeaheadList = null;
+    var typeaheadItems = [];
+    var activeTypeaheadIndex = -1;
     var cards = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-card]')).map(function (node, index) {
       return {
         node: node,
         initialIndex: index,
         indexText: normalize(node.dataset.recipeIndex || node.textContent || ''),
         category: node.dataset.recipeCategory || 'general',
+        categoryLabel: '',
         zeroDay: node.dataset.recipeZeroDay === 'true',
         severity: node.dataset.recipeSeverity || 'unspecified',
         facets: tokens(node.dataset.recipeFacets || ''),
         quality: Number(node.dataset.recipeQuality || 0),
         title: normalize(node.dataset.recipeTitle || ''),
+        displayTitle: node.dataset.recipeTitle || '',
+        summary: node.dataset.recipeSummary || '',
+        path: node.dataset.recipePath || '',
+        slug: node.dataset.recipeSlug || '',
         date: node.dataset.recipeDate || ''
       };
     });
@@ -242,6 +251,226 @@
       if (!summary) return;
       var suffix = activeCategory === 'all' ? '' : ' in ' + (filterLabels[activeCategory] || 'this category');
       summary.textContent = 'Showing ' + pluralize(visibleCount, 'recipe', 'recipes') + suffix + '.';
+    }
+
+    function prettyToken(value) {
+      return (value || '').toString().replace(/-/g, ' ').replace(/\b\w/g, function (letter) {
+        return letter.toUpperCase();
+      });
+    }
+
+    function suggestionMeta(parts) {
+      return parts.filter(Boolean).join(' · ');
+    }
+
+    function scoreSuggestion(card, query, queryTokens) {
+      if (!queryTokens.length) return 0;
+      var score = 0;
+      if (card.title === query) score += 100;
+      if (card.title.indexOf(query) === 0) score += 70;
+      if (card.indexText.indexOf(query) !== -1) score += 25;
+      queryTokens.forEach(function (token) {
+        if (card.title.indexOf(token) !== -1) score += 18;
+        if (card.indexText.indexOf(token) !== -1) score += 8;
+      });
+      if (card.severity === 'critical') score += 5;
+      if (card.zeroDay) score += 5;
+      score += Math.min(5, Math.floor(card.quality / 20));
+      return score;
+    }
+
+    function setTypeaheadActive(nextIndex) {
+      activeTypeaheadIndex = nextIndex;
+      typeaheadItems.forEach(function (item, index) {
+        var active = index === activeTypeaheadIndex;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      if (searchInput) {
+        var activeItem = typeaheadItems[activeTypeaheadIndex];
+        searchInput.setAttribute('aria-activedescendant', activeItem ? activeItem.id : '');
+      }
+    }
+
+    function closeTypeahead() {
+      if (!typeahead) return;
+      typeahead.hidden = true;
+      typeaheadItems = [];
+      activeTypeaheadIndex = -1;
+      if (typeaheadList) typeaheadList.replaceChildren();
+      if (searchInput) {
+        searchInput.setAttribute('aria-expanded', 'false');
+        searchInput.removeAttribute('aria-activedescendant');
+      }
+    }
+
+    function applySuggestion(suggestion) {
+      if (!suggestion || !searchInput) return;
+      if (suggestion.kind === 'category') {
+        searchInput.value = '';
+        setActiveCategory(suggestion.value);
+      } else if (suggestion.kind === 'severity') {
+        searchInput.value = '';
+        if (severityFilter) severityFilter.value = suggestion.value;
+        applyFilters();
+      } else if (suggestion.kind === 'facet') {
+        searchInput.value = '';
+        if (facetFilter) facetFilter.value = suggestion.value;
+        applyFilters();
+      } else if (suggestion.kind === 'quality') {
+        searchInput.value = '';
+        if (qualityFilter) qualityFilter.value = suggestion.value;
+        applyFilters();
+      } else {
+        searchInput.value = suggestion.query || suggestion.title || '';
+        applyFilters();
+      }
+      closeTypeahead();
+      searchInput.focus();
+    }
+
+    function buildSuggestions(queryTokens) {
+      var query = normalize(searchInput ? searchInput.value : '');
+      if (!queryTokens.length) return [];
+
+      var suggestions = [];
+      var filters = [];
+
+      Object.keys(filterLabels).forEach(function (key) {
+        if (key === 'all') return;
+        var label = filterLabels[key] || key;
+        var haystack = normalize(label + ' ' + key);
+        if (haystack.indexOf(query) !== -1 || queryTokens.some(function (token) { return haystack.indexOf(token) !== -1; })) {
+          filters.push({
+            kind: 'category',
+            title: label,
+            meta: 'Browse lane',
+            value: key
+          });
+        }
+      });
+
+      ['critical', 'high', 'medium', 'low', 'unspecified'].forEach(function (severity) {
+        if (normalize(severity).indexOf(query) === -1 && queryTokens.indexOf(severity) === -1) return;
+        filters.push({
+          kind: 'severity',
+          title: prettyToken(severity),
+          meta: 'Severity filter',
+          value: severity
+        });
+      });
+
+      ['remediation', 'risk', 'audit', 'compliance', 'code-hygiene'].forEach(function (facet) {
+        var label = prettyToken(facet);
+        var haystack = normalize(label + ' ' + facet);
+        if (haystack.indexOf(query) === -1 && !queryTokens.some(function (token) { return haystack.indexOf(token) !== -1; })) return;
+        filters.push({
+          kind: 'facet',
+          title: label,
+          meta: 'Agent facet',
+          value: facet
+        });
+      });
+
+      if ('world-class'.indexOf(query) !== -1 || queryTokens.indexOf('world') !== -1 || queryTokens.indexOf('quality') !== -1) {
+        filters.push({
+          kind: 'quality',
+          title: 'World-class recipes',
+          meta: 'Quality filter',
+          value: '85'
+        });
+      }
+
+      suggestions = suggestions.concat(filters.slice(0, 4));
+
+      cards
+        .map(function (card) {
+          return {
+            card: card,
+            score: scoreSuggestion(card, query, queryTokens)
+          };
+        })
+        .filter(function (item) {
+          return item.score > 0;
+        })
+        .sort(function (a, b) {
+          if (b.score !== a.score) return b.score - a.score;
+          if (b.card.quality !== a.card.quality) return b.card.quality - a.card.quality;
+          return b.card.date.localeCompare(a.card.date);
+        })
+        .slice(0, Math.max(4, 8 - suggestions.length))
+        .forEach(function (item) {
+          var card = item.card;
+          suggestions.push({
+            kind: 'recipe',
+            title: card.displayTitle,
+            query: card.displayTitle,
+            meta: suggestionMeta([
+              card.categoryLabel || filterLabels[card.category] || prettyToken(card.category),
+              card.zeroDay ? '0-Day' : '',
+              card.severity !== 'unspecified' ? prettyToken(card.severity) : '',
+              card.quality ? 'Score ' + card.quality : ''
+            ]),
+            summary: card.summary,
+            path: card.path
+          });
+        });
+
+      return suggestions.slice(0, 8);
+    }
+
+    function renderTypeahead() {
+      if (!searchInput || !typeahead || !typeaheadList) return;
+      var queryTokens = tokens(searchInput.value);
+      var suggestions = buildSuggestions(queryTokens);
+      if (!suggestions.length) {
+        closeTypeahead();
+        return;
+      }
+
+      typeaheadList.replaceChildren();
+      typeaheadItems = suggestions.map(function (suggestion, index) {
+        var button = document.createElement('button');
+        var id = 'recipe-browser-typeahead-option-' + index;
+        button.id = id;
+        button.type = 'button';
+        button.className = 'recipe-browser__typeahead-item recipe-browser__typeahead-item--' + suggestion.kind;
+        button.setAttribute('role', 'option');
+        button.setAttribute('aria-selected', 'false');
+        button.dataset.typeaheadIndex = String(index);
+
+        var label = document.createElement('span');
+        label.className = 'recipe-browser__typeahead-title';
+        label.textContent = suggestion.title;
+
+        var meta = document.createElement('span');
+        meta.className = 'recipe-browser__typeahead-meta';
+        meta.textContent = suggestion.meta;
+
+        button.appendChild(label);
+        button.appendChild(meta);
+
+        if (suggestion.summary) {
+          var summaryLine = document.createElement('span');
+          summaryLine.className = 'recipe-browser__typeahead-summary';
+          summaryLine.textContent = suggestion.summary;
+          button.appendChild(summaryLine);
+        }
+
+        button.addEventListener('pointerdown', function (event) {
+          event.preventDefault();
+        });
+        button.addEventListener('click', function () {
+          applySuggestion(suggestion);
+        });
+
+        typeaheadList.appendChild(button);
+        return button;
+      });
+
+      typeahead.hidden = false;
+      searchInput.setAttribute('aria-expanded', 'true');
+      setTypeaheadActive(-1);
     }
 
     function sortCards(visibleItems) {
@@ -294,6 +523,7 @@
       if (clearSearchButton) clearSearchButton.hidden = queryTokens.length === 0;
       renderSummary(visible.length);
       root.dataset.filtered = queryTokens.length || activeCategory !== 'all' || severity !== 'all' || facet !== 'all' || minimumQuality > 0 ? 'true' : 'false';
+      if (document.activeElement === searchInput) renderTypeahead();
     }
 
     function setActiveCategory(nextCategory) {
@@ -311,6 +541,7 @@
       searchInput.value = '';
       searchInput.dispatchEvent(new Event('input', { bubbles: true }));
       applyFilters();
+      closeTypeahead();
       searchInput.focus();
     }
 
@@ -364,8 +595,51 @@
     }
 
     if (searchInput) {
-      searchInput.addEventListener('input', applyFilters);
-      searchInput.addEventListener('search', applyFilters);
+      var field = searchInput.closest('.recipe-browser__search-field');
+      if (field) {
+        typeahead = document.createElement('div');
+        typeahead.className = 'recipe-browser__typeahead';
+        typeahead.hidden = true;
+        typeaheadList = document.createElement('div');
+        typeaheadList.className = 'recipe-browser__typeahead-list';
+        typeaheadList.setAttribute('role', 'listbox');
+        typeaheadList.id = 'recipe-browser-typeahead';
+        typeahead.appendChild(typeaheadList);
+        field.appendChild(typeahead);
+        searchInput.setAttribute('role', 'combobox');
+        searchInput.setAttribute('aria-controls', typeaheadList.id);
+        searchInput.setAttribute('aria-haspopup', 'listbox');
+      }
+      searchInput.addEventListener('input', function () {
+        applyFilters();
+        renderTypeahead();
+      });
+      searchInput.addEventListener('search', function () {
+        applyFilters();
+        renderTypeahead();
+      });
+      searchInput.addEventListener('focus', renderTypeahead);
+      searchInput.addEventListener('keydown', function (event) {
+        if (!typeahead || typeahead.hidden) return;
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          setTypeaheadActive(Math.min(typeaheadItems.length - 1, activeTypeaheadIndex + 1));
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          setTypeaheadActive(Math.max(0, activeTypeaheadIndex - 1));
+        } else if (event.key === 'Enter') {
+          if (activeTypeaheadIndex < 0) return;
+          event.preventDefault();
+          var activeButton = typeaheadItems[activeTypeaheadIndex];
+          if (activeButton) activeButton.click();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeTypeahead();
+        }
+      });
+      searchInput.addEventListener('blur', function () {
+        window.setTimeout(closeTypeahead, 120);
+      });
       stopGlobalHandlers(searchInput);
     }
 
@@ -410,6 +684,10 @@
       button.addEventListener('click', function () {
         setActiveCategory(filter);
       });
+    });
+
+    cards.forEach(function (card) {
+      card.categoryLabel = filterLabels[card.category] || prettyToken(card.category);
     });
 
     root.querySelectorAll('[data-recipe-download]').forEach(function (button) {

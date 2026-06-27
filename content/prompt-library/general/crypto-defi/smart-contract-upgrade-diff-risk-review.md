@@ -14,11 +14,20 @@ date: 2026-04-26
 Use this prompt to review upgrade diffs and enforce invariant checks
 before smart-contract changes are approved.
 
-## Use when
+## When to use it
 
 - Proxy implementation contracts are changing.
 - Storage layout or access-control logic is modified.
 - Emergency patches must still prove safety.
+
+## Inputs
+
+- Old and new implementation addresses, source commits, compiler versions,
+  ABI files, storage-layout artifacts, and deployment chain id.
+- Timelock, proxy admin, guardian, owner, and role-assignment evidence.
+- Existing invariant, fork-test, simulation, and formal-check outputs.
+- Approved upgrade proposal, reviewer policy, and emergency-change
+  exception record when applicable.
 
 ## Prompt
 
@@ -46,3 +55,36 @@ Constraints:
 - No silent ignore of compiler warnings.
 - Stop with TRIAGE.md if baseline artifacts are missing.
 ~~~
+
+## Output contract
+
+- Machine-readable upgrade diff covering ABI, storage layout, events,
+  privileged functions, roles, and timelock-sensitive parameters.
+- Added or updated tests for storage compatibility, authorization,
+  pause/guardian behavior, solvency, and collateral invariants.
+- Reviewer checklist that separates approved deltas from unresolved risks.
+- `TRIAGE.md` when baseline artifacts, chain evidence, or test harnesses
+  are missing.
+
+## Verification
+
+- Run compiler, storage-layout comparison, invariant tests, and fork tests
+  required by the repository.
+- Confirm unauthorized timelock, signer-threshold, proxy-admin, or guardian
+  changes fail CI.
+- Compare generated ABI and privileged-function diffs against the approved
+  proposal.
+
+## Guardrails
+
+- Do not execute mainnet transactions, submit proposals, or sign upgrade
+  payloads.
+- Do not approve compiler warnings, storage-layout drift, or access-control
+  expansion without explicit reviewer evidence.
+- Stop if the old implementation artifact cannot be reproduced.
+
+## Related recipes
+
+- [Bridge/multisig emergency response]({{< relref "/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
+- [DeFi admin key and role blast-radius review]({{< relref "/prompt-library/general/crypto-defi/defi-admin-key-and-role-blast-radius-review" >}})
+- [DeFi reentrancy and callback hardening]({{< relref "/prompt-library/general/crypto-defi/defi-reentrancy-and-callback-hardening" >}})

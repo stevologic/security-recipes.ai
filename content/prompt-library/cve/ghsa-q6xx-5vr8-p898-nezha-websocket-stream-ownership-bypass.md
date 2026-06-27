@@ -26,6 +26,26 @@ manager for a server they did not own.
 
 This is a cross-tenant authorization bypass with shell and filesystem impact.
 
+## When to use it
+
+- A repository deploys, vendors, forks, builds, or packages affected Nezha
+  versions.
+- Multiple users or tenants can access dashboard terminal or file-manager
+  features.
+- Stream UUIDs may appear in logs, telemetry, browser history, referrers, or
+  support bundles.
+- You need a bounded PR or triage note that binds WebSocket streams to owners
+  before attach, close, or mutation.
+
+## Inputs
+
+- Go modules, forks, images, manifests, SBOMs, deployment artifacts, and Nezha
+  version evidence.
+- Stream creation/attach/close code, terminal and file-manager routes, user and
+  server ownership model, and logging/telemetry paths.
+- Available Go authz tests, build, image build, deployment render, SBOM, and
+  dependency/security scan commands.
+
 ## Affected versions
 
 - **Vulnerable:** `github.com/nezhahq/nezha >=1.14.13, <=1.14.14`
@@ -134,15 +154,31 @@ hijack. Produce exactly one output:
   the stream.
 - Tests cover terminal and file-manager WebSocket paths.
 
+## Output contract
+
+- Reviewer-ready PR upgrading Nezha to `2.0.10+` or backporting creator-bound
+  stream authorization for maintained 1.x forks.
+- Regression tests proving unauthorized users cannot attach to or close another
+  user's terminal or file-manager stream.
+- Operator notes for terminal/file-manager exposure, UUID logging, session/log
+  review, and credential cleanup.
+- `TRIAGE.md` when the affected runtime, fork, image, or deployment is not
+  controlled by this repository.
+
 ## Watch for
 
 - Checking ownership after WebSocket upgrade instead of before it.
 - Rejecting unauthorized attaches but still closing the legitimate stream.
 - Logging full stream UUIDs in shared observability systems.
 
+## Related recipes
+
+- [CVE-2026-54329 Snipe-IT cross-tenant accessory injection]({{< relref "/prompt-library/cve/cve-2026-54329-snipe-it-cross-tenant-accessory-injection" >}})
+- [Browser agent boundary]({{< relref "/security-remediation/browser-agent-boundary" >}})
+- [CVE intelligence intake gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}})
+
 ## References
 
 - GitHub Advisory: <https://github.com/advisories/GHSA-q6xx-5vr8-p898>
 - Vendor advisory: <https://github.com/nezhahq/nezha/security/advisories/GHSA-q6xx-5vr8-p898>
 - Fix commit: <https://github.com/nezhahq/nezha/commit/6661d6a7fc1c269f55c7f4e775082ad23fbe0f54>
-

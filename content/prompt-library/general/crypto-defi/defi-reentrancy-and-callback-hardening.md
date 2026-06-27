@@ -14,6 +14,35 @@ date: 2026-06-14
 Use this prompt to harden DeFi contracts that make external calls,
 transfer tokens, or rely on callback-capable standards.
 
+## When to use it
+
+Use this recipe when contracts send ETH, call unknown contracts, integrate with
+routers, vaults, token receivers, bridges, ERC-777 hooks, ERC-4626 flows, plugin
+systems, or any callback-capable standard. It is also useful when multiple
+entry points mutate shared balances, shares, debt, rewards, reserves, or
+liquidation state.
+
+Use it to remove exploitable reentrancy, unchecked external-call assumptions,
+and callback-driven accounting drift. Do not use it as a one-function guard
+when the same accounting can be reached through another public path.
+
+## Inputs
+
+- Solidity/Vyper contracts, interfaces, external-call wrappers, token adapters,
+  router integrations, vault adapters, bridge handlers, liquidation paths,
+  reward contracts, and receiver/callback implementations.
+- All value-moving entry points: deposit, withdraw, redeem, mint, borrow,
+  repay, liquidate, claim, rebalance, harvest, flash-loan, swap, bridge, and
+  rescue flows.
+- Shared accounting state: balances, shares, reserves, debt, collateral,
+  pending rewards, cumulative indexes, nonce/permit state, caps, and
+  per-account snapshots.
+- Existing unit tests, fuzz tests, invariant tests, malicious receiver fixtures,
+  static-analysis findings, audit reports, and deployment constraints.
+- External trust assumptions for tokens, routers, aggregators, callbacks,
+  plugins, receivers, or downstream protocols that can execute code during the
+  transaction.
+
 ## Research basis
 
 - [OWASP SC08: Reentrancy Attacks](https://scs.owasp.org/sctop10/SC08-ReentrancyAttacks/) highlights stale-state exploits caused by external calls that can re-enter before the original invocation is complete.
@@ -65,3 +94,28 @@ Constraints:
 - Stop with TRIAGE.md if an external dependency requires trusted
   callback behavior that cannot be constrained in this codebase.
 ~~~
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that maps external calls and shared
+  accounting, moves state updates before untrusted calls or converts them to
+  pull flows, adds scoped non-reentrant protection across shared-state paths,
+  checks low-level call and token-transfer results, adds malicious-callback
+  tests and invariants, and documents remaining trusted-callback assumptions.
+- `TRIAGE.md` when the repository does not own the value-moving code or an
+  external dependency requires unconstrained callback behavior that cannot be
+  remediated in this codebase.
+
+The output must list each external call/callback path, the shared state it can
+mutate, the mitigation applied, same-function and cross-function tests added,
+invariants added, and residual dependencies that still require review. It must
+not rely only on frontend controls, gas-stipend assumptions, or a guard on one
+function while another path reaches the same accounting.
+
+## Related recipes
+
+- [ERC-4626 vault inflation and rounding guardrails]({{< relref "/prompt-library/general/crypto-defi/erc4626-vault-inflation-and-rounding-guardrails" >}})
+- [DEX slippage and MEV guardrails]({{< relref "/prompt-library/general/crypto-defi/dex-slippage-and-mev-guardrails" >}})
+- [Cross-chain message authenticity guardrails]({{< relref "/prompt-library/general/crypto-defi/cross-chain-message-authenticity-guardrails" >}})

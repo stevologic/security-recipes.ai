@@ -34,6 +34,26 @@ network exposure because repeated delivery can keep nodes unavailable.
 
 As of 2026-06-07, GitHub Advisory Database lists no CVE for this advisory.
 
+## When to use it
+
+- A repository depends on, forks, vendors, builds, or deploys Klever-Go
+  `1.7.14` through `1.7.17`.
+- P2P transaction gossip, validator/sentry/observer nodes, relays, or testnet
+  nodes can receive malformed transaction messages from untrusted peers.
+- Forked transaction validators or wrappers can dereference transaction
+  `RawData` before nil checks.
+- You need a bounded PR or triage note that upgrades Klever-Go and proves
+  malformed P2P transactions fail closed without panicking.
+
+## Inputs
+
+- Go modules, vendored trees, forks, node images, release artifacts, Docker/
+  Helm/K8s/systemd manifests, SBOMs, and generated dependency reports.
+- Transaction validation code, interceptors, pubsub callbacks, marshalizers,
+  peer scoring logic, panic recovery, and adjacent `RawData` dereferences.
+- Available Go tests, targeted P2P validation tests, race/panic tests, image
+  build, deployment render, SBOM, and dependency/security scan commands.
+
 ## Affected versions
 
 - **Vulnerable package:** `github.com/klever-io/klever-go >=1.7.14, <=1.7.17`
@@ -232,6 +252,17 @@ transaction RawData during version validation. Produce exactly one output:
 - Operator notes cover validator/sentry/observer rollout, crash-loop alerting,
   peer exposure, and unmanaged node ownership.
 
+## Output contract
+
+- Reviewer-ready PR upgrading Klever-Go to `1.7.18+` across modules, forks,
+  images, artifacts, generated dependency reports, and SBOMs.
+- Nil transaction and nil `RawData` checks before nested field access in every
+  owned P2P transaction validation path.
+- Local regression tests proving malformed transaction messages return
+  validation errors without panicking or connecting to live P2P networks.
+- `TRIAGE.md` when the affected node runtime, fork, image, deployment, or
+  rollout owner is outside this repository.
+
 ## Watch for
 
 - Updating `go.mod` while release images, vendored code, generated binaries, or
@@ -244,6 +275,12 @@ transaction RawData during version validation. Produce exactly one output:
   can relay operational pressure onto validators.
 - Logging peer topology, node keys, validator identifiers, crash payloads, or
   private chain configuration in regression output.
+
+## Related recipes
+
+- [Klever-Go REST API slow-header DoS]({{< relref "/prompt-library/cve/ghsa-w4c6-7r69-w7j9-klever-go-rest-api-slow-header-dos" >}})
+- [Klever-Go direct-message goroutine DoS]({{< relref "/prompt-library/cve/ghsa-hf2g-6j7h-98wg-klever-go-direct-message-goroutine-dos" >}})
+- [CVE intelligence intake gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}})
 
 ## References
 

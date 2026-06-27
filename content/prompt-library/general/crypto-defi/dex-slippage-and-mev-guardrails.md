@@ -14,6 +14,33 @@ date: 2026-06-14
 Use this prompt to harden swaps, liquidations, rebalances, and routing
 flows against missing slippage checks and predictable-ordering risk.
 
+## When to use it
+
+Use this recipe when contracts, bots, keepers, or backend services execute DEX
+swaps, AMM routes, aggregator calls, liquidations, rebalances, zaps, vault
+deposits, or strategy trades. It is especially relevant when execution bounds
+are zero, static, optional, UI-only, stale, or not enforced on-chain.
+
+Use it to add slippage, deadline, quote-freshness, price-impact, and ordering
+guardrails. Do not use it to paper over missing execution bounds with a
+hardcoded `amountOutMin = 0` placeholder or frontend-only setting.
+
+## Inputs
+
+- Smart contracts, keeper code, bots, backend route builders, liquidation
+  scripts, rebalance scripts, vault adapters, router integrations, aggregator
+  calls, deployment config, and runbooks.
+- Route parameters such as `amountOutMin`, `minShares`, `maxAmountIn`,
+  deadlines, quote IDs, TWAP windows, oracle checks, path selection, partial
+  fill behavior, and private-orderflow settings.
+- On-chain and off-chain quote sources, oracle feeds, pre-trade simulations,
+  mempool/orderflow assumptions, keeper permissions, and transaction submission
+  paths.
+- Existing tests, fuzz/invariant coverage, fork tests, slippage settings,
+  sandwich/MEV findings, audit reports, and production incident notes.
+- Monitoring and event data for quoted amount, bounded amount, executed route,
+  realized output/input, deadline rejection, and price-impact rejection.
+
 ## Research basis
 
 - [OWASP SCWE-090: Missing Slippage Protection](https://scs.owasp.org/SCWE/SCSVS-CODE/SCWE-090/) warns that zero or static `amountOutMin` values disable execution protection.
@@ -68,3 +95,28 @@ Constraints:
 - Stop with TRIAGE.md if the code cannot access a reliable quote,
   oracle, or user-supplied bound for a value-moving route.
 ~~~
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that inventories every value-moving route,
+  replaces zero/static bounds with required or protocol-computed limits,
+  enforces deadlines and quote freshness, rejects excessive price impact, adds
+  sandwich/stale-quote/unfavorable-fill tests, emits execution evidence events,
+  and documents private-orderflow or batch-settlement requirements.
+- `TRIAGE.md` when the repository does not own the execution path or cannot
+  access a reliable quote, oracle, pre-trade simulation, or user-supplied bound
+  for a value-moving route.
+
+The output must list each route reviewed, old and new execution bounds,
+deadline/freshness policy, quote or oracle source, tests added, monitoring
+events added, and residual MEV/orderflow risk. It must not leave production
+paths with zero bounds, rely only on frontend controls, or introduce stale
+off-chain quotes without a rejection window.
+
+## Related recipes
+
+- [DeFi oracle manipulation guardrails]({{< relref "/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails" >}})
+- [DeFi reentrancy and callback hardening]({{< relref "/prompt-library/general/crypto-defi/defi-reentrancy-and-callback-hardening" >}})
+- [ERC-4626 vault inflation and rounding guardrails]({{< relref "/prompt-library/general/crypto-defi/erc4626-vault-inflation-and-rounding-guardrails" >}})

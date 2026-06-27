@@ -31,6 +31,34 @@ the network path used by the Deno process, they can supply a trojaned binary
 that esbuild will execute with the privileges of the build job or developer
 process.
 
+## When to use it
+
+Use this recipe when a repository uses esbuild from Deno, vendors esbuild's
+Deno module, or runs Deno-based build wrappers in CI, devcontainers, shared
+runners, or release jobs. It is most important when `NPM_CONFIG_REGISTRY` can
+be set by environment, CI variables, Docker build args, internal npm mirrors,
+or untrusted job context.
+
+Use it to upgrade esbuild, restore binary integrity checks, and lock registry
+trust. Do not use it to serve a malicious registry or execute downloaded test
+binaries.
+
+## Inputs
+
+- Manifests, lockfiles, Deno imports, scripts, Dockerfiles, build images, CI
+  definitions, SBOMs, internal wrappers, vendored `lib/deno/mod.ts`, and
+  cache seeds that reference esbuild.
+- Evidence of whether the Deno install path is used, rather than only the
+  Node.js package-manager path.
+- Registry trust inputs: `NPM_CONFIG_REGISTRY`, `.npmrc`, runner environment,
+  Docker build args, task runners, Deno launch scripts, internal mirrors, and
+  artifact repositories.
+- Build-job secret exposure: signing keys, publish tokens, deployment
+  credentials, package tokens, cloud credentials, writable artifact stores, and
+  source access.
+- Safe integrity-test fixtures or mocks proving mismatched binaries are never
+  cached, chmodded, or spawned.
+
 ## Affected versions
 
 - **Vulnerable:** `esbuild >= 0.17.0, < 0.28.1`
@@ -198,6 +226,29 @@ influenced. Produce exactly one output:
   runner contexts.
 - Fixing the package version but not regenerating SBOMs, dependency snapshots,
   or build images.
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that upgrades esbuild to `0.28.1+`,
+  verifies or restores Deno binary hash checks in any owned fork/vendor copy,
+  hardens registry trust, minimizes build-job credentials, refreshes generated
+  artifacts, and adds safe integrity/policy tests.
+- `TRIAGE.md` when no controlled affected esbuild dependency, Deno build path,
+  vendored code copy, cache seed, or safe mitigation exists.
+
+The output must list versions before/after, whether the Deno path is used,
+where registry settings are controlled, credentials exposed to affected build
+jobs, validation commands, and artifacts refreshed. It must not execute a
+trojaned binary, modify a live registry path, weaken TLS/integrity checks, or
+preserve mutable unreviewed registry overrides.
+
+## Related recipes
+
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [CVE-2026-45321 - TanStack npm supply-chain compromise]({{< relref "/prompt-library/cve/cve-2026-45321-tanstack-npm-supply-chain-compromise" >}})
+- [Compromised package cache quarantine]({{< relref "/prompt-library/general/compromised-package-cache-quarantine" >}})
 
 ## References
 

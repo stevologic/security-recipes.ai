@@ -22,10 +22,9 @@ cascade:
 ---
 
 Recipes are the working shelf for agent instructions and MCP-ready context
-packs. Search across the full library, filter by agent, risk, audit,
-compliance, code hygiene, or problem class, open the recipe that matches the
-finding, or download a portable JSON copy for downstream review and agent
-handoff.
+packs. Search across the full library, filter by risk, audit, compliance,
+code hygiene, or problem class, open the recipe that matches the finding, or
+download a portable JSON copy for downstream review, MCP use, and agent handoff.
 
 Each recipe should be narrow enough for one source-code finding or evidence
 question, but rich enough to carry scope, stop conditions, verification,
@@ -44,9 +43,9 @@ CODEOWNERS, required CI, scoped MCP tokens, and human review.
 
 ## How to use a prompt
 
-1. Pick the prompt that matches the finding class and agent.
+1. Pick the recipe that matches the finding class or evidence question.
 2. Read the scope and stop conditions before copying anything.
-3. Put the prompt in the native place your agent reads.
+3. Put the prompt or helper toolset in the native place your workflow reads.
 4. Edit build, test, branch, and ownership details for your repository.
 5. Run it against one small finding.
 6. Keep the PR or triage note only if it satisfies the recipe's output contract.
@@ -77,10 +76,9 @@ the agent a vague instruction to "use tools."
 
 ## Contribute a prompt
 
-Good candidates include `copilot-instructions.md`, `CLAUDE.md`,
-`.cursor/rules/*.mdc`, `AGENTS.md`, Devin Knowledge entries, Claude skills,
-hook scripts, issue templates, PR templates, triage prompts, and named CVE
-remediation prompts.
+Good candidates include repo instructions, helper scripts, Python toolsets,
+MCP context recipes, issue templates, PR templates, triage prompts, compliance
+evidence checks, and named CVE remediation prompts.
 
 Remove secrets, internal hostnames, customer data, and private vulnerability
 details before submitting. See [Contribute]({{< relref "/contribute#contributing-a-prompt" >}})

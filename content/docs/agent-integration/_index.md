@@ -117,10 +117,10 @@ Good context sources include:
   [Snyk MCP / Snyk Studio](https://docs.snyk.io/evo-by-snyk/agentic-security-with-snyk-studio/getting-started-with-snyk-studio),
   [CodeQL MCP](https://github.com/advanced-security/codeql-development-mcp-server),
   [Checkmarx MCP](https://docs.checkmarx.com/en/34965-591689-mcp-server---interacting-with-checkmarx-one-via-ai-assistant.html),
-  [Veracode APIs](https://docs.veracode.com/r/Veracode_APIs),
+  [Veracode API docs for MCP gateway wrapping](https://docs.veracode.com/r/Veracode_APIs),
   [Wiz MCP](https://www.wiz.io/blog/introducing-mcp-server-for-wiz),
-  [Tenable APIs](https://developer.tenable.com/reference/navigate),
-  [Rapid7 MCP](https://github.com/rapid7/rapid7-bulk-export-mcp), and other
+  [Tenable Hexa AI MCP](https://docs.tenable.com/vulnerability-management/Content/getting-started/hexa-AI-MCP.htm),
+  [Rapid7 Bulk Export MCP](https://github.com/rapid7/rapid7-bulk-export-mcp), and other
   approved systems when your organization has reviewed the connector.
 - Internal runbooks, ownership maps, service catalogs, and architecture docs
   exposed through read-only documentation connectors.

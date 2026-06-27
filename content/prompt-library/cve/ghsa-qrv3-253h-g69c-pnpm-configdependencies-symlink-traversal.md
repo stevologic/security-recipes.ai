@@ -28,6 +28,31 @@ those names when creating config dependency symlinks under
 This is a source supply-chain filesystem write primitive triggered by installing
 an untrusted or compromised repository.
 
+## When to use it
+
+Use this recipe when a repository pins pnpm, runs `pnpm install` in CI,
+devcontainers, release jobs, SBOM builders, or developer setup, and may install
+untrusted branches, templates, plugins, examples, customer packages, or
+marketplace content. It is most important when install jobs run with publish,
+deploy, signing, cloud, or repository-write credentials.
+
+Use it to upgrade pnpm and harden lockfile/symlink policy. Do not use it to
+create symlinks outside the repository during validation.
+
+## Inputs
+
+- `packageManager`, Corepack config, GitHub Actions, Dockerfiles,
+  devcontainers, scripts, release workflows, SBOM builders, documentation, and
+  prebuilt images that pin or install pnpm.
+- Resolved pnpm versions in local, CI, image, and developer environments.
+- `pnpm-lock.yaml` files and env lockfile `configDependencies`, including
+  whether untrusted PRs, templates, examples, or marketplace content can modify
+  them before install.
+- CI secret exposure during install: package publish tokens, signing keys,
+  deploy keys, cloud credentials, repository tokens, and cache write tokens.
+- Existing lockfile validation, path-boundary checks, symlink creation helpers,
+  and trust-boundary cache policies.
+
 ## Affected versions
 
 - **Vulnerable:** `pnpm <10.34.4`
@@ -153,8 +178,32 @@ You are remediating GHSA-qrv3-253h-g69c in pnpm. Traversal-shaped
 - Trusting `--ignore-scripts` as sufficient protection.
 - Checking only package manifests while env lockfile entries remain unreviewed.
 
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that upgrades every controlled pnpm pin to
+  `10.34.4+` or `11.8.0+`, adds lockfile validation for traversal-shaped
+  `configDependencies`, separates untrusted installs from high-value
+  credentials, refreshes generated artifacts, and documents cache/workspace
+  cleanup.
+- `TRIAGE.md` when no controlled pnpm install path, CI job, image, developer
+  environment, lockfile policy, or generated artifact exists.
+
+The output must list pnpm versions before/after, install environments updated,
+whether untrusted inputs can control lockfiles, validation commands, caches or
+workspaces to clean, and any temporary containment. It must not install
+malicious packages, create symlinks outside the repository, rely on
+`--ignore-scripts` alone, or leave install jobs with unnecessary publish/deploy
+credentials.
+
+## Related recipes
+
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [Compromised package cache quarantine]({{< relref "/prompt-library/general/compromised-package-cache-quarantine" >}})
+- [GHSA-jpvj-wpmj-h7rv - @cap-js/openapi package compromise]({{< relref "/prompt-library/cve/ghsa-jpvj-wpmj-h7rv-cap-js-openapi-package-compromise" >}})
+
 ## References
 
 - GitHub Advisory: <https://github.com/advisories/GHSA-qrv3-253h-g69c>
 - Vendor advisory: <https://github.com/pnpm/pnpm/security/advisories/GHSA-qrv3-253h-g69c>
-

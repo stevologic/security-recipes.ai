@@ -51,6 +51,24 @@ human reviewer assigned via `CODEOWNERS`.
   this prompt is per-repo.
 - First-party SAST findings — use the SDE remediation recipe.
 
+## Inputs
+
+- GitHub issue template fields: finding id, affected package, severity,
+  advisory URLs, scanner notes, workspace hint, direct/transitive evidence, and
+  `copilot-remediate` label.
+- Repository instructions from `.github/copilot-instructions.md`, issue body,
+  CODEOWNERS, branch protection, required CI, PR labeling rules, and reviewer
+  routing.
+- Dependency evidence: manifests, lockfiles, package manager, dependency tree,
+  current version, patched range, direct parent for transitive fixes, and
+  ecosystem-specific update commands.
+- Verification evidence: documented lint/test commands, CI status, scanner
+  re-run output, lockfile diff, refused-fix issue comments, and revert
+  instructions.
+- Triage evidence for major bump, prerelease-only, package-not-installed,
+  tests failing, unavailable patch, monorepo workspace scope, and branch or
+  CODEOWNERS restrictions.
+
 ## The prompt
 
 Three files, checked in to the repo.
@@ -168,6 +186,29 @@ When the issue is created (or labeled), the
 And produces: a draft PR on `copilot/<finding-id>` that either
 fixes the finding or posts a comment explaining why the fix was
 refused (major bump required, pre-release only, tests fail).
+
+## Output contract
+
+Return one of:
+
+- A draft PR linked to the issue that remediates one advisory-driven dependency
+  path, uses the native package manager, touches only allowed manifest/lockfile
+  artifacts, records test evidence, follows branch/commit/title/body rules, and
+  routes to CODEOWNERS review.
+- An issue comment without code changes when the package is not installed, the
+  fix requires a disallowed major bump, only a prerelease exists, tests fail,
+  the scope is ambiguous, or the finding belongs to another repo/workspace.
+
+The output must list finding id, package, advisory link, old/new version,
+direct/transitive status, files touched, tests/CI evidence, PR URL or refusal
+reason, and reviewer routing. It must not mark the PR ready, auto-merge, edit
+forbidden paths, disable tests, or bundle multiple advisories.
+
+## Related recipes
+
+- [Vulnerable Dependency Remediation]({{< relref "/security-remediation/vulnerable-dependencies" >}})
+- [Codex vulnerable dependency remediation]({{< relref "/prompt-library/codex/vulnerable-dep-remediation" >}})
+- [Cursor vulnerable dependency remediation]({{< relref "/prompt-library/cursor/vulnerable-dep-remediation" >}})
 
 ## Known limitations
 

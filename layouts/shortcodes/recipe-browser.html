@@ -16,15 +16,10 @@
 
 {{- $categories := slice
   (dict "slug" "cve" "label" "CVE" "description" "Named advisory and vulnerability recipes")
-  (dict "slug" "general" "label" "General" "description" "Tool-agnostic prompts and review patterns")
+  (dict "slug" "general" "label" "General" "description" "Reusable prompts, toolsets, and review patterns")
   (dict "slug" "classic-defaults" "label" "Defaults" "description" "Recurring unsafe defaults and hardening prompts")
   (dict "slug" "compliance-standards" "label" "Compliance" "description" "Audit evidence and standards-readiness checks")
   (dict "slug" "crypto-defi" "label" "Crypto/DeFi" "description" "Blockchain, wallet, bridge, and payment recipes")
-  (dict "slug" "claude" "label" "Claude" "description" "Claude skills, hooks, and project instructions")
-  (dict "slug" "github-copilot" "label" "Copilot" "description" "Copilot instructions and coding-agent prompts")
-  (dict "slug" "cursor" "label" "Cursor" "description" "Cursor rules, chats, and background-agent prompts")
-  (dict "slug" "codex" "label" "Codex" "description" "AGENTS.md and Codex task recipes")
-  (dict "slug" "devin" "label" "Devin" "description" "Devin knowledge and playbooks")
 -}}
 
 {{- $categoryCounts := dict -}}
@@ -45,16 +40,6 @@
     {{- $catSlug = "compliance-standards" -}}
   {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
     {{- $catSlug = "crypto-defi" -}}
-  {{- else if hasPrefix $source "prompt-library/claude/" -}}
-    {{- $catSlug = "claude" -}}
-  {{- else if hasPrefix $source "prompt-library/github_copilot/" -}}
-    {{- $catSlug = "github-copilot" -}}
-  {{- else if hasPrefix $source "prompt-library/cursor/" -}}
-    {{- $catSlug = "cursor" -}}
-  {{- else if hasPrefix $source "prompt-library/codex/" -}}
-    {{- $catSlug = "codex" -}}
-  {{- else if hasPrefix $source "prompt-library/devin/" -}}
-    {{- $catSlug = "devin" -}}
   {{- end -}}
   {{- $current := index $categoryCounts $catSlug | default 0 -}}
   {{- $categoryCounts = merge $categoryCounts (dict $catSlug (add $current 1)) -}}
@@ -80,9 +65,9 @@
     <div class="recipe-browser__intro">
       <h2>Recipes</h2>
       <p>
-        Search the working shelf of agent-ready security recipes, filter by the problem
-        or agent surface, open the full recipe, or download a portable JSON copy for
-        downstream review and agent handoff.
+        Search the working shelf of reusable security recipes, filter by the problem
+        surface, open the full recipe, or download a portable JSON copy for downstream
+        review, MCP context, and agent handoff.
       </p>
     </div>
     <div class="recipe-browser__agent-endpoint">
@@ -133,10 +118,6 @@
       <strong>{{ $highImpactCount }}</strong>
       <span>High-impact advisories</span>
     </article>
-    <article>
-      <strong>5</strong>
-      <span>Agent selection facets</span>
-    </article>
   </div>
 
   <div class="recipe-browser__controls">
@@ -144,7 +125,7 @@
       <label for="recipe-browser-search">Search every recipe</label>
       <div class="recipe-browser__search-field">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/></svg>
-        <input id="recipe-browser-search" type="search" autocomplete="off" spellcheck="false" data-recipe-search placeholder="Search by title, CVE, agent, tag, ecosystem, severity..." aria-describedby="recipe-browser-summary">
+        <input id="recipe-browser-search" type="search" autocomplete="off" spellcheck="false" data-recipe-search placeholder="Search by title, CVE, tag, ecosystem, severity, toolset..." aria-describedby="recipe-browser-summary" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false">
         <button type="button" class="recipe-browser__search-clear" data-recipe-clear-search hidden aria-label="Clear recipe search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
@@ -245,16 +226,6 @@
         {{- $catSlug = "compliance-standards" -}}{{- $catLabel = "Compliance" -}}
       {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
         {{- $catSlug = "crypto-defi" -}}{{- $catLabel = "Crypto/DeFi" -}}
-      {{- else if hasPrefix $source "prompt-library/claude/" -}}
-        {{- $catSlug = "claude" -}}{{- $catLabel = "Claude" -}}
-      {{- else if hasPrefix $source "prompt-library/github_copilot/" -}}
-        {{- $catSlug = "github-copilot" -}}{{- $catLabel = "Copilot" -}}
-      {{- else if hasPrefix $source "prompt-library/cursor/" -}}
-        {{- $catSlug = "cursor" -}}{{- $catLabel = "Cursor" -}}
-      {{- else if hasPrefix $source "prompt-library/codex/" -}}
-        {{- $catSlug = "codex" -}}{{- $catLabel = "Codex" -}}
-      {{- else if hasPrefix $source "prompt-library/devin/" -}}
-        {{- $catSlug = "devin" -}}{{- $catLabel = "Devin" -}}
       {{- end -}}
       {{- $severity := lower (.Params.severity | default "unspecified") -}}
       {{- $maturity := lower (.Params.maturity | default "unspecified") -}}

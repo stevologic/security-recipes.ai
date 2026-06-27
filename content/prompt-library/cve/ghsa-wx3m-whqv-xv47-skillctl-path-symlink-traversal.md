@@ -30,6 +30,35 @@ supply-chain boundary issue. The right PR upgrades the tool, rejects unsafe
 library metadata, quarantines untrusted skill imports, and adds path-safety
 tests around destructive copy, pull, push, detect, and fork operations.
 
+## When to use it
+
+Use this recipe when a repository installs, wraps, documents, or automates
+`skillctl`, skill libraries, `.skills.toml`, reusable agent skills, marketplace
+sync jobs, or onboarding flows that copy skills into developer or CI projects.
+It is most important when contributors, customers, plugins, forks, or external
+marketplaces can provide skill folders or metadata.
+
+Use it to upgrade `skillctl`, quarantine untrusted skill libraries, and harden
+path handling around copy, pull, push, detect, fork, replacement, and publishing
+flows. Do not use it to run untrusted skill operations on a host with secrets.
+
+## Inputs
+
+- Cargo manifests and locks, install scripts, CI images, Dockerfiles, release
+  jobs, developer setup docs, agent onboarding docs, marketplace sync jobs,
+  `.skills.toml` files, skill libraries, generated SBOMs, and runbooks.
+- Skill-library metadata fields including `destination`, `source_path`,
+  `detect --target`, custom target prompts, fork names, publish targets,
+  symlinks, folder replacement behavior, and destructive copy/delete paths.
+- Trust boundaries for skill sources: PR-submitted libraries, customer skill
+  packs, plugins, marketplace content, forks, vendored skills, and internal
+  curated libraries.
+- Operator authority: home-directory secrets, SSH keys, cloud credentials,
+  package tokens, source checkouts, private prompts, CI workspaces, writable
+  project roots, and library roots.
+- Existing path-safety controls, safe-join helpers, symlink policy, quarantine
+  process, review gates, audit logs, and disposable-workspace setup.
+
 ## Affected versions
 
 - **Vulnerable package:** `skillctl <0.1.2`
@@ -226,6 +255,33 @@ processed. Produce exactly one output:
   allowed.
 - Publishing skill libraries before checking whether vulnerable runs copied
   unexpected local files into the project.
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that upgrades every controlled `skillctl`
+  usage to `0.1.2+`, refreshes lockfiles/images/SBOMs, rejects unsafe skill
+  paths and symlinks, quarantines external skill libraries, adds path-safety
+  regression coverage, hardens disposable-workspace execution, and documents
+  operator cleanup.
+- `TRIAGE.md` when no controlled `skillctl` install, wrapper, CI image, setup
+  script, skill workflow, generated artifact, or skill-library publishing path
+  exists.
+
+The output must list `skillctl` versions before and after, which pull, push,
+detect, copy, publish, and fork flows run, whether untrusted skill libraries or
+PR-submitted `.skills.toml` files were processed while vulnerable, validation
+commands, quarantine owners, unexpected-file/deletion review steps, and any
+tokens or private prompts that require rotation. It must not copy symlink target
+contents, delete real directories, publish private skills, print secrets, or
+execute untrusted skill workflows on a secret-bearing host.
+
+## Related recipes
+
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [Compromised package cache quarantine]({{< relref "/prompt-library/general/compromised-package-cache-quarantine" >}})
+- [Agent session kill rules]({{< relref "/prompt-library/general/agent-session-kill-rules" >}})
 
 ## References
 
