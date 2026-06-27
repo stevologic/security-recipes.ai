@@ -235,6 +235,37 @@ For every language touched, add a test:
   XSD validators re-resolve external schemas; double-check
   `SchemaFactory` settings.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no schema redesign or endpoint migration unless
+  explicitly authorized.
+- Inventory lists every XML parser, parser factory, framework parser bean,
+  schema validator, and XML-accepting entry point in scope.
+- Fix documents language-specific flags that disable external entities, DTD
+  loading, XInclude, resolver access, and entity expansion.
+- Tests cover XXE, entity-expansion DoS, and normal XML behavior preservation.
+- Any XML-to-JSON uplift is side-by-side and includes deprecation notes rather
+  than a breaking replacement.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- external entity resolution is disabled for every parser construction path;
+- schema validation does not re-enable external schemas or DTD resolution;
+- legitimate XML fixtures still parse without external network or filesystem
+  access;
+- payload contents are not logged in tests or reports;
+- vendored or framework-owned parsers without safe hooks are listed as stop
+  conditions.
+
+## Guardrails
+
+- Do not re-enable DTDs globally to preserve one partner integration.
+- Do not change XSDs or public XML contracts unless the task explicitly asks.
+- Do not use real sensitive files in XXE tests; use inert local fixtures.
+- Do not call external network resources to validate parser behavior.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

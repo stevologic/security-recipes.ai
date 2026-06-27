@@ -35,6 +35,26 @@ and chat-room command authority as live policy decisions. Cached secrets,
 ambient local filesystem access, and pairing-store shortcuts are not safe
 defaults for a production context layer.
 
+## When to use it
+
+Use this recipe when a repository, OpenClaw deployment, or agent-control
+gateway needs to review Gateway bearer auth, webchat media containment, or
+Matrix room command authorization together. It is aimed at source-code
+remediation, agent gateway boundary hardening, multi-surface audit, and
+evidence that fail-closed controls survive token rotation and room/media edge
+cases.
+
+## Inputs
+
+- OpenClaw version, Gateway HTTP/WebSocket config, SecretRef rotation behavior,
+  webchat media settings, Matrix pairing store, and room command policy.
+- Source paths for per-request auth resolution, WebSocket auth, media path
+  containment, Matrix sender/room checks, and boundary regression tests.
+- Regression fixtures for stale bearer tokens, rotated secrets, local/UNC media
+  paths, DM-paired senders, room commands, and missing authorization context.
+- Runtime boundary evidence: Gateway exposure, media roots, Matrix rooms,
+  tokens, logs, tenant/session ownership, and operator cleanup requirements.
+
 ## Affected versions
 
 - **Bearer auth after SecretRef rotation:** `openclaw <2026.4.15`
@@ -196,6 +216,16 @@ exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades OpenClaw, enforces
+  per-request auth after SecretRef rotation, contains media reads, hardens room
+  command authorization, adds regression tests, and documents cleanup.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  gateway/media/room boundaries, required fix, and residual risk.
+- The output must include exact validation commands and must not expose real
+  bearer tokens, local files, Matrix room contents, customer data, or logs.
+
 ## Verification - what the reviewer looks for
 
 - No controlled OpenClaw dependency, image, SBOM, or deployment target remains
@@ -219,6 +249,13 @@ exactly one output:
 - Treating a Matrix DM pairing record as proof that the sender can control a
   room.
 - Logging sensitive media references or bearer-token values while adding tests.
+
+## Related recipes
+
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [AI governance oversight evidence check]({{< relref "/prompt-library/general/compliance-standards/ai-governance-oversight-evidence-check" >}})
 
 ## References
 

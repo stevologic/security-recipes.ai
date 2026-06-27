@@ -55,6 +55,23 @@ machine-readable JSON result for `--json` consumers.
   after your scanner has de-duplicated.
 - Binary artifact sanitization (images, packaged bundles).
 
+## Inputs
+
+- Scanner payload or MCP finding context with `FINDING_ID`, `SDE_CLASS`, file
+  path, line number, rule id, confidence, first-seen metadata, and whether the
+  finding came from working tree, push protection, CI logs, or artifacts.
+- Repository evidence: current branch, default branch, remote URL, scanner
+  config, `.env.example`, `SECURITY.md`, `docs/security/secrets.md`,
+  redaction-helper locations, and project-specific test/lint commands.
+- Approved replacement patterns for secrets, tokens, PII, PCI, and PHI:
+  secret-store clients, configuration keys, redaction helpers, synthetic test
+  data generators, and scanner allowlist formats.
+- Exposure evidence: git history hits, public/private repository status,
+  shared-remote status, CI/artifact publication, scanner first-seen data, and
+  owner or incident-routing metadata.
+- CI automation settings for `codex exec --full-auto --json`, branch naming,
+  non-zero triage exits, PR labels, notification routing, and JSON consumers.
+
 ## The prompt
 
 Invoke as:
@@ -230,6 +247,30 @@ GUARDRAILS
   runbook.
 - NEVER merge the PR you opened.
 ~~~
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request for a pre-exposure SDE that removes the
+  literal, replaces it with the approved secret-store or redaction pattern, adds
+  a regression guard, runs lint/tests, and emits the expected JSON result for
+  downstream automation.
+- `TRIAGE.md` on a `sde-triage/<FINDING_ID>` branch when the SDE is exposed,
+  stale, missing required context, lacks an approved secret store or redaction
+  helper, or cannot be safely remediated by editing source.
+
+The output must list finding id, SDE class, exposure scope, file touched or
+triaged, replacement pattern, tests and lint commands, JSON result fields,
+rotation/disclosure checklist when exposed, and residual owner actions. It must
+not echo the literal, rewrite history, commit/delete `.env` files, broadly
+disable scanner rules, or merge its own PR.
+
+## Related recipes
+
+- [Sensitive Data Remediation]({{< relref "/security-remediation/sensitive-data" >}})
+- [Source-code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Agentic incident response pack]({{< relref "/security-remediation/agentic-incident-response-pack" >}})
 
 ## Known limitations
 

@@ -31,10 +31,8 @@ markup:
     noClasses: false
     style: github-dark
 
-# Hextra needs HTML output. The recipes index powers the MCP server and agent
-# consumption patterns. The marketplace feeds are kept for compatibility with
-# existing browser assistant features, but they are no longer part of the main
-# site story.
+# Hextra needs HTML output. The recipe indexes power MCP/API consumption
+# patterns. Marketplace feeds remain as static helper-tool metadata.
 outputs:
   home: [HTML, RECIPESINDEX, AGENTRECIPES, MARKETPLACECATALOG, MARKETPLACEINPUTS, MARKETPLACEOUTPUTS, MARKETPLACEREPORTS, MARKETPLACEWORKFLOWS, MARKETPLACEREADINESS, MARKETPLACEMANIFEST]
   page: [HTML]

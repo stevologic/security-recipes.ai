@@ -29,6 +29,35 @@ is the same shape: identify whether the bad package versions or commit hashes
 entered the environment, clear package caches, reinstall from clean artifacts,
 and rotate secrets that were reachable from affected build or runtime hosts.
 
+## When to use it
+
+Use this recipe when a repository depends on Intercom SDK packages, maintains
+JavaScript or PHP dependency locks, builds images with Intercom clients, or
+owns CI/developer caches that may have installed compromised Intercom package
+artifacts. It is for supply-chain compromise cleanup, not ordinary dependency
+version drift.
+
+Use it to quarantine suspicious package artifacts, regenerate clean lockfiles,
+and document credential rotation. Do not use it to execute package lifecycle
+scripts from suspicious cached artifacts.
+
+## Inputs
+
+- JavaScript and PHP manifests, lockfiles, vendor directories, package caches,
+  Dockerfiles, CI workflows, SBOMs, generated dependency reports, deployment
+  artifacts, and image layers that reference `intercom-client` or
+  `intercom/intercom-php`.
+- Exact package coordinates, resolved URLs, integrity hashes, source commit
+  references, and install timestamps around the April 30, 2026 compromise
+  window.
+- Cache ownership for npm, pnpm, Yarn, Composer, Docker layers, CI caches,
+  build caches, and developer package stores.
+- Build/install environment secret classes: `.env`, SSH keys, cloud
+  credentials, CI tokens, package registry tokens, production deploy tokens,
+  Composer credentials, and API keys.
+- Existing supply-chain controls: install-script policy, egress restrictions,
+  lockfile review, provenance checks, and cache quarantine procedures.
+
 ## Affected versions
 
 | Package | Ecosystem | Risky version | Safe default |
@@ -184,6 +213,31 @@ GHSA-54pg-9963-v8vg (`intercom-client`) and GHSA-gr3r-crp5-qrrm
   during dependency install.
 - Treating restored package names as proof that existing cached artifacts are
   clean.
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that removes risky Intercom artifacts,
+  pins or reinstalls known-clean package versions from clean caches, regenerates
+  lockfiles/images/SBOMs, adds supply-chain guardrails, and documents
+  credential-rotation and cache-quarantine actions.
+- `TRIAGE.md` when no controlled affected Intercom dependency, lockfile, image,
+  vendor directory, generated artifact, cache path, or install environment is
+  in scope.
+
+The output must list affected packages and versions, whether build/install
+activity overlapped the compromise window, caches to clear, artifacts to
+rebuild, credentials to rotate by class, validation commands, and owner actions
+for shared caches. It must not run suspicious lifecycle scripts, print secrets,
+attach package-cache payloads, delete shared forensic artifacts automatically,
+or treat restored registries as proof that local caches are clean.
+
+## Related recipes
+
+- [Compromised package cache quarantine]({{< relref "/prompt-library/general/compromised-package-cache-quarantine" >}})
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [CVE-2026-45321 - TanStack npm supply-chain compromise]({{< relref "/prompt-library/cve/cve-2026-45321-tanstack-npm-supply-chain-compromise" >}})
 
 ## References
 

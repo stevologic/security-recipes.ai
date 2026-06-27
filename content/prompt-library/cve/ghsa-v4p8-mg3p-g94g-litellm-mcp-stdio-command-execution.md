@@ -32,6 +32,34 @@ GitHub now tracks this reviewed advisory under CVE-2026-42271, so reviewers
 should key PR titles, ticket links, and scanner suppressions to the CVE while
 keeping the GHSA alias for Dependabot and GitHub Advisory Database matches.
 
+## When to use it
+
+Use this recipe when a repository builds, deploys, configures, or operates a
+LiteLLM proxy with MCP REST preview/test endpoints, MCP server management, stdio
+transports, API keys, gateway rules, or admin UI actions that can submit MCP
+server definitions. It is most important when low-privilege or tenant-scoped
+keys can reach proxy endpoints.
+
+Use it to upgrade LiteLLM and enforce admin-only MCP stdio preview behavior. Do
+not use it to prove exposure by running arbitrary commands through the affected
+endpoints.
+
+## Inputs
+
+- Python manifests, constraints, lockfiles, Dockerfiles, compose files, Helm
+  charts, Kubernetes manifests, Terraform, Ansible, reverse proxy rules, API
+  gateway policy, MCP registry config, generated SBOMs, and LiteLLM runbooks.
+- Resolved LiteLLM versions across local, CI, image, hosted proxy, and
+  deployment environments.
+- Endpoint reachability for `/mcp-rest/test/connection`,
+  `/mcp-rest/test/tools/list`, aliases, proxy rewrites, service-mesh routes,
+  and admin UI actions that call those paths.
+- Role and key mapping for `PROXY_ADMIN`, internal users, tenant keys,
+  low-privilege API keys, seeded users, gateway claims, and MCP permissions.
+- Stdio configuration policy, command allow-lists, environment redaction,
+  subprocess audit logs, runtime identity, provider credentials, and proxy
+  secrets that may need rotation.
+
 ## Affected versions
 
 - **Vulnerable:** `litellm >=1.74.2, <1.83.7`
@@ -190,6 +218,33 @@ one output:
   MCP actions.
 - Logging MCP `env` fields or provider credentials while adding tests.
 - Allowing preview endpoints to bypass stricter controls used by the save path.
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that upgrades every controlled LiteLLM
+  deployment to `1.83.7+`, restricts MCP preview/test endpoints to
+  `PROXY_ADMIN`, adds gateway containment where needed, enforces stdio command
+  allow-lists and environment redaction, adds low-privilege 403 tests, refreshes
+  deployment artifacts, and documents operator cleanup.
+- `TRIAGE.md` when no controlled LiteLLM proxy, MCP preview/test endpoint,
+  gateway policy, deployment artifact, or generated SBOM can contain the
+  affected behavior.
+
+The output must list LiteLLM versions before and after, affected endpoint
+reachability, roles and key classes that could call the endpoints before the
+patch, validation commands, keys or provider secrets to rotate, logs to review,
+and whether temporary gateway containment remains. It must not execute
+attacker-controlled stdio commands, log MCP `env` values, expose provider
+credentials, or preserve low-privilege access to subprocess-capable MCP
+previews.
+
+## Related recipes
+
+- [Agent session kill rules]({{< relref "/prompt-library/general/agent-session-kill-rules" >}})
+- [Critical infrastructure secure context]({{< relref "/security-remediation/critical-infrastructure-secure-context" >}})
+- [Source-code injection sink audit]({{< relref "/prompt-library/general/source-code-injection-sink-audit" >}})
 
 ## References
 

@@ -168,6 +168,39 @@ unsafe tags. Output a PR or a TRIAGE.md.
   Loader is passed; verify all legitimate custom-tag callers
   pass an explicit Loader.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no YAML data-file rewrites unless explicitly asked.
+- Call-site inventory lists every unsafe loader, wrapper helper, and
+  `load_all` variant with trusted/untrusted input classification.
+- Diff replaces unsafe defaults with `safe_load`/`safe_load_all` or documents a
+  reviewed explicit-loader exception.
+- Tests include an unsafe Python tag payload that fails closed and a legitimate
+  YAML fixture that still parses.
+- Any import-time shim names its entry points, opt-out behavior, and test
+  coverage.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- every `yaml.load`, `full_load`, unsafe `Loader`, and `load_all` call is
+  handled or listed as a stop condition;
+- custom loaders are read before replacement and exceptions include a local
+  rationale;
+- unsafe Python object construction payloads fail with SafeLoader behavior;
+- no production secrets or customer YAML documents are added as fixtures;
+- the report states whether the selected strategy was direct uplift, shim plus
+  uplift, or triage-only.
+
+## Guardrails
+
+- Do not add new YAML tags to preserve behavior without owner review.
+- Do not hide loader exceptions in broad `try/except` blocks.
+- Do not treat trusted-only config as permanently safe; prefer safe loaders
+  unless a custom tag is required and reviewed.
+- Do not bundle dependency upgrades or formatting churn into the same PR.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

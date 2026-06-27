@@ -5,43 +5,39 @@ weight: 6
 sidebar:
   open: false
 description: >
-  Tool-agnostic prompts, triage frameworks, guardrail patterns,
-  and review checklists that apply regardless of which agent
-  you're running.
+  Reusable prompts, Python helper toolsets, MCP context recipes,
+  triage frameworks, guardrail patterns, and review checklists.
 ---
 
-Prompts and patterns that are **not tied to a specific agent**.
-If a prompt works the same whether you paste it into Claude,
-Copilot, Cursor, Codex, or Devin, it belongs here.
+Prompts, toolsets, and patterns that are **not tied to a specific agent** live
+here. Treat General as the default shelf: recipes should be usable by any
+workflow that can read the prompt, fetch the JSON, or attach the MCP context.
 
 ## What usually lives here
 
-- **Triage frameworks** — the decision trees and checklists your
-  team uses when a new finding lands, independent of which agent
-  gets handed the fix.
-- **Guardrail patterns** — repeated ideas for keeping automation
-  safe (scoped credentials, dry-run gates, review policies) that
-  work across tools.
-- **Review checklists** — what a human should look at when
-  reviewing a machine-generated PR.
-- **PR templates** — the body your agent should fill in when it
-  opens a PR, agnostic of which agent is writing.
-- **Commit-message conventions** — style rules your agent should
-  follow when committing.
+- **Triage frameworks** - the decision trees and checklists your team uses
+  when a new finding lands.
+- **Guardrail patterns** - repeated ideas for keeping automation safe, such as
+  scoped credentials, dry-run gates, and review policies.
+- **Review checklists** - what a human should look at when reviewing a
+  machine-generated PR.
+- **PR templates** - the body your workflow should fill in when it opens a PR.
+- **Commit-message conventions** - style rules automation should follow when
+  committing.
+- **Python helper toolsets** - small scripts and checks that prepare evidence,
+  normalize scanner output, or validate a recipe result.
 
 ## When this is the right folder
 
-Put a prompt here if **at least two agents** would use it
-unchanged. If you find yourself writing a Claude-only skill, put
-it under [`claude/`]({{< relref "/prompt-library/claude" >}})
-instead — the whole point of per-tool folders is that agent
-specifics stay where their context lives.
+Put a recipe here when the finding class, evidence question, or helper toolset
+matters more than the product used to run it. Product-specific packaging can be
+mentioned inside the recipe, but the reusable guidance belongs in General.
 
 ## Browse entries
 
-Every entry carries its author, team, and maturity. Click any card
-for the full prompt.
+Every entry carries its author, team, and maturity. Click any card for the full
+prompt.
 
 {{< prompt-toc >}}
 
-[Contribute a new general prompt →]({{< relref "/contribute#contributing-a-prompt" >}})
+[Contribute a new general prompt]({{< relref "/contribute#contributing-a-prompt" >}})

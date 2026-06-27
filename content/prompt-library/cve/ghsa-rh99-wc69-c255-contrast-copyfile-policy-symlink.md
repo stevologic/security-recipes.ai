@@ -36,6 +36,26 @@ The Contrast GitHub advisory has no assigned CVE at the time this recipe was
 written. The related upstream Kata Containers issue is
 `CVE-2026-41326` / `GHSA-q49m-57vm-c8cc`.
 
+## When to use it
+
+- A repository builds, pins, deploys, or documents Contrast before `1.19.1`.
+- Generated Kata agent policies, initdata, attestation manifests, or rendered
+  Kubernetes artifacts are checked in or distributed from this repo.
+- Confidential-container workloads rely on host-to-guest `CopyFile` policy
+  enforcement while the host is outside the trusted computing base.
+- You need a bounded PR or triage note that upgrades Contrast and regenerates
+  policy artifacts, not only source dependencies.
+
+## Inputs
+
+- Contrast modules/CLI/images, generated policies, initdata, attestation
+  manifests, runtime class/Kata config, Helm/K8s/Terraform artifacts, SBOMs,
+  and deployment evidence.
+- Kata Containers versions where directly managed, host VSOCK exposure, guest
+  filesystem trust boundary, workload secrets, and attestation ownership.
+- Available Go/Rego/policy tests, manifest rendering, attestation generation,
+  container build, SBOM, and dependency/security scan commands.
+
 ## Affected versions
 
 - **Vulnerable Contrast module:** `github.com/edgelesssys/contrast <1.19.1`
@@ -215,6 +235,18 @@ one output:
   logs to review, and credentials or workloads that may need rotation or
   rebuild.
 
+## Output contract
+
+- Reviewer-ready PR upgrading Contrast to `1.19.1+` and regenerating every
+  controlled Kata policy, initdata, attestation, manifest, SBOM, and deployment
+  artifact.
+- Policy tests proving symlink-mediated `CopyFile` writes are rejected using
+  synthetic fixtures only.
+- Operator notes for host VSOCK containment, guest impact, logs, secret
+  rotation, image rebuilds, and stale deployment cleanup.
+- `TRIAGE.md` when the runtime, generated policy, or confidential-computing
+  trust boundary is platform-managed outside this repository.
+
 ## Watch for
 
 - Updating Contrast source dependencies while committed policy/initdata
@@ -228,6 +260,12 @@ one output:
 - Missing direct Kata Containers runtime pins because the repository uses
   RuntimeClass, node images, operator config, or containerd templates instead
   of Go modules.
+
+## Related recipes
+
+- [Critical infrastructure secure context]({{< relref "/security-remediation/critical-infrastructure-secure-context" >}})
+- [Source code supply-chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [CVE intelligence intake gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}})
 
 ## References
 

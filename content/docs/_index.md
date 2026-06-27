@@ -42,7 +42,6 @@ prompts, setup guides, and review patterns.
   {{< card link="/prompt-library/" title="Recipes" subtitle="Reusable prompts, instruction files, rules, skills, and review checklists." >}}
   {{< card link="/mcp-servers/" title="MCP Integration" subtitle="How to connect public and internal security context as scoped, read-only agent input." >}}
   {{< card link="/docs/agent-integration/" title="Agent Consumption" subtitle="Patterns for direct fetch, vendored snapshots, MCP connectors, and CI injection." >}}
-  {{< card link="/docs/chatbot-architecture/" title="Chatbot Architecture" subtitle="How the browser assistant builds context, calls providers, and where to change the design." >}}
   {{< card link="/docs/cve-intelligence-intake/" title="CVE Intake" subtitle="Route advisory signals into remediation, containment, suppression, triage, or rejection." >}}
 {{< /cards >}}
 

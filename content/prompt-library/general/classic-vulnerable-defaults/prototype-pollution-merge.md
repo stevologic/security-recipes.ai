@@ -233,6 +233,36 @@ Add tests:
   parsed JSON payload is not a runtime check. The boundary
   filter is.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no broad framework rewrites unless explicitly
+  authorized.
+- Inventory lists every deep merge, query/body parser, config merge, GraphQL
+  variable mapper, and object-construction helper in scope.
+- Boundary filter behavior is documented, including rejected keys and where the
+  filter is applied.
+- Tests cover `__proto__`, `constructor.prototype`, normal nested payloads,
+  and runtime leakage checks.
+- Any replacement merge library or version bump is named with behavior
+  preservation notes.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- dangerous keys are blocked at the first trust boundary, not only at one sink;
+- normal nested object behavior is preserved by tests;
+- `Object.prototype` remains unmodified after malicious payload handling;
+- parser options such as `allowPrototypes` are searched and hardened;
+- no unrelated serialization, validation, or API-shape refactors are bundled.
+
+## Guardrails
+
+- Do not permit dangerous keys for compatibility without owner review.
+- Do not rely on TypeScript types as runtime validation.
+- Do not freeze global prototypes if load-bearing libraries would break.
+- Do not delete hand-rolled merge helpers until all callers are accounted for.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

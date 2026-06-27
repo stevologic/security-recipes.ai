@@ -184,6 +184,39 @@ or a TRIAGE.md.
   may not round-trip cleanly on 3.9. The behaviour-preservation
   test catches this.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no production data migration unless explicitly
+  approved.
+- Inventory names every `pickle`, `dill`, `joblib`, `numpy.load`, `torch.load`,
+  and wrapper-loader call in scope.
+- Strategy is clearly labeled as block, SafeUnpickler mitigation, format
+  uplift, or triage-only.
+- Tests cover a known-good payload and a representative unsafe payload or
+  unsafe-loader configuration.
+- Migration notes identify legacy data, reader compatibility, rollback, and
+  owner approval before removal.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- untrusted input cannot reach a general-purpose pickle loader;
+- any allowlist is minimal, local to the call path, and documented with class
+  rationale;
+- ML/model loaders use safer options such as `weights_only` where available;
+- no production pickles, customer data, private model weights, or credentials
+  are committed as fixtures;
+- reviewers can tell whether the fix is temporary mitigation or permanent
+  serialization uplift.
+
+## Guardrails
+
+- Do not broaden SafeUnpickler allowlists to make old fixtures pass.
+- Do not remove legacy readers without a migration and rollback plan.
+- Do not run untrusted pickle payloads outside isolated unit tests.
+- Do not mix unrelated serialization refactors into the same PR.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

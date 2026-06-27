@@ -156,6 +156,23 @@ Stop and write a partial report if:
 - Candidate mappings are clearly marked as candidate mappings.
 - No final pass/fail control opinion.
 - No code or policy edits.
+- Clear distinction between observed repository evidence, missing evidence,
+  and evidence that likely lives in the ISMS, GRC, HR, vendor, or ticketing
+  system.
+
+## Verification
+
+Before handing the report to a compliance owner, verify that:
+
+- every evidence claim includes a file path, configuration path, commit-linked
+  artifact, or an explicit `out of repo` marker;
+- candidate mappings do not quote licensed ISO control text or claim final
+  ISO 27001 applicability;
+- all secrets, customer data, private audit workpapers, and regulatory
+  correspondence are redacted or excluded;
+- each gap has a recommended next action and an accountable owner or `owner
+  unknown`;
+- the report states whether the supplied ISMS scope was available.
 
 ## Guardrails
 
@@ -164,8 +181,14 @@ Stop and write a partial report if:
   licensed standard text.
 - Include a compliance-owner review step before any audit submission.
 
+## Related recipes
+
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
+- [SOC 2 change-management evidence check]({{< relref "/prompt-library/general/compliance-standards/soc2-change-management-evidence-check" >}})
+- [Source code audit - dependency and build integrity]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [Source code audit - attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+
 ## References
 
 - [ISO/IEC 27001:2022 overview](https://www.iso.org/standard/27001)
 - [Security Remediation - Compliance & Audit]({{< relref "/security-remediation/compliance" >}})
-

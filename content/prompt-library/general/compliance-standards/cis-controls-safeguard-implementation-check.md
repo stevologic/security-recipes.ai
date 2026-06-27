@@ -142,14 +142,33 @@ Stop and write a partial report if:
 - No final CIS conformance claim.
 - Clear `out of repo` marking for evidence that cannot be checked locally.
 
+## Verification
+
+Before handing the report to a control owner, verify that:
+
+- every safeguard evidence row points to a repository file, CI artifact,
+  configuration path, or explicit `out of repo` system of record;
+- implementation group assumptions are marked `unknown` unless the operator
+  supplied an approved IG target;
+- repository-local evidence is not used to imply enterprise EDR, SIEM, IAM,
+  asset inventory, or awareness-training coverage;
+- each gap has a smallest next action and owner or system of record;
+- secrets, regulated data, and privileged configuration values are redacted.
+
 ## Guardrails
 
 - Repository evidence is not enterprise evidence. Do not imply EDR, SIEM, IAM,
   or asset-inventory controls pass because code config looks good.
 - Prefer implementation evidence over policy statements.
 
+## Related recipes
+
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
+- [ISO 27001 secure-development evidence check]({{< relref "/prompt-library/general/compliance-standards/iso27001-secure-development-evidence-check" >}})
+- [Source code audit - attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [Source code audit - secrets and data exposure]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+
 ## References
 
 - [CIS Critical Security Controls v8.1](https://www.cisecurity.org/controls/v8-1)
 - [NIST Cybersecurity Framework 2.0](https://www.nist.gov/cyberframework)
-

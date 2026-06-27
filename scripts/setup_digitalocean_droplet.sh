@@ -25,8 +25,8 @@ Usage:
   sudo bash scripts/setup_digitalocean_droplet.sh [options]
 
 Securely configure an Ubuntu DigitalOcean droplet to host security-recipes.ai
-with Docker Compose, the site container, browser BYO-key provider relay, and
-the MCP server behind one HTTPS origin.
+with Docker Compose, the site container, and the MCP server behind one HTTPS
+origin.
 
 Options:
   --domain DOMAIN          Public hostname. Default: security-recipes.ai
@@ -480,9 +480,6 @@ Public site:
 
 MCP endpoint:
   https://${DOMAIN}/mcp
-
-Provider relay:
-  https://${DOMAIN}/ai-provider-proxy/openai/v1/responses
 
 Application directory:
   ${APP_DIR}

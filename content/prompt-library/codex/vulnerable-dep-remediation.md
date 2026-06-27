@@ -57,6 +57,25 @@ surfaces it.
 - Interactive investigations — use `codex` (not `codex exec`) for
   those; this prompt is specifically shaped for headless runs.
 
+## Inputs
+
+- Scanner, Dependabot, Snyk, OSV, GitHub Advisory, or MCP finding context with
+  `FINDING_ID`, affected package, severity, ecosystem, affected range, patched
+  range, direct/transitive status, and advisory URL.
+- Repository evidence: manifests, lockfiles, package-manager choice, workspace
+  files, generated dependency reports, SBOMs, CODEOWNERS, default branch,
+  branch naming rules, and PR labeling conventions.
+- Automation settings for `codex exec --full-auto --json`, severity threshold,
+  maximum allowed major bumps, prerelease policy, dry-run mode, CI event
+  payload, and downstream JSON consumers.
+- Verification commands from `AGENTS.md`, `CONTRIBUTING.md`, README,
+  `package.json`, `Makefile`, or prompt body, plus available re-scan tools such
+  as OSV Scanner, npm audit, pip-audit, govulncheck, cargo audit, bundle audit,
+  Trivy, or Grype.
+- Triage ownership evidence for missing lockfiles, transitive-only blocks,
+  major-version migrations, unavailable fixes, test regressions, lint
+  regressions, and fix-did-not-resolve cases.
+
 ## The prompt
 
 Invoke as:
@@ -237,6 +256,31 @@ GUARDRAILS
 - If MAX_MAJOR_BUMPS == 0 and the only fix is a major bump, you
   must triage. Do not rationalize the bump.
 ~~~
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that updates exactly one advisory-driven
+  dependency path, uses the native package manager, touches only manifest and
+  lockfile artifacts, runs lint/tests and a vulnerability re-scan, and emits
+  `RESULT: ok` JSON for automation.
+- `TRIAGE.md` on a `triage/<FINDING_ID>` branch when the finding is
+  below-threshold, missing a lockfile, not installed, requires a disallowed
+  major bump, has only prerelease fixes, fails lint/tests, or the re-scan still
+  reports the finding.
+
+The output must list finding id, package, ecosystem, old/new version, patched
+range, direct/transitive status, package manager, files touched, verification
+commands, re-scan evidence, PR URL or triage reason, and next owner. It must
+not edit application code, skip tests, push to the base branch, merge its own
+PR, or rationalize a major bump when `MAX_MAJOR_BUMPS` is zero.
+
+## Related recipes
+
+- [Vulnerable Dependency Remediation]({{< relref "/security-remediation/vulnerable-dependencies" >}})
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [Codex sensitive data remediation]({{< relref "/prompt-library/codex/sensitive-data-remediation" >}})
 
 ## Known limitations
 

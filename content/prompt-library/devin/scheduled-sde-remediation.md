@@ -63,6 +63,25 @@ history-only exposures.
 - LOW-confidence findings — they surface in the PR body for
   review but are never auto-applied.
 
+## Inputs
+
+- Devin workspace context, `REPO_URL`, `DEFAULT_BRANCH`, `WORKING_BRANCH`,
+  severity threshold, history scan depth, rotation policy, history rewrite
+  policy, data classification policy, compliance frameworks, dry-run flag,
+  reviewers, and CODEOWNERS.
+- Scanner evidence from Gitleaks, TruffleHog, detect-secrets, Semgrep secrets,
+  Semgrep SAST, Presidio, DLP tools, git history scans, and repo-local
+  security docs.
+- Sensitive-data classes and locations: secrets, credentials, PII, PHI, PCI,
+  financial data, session artifacts, infrastructure data, notebooks, dumps,
+  fixtures, HAR/Postman exports, telemetry, logs, and unsafe data handling.
+- Approved remediation patterns: secret manager/env-var loaders, redaction
+  helpers, masking conventions, synthetic fixture generation, scanner
+  allowlists, `git rm --cached`, `.gitignore`, and rotation issue templates.
+- Audit evidence: redacted fingerprints, owner routing, rotation issues,
+  deferred findings, compliance tags, tests run, lint results, revert plan, and
+  non-secret proof that raw SDEs were not printed.
+
 ## The prompt
 
 Paste into a scheduled Devin task, or drive via the Devin API:
@@ -495,6 +514,33 @@ On failure: the exact step that failed, redacted command output, and partial art
 
 Begin now.
 ~~~
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready scheduled-remediation PR that preserves public APIs and
+  response shapes, removes or masks confirmed SDEs with the smallest safe
+  changes, adds or updates regression guards, records redacted evidence, opens
+  rotation issues for exposed credentials, and includes compliance tags and a
+  clean revert path.
+- A no-change or deferred-findings report when findings are low-confidence,
+  natural-language PII, unsafe to auto-edit, require provider-side rotation,
+  need approved history rewrite, lack an approved redaction pattern, or need
+  human data-protection review.
+
+The output must list scanner sources, finding counts by class and confidence,
+files touched, redaction or secret-store patterns used, rotation issues, history
+exposures, deferred items, tests/lint run, compliance frameworks, reviewers,
+and revert instructions. It must not print raw secrets, rewrite history without
+approval, rotate upstream credentials, break API contracts, or add dependencies
+without justification.
+
+## Related recipes
+
+- [Sensitive Data Remediation]({{< relref "/security-remediation/sensitive-data" >}})
+- [Codex sensitive data remediation]({{< relref "/prompt-library/codex/sensitive-data-remediation" >}})
+- [Source-code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
 
 ## Known limitations
 

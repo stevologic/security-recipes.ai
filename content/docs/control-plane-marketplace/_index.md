@@ -85,7 +85,7 @@ The public docs surface now also publishes a derived
 that explains the current requirement and blocker model for each input
 or output pack. The goal is to make "why is this still only
 live-or-copy?" or "what is still blocking this route from becoming
-browser-live?" answerable without opening the chatbot shell.
+browser-live?" answerable from the guidebook and static feeds.
 
 The Router and Asset portfolio preview now sit one layer above that
 readiness model: they derive a browser-local portfolio coverage snapshot
@@ -703,7 +703,7 @@ That matters for the product shape:
 - secrets still stay local
 - the result becomes a reusable JSON artifact that can be copied, downloaded, or fed into downstream relays and integrations
 
-This is the path from "AI chatbot" to "actual security application": every run should leave behind a bounded contract that another system or reviewer can consume.
+This is the path from loose remediation output to an actual security application contract: every run should leave behind a bounded artifact that another system or reviewer can consume.
 
 ## Live downstream delivery expanded
 

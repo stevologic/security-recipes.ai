@@ -262,6 +262,38 @@ After the client connects, start with low-risk read calls:
    keywords.
 4. Call `recipes_get` with a returned slug or path to retrieve the full recipe
    record.
+5. Call `recipes_quality_report` to inspect quality tiers and improvement
+   gaps before promoting recipes into automated workflows.
+
+Use facets and quality thresholds when the agent knows the job shape:
+
+```json
+{
+  "query": "SSDF repository evidence",
+  "facets": ["compliance", "audit"],
+  "min_quality": 70,
+  "limit": 3
+}
+```
+
+Facet filters align recipe selection with the intended output:
+`remediation` for patch work, `risk` for exploitability and impact,
+`audit` for evidence mapping, `compliance` for standards readiness, and
+`code-hygiene` for source cleanup or hardening. `min_quality` lets agents
+prefer recipes with stronger inputs, output contracts, verification,
+guardrails, and related context.
+
+To maintain the recipe library itself, call:
+
+```json
+{
+  "facet": "compliance",
+  "limit": 10
+}
+```
+
+against `recipes_quality_report`. The response lists recipes below
+world-class readiness and names the missing quality signals to add next.
 
 If those work, add evidence-pack tools only when the workflow needs them.
 
@@ -351,19 +383,21 @@ Do not install random MCP servers because they mention security. Review source,
 package provenance, token scopes, network access, tool descriptions, update
 cadence, and whether the connector can write or execute commands.
 
-## AI Remediation chatbot support
+## Recipe API and MCP support
 
-The browser AI Remediation panel has three ways to gather context:
+The site exposes recipes through static JSON feeds and the optional read-only
+MCP server. Use those surfaces to let approved agents search, retrieve, and
+match recipes without adding a site-hosted chatbot.
 
 | Mode | Sources | Notes |
 | --- | --- | --- |
-| No-token browser context | Current page, recipe index, public GitHub repo metadata, deps.dev, OSV.dev, local SARIF, local scanner export, local SBOM. | Best first step for public or local evidence. deps.dev and OSV enrichment need package coordinates or accessible SBOM data. |
-| Browser-local API credentials | GitHub code scanning, Snyk issues, Defender XDR incidents, Sentinel incidents, GitLab, Azure DevOps, Confluence, and delivery routes. | Credentials are stored in browser settings and sent only to the selected provider/API from the page. |
-| MCP HTTP gateway | Security Recipes MCP server, GitHub MCP Server, Semgrep docs MCP, Snyk/AWS/Azure/Cloudflare/Docker gateways, or an internal gateway. | The browser can call HTTP-reachable MCP endpoints with compatible CORS and bounded read-style tools. |
+| Static recipe feed | `/api/recipes.json` and `/recipes-index.json`. | Best for direct fetch, CI injection, local snapshots, and simple catalog sync. |
+| Security Recipes MCP server | `recipes_search`, `recipes_get`, `recipes_match_finding`, and related read-only tools. | Best when an MCP-compatible agent should search recipes at runtime using facets, quality thresholds, and finding metadata. |
+| Approved upstream MCP context | Organization-approved GitHub, Semgrep, Snyk, AWS, Azure, Cloudflare, Docker, or internal gateways. | Keep upstream context scoped, reviewed, and read-only unless a separate workflow explicitly approves writes. |
 
-The browser chatbot does not launch local stdio MCP servers. Use the agent
-host's native MCP client for stdio connectors, or wrap the connector behind an
-approved HTTP gateway.
+Local stdio MCP servers should run in the agent host's native MCP client. Wrap
+only reviewed connectors behind an approved HTTP gateway when browser or hosted
+clients need access.
 
 ## Connector policy
 

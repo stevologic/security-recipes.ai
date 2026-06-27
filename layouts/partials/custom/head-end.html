@@ -41,9 +41,6 @@ document.documentElement.dataset.recipeBrowserPage = "true";
 {{ with resources.Get "js/signal-background.js" | minify | fingerprint }}
   <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
 {{ end }}
-{{ with resources.Get "css/ai-chatbot.css" | minify | fingerprint }}
-  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
-{{ end }}
 
 {{/*
   Mermaid fullscreen viewer — makes every rendered mermaid diagram
@@ -157,19 +154,7 @@ window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
   routingPolicy: {{ "/marketplace-schemas/routing-policy.schema.json" | relURL | jsonify | safeJS }},
   routingLibrary: {{ "/marketplace-schemas/routing-library.schema.json" | relURL | jsonify | safeJS }}
 };
-{{ $chatApiPath := site.Params.chatApiPath | default site.Params.chatapipath | default "" }}
-{{ $aiProviderRelay := site.Params.aiProviderRelay | default site.Params.aiproviderrelay | default "" }}
-window.__SECURITY_RECIPES_CHAT_API__ = {{ $chatApiPath | jsonify | safeJS }};
-window.__SECURITY_RECIPES_AI_PROVIDER_RELAY__ = {{ $aiProviderRelay | jsonify | safeJS }};
 </script>
-{{/*
-  AI remediation chatbot. Production Docker builds can point this at a
-  same-origin server-side chat API; static-only builds can still use
-  browser-held provider credentials.
-*/}}
-{{ with resources.Get "js/ai-chatbot.js" | fingerprint }}
-  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
-{{ end }}
 
 {{/*
   Strip any PWA manifest the theme may have injected earlier in <head>,

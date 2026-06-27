@@ -140,6 +140,41 @@ Add behavior-preservation tests:
 - **Monkey patches in initializers** that re-enable unsafe
   loading globally.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no multi-service payload migration unless explicitly
+  authorized.
+- Inventory lists every `Marshal.load`, `YAML.load`, `Psych.load`,
+  `unsafe_load`, serializer initializer, and background-job/session decoder in
+  scope.
+- Each call site is classified as untrusted, trusted-only temporary
+  compatibility, unknown, or framework-owned.
+- Fix is labeled as JSON/coercion uplift, `YAML.safe_load` mitigation, legacy
+  decoder isolation, or triage.
+- Tests prove valid legacy payloads still decode, unsafe classes/tags are
+  rejected, and YAML aliases fail closed unless explicitly approved.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- untrusted input cannot reach `Marshal.load` or unsafe YAML/Psych loaders;
+- `permitted_classes` lists are minimal and justified by local domain objects;
+- any legacy decoder has telemetry, owner, removal date, and rollback notes;
+- Rails cookie/session and background-job serializers are checked for deploy
+  compatibility;
+- no production serialized payloads, secrets, or customer data are committed as
+  fixtures.
+
+## Guardrails
+
+- Do not add broad `Object`, `Symbol`, or application namespace catch-alls to
+  permitted classes.
+- Do not enable YAML aliases unless the owner explicitly accepts the risk.
+- Do not remove shared job/session formats without staged rollout planning.
+- Do not mix unrelated Rails initializer or serialization refactors into the
+  same PR.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})
