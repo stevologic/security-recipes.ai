@@ -11,7 +11,7 @@ tags: ["ghsa", "cap-js", "sap-cap", "openapi", "npm", "supply-chain", "malware",
 weight: 93
 date: 2026-06-09
 ghsa: "GHSA-jpvj-wpmj-h7rv"
-aliases: ["@cap-js/openapi package compromise"]
+known_as: ["@cap-js/openapi package compromise"]
 kev: false
 severity: "critical"
 ecosystem: "npm/supply-chain"

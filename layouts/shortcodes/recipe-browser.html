@@ -268,7 +268,8 @@
       {{- if $isZeroDay -}}
         {{- $searchParts = $searchParts | append "0-day zero-day recent latest" -}}
       {{- end -}}
-      {{- with .Params.aliases -}}
+      {{- $knownAs := .Params.known_as | default .Params.aliases | default (slice) -}}
+      {{- with $knownAs -}}
         {{- range . -}}{{- $searchParts = $searchParts | append . -}}{{- end -}}
       {{- end -}}
       {{- $searchIndex := delimit $searchParts " " | plainify -}}

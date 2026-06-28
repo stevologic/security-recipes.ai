@@ -11,7 +11,7 @@ tags: ["ghsa", "klever-go", "go", "blockchain", "p2p", "libp2p", "denial-of-serv
 weight: 85
 date: 2026-06-07
 ghsa: "GHSA-rm5c-5x2p-48wr"
-aliases: ["Klever-Go P2P nil RawData DoS", "KVM txVersionChecker nil dereference"]
+known_as: ["Klever-Go P2P nil RawData DoS", "KVM txVersionChecker nil dereference"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"

@@ -468,7 +468,7 @@ weight: 91
 date: {item['published']}
 cve: "{item['cve']}"
 ghsa: {json.dumps(item.get('ghsa')) if item.get('ghsa') else "null"}
-aliases: [{json.dumps(item['title'])}]
+known_as: [{json.dumps(item['title'])}]
 kev: {str(bool(item.get('kev'))).lower()}
 severity: "{item['severity']}"
 ecosystem: "{item['ecosystem']}"

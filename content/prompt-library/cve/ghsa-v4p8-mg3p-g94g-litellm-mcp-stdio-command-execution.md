@@ -12,7 +12,7 @@ weight: 56
 date: 2026-06-11
 cve: "CVE-2026-42271"
 ghsa: "GHSA-v4p8-mg3p-g94g"
-aliases: ["LiteLLM MCP stdio command execution", "GHSA-v4p8-mg3p-g94g"]
+known_as: ["LiteLLM MCP stdio command execution", "GHSA-v4p8-mg3p-g94g"]
 kev: false
 severity: "high"
 ecosystem: "python/pypi"

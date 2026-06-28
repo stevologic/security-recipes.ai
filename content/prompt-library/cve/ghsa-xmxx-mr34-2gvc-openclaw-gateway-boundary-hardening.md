@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-xmxx/GHSA-mr34/GHSA-2gvc - OpenClaw gateway boundary hardening"
 linkTitle: "GHSA OpenClaw gateway boundary"
 description: "High-severity OpenClaw gateway and agent-boundary cluster covering stale bearer auth after SecretRef rotation, webchat local media containment, and Matrix room command authorization. Upgrade to 2026.4.15+ and add boundary regression tests."
@@ -11,7 +11,7 @@ tags: ["ghsa", "openclaw", "agentic-ai", "mcp", "typescript", "npm", "authorizat
 weight: 54
 date: 2026-05-08
 ghsa: "GHSA-xmxx-7p24-h892"
-aliases: ["GHSA-mr34-9552-qr95", "GHSA-2gvc-4f3c-2855", "OpenClaw gateway boundary hardening"]
+known_as: ["GHSA-mr34-9552-qr95", "GHSA-2gvc-4f3c-2855", "OpenClaw gateway boundary hardening"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"

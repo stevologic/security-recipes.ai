@@ -1,4 +1,4 @@
-﻿---
+---
 title: "OWASP Top 10 (2026) â€” repo audit"
 linkTitle: "OWASP Top 10 2026 audit"
 tool: "general"

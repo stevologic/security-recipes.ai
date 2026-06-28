@@ -11,7 +11,7 @@ tags: ["ghsa", "skillctl", "rust", "cargo", "path-traversal", "symlink", "skills
 weight: 73
 date: 2026-06-07
 ghsa: "GHSA-wx3m-whqv-xv47"
-aliases: ["skillctl path traversal and symlink-follow", "skill supply-chain file disclosure"]
+known_as: ["skillctl path traversal and symlink-follow", "skill supply-chain file disclosure"]
 kev: false
 severity: "high"
 ecosystem: "rust/cargo"

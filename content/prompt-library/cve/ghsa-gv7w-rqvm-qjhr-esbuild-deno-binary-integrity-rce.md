@@ -11,7 +11,7 @@ tags: ["ghsa", "esbuild", "deno", "npm", "supply-chain", "binary-integrity", "rc
 weight: 55
 date: 2026-06-13
 ghsa: "GHSA-gv7w-rqvm-qjhr"
-aliases: ["esbuild Deno binary integrity RCE", "esbuild NPM_CONFIG_REGISTRY binary download RCE"]
+known_as: ["esbuild Deno binary integrity RCE", "esbuild NPM_CONFIG_REGISTRY binary download RCE"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"

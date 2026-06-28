@@ -11,7 +11,7 @@ tags: ["ghsa", "pnpm", "nodejs", "integrity", "supply-chain", "high"]
 weight: 94
 date: 2026-06-27
 ghsa: "GHSA-fr4h-3cph-29xv"
-aliases: ["pnpm protocol specifier short-circuit"]
+known_as: ["pnpm protocol specifier short-circuit"]
 kev: false
 severity: "high"
 ecosystem: "javascript/npm"

@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-rh99-wc69-c255 - Contrast CopyFile policy symlink subversion"
 linkTitle: "GHSA-rh99 Contrast CopyFile"
 description: "High-severity Contrast/Kata agent policy gap where CopyFile verification can be subverted through symlinks. Upgrade Contrast to 1.19.1+, regenerate agent policies, and contain host-to-guest CopyFile trust."
@@ -11,7 +11,7 @@ tags: ["ghsa", "contrast", "kata-containers", "confidential-computing", "kuberne
 weight: 58
 date: 2026-05-03
 ghsa: "GHSA-rh99-wc69-c255"
-aliases: ["Contrast CopyFile policy symlink subversion", "Kata Containers CopyFile symlink"]
+known_as: ["Contrast CopyFile policy symlink subversion", "Kata Containers CopyFile symlink"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
