@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-6xcp-7mpr-m7wm - Open WebUI CORS and session RCE chain"
 linkTitle: "GHSA-6xcp Open WebUI CORS"
 description: "High-severity Open WebUI CORS and session validation issue that can enable one-click admin-origin RCE. Upgrade to 0.3.33+, restrict origins, rotate sessions on logout, and test browser-origin boundaries."
@@ -11,7 +11,7 @@ tags: ["ghsa", "open-webui", "python", "cors", "session", "rce", "high", "agenti
 weight: 74
 date: 2026-05-12
 ghsa: "GHSA-6xcp-7mpr-m7wm"
-aliases: ["Open WebUI CORS misconfiguration and session validation issue"]
+known_as: ["Open WebUI CORS misconfiguration and session validation issue"]
 kev: false
 severity: "high"
 ecosystem: "python/pypi"

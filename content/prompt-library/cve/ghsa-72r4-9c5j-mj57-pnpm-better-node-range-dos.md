@@ -11,7 +11,7 @@ tags: ["ghsa", "pnpm", "nodejs", "dos", "supply-chain", "high"]
 weight: 94
 date: 2026-06-27
 ghsa: "GHSA-72r4-9c5j-mj57"
-aliases: ["pnpm better-node-range parseNodeRange DoS"]
+known_as: ["pnpm better-node-range parseNodeRange DoS"]
 kev: false
 severity: "high"
 ecosystem: "javascript/npm"

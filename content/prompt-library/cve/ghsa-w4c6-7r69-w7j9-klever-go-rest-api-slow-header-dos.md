@@ -11,7 +11,7 @@ tags: ["ghsa", "klever-go", "go", "gin", "rest-api", "slowloris", "denial-of-ser
 weight: 86
 date: 2026-06-07
 ghsa: "GHSA-w4c6-7r69-w7j9"
-aliases: ["Klever-Go REST API slow-header DoS", "Gin Engine.Run header timeout exhaustion"]
+known_as: ["Klever-Go REST API slow-header DoS", "Gin Engine.Run header timeout exhaustion"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"

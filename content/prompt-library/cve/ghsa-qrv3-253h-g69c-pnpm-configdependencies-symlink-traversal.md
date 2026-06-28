@@ -11,7 +11,7 @@ tags: ["ghsa", "pnpm", "npm", "nodejs", "lockfile", "path-traversal", "symlink",
 weight: 94
 date: 2026-06-27
 ghsa: "GHSA-qrv3-253h-g69c"
-aliases: ["pnpm configDependencies env lockfile path traversal"]
+known_as: ["pnpm configDependencies env lockfile path traversal"]
 kev: false
 severity: "high"
 ecosystem: "javascript/npm"

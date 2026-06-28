@@ -11,7 +11,7 @@ tags: ["ghsa", "nezha", "go", "websocket", "authorization", "tenant-boundary", "
 weight: 95
 date: 2026-06-27
 ghsa: "GHSA-q6xx-5vr8-p898"
-aliases: ["Nezha terminal file-manager stream hijack"]
+known_as: ["Nezha terminal file-manager stream hijack"]
 kev: false
 severity: "critical"
 ecosystem: "go"

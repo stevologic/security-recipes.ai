@@ -11,7 +11,7 @@ tags: ["ghsa", "agenticmail", "mcp", "npm", "authentication", "authorization", "
 weight: 80
 date: 2026-06-07
 ghsa: "GHSA-63gr-g7jc-v8rg"
-aliases: ["AgenticMail MCP HTTP authorization bypass"]
+known_as: ["AgenticMail MCP HTTP authorization bypass"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"

@@ -11,7 +11,7 @@ tags: ["ghsa", "flowise", "mcp", "agentic-ai", "npm", "command-injection", "rce"
 weight: 65
 date: 2026-05-14
 ghsa: "GHSA-m99r-2hxc-cp3q"
-aliases: ["Flowise MCP security bypass", "Flowise Custom MCP incomplete fix"]
+known_as: ["Flowise MCP security bypass", "Flowise Custom MCP incomplete fix"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"

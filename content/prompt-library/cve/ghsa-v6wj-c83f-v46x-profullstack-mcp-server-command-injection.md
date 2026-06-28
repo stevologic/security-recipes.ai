@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-v6wj-c83f-v46x - profullstack MCP server command injection"
 linkTitle: "GHSA-v6wj profullstack MCP"
 description: "Critical unauthenticated command injection in @profullstack/mcp-server domain_lookup. Remove exposed vulnerable servers, replace shell execution with argv-based process calls, and require MCP auth/bind controls."
@@ -11,7 +11,7 @@ tags: ["ghsa", "mcp", "npm", "command-injection", "critical", "agentic-ai"]
 weight: 65
 date: 2026-05-12
 ghsa: "GHSA-v6wj-c83f-v46x"
-aliases: ["profullstack MCP server domain_lookup command injection"]
+known_as: ["profullstack MCP server domain_lookup command injection"]
 kev: false
 severity: "critical"
 ecosystem: "npm"

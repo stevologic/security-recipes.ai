@@ -117,7 +117,7 @@
     "cve" (.Params.cve | default "")
     "ghsa" (.Params.ghsa | default "")
     "kev" (.Params.kev | default false)
-    "aliases" (.Params.aliases | default (slice))
+    "aliases" (.Params.known_as | default .Params.aliases | default (slice))
     "tags" (.Params.tags | default (slice))
     "facets" $facets
     "quality" (dict

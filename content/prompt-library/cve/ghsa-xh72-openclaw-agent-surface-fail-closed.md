@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-xh72/GHSA-xmxx - OpenClaw agent-surface fail-closed bypasses"
 linkTitle: "GHSA OpenClaw agent surface"
 description: "Critical OpenClaw agent-surface vulnerabilities across Feishu webhook auth, gateway bearer-token rotation, Matrix room authorization, and webchat media file containment. Upgrade to 2026.4.15+, fail closed at every external agent input, and add trust-boundary regression tests."
@@ -11,7 +11,7 @@ tags: ["ghsa", "openclaw", "agentic-ai", "npm", "webhook", "authorization", "sec
 weight: 59
 date: 2026-05-02
 ghsa: "GHSA-xh72-v6v9-mwhc"
-aliases: ["OpenClaw 2026.4.15 agent-surface hardening", "GHSA-xmxx-7p24-h892", "GHSA-2gvc-4f3c-2855", "GHSA-mr34-9552-qr95"]
+known_as: ["OpenClaw 2026.4.15 agent-surface hardening", "GHSA-xmxx-7p24-h892", "GHSA-2gvc-4f3c-2855", "GHSA-mr34-9552-qr95"]
 kev: false
 severity: "critical"
 ecosystem: "typescript/npm"

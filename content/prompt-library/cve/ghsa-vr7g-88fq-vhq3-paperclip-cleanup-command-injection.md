@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-vr7g-88fq-vhq3 - Paperclip workspace cleanup command injection"
 linkTitle: "GHSA-vr7g Paperclip cleanupCommand"
 description: "Critical Paperclip OS command injection through execution workspace cleanupCommand. Upgrade to 2026.416.0+, remove shell-backed cleanup strings, and add lifecycle-action allow-list tests."
@@ -11,7 +11,7 @@ tags: ["ghsa", "paperclip", "agentic-ai", "npm", "command-injection", "workspace
 weight: 47
 date: 2026-05-02
 ghsa: "GHSA-vr7g-88fq-vhq3"
-aliases: ["Paperclip cleanupCommand OS command injection"]
+known_as: ["Paperclip cleanupCommand OS command injection"]
 kev: false
 severity: "critical"
 ecosystem: "typescript/npm"

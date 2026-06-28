@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-3xx2/GHSA-47wq - Paperclip agent key tenant-boundary bypass"
 linkTitle: "GHSA Paperclip agent keys"
 description: "Critical Paperclip cross-tenant authorization bypass in agent API key routes. Upgrade to 2026.416.0+, require company access on key list/create/revoke, and rotate agent tokens if exposed."
@@ -11,7 +11,7 @@ tags: ["ghsa", "paperclip", "agentic-ai", "npm", "idor", "authorization", "multi
 weight: 46
 date: 2026-05-02
 ghsa: "GHSA-3xx2-mqjm-hg9x"
-aliases: ["Paperclip agent API key IDOR", "GHSA-47wq-cj9q-wpmp"]
+known_as: ["Paperclip agent API key IDOR", "GHSA-47wq-cj9q-wpmp"]
 kev: false
 severity: "critical"
 ecosystem: "typescript/npm"

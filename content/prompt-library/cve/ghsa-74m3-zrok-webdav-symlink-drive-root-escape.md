@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-74m3 - zrok WebDAV DriveRoot symlink escape"
 linkTitle: "GHSA-74m3 zrok WebDAV"
 description: "High-severity zrok WebDAV drive backend symlink escape that can expose files outside DriveRoot. Upgrade zrok/v2 to 2.0.2+, remove unsupported v1 shares, and harden shared context roots."
@@ -11,7 +11,7 @@ tags: ["ghsa", "zrok", "webdav", "go", "path-traversal", "symlink", "context-bou
 weight: 58
 date: 2026-05-02
 ghsa: "GHSA-74m3-9qvm-rp9h"
-aliases: ["zrok WebDAV DriveRoot symlink escape"]
+known_as: ["zrok WebDAV DriveRoot symlink escape"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"

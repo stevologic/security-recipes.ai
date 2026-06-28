@@ -11,7 +11,7 @@ tags: ["ghsa", "klever-go", "go", "blockchain", "p2p", "libp2p", "direct-message
 weight: 87
 date: 2026-06-07
 ghsa: "GHSA-hf2g-6j7h-98wg"
-aliases: ["Klever-Go direct-message goroutine DoS", "DirectSendID ingress throttling bypass"]
+known_as: ["Klever-Go direct-message goroutine DoS", "DirectSendID ingress throttling bypass"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"

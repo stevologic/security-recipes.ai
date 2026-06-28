@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-rpm5/GHSA-x2qx - GitPython command injection"
 linkTitle: "GHSA GitPython injection"
 description: "High-severity GitPython command and argument injection in repository clone/fetch helpers. Upgrade to 3.1.47+, reject user-controlled git kwargs and multi_options, and harden repo-ingest automation."
@@ -11,7 +11,7 @@ tags: ["ghsa", "gitpython", "python", "pip", "git", "command-injection", "supply
 weight: 57
 date: 2026-05-02
 ghsa: "GHSA-rpm5-65cw-6hj4"
-aliases: ["GitPython command injection", "GHSA-x2qx-6953-8485"]
+known_as: ["GitPython command injection", "GHSA-x2qx-6953-8485"]
 kev: false
 severity: "high"
 ecosystem: "python/pypi"

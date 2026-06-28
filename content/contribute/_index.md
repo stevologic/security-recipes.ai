@@ -322,7 +322,7 @@ that power the catalogue:
 
 ```yaml
 cve: "CVE-YYYY-NNNN"
-aliases: ["Popular Name"]
+known_as: ["Popular Name"]
 kev: false
 severity: "high"
 ecosystem: "language/package-manager"

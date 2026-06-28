@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-54pg-9963-v8vg - Intercom client package compromise"
 linkTitle: "GHSA-54pg Intercom compromise"
 description: "Critical Intercom npm and Composer package compromise. Quarantine intercom-client 7.0.4 and intercom-php 5.0.2 installs, clear caches, verify lockfile provenance, and rotate exposed credentials."
@@ -11,7 +11,7 @@ tags: ["ghsa", "intercom", "npm", "composer", "supply-chain", "critical"]
 weight: 64
 date: 2026-05-10
 ghsa: "GHSA-54pg-9963-v8vg"
-aliases: ["Intercom client package compromise", "GHSA-gr3r-crp5-qrrm"]
+known_as: ["Intercom client package compromise", "GHSA-gr3r-crp5-qrrm"]
 kev: false
 severity: "critical"
 ecosystem: "npm/composer"
