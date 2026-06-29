@@ -194,4 +194,3 @@ The pack is anchored in current primary guidance:
 - [Agentic Incident Response Pack]({{< relref "/security-remediation/agentic-incident-response-pack" >}})
 - [Context Egress Boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
 - [Agentic Telemetry Contract]({{< relref "/security-remediation/agentic-telemetry-contract" >}})
-- [Browser Agent Scheduling]({{< relref "/automation/agent-scheduling" >}})

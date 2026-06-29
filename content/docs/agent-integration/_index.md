@@ -96,13 +96,32 @@ context first.
 
 Good context sources include:
 
-- Public vulnerability and package intelligence such as OSV, GitHub
-  Advisories, deps.dev, package registries, and NVD-backed mirrors.
-- Repository context such as GitHub, GitLab, Azure DevOps, code scanning,
-  Dependabot, secret scanning, SARIF, SBOMs, and CI results.
-- Product security tools such as Semgrep, Snyk, CodeQL, Checkmarx, Veracode,
-  Wiz, Tenable, Rapid7, and other approved systems when your organization has
-  reviewed the connector.
+- Public vulnerability and package intelligence such as
+  [OSV](https://google.github.io/osv.dev/api/),
+  [GitHub Advisories](https://docs.github.com/en/rest/security-advisories),
+  [deps.dev](https://docs.deps.dev/api/v3/),
+  [package registries](https://github.com/package-url/purl-spec), and
+  [NVD-backed mirrors](https://nvd.nist.gov/developers/vulnerabilities).
+- Repository context such as
+  [GitHub MCP Server](https://docs.github.com/en/copilot/how-tos/provide-context/use-mcp-in-your-ide/use-the-github-mcp-server),
+  [GitLab MCP server](https://docs.gitlab.com/user/gitlab_duo/model_context_protocol/mcp_server/),
+  [Azure DevOps MCP Server](https://learn.microsoft.com/en-us/azure/devops/mcp-server/remote-mcp-server?view=azure-devops),
+  [code scanning](https://docs.github.com/en/rest/code-scanning),
+  [Dependabot](https://docs.github.com/en/rest/dependabot),
+  [secret scanning](https://docs.github.com/en/rest/secret-scanning),
+  [SARIF](https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning),
+  [SBOMs](https://www.cisa.gov/sbom), and
+  [CI results](https://docs.github.com/en/rest/actions/workflow-runs).
+- Product security tools such as
+  [Semgrep MCP](https://semgrep.dev/docs/mcp),
+  [Snyk MCP / Snyk Studio](https://docs.snyk.io/evo-by-snyk/agentic-security-with-snyk-studio/getting-started-with-snyk-studio),
+  [CodeQL MCP](https://github.com/advanced-security/codeql-development-mcp-server),
+  [Checkmarx MCP](https://docs.checkmarx.com/en/34965-591689-mcp-server---interacting-with-checkmarx-one-via-ai-assistant.html),
+  [Veracode API docs for MCP gateway wrapping](https://docs.veracode.com/r/Veracode_APIs),
+  [Wiz MCP](https://www.wiz.io/blog/introducing-mcp-server-for-wiz),
+  [Tenable Hexa AI MCP](https://docs.tenable.com/vulnerability-management/Content/getting-started/hexa-AI-MCP.htm),
+  [Rapid7 Bulk Export MCP](https://github.com/rapid7/rapid7-bulk-export-mcp), and other
+  approved systems when your organization has reviewed the connector.
 - Internal runbooks, ownership maps, service catalogs, and architecture docs
   exposed through read-only documentation connectors.
 

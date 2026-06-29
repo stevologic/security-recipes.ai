@@ -53,6 +53,22 @@ summary in chat (exposed path).
 - Cross-repo sweeps — run once per finding after dedup.
 - Binary artifacts — the rule refuses.
 
+## Inputs
+
+- Cursor chat arguments, issue context, scanner/MCP finding data, file-path
+  hints, line numbers, rule ids, SDE class, first-seen metadata, and confidence.
+- Project rule and command files: `.cursor/rules/remediate-sde.mdc`,
+  `.cursor/commands/remediate-sde.md`, Cursor Automation trigger labels, and
+  repo-local house rules.
+- Repository evidence: default branch, remote URL, scanner config,
+  `docs/security/secrets.md`, `SECURITY.md`, `.env.example`, redaction helpers,
+  test commands, lint commands, and PR conventions.
+- Exposure evidence from working tree, git history, scanner metadata, public
+  repo status, shared remote status, CI logs, and build artifacts.
+- Approved remediation patterns for secret-store references, token rotation
+  handoff, PII/PCI/PHI redaction, synthetic fixture replacement, scanner
+  allowlists, and triage branch creation.
+
 ## The prompt
 
 Two files, checked in to the repo.
@@ -198,6 +214,29 @@ abstract description. Never echo the value.
 Invoke from chat with `/remediate-sde WIZ-SECRET-42931 secret`.
 From Cursor Automations, the same command is wired to the
 `security:sde` label trigger.
+
+## Output contract
+
+Return one of:
+
+- A draft PR for a pre-exposure SDE that applies the minimal source edit,
+  references the approved secret store or redaction helper, adds a regression
+  guard, records lint/test evidence, and follows the configured branch, title,
+  body, and label shape.
+- A triage branch and `TRIAGE.md` for exposed, stale, ambiguous, unsupported,
+  binary, cross-repo, or no-approved-pattern findings.
+
+The output must list finding id, SDE class, exposure scope, file path, approved
+replacement pattern, scanner or MCP evidence source, tests run, PR/triage
+branch, and rotation/disclosure checklist when exposed. It must not echo the
+literal in chat, rewrite history, commit/delete secret files, broad-allowlist
+scanner rules, mark the PR ready for review, or merge the PR.
+
+## Related recipes
+
+- [Sensitive Data Remediation]({{< relref "/security-remediation/sensitive-data" >}})
+- [Source-code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Codex sensitive data remediation]({{< relref "/prompt-library/codex/sensitive-data-remediation" >}})
 
 ## Known limitations
 

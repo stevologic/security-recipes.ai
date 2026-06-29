@@ -14,6 +14,27 @@ date: 2026-04-26
 Use this prompt to prevent destination-address substitution and
 address-poisoning mistakes in crypto payment systems.
 
+## When to use it
+
+- Users, operators, invoices, APIs, or import jobs supply crypto destination
+  addresses manually.
+- Address books, recent-recipient lists, QR flows, clipboard workflows, or
+  withdrawal templates can be poisoned or confused by near-match addresses.
+- Chain-specific memos, destination tags, checksums, network prefixes, or asset
+  routing rules are required for safe settlement.
+- You need a bounded PR or triage note that centralizes address validation and
+  prevents silent destination substitution.
+
+## Inputs
+
+- Payment API handlers, withdrawal services, UI/backend validation paths,
+  address-book storage, QR/deeplink parsers, import jobs, and notification
+  templates.
+- Chain metadata, address formats, checksum/network rules, memo/tag
+  requirements, asset routing tables, trust tiers, and fraud telemetry.
+- Available unit tests, API tests, UI/backend integration tests, chain metadata
+  fixtures, telemetry checks, and security scan commands.
+
 ## Use when
 
 - Users paste wallet addresses manually.
@@ -48,3 +69,31 @@ Constraints:
 - Do not downgrade strict validation to warning-only.
 - Stop with TRIAGE.md if chain metadata is incomplete.
 ~~~
+
+## Output contract
+
+- Reviewer-ready PR adding a shared chain-aware validation path used by API,
+  services, and UI backend before storing or submitting destinations.
+- Tests for checksums, network mismatch, memo/tag requirements, canonicalized
+  comparison, duplicate/near-match poisoning, and high-risk confirmation flows.
+- Operator/auditor notes describing chain metadata ownership, address-book
+  trust tiers, rejection telemetry, and any unsupported chains.
+- `TRIAGE.md` when reliable chain metadata, memo/tag rules, or settlement
+  ownership is outside this repository.
+
+## Verification - what the reviewer looks for
+
+- Invalid, mixed-chain, missing-tag, and near-match poisoned addresses are
+  rejected before persistence or transfer execution.
+- Address canonicalization is explicit and never silently autocorrects a user
+  destination.
+- API and UI backend paths call the same validation module or share the same
+  authoritative policy.
+- Security telemetry records rejection reasons without leaking private account
+  or wallet metadata.
+
+## Related recipes
+
+- [Cross-chain message authenticity guardrails]({{< relref "/prompt-library/general/crypto-defi/cross-chain-message-authenticity-guardrails" >}})
+- [Permit and meta-transaction replay guardrails]({{< relref "/prompt-library/general/crypto-defi/permit-and-meta-transaction-replay-guardrails" >}})
+- [Source code supply-chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})

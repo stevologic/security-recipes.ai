@@ -198,6 +198,38 @@ Add tests:
   clock skew is an availability bug. Allow a small skew
   (e.g., 60 seconds) — but no more.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no token issuance, key rotation, or auth-provider
+  configuration changes unless explicitly requested.
+- Inventory lists every JWT verification call, wrapper helper, middleware,
+  gateway, and test helper in scope.
+- Each verifier has an expected algorithm allowlist, key source, issuer,
+  audience, and clock-skew policy.
+- Tests reject `alg: none`, wrong algorithm, algorithm/key confusion, bad
+  audience, and expired tokens while accepting one valid token.
+- Any multi-algorithm exception includes owner approval, rotation window, and
+  removal follow-up.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- no verifier trusts the token header to choose the algorithm;
+- JWKS `kid` lookup cannot switch algorithm families or key types;
+- algorithm allowlists are explicit at every decode/verify call;
+- issuer, audience, expiry, and skew checks remain intact;
+- test fixtures do not contain live signing keys, production tokens, or
+  customer claims.
+
+## Guardrails
+
+- Do not alter token issuance or key material in this recipe.
+- Do not silently allow multiple algorithms to preserve compatibility.
+- Do not weaken issuer, audience, expiry, or key-use checks while fixing the
+  algorithm allowlist.
+- Do not include production JWTs in tests or reports.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

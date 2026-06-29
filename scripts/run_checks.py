@@ -46,7 +46,6 @@ def main() -> int:
             "compileall",
             "-q",
             "mcp_server.py",
-            "chatbot_server.py",
             "scripts",
             "tools",
             "tests",

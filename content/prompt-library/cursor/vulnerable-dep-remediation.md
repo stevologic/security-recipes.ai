@@ -51,6 +51,23 @@ Agents surface the run in the sidebar for review.
 - Interactive "is this CVE real" triage conversations — those
   are human work; this command jumps to fix mode.
 
+## Inputs
+
+- Cursor chat arguments, issue labels, Dependabot/Snyk/OSV/GitHub Advisory or
+  MCP finding context, affected package hint, advisory ID, severity, patched
+  range, and direct/transitive dependency evidence.
+- Project rule and command files: `.cursor/rules/remediate-dep.mdc`,
+  `.cursor/commands/remediate-dep.md`, Cursor Automation triggers, and repo
+  house rules for branches, draft PRs, labels, and reviewers.
+- Repository evidence: manifests, lockfiles, package-manager choice, workspace
+  layout, default branch, CODEOWNERS, generated dependency reports, SBOMs, and
+  package-manager lockfile behavior.
+- Verification evidence: lint/test commands, scanner availability, re-scan
+  output, package-manager update logs, failing test output, and revert command.
+- Triage evidence for no-discovery-tooling, package-not-installed, major bump,
+  prerelease-only, ambiguous patched range, yanked version, lint regression,
+  test regression, and monorepo workspace ownership.
+
 ## The prompt
 
 Two files, checked in to the repo.
@@ -181,6 +198,31 @@ post a structured summary in chat instead of committing.
 Invoke from chat with `/remediate-dep CVE-2026-1234`. In Cursor
 Automations, the same command is the entry point for scheduled
 sweeps and issue-labeled triggers.
+
+## Output contract
+
+Return one of:
+
+- A draft PR that remediates one advisory-driven dependency path, uses the
+  native package manager, touches only manifest and lockfile artifacts, records
+  tests and re-scan evidence, and follows the configured branch, title, body,
+  labels, and draft-review policy.
+- A structured chat/triage summary when the package is not installed, no
+  discovery tooling exists, the fix requires a disallowed major bump, only a
+  prerelease is available, the range is ambiguous, the version is yanked, or
+  lint/tests fail because of the bump.
+
+The output must list finding id, package, ecosystem, old/new version, patched
+range, direct/transitive status, package manager, files touched, test and
+scanner evidence, PR URL or triage reason, and next owner. It must not edit
+application code, skip tests, mark the PR ready for review, auto-merge, or
+bundle multiple findings.
+
+## Related recipes
+
+- [Vulnerable Dependency Remediation]({{< relref "/security-remediation/vulnerable-dependencies" >}})
+- [Codex vulnerable dependency remediation]({{< relref "/prompt-library/codex/vulnerable-dep-remediation" >}})
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
 
 ## Known limitations
 

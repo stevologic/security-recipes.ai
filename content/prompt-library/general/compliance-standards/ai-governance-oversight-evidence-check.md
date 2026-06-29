@@ -167,6 +167,26 @@ Stop and write a partial report if:
 - No final legal classification or compliance claim.
 - No data upload or external tool write.
 - Explicit questions for legal/compliance review.
+- Clear separation between repository evidence, runtime/platform evidence,
+  provider-contract evidence, and legal classification questions.
+
+## Verification
+
+Before handing the report to legal, compliance, or AI governance owners,
+verify that:
+
+- every workflow, model, provider, MCP server, prompt, skill, and tool claim is
+  backed by a file path, configuration reference, run record, or `not found`
+  note;
+- the report does not assign a final EU AI Act, NIST AI RMF, sectoral, or
+  internal-risk classification unless the operator supplied an approved
+  classification;
+- human oversight controls are marked as `enforced`, `documented only`,
+  `missing`, or `out of repo`;
+- provider-retention, training-use, residency, and incident-notification
+  settings are listed as observed evidence or explicit gaps;
+- secrets, personal data, regulated data, and proprietary prompts are redacted
+  from examples and findings.
 
 ## Guardrails
 
@@ -174,9 +194,15 @@ Stop and write a partial report if:
 - Separate "model generated a suggestion" from "AI made a decision."
 - Keep regulated-data examples redacted.
 
+## Related recipes
+
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
+- [Source code audit - secrets and data exposure]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code audit - attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [Context egress boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
+
 ## References
 
 - [European Commission AI Act overview](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
 - [NIST SP 800-218A AI SSDF community profile](https://csrc.nist.gov/pubs/sp/800/218/a/final)
 - [Security Remediation - Compliance & Audit]({{< relref "/security-remediation/compliance" >}})
-

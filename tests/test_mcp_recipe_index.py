@@ -30,6 +30,8 @@ class RecipeIndexTests(unittest.TestCase):
                     "ecosystem": "npm",
                     "cve": "CVE-2025-55182",
                     "tags": ["react", "rsc"],
+                    "facets": ["remediation", "risk", "code-hygiene"],
+                    "quality": {"score": 90, "tier": "world-class", "signals": ["output-contract"]},
                     "summary": "Patch React Server Components remote code execution.",
                     "content_text": "Use the CVE recipe to patch React Server Components RCE safely.",
                 }
@@ -42,6 +44,8 @@ class RecipeIndexTests(unittest.TestCase):
         self.assertEqual(docs[0]["content"], payload["recipes"][0]["content_text"])
         self.assertEqual(docs[0]["section"], "prompt-library")
         self.assertEqual(docs[0]["category"]["slug"], "cve")
+        self.assertEqual(docs[0]["facets"], ["remediation", "risk", "code-hygiene"])
+        self.assertEqual(docs[0]["quality"]["score"], 90)
 
     def test_file_backed_agent_feed_can_search_list_and_get(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -62,6 +66,8 @@ class RecipeIndexTests(unittest.TestCase):
                                 "ecosystem": "npm",
                                 "cve": "CVE-2025-55182",
                                 "tags": ["react", "rsc"],
+                                "facets": ["remediation", "risk", "code-hygiene"],
+                                "quality": {"score": 90, "tier": "world-class", "signals": ["verification"]},
                                 "summary": "Patch React Server Components remote code execution.",
                                 "content_text": "Patch React Server Components and verify the npm test suite.",
                             },
@@ -75,6 +81,8 @@ class RecipeIndexTests(unittest.TestCase):
                                 "agent": "general",
                                 "severity": "unspecified",
                                 "tags": ["sast"],
+                                "facets": ["remediation", "audit", "code-hygiene"],
+                                "quality": {"score": 70, "tier": "strong", "signals": ["output-contract"]},
                                 "summary": "Triage one static-analysis finding.",
                                 "content_text": "Bound the agent to one SAST finding and one reviewed patch.",
                             },
@@ -94,16 +102,26 @@ class RecipeIndexTests(unittest.TestCase):
 
             refresh = run(index.refresh(force=True))
             cve_results = run(index.list_docs(section="cve"))
+            strong_audit_results = run(index.list_docs(facets=["audit"], min_quality=70))
             search_results = run(index.search("react npm rce", section="cve"))
+            quality_search_results = run(index.search("finding patch", facets=["code-hygiene"], min_quality=80))
             recipe = run(index.get_doc("/recipes/cve-2025-55182/"))
+            quality_report = run(index.quality_report(facet="audit", limit=5))
 
         self.assertEqual(refresh["status"], "refreshed")
         self.assertEqual(refresh["doc_count"], 2)
         self.assertEqual(len(cve_results), 1)
+        self.assertEqual(len(strong_audit_results), 1)
+        self.assertEqual(strong_audit_results[0]["slug"], "sast-finding-triage-and-fix")
         self.assertEqual(cve_results[0]["cve"], "CVE-2025-55182")
         self.assertEqual(search_results[0]["slug"], "cve-2025-55182-react-server-components-rce")
+        self.assertEqual(quality_search_results[0]["quality"]["tier"], "world-class")
         self.assertIsNotNone(recipe)
         self.assertEqual(recipe["title"], "React Server Components RCE")
+        self.assertEqual(quality_report["recipe_count"], 1)
+        self.assertEqual(quality_report["tier_counts"]["strong"], 1)
+        self.assertEqual(quality_report["gaps"][0]["slug"], "sast-finding-triage-and-fix")
+        self.assertIn("verification", quality_report["gaps"][0]["missing_quality_signals"])
 
     def test_normalizes_legacy_recipe_index_array(self) -> None:
         payload = [

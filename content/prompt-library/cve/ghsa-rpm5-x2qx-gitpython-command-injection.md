@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-rpm5/GHSA-x2qx - GitPython command injection"
 linkTitle: "GHSA GitPython injection"
 description: "High-severity GitPython command and argument injection in repository clone/fetch helpers. Upgrade to 3.1.47+, reject user-controlled git kwargs and multi_options, and harden repo-ingest automation."
@@ -11,7 +11,7 @@ tags: ["ghsa", "gitpython", "python", "pip", "git", "command-injection", "supply
 weight: 57
 date: 2026-05-02
 ghsa: "GHSA-rpm5-65cw-6hj4"
-aliases: ["GitPython command injection", "GHSA-x2qx-6953-8485"]
+known_as: ["GitPython command injection", "GHSA-x2qx-6953-8485"]
 kev: false
 severity: "high"
 ecosystem: "python/pypi"
@@ -31,6 +31,34 @@ input shape Git operation options:
 For agentic coding systems, CI workers, repository importers, and internal
 automation bots, the practical risk is code execution on the worker handling
 repo clone/fetch/pull/push operations.
+
+## When to use it
+
+Use this recipe when a repository uses GitPython in repo importers, agentic
+coding systems, CI workers, mirror/sync jobs, internal automation bots, or
+submodule helpers. It is especially relevant when users, tenants, webhooks,
+workflow YAML, job definitions, repository metadata, or LLM/tool inputs can
+influence Git operation options.
+
+Use it to upgrade GitPython and remove raw Git option pass-through. Do not use
+it to test exploit payloads, custom helper commands, hooks, or attacker-supplied
+Git options.
+
+## Inputs
+
+- Python dependency manifests, constraints, lockfiles, base images, CI images,
+  worker images, SBOMs, vendored code, deployment manifests, and repository
+  import or mirror runbooks.
+- GitPython operation paths such as clone, fetch, pull, push, submodule update,
+  workspace preparation, repository sync, and agent checkout helpers.
+- Option input sources: request bodies, webhook payloads, tenant settings,
+  workflow YAML, job config, database records, environment variables,
+  repository metadata, and LLM/tool arguments.
+- Worker authority: SSH keys, deploy keys, package tokens, cloud credentials,
+  source-code access, artifact access, internal network routes, and shared
+  workspace state.
+- Existing hardening controls for option validation, hook policy, environment
+  scrubbing, per-job workspace isolation, credential scoping, and log review.
 
 ## Affected versions
 
@@ -188,6 +216,31 @@ GHSA-rpm5-65cw-6hj4 and GHSA-x2qx-6953-8485. Produce exactly one output:
 - Validating `multi_options` before splitting or normalization.
 - Treating repository URLs as the only untrusted input and missing workflow
   fields that configure clone/fetch behavior.
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that upgrades every controlled GitPython
+  runtime to `3.1.47+`, removes raw `kwargs`, `multi_options`, and
+  `clone_multi_options` pass-through, replaces free-form Git options with a
+  typed allow-list, adds normalization-aware regression tests, hardens
+  repo-ingest workers, and refreshes generated artifacts.
+- `TRIAGE.md` when no controlled deployable GitPython runtime, repo-operation
+  path, worker image, dependency graph, or generated artifact exists.
+
+The output must list GitPython versions before and after, reachable
+repo-operation paths, which free-form options were removed or restricted,
+validation commands, worker credentials that need rotation or review, and logs
+to inspect for helper, hook, config, or SSH command abuse. It must not execute
+attacker-controlled hooks, helper commands, shell payloads, or custom Git
+options.
+
+## Related recipes
+
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [Source-code injection sink audit]({{< relref "/prompt-library/general/source-code-injection-sink-audit" >}})
+- [Agent session kill rules]({{< relref "/prompt-library/general/agent-session-kill-rules" >}})
 
 ## References
 

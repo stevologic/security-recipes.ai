@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-74m3 - zrok WebDAV DriveRoot symlink escape"
 linkTitle: "GHSA-74m3 zrok WebDAV"
 description: "High-severity zrok WebDAV drive backend symlink escape that can expose files outside DriveRoot. Upgrade zrok/v2 to 2.0.2+, remove unsupported v1 shares, and harden shared context roots."
@@ -11,7 +11,7 @@ tags: ["ghsa", "zrok", "webdav", "go", "path-traversal", "symlink", "context-bou
 weight: 58
 date: 2026-05-02
 ghsa: "GHSA-74m3-9qvm-rp9h"
-aliases: ["zrok WebDAV DriveRoot symlink escape"]
+known_as: ["zrok WebDAV DriveRoot symlink escape"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
@@ -30,6 +30,25 @@ For SecurityRecipes and production MCP deployments, the important lesson is
 direct: a context root is not a boundary if path checks happen before symlink
 resolution. Treat WebDAV shares, agent artifact shares, and temporary context
 exports as sensitive execution surfaces, not convenience file browsers.
+
+## When to use it
+
+Use this recipe when a repository, deployment, or context-sharing service uses
+zrok WebDAV drive shares for files, runbooks, agent context, or workspace
+artifacts. It supports source-code/deployment remediation, symlink-safe root
+containment, shared-context audit, and evidence that WebDAV consumers cannot
+read or overwrite outside `DriveRoot`.
+
+## Inputs
+
+- zrok version, v1/v2 share inventory, WebDAV drive configuration, `DriveRoot`,
+  filesystem permissions, and public/private share exposure.
+- Source/config paths that create shares, normalize WebDAV paths, follow
+  symlinks, authorize writes, or document shared context roots.
+- Regression fixtures for symlink escapes, valid in-root files, denied
+  out-of-root reads/writes, unsupported v1 shares, and permission-hardening.
+- Boundary evidence: existing symlinks, files reachable by zrok, write
+  permissions, share URLs, consumers, and cleanup owner.
 
 ## Affected versions
 
@@ -183,6 +202,16 @@ exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades zrok/v2, removes
+  unsupported v1 shares, hardens shared context roots, adds symlink-containment
+  tests, and documents share cleanup.
+- Or a `TRIAGE.md` file that lists inspected files/config, owner, observed
+  version, share exposure, DriveRoot boundary, required fix, and residual risk.
+- The output must include exact validation commands and must not expose real
+  shared files, tokens, customer context, or production share URLs.
+
 ## Verification - what the reviewer looks for
 
 - No controlled `zrok` v2 runtime resolves below `2.0.2`.
@@ -206,6 +235,13 @@ exactly one output:
 - Removing symlinks once manually but failing to add a repeatable guard.
 - Keeping public unauthenticated WebDAV shares for agent artifacts without
   explicit data classification and access policy.
+
+## Related recipes
+
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
 
 ## References
 

@@ -230,6 +230,19 @@ the monitor's actual response.
 - The PR is **never** auto-merged. Rule packs change the
   failure surface of the runtime gate; humans deploy.
 
+## Verification
+
+- Baseline dataset, window, and sample count are recorded beside
+  every proposed rule threshold.
+- Each synthetic exercise includes the expected action, observed
+  action, and the telemetry fields that proved the monitor fired.
+- False-positive and false-negative risks are called out in the
+  PR body, with any severity changes left as explicit human
+  decisions.
+- The rule pack is staged as policy only. No runtime monitor,
+  kill-controller, or deployment configuration is changed by this
+  recipe.
+
 ## Guardrails
 
 - **Baseline-driven thresholds.** No threshold ships without

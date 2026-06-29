@@ -208,6 +208,40 @@ Add tests:
 - **TLS pin churn.** Pinning is a strong control but a deploy
   burden. Don't pin without a documented rotation playbook.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no live endpoint probing or certificate changes
+  unless explicitly authorized.
+- Call-site inventory covers application code, tests, Dockerfiles, CI scripts,
+  environment variables, curl commands, and language-specific trust-all hooks.
+- Each call site is classified as production, test-only, local-dev, vendor
+  proxy, or unknown.
+- Fix replaces disabled verification with a trusted CA path, installed
+  internal CA, fail-closed shim, or documented stop condition.
+- Tests prove valid certificates succeed and invalid/self-signed certificates
+  fail unless a test-only CA is explicitly configured.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- `verify=False`, `InsecureSkipVerify`, trust-all managers, `--insecure`,
+  `NODE_TLS_REJECT_UNAUTHORIZED=0`, and CI SSL bypass variables were searched;
+- warning suppression is removed only after verification is re-enabled;
+- internal/self-signed CA handling is explicit and environment-scoped;
+- no private CA keys, client certificates, tokens, or live endpoint secrets are
+  committed as fixtures;
+- production behavior fails closed when certificate validation cannot be
+  established.
+
+## Guardrails
+
+- Do not replace `verify=False` with a global trust-all shim.
+- Do not pin certificates without an owner-approved rotation playbook.
+- Do not modify CI infrastructure or partner endpoints outside the requested
+  repository scope.
+- Do not call production services to test certificate validity.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

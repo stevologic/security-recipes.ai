@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-xmxx/GHSA-mr34/GHSA-2gvc - OpenClaw gateway boundary hardening"
 linkTitle: "GHSA OpenClaw gateway boundary"
 description: "High-severity OpenClaw gateway and agent-boundary cluster covering stale bearer auth after SecretRef rotation, webchat local media containment, and Matrix room command authorization. Upgrade to 2026.4.15+ and add boundary regression tests."
@@ -11,7 +11,7 @@ tags: ["ghsa", "openclaw", "agentic-ai", "mcp", "typescript", "npm", "authorizat
 weight: 54
 date: 2026-05-08
 ghsa: "GHSA-xmxx-7p24-h892"
-aliases: ["GHSA-mr34-9552-qr95", "GHSA-2gvc-4f3c-2855", "OpenClaw gateway boundary hardening"]
+known_as: ["GHSA-mr34-9552-qr95", "GHSA-2gvc-4f3c-2855", "OpenClaw gateway boundary hardening"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"
@@ -34,6 +34,26 @@ The common remediation theme is to treat gateway auth, file media resolution,
 and chat-room command authority as live policy decisions. Cached secrets,
 ambient local filesystem access, and pairing-store shortcuts are not safe
 defaults for a production context layer.
+
+## When to use it
+
+Use this recipe when a repository, OpenClaw deployment, or agent-control
+gateway needs to review Gateway bearer auth, webchat media containment, or
+Matrix room command authorization together. It is aimed at source-code
+remediation, agent gateway boundary hardening, multi-surface audit, and
+evidence that fail-closed controls survive token rotation and room/media edge
+cases.
+
+## Inputs
+
+- OpenClaw version, Gateway HTTP/WebSocket config, SecretRef rotation behavior,
+  webchat media settings, Matrix pairing store, and room command policy.
+- Source paths for per-request auth resolution, WebSocket auth, media path
+  containment, Matrix sender/room checks, and boundary regression tests.
+- Regression fixtures for stale bearer tokens, rotated secrets, local/UNC media
+  paths, DM-paired senders, room commands, and missing authorization context.
+- Runtime boundary evidence: Gateway exposure, media roots, Matrix rooms,
+  tokens, logs, tenant/session ownership, and operator cleanup requirements.
 
 ## Affected versions
 
@@ -196,6 +216,16 @@ exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades OpenClaw, enforces
+  per-request auth after SecretRef rotation, contains media reads, hardens room
+  command authorization, adds regression tests, and documents cleanup.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  gateway/media/room boundaries, required fix, and residual risk.
+- The output must include exact validation commands and must not expose real
+  bearer tokens, local files, Matrix room contents, customer data, or logs.
+
 ## Verification - what the reviewer looks for
 
 - No controlled OpenClaw dependency, image, SBOM, or deployment target remains
@@ -219,6 +249,13 @@ exactly one output:
 - Treating a Matrix DM pairing record as proof that the sender can control a
   room.
 - Logging sensitive media references or bearer-token values while adding tests.
+
+## Related recipes
+
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [AI governance oversight evidence check]({{< relref "/prompt-library/general/compliance-standards/ai-governance-oversight-evidence-check" >}})
 
 ## References
 

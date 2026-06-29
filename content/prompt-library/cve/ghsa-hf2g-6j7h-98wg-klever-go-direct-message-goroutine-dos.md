@@ -11,7 +11,7 @@ tags: ["ghsa", "klever-go", "go", "blockchain", "p2p", "libp2p", "direct-message
 weight: 87
 date: 2026-06-07
 ghsa: "GHSA-hf2g-6j7h-98wg"
-aliases: ["Klever-Go direct-message goroutine DoS", "DirectSendID ingress throttling bypass"]
+known_as: ["Klever-Go direct-message goroutine DoS", "DirectSendID ingress throttling bypass"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
@@ -34,6 +34,25 @@ upgrade and prove inbound direct-message processing is bounded before any
 goroutine spawn.
 
 As of 2026-06-07, GitHub Advisory Database lists no CVE for this advisory.
+
+## When to use it
+
+- A repository depends on, forks, vendors, builds, or deploys Klever-Go
+  `1.7.14` through `1.7.17`.
+- Validator, sentry, observer, relay, indexer, testnet, or developer nodes
+  accept libp2p direct messages from untrusted or semi-trusted peers.
+- Forked direct-message code can spawn goroutines before ingress admission.
+- You need a bounded PR or triage note that upgrades Klever-Go and proves
+  direct-message work is bounded before goroutine creation.
+
+## Inputs
+
+- Go modules, vendored trees, forks, node images, release artifacts, Docker/
+  Helm/K8s/systemd manifests, SBOMs, and generated dependency reports.
+- Direct-message handler code, throttlers/semaphores/worker pools, peer budgets,
+  processor antiflood logic, and node exposure inventory.
+- Available Go tests, targeted P2P tests, race/stress tests, image build,
+  deployment render, SBOM, and dependency/security scan commands.
 
 ## Affected versions
 
@@ -223,6 +242,17 @@ direct message before antiflood admission. Produce exactly one output:
 - Operator notes cover validator/sentry/observer rollout, crash-loop alerting,
   peer exposure, and unmanaged node ownership.
 
+## Output contract
+
+- Reviewer-ready PR upgrading Klever-Go to `1.7.18+` across modules, forks,
+  images, binaries, SBOMs, and generated reports.
+- Bounded direct-message admission before goroutine creation in owned wrappers
+  or forked code.
+- Local regression tests proving burst handling is bounded without flooding
+  live nodes.
+- `TRIAGE.md` when node runtime, fork, deployment, or rollout ownership is
+  outside this repository.
+
 ## Watch for
 
 - Updating `go.mod` while release images, vendored code, generated binaries,
@@ -235,6 +265,12 @@ direct message before antiflood admission. Produce exactly one output:
   numbers as the only flood control.
 - Running stress tests against shared nodes or logging peer topology, node
   keys, private chain configuration, production addresses, or raw payloads.
+
+## Related recipes
+
+- [Klever-Go P2P nil RawData DoS]({{< relref "/prompt-library/cve/ghsa-rm5c-5x2p-48wr-klever-go-p2p-nil-rawdata-dos" >}})
+- [Klever-Go REST API slow-header DoS]({{< relref "/prompt-library/cve/ghsa-w4c6-7r69-w7j9-klever-go-rest-api-slow-header-dos" >}})
+- [CVE intelligence intake gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}})
 
 ## References
 

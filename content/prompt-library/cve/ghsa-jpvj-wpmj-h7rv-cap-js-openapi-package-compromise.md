@@ -11,7 +11,7 @@ tags: ["ghsa", "cap-js", "sap-cap", "openapi", "npm", "supply-chain", "malware",
 weight: 93
 date: 2026-06-09
 ghsa: "GHSA-jpvj-wpmj-h7rv"
-aliases: ["@cap-js/openapi package compromise"]
+known_as: ["@cap-js/openapi package compromise"]
 kev: false
 severity: "critical"
 ecosystem: "npm/supply-chain"
@@ -28,6 +28,34 @@ This is not a normal vulnerable dependency bump. The right fix combines a clean
 upgrade to `@cap-js/openapi >=1.4.2`, package-cache quarantine, artifact
 rebuilds, and credential rotation for secrets reachable during dependency
 installation.
+
+## When to use it
+
+Use this recipe when a repository depends on `@cap-js/openapi`, runs SAP CAP
+OpenAPI generation, builds images with npm dependency installs, or owns caches
+that may have retained `@cap-js/openapi@1.4.1`. It is for supply-chain
+compromise cleanup, not a normal version bump.
+
+Use it to remove the compromised package, purge caches and generated artifacts,
+and create a credential-rotation packet. Do not use it to install or execute
+the compromised package.
+
+## Inputs
+
+- npm manifests, lockfiles, workspaces, vendored modules, Dockerfiles, image
+  build contexts, SBOMs, generated dependency reports, SAP CAP OpenAPI
+  generation paths, package mirrors, CI caches, and release workflows.
+- Exact package evidence for `@cap-js/openapi@1.4.1`, fixed `1.4.2+`, registry
+  URLs, package-manager cache keys, build logs, and install timestamps on or
+  after 2026-05-19.
+- Secrets reachable during dependency install: npm, GitHub, cloud, SAP BTP,
+  SSH, Kubernetes, Vault, package-registry, deployment, and local developer
+  credentials.
+- Cache and artifact ownership for `node_modules`, npm/pnpm/Yarn stores, CI
+  workspaces, Actions caches, Docker layers, package mirrors, generated
+  CAP/OpenAPI output, and deploy bundles.
+- Existing supply-chain guardrails: lifecycle-script policy, minimal-secret CI
+  installs, trust-boundary cache keys, and lockfile integrity review.
 
 ## Affected versions
 
@@ -217,6 +245,30 @@ You are remediating GHSA-jpvj-wpmj-h7rv, the malicious
 - Omitting operator actions for package mirrors and developer workstations that
   are outside repository control.
 
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that removes `@cap-js/openapi@1.4.1`,
+  upgrades to `1.4.2+`, regenerates lockfiles from a clean dependency graph,
+  purges controlled caches and generated artifacts, adds supply-chain
+  guardrails, and documents credential rotation.
+- `TRIAGE.md` when no controlled npm dependency graph, SAP CAP/OpenAPI build
+  path, package cache, image, CI workflow, generated artifact, or mirror can
+  contain the compromised package.
+
+The output must list whether `@cap-js/openapi@1.4.1` was found, manifests,
+locks, images, caches, and artifacts cleaned, install timing, credentials to
+rotate, mirror/developer-cache owners, and validation commands. It must not
+execute the compromised package, contact suspicious infrastructure, expose
+secrets, or claim rotation is complete when it is only assigned.
+
+## Related recipes
+
+- [Compromised package cache quarantine]({{< relref "/prompt-library/general/compromised-package-cache-quarantine" >}})
+- [Source-code supply chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+- [GHSA-54pg-9963-v8vg - Intercom client package compromise]({{< relref "/prompt-library/cve/ghsa-54pg-9963-v8vg-intercom-package-compromise" >}})
+
 ## References
 
 - GitHub Advisory: <https://github.com/advisories/GHSA-jpvj-wpmj-h7rv>
@@ -224,4 +276,3 @@ You are remediating GHSA-jpvj-wpmj-h7rv, the malicious
 - SAP Note 3747787: <https://me.sap.com/notes/3747787>
 - SAP Developer FAQ: <https://www.sap.com/documents/2026/05/8203a8b9-4d7f-0010-bca6-c68f7e60039b.html>
 - [Artifact Cache & Mirror Quarantine]({{< relref "/security-remediation/artifact-cache-purge" >}})
-

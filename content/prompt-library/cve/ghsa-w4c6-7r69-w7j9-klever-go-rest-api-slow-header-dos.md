@@ -11,7 +11,7 @@ tags: ["ghsa", "klever-go", "go", "gin", "rest-api", "slowloris", "denial-of-ser
 weight: 86
 date: 2026-06-07
 ghsa: "GHSA-w4c6-7r69-w7j9"
-aliases: ["Klever-Go REST API slow-header DoS", "Gin Engine.Run header timeout exhaustion"]
+known_as: ["Klever-Go REST API slow-header DoS", "Gin Engine.Run header timeout exhaustion"]
 kev: false
 severity: "high"
 ecosystem: "go/gomod"
@@ -33,6 +33,26 @@ served through explicit `http.Server` limits rather than relying on a reverse
 proxy alone.
 
 As of 2026-06-07, GitHub Advisory Database lists no CVE for this advisory.
+
+## When to use it
+
+- A repository depends on, forks, vendors, builds, or deploys Klever-Go
+  `1.7.14` through `1.7.17`.
+- Node, seednode, observer, validator, or testnet REST listeners may be
+  reachable beyond localhost or exposed through Docker/Kubernetes artifacts.
+- REST startup code uses Gin `Engine.Run`, `ListenAndServe`, or helper wrappers
+  without explicit HTTP server limits.
+- You need a bounded PR or triage note that upgrades Klever-Go and proves
+  slow/incomplete headers cannot exhaust REST listener sockets.
+
+## Inputs
+
+- Go modules, vendored trees, forks, node images, release artifacts, Docker/
+  Compose/Helm/K8s/systemd manifests, SBOMs, and generated dependency reports.
+- REST startup code, server helpers, `rest-api-interface` config, port `8080`
+  exposure, ingress/gateway rules, node runbooks, and timeout defaults.
+- Available Go tests, loopback slow-header tests, image build, deployment
+  render, SBOM, and dependency/security scan commands.
 
 ## Affected versions
 
@@ -220,6 +240,17 @@ HTTP server paths without header deadlines. Produce exactly one output:
 - Deployment notes identify whether REST port `8080` is exposed and who owns
   any remaining node upgrades.
 
+## Output contract
+
+- Reviewer-ready PR upgrading Klever-Go to `1.7.18+` across modules, forks,
+  images, artifacts, generated dependency reports, and SBOMs.
+- Explicit `http.Server` limits for every owned seednode and node REST startup
+  path, including read-header, read, write, idle, and header-size controls.
+- Loopback-only regression tests proving incomplete headers close by deadline
+  while normal health or log probes still succeed.
+- `TRIAGE.md` when REST listener ownership, node runtime, deployment, or
+  rollout control is outside this repository.
+
 ## Watch for
 
 - Updating `go.mod` while release images, vendored code, generated binaries,
@@ -231,6 +262,12 @@ HTTP server paths without header deadlines. Produce exactly one output:
 - Tests that use completed HTTP requests only and never hold headers open.
 - Logging node topology, credentials, API tokens, private chain configuration,
   or production endpoint names in regression output.
+
+## Related recipes
+
+- [Klever-Go P2P nil RawData DoS]({{< relref "/prompt-library/cve/ghsa-rm5c-5x2p-48wr-klever-go-p2p-nil-rawdata-dos" >}})
+- [Klever-Go direct-message goroutine DoS]({{< relref "/prompt-library/cve/ghsa-hf2g-6j7h-98wg-klever-go-direct-message-goroutine-dos" >}})
+- [CVE intelligence intake gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}})
 
 ## References
 

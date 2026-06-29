@@ -14,6 +14,26 @@ date: 2026-06-14
 Use this prompt to harden ERC-4626 vaults and vault-like share systems
 against first-depositor inflation, donation attacks, and unsafe rounding.
 
+## When to use it
+
+- A contract mints shares from assets, redeems assets from shares, or exposes
+  ERC-4626-style preview/conversion functions.
+- First deposits, direct donations, decimal offsets, fee-on-transfer assets,
+  or custom `totalAssets` logic can distort share price.
+- Rounding direction is unclear across deposit, mint, withdraw, redeem, and
+  preview paths.
+- You need a bounded PR or triage note that proves vault accounting resists
+  inflation, zero-share mints, and repeated rounding loops.
+
+## Inputs
+
+- Vault contracts, adapters, routers, accounting libraries, preview functions,
+  share/asset decimals, seed-liquidity scripts, and deployment parameters.
+- Existing mitigation choices such as virtual shares/assets, dead shares,
+  internal asset accounting, min-share slippage, fee logic, and donation policy.
+- Available unit tests, invariant/fuzz tests, simulation scripts, deployment
+  scripts, audit reports, and security scan commands.
+
 ## Research basis
 
 - [OpenZeppelin ERC-4626 documentation](https://docs.openzeppelin.com/contracts/4.x/erc4626) explains how direct asset donations can shift the exchange rate and cause small deposits to mint zero or too few shares.
@@ -68,3 +88,30 @@ Constraints:
 - Stop with TRIAGE.md if the protocol intentionally accepts donations
   into share price and cannot distinguish them from managed yield.
 ~~~
+
+## Output contract
+
+- Reviewer-ready PR implementing an explicit inflation defense and consistent
+  rounding policy across deposit, mint, withdraw, redeem, and preview flows.
+- Tests or invariants for first-depositor attacks, direct donations, zero-share
+  deposits, repeated rounding loops, fee edge cases, and small-value deposits.
+- Operator/auditor notes describing mitigation choice, configured constants,
+  migration implications, donation/yield assumptions, and residual risks.
+- `TRIAGE.md` when vault economics, donation policy, or migration authority is
+  outside this repository.
+
+## Verification - what the reviewer looks for
+
+- Deposits cannot silently mint zero shares or transfer value to an existing
+  shareholder without explicit caller-provided minimums or rejection.
+- Direct donations cannot create a profitable first-depositor or rounding-loop
+  attack under the repository's modeled assumptions.
+- Preview functions match execution functions and document rounding direction.
+- Invariant or fuzz tests cover low-liquidity, first-deposit, donation, and
+  repeated deposit/redeem scenarios.
+
+## Related recipes
+
+- [DeFi oracle manipulation guardrails]({{< relref "/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails" >}})
+- [Permit and meta-transaction replay guardrails]({{< relref "/prompt-library/general/crypto-defi/permit-and-meta-transaction-replay-guardrails" >}})
+- [Source code supply-chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})

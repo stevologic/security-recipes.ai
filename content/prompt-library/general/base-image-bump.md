@@ -186,6 +186,17 @@ triage.
 - Audit record includes the new digest, the scanner output, and
   the smoke-test result.
 
+## Verification
+
+- Rebuilt image digest is captured and differs from the vulnerable
+  baseline digest.
+- Scanner output shows the target CVE is absent, and any newly
+  introduced critical/high findings are listed as blockers.
+- Smoke test or service health check result is attached to the PR
+  or recorded in `TRIAGE.md`.
+- Rollback context includes the previous digest and confirms the
+  agent did not push to a registry or introduce a moving tag.
+
 ## Guardrails
 
 - **One CVE, one image, one PR.** Bundling masks regressions.

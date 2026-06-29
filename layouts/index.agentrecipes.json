@@ -19,6 +19,7 @@
 {{- $categoryLabels := dict
   "cve" "CVE"
   "classic-defaults" "Classic Vulnerable Defaults"
+  "compliance-standards" "Compliance Standards"
   "crypto-defi" "Crypto/DeFi"
   "claude" "Claude"
   "github-copilot" "GitHub Copilot"
@@ -49,6 +50,8 @@
     {{- $catSlug = "cve" -}}{{- $catLabel = "CVE" -}}
   {{- else if hasPrefix $source "prompt-library/general/classic-vulnerable-defaults/" -}}
     {{- $catSlug = "classic-defaults" -}}{{- $catLabel = "Classic Vulnerable Defaults" -}}
+  {{- else if hasPrefix $source "prompt-library/general/compliance-standards/" -}}
+    {{- $catSlug = "compliance-standards" -}}{{- $catLabel = "Compliance Standards" -}}
   {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
     {{- $catSlug = "crypto-defi" -}}{{- $catLabel = "Crypto/DeFi" -}}
   {{- else if hasPrefix $source "prompt-library/claude/" -}}
@@ -66,6 +69,33 @@
   {{- $current := index $categoryCounts $catSlug | default 0 -}}
   {{- $categoryCounts = merge $categoryCounts (dict $catSlug (add $current 1)) -}}
   {{- $summary := .Description | default (.Summary | plainify | truncate 240) -}}
+  {{- $tagText := delimit (.Params.tags | default (slice)) " " -}}
+  {{- $facetText := lower (printf "%s %s %s %s %s %s" $source .Title $summary $tagText (.Params.tool | default "") (.Params.agent | default "")) -}}
+  {{- $facets := slice "remediation" -}}
+  {{- if or (in $facetText "audit") (in $facetText "evidence") (in $facetText "review") (in $facetText "attestation") -}}{{- $facets = $facets | append "audit" -}}{{- end -}}
+  {{- if or (in $facetText "compliance") (in $facetText "nist") (in $facetText "ssdf") (in $facetText "slsa") (in $facetText "owasp") (in $facetText "pci") (in $facetText "soc2") -}}{{- $facets = $facets | append "compliance" -}}{{- end -}}
+  {{- if or (eq $catSlug "cve") (in $facetText "risk") (in $facetText "threat") (in $facetText "vulnerab") (in $facetText "exploit") (in $facetText "critical") (in $facetText "high") -}}{{- $facets = $facets | append "risk" -}}{{- end -}}
+  {{- if or (in $facetText "source-code") (in $facetText "code") (in $facetText "sast") (in $facetText "secret") (in $facetText "dependency") (in $facetText "supply-chain") (in $facetText "hygiene") (in $facetText "unsafe default") -}}{{- $facets = $facets | append "code-hygiene" -}}{{- end -}}
+  {{- $facets = uniq $facets -}}
+  {{- $plainLower := lower (printf "%s\n%s" .RawContent .Plain) -}}
+  {{- $qualitySignals := slice -}}
+  {{- $qualityScore := 20 -}}
+  {{- if or (in $plainLower "## inputs") (in $plainLower "## input") -}}{{- $qualitySignals = $qualitySignals | append "inputs" -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+  {{- if or (in $plainLower "## when to use") (in $plainLower "when to use it") -}}{{- $qualitySignals = $qualitySignals | append "selection-guidance" -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+  {{- if in $plainLower "## output contract" -}}{{- $qualitySignals = $qualitySignals | append "output-contract" -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+  {{- if or (in $plainLower "## verification") (in $plainLower "verification") (in $plainLower "tests") -}}{{- $qualitySignals = $qualitySignals | append "verification" -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+  {{- if or (in $plainLower "## guardrails") (in $plainLower "stop condition") (in $plainLower "do not") -}}{{- $qualitySignals = $qualitySignals | append "guardrails" -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+  {{- if or (in $plainLower "## related") (in $plainLower "## see also") -}}{{- $qualitySignals = $qualitySignals | append "related-context" -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+  {{- if ge (len $facets) 3 -}}{{- $qualitySignals = $qualitySignals | append "multi-facet" -}}{{- $qualityScore = add $qualityScore 5 -}}{{- end -}}
+  {{- if gt $qualityScore 100 -}}{{- $qualityScore = 100 -}}{{- end -}}
+  {{- $readinessTier := "starter" -}}
+  {{- if ge $qualityScore 85 -}}
+    {{- $readinessTier = "world-class" -}}
+  {{- else if ge $qualityScore 70 -}}
+    {{- $readinessTier = "strong" -}}
+  {{- else if ge $qualityScore 50 -}}
+    {{- $readinessTier = "usable" -}}
+  {{- end -}}
   {{- $date := "" -}}
   {{- with .Date -}}{{- $date = .Format "2006-01-02" -}}{{- end -}}
   {{- $isZeroDay := and (eq $catSlug "cve") (ne $date "") (ge $date $zeroDaySince) -}}
@@ -87,8 +117,21 @@
     "cve" (.Params.cve | default "")
     "ghsa" (.Params.ghsa | default "")
     "kev" (.Params.kev | default false)
-    "aliases" (.Params.aliases | default (slice))
+    "aliases" (.Params.known_as | default .Params.aliases | default (slice))
     "tags" (.Params.tags | default (slice))
+    "facets" $facets
+    "quality" (dict
+      "score" $qualityScore
+      "tier" $readinessTier
+      "signals" $qualitySignals
+      "scorecard" "inputs + selection guidance + output contract + verification + guardrails + related context + multi-facet coverage"
+    )
+    "recipe_contract" (dict
+      "primary_job" "Give an agent bounded remediation context for one source-code security finding, audit question, or hygiene improvement."
+      "selection_guidance" "Prefer the narrowest recipe that matches the finding, affected technology, compliance objective, and permitted output."
+      "output_expectation" "Reviewer-ready patch, triage note, evidence report, or stop-condition report as specified by the recipe."
+      "safety_boundary" "Read only until the operator explicitly authorizes edits; never rotate secrets, deploy, change cloud state, or widen scope unless the recipe and task both allow it."
+    )
     "author" (.Params.author | default "")
     "team" (.Params.team | default "")
     "model" (.Params.model | default .Params.model_used | default "")
@@ -100,6 +143,7 @@
     "agent_handoff" (dict
       "mcp_lookup_keys" (slice $slug .RelPermalink $source)
       "recommended_mcp_tools" (slice "recipes_search" "recipes_get" "recipes_match_finding")
+      "selection_facets" $facets
       "source_text_field" "content_text"
       "portable_download" (printf "security-recipe-%s.json" $slug)
     )
@@ -128,9 +172,18 @@
   "agent_contract" (dict
     "read_only" true
     "primary_lookup_fields" (slice "slug" "path" "source_file" "cve" "ghsa" "aliases")
-    "search_fields" (slice "title" "summary" "content_text" "tags" "ecosystem" "agent" "severity")
+    "search_fields" (slice "title" "summary" "content_text" "tags" "facets" "ecosystem" "agent" "severity")
     "mcp_tools" (slice "recipes_search" "recipes_list" "recipes_get" "recipes_match_finding")
     "download_schema" "https://security-recipes.ai/schemas/recipe-download/v1"
+    "recipe_facets" (slice "remediation" "risk" "audit" "compliance" "code-hygiene")
+    "app_store_model" "Recipes are installable context packs: browse by human intent, fetch by API, and select by MCP for one bounded remediation or evidence job."
+    "quality_model" (dict
+      "world_class" "85-100"
+      "strong" "70-84"
+      "usable" "50-69"
+      "starter" "0-49"
+      "signals" (slice "inputs" "selection-guidance" "output-contract" "verification" "guardrails" "related-context" "multi-facet")
+    )
   )
   "zero_day" (dict
     "label" "0-Day"

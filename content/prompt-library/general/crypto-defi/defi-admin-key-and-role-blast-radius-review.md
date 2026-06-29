@@ -14,6 +14,36 @@ date: 2026-06-14
 Use this prompt to reduce the damage a compromised admin key, overbroad
 role, or rushed governance action can cause in a DeFi protocol.
 
+## When to use it
+
+Use this recipe when smart contracts, deployment scripts, governance proposals,
+or runbooks define privileged roles that can upgrade contracts, pause markets,
+alter parameters, list assets, change oracles, move treasury funds, or trigger
+emergency actions. It is especially useful before mainnet launches, governance
+migrations, incident reviews, and audits of owner-only or role-gated code.
+
+Use it to reduce privileged-action blast radius with least privilege,
+timelocks, multisigs, bounded parameters, deployment checks, events, and
+reviewable governance paths. Do not use it to remove emergency controls that
+are genuinely required to stop active loss.
+
+## Inputs
+
+- Solidity/Vyper contracts, proxy/admin contracts, access-control libraries,
+  modifiers, deployment scripts, governance proposals, timelock config,
+  multisig config, role assignment manifests, Foundry/Hardhat scripts, and
+  runbooks.
+- Privileged functions that can upgrade implementations, pause/unpause,
+  change fees, list assets, set caps, alter risk parameters, change oracles,
+  move reserves, mint/burn, bridge, rescue tokens, or modify treasury routes.
+- Current role holders: EOAs, multisigs, timelocks, governors, executors,
+  guardians, emergency councils, deployment accounts, automation bots, and
+  cross-chain message receivers.
+- Tests, invariants, deployment checks, event coverage, monitoring rules, and
+  audit findings related to access control and governance actions.
+- Operational constraints for emergency response, routine governance cadence,
+  timelock delays, signer availability, and off-chain approval processes.
+
 ## Research basis
 
 - [OWASP Smart Contract Top 10 2026](https://scs.owasp.org/sctop10/) ranks access control and business logic issues among the top smart-contract risk categories.
@@ -65,3 +95,27 @@ Constraints:
 - Stop with TRIAGE.md if role ownership is controlled outside this
   repository and cannot be verified by code or deployment artifacts.
 ~~~
+
+## Output contract
+
+Return one of:
+
+- A reviewer-ready PR/change request that narrows privileged roles, adds or
+  verifies multisig/governor/timelock execution where appropriate, separates
+  emergency and routine authorities, bounds high-risk parameters, emits events,
+  adds tests and deployment checks, and refreshes governance documentation.
+- `TRIAGE.md` when privileged ownership is entirely external to the repository
+  and cannot be verified through code, deployment artifacts, governance config,
+  or runbooks.
+
+The output must list every privileged action reviewed, its current holder,
+fund-loss impact, intended authority, delay/emergency classification, tests
+added, deployment checks added, and residual roles that need human governance
+approval. It must not remove emergency pause paths, transfer authority to an
+unreviewed EOA, or rely only on comments for access-control risk reduction.
+
+## Related recipes
+
+- [Smart-contract upgrade diff risk review]({{< relref "/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review" >}})
+- [DeFi bridge and multisig emergency response]({{< relref "/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
+- [Hot-wallet transaction policy enforcement]({{< relref "/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement" >}})

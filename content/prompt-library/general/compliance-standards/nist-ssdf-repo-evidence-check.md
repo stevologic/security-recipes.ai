@@ -157,6 +157,23 @@ Stop and write a partial report if:
 - No code or configuration changes.
 - No final compliance statement.
 - Clear distinction between observed evidence and inferred evidence.
+- Every gap includes the smallest next action, owner, and verification evidence
+  needed before a reviewer can close it.
+
+## Verification
+
+Before handing the report to a secure-development owner, verify that:
+
+- every evidence row includes a repository path, generated artifact, CI
+  workflow, policy reference, or explicit `out of repo` marker;
+- PO, PS, PW, and RV gaps are separated instead of merged into a generic
+  security backlog;
+- agent, prompt, MCP, model-provider, and automation surfaces are included
+  when present in the repository;
+- no finding claims SSDF compliance or non-compliance for the organization as
+  a whole;
+- live secrets, private keys, customer data, and restricted compliance records
+  are redacted from the report.
 
 ## Guardrails
 
@@ -165,8 +182,14 @@ Stop and write a partial report if:
 - Treat agent prompts, MCP config, and model routing as software-development
   artifacts when they affect builds, releases, or code changes.
 
+## Related recipes
+
+- [ISO 27001 secure-development evidence check]({{< relref "/prompt-library/general/compliance-standards/iso27001-secure-development-evidence-check" >}})
+- [SLSA provenance evidence check]({{< relref "/prompt-library/general/compliance-standards/slsa-provenance-evidence-check" >}})
+- [SOC 2 change-management evidence check]({{< relref "/prompt-library/general/compliance-standards/soc2-change-management-evidence-check" >}})
+- [Source code audit - dependency and build integrity]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})
+
 ## References
 
 - [NIST SP 800-218 SSDF Version 1.1](https://csrc.nist.gov/pubs/sp/800/218/final)
 - [NIST SP 800-218A AI SSDF community profile](https://csrc.nist.gov/pubs/sp/800/218/a/final)
-

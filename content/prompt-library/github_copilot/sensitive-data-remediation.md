@@ -43,6 +43,16 @@ issue body); repo-level `copilot-instructions.md`.<br/>
 comment with a rotation checklist + `needs-rotation` label
 (exposed).
 
+## Inputs
+
+- Finding id, SDE class, exposure hint, affected file, line number, and
+  scanner metadata from the issue template.
+- Repository secret-store, redaction-helper, and CODEOWNERS policy.
+- Approved labels, branch naming convention, PR template, and human
+  reviewer route.
+- Scanner evidence that can be referenced without echoing the literal
+  secret or personal data.
+
 ## When to use it
 
 - GitHub push protection, GitLeaks, TruffleHog, or Wiz already
@@ -214,6 +224,31 @@ src/config/**       @org/security @org/platform
 **/.env.example     @org/security
 docs/security/**    @org/security
 ~~~
+
+## Output contract
+
+- For pre-exposure findings: draft PR with the minimal code replacement,
+  regression guard, passing test or scanner evidence, linked issue, and
+  explicit human reviewer.
+- For exposed findings: issue comment with rotation and disclosure
+  checklist, first-seen evidence, `needs-rotation` label, and no code edit.
+- For blocked findings: issue comment naming the missing secret-store,
+  redaction-helper, ownership, or exposure evidence.
+- No output may contain the literal SDE value.
+
+## Verification
+
+- Run the repository's secret or DLP scanner after the fix, plus the
+  regression test added by the PR.
+- Confirm the issue, PR body, commit message, and logs contain only hashes
+  or approved redacted forms.
+- Verify CODEOWNERS routes the changed path to a security reviewer.
+
+## Related recipes
+
+- [Seed/key material purge]({{< relref "/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge" >}})
+- [Codex sensitive data remediation]({{< relref "/prompt-library/codex/sensitive-data-remediation" >}})
+- [Claude sensitive data remediation skill]({{< relref "/prompt-library/claude/sensitive-data-remediation-skill" >}})
 
 ## Known limitations
 

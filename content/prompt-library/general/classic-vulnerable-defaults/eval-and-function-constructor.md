@@ -199,6 +199,43 @@ If the application has a browser front-end:
   schema-validation libraries compile schemas via `new
   Function`. Check the validator's release notes.
 
+## Output contract
+
+- PR or `TRIAGE.md` only; no broad expression-language redesign unless
+  explicitly authorized.
+- Inventory lists every `eval`, `Function`, string timer, dynamic template
+  compile, server-side schema compiler, and wrapper helper in scope.
+- Each call site is classified as arithmetic/formula evaluation, dynamic
+  property access, template rendering, timer callback, unknown, or
+  framework-owned.
+- Replacement names the restricted parser, typed dispatch table, static
+  template path, or triage rationale.
+- Tests prove legitimate behavior is preserved and representative escape
+  payloads fail closed.
+
+## Verification
+
+Before opening the PR or final triage note, verify that:
+
+- no user-controlled string reaches `eval`, `new Function`, string timers, or
+  dynamic template compilation;
+- replacement evaluators reject access to `constructor`, `__proto__`,
+  `prototype`, globals, imports, filesystem, process, and network primitives;
+- function allowlists are minimal and documented per use case;
+- CSP changes are report-only first when third-party browser scripts are
+  present;
+- no production expressions, private templates, secrets, or customer data are
+  committed as fixtures.
+
+## Guardrails
+
+- Do not replace `eval` with a stale or vulnerable “safe eval” package without
+  checking advisories.
+- Do not treat Node `vm` as a security sandbox.
+- Do not broaden a formula/function allowlist to make old dynamic behavior
+  pass without owner approval.
+- Do not bundle CSP rollout with unrelated frontend changes.
+
 ## Related
 
 - [Classic Vulnerable Defaults]({{< relref "/security-remediation/classic-vulnerable-defaults" >}})

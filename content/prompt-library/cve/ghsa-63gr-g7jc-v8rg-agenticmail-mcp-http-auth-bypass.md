@@ -11,7 +11,7 @@ tags: ["ghsa", "agenticmail", "mcp", "npm", "authentication", "authorization", "
 weight: 80
 date: 2026-06-07
 ghsa: "GHSA-63gr-g7jc-v8rg"
-aliases: ["AgenticMail MCP HTTP authorization bypass"]
+known_as: ["AgenticMail MCP HTTP authorization bypass"]
 kev: false
 severity: "high"
 ecosystem: "typescript/npm"
@@ -27,6 +27,25 @@ The higher-impact issue is confused authorization: tools documented as requiring
 `AGENTICMAIL_MASTER_KEY` are forwarded by the server using the server process's
 own configured master key. Any network client that can reach the MCP HTTP port
 can therefore become an indirect caller of master-key-only operations.
+
+## When to use it
+
+Use this recipe when a repository, AgenticMail deployment, MCP gateway, or
+desktop profile starts `@agenticmail/mcp` with Streamable HTTP transport. It is
+aimed at source-code remediation, MCP HTTP auth hardening, master-key
+containment, and audit evidence that unauthenticated clients cannot invoke
+mail tools through the server's configured credentials.
+
+## Inputs
+
+- `@agenticmail/mcp` version, HTTP transport flags, bind address, auth config,
+  gateway/ingress rules, and enabled mail tools.
+- Evidence of `AGENTICMAIL_MASTER_KEY` handling, per-tool authorization,
+  missing/invalid auth behavior, error/log redaction, and session creation.
+- Regression fixtures for unauthenticated `/mcp`, invalid bearer tokens, valid
+  tokens, master-key-only tools, local binding, and remote transport denial.
+- Boundary notes for reachable clients: loopback, LAN, shared workbench,
+  internal gateway, internet, and any mailbox/account data reachable by tools.
 
 ## Affected versions
 
@@ -194,6 +213,18 @@ Produce exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades AgenticMail MCP, requires
+  HTTP auth on `/mcp`, binds locally by default, disables master-key forwarding
+  on unauthenticated transports, adds tests, and documents key cleanup.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  endpoint exposure, master-key reach, required fix, and rotation
+  recommendation.
+- The output must include exact validation commands and must not expose real
+  mail content, master keys, bearer headers, mailbox metadata, or production
+  logs.
+
 ## Verification - what the reviewer looks for
 
 - No controlled manifest, lockfile, image, SBOM, or dependency report resolves
@@ -219,6 +250,13 @@ Produce exactly one output:
   of caller identity.
 - Tests or logs that expose email content, phone numbers, master keys, agent
   credentials, or tenant data.
+
+## Related recipes
+
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [NIST SSDF repository evidence check]({{< relref "/prompt-library/general/compliance-standards/nist-ssdf-repo-evidence-check" >}})
 
 ## References
 

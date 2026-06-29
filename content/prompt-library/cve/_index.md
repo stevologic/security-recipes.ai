@@ -27,7 +27,7 @@ where those recipes live.
 
 Every recipe follows the same outline:
 
-- **Frontmatter** — `cve` or `ghsa`, `aliases`, `kev` flag
+- **Frontmatter** — `cve` or `ghsa`, `known_as`, `kev` flag
   (CISA Known Exploited Vulnerability), severity, ecosystem,
   dates.
 - **Summary** — what the CVE is and what it lets an attacker
@@ -148,7 +148,7 @@ Required frontmatter for contributors:
   Vulnerability flag; renders as a badge.
 - `disclosed` — date string the listing sorts by within
   each ecosystem.
-- `aliases` — popular names (`["Log4Shell"]`); the first
+- `known_as` — popular names (`["Log4Shell"]`); the first
   alias renders as a quick visual identifier.
 
 ## Anatomy of a good CVE recipe submission

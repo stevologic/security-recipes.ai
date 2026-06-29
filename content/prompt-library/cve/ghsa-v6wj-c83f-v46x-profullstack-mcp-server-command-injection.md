@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-v6wj-c83f-v46x - profullstack MCP server command injection"
 linkTitle: "GHSA-v6wj profullstack MCP"
 description: "Critical unauthenticated command injection in @profullstack/mcp-server domain_lookup. Remove exposed vulnerable servers, replace shell execution with argv-based process calls, and require MCP auth/bind controls."
@@ -11,7 +11,7 @@ tags: ["ghsa", "mcp", "npm", "command-injection", "critical", "agentic-ai"]
 weight: 65
 date: 2026-05-12
 ghsa: "GHSA-v6wj-c83f-v46x"
-aliases: ["profullstack MCP server domain_lookup command injection"]
+known_as: ["profullstack MCP server domain_lookup command injection"]
 kev: false
 severity: "critical"
 ecosystem: "npm"
@@ -29,6 +29,25 @@ For agentic AI deployments, the important boundary is simple: an MCP tool that
 looks like passive DNS/domain enrichment is actually a command execution
 surface. The fix must address the process call, the network exposure, and the
 MCP server admission policy.
+
+## When to use it
+
+Use this recipe when a repository, MCP catalog, agent gateway, or developer
+workbench installs `@profullstack/mcp-server` or exposes domain lookup tools.
+It focuses on MCP command-injection remediation, unauthenticated HTTP exposure,
+argv-based process execution, and audit evidence that network-supplied lookup
+inputs cannot reach a shell.
+
+## Inputs
+
+- Package version, lockfile, MCP config, HTTP route exposure, bind address,
+  authentication middleware, and enabled `domain_lookup` tools.
+- Source paths that parse domains/keywords, construct lookup commands, call
+  subprocess APIs, or render errors/logs.
+- Regression fixtures for metacharacters, multiple domains, keyword lists,
+  invalid hostnames, and expected reject/allow behavior.
+- Runtime boundary evidence: server filesystem, credentials, DNS/network
+  access, shell availability, logs, and who can reach the MCP HTTP server.
 
 ## Affected versions
 
@@ -144,6 +163,17 @@ Produce exactly one output:
   without broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that removes vulnerable exposure,
+  replaces shell execution with validated argv calls, requires MCP auth/bind
+  controls, adds regression tests, and documents operator cleanup.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  exposed routes/tools, command-execution boundary, required fix, and residual
+  risk.
+- The output must include exact validation commands and must not run exploit
+  payloads, shell commands, or tests against production MCP servers.
+
 ## Verification - what the reviewer looks for
 
 - No controlled deployment resolves `@profullstack/mcp-server <=1.4.12`.
@@ -161,6 +191,13 @@ Produce exactly one output:
 - "Internal only" MCP servers reachable from browsers through DNS rebinding,
   local containers, shared workstations, or agent runtimes.
 - Patches that add regex escaping while still invoking a shell.
+
+## Related recipes
+
+- [Source code injection sink audit]({{< relref "/prompt-library/general/source-code-injection-sink-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [SAST finding triage and fix]({{< relref "/prompt-library/general/sast-finding-triage-and-fix" >}})
 
 ## References
 

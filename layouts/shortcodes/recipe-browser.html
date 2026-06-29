@@ -16,15 +16,10 @@
 
 {{- $categories := slice
   (dict "slug" "cve" "label" "CVE" "description" "Named advisory and vulnerability recipes")
-  (dict "slug" "general" "label" "General" "description" "Tool-agnostic prompts and review patterns")
+  (dict "slug" "general" "label" "General" "description" "Reusable prompts, toolsets, and review patterns")
   (dict "slug" "classic-defaults" "label" "Defaults" "description" "Recurring unsafe defaults and hardening prompts")
   (dict "slug" "compliance-standards" "label" "Compliance" "description" "Audit evidence and standards-readiness checks")
   (dict "slug" "crypto-defi" "label" "Crypto/DeFi" "description" "Blockchain, wallet, bridge, and payment recipes")
-  (dict "slug" "claude" "label" "Claude" "description" "Claude skills, hooks, and project instructions")
-  (dict "slug" "github-copilot" "label" "Copilot" "description" "Copilot instructions and coding-agent prompts")
-  (dict "slug" "cursor" "label" "Cursor" "description" "Cursor rules, chats, and background-agent prompts")
-  (dict "slug" "codex" "label" "Codex" "description" "AGENTS.md and Codex task recipes")
-  (dict "slug" "devin" "label" "Devin" "description" "Devin knowledge and playbooks")
 -}}
 
 {{- $categoryCounts := dict -}}
@@ -45,16 +40,6 @@
     {{- $catSlug = "compliance-standards" -}}
   {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
     {{- $catSlug = "crypto-defi" -}}
-  {{- else if hasPrefix $source "prompt-library/claude/" -}}
-    {{- $catSlug = "claude" -}}
-  {{- else if hasPrefix $source "prompt-library/github_copilot/" -}}
-    {{- $catSlug = "github-copilot" -}}
-  {{- else if hasPrefix $source "prompt-library/cursor/" -}}
-    {{- $catSlug = "cursor" -}}
-  {{- else if hasPrefix $source "prompt-library/codex/" -}}
-    {{- $catSlug = "codex" -}}
-  {{- else if hasPrefix $source "prompt-library/devin/" -}}
-    {{- $catSlug = "devin" -}}
   {{- end -}}
   {{- $current := index $categoryCounts $catSlug | default 0 -}}
   {{- $categoryCounts = merge $categoryCounts (dict $catSlug (add $current 1)) -}}
@@ -80,9 +65,9 @@
     <div class="recipe-browser__intro">
       <h2>Recipes</h2>
       <p>
-        Search the working shelf of agent-ready security recipes, filter by the problem
-        or agent surface, open the full recipe, or download a portable JSON copy for
-        downstream review and agent handoff.
+        Search the working shelf of reusable security recipes, filter by the problem
+        surface, open the full recipe, or download a portable JSON copy for downstream
+        review, MCP context, and agent handoff.
       </p>
     </div>
     <div class="recipe-browser__agent-endpoint">
@@ -140,7 +125,7 @@
       <label for="recipe-browser-search">Search every recipe</label>
       <div class="recipe-browser__search-field">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z"/></svg>
-        <input id="recipe-browser-search" type="search" autocomplete="off" spellcheck="false" data-recipe-search placeholder="Search by title, CVE, agent, tag, ecosystem, severity..." aria-describedby="recipe-browser-summary">
+        <input id="recipe-browser-search" type="search" autocomplete="off" spellcheck="false" data-recipe-search placeholder="Search by title, CVE, tag, ecosystem, severity, toolset..." aria-describedby="recipe-browser-summary" aria-autocomplete="list" aria-haspopup="listbox" aria-expanded="false">
         <button type="button" class="recipe-browser__search-clear" data-recipe-clear-search hidden aria-label="Clear recipe search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
         </button>
@@ -159,11 +144,32 @@
         </select>
       </label>
       <label>
+        <span>Facet</span>
+        <select data-recipe-facet-filter>
+          <option value="all">All facets</option>
+          <option value="remediation">Remediation</option>
+          <option value="risk">Risk</option>
+          <option value="audit">Audit</option>
+          <option value="compliance">Compliance</option>
+          <option value="code-hygiene">Code hygiene</option>
+        </select>
+      </label>
+      <label>
+        <span>Quality</span>
+        <select data-recipe-quality-filter>
+          <option value="0">All quality</option>
+          <option value="85">World-class</option>
+          <option value="70">Strong+</option>
+          <option value="50">Usable+</option>
+        </select>
+      </label>
+      <label>
         <span>Sort</span>
         <select data-recipe-sort>
           <option value="newest">Newest</option>
           <option value="title">Title</option>
           <option value="severity">Severity</option>
+          <option value="quality">Quality</option>
         </select>
       </label>
     </div>
@@ -220,16 +226,6 @@
         {{- $catSlug = "compliance-standards" -}}{{- $catLabel = "Compliance" -}}
       {{- else if hasPrefix $source "prompt-library/general/crypto-defi/" -}}
         {{- $catSlug = "crypto-defi" -}}{{- $catLabel = "Crypto/DeFi" -}}
-      {{- else if hasPrefix $source "prompt-library/claude/" -}}
-        {{- $catSlug = "claude" -}}{{- $catLabel = "Claude" -}}
-      {{- else if hasPrefix $source "prompt-library/github_copilot/" -}}
-        {{- $catSlug = "github-copilot" -}}{{- $catLabel = "Copilot" -}}
-      {{- else if hasPrefix $source "prompt-library/cursor/" -}}
-        {{- $catSlug = "cursor" -}}{{- $catLabel = "Cursor" -}}
-      {{- else if hasPrefix $source "prompt-library/codex/" -}}
-        {{- $catSlug = "codex" -}}{{- $catLabel = "Codex" -}}
-      {{- else if hasPrefix $source "prompt-library/devin/" -}}
-        {{- $catSlug = "devin" -}}{{- $catLabel = "Devin" -}}
       {{- end -}}
       {{- $severity := lower (.Params.severity | default "unspecified") -}}
       {{- $maturity := lower (.Params.maturity | default "unspecified") -}}
@@ -248,11 +244,32 @@
       {{- $summary := .Description | default (.Summary | plainify | truncate 180) -}}
       {{- $tagText := "" -}}
       {{- with .Params.tags }}{{ $tagText = delimit . " " }}{{ end -}}
-      {{- $searchParts := slice .Title $summary $identity $catLabel $severity $maturity $tagText (.Params.ecosystem | default "") (.Params.author | default "") (.Params.team | default "") (.Params.model | default "") (.Params.cve | default "") (.Params.ghsa | default "") $publishedDate -}}
+      {{- $facetText := lower (printf "%s %s %s %s %s %s" $source .Title $summary $tagText (.Params.tool | default "") (.Params.agent | default "")) -}}
+      {{- $facets := slice "remediation" -}}
+      {{- if or (in $facetText "audit") (in $facetText "evidence") (in $facetText "review") (in $facetText "attestation") -}}{{- $facets = $facets | append "audit" -}}{{- end -}}
+      {{- if or (in $facetText "compliance") (in $facetText "nist") (in $facetText "ssdf") (in $facetText "slsa") (in $facetText "owasp") (in $facetText "pci") (in $facetText "soc2") -}}{{- $facets = $facets | append "compliance" -}}{{- end -}}
+      {{- if or (eq $catSlug "cve") (in $facetText "risk") (in $facetText "threat") (in $facetText "vulnerab") (in $facetText "exploit") (in $facetText "critical") (in $facetText "high") -}}{{- $facets = $facets | append "risk" -}}{{- end -}}
+      {{- if or (in $facetText "source-code") (in $facetText "code") (in $facetText "sast") (in $facetText "secret") (in $facetText "dependency") (in $facetText "supply-chain") (in $facetText "hygiene") (in $facetText "unsafe default") -}}{{- $facets = $facets | append "code-hygiene" -}}{{- end -}}
+      {{- $facets = uniq $facets -}}
+      {{- $facetString := delimit $facets " " -}}
+      {{- $plainLower := lower (printf "%s\n%s" .RawContent .Plain) -}}
+      {{- $qualityScore := 20 -}}
+      {{- if or (in $plainLower "## inputs") (in $plainLower "## input") -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+      {{- if or (in $plainLower "## when to use") (in $plainLower "when to use it") -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+      {{- if in $plainLower "## output contract" -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+      {{- if or (in $plainLower "## verification") (in $plainLower "verification") (in $plainLower "tests") -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+      {{- if or (in $plainLower "## guardrails") (in $plainLower "stop condition") (in $plainLower "do not") -}}{{- $qualityScore = add $qualityScore 15 -}}{{- end -}}
+      {{- if or (in $plainLower "## related") (in $plainLower "## see also") -}}{{- $qualityScore = add $qualityScore 10 -}}{{- end -}}
+      {{- if ge (len $facets) 3 -}}{{- $qualityScore = add $qualityScore 5 -}}{{- end -}}
+      {{- if gt $qualityScore 100 -}}{{- $qualityScore = 100 -}}{{- end -}}
+      {{- $readinessTier := "starter" -}}
+      {{- if ge $qualityScore 85 -}}{{- $readinessTier = "world-class" -}}{{- else if ge $qualityScore 70 -}}{{- $readinessTier = "strong" -}}{{- else if ge $qualityScore 50 -}}{{- $readinessTier = "usable" -}}{{- end -}}
+      {{- $searchParts := slice .Title $summary $identity $catLabel $severity $maturity $tagText $facetString (.Params.ecosystem | default "") (.Params.author | default "") (.Params.team | default "") (.Params.model | default "") (.Params.cve | default "") (.Params.ghsa | default "") $publishedDate -}}
       {{- if $isZeroDay -}}
         {{- $searchParts = $searchParts | append "0-day zero-day recent latest" -}}
       {{- end -}}
-      {{- with .Params.aliases -}}
+      {{- $knownAs := .Params.known_as | default .Params.aliases | default (slice) -}}
+      {{- with $knownAs -}}
         {{- range . -}}{{- $searchParts = $searchParts | append . -}}{{- end -}}
       {{- end -}}
       {{- $searchIndex := delimit $searchParts " " | plainify -}}
@@ -262,6 +279,9 @@
         data-recipe-category="{{ $catSlug }}"
         data-recipe-zero-day="{{ $isZeroDay }}"
         data-recipe-severity="{{ $severity }}"
+        data-recipe-facets="{{ $facetString }}"
+        data-recipe-quality="{{ $qualityScore }}"
+        data-recipe-readiness="{{ $readinessTier }}"
         data-recipe-maturity="{{ $maturity }}"
         data-recipe-date="{{ $recipeDate }}"
         data-recipe-published="{{ $publishedDate }}"
@@ -285,9 +305,15 @@
             {{- else -}}
               <span>{{ $maturity }}</span>
             {{- end -}}
+            <span class="recipe-browser-card__quality recipe-browser-card__quality--{{ $readinessTier }}">{{ $readinessTier }} {{ $qualityScore }}</span>
           </div>
           <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
           {{- with $summary -}}<p>{{ . }}</p>{{- end -}}
+          <div class="recipe-browser-card__facets" aria-label="Recipe facets">
+            {{- range $facets -}}
+              <span>{{ replace . "-" " " }}</span>
+            {{- end -}}
+          </div>
           <div class="recipe-browser-card__meta">
             {{- with $identity -}}<span>{{ . }}</span>{{- end -}}
             {{- with $publishedDate -}}<span>Published {{ . }}</span>{{- end -}}

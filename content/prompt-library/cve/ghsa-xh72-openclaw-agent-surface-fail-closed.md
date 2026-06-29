@@ -1,4 +1,4 @@
-﻿---
+---
 title: "GHSA-xh72/GHSA-xmxx - OpenClaw agent-surface fail-closed bypasses"
 linkTitle: "GHSA OpenClaw agent surface"
 description: "Critical OpenClaw agent-surface vulnerabilities across Feishu webhook auth, gateway bearer-token rotation, Matrix room authorization, and webchat media file containment. Upgrade to 2026.4.15+, fail closed at every external agent input, and add trust-boundary regression tests."
@@ -11,7 +11,7 @@ tags: ["ghsa", "openclaw", "agentic-ai", "npm", "webhook", "authorization", "sec
 weight: 59
 date: 2026-05-02
 ghsa: "GHSA-xh72-v6v9-mwhc"
-aliases: ["OpenClaw 2026.4.15 agent-surface hardening", "GHSA-xmxx-7p24-h892", "GHSA-2gvc-4f3c-2855", "GHSA-mr34-9552-qr95"]
+known_as: ["OpenClaw 2026.4.15 agent-surface hardening", "GHSA-xmxx-7p24-h892", "GHSA-2gvc-4f3c-2855", "GHSA-mr34-9552-qr95"]
 kev: false
 severity: "critical"
 ecosystem: "typescript/npm"
@@ -38,6 +38,27 @@ The four advisories covered by this recipe are:
 - `GHSA-mr34-9552-qr95` (High): webchat tool-result media handling could pass
   local or UNC-style paths into host-side embedding before enforcing
   `localRoots`, risking host file reads or Windows network credential exposure.
+
+## When to use it
+
+Use this recipe when a repository, OpenClaw deployment, or external-agent
+gateway receives chat/webhook ingress, browser media, Matrix commands, or
+Gateway traffic from lower-trust users. It is designed for source-code
+remediation, fail-closed boundary review, multi-surface audit, and evidence
+that every external agent input denies by default when auth context is missing
+or stale.
+
+## Inputs
+
+- OpenClaw version, Feishu webhook config, Gateway bearer-token config,
+  SecretRef rotation behavior, Matrix pairing store, webchat media roots, and
+  deployment exposure.
+- Source paths for webhook signature/callback checks, WebSocket/HTTP auth,
+  Matrix room authorization, media path normalization, and fail-closed tests.
+- Regression fixtures for missing signing config, stale bearer tokens, rotated
+  secrets, DM-vs-room senders, local media paths, UNC paths, and denied actions.
+- Boundary evidence: active tokens, webhooks, Matrix rooms, media roots,
+  impacted sessions, logs, and operator cleanup/rotation owners.
 
 ## Affected versions
 
@@ -211,6 +232,16 @@ GHSA-mr34-9552-qr95. Produce exactly one output:
   instead of broadening scope.
 ~~~
 
+## Output contract
+
+- A reviewer-ready PR or change request that upgrades OpenClaw, fails closed on
+  every external agent input, adds trust-boundary regression tests, and
+  documents token/media/session cleanup.
+- Or a `TRIAGE.md` file that lists inspected files, owner, observed version,
+  affected agent surfaces, boundary gaps, required fix, and residual risk.
+- The output must include exact validation commands and must not expose real
+  tokens, chat contents, local files, customer data, or production logs.
+
 ## Verification - what the reviewer looks for
 
 - No controlled lockfile, image, SBOM, or deployment target resolves OpenClaw
@@ -235,6 +266,13 @@ GHSA-mr34-9552-qr95. Produce exactly one output:
 - Treating Matrix DM pairing as equivalent to room command authorization.
 - Checking local-root containment after `stat`, preview generation, or media
   metadata probing has already touched the path.
+
+## Related recipes
+
+- [Source code authz tenant boundary audit]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
+- [Source code secrets and data exposure audit]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
+- [Source code attack surface map]({{< relref "/prompt-library/general/source-code-attack-surface-map" >}})
+- [AI governance oversight evidence check]({{< relref "/prompt-library/general/compliance-standards/ai-governance-oversight-evidence-check" >}})
 
 ## References
 

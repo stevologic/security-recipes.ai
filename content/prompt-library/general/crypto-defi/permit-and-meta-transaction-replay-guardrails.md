@@ -14,6 +14,28 @@ date: 2026-06-14
 Use this prompt to prevent signature replay across chains, contracts,
 forks, functions, and repeated permit or meta-transaction execution.
 
+## When to use it
+
+- Contracts or services implement `permit`, delegated execution,
+  meta-transactions, gasless approvals, off-chain orders, claims, or governance
+  signatures.
+- Signed payloads can authorize transfers, approvals, withdrawals, orders,
+  claims, role changes, or other state-changing actions.
+- Domain separators, nonces, deadlines, typed-data fields, upgrade behavior, or
+  fork handling are custom or partially implemented.
+- You need a bounded PR or triage note that binds every signature to one chain,
+  contract, purpose, signer state, and expiration window.
+
+## Inputs
+
+- Signature verification code, EIP-712 domain construction, nonce storage,
+  order books, relayer/meta-tx handlers, upgradeable proxy config, and permit
+  adapters.
+- Chain IDs, verifying contracts, domain names/versions, typed-data schemas,
+  nonce namespaces, deadline rules, signer recovery logic, and migration notes.
+- Available unit tests, fork tests, fuzz/property tests, signature fixtures,
+  deployment scripts, audit reports, and security scan commands.
+
 ## Research basis
 
 - [OWASP SCWE-105: Permit Signature Replay](https://scs.owasp.org/SCWE/SCSVS-AUTH/SCWE-105/) recommends EIP-712 domain separators with name, version, chain ID, and verifying contract plus nonce handling.
@@ -68,3 +90,31 @@ Constraints:
 - Stop with TRIAGE.md if existing live signatures must remain valid and
   the safe migration path requires governance or user coordination.
 ~~~
+
+## Output contract
+
+- Reviewer-ready PR binding each signed action to explicit domain fields,
+  action-specific typed data, signer identity, nonce state, and deadline before
+  any state change.
+- Tests for replay across chains, contracts, forks, function intents, nonce
+  states, expired deadlines, malformed signatures, and zero-address owners.
+- Operator/auditor notes describing domain/version changes, migration effects,
+  nonce namespace choices, live-signature invalidation, and governance needs.
+- `TRIAGE.md` when a safe signature migration or governance decision is outside
+  this repository.
+
+## Verification - what the reviewer looks for
+
+- Signatures cannot be replayed across chain IDs, verifying contracts, proxy
+  deployments, function intents, assets, recipients, or nonce states.
+- Nonce consumption is atomic with successful execution and cannot be skipped
+  or reused after partial failure.
+- Deadlines or validity windows are enforced before state changes.
+- Tests cover both canonical valid signatures and malicious reuse scenarios
+  against the actual entry points.
+
+## Related recipes
+
+- [ERC-4626 vault inflation and rounding guardrails]({{< relref "/prompt-library/general/crypto-defi/erc4626-vault-inflation-and-rounding-guardrails" >}})
+- [Crypto payment address integrity checks]({{< relref "/prompt-library/general/crypto-defi/crypto-payment-address-integrity-check" >}})
+- [Source code supply-chain build integrity audit]({{< relref "/prompt-library/general/source-code-supply-chain-build-integrity-audit" >}})

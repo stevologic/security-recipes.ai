@@ -14,11 +14,21 @@ date: 2026-04-26
 Use this prompt to harden a hot-wallet signing pipeline so unsafe
 transactions are blocked before they can be signed.
 
-## Use when
+## When to use it
 
 - Payment services sign transfers from online wallets.
 - Destination and amount controls exist but are inconsistently enforced.
 - You need reproducible policy checks in CI and runtime.
+
+## Inputs
+
+- Signing entrypoint names, wallet service paths, and transaction request
+  schemas.
+- Approved chains, assets, destination allowlists, per-transaction caps,
+  rolling daily caps, and business-reason requirements.
+- Existing policy store, logging, metrics, and alerting conventions.
+- Test harness or simulation mode that can exercise signing flows without
+  broadcasting transactions.
 
 ## Prompt
 
@@ -50,3 +60,35 @@ Implementation tasks:
 Stop and write TRIAGE.md if signing paths are dynamic/reflection-based
 and cannot be bounded confidently.
 ~~~
+
+## Output contract
+
+- PR that inserts fail-closed policy enforcement before every signer call.
+- Tests for allowed requests, blocked destinations, blocked amounts,
+  rolling-limit exhaustion, and missing policy data.
+- Audit log fields for request id, rejection reason, policy version, and
+  actor without secrets or private keys.
+- `TRIAGE.md` when signing paths, policy ownership, or simulation coverage
+  cannot be bounded safely.
+
+## Verification
+
+- Run unit and integration tests in dry-run mode only.
+- Confirm no code path signs or broadcasts a real transaction during the
+  recipe run.
+- Verify missing policy data, policy-store outage, and malformed requests
+  fail closed.
+
+## Guardrails
+
+- Do not sign, broadcast, sweep, or move funds.
+- Do not log seed phrases, private keys, full wallet addresses beyond the
+  approved audit format, or raw transaction secrets.
+- Stop if a signing path cannot be located, policy limits conflict, or the
+  runtime cannot enforce deny-all mode.
+
+## Related recipes
+
+- [Bridge/multisig emergency response]({{< relref "/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
+- [Seed/key material purge]({{< relref "/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge" >}})
+- [Crypto payment address integrity checks]({{< relref "/prompt-library/general/crypto-defi/crypto-payment-address-integrity-check" >}})
