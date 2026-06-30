@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote, urlparse
 from urllib.request import Request, urlopen
@@ -15,9 +16,19 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT_DIR = ROOT / "content" / "prompt-library" / "cve"
 INDEX = ROOT / "data" / "ghad-assessment" / "cve-prompts-2026-high-critical.json"
-SINCE = datetime(2026, 6, 25, 19, 37, 49, tzinfo=timezone.utc)
-UNTIL = datetime(2026, 6, 27, 19, 37, 49, tzinfo=timezone.utc)
 UA = "security-recipes-ai/zero-day-hunting"
+
+
+def default_until() -> datetime:
+    return datetime.now(timezone.utc).replace(microsecond=0)
+
+
+def parse_window_dt(value: str) -> datetime:
+    value = value.strip().replace("Z", "+00:00")
+    dt = datetime.fromisoformat(value)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 def fetch_json(url: str) -> dict | list:
@@ -96,10 +107,10 @@ def refs_from_nvd(cve: dict) -> list[str]:
     return sorted(dict.fromkeys(urls))
 
 
-def nvd_candidates() -> list[dict]:
+def nvd_candidates(since: datetime, until: datetime) -> list[dict]:
     base = "https://services.nvd.nist.gov/rest/json/cves/2.0"
-    start = quote(SINCE.strftime("%Y-%m-%dT%H:%M:%S.000"))
-    end = quote(UNTIL.strftime("%Y-%m-%dT%H:%M:%S.000"))
+    start = quote(since.strftime("%Y-%m-%dT%H:%M:%S.000"))
+    end = quote(until.strftime("%Y-%m-%dT%H:%M:%S.000"))
     out: dict[str, dict] = {}
     for field_start, field_end in (("pubStartDate", "pubEndDate"), ("lastModStartDate", "lastModEndDate")):
         for sev in ("HIGH", "CRITICAL"):
@@ -111,7 +122,7 @@ def nvd_candidates() -> list[dict]:
                 cve_id = cve["id"]
                 published = parse_dt(cve["published"])
                 modified = parse_dt(cve["lastModified"])
-                if published < SINCE and modified < SINCE:
+                if published < since and modified < since:
                     continue
                 nvd_sev, score, vector = severity_from_nvd(cve)
                 if not score or score < 7.0 or nvd_sev not in {"high", "critical"}:
@@ -137,7 +148,7 @@ def nvd_candidates() -> list[dict]:
     return list(out.values())
 
 
-def ghsa_candidates() -> list[dict]:
+def ghsa_candidates(since: datetime) -> list[dict]:
     ecosystems = ["npm", "pip", "maven", "go", "rust", "composer", "nuget", "actions", "other"]
     out: dict[str, dict] = {}
     for ecosystem in ecosystems:
@@ -157,7 +168,7 @@ def ghsa_candidates() -> list[dict]:
                     continue
                 published = parse_dt(adv["published_at"])
                 updated = parse_dt(adv["updated_at"])
-                if published < SINCE and updated < SINCE:
+                if published < since and updated < since:
                     continue
                 package, affected, fixed = package_from_ghsa(adv)
                 refs = [adv.get("html_url")]
@@ -184,13 +195,13 @@ def ghsa_candidates() -> list[dict]:
     return list(out.values())
 
 
-def cisa_candidates() -> list[dict]:
+def cisa_candidates(since: datetime) -> list[dict]:
     url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
     data = fetch_json(url)
     out: list[dict] = []
     for item in data.get("vulnerabilities", []):
         added = datetime.fromisoformat(item["dateAdded"]).replace(tzinfo=timezone.utc)
-        if added.date() < SINCE.date():
+        if added.date() < since.date():
             continue
         cve_id = item["cveID"]
         notes = item.get("notes", "")
@@ -614,14 +625,36 @@ def update_index(new_entries: list[dict]) -> None:
     INDEX.write_text(json.dumps(data, indent=4) + "\n", encoding="utf-8")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--since", help="Inclusive UTC start time, e.g. 2026-06-28T13:02:00Z.")
+    parser.add_argument("--until", help="Exclusive UTC end time, e.g. 2026-06-30T13:02:00Z.")
+    parser.add_argument("--hours", type=int, default=48, help="Rolling lookback window when --since is omitted.")
+    args = parser.parse_args(argv)
+
+    until = parse_window_dt(args.until) if args.until else default_until()
+    since = parse_window_dt(args.since) if args.since else until - timedelta(hours=args.hours)
+    if since >= until:
+        raise ValueError("--since must be earlier than --until")
+
     candidates = []
-    candidates.extend(nvd_candidates())
-    candidates.extend(ghsa_candidates())
-    candidates.extend(cisa_candidates())
+    candidates.extend(nvd_candidates(since, until))
+    candidates.extend(ghsa_candidates(since))
+    candidates.extend(cisa_candidates(since))
     written = write_recipes(candidates)
     update_index(written)
-    print(json.dumps({"candidate_count": len({c["cve"] for c in candidates}), "created": len(written), "files": written}, indent=2))
+    print(
+        json.dumps(
+            {
+                "since": since.isoformat(),
+                "until": until.isoformat(),
+                "candidate_count": len({c["cve"] for c in candidates}),
+                "created": len(written),
+                "files": written,
+            },
+            indent=2,
+        )
+    )
     return 0
 
 
