@@ -7,9 +7,28 @@ script = ""
 
 [setup.win32]
 script = '''
-cd "CODEX_SOURCE_TREE_PATH"
-docker-compose up --build
+$ErrorActionPreference = "Stop"
+if (-not $env:COMPOSE_PROJECT_NAME) {
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes((Get-Location).Path)
+  $hash = -join ($sha.ComputeHash($bytes)[0..3] | ForEach-Object { $_.ToString("x2") })
+  $env:COMPOSE_PROJECT_NAME = "security-recipes-$hash"
+}
+if (-not $env:SECURITY_RECIPES_HTTP_PORT) {
+  $env:SECURITY_RECIPES_HTTP_PORT = "127.0.0.1:0"
+}
+docker compose up -d --build
+docker compose port security-recipes 80
 '''
 
 [cleanup]
-script = "docker-compose down"
+script = '''
+$ErrorActionPreference = "Stop"
+if (-not $env:COMPOSE_PROJECT_NAME) {
+  $sha = [System.Security.Cryptography.SHA256]::Create()
+  $bytes = [System.Text.Encoding]::UTF8.GetBytes((Get-Location).Path)
+  $hash = -join ($sha.ComputeHash($bytes)[0..3] | ForEach-Object { $_.ToString("x2") })
+  $env:COMPOSE_PROJECT_NAME = "security-recipes-$hash"
+}
+docker compose down
+'''
