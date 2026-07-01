@@ -81,6 +81,10 @@ def first_sentence(value: str) -> str:
     return match.group(1) if match else value[:260].rstrip() + "."
 
 
+def yaml_string(value: object) -> str:
+    return json.dumps(str(value))
+
+
 def severity_from_nvd(cve: dict) -> tuple[str | None, float | None, str | None]:
     metrics = cve.get("metrics", {})
     for key in ("cvssMetricV31", "cvssMetricV30"):
@@ -465,10 +469,15 @@ def render_recipe(item: dict) -> str:
 Find every affected dependency, runtime, image, service configuration, and reachable code path. Upgrade or patch to {item['fixed']}. Replace the vulnerable {item['category']} pattern with a fail-closed implementation, add a regression test for the trigger shape, and update deployment/SBOM artifacts. If this repository does not control the affected runtime, create TRIAGE.md naming the owner, affected version, fixed version, and blocking decision.
 """
     title = f"{item['cve']} - {item['title']}"
+    link_title = f"{item['cve']} {item['title'][:54]}"
+    description = (
+        f"{item['severity'].title()} remediation recipe for {item['title']}. "
+        f"Upgrade to {item['fixed']} and remove the vulnerable {item['category']} pattern."
+    )
     return f"""---
-title: "{title}"
-linkTitle: "{item['cve']} {item['title'][:54]}"
-description: "{item['severity'].title()} remediation recipe for {item['title']}. Upgrade to {item['fixed']} and remove the vulnerable {item['category']} pattern."
+title: {yaml_string(title)}
+linkTitle: {yaml_string(link_title)}
+description: {yaml_string(description)}
 tool: "general"
 author: "Codex"
 team: "Security"
@@ -477,13 +486,13 @@ model: "GPT 5.5 Extra High reasoning"
 tags: {json.dumps(sorted(set(tags)))}
 weight: 91
 date: {item['published']}
-cve: "{item['cve']}"
+cve: {yaml_string(item['cve'])}
 ghsa: {json.dumps(item.get('ghsa')) if item.get('ghsa') else "null"}
-known_as: [{json.dumps(item['title'])}]
+known_as: {json.dumps([item['title']])}
 kev: {str(bool(item.get('kev'))).lower()}
-severity: "{item['severity']}"
-ecosystem: "{item['ecosystem']}"
-disclosed: "{item['published']}"
+severity: {yaml_string(item['severity'])}
+ecosystem: {yaml_string(item['ecosystem'])}
+disclosed: {yaml_string(item['published'])}
 ---
 
 # {item['cve']} + {item['title']} + {item['severity'].title()} + {item['published']}
@@ -537,12 +546,12 @@ Dependency or runtime update:
 
 ```yaml
 id: {item['cve'].lower()}-{slugify(item['title'])[:48]}
-source: {item['source']}
-dependency_or_product: "{package}"
-affected: "{item['affected']}"
-fixed: "{item['fixed']}"
+source: {yaml_string(item['source'])}
+dependency_or_product: {yaml_string(package)}
+affected: {yaml_string(item['affected'])}
+fixed: {yaml_string(item['fixed'])}
 signals:
-  - "{item['category']}"
+  - {yaml_string(item['category'])}
   - "../"
   - "__proto__"
   - "tools/call"
