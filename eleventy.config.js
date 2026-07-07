@@ -13,17 +13,14 @@ const site = require("./lib/site-config");
 const contentIndex = require("./lib/content-index");
 const { createPreprocessor } = require("./lib/hugo-preprocess");
 const feeds = require("./lib/feeds");
-const { escapeHtml, truncate, isoDate } = require("./lib/util");
+const { escapeHtml, stripTags, isoDate } = require("./lib/util");
 const { lastmodFor } = require("./lib/git-lastmod");
 const { seoHead } = require("./lib/seo");
 
 // Hugo-goldmark-compatible heading ids: lowercase, spaces to hyphens,
 // punctuation dropped, underscores kept.
 function slugifyHeading(s) {
-  return String(s)
-    .trim()
-    .toLowerCase()
-    .replace(/<[^>]+>/g, "")
+  return stripTags(String(s).trim().toLowerCase())
     .replace(/[^\p{L}\p{N}\s_-]+/gu, "")
     .replace(/\s+/g, "-");
 }
@@ -232,7 +229,7 @@ module.exports = function (eleventyConfig) {
       entries.push({
         level: Number(m[1]),
         id: m[2],
-        text: m[3].replace(/<[^>]+>/g, "").trim(),
+        text: stripTags(m[3]).trim(),
       });
     }
     return entries;
