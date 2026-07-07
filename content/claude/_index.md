@@ -9,7 +9,7 @@ sidebar:
 
 {{< callout type="info" >}}
 **Outcome.** A Claude Code agent picks up findings from any source
-(SARIF, ticket, message), runs the matching skill, and ships a PR â€” with
+(SARIF, ticket, message), runs the matching skill, and ships a PR — with
 hooks blocking unsafe edits before they happen.
 {{< /callout >}}
 
@@ -20,7 +20,7 @@ is a five-minute path to your first agentic remediation PR with
 Claude. Come back here for the full recipe once that loop is working.
 {{< /callout >}}
 
-Claude â€” via **Claude Code**, the **Claude Agent SDK**, and **MCP** â€” can
+Claude — via **Claude Code**, the **Claude Agent SDK**, and **MCP** — can
 drive end-to-end remediation: triage, fix, test, and ship. Skills encode
 your house rules; hooks enforce them; MCP servers bring in your real
 context.
@@ -34,13 +34,13 @@ context.
 
 ## General onboarding
 
-The public path â€” what any individual or team can do today via
+The public path — what any individual or team can do today via
 Anthropic's documented setup.
 
 1. **Pick a plan.** Claude Code works with Pro, Team, or
    Enterprise Claude subscriptions, or with an Anthropic Console
    API key. See [Claude.com plan documentation](https://claude.com/plan documentation).
-2. **Install Claude Code.** Use the installer for your OS â€” see
+2. **Install Claude Code.** Use the installer for your OS — see
    the section below, or Anthropic's
    [install overview](https://code.claude.com/docs/en/overview).
 3. **First run.** `claude` in any project directory; sign in on
@@ -63,9 +63,9 @@ Anthropic's documented setup.
 
 **Vendor-side reference index:**
 
-- [Claude Code overview](https://code.claude.com/docs/en/overview) â€” install + first-run
+- [Claude Code overview](https://code.claude.com/docs/en/overview) — install + first-run
 - [Quickstart](https://code.claude.com/docs/en/quickstart)
-- [Setup (advanced)](https://code.claude.com/docs/en/setup) â€” manual updates, uninstall, proxies
+- [Setup (advanced)](https://code.claude.com/docs/en/setup) — manual updates, uninstall, proxies
 - [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview)
 - [GitHub Actions](https://code.claude.com/docs/en/github-actions)
 - [MCP](https://code.claude.com/docs/en/mcp)
@@ -76,7 +76,7 @@ Anthropic's documented setup.
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder â€” customize for your organization.** Replace the
+**Placeholder — customize for your organization.** Replace the
 steps and links below with your internal process for getting a
 Claude license, a workspace, and the permissions this recipe
 expects. The structure is a starting point so every recipe on
@@ -96,7 +96,7 @@ expected to fill this in for their own organizations.
    [SSO enrollment](#placeholder-sso-link).
 4. **Scope GitHub / GitLab access.** Make sure the Claude Code
    integration (and any Claude-facing MCP connectors) is installed
-   on the org and granted to the repos this recipe targets â€”
+   on the org and granted to the repos this recipe targets —
    nothing broader.
 5. **Complete internal training.** Read the internal rules of
    engagement for using Claude Code on production repos before
@@ -108,10 +108,10 @@ expected to fill this in for their own organizations.
 Anthropic's [install configurator](https://code.claude.com/docs/en/overview)
 is the source of truth. The commands below are the current options.
 
-{{< tabs items="macOS / Linux / WSL,Homebrew,Windows (PowerShell),Windows (CMD),WinGet" >}}
-  {{< tab >}}
+{{< tabs >}}
+  {{< tab name="macOS / Linux / WSL" >}}
 ```bash
-# Native installer â€” auto-updates in the background
+# Native installer — auto-updates in the background
 curl -fsSL https://claude.ai/install.sh | bash
 
 # Start Claude Code in any project (you'll be prompted to sign in on first run)
@@ -119,28 +119,28 @@ cd your-project
 claude
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Homebrew" >}}
 ```bash
-# Homebrew cask â€” does NOT auto-update; run `brew upgrade claude-code` periodically
+# Homebrew cask — does NOT auto-update; run `brew upgrade claude-code` periodically
 brew install --cask claude-code
 
 # Latest channel (ships new versions as soon as they're released):
 # brew install --cask claude-code@latest
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Windows (PowerShell)" >}}
 ```powershell
 # Requires Git for Windows: https://git-scm.com/downloads/win
 irm https://claude.ai/install.ps1 | iex
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Windows (CMD)" >}}
 ```batch
 REM Requires Git for Windows: https://git-scm.com/downloads/win
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="WinGet" >}}
 ```powershell
 winget install Anthropic.ClaudeCode
 ```
@@ -149,7 +149,7 @@ winget install Anthropic.ClaudeCode
 
 Verify the install with `claude --version`. When authentication is
 interactive (the default), running `claude` opens a browser for sign-in.
-For headless / CI use, set `ANTHROPIC_API_KEY` instead â€” see
+For headless / CI use, set `ANTHROPIC_API_KEY` instead — see
 [third-party integrations](https://code.claude.com/docs/en/third-party-integrations)
 to run on Bedrock, Vertex AI, or Azure Foundry.
 
@@ -166,7 +166,7 @@ the same `CLAUDE.md`, skills, and MCP config.
 ### 1. Commit `CLAUDE.md` at the repo root
 
 `CLAUDE.md` is the file Claude Code reads before every session. Put
-your house rules here â€” how to build, test, name branches, and what
+your house rules here — how to build, test, name branches, and what
 the agent should never touch.
 
 ```markdown
@@ -191,9 +191,9 @@ Always run `pnpm lint --fix && pnpm test` before opening a PR.
 - PR body: must link the finding ID and explain blast radius.
 
 ## Never touch without explicit instruction
-- `**/migrations/**`     â€” DB schema migrations
-- `**/terraform/**`      â€” infra
-- `**/*.generated.ts`    â€” codegen output
+- `**/migrations/**`     — DB schema migrations
+- `**/terraform/**`      — infra
+- `**/*.generated.ts`    — codegen output
 - `packages/*/package-lock.json` unless the task is a dep bump
 
 ## Out-of-scope questions
@@ -260,7 +260,7 @@ You can have many skills. A good starter set:
 ### 3. Configure pre-tool hooks
 
 Hooks are deterministic checks that run **before** Claude calls a
-tool. If the hook exits non-zero, the tool call is blocked â€” the
+tool. If the hook exits non-zero, the tool call is blocked — the
 model literally cannot do the thing. Put hooks in
 `.claude/settings.json`.
 
@@ -315,7 +315,7 @@ exit 0
 {{< callout type="warning" >}}
 **Hooks are trust boundaries.** Anything that would be catastrophic
 to get wrong (lockfile edits during a non-dep-bump task, writes to
-`migrations/`, pushes to `main`) belongs in a hook â€” not in a
+`migrations/`, pushes to `main`) belongs in a hook — not in a
 prompt instruction. The model can ignore a prompt; it cannot
 override a hook.
 {{< /callout >}}
@@ -324,7 +324,7 @@ override a hook.
 
 MCP is how Claude Code reaches your real data. The agent should be
 able to `list_findings`, `get_finding(id)`, and close the finding
-on merge â€” without you pasting anything.
+on merge — without you pasting anything.
 
 `.mcp.json` at the repo root:
 
@@ -367,7 +367,7 @@ the wider connector catalog.
 ### 5. Automate with the Agent SDK (batch mode)
 
 For scheduled or webhook-driven runs, drive Claude headlessly from
-CI using the **Claude Agent SDK** (renamed from "Claude Code SDK" â€”
+CI using the **Claude Agent SDK** (renamed from "Claude Code SDK" —
 see the [migration guide](https://code.claude.com/docs/en/agent-sdk/migration-guide)).
 
 Install:
@@ -414,7 +414,7 @@ for (const finding of await queue.next(20)) {
 ```
 
 The SDK takes the same `CLAUDE.md`, skills (`.claude/skills/*/SKILL.md`),
-and MCP config as interactive Claude Code â€” your batch runs inherit
+and MCP config as interactive Claude Code — your batch runs inherit
 the same rules. For the full API, see
 [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview)
 and [TypeScript / Python reference](https://code.claude.com/docs/en/agent-sdk/typescript).
@@ -425,10 +425,10 @@ Claude Code runs fine interactively, but the recipe earns its keep
 when findings *dispatch themselves*. Pick whichever input your
 org already has:
 
-{{< tabs items="GitHub Actions,GitHub Issues / webhook,Jira / Linear webhook,Scheduled job" >}}
-  {{< tab >}}
+{{< tabs >}}
+  {{< tab name="GitHub Actions" >}}
 Run the [official Claude Code GitHub Actions integration](https://code.claude.com/docs/en/github-actions)
-to react to issues, PRs, or workflow events â€” no driver script needed.
+to react to issues, PRs, or workflow events — no driver script needed.
 
 ```yaml
 # .github/workflows/claude-remediate.yml
@@ -457,7 +457,7 @@ jobs:
             ${{ github.event.issue.body }}
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="GitHub Issues / webhook" >}}
 For finer-grained control, POST to your own runner on label or
 `issue_comment`. The Action invokes the Agent SDK with the finding
 context:
@@ -487,14 +487,14 @@ jobs:
           GH_TOKEN:     ${{ secrets.GITHUB_TOKEN }}
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Jira / Linear webhook" >}}
 Use a Jira Automation rule (or Linear webhook) to POST to a small
 intake service that then triggers a GitHub Actions
 `workflow_dispatch`. This keeps the ticket and the fix linked
 without special-casing either system:
 
 ```bash
-# Jira Automation â†’ Send web request â†’ POST to your intake
+# Jira Automation → Send web request → POST to your intake
 curl -sS -X POST https://api.github.com/repos/$OWNER/$REPO/actions/workflows/claude-dispatch.yml/dispatches \
   -H "Authorization: Bearer $GH_PAT" \
   -H "Accept: application/vnd.github+json" \
@@ -505,7 +505,7 @@ The workflow then reads the ticket via MCP (`@modelcontextprotocol/server-jira`)
 for full context, runs the skill, opens a PR, and posts the PR URL
 back to the ticket as a comment.
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Scheduled job" >}}
 For a nightly sweep of the open backlog, use a
 [Claude Code Routine](https://code.claude.com/docs/en/routines) (hosted)
 or a GitHub Actions schedule:
@@ -530,7 +530,7 @@ jobs:
   {{< /tab >}}
 {{< /tabs >}}
 
-Whichever path you pick, the agent writes the PR â€” branch protections
+Whichever path you pick, the agent writes the PR — branch protections
 and required CI are what gate the merge. The ticket system is where
 the paper trail lives; use MCP connectors so Claude can comment on
 the source ticket when the PR opens, so the ticket/PR/finding triple
@@ -542,7 +542,7 @@ Run `claude` in a sample repo and ask it to remediate a known finding.
 You should see:
 
 - the `remediate-cve` skill kick in automatically,
-- hooks fire (and block) on any risky edit attempts â€” test this by
+- hooks fire (and block) on any risky edit attempts — test this by
   asking the agent to "add a comment to `migrations/001_init.sql`"
   and confirming it's blocked,
 - a PR with a test, a summary, and a link back to the finding,
@@ -550,7 +550,7 @@ You should see:
 
 ## Orchestration: what stays constant, what changes
 
-The orchestration spine â€” how a finding becomes a PR â€” is the
+The orchestration spine — how a finding becomes a PR — is the
 piece you want to design once and leave alone. Everything else
 (the wording of the prompt, the model behind it, the MCP tools it
 can reach) is expected to evolve as you learn and as better
@@ -572,7 +572,7 @@ flowchart LR
 
 What is **constant** (build once, leave alone):
 
-- The intake â†’ queue â†’ sandbox â†’ review â†’ merge loop.
+- The intake → queue → sandbox → review → merge loop.
 - The branch-naming, PR template, and labelling conventions.
 - The "one finding, one PR" rule and the revert policy.
 - The separation between prompt, model, and tool layers.
@@ -592,14 +592,14 @@ What **evolves** (expected to change, often):
 
 The payoff: when you swap the model or add an MCP connector, you
 do **not** rewrite the dispatch loop, the review policy, or the
-PR template â€” those have already earned their keep.
+PR template — those have already earned their keep.
 
 ## Guardrails
 
 - **Skills over prompts.** Anything you'd paste repeatedly belongs in a
   skill. Skills are reviewable, version-controlled, and testable.
 - **Hooks are hard stops.** Use hooks for invariants you never want the
-  model to violate â€” they run locally, deterministically, before the
+  model to violate — they run locally, deterministically, before the
   tool call.
 - **MCP = least privilege.** Give the agent a read-only token unless a
   specific flow explicitly needs write.
@@ -607,21 +607,21 @@ PR template â€” those have already earned their keep.
 
 ## Troubleshooting
 
-- **Skill isn't triggering.** Check the `description:` frontmatter â€”
+- **Skill isn't triggering.** Check the `description:` frontmatter —
   that's what the matcher reads. Make it unambiguous about
   *when* to use the skill.
 - **Hook always exits 0 but isn't blocking.** Exit code 2 is the
   block signal for `PreToolUse`. Exit 0 allows; exit 1 is a
   non-blocking warning.
-- **MCP tool not visible.** Run `/mcp` inside Claude Code â€” it
+- **MCP tool not visible.** Run `/mcp` inside Claude Code — it
   lists the loaded servers and their tools. If yours is missing,
   the server crashed at startup; check stderr.
 
 ## See also
 
-- Anthropic: [Claude Code overview](https://code.claude.com/docs/en/overview) Â· [quickstart](https://code.claude.com/docs/en/quickstart) Â· [setup](https://code.claude.com/docs/en/setup)
-- Anthropic: [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview) Â· [hooks](https://code.claude.com/docs/en/hooks) Â· [MCP](https://code.claude.com/docs/en/mcp) Â· [skills](https://code.claude.com/docs/en/skills)
-- Anthropic: [GitHub Actions integration](https://code.claude.com/docs/en/github-actions) Â· [GitLab CI/CD](https://code.claude.com/docs/en/gitlab-ci-cd)
-- [MCP Integration]({{< relref "/mcp-servers" >}}) â€” connector catalog
-- Recipe: [Cursor]({{< relref "/cursor" >}}) â€” similar MCP + rules pattern
-- [Recipes]({{< relref "/prompt-library" >}}) â€” share your Claude skills & hooks
+- Anthropic: [Claude Code overview](https://code.claude.com/docs/en/overview) · [quickstart](https://code.claude.com/docs/en/quickstart) · [setup](https://code.claude.com/docs/en/setup)
+- Anthropic: [Agent SDK overview](https://code.claude.com/docs/en/agent-sdk/overview) · [hooks](https://code.claude.com/docs/en/hooks) · [MCP](https://code.claude.com/docs/en/mcp) · [skills](https://code.claude.com/docs/en/skills)
+- Anthropic: [GitHub Actions integration](https://code.claude.com/docs/en/github-actions) · [GitLab CI/CD](https://code.claude.com/docs/en/gitlab-ci-cd)
+- [MCP Integration]({{< relref "/mcp-servers" >}}) — connector catalog
+- Recipe: [Cursor]({{< relref "/cursor" >}}) — similar MCP + rules pattern
+- [Recipes]({{< relref "/prompt-library" >}}) — share your Claude skills & hooks

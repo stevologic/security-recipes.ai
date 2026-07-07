@@ -9,7 +9,7 @@ sidebar:
 
 {{< callout type="info" >}}
 **Outcome.** Engineers see open security findings inside Cursor and can
-dispatch a Background Agent to fix any of them with one click â€” or schedule
+dispatch a Background Agent to fix any of them with one click — or schedule
 them for autonomous overnight runs.
 {{< /callout >}}
 
@@ -22,7 +22,7 @@ Cursor. Come back here for the full recipe once that loop is working.
 
 Cursor's Agent (and Background Agents) can be steered with project-level
 rules and MCP servers to handle remediation queues without ever leaving
-the editor. Engineers get a consistent "open finding â†’ branched PR"
+the editor. Engineers get a consistent "open finding → branched PR"
 loop whether they invoke it by hand or the scheduler does it overnight.
 
 ## Prerequisites
@@ -35,7 +35,7 @@ loop whether they invoke it by hand or the scheduler does it overnight.
 
 ## General onboarding
 
-The public path to getting Cursor â€” what any individual engineer
+The public path to getting Cursor — what any individual engineer
 or team can do today without waiting on an enterprise rollout.
 
 1. **Pick a plan.** Cursor's Pro tier is enough to evaluate
@@ -74,7 +74,7 @@ or team can do today without waiting on an enterprise rollout.
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder â€” customize for your organization.** Replace the
+**Placeholder — customize for your organization.** Replace the
 steps and links below with your internal process for getting a
 Cursor Business / Enterprise seat, enabling Background Agents,
 and granting the repo scope this recipe expects. The structure
@@ -91,7 +91,7 @@ this in for their own organizations.
    workspace once Security approves. Internal link:
    [Cursor workspace](#placeholder-workspace-link).
 3. **Bind to corporate SSO / SAML.** Cursor Business / Enterprise
-   supports SAML SSO â€” bind the account to your identity provider
+   supports SAML SSO — bind the account to your identity provider
    per the standard IT guide. Internal link:
    [SSO enrollment](#placeholder-sso-link).
 4. **Turn on Background Agents.** Ask your Cursor admin to enable
@@ -111,8 +111,8 @@ Rules are markdown files with frontmatter. Each rule declares **when**
 it should be injected into the agent's context (via `globs:` or
 `alwaysApply:`). A minimal remediation ruleset:
 
-{{< tabs items=".cursor/rules/remediation.mdc,.cursor/rules/tests.mdc,.cursor/rules/no-touch.mdc" >}}
-  {{< tab >}}
+{{< tabs >}}
+  {{< tab name=".cursor/rules/remediation.mdc" >}}
 ```markdown
 ---
 description: Standard remediation workflow for security findings.
@@ -138,7 +138,7 @@ alwaysApply: true
 - Never push directly to `main`.
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name=".cursor/rules/tests.mdc" >}}
 ```markdown
 ---
 description: Test requirements for any code change.
@@ -149,13 +149,13 @@ globs: ["src/**/*.{ts,tsx,js}"]
 
 - Any change in `src/` must have a corresponding test or a
   justification comment in the PR.
-- New behavior â†’ new test. Bug fix â†’ regression test.
+- New behavior → new test. Bug fix → regression test.
 - Use the existing test helpers in `test/utils/`. Do not create
   parallel frameworks.
 - `pnpm test` is authoritative. If it passes, the agent may push.
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name=".cursor/rules/no-touch.mdc" >}}
 ```markdown
 ---
 description: Paths the agent must not modify without explicit permission.
@@ -164,10 +164,10 @@ alwaysApply: true
 
 # Do not modify
 
-- `db/migrations/**`       â€” DB schema migrations
-- `infra/terraform/**`     â€” infra-as-code
-- `**/*.generated.ts`      â€” generated code
-- `.github/CODEOWNERS`     â€” review routing
+- `db/migrations/**`       — DB schema migrations
+- `infra/terraform/**`     — infra-as-code
+- `**/*.generated.ts`      — generated code
+- `.github/CODEOWNERS`     — review routing
 
 If the task *requires* editing any of these, stop and summarize the
 change you would make. Do not edit until the human says "proceed".
@@ -177,7 +177,7 @@ change you would make. Do not edit until the human says "proceed".
 
 {{< callout type="info" >}}
 **Confirm rules are loading.** In a Cursor chat, open the context
-panel on the right â€” loaded rule files appear there. If your rules
+panel on the right — loaded rule files appear there. If your rules
 aren't listed, no amount of prompting will save you: fix the glob
 or `alwaysApply` first.
 {{< /callout >}}
@@ -223,7 +223,7 @@ catalog and the integration shape for new sources.
 
 Cursor lets you bind a repeatable prompt to a slash command. Put
 this in `.cursor/commands/remediate.md` (the filename becomes the
-command name â€” no frontmatter required):
+command name — no frontmatter required):
 
 ```markdown
 # Remediate the next open security finding
@@ -240,7 +240,7 @@ Pick the first finding. For that finding:
 4. Update lockfiles via the correct package manager.
 5. Run `pnpm lint --fix && pnpm test`. Stop and summarize if tests fail.
 6. Push and open a PR. Link the finding ID in the PR body.
-7. Call `mark_resolved(id)` on merge â€” not before.
+7. Call `mark_resolved(id)` on merge — not before.
 ```
 
 Invoke from chat with `/remediate`.
@@ -248,7 +248,7 @@ Invoke from chat with `/remediate`.
 ### 4. Configure Background Agents
 
 Background Agents run headlessly on Cursor's infra. Configure in
-**Settings â†’ Background Agents**:
+**Settings → Background Agents**:
 
 - **Branch naming:** `fix/${finding_id}`
 - **PR template:** paste your standard PR template; include the
@@ -263,14 +263,14 @@ Background Agents run headlessly on Cursor's infra. Configure in
 Cursor Automations is the supported way to run a Background Agent
 on a **schedule**, on an **event** (GitHub issue opened, webhook
 received, Slack message posted), or from an **ad-hoc chat
-invocation**. Pick the trigger that matches your queue â€” the
+invocation**. Pick the trigger that matches your queue — the
 underlying Background Agent, branch naming, and PR policy stay
 identical across all of them.
 
-{{< tabs items="Cursor Automations (scheduled),GitHub Issues label,GitHub Actions dispatch,Jira / Linear webhook" >}}
-  {{< tab >}}
+{{< tabs >}}
+  {{< tab name="Cursor Automations (scheduled)" >}}
 ```yaml
-# Settings â†’ Automations â†’ New Automation
+# Settings → Automations → New Automation
 name: Nightly remediation sweep
 trigger:
   type: schedule
@@ -284,9 +284,9 @@ maxRuns: 5                   # cap open PRs per run
 A 5-PR-per-run cap keeps the reviewer queue sane; adjust up once
 the signal-to-noise is proven.
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="GitHub Issues label" >}}
 ```yaml
-# Settings â†’ Automations â†’ New Automation
+# Settings → Automations → New Automation
 name: Remediate on security label
 trigger:
   type: github.issue.labeled
@@ -301,7 +301,7 @@ maxRuns: 1
 Engineers (or the scanner's auto-filer) label an issue
 `security:remediate` and Cursor opens a scoped PR against it.
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="GitHub Actions dispatch" >}}
 ```yaml
 # .github/workflows/cursor-dispatch.yml
 name: Dispatch Cursor remediation
@@ -325,12 +325,12 @@ jobs:
             -d "{\"finding_id\":\"${{ inputs.finding_id }}\"}"
 ```
 Useful when your SOAR / scanner already has a "dispatch to
-GitHub Actions" adapter â€” you keep one integration point.
+GitHub Actions" adapter — you keep one integration point.
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Jira / Linear webhook" >}}
 ```bash
-# Jira / Linear webhook â†’ Cursor Automations webhook
-# Configure the webhook URL from Settings â†’ Automations â†’ Webhook trigger.
+# Jira / Linear webhook → Cursor Automations webhook
+# Configure the webhook URL from Settings → Automations → Webhook trigger.
 
 curl -fsSL -X POST "$CURSOR_AUTOMATION_WEBHOOK" \
   -H "Content-Type: application/json" \
@@ -363,7 +363,7 @@ finding it's fixing.
 
 ## Orchestration: what stays constant, what changes
 
-Cursor's orchestration splits across two surfaces â€” the
+Cursor's orchestration splits across two surfaces — the
 **interactive Agent** for engineer-driven fixes, and
 **Background Agents** for the headless batch queue. The queue,
 the dispatcher, and the review policy are shared; everything
@@ -387,9 +387,9 @@ What is **constant** (build once, leave alone):
 - The `/remediate` command and the Background Agent scheduler
   cron.
 - Branch naming (`fix/<finding-id>`), PR template, and required
-  CI checks under **Settings â†’ Background Agents**.
+  CI checks under **Settings → Background Agents**.
 - The "open PR, never merge" policy.
-- The MCP allowlist shape â€” read-only by default, write tools
+- The MCP allowlist shape — read-only by default, write tools
   gated per-flow.
 
 What **evolves** (expected to change, often):
@@ -401,7 +401,7 @@ What **evolves** (expected to change, often):
   upgrades; the orchestration is indifferent.
 - **Tools.** New MCP connectors show up in `.cursor/mcp.json`
   whenever a new finding source or context source is integrated
-  â€” the scheduler and the review loop don't care.
+  — the scheduler and the review loop don't care.
 
 Decoupling these layers is what lets a security team upgrade
 rules or add a scanner without rewriting the dispatch logic.
@@ -413,7 +413,7 @@ rules or add a scanner without rewriting the dispatch logic.
   you from drift.
 - **MCP tool allowlist.** Restrict which MCP tools the agent can call.
   Read-only is the right default; escalate explicitly.
-- **Require a human on the PR.** Cursor Background Agents can open PRs â€”
+- **Require a human on the PR.** Cursor Background Agents can open PRs —
   do **not** give them merge permissions.
 - **Rate caps on scheduler.** A nightly cap of 5 PRs per repo prevents
   a bad rule from flooding the reviewer queue.
@@ -427,7 +427,7 @@ rules or add a scanner without rewriting the dispatch logic.
   actually matches the files Cursor is editing; test with a concrete
   path, not a wildcard you assume will match.
 - **Background Agent opens PRs against `main`.** In the scheduler
-  config, ensure `baseBranch` is set correctly â€” some orgs use
+  config, ensure `baseBranch` is set correctly — some orgs use
   `develop` or `release/*`.
 
 ## See also
@@ -437,6 +437,6 @@ rules or add a scanner without rewriting the dispatch logic.
 - Cursor docs: [Project rules](https://cursor.com/docs/rules#project-rules)
 - Cursor docs: [Custom slash commands](https://cursor.com/docs/cli/reference/slash-commands)
 - Cursor docs: [MCP](https://docs.cursor.com/context/mcp)
-- [MCP Integration]({{< relref "/mcp-servers" >}}) â€” connector catalog
-- Recipe: [Claude]({{< relref "/claude" >}}) â€” similar MCP + hooks patterns
-- [Recipes]({{< relref "/prompt-library" >}}) â€” share your `.cursor/rules` files
+- [MCP Integration]({{< relref "/mcp-servers" >}}) — connector catalog
+- Recipe: [Claude]({{< relref "/claude" >}}) — similar MCP + hooks patterns
+- [Recipes]({{< relref "/prompt-library" >}}) — share your `.cursor/rules` files

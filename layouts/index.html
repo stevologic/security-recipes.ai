@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>{{ .Site.Title }}</title>
+<title>{{ .Site.Title }} — Bounded security recipes for AI-assisted remediation</title>
 {{ $homeDescription := "Security recipes for AI-assisted remediation: reviewed playbooks, prompt patterns, agent setup guides, and MCP context notes for scoped, evidence-driven security fixes." }}
 <meta name="description" content="{{ $homeDescription }}">
 <meta name="google" content="notranslate">
@@ -1793,6 +1793,20 @@
 
   .footer a {
     color: var(--muted);
+    transition: color 160ms ease;
+  }
+
+  .footer a:hover,
+  .footer a:focus-visible {
+    color: var(--teal);
+    outline: none;
+  }
+
+  .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-weight: 560;
   }
 
   @keyframes home-grid-drift {
@@ -2080,6 +2094,57 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* Global search launcher — same affordance and behaviour as inner pages,
+     styled with the landing-page palette so the two never feel disjoint. */
+  .docs-search-shell { position: fixed; right: 22px; bottom: 22px; z-index: 80; }
+  .docs-search-launch {
+    display: inline-flex; align-items: center; gap: 10px;
+    border-radius: 999px; border: 1px solid var(--border);
+    background:
+      linear-gradient(135deg, rgba(45, 212, 191, 0.2), rgba(103, 232, 249, 0.12)),
+      rgba(8, 13, 20, 0.86);
+    color: var(--text); padding: 10px 15px; cursor: pointer;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    font-family: var(--font-sans); font-size: 0.9rem; font-weight: 600;
+    transition: transform .16s ease, border-color .22s ease, box-shadow .22s ease;
+  }
+  .docs-search-launch:hover,
+  .docs-search-launch:focus-visible {
+    border-color: rgba(45, 212, 191, 0.45); transform: translateY(-1px); outline: none;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(45, 212, 191, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+  .docs-search-launch-icon { font-size: 1.05rem; line-height: 1; }
+  .docs-search-launch-kbd {
+    font-family: var(--font-mono); font-size: 12px; color: var(--soft);
+    border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
+  }
+  .docs-search-modal[hidden] { display: none; }
+  .docs-search-modal { position: fixed; inset: 0; z-index: 90; }
+  .docs-search-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
+  .docs-search-panel {
+    position: relative; width: min(720px, calc(100vw - 24px)); margin: 8vh auto 0;
+    background: #0b0f19; border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.5); overflow: hidden;
+  }
+  .docs-search-label {
+    display: block; color: var(--soft); font-size: 12px; letter-spacing: .08em;
+    text-transform: uppercase; padding: 12px 16px 6px;
+  }
+  .docs-search-input-wrap {
+    display: flex; gap: 10px; align-items: center; padding: 0 16px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .docs-search-input { width: 100%; background: transparent; border: 0; color: var(--text); font-size: 16px; outline: none; }
+  .docs-search-close { border: 0; background: transparent; color: var(--soft); cursor: pointer; font-size: 1rem; }
+  .docs-search-results { max-height: 56vh; overflow: auto; }
+  .docs-search-empty { color: var(--soft); padding: 14px 16px; }
+  .docs-search-item { display: block; padding: 10px 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+  .docs-search-item:hover,
+  .docs-search-item[data-active="1"] { background: rgba(45, 212, 191, 0.14); }
+  .docs-search-item-title { color: var(--text); font-weight: 600; }
+  .docs-search-item-meta { color: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -2407,7 +2472,16 @@ Rules:
   <footer class="footer">
     <div class="site-shell footer-inner">
       <span>Bounded recipes for agent-assisted security remediation.</span>
-      <a href="{{ .Site.Params.repoURL }}">GitHub</a>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        {{- range site.Menus.main -}}
+          {{- $url := .URL -}}
+          {{- with site.GetPage .PageRef -}}
+            {{- $url = .RelPermalink -}}
+          {{- end -}}
+          <a href="{{ $url }}">{{ .Name }}</a>
+        {{- end -}}
+        <a href="{{ .Site.Params.repoURL }}">GitHub</a>
+      </nav>
     </div>
   </footer>
 
@@ -2422,6 +2496,7 @@ Rules:
     var height = 0;
     var dpr = 1;
     var points = [];
+    var gridColumns = 0;
     var pointer = {
       x: window.innerWidth * 0.72,
       y: window.innerHeight * 0.34,
@@ -2456,6 +2531,10 @@ Rules:
     function buildPoints() {
       var columns = Math.ceil(width / 105);
       var rows = Math.ceil(height / 100);
+      // Points are stored in row-major order, so a point's spatial neighbours
+      // (the only ones close enough to connect) sit within a small index window.
+      // draw() uses this to avoid an O(n^2) all-pairs scan every frame.
+      gridColumns = columns + 2;
       points = [];
 
       for (var y = -1; y <= rows; y += 1) {
@@ -2500,13 +2579,24 @@ Rules:
         point.cy = py - (dy / Math.max(distance, 1)) * pull;
       }
 
+      var maxGap = 145;
+      var maxGap2 = maxGap * maxGap;
+      // Only compare each point to the window of following points that can be
+      // spatially adjacent (same row + the row below), then reject with a cheap
+      // squared distance before paying for a sqrt on the survivors.
+      var span = gridColumns + 2;
       for (var a = 0; a < points.length; a += 1) {
-        for (var b = a + 1; b < points.length; b += 1) {
-          var start = points[a];
+        var start = points[a];
+        var bEnd = a + span;
+        if (bEnd > points.length) bEnd = points.length;
+        for (var b = a + 1; b < bEnd; b += 1) {
           var end = points[b];
-          var gap = Math.hypot(start.cx - end.cx, start.cy - end.cy);
-          if (gap < 145) {
-            ctx.strokeStyle = "rgba(103, 232, 249, " + (0.14 * (1 - gap / 145)) + ")";
+          var ddx = start.cx - end.cx;
+          var ddy = start.cy - end.cy;
+          var gap2 = ddx * ddx + ddy * ddy;
+          if (gap2 < maxGap2) {
+            var gap = Math.sqrt(gap2);
+            ctx.strokeStyle = "rgba(103, 232, 249, " + (0.14 * (1 - gap / maxGap)) + ")";
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(start.cx, start.cy);
@@ -2560,16 +2650,38 @@ Rules:
       });
     }
 
+    function stop() {
+      if (raf !== null) {
+        window.cancelAnimationFrame(raf);
+        raf = null;
+      }
+    }
+
     window.addEventListener("resize", resize);
     window.addEventListener("pointermove", movePointer, { passive: true });
     if (reduceMotion.addEventListener) {
       reduceMotion.addEventListener("change", start);
     }
+    // Don't spend any CPU animating a background the user can't see.
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        stop();
+      } else if (!reduceMotion.matches) {
+        start();
+      }
+    });
 
     resize();
     start();
     revealBackground();
   })();
   </script>
+
+  {{/* Global search — same launcher and index the inner pages use, so the
+       standalone landing page is searchable too. */}}
+  <script>window.__SITE_BASE_PREFIX = {{ "/" | relURL | printf "%q" | safeJS }};</script>
+  {{ with resources.Get "js/docs-search.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{ end }}
 </body>
 </html>

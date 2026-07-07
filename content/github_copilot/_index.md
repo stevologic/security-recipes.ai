@@ -21,8 +21,8 @@ GitHub Copilot. Come back here for the full recipe once that loop is
 working.
 {{< /callout >}}
 
-This recipe walks through turning GitHub Copilot â€” specifically **Copilot Chat**
-and the **Copilot Coding Agent** â€” into a remediation pipeline that picks up
+This recipe walks through turning GitHub Copilot — specifically **Copilot Chat**
+and the **Copilot Coding Agent** — into a remediation pipeline that picks up
 findings, opens branches, and ships PRs. Copilot is the shortest-setup
 option on this site because it rides on primitives you already have:
 Issues, labels, PRs, Actions, branch protections.
@@ -36,7 +36,7 @@ Issues, labels, PRs, Actions, branch protections.
 
 ## General onboarding
 
-The public path â€” what any individual or team can do today
+The public path — what any individual or team can do today
 without waiting on an enterprise rollout.
 
 1. **Pick a plan.** A personal Copilot subscription is enough to
@@ -48,11 +48,11 @@ without waiting on an enterprise rollout.
    Visual Studio, Neovim) and sign in. See
    [GitHub Copilot docs home](https://docs.github.com/en/copilot).
 3. **Add repository custom instructions.** Commit
-   `.github/copilot-instructions.md` â€” this is the house prompt
+   `.github/copilot-instructions.md` — this is the house prompt
    every coding-agent run reads. See
    [Add custom repository instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions).
 4. **Enable the Copilot coding agent.** Org admin switches it
-   on at **Settings â†’ Copilot â†’ Policies**; then assign issues
+   on at **Settings → Copilot → Policies**; then assign issues
    to `@copilot` to dispatch. See the
    [quickstart](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent).
 5. **Extend with MCP (optional).** Add MCP servers at the org
@@ -84,7 +84,7 @@ draft PR.
 ## Enterprise onboarding
 
 {{< callout type="warning" >}}
-**Placeholder â€” customize for your organization.** Replace the
+**Placeholder — customize for your organization.** Replace the
 steps and links below with your internal process for getting a
 Copilot license, enabling the coding agent, and granting the
 repo scope this recipe expects. The structure is a starting
@@ -101,7 +101,7 @@ organizations.
    to the org's Copilot-licensed team. Internal link:
    [Copilot team membership](#placeholder-team-link).
 3. **Enable the coding agent.** Ask your GitHub admin to flip
-   **Settings â†’ Copilot â†’ Policies â†’ Coding Agent** to *Enabled*
+   **Settings → Copilot → Policies → Coding Agent** to *Enabled*
    for the orgs and repos this recipe targets. Internal link:
    [Coding agent rollout plan](#placeholder-rollout-link).
 4. **Confirm SSO / SAML is enforced.** Copilot access must go
@@ -116,7 +116,7 @@ organizations.
 
 ### 1. Enable the Coding Agent at the org level
 
-In the org settings, go to **Settings â†’ Copilot â†’ Policies** and:
+In the org settings, go to **Settings → Copilot → Policies** and:
 
 - Enable **Copilot Coding Agent** for the repositories you want to
   automate (allowlist; don't turn it on org-wide until you've piloted).
@@ -126,21 +126,21 @@ In the org settings, go to **Settings â†’ Copilot â†’ Policies** and:
 
 Per-repo, turn on:
 
-- **Settings â†’ Code security and analysis â†’ Code scanning** (CodeQL
+- **Settings → Code security and analysis → Code scanning** (CodeQL
   default setup is fine to start).
-- **Settings â†’ Code security and analysis â†’ Dependabot alerts** and
+- **Settings → Code security and analysis → Dependabot alerts** and
   **Dependabot security updates**.
-- **Settings â†’ Branches â†’ Branch protection rules** for `main`:
+- **Settings → Branches → Branch protection rules** for `main`:
   require PR review, require status checks, block force pushes.
 
 ### 2. Commit a `.github/copilot-instructions.md`
 
 This file is Copilot's system prompt for the repo. The Coding Agent
-reads it on every run. Keep it focused on *house rules* â€” things the
+reads it on every run. Keep it focused on *house rules* — things the
 agent can't infer from the code.
 
 ```markdown
-# Copilot instructions â€” payments-service
+# Copilot instructions — payments-service
 
 ## Stack
 Node.js 20, TypeScript, Fastify, Postgres, pnpm workspaces.
@@ -161,10 +161,10 @@ Always run `pnpm lint && pnpm test` before pushing.
   blast-radius note.
 
 ## Files and areas you must NOT modify
-- `db/migrations/**`         â€” any DB migration
-- `infra/terraform/**`       â€” infra-as-code
-- `**/*.generated.ts`        â€” generated code
-- `pnpm-lock.yaml`           â€” only during an explicit dep-bump task
+- `db/migrations/**`         — any DB migration
+- `infra/terraform/**`       — infra-as-code
+- `**/*.generated.ts`        — generated code
+- `pnpm-lock.yaml`           — only during an explicit dep-bump task
 
 ## Stop and ask (do not push)
 - Any change to a public API contract.
@@ -184,9 +184,9 @@ the rules are enforced by GitHub even if the model drifts.
 Most scanners support an issue-projection path natively. Wire it up
 and label the issues `copilot-remediate`:
 
-{{< tabs items="CodeQL,Snyk,Semgrep" >}}
-  {{< tab >}}
-CodeQL results appear under **Security â†’ Code scanning**. To
+{{< tabs >}}
+  {{< tab name="CodeQL" >}}
+CodeQL results appear under **Security → Code scanning**. To
 project them as Issues, use the [code-scanning-create-issue](https://github.com/marketplace/actions/create-issues-from-code-scanning-alerts)
 action on a schedule:
 
@@ -212,15 +212,15 @@ jobs:
           severity: "error,warning"
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Snyk" >}}
 Snyk writes issues via the Snyk GitHub integration; set the **Issue
 label** to `copilot-remediate` in the Snyk org settings, or use
 `snyk monitor --severity-threshold=high` in CI and project the
 SARIF into issues with a scheduled workflow.
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Semgrep" >}}
 Semgrep Cloud Platform supports issue projection under
-**Deployments â†’ GitHub â†’ Auto-project**. Configure the label as
+**Deployments → GitHub → Auto-project**. Configure the label as
 `copilot-remediate`. For self-hosted, emit SARIF and use the
 CodeQL recipe above.
   {{< /tab >}}
@@ -261,9 +261,9 @@ assignment, run CI, and push commits as it iterates.
 Never auto-merge Copilot PRs. Enforce at the branch-protection
 layer:
 
-- **Require a pull request before merging** â†’ `1` reviewer minimum
+- **Require a pull request before merging** → `1` reviewer minimum
   (or `CODEOWNERS` required).
-- **Require status checks to pass** â†’ pin the lint, test, and
+- **Require status checks to pass** → pin the lint, test, and
   scanner workflows.
 - **Do not allow** GitHub Apps to bypass required reviews.
 - Add a `copilot-paused` label that your Action respects:
@@ -284,10 +284,10 @@ Because the Coding Agent dispatches off GitHub Issues assigned to
 `@copilot`, any external system can feed it by creating a labeled
 issue. Pick the shape that matches where your backlog lives:
 
-{{< tabs items="Jira Automation,Linear webhook,Scanner â†’ repository_dispatch,Scheduled sweep" >}}
-  {{< tab >}}
+{{< tabs >}}
+  {{< tab name="Jira Automation" >}}
 ```
-# Jira â†’ Automation â†’ "Send web request"
+# Jira → Automation → "Send web request"
 Method:  POST
 URL:     https://api.github.com/repos/{owner}/{repo}/issues
 Headers: Authorization: Bearer {{GH_PAT_WITH_ISSUES_WRITE}}
@@ -301,10 +301,10 @@ Body:
   "assignees": ["copilot"]
 }
 ```
-Trigger rule: *Issue transitioned â†’ Ready-for-Agent*. Creates a
+Trigger rule: *Issue transitioned → Ready-for-Agent*. Creates a
 GitHub issue, labels it, and assigns `@copilot` in one hop.
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Linear webhook" >}}
 ```js
 // Cloudflare Worker handling Linear's outbound webhook
 export default {
@@ -335,10 +335,10 @@ export default {
 };
 ```
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Scanner → repository_dispatch" >}}
 ```yaml
 # .github/workflows/scanner-to-copilot.yml
-name: Scanner â†’ Copilot coding agent
+name: Scanner → Copilot coding agent
 on:
   repository_dispatch:
     types: [security-finding]
@@ -365,11 +365,11 @@ jobs:
 ```
 Your scanner POSTs to
 `/repos/{owner}/{repo}/dispatches` with `event_type:
-security-finding` â€” the workflow fans it out into a labeled issue
+security-finding` — the workflow fans it out into a labeled issue
 assigned to `@copilot`. Works the same for Snyk, Wiz, Semgrep, or
 any tool with a webhook.
   {{< /tab >}}
-  {{< tab >}}
+  {{< tab name="Scheduled sweep" >}}
 ```yaml
 # .github/workflows/nightly-copilot-sweep.yml
 name: Nightly Copilot remediation sweep
@@ -411,7 +411,7 @@ reviewer team is calibrating volume.
 ### 7. (Optional) Wire MCP servers for richer context
 
 The Coding Agent can call MCP tools configured in
-**Settings â†’ Copilot â†’ MCP servers** at the org / repo level. Start
+**Settings → Copilot → MCP servers** at the org / repo level. Start
 with read-only connectors: Jira (for ticket context), Confluence /
 Notion (for runbooks), your scanner (to fetch advisory details the
 issue body doesn't include).
@@ -434,7 +434,7 @@ re-runs and marks the finding resolved.
 
 ## Orchestration: what stays constant, what changes
 
-Copilot's remediation recipe rides GitHub's own primitives â€”
+Copilot's remediation recipe rides GitHub's own primitives —
 Issues, labels, assignees, draft PRs, branch protections. That
 makes the orchestration unusually **boring and durable**: a
 small Action listens for a label and assigns the issue to
@@ -458,11 +458,11 @@ flowchart LR
 What is **constant** (build once, leave alone):
 
 - The label (`copilot-remediate`) + assignment Action.
-- Branch protections on `main` â€” reviewers + green CI required,
+- Branch protections on `main` — reviewers + green CI required,
   no auto-merge for the agent.
 - The GitHub App token scope and the kill-switch label
   (`copilot-paused`).
-- The PR â†’ CI â†’ review â†’ merge â†’ finding-closed loop.
+- The PR → CI → review → merge → finding-closed loop.
 
 What **evolves** (expected to change, often):
 
@@ -470,13 +470,13 @@ What **evolves** (expected to change, often):
   house rules change. The issue-template body that becomes the
   Coding Agent's task brief is tuned per finding class.
 - **Model.** Copilot's underlying model rolls forward inside the
-  product â€” you inherit upgrades without touching the pipeline.
+  product — you inherit upgrades without touching the pipeline.
 - **Tools.** New CI checks (SAST, SCA, license scanning) get
   wired into branch protections over time, tightening the
   merge gate without changing how findings get dispatched.
 
 The GitHub-native orchestration is the reason Copilot has the
-shortest setup curve â€” you don't build new plumbing, you
+shortest setup curve — you don't build new plumbing, you
 configure existing plumbing.
 
 ## Guardrails
@@ -498,7 +498,7 @@ configure existing plumbing.
   and verify the Copilot GitHub App has access to the repo.
 - **PR is blocked by CI and Copilot gives up.** Add the specific failing
   check name to `copilot-instructions.md` with a hint on how to read it
-  â€” e.g. "If `lint` fails, run `pnpm lint --fix` and commit the result."
+  — e.g. "If `lint` fails, run `pnpm lint --fix` and commit the result."
 - **Changes landing in protected paths.** Add those paths to
   `CODEOWNERS` with a required-reviewer team, and re-state them in
   `copilot-instructions.md`.
@@ -510,6 +510,6 @@ configure existing plumbing.
 - GitHub: [Best practices for the Copilot coding agent](https://docs.github.com/en/copilot/get-started/best-practices)
 - GitHub: [Add custom repository instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
 - GitHub: [Extend the coding agent with MCP](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp)
-- [MCP Integration]({{< relref "/mcp-servers" >}}) â€” add richer context
-- Recipe: [Claude]({{< relref "/claude" >}}) â€” deeper MCP-driven flows
-- [Recipes]({{< relref "/prompt-library" >}}) â€” share your Copilot remediation prompts
+- [MCP Integration]({{< relref "/mcp-servers" >}}) — add richer context
+- Recipe: [Claude]({{< relref "/claude" >}}) — deeper MCP-driven flows
+- [Recipes]({{< relref "/prompt-library" >}}) — share your Copilot remediation prompts

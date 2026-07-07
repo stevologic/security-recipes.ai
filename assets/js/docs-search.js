@@ -64,15 +64,19 @@
     var title = (doc.title || '').toLowerCase();
     var section = (doc.section || '').toLowerCase();
     var summary = (doc.summary || '').toLowerCase();
-    var content = (doc.content || '').toLowerCase();
+    var headings = (doc.headings || '').toLowerCase();
+    var tags = Array.isArray(doc.tags) ? doc.tags.join(' ').toLowerCase() : '';
+    var extra = ((doc.severity || '') + ' ' + (doc.agent || '') + ' ' + (doc.slug || '')).toLowerCase();
 
     var score = 0;
     if (title === q) score += 120;
     if (title.indexOf(q) === 0) score += 90;
     if (title.indexOf(q) !== -1) score += 60;
+    if (tags.indexOf(q) !== -1) score += 30;
     if (section.indexOf(q) !== -1) score += 25;
     if (summary.indexOf(q) !== -1) score += 15;
-    if (content.indexOf(q) !== -1) score += 10;
+    if (headings.indexOf(q) !== -1) score += 12;
+    if (extra.indexOf(q) !== -1) score += 10;
     return score;
   }
 

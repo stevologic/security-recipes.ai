@@ -256,16 +256,17 @@ html[data-recipe-browser-page="true"] .site-ambient span:nth-child(3) {
   animation-delay: -10s;
 }
 
+/* Note: .docs-search-shell is deliberately NOT in this group — it must keep
+   its own position: fixed (bottom-right launcher); its z-index: 80 already
+   stacks it above the background canvas. */
 html[data-site-signal-background="true"] .nextra-nav-container,
 html[data-site-signal-background="true"] .nextra-nav-container-blur,
 html[data-site-signal-background="true"] main,
 html[data-site-signal-background="true"] footer,
-html[data-site-signal-background="true"] .docs-search-shell,
 html[data-recipe-browser-page="true"] .nextra-nav-container,
 html[data-recipe-browser-page="true"] .nextra-nav-container-blur,
 html[data-recipe-browser-page="true"] main,
-html[data-recipe-browser-page="true"] footer,
-html[data-recipe-browser-page="true"] .docs-search-shell {
+html[data-recipe-browser-page="true"] footer {
   position: relative;
   z-index: 1;
 }
