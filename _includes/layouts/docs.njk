@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if title %}{{ title }} – {% endif %}{{ site.title }}</title>
+{{ {
+  url: page.url,
+  title: title,
+  description: description,
+  tags: tags,
+  author: author,
+  image: image,
+  noindex: noindex,
+  keywords: keywords,
+  date: page.date,
+  sourcePath: sourcePath,
+  isHome: false,
+  isSection: isSection
+} | seoHead | safe }}
+<link rel="alternate" type="application/rss+xml" href="{{ page.url }}index.xml" title="{{ title }} – {{ site.title }}">
+{% include "partials/head-common.njk" %}
+</head>
+<body class="sr-docs-body">
+{% include "partials/navbar.njk" %}
+<div class="hextra-max-page-width sr-shell">
+  <aside class="hextra-sidebar-container sr-sidebar" aria-label="Site sections">
+    <nav class="hextra-sidebar">
+      {{ page.url | sidebarHtml | safe }}
+    </nav>
+  </aside>
+  <main id="content" class="hextra-content sr-main">
+    {% set crumbs = page.url | breadcrumbs %}
+    {% if crumbs.length %}
+    <nav class="sr-breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      {% for c in crumbs %}<span aria-hidden="true">/</span><a href="{{ c.url }}">{{ c.title }}</a>{% endfor %}
+    </nav>
+    {% endif %}
+    {% if title %}<h1 class="sr-page-title">{{ title }}</h1>{% endif %}
+    <div class="content">
+{{ content | safe }}
+    </div>
+    {% set pager = page.inputPath | pagerFor %}
+    {% if pager.prev or pager.next %}
+    <nav class="hextra-pagination sr-pager" aria-label="Pagination">
+      {% if pager.prev %}<a class="hextra-pager sr-pager__prev" href="{{ pager.prev.url }}" rel="prev"><span aria-hidden="true">←</span> {{ pager.prev.title }}</a>{% else %}<span></span>{% endif %}
+      {% if pager.next %}<a class="hextra-pager sr-pager__next" href="{{ pager.next.url }}" rel="next">{{ pager.next.title }} <span aria-hidden="true">→</span></a>{% endif %}
+    </nav>
+    {% endif %}
+  </main>
+  <nav class="hextra-toc sr-toc" aria-label="On this page">
+    {% set toc = content | tocEntries %}
+    {% if toc.length %}
+    <p class="sr-toc__title">On this page</p>
+    <ul>
+      {% for entry in toc %}
+      <li class="sr-toc__l{{ entry.level }}"><a href="#{{ entry.id }}">{{ entry.text }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if tags and tags.length %}
+    <div class="sr-toc__tags">
+      {% for tag in tags %}<a class="sr-tag-chip sr-tag-chip--small" href="/tags/{{ tag | tagSlug }}/">{{ tag }}</a>{% endfor %}
+    </div>
+    {% endif %}
+  </nav>
+</div>
+<footer class="hextra-footer">
+  <div class="sr-footer-inner"><span>{{ site.footer.copyright }}</span></div>
+</footer>
+<script>
+(function () {
+  var links = document.querySelectorAll('.sr-sidebar a, .sr-nav__links a');
+  for (var i = 0; i < links.length; i++) {
+    if (links[i].getAttribute('href') === location.pathname) {
+      links[i].setAttribute('aria-current', 'page');
+    }
+  }
+})();
+</script>
+</body>
+</html>

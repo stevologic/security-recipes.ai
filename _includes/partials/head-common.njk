@@ -1,0 +1,69 @@
+{# Shared <head> tail for docs pages: hardening meta, styles, scripts, and
+   the marketplace globals that mcp-config-helper.js and the browser
+   workbench read. Port of layouts/partials/custom/head-end.html. #}
+<meta name="google" content="notranslate">
+<meta http-equiv="Content-Language" content="en">
+<meta name="apple-mobile-web-app-capable" content="no">
+<meta name="mobile-web-app-capable" content="no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev https://api.osv.dev https://api.githubcopilot.com https://docs.semgrep.dev https://mcp.cloudflare.com http://localhost:8811 http://127.0.0.1:8811 https://*.snyk.io https://*.atlassian.net https://api.atlassian.com https://gitlab.com https://*.gitlab.com https://dev.azure.com https://*.dev.azure.com https://*.visualstudio.com https://api.security.microsoft.com https://*.security.microsoft.com https://management.azure.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/css/docs-chrome.css">
+<link rel="stylesheet" href="/css/custom.css">
+<script>
+document.documentElement.dataset.siteSignalBackground = "true";
+{% if page.url == "/recipes/" %}document.documentElement.dataset.recipeBrowserPage = "true";{% endif %}
+window.__SITE_BASE_PREFIX = "/";
+window.__SECURITY_RECIPES_MARKETPLACE_FEEDS = {
+  manifest: "/marketplace-control-plane.json",
+  catalog: "/marketplace-catalog.json",
+  inputChannels: "/marketplace-input-channels.json",
+  outputChannels: "/marketplace-output-channels.json",
+  reportProfiles: "/marketplace-report-profiles.json",
+  workflowTemplates: "/marketplace-workflow-templates.json",
+  readiness: "/marketplace-readiness.json"
+};
+window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
+  index: "/marketplace-schemas/index.json",
+  inputChannelContribution: "/marketplace-schemas/input-channel-contribution.schema.json",
+  outputChannelContribution: "/marketplace-schemas/output-channel-contribution.schema.json",
+  reportProfileContribution: "/marketplace-schemas/report-profile-contribution.schema.json",
+  workflowTemplateContribution: "/marketplace-schemas/workflow-template-contribution.schema.json",
+  localLibrary: "/marketplace-schemas/local-library.schema.json",
+  caseFile: "/marketplace-schemas/case-file.schema.json",
+  caseLibrary: "/marketplace-schemas/case-library.schema.json",
+  assetLibrary: "/marketplace-schemas/asset-library.schema.json",
+  operationsHistory: "/marketplace-schemas/operations-history.schema.json",
+  operationsSession: "/marketplace-schemas/operations-session.schema.json",
+  portfolioCoverage: "/marketplace-schemas/portfolio-coverage.schema.json",
+  routingPolicy: "/marketplace-schemas/routing-policy.schema.json",
+  routingLibrary: "/marketplace-schemas/routing-library.schema.json"
+};
+</script>
+<script src="/js/marketplace-globals.js" defer></script>
+<script src="/js/signal-background.js" defer></script>
+<script src="/js/mermaid-viewer.js" defer></script>
+<script src="/js/nav-enhance.js" defer></script>
+<script src="/js/docs-search.js" defer></script>
+<script src="/js/cve-hub-collapse.js" defer></script>
+<script src="/js/recipe-browser.js" defer></script>
+<script src="/js/mcp-config-helper.js" defer></script>
+<script src="/js/sr-tabs.js" defer></script>
+<script>
+// Render mermaid diagrams with the vendored, version-pinned bundle only on
+// pages that actually contain one.
+if (document.querySelector) {
+  window.addEventListener("DOMContentLoaded", function () {
+    if (!document.querySelector("pre.mermaid")) return;
+    var s = document.createElement("script");
+    s.src = "/js/mermaid.min.js";
+    s.onload = function () {
+      window.mermaid.initialize({ startOnLoad: false, theme: "dark" });
+      window.mermaid.run({ querySelector: "pre.mermaid" });
+    };
+    document.head.appendChild(s);
+  });
+}
+</script>

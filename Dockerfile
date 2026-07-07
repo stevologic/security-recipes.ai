@@ -3,12 +3,12 @@
 # security-recipes.ai — container build
 #
 # Multi-stage build:
-#   1. `builder`  — Hugo extended + Go, fetches Hextra module, builds static site
+#   1. `builder`  — Node.js + Eleventy, builds the static site into public/
 #   2. `runtime`  — nginx:alpine, serves the compiled output
 #
 # Usage
 # -----
-#   # Build (from the directory containing hugo.yaml):
+#   # Build (from the repository root):
 #   docker build -t security-recipes .
 #
 #   # Run:
@@ -25,111 +25,47 @@
 
 
 # ----- Stage 1 : builder ----------------------------------------------------
-# NOTE: Debian-based (bookworm), NOT alpine. Hugo *extended* is dynamically
-# linked against glibc + libstdc++ (for the embedded SCSS transpiler). On
-# alpine it fails with "Error loading shared library libstdc++.so.6".
-# Debian ships both by default, so the extended binary runs out of the box.
-FROM golang:1.22-bookworm AS builder
+FROM node:22-bookworm-slim AS builder
 
-# Match the Hugo version pinned in .github/workflows/hugo.yml
-# (Hextra v0.12.2+ requires Hugo ≥ 0.146.0 for the `try` template function.)
-ARG HUGO_VERSION=0.147.6
-ARG TARGETARCH=amd64
-
-# Build-time overrides — both are threaded into the same Hugo params used by
-# the GitHub Actions workflow, so `docker build` and `hugo deploy` produce
-# identical output.
-#
 # BASE_URL defaults to a plain-root host (http://localhost/) so the image
 # works out of the box when served from `/` — e.g. `docker run -p 3000:80`
 # maps cleanly to http://localhost:3000/. Override for subpath deploys:
 #   --build-arg BASE_URL=https://example.com/docs/
+# Subpath deploys are handled by Eleventy's HTML base plugin, which rewrites
+# every root-relative URL in the generated HTML.
 ARG BASE_URL="http://localhost/"
 ARG REPO_URL=""
-ARG HUGO_MINIFY="true"
-ARG HUGO_GOMAXPROCS="2"
 
-# HUGO_ENABLEGITINFO=false overrides `enableGitInfo: true` from hugo.yaml *for
-# container builds only*. We intentionally exclude `.git/` via .dockerignore to
-# keep the image small, which means Hugo can't read the git log to populate
-# .GitInfo / .Lastmod. CI builds (GitHub Actions) keep GitInfo enabled because
-# the full repo is checked out there.
-ENV HUGO_ENVIRONMENT=production \
-    HUGO_CACHEDIR=/tmp/hugo_cache \
-    HUGO_ENABLEGITINFO=false \
-    CGO_ENABLED=0 \
-    DEBIAN_FRONTEND=noninteractive
-
-# Install Hugo extended from the official tarball. Everything Hugo extended
-# needs (glibc, libstdc++, libgcc_s) is already present in the base image.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        git \
-        ca-certificates \
-        curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL \
-        "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-${TARGETARCH}.tar.gz" \
-        -o /tmp/hugo.tgz \
-    && tar -xzf /tmp/hugo.tgz -C /usr/local/bin hugo \
-    && rm /tmp/hugo.tgz \
-    && hugo version
+# .dockerignore excludes .git/ to keep the build context small, so git-based
+# last-modified dates are unavailable inside the container; the build falls
+# back to front-matter dates. CI builds keep git info because the full repo
+# is checked out there.
+ENV SECURITY_RECIPES_NO_GITINFO=1
 
 WORKDIR /src
 
-# Copy module manifests first so `hugo mod get` caches well when only content
-# or layouts change.
-COPY go.mod go.sum* ./
-RUN hugo mod get -u github.com/imfing/hextra
+# Install dependencies first so the layer caches well when only content
+# changes.
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --no-fund
 
 # Now pull in the rest of the project.
 COPY . .
 
-# If REPO_URL was passed, rewrite canonical repo references in hugo.yaml AND
-# in content markdown (matches the CI approach). Covers repo URL, Contribute
-# menu URL, sidebar Contribute, and CONTRIBUTING.md links inside site copy.
+# If REPO_URL was passed, rewrite canonical repo references in content
+# markdown (matches the CI approach for forks under a different org).
 RUN if [ -n "${REPO_URL}" ]; then \
         OWNER_REPO=$(printf '%s' "${REPO_URL%/}" | sed 's|^https\?://github.com/||') ; \
-        sed -i \
-            -e "s|stevologic/security-recipes.ai|${OWNER_REPO}|g" \
-            -e "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" \
-            hugo.yaml ; \
         find content -type f -name "*.md" -exec sed -i \
             -e "s|stevologic/security-recipes.ai|${OWNER_REPO}|g" \
             -e "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" {} + ; \
     fi
 
-# Rewrite absolute card links so Hextra's `{{< card link="/..." >}}` shortcode
-# resolves to the correct subpath when the image is served behind one (e.g.
-# --build-arg BASE_URL=https://example.com/docs/). Hextra's card shortcode
-# emits the `link=` value verbatim into the anchor's `href` — if we don't
-# prepend the base path, internal card links 404 on non-root deploys.
-#
-# When BASE_URL has no path (the default http://localhost/, or any root-host
-# deploy), BASE_PATH is empty and this step is a no-op.
-RUN BASE_PATH=$(printf '%s' "${BASE_URL}" | sed -E 's|^https?://[^/]+||; s|/$||') ; \
-    if [ -n "${BASE_PATH}" ]; then \
-        echo "Prepending BASE_PATH=${BASE_PATH} to card link=\"/...\" paths" ; \
-        find content -type f -name "*.md" -exec sed -i -E \
-            "s|link=\"/|link=\"${BASE_PATH}/|g" {} + ; \
-        find content -type f -name "*.md" -exec sed -i -E \
-            "s|link=\"${BASE_PATH}${BASE_PATH}/|link=\"${BASE_PATH}/|g" {} + ; \
-    fi
-
-# Build. `HUGO_PARAMS_REPOURL` surfaces the repo URL to the landing page
-# template. `--baseURL` overrides the value in hugo.yaml so the image's
-# generated links don't carry a GitHub Pages project subpath
-# into a container that's served from `/`.
-RUN set -eux; \
-    HUGO_MINIFY_FLAG=""; \
-    if [ "${HUGO_MINIFY}" != "false" ]; then \
-        HUGO_MINIFY_FLAG="--minify"; \
-    fi; \
-    GOMAXPROCS="${HUGO_GOMAXPROCS}" \
-    HUGO_PARAMS_REPOURL="${REPO_URL:-https://github.com/stevologic/security-recipes.ai}" \
-    HUGO_PARAMS_AIPROVIDERRELAY="same-origin" \
-    hugo --gc ${HUGO_MINIFY_FLAG} \
-        --baseURL="${BASE_URL}" \
+# Build the site. SECURITY_RECIPES_BASE_URL drives canonical URLs, feeds,
+# and the path prefix for subpath deploys.
+RUN SECURITY_RECIPES_BASE_URL="${BASE_URL}" \
+    SECURITY_RECIPES_REPO_URL="${REPO_URL:-https://github.com/stevologic/security-recipes.ai}" \
+    npx eleventy \
     && touch public/.nojekyll
 
 
@@ -141,7 +77,7 @@ LABEL org.opencontainers.image.title="security-recipes.ai" \
       org.opencontainers.image.source="https://github.com/stevologic/security-recipes.ai"
 
 # Minimal nginx config — static site, gzip on, SPA-friendly fallbacks off
-# (Hugo outputs real files for every route).
+# (the build outputs real files for every route).
 RUN rm /etc/nginx/conf.d/default.conf
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /src/public /usr/share/nginx/html

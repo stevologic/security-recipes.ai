@@ -26,7 +26,7 @@ fork-and-PR workflow we use to land changes.
 2. **Branch** off `main` — `recipe/<tool>-<topic>` or
    `prompt/<short-name>`.
 3. **Make your change** under the root-level `content/…` directory.
-4. **Preview locally** from the repo root with `hugo server -D` (see
+4. **Preview locally** from the repo root with `npm run serve` (see
    [Running the site locally](#running-the-site-locally)).
 5. **Open a PR** against `main` on the upstream repo.
 6. Get **one reviewer from Security** and **one from the team that owns
@@ -109,7 +109,7 @@ will prompt you for the four things reviewers will check:
 ### 7. Address review and merge
 
 Squash-merge is the default. Once merged, the GH Actions pipeline
-builds Hugo and publishes `gh-pages` in ~1 minute.
+builds the site and publishes `gh-pages` in ~1 minute.
 
 ### Keeping your fork in sync
 
@@ -153,11 +153,8 @@ four-section skeleton so teams can skim and compare:
 3. **Verification** — how to know end-to-end that it worked.
 4. **Guardrails** — the controls in place before you scale it up.
 
-Use the archetype to scaffold:
-
-```bash
-hugo new content <tool>/_index.md
-```
+Scaffold by copying an existing section index (for example
+`content/claude/_index.md`) and adjusting the front matter.
 
 Things reviewers look for in a recipe PR:
 
@@ -269,12 +266,12 @@ the exact verification steps a reviewer can run.
 
 The site is built to absorb a steady stream of new recipes —
 new CVEs, new classic-default patterns, new workflows — without
-anyone needing to edit `hugo.yaml` or hand-curate a hub page
+anyone needing to edit the site config or hand-curate a hub page
 every time. Two rules keep that working:
 
 ### Rule 1 — The top-nav dropdown lists hubs, never leaf pages
 
-The dropdown menus in `hugo.yaml` show **section hubs only**:
+The primary nav entries (defined in `lib/site-config.js`) show **section hubs only**:
 
 - `Security Remediation → Overview / Reviewer Playbook /
   Gatekeeping / Runtime Controls / Compliance` — and that's
@@ -292,8 +289,8 @@ navigation, and the left sidebar stays collapsed and hub-oriented
 so it does not become a second long recipe index.
 
 **If your contribution is a new hub category** (a brand-new
-top-level grouping), edit `hugo.yaml`. **If your contribution
-is a new recipe inside an existing hub**, do not.
+top-level grouping), edit the `menu` list in `lib/site-config.js`.
+**If your contribution is a new recipe inside an existing hub**, do not.
 
 ### Rule 2 — Hubs auto-discover their pages
 
@@ -393,16 +390,14 @@ If you find yourself wanting to split, ask:
 - **Adding a new workflow?** New folder under
   `content/security-remediation/<slug>/_index.md`. Add a card to
   the section's `_index.md` cards block (editorial
-  ordering matters there). Don't touch `hugo.yaml`.
+  ordering matters there). Don't touch the site config.
 - **Adding a brand-new hub category?** *Only then* edit
-  `hugo.yaml` to add the dropdown entry, and add a
-  `cascade` block in the new hub's `_index.md` to
-  propagate sidebar settings to descendants. For Recipes
-  style hubs, the cascade should exclude regular pages from the
-  left sidebar and keep section hubs collapsed.
+  `lib/site-config.js` to add the nav entry. Large sections
+  (over 100 sibling pages) are automatically kept out of the
+  left sidebar; hub pages list their own children.
 
 The navigation contract is enforced by review — PRs that
-add per-recipe entries to `hugo.yaml` or hand-list recipes
+add per-recipe entries to the nav config or hand-list recipes
 on hub pages will be asked to switch to the auto-discovery
 shortcodes.
 
@@ -411,13 +406,12 @@ shortcodes.
 ## SEO and discoverability
 
 The site is built so contributors don't have to think about SEO —
-the [SEO partial](layouts/partials/custom/seo.html)
+the [SEO module](lib/seo.js)
 emits Open Graph, Twitter Card, JSON-LD (Article, Organization,
 WebSite, BreadcrumbList), canonical URLs, and robots / theme
 meta on every page from page-level frontmatter, with sensible
-fallbacks to site-level defaults in `hugo.yaml`. Hugo's
-auto-generated `sitemap.xml` and the
-[robots.txt template](layouts/robots.txt) are wired
+fallbacks to site-level defaults in `lib/site-config.js`. The
+build's `sitemap.xml` and `robots.txt` generators are wired
 to surface the new content to search engines and AI crawlers
 on the next deploy.
 
@@ -469,7 +463,7 @@ noindex: true                       # opt out of indexing entirely
 
 For brand-new top-level sections, also remember to:
 
-- Update the site's `seo.sameAs` list in `hugo.yaml` if a
+- Update the site's `seo.sameAs` list in `lib/site-config.js` if a
   new canonical URL (a project repo, a Mastodon, a
   Bluesky) should be linked into the Organization JSON-LD.
 - Update `seo.defaultKeywords` if the new section
@@ -479,13 +473,13 @@ For brand-new top-level sections, also remember to:
 
 ## Style and conventions
 
-- **Markdown**, Hugo + Hextra shortcodes. The `{{< callout >}}`,
+- **Markdown** with the site's shortcodes. The `{{< callout >}}`,
   `{{< relref >}}`, and `{{< cards >}}` shortcodes are the main ones
-  you'll use.
+  you'll use (the Eleventy build translates them at build time).
 - **Line length** — soft-wrap around 80 chars in prose, unless the line
   is a long URL or code.
 - **Links** — prefer `{{< relref "/<section>" >}}` for internal links
-  so Hugo validates them at build time.
+  so the build validates them (unresolved targets warn at build time).
 - **Commands** — fenced with the language hint (```` ```bash ````,
   ```` ```yaml ````, etc.) so syntax highlighting kicks in.
 - **Weight** — per-section ordering uses the `weight` frontmatter
@@ -516,16 +510,14 @@ the reviewers in chat if it's been longer — PRs go stale fast.
 
 Prereqs:
 
-- [Hugo extended](https://gohugo.io/installation/) `>= 0.139`
-- [Go](https://go.dev/dl/) `>= 1.21` (Hextra is loaded as a Hugo Module)
+- [Node.js](https://nodejs.org/) `>= 20`
 - Git
 
-Run these from the repository root, the directory that contains
-`hugo.yaml`; the current layout does not use a nested site directory.
+Run these from the repository root:
 
 ```bash
-hugo mod get -u              # fetch the Hextra theme
-hugo server -D               # http://localhost:1313
+npm install                  # install the Eleventy toolchain
+npm run serve                # http://localhost:8080, incremental rebuilds
 ```
 
 Prefer Docker?

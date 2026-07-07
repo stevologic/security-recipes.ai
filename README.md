@@ -1,7 +1,8 @@
 # security-recipes.ai
 
-[security-recipes.ai](https://security-recipes.ai/) is a Hugo site for
-security recipes that AI agents can consume during remediation work.
+[security-recipes.ai](https://security-recipes.ai/) is a static site (built
+with Eleventy) for security recipes that AI agents can consume during
+remediation work.
 
 The project is intentionally narrow:
 
@@ -32,7 +33,7 @@ security-recipes.ai helps teams answer:
 
 ## What ships
 
-- Hugo + Hextra documentation site.
+- Eleventy documentation site (fast static builds, no Go toolchain).
 - Custom home page for the recipe-focused identity.
 - Recipe hubs for dependency, SAST, sensitive-data, base-image, CVE, and
   default-hardening remediation.
@@ -52,7 +53,9 @@ security-recipes.ai helps teams answer:
 | Path | Purpose |
 | --- | --- |
 | `content/` | Recipes, docs, recipes, and agent setup pages. |
-| `layouts/` | Hugo templates, home page, shortcodes, and JSON indexes. |
+| `eleventy.config.js` | Site build configuration (permalinks, feeds, tag pages). |
+| `_includes/` | Page layouts: docs chrome and the standalone home page. |
+| `lib/` | Build modules: shortcode ports, JSON feed builders, SEO head. |
 | `assets/` | Site CSS and JavaScript for the recipe browser, navigation, and helper tools. |
 | `static/` | Images, logos, schemas, and static assets. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
@@ -165,23 +168,22 @@ python mcp_server.py
 
 Prerequisites:
 
-- Hugo extended `>= 0.139`
-- Go `>= 1.21`
+- Node.js `>= 20`
 - Git
 
 ```bash
-hugo mod get -u
-hugo server -D
+npm install
+npm run serve
 ```
 
 Open:
 
 ```text
-http://localhost:1313
+http://localhost:8080
 ```
 
-If Hugo is not installed globally, download a Hugo extended release and run the
-binary directly.
+`npm run serve` watches for changes and rebuilds incrementally. A one-off
+production build is `npm run build` (output lands in `public/`).
 
 ## Docker Compose
 
@@ -218,7 +220,7 @@ MCP endpoint: /mcp
 
 The Compose stack is intentionally small:
 
-- `security-recipes`: Hugo/nginx static site and recipe/API routes.
+- `security-recipes`: nginx static site and recipe/API routes.
 - `mcp-server`: optional read-only MCP server. In Compose it reads the
   locally built site feed at `http://security-recipes/api/recipes.json`, so a
   fork or droplet serves its own recipes instead of depending on the public
@@ -298,18 +300,8 @@ command -v docker-compose
 docker-compose version
 ```
 
-If the Hugo build is killed with exit code `137` during the `hugo --gc
---minify` step, the droplet is out of memory. Use one or more of these
-options:
-
-```bash
-# Lower Hugo build concurrency and skip minification on small droplets.
-SECURITY_RECIPES_HUGO_GOMAXPROCS=1 \
-SECURITY_RECIPES_HUGO_MINIFY=false \
-docker compose up -d --build
-```
-
-You can also add temporary swap before rebuilding:
+If the site build is killed with exit code `137` during the `npx eleventy`
+step, the droplet is out of memory. Add temporary swap before rebuilding:
 
 ```bash
 sudo fallocate -l 2G /swapfile
@@ -317,9 +309,6 @@ sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
 ```
-
-`SECURITY_RECIPES_HUGO_MINIFY` defaults to `true`; disabling it only affects
-the generated asset size, not the site content or routes.
 
 ## MCP integration philosophy
 
@@ -356,5 +345,5 @@ Run a local build before submitting:
 ```bash
 python -m pip install -r requirements-dev.txt
 python scripts/run_checks.py
-hugo --gc --minify
+npm run build
 ```

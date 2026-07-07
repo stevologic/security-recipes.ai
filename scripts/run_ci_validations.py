@@ -2,7 +2,7 @@
 """Run Python validation commands checked by the GitHub Action.
 
 This runner intentionally derives its command list from
-`.github/workflows/hugo.yml` so local validation stays aligned with CI.
+`.github/workflows/build.yml` so local validation stays aligned with CI.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "hugo.yml"
+DEFAULT_WORKFLOW = REPO_ROOT / ".github" / "workflows" / "build.yml"
 
 
 @dataclass(frozen=True)
