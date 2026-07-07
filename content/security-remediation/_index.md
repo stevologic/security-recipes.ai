@@ -1,6 +1,6 @@
 ---
-title: Security Recipes
-linkTitle: Recipes
+title: Remediation Playbooks
+linkTitle: Playbooks
 weight: 2
 sidebar:
   open: false
@@ -15,8 +15,8 @@ description: >
   reviewable security fixes.
 ---
 
-Security recipes are reusable remediation playbooks. Each one should tell an
-AI agent:
+Remediation playbooks are reusable, bounded recipes for one finding. Each one
+should tell an AI agent:
 
 - what kind of finding it can handle,
 - what context it needs,

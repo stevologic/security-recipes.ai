@@ -1,3 +1,11 @@
+{{- /*
+  Lightweight site-wide search index consumed by assets/js/docs-search.js
+  (the global "/" search widget) and used as the recipe-browser legacy
+  fallback. Intentionally omits full page text (.Plain): that pushed this
+  file past 20 MB and made client-side search impractical. Titles, section,
+  tags, and the trimmed summary are enough for fast title/keyword ranking;
+  agents that need full recipe bodies use /api/recipes.json instead.
+*/ -}}
 {{- $docs := slice -}}
 {{- $pages := where .Site.Pages "Kind" "in" (slice "page" "section") -}}
 {{- range sort $pages "RelPermalink" -}}
@@ -12,6 +20,22 @@
   {{- if eq $slug "" -}}
     {{- $slug = replaceRE "/" "-" (replaceRE "^/|/$" "" .RelPermalink) -}}
   {{- end -}}
+  {{- $summary := "" -}}
+  {{- with .Description -}}
+    {{- $summary = . -}}
+  {{- else -}}
+    {{- $summary = .Summary | plainify -}}
+  {{- end -}}
+  {{- /* Section headings are compact, high-signal keywords that recover most
+         body-only search terms (e.g. "SBOM", "verification") without inlining
+         full page text. Two levels (h2 + h3) covers the useful cases. */ -}}
+  {{- $headings := slice -}}
+  {{- range .Fragments.Headings -}}
+    {{- with .Title }}{{ $headings = $headings | append . }}{{ end -}}
+    {{- range .Headings -}}
+      {{- with .Title }}{{ $headings = $headings | append . }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
   {{- $docs = $docs | append (dict
     "slug" $slug
     "title" .Title
@@ -22,8 +46,8 @@
     "tags" (.Params.tags | default (slice))
     "severity" (.Params.severity | default "unspecified")
     "last_updated" (.Lastmod.Format "2006-01-02")
-    "summary" (.Summary | plainify)
-    "content" .Plain
+    "summary" (chomp (truncate 200 $summary))
+    "headings" (chomp (truncate 400 (delimit $headings " · ")))
     "source_file" $source
   ) -}}
 {{- end -}}

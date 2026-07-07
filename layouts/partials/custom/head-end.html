@@ -23,7 +23,7 @@
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="no">
 <meta name="mobile-web-app-capable" content="no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev https://api.osv.dev https://api.githubcopilot.com https://docs.semgrep.dev https://mcp.cloudflare.com http://localhost:8811 http://127.0.0.1:8811 https://*.snyk.io https://*.atlassian.net https://api.atlassian.com https://gitlab.com https://*.gitlab.com https://dev.azure.com https://*.dev.azure.com https://*.visualstudio.com https://api.security.microsoft.com https://*.security.microsoft.com https://management.azure.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.openai.com https://api.x.ai https://api.anthropic.com https://api.github.com https://api.deps.dev https://api.osv.dev https://api.githubcopilot.com https://docs.semgrep.dev https://mcp.cloudflare.com http://localhost:8811 http://127.0.0.1:8811 https://*.snyk.io https://*.atlassian.net https://api.atlassian.com https://gitlab.com https://*.gitlab.com https://dev.azure.com https://*.dev.azure.com https://*.visualstudio.com https://api.security.microsoft.com https://*.security.microsoft.com https://management.azure.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'none';">
 
 {{/*
   Load the custom stylesheet on every page.
@@ -102,9 +102,13 @@ window.__NAV_ROUTES = (function () {
 {{ end }}
 
 {{/*
-  Global docs search modal — adds "/" search access on Hextra content
-  Site base prefix for client-side recipe index lookups.
+  Global docs search — floating "Search docs" launcher + "/" shortcut and a
+  modal that ranks the site-wide index (recipes-index.json). Works on every
+  Hextra page; the standalone landing page wires the same script itself.
 */}}
+{{ with resources.Get "js/docs-search.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+{{ end }}
 {{/*
   CVE hub intro accordions - collapse explanatory sections above the
   generated recipe list while preserving the page anchors.

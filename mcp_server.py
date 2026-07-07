@@ -65,9 +65,13 @@ class UpstreamMCPServerConfig:
 
 @dataclass
 class ServerConfig:
+    # Prefer the rich agent feed (/api/recipes.json): it carries full recipe
+    # bodies (content_text) plus category, facets, and quality metadata. The
+    # legacy /recipes-index.json is a slim, body-less index built for in-browser
+    # site search, so it is not a good agent context source.
     source_index_url: str = os.environ.get(
         "RECIPES_MCP_SOURCE_INDEX_URL",
-        "https://security-recipes.ai/recipes-index.json",
+        "https://security-recipes.ai/api/recipes.json",
     )
     allowed_source_hosts: list[str] = field(
         default_factory=lambda: _env_csv_list("RECIPES_MCP_ALLOWED_SOURCE_HOSTS", ["security-recipes.ai"])

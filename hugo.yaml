@@ -90,14 +90,19 @@ outputFormats:
 # through section sidebars and search.
 menu:
   main:
+    # Primary nav intentionally maps one label to one destination section, in
+    # the order a visitor moves: pick a recipe, follow a playbook, wire the
+    # agent, connect context, read the docs. "Recipes" (the prompt library) and
+    # "Playbooks" (curated remediation guides) are deliberately distinct so the
+    # sidebar no longer shows two entries both called "Recipes".
     - identifier: recipes
       name: Recipes
       pageRef: prompt-library
       weight: 1
 
-    - identifier: mcp-servers
-      name: MCP Sources
-      pageRef: mcp-servers
+    - identifier: playbooks
+      name: Playbooks
+      pageRef: security-remediation
       weight: 2
 
     - identifier: agents
@@ -105,9 +110,9 @@ menu:
       pageRef: agents
       weight: 3
 
-    - identifier: review
-      name: Review
-      pageRef: security-remediation/reviewer-playbook
+    - identifier: mcp-servers
+      name: MCP
+      pageRef: mcp-servers
       weight: 4
 
     - identifier: docs
@@ -170,6 +175,14 @@ params:
   theme:
     default: dark
     displayToggle: true
+
+  # Load Mermaid from a vendored, version-pinned copy in assets/js instead of
+  # Hextra's default `cdn.jsdelivr.net/npm/mermaid@latest`. This keeps builds
+  # deterministic and works on air-gapped networks, matching the site's
+  # no-external-resources posture. Setting `js` without `base` makes Hextra
+  # resolve it as a local Hugo asset.
+  mermaid:
+    js: js/mermaid.min.js
 
   footer:
     displayCopyright: true
