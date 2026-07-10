@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Generate an audit evidence bundle for agentic remediation runs.
 
-Input can be a JSON array or JSON Lines file. Each event should include:
+Input can be a JSON array or JSON Lines file. Each event must include:
 
-  run_id, timestamp, event_type, workflow, finding_id, actor
+  run_id, event_class (or legacy event_type), and a timestamp
+
+Use workflow_id for the workflow identifier; legacy workflow is accepted.
+When timestamp is absent, canonical receipt time fields such as approved_at,
+completed_at, closed_at, or revoked_at are normalized into it.
 
 Additional keys are preserved in the raw event stream. The output bundle is
 intentionally boring JSON + Markdown so compliance, GRC, and security teams can
@@ -20,16 +24,31 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-REQUIRED_FIELDS = {"run_id", "timestamp", "event_type"}
+REQUIRED_FIELDS = {"run_id"}
+TIMESTAMP_FIELDS = (
+    "timestamp",
+    "occurred_at",
+    "event_time",
+    "issued_at",
+    "retrieved_at",
+    "scanned_at",
+    "decided_at",
+    "approved_at",
+    "completed_at",
+    "attached_at",
+    "closed_at",
+    "revoked_at",
+)
 TERMINAL_EVENTS = {
+    "run_closed",
     "pr_opened",
     "triage_written",
     "agent_stopped",
     "run_failed",
     "finding_closed",
 }
-REVIEW_EVENTS = {"review_approved", "review_rejected", "changes_requested"}
-VERIFY_EVENTS = {"tests_passed", "scanner_rerun_passed", "policy_checks_passed"}
+REVIEW_EVENTS = {"human_approval", "review_approved", "review_rejected", "changes_requested"}
+VERIFY_EVENTS = {"verifier_result", "tests_passed", "scanner_rerun_passed", "policy_checks_passed"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -72,11 +91,47 @@ def load_events(path: Path) -> list[dict[str, Any]]:
         if missing:
             raise ValueError(f"event {idx} missing required fields: {missing}")
         event = dict(event)
-        event["timestamp"] = normalize_timestamp(str(event["timestamp"]))
+        normalize_alias(event, "event_class", "event_type", idx, required=True)
+        normalize_alias(event, "workflow_id", "workflow", idx, required=False)
+        event["timestamp"] = normalize_timestamp(event_timestamp(event, idx))
+        for field in TIMESTAMP_FIELDS:
+            if field != "timestamp" and str(event.get(field, "")).strip():
+                event[field] = normalize_timestamp(str(event[field]))
         shaped.append(event)
 
-    shaped.sort(key=lambda e: (e["timestamp"], str(e.get("run_id", "")), str(e.get("event_type", ""))))
+    shaped.sort(key=lambda e: (e["timestamp"], str(e.get("run_id", "")), event_name(e)))
     return shaped
+
+
+def normalize_alias(
+    event: dict[str, Any], canonical: str, legacy: str, index: int, *, required: bool
+) -> None:
+    canonical_value = str(event.get(canonical, "")).strip()
+    legacy_value = str(event.get(legacy, "")).strip()
+    if canonical_value and legacy_value and canonical_value != legacy_value:
+        raise ValueError(f"event {index} has conflicting {canonical} and {legacy} values")
+    value = canonical_value or legacy_value
+    if required and not value:
+        raise ValueError(f"event {index} missing {canonical} (or legacy {legacy})")
+    if value:
+        event[canonical] = value
+
+
+def event_timestamp(event: dict[str, Any], index: int) -> str:
+    for field in TIMESTAMP_FIELDS:
+        value = str(event.get(field, "")).strip()
+        if value:
+            return value
+    expected = ", ".join(TIMESTAMP_FIELDS)
+    raise ValueError(f"event {index} missing a timestamp; expected one of: {expected}")
+
+
+def event_name(event: dict[str, Any]) -> str:
+    return str(event.get("event_class") or event.get("event_type") or "")
+
+
+def event_workflow(event: dict[str, Any]) -> str:
+    return str(event.get("workflow_id") or event.get("workflow") or "unknown")
 
 
 def normalize_timestamp(value: str) -> str:
@@ -99,42 +154,48 @@ def group_runs(events: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
 
 
 def summarize_run(run_id: str, events: list[dict[str, Any]]) -> dict[str, Any]:
-    types = [str(e.get("event_type", "")) for e in events]
+    event_classes = [event_name(event) for event in events]
     first = events[0]
     last = events[-1]
     reviewers = sorted(
         {
-            str(e.get("actor"))
+            str(e.get("approver") or e.get("actor"))
             for e in events
-            if e.get("event_type") in REVIEW_EVENTS and e.get("actor")
+            if event_name(e) in REVIEW_EVENTS and (e.get("approver") or e.get("actor"))
         }
     )
-    tools = sorted({str(e.get("tool")) for e in events if e.get("tool")})
+    tools = sorted({str(e.get("tool_namespace") or e.get("tool")) for e in events if e.get("tool_namespace") or e.get("tool")})
     repositories = sorted({str(e.get("repository")) for e in events if e.get("repository")})
     prs = sorted({str(e.get("pr_url")) for e in events if e.get("pr_url")})
     findings = sorted({str(e.get("finding_id")) for e in events if e.get("finding_id")})
 
     return {
         "run_id": run_id,
-        "workflow": first.get("workflow"),
+        "workflow_id": event_workflow(first),
+        "workflow": event_workflow(first),
         "finding_ids": findings,
         "repositories": repositories,
         "started_at": first.get("timestamp"),
         "ended_at": last.get("timestamp"),
         "event_count": len(events),
-        "outcome": infer_outcome(types),
-        "has_terminal_event": any(t in TERMINAL_EVENTS for t in types),
-        "has_review_decision": any(t in REVIEW_EVENTS for t in types),
-        "has_verification": any(t in VERIFY_EVENTS for t in types),
+        "outcome": infer_outcome(events),
+        "has_terminal_event": any(name in TERMINAL_EVENTS for name in event_classes),
+        "has_review_decision": any(name in REVIEW_EVENTS for name in event_classes),
+        "has_verification": any(name in VERIFY_EVENTS for name in event_classes),
         "reviewers": reviewers,
         "tools": tools,
         "pull_requests": prs,
-        "event_types": sorted(set(types)),
+        "event_classes": sorted(set(event_classes)),
+        "event_types": sorted(set(event_classes)),
         "chain_hash": sha256_json(events),
     }
 
 
-def infer_outcome(event_types: list[str]) -> str:
+def infer_outcome(events: list[dict[str, Any]]) -> str:
+    for event in reversed(events):
+        if event_name(event) == "run_closed":
+            return str(event.get("final_state") or "run_closed")
+    event_types = [event_name(event) for event in events]
     for candidate in ["finding_closed", "review_approved", "pr_opened", "triage_written", "agent_stopped", "run_failed"]:
         if candidate in event_types:
             return candidate
@@ -144,21 +205,21 @@ def infer_outcome(event_types: list[str]) -> str:
 def build_manifest(program: str, period: str, source: Path, events: list[dict[str, Any]]) -> dict[str, Any]:
     runs = group_runs(events)
     summaries = [summarize_run(run_id, run_events) for run_id, run_events in sorted(runs.items())]
-    event_counts = Counter(str(e.get("event_type")) for e in events)
-    workflows = Counter(str(e.get("workflow", "unknown")) for e in events)
+    event_counts = Counter(event_name(event) for event in events)
+    workflows = Counter(event_workflow(event) for event in events)
     control_gaps = []
 
     for summary in summaries:
         if not summary["has_terminal_event"]:
             control_gaps.append({"run_id": summary["run_id"], "gap": "missing_terminal_event"})
-        if not summary["has_review_decision"] and summary["outcome"] in {"review_approved", "finding_closed"}:
+        if summary["has_terminal_event"] and not summary["has_review_decision"]:
             control_gaps.append({"run_id": summary["run_id"], "gap": "missing_review_decision"})
-        if not summary["has_verification"] and summary["outcome"] in {"review_approved", "finding_closed", "pr_opened"}:
+        if summary["has_terminal_event"] and not summary["has_verification"]:
             control_gaps.append({"run_id": summary["run_id"], "gap": "missing_verification_event"})
 
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return {
-        "schema": "security-recipes.agent-evidence-bundle.v1",
+        "schema": "security-recipes.agent-evidence-bundle.v2",
         "generated_at": now,
         "program": program,
         "period": period,
@@ -167,6 +228,7 @@ def build_manifest(program: str, period: str, source: Path, events: list[dict[st
         "event_count": len(events),
         "run_count": len(summaries),
         "workflows": dict(sorted(workflows.items())),
+        "event_classes": dict(sorted(event_counts.items())),
         "event_types": dict(sorted(event_counts.items())),
         "control_gaps": control_gaps,
         "runs": summaries,
@@ -203,7 +265,7 @@ def write_markdown_report(manifest: dict[str, Any], output_path: Path) -> None:
             [
                 f"### `{run['run_id']}`",
                 "",
-                f"- Workflow: `{run.get('workflow') or 'unknown'}`",
+                f"- Workflow: `{run.get('workflow_id') or 'unknown'}`",
                 f"- Outcome: `{run['outcome']}`",
                 f"- Finding IDs: {findings}",
                 f"- Pull requests: {prs}",

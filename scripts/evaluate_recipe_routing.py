@@ -12,8 +12,20 @@ from pathlib import Path
 from typing import Any
 
 
+STOP_WORDS = {"a", "an", "and", "for", "in", "of", "on", "or", "the", "to", "with"}
+
+
 def tokenize(value: str) -> list[str]:
-    return [term for term in re.split(r"\s+", value.lower().strip()) if term]
+    terms = [term for term in re.split(r"\s+", value.lower().strip()) if term and term not in STOP_WORDS]
+    return list(dict.fromkeys(terms))
+
+
+def count_term(haystack: str, term: str) -> int:
+    """Count a query term without matching it inside a larger word."""
+
+    suffix = r"(?:s)?" if term.isalpha() and len(term) > 3 and not term.endswith("s") else ""
+    pattern = rf"(?<![a-z0-9]){re.escape(term)}{suffix}(?![a-z0-9])"
+    return len(re.findall(pattern, haystack))
 
 
 def normalise_path(path: str) -> str:
@@ -28,12 +40,11 @@ def normalise_path(path: str) -> str:
     return parsed if parsed.endswith("/") else parsed + "/"
 
 
-def score_doc(query: str, doc: dict[str, Any]) -> float:
-    terms = tokenize(query)
+def searchable_text(doc: dict[str, Any]) -> str:
     title = str(doc.get("title", ""))
     slug = str(doc.get("slug", ""))
     path = str(doc.get("path", ""))
-    haystack = " ".join(
+    return " ".join(
         [
             title,
             str(doc.get("summary", "")),
@@ -44,23 +55,45 @@ def score_doc(query: str, doc: dict[str, Any]) -> float:
         ]
     ).lower()
 
+
+def score_doc(query: str, doc: dict[str, Any], term_weights: dict[str, float] | None = None) -> float:
+    terms = tokenize(query)
+    title = str(doc.get("title", ""))
+    slug = str(doc.get("slug", ""))
+    path = str(doc.get("path", ""))
+    haystack = searchable_text(doc)
+    weights = term_weights or {}
+
     score = 0.0
     for term in terms:
-        hits = haystack.count(term)
+        hits = count_term(haystack, term)
         if not hits:
             continue
-        score += 1.0 + math.log1p(hits)
-        if term in title.lower():
-            score += 1.5
-        if term in slug.lower():
-            score += 1.0
-        if term in path.lower():
-            score += 1.0
+        weight = weights.get(term, 1.0)
+        score += weight * (1.0 + math.log1p(hits))
+        if count_term(title.lower(), term):
+            score += weight * 1.5
+        if count_term(slug.lower(), term):
+            score += weight
+        if count_term(path.lower(), term):
+            score += weight
+
+    identifiers = set(re.findall(r"\b(?:cve-\d{4}-\d+|ghsa-[a-z0-9-]+)\b", query.lower()))
+    for identifier in identifiers:
+        if identifier in title.lower() or identifier in slug.lower() or identifier in path.lower():
+            score += 50.0
     return score
 
 
 def rank(query: str, docs: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
-    scored = [(score_doc(query, doc), doc) for doc in docs]
+    terms = tokenize(query)
+    corpus = [searchable_text(doc) for doc in docs]
+    term_weights = {}
+    for term in terms:
+        document_frequency = sum(1 for text in corpus if count_term(text, term))
+        term_weights[term] = 1.0 + math.log((len(docs) + 1) / (document_frequency + 1))
+
+    scored = [(score_doc(query, doc, term_weights), doc) for doc in docs]
     scored = [item for item in scored if item[0] > 0]
     scored.sort(key=lambda item: item[0], reverse=True)
     return [

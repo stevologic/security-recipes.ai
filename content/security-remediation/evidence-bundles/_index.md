@@ -56,19 +56,25 @@ The minimum viable bundle includes:
 
 ## Event schema
 
-Start boring. Every event should carry these required fields:
+Start boring. Every event should carry these required fields after
+normalization:
 
 | Field | Purpose |
 | --- | --- |
 | `run_id` | Correlates the full chain of custody for one agent attempt. |
 | `timestamp` | UTC timestamp, ISO 8601 preferred. |
-| `event_type` | Stable verb such as `finding_opened`, `tool_called`, `pr_opened`, `tests_passed`, `review_approved`. |
+| `event_class` | Canonical receipt class such as `human_approval`, `verifier_result`, or `run_closed`. Legacy `event_type` is accepted as an alias. |
+
+Use `workflow_id` as the canonical workflow identifier; legacy `workflow` is
+accepted as an alias. If `timestamp` is omitted, the generator derives it from
+an event-specific field such as `issued_at`, `approved_at`, `completed_at`,
+`closed_at`, or `revoked_at` and normalizes it to UTC.
 
 Strongly recommended fields:
 
 | Field | Purpose |
 | --- | --- |
-| `workflow` | Workflow name, for example `vulnerable-dependencies`. |
+| `workflow_id` | Workflow name, for example `vulnerable-dependencies`. |
 | `finding_id` | Scanner, ticket, advisory, or case identifier. |
 | `repository` | Repository affected by the run. |
 | `actor` | Human, agent, gateway, or system principal that emitted the event. |
@@ -80,6 +86,11 @@ The schema intentionally accepts additional keys. Enterprise teams
 will add tenant ID, environment, data classification, model,
 prompt version, MCP gateway policy version, ticket URL, and cost
 fields as their program matures.
+
+The current Agentic Run Receipt vocabulary includes `identity_issued`,
+`context_retrieval_decision`, `context_poisoning_scan`, `mcp_tool_decision`,
+`context_egress_decision`, `human_approval`, `verifier_result`,
+`evidence_attached`, `run_closed`, and `identity_revoked`.
 
 ## Generate a starter bundle
 
