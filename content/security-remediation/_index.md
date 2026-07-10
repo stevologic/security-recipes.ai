@@ -70,6 +70,7 @@ has one workflow or ten.
   {{< card link="/security-remediation/runtime-controls/" title="Runtime Controls" subtitle="Inline action proxies and telemetry-driven session disablement — what the gate at the *running* agent looks like, not at its PR." >}}
   {{< card link="/security-remediation/maturity/" title="Rollout & Maturity Model" subtitle="Crawl / walk / run adoption — pilot exit criteria, expansion signals, and the kill signals that pause a workflow." >}}
   {{< card link="/security-remediation/compliance/" title="Compliance & Audit" subtitle="How this shape of workflow maps onto SOC 2, ISO 27001, PCI DSS, and NIST SSDF — evidence to produce and questions auditors will ask." >}}
+  {{< card link="/security-remediation/evidence-bundles/" title="Evidence Bundles" subtitle="Generate audit-ready run manifests, normalized event streams, control gaps, and human-readable reports for agentic remediation." >}}
 {{< /cards >}}
 
 ## Per-CVE recipes

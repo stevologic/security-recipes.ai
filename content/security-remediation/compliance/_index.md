@@ -332,6 +332,7 @@ fix the instrumentation.
 ## See also
 
 - [Program Metrics & KPIs]({{< relref "/security-remediation/metrics" >}}) — the metrics auditors expect to see dashboards for
+- [Evidence Bundles]({{< relref "/security-remediation/evidence-bundles" >}}) — portable audit artifacts for agentic remediation runs
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}}) — the human-review control evidence
 - [Threat Model]({{< relref "/fundamentals/threat-model" >}}) — the basis of the anomaly-detection answer
 - [MCP Server Access]({{< relref "/mcp-servers" >}}) — the access-logging layer
