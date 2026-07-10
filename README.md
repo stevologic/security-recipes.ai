@@ -87,24 +87,23 @@ repo hosts the site — no find-and-replace required before forking.
 - [Go](https://go.dev/dl/) `>= 1.21` (Hextra is loaded as a Hugo Module)
 - Git
 
-### Run locally
+### Run locally with Docker Compose
+
+The preferred local path is Docker Compose. The image builds the site
+with Hugo extended inside the container, then serves the compiled output
+from `nginx:alpine`, so you do not need Hugo installed on your host.
 
 ```bash
-cd hugo-site
-hugo mod get -u           # fetch the Hextra theme
-hugo server -D            # http://localhost:1313
+docker compose up --build
+# open http://localhost:8080
 ```
 
-### Run in Docker
-
-A multi-stage `Dockerfile` builds the site with Hugo extended and
-serves it from `nginx:alpine`:
+Optional overrides:
 
 ```bash
-cd hugo-site
-docker build -t security-recipes .
-docker run --rm -p 8080:80 security-recipes
-# open http://localhost:8080
+SITE_PORT=3000 docker compose up --build
+BASE_URL=https://example.com/docs/ docker compose build
+REPO_URL=https://github.com/your-org/your-repo docker compose build
 ```
 
 ### Add a recipe for a new agent

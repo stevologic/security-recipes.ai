@@ -831,6 +831,12 @@
       radial-gradient(ellipse 80% 120% at 100% 100%, rgba(124, 92, 255, 0.14), transparent 60%),
       rgba(255, 255, 255, 0.025);
   }
+  .dual-cta-card.blueprint {
+    background:
+      radial-gradient(ellipse 80% 120% at 0% 0%, rgba(124, 92, 255, 0.18), transparent 60%),
+      radial-gradient(ellipse 80% 120% at 100% 100%, rgba(74, 222, 128, 0.12), transparent 60%),
+      rgba(255, 255, 255, 0.025);
+  }
   .dual-cta-eyebrow {
     display: inline-flex;
     align-items: center;
@@ -859,6 +865,11 @@
     border: 1px solid rgba(255, 78, 203, 0.28);
     color: #ff9be0;
   }
+  .dual-cta-card.blueprint .dual-cta-eyebrow {
+    background: rgba(124, 92, 255, 0.08);
+    border: 1px solid rgba(124, 92, 255, 0.28);
+    color: #c4b5fd;
+  }
   .dual-cta-eyebrow .dot {
     width: 6px; height: 6px;
     border-radius: 50%;
@@ -874,6 +885,10 @@
   .dual-cta-card.secrem .dual-cta-eyebrow .dot {
     background: #ff9be0;
     box-shadow: 0 0 10px #ff9be0;
+  }
+  .dual-cta-card.blueprint .dual-cta-eyebrow .dot {
+    background: #c4b5fd;
+    box-shadow: 0 0 10px #c4b5fd;
   }
   .dual-cta-card h3 {
     font-size: clamp(22px, 2.4vw, 28px);
@@ -1233,6 +1248,70 @@
       <div class="chip" data-for="codex"><span class="chip-dot"></span> AGENTS.md</div>
       <div class="chip" data-for="devin"><span class="chip-dot"></span> Devin Knowledge entries</div>
       <div class="chip"><span class="chip-dot"></span> PreToolUse hooks</div>
+    </div>
+  </div>
+</section>
+
+<!-- AI Adoption Blueprint -->
+<section class="dual-cta-section">
+  <a class="dual-cta-card blueprint reveal d2" href="{{ $base }}/docs/ai-adoption-blueprint/">
+    <div class="dual-cta-eyebrow">
+      <span class="dot"></span>
+      <span>Adoption Blueprint</span>
+    </div>
+    <h3>Make AI security easy to adopt</h3>
+    <p>
+      A practical path for teams asking where to start: small businesses get
+      a one-repo, one-workflow launch path, while enterprises get staged
+      governance, MCP context controls, audit evidence, and clear promotion
+      criteria.
+    </p>
+    <div class="dual-cta-tags">
+      <span class="dual-cta-tag">small business</span>
+      <span class="dual-cta-tag">enterprise rollout</span>
+      <span class="dual-cta-tag">MCP ladder</span>
+      <span class="dual-cta-tag">review gates</span>
+      <span class="dual-cta-tag">audit evidence</span>
+    </div>
+    <span class="dual-cta-link">
+      Open the blueprint
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+  </a>
+
+  <div class="dual-cta-card automation reveal d3">
+    <div class="dual-cta-eyebrow">
+      <span class="dot"></span>
+      <span>Fast Start</span>
+    </div>
+    <h3>Small teams</h3>
+    <p>
+      Start with the agent you already use, one deterministic scanner, one
+      prompt, one repository, and mandatory PR review. Graduate only after
+      real fixes merge cleanly.
+    </p>
+    <div class="dual-cta-tags">
+      <span class="dual-cta-tag">one repo</span>
+      <span class="dual-cta-tag">one reviewer</span>
+      <span class="dual-cta-tag">dependency PRs</span>
+    </div>
+  </div>
+
+  <div class="dual-cta-card mcp reveal d4">
+    <div class="dual-cta-eyebrow">
+      <span class="dot"></span>
+      <span>Governed Scale</span>
+    </div>
+    <h3>Enterprise teams</h3>
+    <p>
+      Put agent access behind scoped MCP, route review through owners, retain
+      evidence, and use measured stage gates before expanding beyond the
+      pilot.
+    </p>
+    <div class="dual-cta-tags">
+      <span class="dual-cta-tag">MCP gateway</span>
+      <span class="dual-cta-tag">CODEOWNERS</span>
+      <span class="dual-cta-tag">stage gates</span>
     </div>
   </div>
 </section>
