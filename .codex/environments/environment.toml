@@ -8,6 +8,19 @@ script = ""
 [setup.win32]
 script = '''
 $ErrorActionPreference = "Stop"
+$dockerReady = $false
+if (Get-Command docker -ErrorAction SilentlyContinue) {
+  try {
+    docker info *> $null
+    $dockerReady = ($LASTEXITCODE -eq 0)
+  } catch {
+    $dockerReady = $false
+  }
+}
+if (-not $dockerReady) {
+  Write-Warning "Docker is unavailable; skipping optional Docker Compose startup. Start Docker Desktop to enable it."
+  exit 0
+}
 if (-not $env:COMPOSE_PROJECT_NAME) {
   $sha = [System.Security.Cryptography.SHA256]::Create()
   $bytes = [System.Text.Encoding]::UTF8.GetBytes((Get-Location).Path)
@@ -18,12 +31,27 @@ if (-not $env:SECURITY_RECIPES_HTTP_PORT) {
   $env:SECURITY_RECIPES_HTTP_PORT = "127.0.0.1:0"
 }
 docker compose up -d --build
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 docker compose port security-recipes 80
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 '''
 
 [cleanup]
 script = '''
 $ErrorActionPreference = "Stop"
+$dockerReady = $false
+if (Get-Command docker -ErrorAction SilentlyContinue) {
+  try {
+    docker info *> $null
+    $dockerReady = ($LASTEXITCODE -eq 0)
+  } catch {
+    $dockerReady = $false
+  }
+}
+if (-not $dockerReady) {
+  Write-Warning "Docker is unavailable; skipping optional Docker Compose cleanup."
+  exit 0
+}
 if (-not $env:COMPOSE_PROJECT_NAME) {
   $sha = [System.Security.Cryptography.SHA256]::Create()
   $bytes = [System.Text.Encoding]::UTF8.GetBytes((Get-Location).Path)
@@ -31,4 +59,5 @@ if (-not $env:COMPOSE_PROJECT_NAME) {
   $env:COMPOSE_PROJECT_NAME = "security-recipes-$hash"
 }
 docker compose down
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 '''

@@ -213,5 +213,5 @@ template, and a regression-set entry.
   — the per-pattern agent prompts.
 - [SAST Finding Remediation]({{< relref "/security-remediation/sast-findings" >}})
   — when the same patterns are found by a scanner.
-- [OWASP Top 10 (2026) — remediate]({{< relref "/prompt-library/general/owasp-top-10-2026-remediate" >}})
+- [OWASP Top 10:2025 remediation]({{< relref "/prompt-library/general/owasp-top-10-2025-remediate" >}})
   — when one of these patterns maps to an OWASP category.

@@ -91,6 +91,7 @@ to reject PRs that drift outside the declared scope.
   {{< card link="/security-remediation/maturity/" title="Rollout Model" subtitle="Crawl, walk, run adoption with promotion criteria and stop signals." >}}
   {{< card link="/security-remediation/metrics/" title="Metrics" subtitle="MTTR, reviewer burden, merge quality, false positives, and where automation is earning its keep." >}}
   {{< card link="/security-remediation/compliance/" title="Compliance and Audit" subtitle="Evidence patterns for SOC 2, ISO 27001, PCI DSS, NIST SSDF, and internal review." >}}
+  {{< card link="/security-remediation/evidence-bundles/" title="Evidence Bundles" subtitle="Export run receipts as normalized events, manifests, control gaps, hashes, and readable audit reports." >}}
 {{< /cards >}}
 
 ## Recipe run contract

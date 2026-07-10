@@ -13,7 +13,7 @@ date: 2026-04-21
 
 A Codex CLI prompt for **headless SDE remediation** — hard-coded
 secrets, PII in logs, credentials committed to source — wired for
-`codex exec --full-auto --json` so it can be dispatched from a
+`codex exec --sandbox workspace-write --json` so it can be dispatched from a
 scanner webhook or scheduled CI job. It remediates only
 pre-exposure findings; exposed SDEs (anything already pushed to a
 shared remote, public log, or build artifact) are routed straight
@@ -77,7 +77,7 @@ machine-readable JSON result for `--json` consumers.
 Invoke as:
 
 ```bash
-codex exec --full-auto --model gpt-5.3-codex --json \
+codex exec --sandbox workspace-write --model gpt-5.3-codex --json \
   "$(envsubst < prompts/remediate-sde.md)" \
   > "/tmp/codex-${FINDING_ID}.jsonl"
 ```

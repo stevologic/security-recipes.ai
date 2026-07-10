@@ -155,8 +155,8 @@ to run on Bedrock, Vertex AI, or Azure Foundry.
 
 {{< callout type="info" >}}
 **IDE plugins.** Claude Code also ships as a
-[VS Code / Cursor extension](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code),
-a [JetBrains plugin](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-),
+[VS Code / Cursor integration](https://docs.anthropic.com/en/docs/claude-code/ide-integrations),
+a [JetBrains integration](https://docs.anthropic.com/en/docs/claude-code/ide-integrations),
 and a [native Desktop app](https://claude.com/download). All surfaces share
 the same `CLAUDE.md`, skills, and MCP config.
 {{< /callout >}}

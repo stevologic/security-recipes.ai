@@ -18,7 +18,7 @@
   isHome: false,
   isSection: isSection
 } | seoHead | safe }}
-<link rel="alternate" type="application/rss+xml" href="{{ page.url }}index.xml" title="{{ title }} – {{ site.title }}">
+{% if isSection %}<link rel="alternate" type="application/rss+xml" href="{{ page.url }}index.xml" title="{{ title }} – {{ site.title }}">{% endif %}
 {% include "partials/head-common.njk" %}
 </head>
 <body class="sr-docs-body">

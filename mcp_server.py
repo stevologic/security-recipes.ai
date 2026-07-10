@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """security-recipes.ai MCP server.
 
-Exposes a read-only MCP tool surface backed by Hugo's generated recipe feeds.
+Exposes a read-only MCP tool surface backed by the site's generated recipe feeds.
 """
 
 from __future__ import annotations

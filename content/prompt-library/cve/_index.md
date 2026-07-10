@@ -127,7 +127,7 @@ files in this section, grouped by ecosystem and sorted by
 disclosure date. Drop a new
 `cve-XXXX-YYYYY-<short-name>.md` file with the frontmatter
 fields below, and it will appear here on the next build —
-no edits to this hub or to `hugo.yaml` required.
+no edits to this hub or to site config required.
 
 {{< cve-toc >}}
 

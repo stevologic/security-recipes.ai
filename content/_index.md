@@ -16,7 +16,7 @@ keywords:
   - "Devin security"
   - "Codex security"
   - "MCP servers"
-  - "OWASP Top 10 2026"
+  - "OWASP Top 10 2025"
   - "SAST autofix"
   - "supply chain security"
   - "Log4Shell"
