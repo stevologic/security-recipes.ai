@@ -28,7 +28,7 @@ two copies are intentionally redundant.
 2. **Branch** off `main` — `recipe/<tool>-<topic>` or
    `prompt/<tool>/<short-name>`.
 3. **Make your change** under the root-level `content/…` directory.
-4. **Preview locally** from the repo root with `hugo server -D` (see
+4. **Preview locally** from the repo root with `npm run serve` (see
    [Running the site locally](#running-the-site-locally)).
 5. **Open a PR** against `main` on
    [`stevologic/security-recipes.ai`](https://github.com/stevologic/security-recipes.ai).
@@ -111,7 +111,7 @@ prompts for the four things reviewers check:
 ### 7. Address review and merge
 
 Squash-merge is the default. Once merged, the GH Actions pipeline
-builds Hugo and publishes `gh-pages` in about a minute.
+builds the site and publishes `gh-pages` in about a minute.
 
 ### Keeping your fork in sync
 
@@ -146,7 +146,7 @@ The browser workbench marketplace is also contributed content.
 
 If you are adding a new connector pack, report contract, or workflow bundle:
 
-- edit the matching Hugo data file under `data/marketplace/`
+- edit the matching site data file under `data/marketplace/`
 - keep the runtime state honest: `live`, `live_or_copy`, `copy_only`, `config_only`, or `planned`
 - document the auth shape, browser/CORS assumptions, and human-review expectation on a docs page
 - include an example target system and example scope so reviewers can validate the payload shape
@@ -226,10 +226,11 @@ four-section skeleton so teams can skim and compare:
 3. **Verification** — how to know end-to-end that it worked.
 4. **Guardrails** — the controls in place before you scale it up.
 
-Use the archetype to scaffold:
+Scaffold a new recipe by creating the page and its frontmatter:
 
 ```bash
-hugo new content <tool>/_index.md
+mkdir -p content/<tool>
+$EDITOR content/<tool>/_index.md
 ```
 
 Things reviewers look for in a recipe PR:
@@ -344,13 +345,13 @@ the exact verification steps a reviewer can run.
 
 ## Style and conventions
 
-- **Markdown**, Hugo + Hextra shortcodes. The `{{</* callout */>}}`,
+- **Markdown** with the site's shortcodes. The `{{</* callout */>}}`,
   `{{</* relref */>}}`, and `{{</* cards */>}}` shortcodes are the
   main ones you'll use.
 - **Line length** — soft-wrap around 80 chars in prose, unless the
   line is a long URL or code.
 - **Links** — prefer `{{</* relref "/<section>" */>}}` for internal
-  links so Hugo validates them at build time.
+  links so they resolve to canonical URLs at build time.
 - **Commands** — fenced with the language hint (` ```bash `,
   ` ```yaml `, etc.) so syntax highlighting kicks in.
 - **Weight** — per-section ordering uses the `weight` frontmatter
@@ -378,17 +379,14 @@ fast.
 
 Prereqs:
 
-- [Hugo extended](https://gohugo.io/installation/) `>= 0.139`
-- [Go](https://go.dev/dl/) `>= 1.21` (Hextra is a Hugo Module)
+- [Node.js](https://nodejs.org/) `>= 20`
 - Git
 
-Run these from the repository root, the directory that contains
-`hugo.yaml`; the current layout does not use a nested site directory.
+Run these from the repository root:
 
 ```bash
-hugo mod get -u
-hugo server -D
-# → http://localhost:1313
+npm install                  # install the Eleventy toolchain
+npm run serve                # → http://localhost:8080, incremental rebuilds
 ```
 
 Prefer Docker?

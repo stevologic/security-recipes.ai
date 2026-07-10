@@ -25,7 +25,7 @@ Use it to answer four questions before a team enables a pack:
 4. Is the path live, live-or-copy, or still template-only?
 
 {{< callout type="info" >}}
-Everything on this page is driven by the Hugo data files under `data/marketplace/`. That means integration packs and workflow bundles can be reviewed, forked, and contributed like any other site content.
+Everything on this page is driven by the site data files under `data/marketplace/`. That means integration packs and workflow bundles can be reviewed, forked, and contributed like any other site content.
 {{< /callout >}}
 
 {{< marketplace-gallery >}}
@@ -96,7 +96,7 @@ It also publishes root-level schema files for browser-authored contribution pack
 That matters for two reasons:
 
 - external systems can consume the marketplace as structured data instead of scraping embedded page state
-- contributors still only edit the Hugo data files under `data/marketplace/`; the public feeds and schema files are generated or shipped from the same contribution model during the site build
+- contributors still only edit the site data files under `data/marketplace/`; the public feeds and schema files are generated or shipped from the same contribution model during the site build
 
 ## Contribution path
 

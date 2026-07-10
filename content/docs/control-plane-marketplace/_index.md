@@ -76,7 +76,7 @@ Contribution packets and browser-local drafts now also support a shared
 docs link, capability tags, and explicit pack-to-pack dependency
 references.
 
-The Hugo home build now also emits public JSON feeds for those same contracts at the site root, including a combined `marketplace-control-plane.json` manifest. That gives external tools a stable discovery surface without changing the BYO-token browser runtime model.
+The site build now also emits public JSON feeds for those same contracts at the site root, including a combined `marketplace-control-plane.json` manifest. That gives external tools a stable discovery surface without changing the BYO-token browser runtime model.
 
 Routing policies are intentionally separate from those public catalogs. Most teams treat assignment, approval, and ticket-project defaults as tenant-local operating policy, so SecurityRecipes keeps them browser-local while still publishing portable schemas for review and handoff.
 
@@ -126,7 +126,7 @@ It fills the gap between "the marketplace is public" and "operators can actually
 This keeps the runtime honest and client-side:
 
 - local packs stay private until the operator chooses to export them
-- the public site still comes from Hugo data files and pull requests
+- the public site still comes from site data files and pull requests
 - contribution export stays aligned to the same workflow-template contract the site already publishes
 
 ## Report Profile Lab
@@ -159,7 +159,7 @@ browser model:
 
 - local report profiles stay private until the operator chooses to export them
 - workflow packs, routing policies, and agent runs can reuse the same local report contract
-- the public marketplace source of truth remains Hugo data files plus pull requests
+- the public marketplace source of truth remains site data files plus pull requests
 
 ## Integration Pack Lab and local library export
 
@@ -191,7 +191,7 @@ browser model:
 - author locally first
 - keep secrets and draft contracts in browser storage
 - export only when an operator is ready to open a pull request
-- keep the public marketplace source of truth in Hugo data files
+- keep the public marketplace source of truth in site data files
 
 ## Public schemas and in-browser validation
 
@@ -215,7 +215,7 @@ authoring flow:
 That closes an important gap between "the browser can export JSON" and
 "the browser is producing contribution-ready contracts":
 
-- workflow, report, and integration drafts can now be validated in the browser before the operator copies a submission packet into a Hugo pull request
+- workflow, report, and integration drafts can now be validated in the browser before the operator copies a submission packet into a pull request
 - local marketplace-library export now validates before copy/download, and local library import validates before anything is merged into browser storage
 - the root `marketplace-control-plane.json` manifest now advertises the schema URLs so downstream tooling can discover both the data feeds and the authoring contracts from one place
 
@@ -235,7 +235,7 @@ client-side:
 
 - validate locally
 - keep draft contracts in browser storage until the operator chooses to export them
-- publish only the reviewed Hugo data files plus the generated public feeds and schemas
+- publish only the reviewed site data files plus the generated public feeds and schemas
 
 ## Pack governance and dependency health
 

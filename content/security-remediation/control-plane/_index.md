@@ -56,7 +56,7 @@ Run it locally from the repo root:
 python3 scripts/validate_workflow_control_plane.py
 ```
 
-GitHub Actions runs the same validator before the Hugo build, so a
+GitHub Actions runs the same validator before the site build, so a
 workflow page cannot drift away from its enterprise controls unnoticed.
 
 ## Manifest anatomy

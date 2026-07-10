@@ -2,7 +2,7 @@
 """Validate SecurityRecipes workflow-control-plane manifests.
 
 This intentionally avoids third-party dependencies so CI can run it in a
-fresh Hugo checkout before any Python environment is prepared.
+fresh checkout before any Python environment is prepared.
 """
 
 from __future__ import annotations

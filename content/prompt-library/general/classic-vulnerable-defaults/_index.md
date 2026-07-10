@@ -51,7 +51,7 @@ files in this section. Drop a new markdown file with the
 standard prompt frontmatter (`title`, `description`,
 `maturity`, `model`, `tags`, `team`, `author`, `weight`) and
 it will appear here on the next build — no edits to this
-hub or to `hugo.yaml` required.
+hub or to site config required.
 
 {{< prompt-toc >}}
 
