@@ -41,9 +41,8 @@ OpenAI's documented Codex CLI flow.
    [platform.openai.com](https://platform.openai.com/) or
    sign in with ChatGPT. An active eligible plan (or API credit) is
    required. See
-   [OpenAI API documentation](https://openai.com/api/plan documentation).
-2. **Install the Codex CLI.** See the section below, or
-   Anthropic's — sorry, OpenAI's —
+   [OpenAI API pricing](https://openai.com/api/pricing).
+2. **Install the Codex CLI.** See the section below or OpenAI's
    [quickstart](https://developers.openai.com/codex/quickstart).
 3. **Authenticate.** Use OAuth (`codex login`), device-code
    flow (`codex login --device-auth`), or an API key. See
@@ -52,7 +51,7 @@ OpenAI's documented Codex CLI flow.
    house rules and a `.codex/config.toml` for per-repo tooling
    preferences. See
    [Codex config reference](https://developers.openai.com/codex/config-basic).
-5. **Run non-interactively** with `codex exec --full-auto
+5. **Run non-interactively** with `codex exec --sandbox workspace-write
    --json` for CI / scheduled workflows. See
    [non-interactive mode](https://developers.openai.com/codex/noninteractive).
 6. **Pick the right model.** Start with `gpt-5.3-codex`; the
@@ -203,15 +202,15 @@ Stop and ask a human before:
 ### 2. Write a driver script
 
 The driver reads findings off a queue, fills a prompt template, and
-invokes Codex in full-auto inside a sandbox. Keep it small — this
+invokes Codex with workspace-write sandboxing. Keep it small — this
 is the piece you rely on for years.
 
 ```bash
 #!/usr/bin/env bash
 # scripts/remediate.sh
-# Uses `codex exec` (the non-interactive subcommand) with --full-auto
-# so the agent can read, edit, run commands, and use the network inside
-# its sandbox without prompting. See:
+# Uses `codex exec` (the non-interactive subcommand) with
+# --sandbox workspace-write so the agent can read, edit, and run
+# commands inside the workspace sandbox. See:
 # https://developers.openai.com/codex/noninteractive
 set -euo pipefail
 
@@ -236,10 +235,10 @@ while IFS= read -r finding_id; do
   PROMPT=$(envsubst '$FINDING_ID' < ../../prompts/remediate.tmpl.md)
 
   # Invoke Codex non-interactively with a hard wall-clock cap.
-  # --full-auto enables workspace-write + network inside the sandbox.
+  # --sandbox workspace-write is the current non-interactive sandbox flag.
   # --json streams structured events to stdout for replay/audit.
   timeout 20m codex exec \
-      --full-auto \
+      --sandbox workspace-write \
       --model "$CODEX_MODEL" \
       --json \
       "$PROMPT" \
@@ -295,10 +294,10 @@ Do not disable tests.
 
 ### 4. Run in a sandbox
 
-`codex --full-auto` grants file + network access. **Never** run it
-on a developer laptop or a shared runner with production
-credentials. The driver above spawns fresh clones; run the whole
-thing inside a Docker container:
+`codex exec --sandbox workspace-write` grants write access inside the
+workspace. **Never** run broad remediation jobs on a developer laptop
+or a shared runner with production credentials. The driver above spawns
+fresh clones; run the whole thing inside a Docker container:
 
 ```dockerfile
 # ci/codex-sandbox.Dockerfile
@@ -515,8 +514,8 @@ ecosystem without rewriting the batch pipeline.
 
 ## Guardrails
 
-- **Sandbox only.** `--full-auto` grants file & network access — never
-  run it on the host.
+- **Sandbox only.** Use `codex exec --sandbox workspace-write` inside an
+  isolated runner; avoid host-level credentials in the workspace.
 - **Quota per repo.** Cap how many PRs Codex may open in 24h per repo
   to avoid spam.
 - **Secret scanning.** Route Codex output through your secret scanner

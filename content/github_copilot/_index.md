@@ -187,8 +187,10 @@ and label the issues `copilot-remediate`:
 {{< tabs >}}
   {{< tab name="CodeQL" >}}
 CodeQL results appear under **Security → Code scanning**. To
-project them as Issues, use the [code-scanning-create-issue](https://github.com/marketplace/actions/create-issues-from-code-scanning-alerts)
-action on a schedule:
+project them as Issues, use GitHub's native
+[code scanning issue tracking](https://docs.github.com/en/code-security/how-tos/manage-security-alerts/manage-code-scanning-alerts/linking-code-scanning-alerts-to-github-issues)
+flow from the alert page. For an automated queue, query the code
+scanning API and create labeled issues on a schedule:
 
 ```yaml
 # .github/workflows/codeql-to-issues.yml
@@ -206,10 +208,21 @@ jobs:
   project:
     runs-on: ubuntu-latest
     steps:
-      - uses: advanced-security/code-scanning-create-issue@v1
-        with:
-          label: copilot-remediate
-          severity: "error,warning"
+      - name: Project open CodeQL alerts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "/repos/${{ github.repository }}/code-scanning/alerts?state=open&severity=error" \
+            --jq '.[] | [.number, .rule.name, .html_url] | @tsv' |
+          while IFS=$'\t' read -r alert_number rule_name alert_url; do
+            title="Code scanning: ${rule_name} (#${alert_number})"
+            existing=$(gh issue list --state open --search "\"${title}\" in:title" --json number --jq length)
+            [ "$existing" -eq 0 ] || continue
+            gh issue create \
+              --title "$title" \
+              --label copilot-remediate \
+              --body "Track remediation for CodeQL alert ${alert_number}: ${alert_url}"
+          done
 ```
   {{< /tab >}}
   {{< tab name="Snyk" >}}

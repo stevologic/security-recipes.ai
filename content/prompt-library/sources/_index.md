@@ -74,10 +74,10 @@ implementation-oriented sources further down.
 - **Where.** `genai.owasp.org` and the OWASP
   GitHub organisation — look for `www-project-top-10-for-large-language-model-applications`
   and related repos.
-- **Caveat.** Top 10 lists shift year over year. Always reference
-  the year in any audit prompt that cites them (e.g. "OWASP GenAI
-  Top 10 (2026)"), and keep your prompt's taxonomy references
-  current.
+- **Caveat.** Top 10 lists shift year over year and differ by
+  domain. Always reference the year and project in any audit prompt
+  that cites them (for example, "OWASP Top 10 for LLM Applications
+  2025"), and keep your prompt's taxonomy references current.
 
 ### MITRE ATLAS
 
