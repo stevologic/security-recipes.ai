@@ -327,6 +327,12 @@ def category_for(item: dict) -> str:
     text = f"{item.get('title','')} {item.get('summary','')}".lower()
     checks = [
         ("prototype-pollution", ["prototype pollution", "__proto__", "constructor"]),
+        ("sql-injection", ["sql injection", "sqli", "execute arbitrary sql", "arbitrary sql", "unsanitized search", "unparameterized query"]),
+        ("unsafe-upload", ["unrestricted upload", "arbitrary file upload", "upload arbitrary", "upload and execute", "web shell", "webshell"]),
+        ("template-injection", ["template injection", "server-side template", "ssti", "twig sandbox", "jinja"]),
+        ("use-after-free", ["use-after-free", "use after free", "dangling pointer"]),
+        ("memory-corruption", ["out-of-bounds", "buffer overflow", "heap overflow", "double free", "integer overflow", "memory corruption"]),
+        ("credential-leak", ["credential", ".netrc", "password for another user", "secret disclosure", "token disclosure"]),
         ("command-injection", ["command injection", "execute arbitrary os commands", "shell", "eval", "rce"]),
         ("path-traversal", ["path traversal", "arbitrary file read", "arbitrary file write", "zip slip", "symlink"]),
         ("ssrf", ["ssrf", "server-side request forgery", "internal url", "metadata"]),
@@ -351,6 +357,30 @@ SNIPPETS = {
     "prototype-pollution": (
         'setPath(target, key.split("."), value)  # no segment denylist',
         'reject segments in {"__proto__", "constructor", "prototype"} before walking the object',
+    ),
+    "sql-injection": (
+        'Python: cursor.execute("SELECT * FROM docs WHERE body LIKE \'%" + q + "%\'")\nNode: db.query("SELECT * FROM docs WHERE body LIKE \'%" + req.query.q + "%\'")\nJava: stmt.executeQuery("SELECT * FROM docs WHERE body LIKE \'%" + userInput + "%\'")',
+        'Python: cursor.execute("SELECT * FROM docs WHERE body LIKE %s", (f"%{q}%",))\nNode: db.query("SELECT * FROM docs WHERE body LIKE ?", [`%${req.query.q}%`])\nJava: ps = conn.prepareStatement("SELECT * FROM docs WHERE body LIKE ?"); ps.setString(1, "%" + userInput + "%")',
+    ),
+    "unsafe-upload": (
+        'save_upload(webroot + "/" + request.files["file"].filename)  # trusts extension/content-type and leaves scripts executable',
+        'sniff bytes, allow only expected media types, store outside webroot under a random name, and serve through a non-executable download handler',
+    ),
+    "template-injection": (
+        'Template(user_supplied_template).render(context)',
+        'render only named, repository-owned templates and pass user input as escaped data, not template source',
+    ),
+    "use-after-free": (
+        'release(obj); callback_or_worker_still_uses(obj);',
+        'transfer ownership explicitly, null or refcount released pointers, and add lifetime tests for the async/error path',
+    ),
+    "memory-corruption": (
+        'memcpy(dst, src, user_len); parse_nested(untrusted, no_depth_limit);',
+        'bounds-check length before copy, cap parser depth/counts, and reject malformed frames before allocation',
+    ),
+    "credential-leak": (
+        'curl --netrc "https://user@example.com/"  # URL username can select an unintended .netrc password',
+        'omit URL usernames when using .netrc, pin the host+login pair explicitly, and upgrade curl/libcurl to the fixed release',
     ),
     "command-injection": (
         'run("tool " + user_controlled_value)',
