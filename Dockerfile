@@ -45,20 +45,33 @@ ENV SECURITY_RECIPES_NO_GITINFO=1
 WORKDIR /src
 
 # Install dependencies first so the layer caches well when only content
-# changes.
+# changes. The npm cache mount persists downloads across builds, so a
+# lockfile change re-resolves from the local cache instead of the network.
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 
-# Now pull in the rest of the project.
-COPY . .
+# Copy only the Eleventy build inputs, least-churn first: edits to Python
+# tooling, tests, or docker config never reach these layers, so they can't
+# invalidate the site build below.
+COPY eleventy.config.js ./
+COPY _includes ./_includes
+COPY lib ./lib
+COPY assets ./assets
+COPY static ./static
+COPY data ./data
+COPY content ./content
 
-# If REPO_URL was passed, rewrite canonical repo references in content
-# markdown (matches the CI approach for forks under a different org).
+# If REPO_URL points at a fork, rewrite canonical repo references in content
+# markdown (matches the CI approach for forks under a different org). The
+# canonical repo skips the sweep — sed over every markdown file is the
+# slowest step in the build and would be a no-op.
 RUN if [ -n "${REPO_URL}" ]; then \
         OWNER_REPO=$(printf '%s' "${REPO_URL%/}" | sed 's|^https\?://github.com/||') ; \
-        find content -type f -name "*.md" -exec sed -i \
-            -e "s|stevologic/security-recipes.ai|${OWNER_REPO}|g" \
-            -e "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" {} + ; \
+        if [ "${OWNER_REPO}" != "stevologic/security-recipes.ai" ]; then \
+            find content -type f -name "*.md" -exec sed -i \
+                -e "s|stevologic/security-recipes.ai|${OWNER_REPO}|g" \
+                -e "s|stevologic/agentic-remediation-recipes|${OWNER_REPO}|g" {} + ; \
+        fi ; \
     fi
 
 # Build the site. SECURITY_RECIPES_BASE_URL drives canonical URLs, feeds,

@@ -14,7 +14,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY . /app
+# The dashboard needs only the suite entrypoint, its package (incl. the ui/
+# assets), and the domain registry — not the whole repo. Targeted copies keep
+# the build context transfer small and mean site content changes never
+# invalidate this image.
+COPY scripts/security_recipes_remediation_suite.py /app/scripts/security_recipes_remediation_suite.py
+COPY tools/security_recipes_remediation /app/tools/security_recipes_remediation
+COPY data/remediation_suite /app/data/remediation_suite
 
 RUN mkdir -p /data
 
@@ -22,15 +28,8 @@ EXPOSE 8787
 
 VOLUME ["/data"]
 
+# Heredocs are only valid in RUN/COPY, so the health probe stays a one-liner.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD python - <<'PY' || exit 1
-import json
-import urllib.request
-
-with urllib.request.urlopen("http://127.0.0.1:8787/api/health", timeout=2) as response:
-    payload = json.loads(response.read().decode("utf-8"))
-if payload.get("status") != "ok":
-    raise SystemExit(1)
-PY
+  CMD python -c "import json, urllib.request; payload = json.loads(urllib.request.urlopen('http://127.0.0.1:8787/api/health', timeout=2).read().decode('utf-8')); raise SystemExit(0 if payload.get('status') == 'ok' else 1)" || exit 1
 
 CMD ["sh", "-c", "python scripts/security_recipes_remediation_suite.py serve-dashboard --host ${SECURITY_RECIPES_DASHBOARD_HOST} --port ${SECURITY_RECIPES_DASHBOARD_PORT} --state-dir ${SECURITY_RECIPES_DASHBOARD_STATE_DIR}"]
