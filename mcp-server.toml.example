@@ -1,9 +1,10 @@
 # security-recipes MCP server configuration
 
 # URL or local file path to the generated recipe feed from your site build.
-# Prefer /api/recipes.json for agent metadata. The legacy /recipes-index.json
-# array is still accepted for compatibility.
-source_index_url = "https://security-recipes.ai/api/recipes.json"
+# Prefer /api/recipes-index.json: the lean MCP index (full bodies + metadata,
+# without the per-recipe agent boilerplate). The rich /api/recipes.json and the
+# legacy /recipes-index.json array are still accepted for compatibility.
+source_index_url = "https://security-recipes.ai/api/recipes-index.json"
 
 # Security allow-list: hostname from source_index_url MUST exist here.
 allowed_source_hosts = ["security-recipes.ai"]
