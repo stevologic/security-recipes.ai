@@ -1223,6 +1223,34 @@ html[data-recipe-browser-page="true"] #content > .content {
 .recipe-browser__status[data-tone="error"] { color: #fca5a5; }
 .recipe-browser__status[data-tone="info"] { color: #67e8f9; }
 
+.recipe-browser__more {
+  display: flex;
+  justify-content: center;
+  margin: 1.4rem 0 0.4rem;
+}
+
+.recipe-browser__more-button {
+  appearance: none;
+  cursor: pointer;
+  padding: 0.7rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong, rgba(45, 212, 191, 0.35));
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.14), rgba(45, 212, 191, 0.05));
+  color: var(--text, #eafffb);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease;
+}
+
+.recipe-browser__more-button:hover {
+  border-color: #2dd4bf;
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.22), rgba(45, 212, 191, 0.08));
+}
+
+.recipe-browser__more-button:active { transform: translateY(1px); }
+.recipe-browser__more-button[hidden] { display: none; }
+
 .recipe-browser__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

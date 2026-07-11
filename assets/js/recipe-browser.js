@@ -1,17 +1,28 @@
 /*
- * Recipe browser controls for /prompt-library/.
- * Static Hugo renders the catalogue; this layer filters, sorts, and downloads
- * portable recipe JSON without adding any runtime service dependency.
+ * Recipe browser for /recipes/.
+ * The page ships a small server-rendered first page of cards; this layer
+ * fetches the slim /recipes-browser.json feed and renders, filters, sorts,
+ * and paginates the full catalogue client-side. Only a bounded window of
+ * cards is ever in the DOM, so the page stays fast at 10k+ recipes.
  */
 (function () {
   'use strict';
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   function normalize(value) {
     return (value || '')
       .toString()
       .toLowerCase()
       .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .trim();
   }
 
@@ -60,6 +71,18 @@
     });
   }
 
+  function feedCandidates(root) {
+    var prefix = basePrefix();
+    var origin = window.location.origin;
+    var configured = root.getAttribute('data-recipe-feed') || '/recipes-browser.json';
+    return [
+      new URL(configured, origin).toString(),
+      new URL(prefix + 'recipes-browser.json', origin).toString()
+    ].filter(function (url, index, list) {
+      return list.indexOf(url) === index;
+    });
+  }
+
   function mcpEndpoint(root) {
     return absoluteUrl(root.getAttribute('data-recipe-mcp') || '/mcp');
   }
@@ -87,16 +110,10 @@
 
   function normalizeIndexPayload(data) {
     if (Array.isArray(data)) {
-      return {
-        api_version: 'legacy-array',
-        recipes: data
-      };
+      return { api_version: 'legacy-array', recipes: data };
     }
     if (data && Array.isArray(data.recipes)) return data;
-    return {
-      api_version: 'unknown',
-      recipes: []
-    };
+    return { api_version: 'unknown', recipes: [] };
   }
 
   function downloadJson(fileName, payload) {
@@ -115,62 +132,75 @@
     }, 0);
   }
 
-  function matchesRecipe(recipe, card) {
-    if (!recipe || !card) return false;
-
-    var cardSlug = card.dataset.recipeSlug || '';
-    var cardPath = card.dataset.recipePath || '';
-    var cardSource = card.dataset.recipeSource || '';
-    var candidates = [
-      recipe.slug,
-      recipe.path,
-      recipe.url,
-      recipe.source_file,
-      recipe.sourceFile
-    ].map(function (value) {
-      return (value || '').toString();
-    });
-
-    return candidates.some(function (value) {
-      return value === cardSlug ||
-        value === cardPath ||
-        value === cardSource ||
-        value.endsWith(cardPath) ||
-        value.endsWith(cardSource);
-    });
-  }
-
-  function recipeFromCard(card) {
-    return {
-      slug: card.dataset.recipeSlug || '',
-      title: card.dataset.recipeTitle || '',
-      path: card.dataset.recipePath || '',
-      url: absoluteUrl(card.dataset.recipePath || ''),
-      category: card.dataset.recipeCategory || 'general',
-      severity: card.dataset.recipeSeverity || 'unspecified',
-      facets: tokens(card.dataset.recipeFacets || ''),
-      quality: Number(card.dataset.recipeQuality || 0),
-      readiness: card.dataset.recipeReadiness || 'starter',
-      maturity: card.dataset.recipeMaturity || 'unspecified',
-      published: card.dataset.recipePublished || '',
-      summary: card.dataset.recipeSummary || '',
-      source_file: card.dataset.recipeSource || ''
-    };
-  }
-
   function severityRank(value) {
-    var rank = {
-      critical: 4,
-      high: 3,
-      medium: 2,
-      low: 1,
-      unspecified: 0
-    };
+    var rank = { critical: 4, high: 3, medium: 2, low: 1, unspecified: 0 };
     return rank[normalize(value)] || 0;
   }
 
-  function stopGlobalHandlers(node) {
-    return node;
+  // Card object built from a /recipes-browser.json entry. Field names mirror the
+  // feed; `indexText` is the precomputed lowercase search haystack.
+  function toCard(entry, index) {
+    return {
+      initialIndex: index,
+      slug: entry.slug || '',
+      displayTitle: entry.title || '',
+      title: normalize(entry.title || ''),
+      url: entry.url || '',
+      category: entry.category || 'general',
+      categoryLabel: entry.categoryLabel || '',
+      severity: entry.severity || 'unspecified',
+      maturity: entry.maturity || 'unspecified',
+      quality: Number(entry.quality || 0),
+      tier: entry.tier || 'starter',
+      facets: Array.isArray(entry.facets) ? entry.facets : [],
+      date: entry.date || '',
+      published: entry.published || '',
+      ecosystem: entry.ecosystem || '',
+      identity: entry.identity || '',
+      summary: entry.summary || '',
+      model: entry.model || '',
+      zeroDay: !!entry.zeroDay,
+      indexText: (entry.search || '').toString()
+    };
+  }
+
+  // Server-side mirror of lib/recipe-cards.js renderCardHtml(). Must match.
+  function buildCardHtml(card) {
+    var severity = card.severity || 'unspecified';
+    var topline =
+      '<span>' + escapeHtml(card.categoryLabel) + '</span>' +
+      (card.zeroDay ? '<span class="recipe-browser-card__fresh">0-Day</span>' : '') +
+      (severity !== 'unspecified'
+        ? '<span class="recipe-browser-card__severity recipe-browser-card__severity--' + escapeHtml(severity) + '">' + escapeHtml(severity) + '</span>'
+        : '<span>' + escapeHtml(card.maturity) + '</span>') +
+      '<span class="recipe-browser-card__quality recipe-browser-card__quality--' + escapeHtml(card.tier) + '">' + escapeHtml(card.tier) + ' ' + card.quality + '</span>';
+
+    var meta =
+      (card.identity ? '<span>' + escapeHtml(card.identity) + '</span>' : '') +
+      (card.published ? '<span>Published ' + escapeHtml(card.published) + '</span>' : '') +
+      (card.ecosystem ? '<span>' + escapeHtml(card.ecosystem) + '</span>' : '') +
+      (card.model ? '<span>' + escapeHtml(card.model) + '</span>' : '');
+
+    var facets = card.facets.map(function (f) {
+      return '<span>' + escapeHtml(f.replace(/-/g, ' ')) + '</span>';
+    }).join('');
+
+    return (
+      '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '">' +
+      '<div class="recipe-browser-card__visual" aria-hidden="true"><span>' + escapeHtml(card.categoryLabel.slice(0, 2).toUpperCase()) + '</span></div>' +
+      '<div class="recipe-browser-card__content">' +
+      '<div class="recipe-browser-card__topline">' + topline + '</div>' +
+      '<h3><a href="' + escapeHtml(card.url) + '">' + escapeHtml(card.displayTitle) + '</a></h3>' +
+      (card.summary ? '<p>' + escapeHtml(card.summary) + '</p>' : '') +
+      '<div class="recipe-browser-card__facets" aria-label="Recipe facets">' + facets + '</div>' +
+      '<div class="recipe-browser-card__meta">' + meta + '</div>' +
+      '<div class="recipe-browser-card__actions">' +
+      '<a class="recipe-browser-card__open" href="' + escapeHtml(card.url) + '">Open recipe</a>' +
+      '<button type="button" class="recipe-browser-card__download" data-recipe-download aria-label="Download ' + escapeHtml(card.displayTitle) + ' recipe JSON">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"/></svg>' +
+      '<span>Download</span></button></div>' +
+      '</div></article>'
+    );
   }
 
   function initRecipeBrowser(root) {
@@ -187,31 +217,18 @@
     var empty = root.querySelector('[data-recipe-empty]');
     var status = root.querySelector('[data-recipe-status]');
     var grid = root.querySelector('[data-recipe-grid]');
+    var loadMoreButton = root.querySelector('[data-recipe-load-more]');
     var filterButtons = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-filter]'));
     var filterLabels = {};
     var typeahead = null;
     var typeaheadList = null;
     var typeaheadItems = [];
     var activeTypeaheadIndex = -1;
-    var cards = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-card]')).map(function (node, index) {
-      return {
-        node: node,
-        initialIndex: index,
-        indexText: normalize(node.dataset.recipeIndex || node.textContent || ''),
-        category: node.dataset.recipeCategory || 'general',
-        categoryLabel: '',
-        zeroDay: node.dataset.recipeZeroDay === 'true',
-        severity: node.dataset.recipeSeverity || 'unspecified',
-        facets: tokens(node.dataset.recipeFacets || ''),
-        quality: Number(node.dataset.recipeQuality || 0),
-        title: normalize(node.dataset.recipeTitle || ''),
-        displayTitle: node.dataset.recipeTitle || '',
-        summary: node.dataset.recipeSummary || '',
-        path: node.dataset.recipePath || '',
-        slug: node.dataset.recipeSlug || '',
-        date: node.dataset.recipeDate || ''
-      };
-    });
+
+    var pageSize = Math.max(12, Number(root.getAttribute('data-recipe-page-size') || 36));
+    var allCards = [];
+    var visible = [];
+    var renderedCount = 0;
     var activeCategory = 'all';
     var loadedIndex = null;
 
@@ -221,9 +238,9 @@
       status.dataset.tone = tone || '';
     }
 
+    // Rich agent feed (/api/recipes.json), used for downloads only.
     async function loadIndex() {
       if (loadedIndex) return loadedIndex;
-
       var urls = endpointCandidates(root);
       var lastError = null;
       for (var i = 0; i < urls.length; i++) {
@@ -232,6 +249,7 @@
           if (!response.ok) throw new Error('endpoint-unavailable');
           var data = normalizeIndexPayload(await response.json());
           if (data.recipes.length) {
+            data.endpoint = urls[i];
             loadedIndex = data;
             return loadedIndex;
           }
@@ -239,19 +257,137 @@
           lastError = error;
         }
       }
-
-      if (lastError) {
-        console.warn('[recipe-browser] recipe endpoint unavailable');
-      }
+      if (lastError) console.warn('[recipe-browser] recipe endpoint unavailable');
       loadedIndex = { api_version: 'card-fallback', recipes: [] };
       return loadedIndex;
     }
 
-    function renderSummary(visibleCount) {
+    // Slim card feed (/recipes-browser.json) that drives the catalogue.
+    async function loadFeed() {
+      var urls = feedCandidates(root);
+      for (var i = 0; i < urls.length; i++) {
+        try {
+          var response = await fetch(urls[i], { credentials: 'same-origin' });
+          if (!response.ok) throw new Error('feed-unavailable');
+          var data = await response.json();
+          var recipes = Array.isArray(data) ? data : (data && data.recipes) || [];
+          if (recipes.length) return recipes;
+        } catch (error) {
+          /* try next candidate */
+        }
+      }
+      return null;
+    }
+
+    function renderSummary(count) {
       if (!summary) return;
       var suffix = activeCategory === 'all' ? '' : ' in ' + (filterLabels[activeCategory] || 'this category');
-      summary.textContent = 'Showing ' + pluralize(visibleCount, 'recipe', 'recipes') + suffix + '.';
+      summary.textContent = 'Showing ' + pluralize(count, 'recipe', 'recipes') + suffix + '.';
     }
+
+    function updateLoadMore() {
+      if (!loadMoreButton) return;
+      var remaining = visible.length - renderedCount;
+      if (remaining > 0) {
+        loadMoreButton.hidden = false;
+        loadMoreButton.textContent = 'Load ' + Math.min(pageSize, remaining) + ' more of ' + visible.length;
+      } else {
+        loadMoreButton.hidden = true;
+      }
+    }
+
+    // Render the first `renderedCount` visible cards, replacing the grid.
+    function renderPage() {
+      if (!grid) return;
+      var slice = visible.slice(0, renderedCount);
+      var html = '';
+      for (var i = 0; i < slice.length; i++) html += buildCardHtml(slice[i]);
+      grid.innerHTML = html;
+      if (empty) empty.hidden = visible.length > 0;
+      updateLoadMore();
+    }
+
+    function appendNextPage() {
+      if (!grid) return;
+      var from = renderedCount;
+      renderedCount = Math.min(visible.length, renderedCount + pageSize);
+      var slice = visible.slice(from, renderedCount);
+      var html = '';
+      for (var i = 0; i < slice.length; i++) html += buildCardHtml(slice[i]);
+      grid.insertAdjacentHTML('beforeend', html);
+      updateLoadMore();
+    }
+
+    function sortVisible(items) {
+      var mode = sortSelect ? sortSelect.value : 'newest';
+      items.sort(function (a, b) {
+        if (mode === 'title') return a.title.localeCompare(b.title);
+        if (mode === 'severity') {
+          var severityDelta = severityRank(b.severity) - severityRank(a.severity);
+          if (severityDelta) return severityDelta;
+          return b.date.localeCompare(a.date);
+        }
+        if (mode === 'quality') {
+          var qualityDelta = b.quality - a.quality;
+          if (qualityDelta) return qualityDelta;
+          return b.date.localeCompare(a.date);
+        }
+        var dateDelta = b.date.localeCompare(a.date);
+        if (dateDelta) return dateDelta;
+        return a.initialIndex - b.initialIndex;
+      });
+    }
+
+    function applyFilters() {
+      var queryTokens = tokens(searchInput ? searchInput.value : '');
+      var severity = severityFilter ? severityFilter.value : 'all';
+      var facet = facetFilter ? facetFilter.value : 'all';
+      var minimumQuality = qualityFilter ? Number(qualityFilter.value || 0) : 0;
+
+      visible = allCards.filter(function (card) {
+        var categoryMatch = activeCategory === 'all' ||
+          (activeCategory === 'zero-day' ? card.zeroDay : card.category === activeCategory);
+        if (!categoryMatch) return false;
+        if (severity !== 'all' && card.severity !== severity) return false;
+        if (facet !== 'all' && card.facets.indexOf(facet) === -1) return false;
+        if (minimumQuality && card.quality < minimumQuality) return false;
+        if (queryTokens.length) {
+          for (var t = 0; t < queryTokens.length; t++) {
+            if (card.indexText.indexOf(queryTokens[t]) === -1) return false;
+          }
+        }
+        return true;
+      });
+
+      sortVisible(visible);
+      renderedCount = Math.min(visible.length, pageSize);
+      renderPage();
+
+      if (clearSearchButton) clearSearchButton.hidden = queryTokens.length === 0;
+      renderSummary(visible.length);
+      root.dataset.filtered = queryTokens.length || activeCategory !== 'all' || severity !== 'all' || facet !== 'all' || minimumQuality > 0 ? 'true' : 'false';
+      if (document.activeElement === searchInput) renderTypeahead();
+    }
+
+    function setActiveCategory(nextCategory) {
+      activeCategory = nextCategory || 'all';
+      filterButtons.forEach(function (button) {
+        var active = button.getAttribute('data-recipe-filter') === activeCategory;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      applyFilters();
+    }
+
+    function clearSearch() {
+      if (!searchInput) return;
+      searchInput.value = '';
+      applyFilters();
+      closeTypeahead();
+      searchInput.focus();
+    }
+
+    /* ---- typeahead ---------------------------------------------------- */
 
     function prettyToken(value) {
       return (value || '').toString().replace(/-/g, ' ').replace(/\b\w/g, function (letter) {
@@ -341,58 +477,33 @@
         var label = filterLabels[key] || key;
         var haystack = normalize(label + ' ' + key);
         if (haystack.indexOf(query) !== -1 || queryTokens.some(function (token) { return haystack.indexOf(token) !== -1; })) {
-          filters.push({
-            kind: 'category',
-            title: label,
-            meta: 'Browse lane',
-            value: key
-          });
+          filters.push({ kind: 'category', title: label, meta: 'Browse lane', value: key });
         }
       });
 
       ['critical', 'high', 'medium', 'low', 'unspecified'].forEach(function (severity) {
         if (normalize(severity).indexOf(query) === -1 && queryTokens.indexOf(severity) === -1) return;
-        filters.push({
-          kind: 'severity',
-          title: prettyToken(severity),
-          meta: 'Severity filter',
-          value: severity
-        });
+        filters.push({ kind: 'severity', title: prettyToken(severity), meta: 'Severity filter', value: severity });
       });
 
       ['remediation', 'risk', 'audit', 'compliance', 'code-hygiene'].forEach(function (facet) {
         var label = prettyToken(facet);
         var haystack = normalize(label + ' ' + facet);
         if (haystack.indexOf(query) === -1 && !queryTokens.some(function (token) { return haystack.indexOf(token) !== -1; })) return;
-        filters.push({
-          kind: 'facet',
-          title: label,
-          meta: 'Agent facet',
-          value: facet
-        });
+        filters.push({ kind: 'facet', title: label, meta: 'Agent facet', value: facet });
       });
 
       if ('world-class'.indexOf(query) !== -1 || queryTokens.indexOf('world') !== -1 || queryTokens.indexOf('quality') !== -1) {
-        filters.push({
-          kind: 'quality',
-          title: 'World-class recipes',
-          meta: 'Quality filter',
-          value: '85'
-        });
+        filters.push({ kind: 'quality', title: 'World-class recipes', meta: 'Quality filter', value: '85' });
       }
 
       suggestions = suggestions.concat(filters.slice(0, 4));
 
-      cards
+      allCards
         .map(function (card) {
-          return {
-            card: card,
-            score: scoreSuggestion(card, query, queryTokens)
-          };
+          return { card: card, score: scoreSuggestion(card, query, queryTokens) };
         })
-        .filter(function (item) {
-          return item.score > 0;
-        })
+        .filter(function (item) { return item.score > 0; })
         .sort(function (a, b) {
           if (b.score !== a.score) return b.score - a.score;
           if (b.card.quality !== a.card.quality) return b.card.quality - a.card.quality;
@@ -412,7 +523,7 @@
               card.quality ? 'Score ' + card.quality : ''
             ]),
             summary: card.summary,
-            path: card.path
+            path: card.url
           });
         });
 
@@ -457,12 +568,8 @@
           button.appendChild(summaryLine);
         }
 
-        button.addEventListener('pointerdown', function (event) {
-          event.preventDefault();
-        });
-        button.addEventListener('click', function () {
-          applySuggestion(suggestion);
-        });
+        button.addEventListener('pointerdown', function (event) { event.preventDefault(); });
+        button.addEventListener('click', function () { applySuggestion(suggestion); });
 
         typeaheadList.appendChild(button);
         return button;
@@ -473,91 +580,29 @@
       setTypeaheadActive(-1);
     }
 
-    function sortCards(visibleItems) {
-      var mode = sortSelect ? sortSelect.value : 'newest';
-      visibleItems.sort(function (a, b) {
-        if (mode === 'title') return a.title.localeCompare(b.title);
-        if (mode === 'severity') {
-          var severityDelta = severityRank(b.severity) - severityRank(a.severity);
-          if (severityDelta) return severityDelta;
-          return b.date.localeCompare(a.date);
-        }
-        if (mode === 'quality') {
-          var qualityDelta = b.quality - a.quality;
-          if (qualityDelta) return qualityDelta;
-          return b.date.localeCompare(a.date);
-        }
-        var dateDelta = b.date.localeCompare(a.date);
-        if (dateDelta) return dateDelta;
-        return a.initialIndex - b.initialIndex;
-      });
-    }
+    /* ---- downloads ---------------------------------------------------- */
 
-    function applyFilters() {
-      var queryTokens = tokens(searchInput ? searchInput.value : '');
-      var severity = severityFilter ? severityFilter.value : 'all';
-      var facet = facetFilter ? facetFilter.value : 'all';
-      var minimumQuality = qualityFilter ? Number(qualityFilter.value || 0) : 0;
-      var visible = [];
-
-      cards.forEach(function (card) {
-        var categoryMatch = activeCategory === 'all' ||
-          (activeCategory === 'zero-day' ? card.zeroDay : card.category === activeCategory);
-        var severityMatch = severity === 'all' || card.severity === severity;
-        var facetMatch = facet === 'all' || card.facets.indexOf(facet) !== -1;
-        var qualityMatch = !minimumQuality || card.quality >= minimumQuality;
-        var queryMatch = !queryTokens.length || queryTokens.every(function (token) {
-          return card.indexText.indexOf(token) !== -1;
-        });
-        var show = categoryMatch && severityMatch && facetMatch && qualityMatch && queryMatch;
-        card.node.hidden = !show;
-        if (show) visible.push(card);
-      });
-
-      sortCards(visible);
-      visible.forEach(function (card) {
-        grid.appendChild(card.node);
-      });
-
-      if (empty) empty.hidden = visible.length > 0;
-      if (clearSearchButton) clearSearchButton.hidden = queryTokens.length === 0;
-      renderSummary(visible.length);
-      root.dataset.filtered = queryTokens.length || activeCategory !== 'all' || severity !== 'all' || facet !== 'all' || minimumQuality > 0 ? 'true' : 'false';
-      if (document.activeElement === searchInput) renderTypeahead();
-    }
-
-    function setActiveCategory(nextCategory) {
-      activeCategory = nextCategory || 'all';
-      filterButtons.forEach(function (button) {
-        var active = button.getAttribute('data-recipe-filter') === activeCategory;
-        button.classList.toggle('is-active', active);
-        button.setAttribute('aria-pressed', active ? 'true' : 'false');
-      });
-      applyFilters();
-    }
-
-    function clearSearch() {
-      if (!searchInput) return;
-      searchInput.value = '';
-      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-      applyFilters();
-      closeTypeahead();
-      searchInput.focus();
-    }
-
-    async function downloadRecipe(card) {
+    async function downloadRecipe(slug) {
       var index = await loadIndex();
       var recipe = index.recipes.find(function (item) {
-        return matchesRecipe(item, card);
-      }) || recipeFromCard(card);
-      var title = recipe.title || card.dataset.recipeTitle || 'recipe';
-      var payload = {
+        return (item.slug || '') === slug;
+      });
+      if (!recipe) {
+        var card = allCards.find(function (c) { return c.slug === slug; });
+        recipe = card ? {
+          slug: card.slug, title: card.displayTitle, url: absoluteUrl(card.url), path: card.url,
+          category: card.category, severity: card.severity, facets: card.facets,
+          quality: card.quality, readiness: card.tier, maturity: card.maturity,
+          published: card.published, summary: card.summary
+        } : { slug: slug };
+      }
+      var title = recipe.title || 'recipe';
+      downloadJson('security-recipe-' + sanitizeFilePart(recipe.slug || title) + '.json', {
         schema: 'https://security-recipes.ai/schemas/recipe-download/v1',
         downloaded_at: new Date().toISOString(),
         source_endpoint: index.endpoint || absoluteUrl(root.getAttribute('data-recipe-api') || '/api/recipes.json'),
         recipe: recipe
-      };
-      downloadJson('security-recipe-' + sanitizeFilePart(recipe.slug || title) + '.json', payload);
+      });
       setStatus('Downloaded ' + title + '.', 'ok');
     }
 
@@ -566,9 +611,7 @@
       var payload = index.recipes.length ? index : {
         api_version: 'card-fallback',
         endpoint: absoluteUrl(root.getAttribute('data-recipe-api') || '/api/recipes.json'),
-        recipes: cards.map(function (card) {
-          return recipeFromCard(card.node);
-        })
+        recipes: allCards
       };
       downloadJson('security-recipes-agent-library.json', payload);
       setStatus('Downloaded the recipe library JSON.', 'ok');
@@ -594,6 +637,8 @@
       }
     }
 
+    /* ---- wiring ------------------------------------------------------- */
+
     if (searchInput) {
       var field = searchInput.closest('.recipe-browser__search-field');
       if (field) {
@@ -610,14 +655,8 @@
         searchInput.setAttribute('aria-controls', typeaheadList.id);
         searchInput.setAttribute('aria-haspopup', 'listbox');
       }
-      searchInput.addEventListener('input', function () {
-        applyFilters();
-        renderTypeahead();
-      });
-      searchInput.addEventListener('search', function () {
-        applyFilters();
-        renderTypeahead();
-      });
+      searchInput.addEventListener('input', function () { applyFilters(); renderTypeahead(); });
+      searchInput.addEventListener('search', function () { applyFilters(); renderTypeahead(); });
       searchInput.addEventListener('focus', renderTypeahead);
       searchInput.addEventListener('keydown', function (event) {
         if (!typeahead || typeahead.hidden) return;
@@ -637,20 +676,12 @@
           closeTypeahead();
         }
       });
-      searchInput.addEventListener('blur', function () {
-        window.setTimeout(closeTypeahead, 120);
-      });
-      stopGlobalHandlers(searchInput);
+      searchInput.addEventListener('blur', function () { window.setTimeout(closeTypeahead, 120); });
     }
 
     if (clearSearchButton && searchInput) {
-      clearSearchButton.addEventListener('pointerdown', function (event) {
-        event.preventDefault();
-      });
-      clearSearchButton.addEventListener('click', function (event) {
-        event.preventDefault();
-        clearSearch();
-      });
+      clearSearchButton.addEventListener('pointerdown', function (event) { event.preventDefault(); });
+      clearSearchButton.addEventListener('click', function (event) { event.preventDefault(); clearSearch(); });
       clearSearchButton.addEventListener('keydown', function (event) {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
@@ -658,78 +689,61 @@
       });
     }
 
-    if (severityFilter) {
-      severityFilter.addEventListener('change', applyFilters);
-      stopGlobalHandlers(severityFilter);
-    }
-    if (facetFilter) {
-      facetFilter.addEventListener('change', applyFilters);
-      stopGlobalHandlers(facetFilter);
-    }
-    if (qualityFilter) {
-      qualityFilter.addEventListener('change', applyFilters);
-      stopGlobalHandlers(qualityFilter);
-    }
-    if (sortSelect) {
-      sortSelect.addEventListener('change', applyFilters);
-      stopGlobalHandlers(sortSelect);
-    }
+    if (severityFilter) severityFilter.addEventListener('change', applyFilters);
+    if (facetFilter) facetFilter.addEventListener('change', applyFilters);
+    if (qualityFilter) qualityFilter.addEventListener('change', applyFilters);
+    if (sortSelect) sortSelect.addEventListener('change', applyFilters);
 
     filterButtons.forEach(function (button) {
       var filter = button.getAttribute('data-recipe-filter') || 'all';
       filterLabels[filter] = button.getAttribute('data-recipe-filter-label') ||
         (button.querySelector('strong') ? button.querySelector('strong').textContent.trim() : filter);
       button.setAttribute('aria-pressed', button.classList.contains('is-active') ? 'true' : 'false');
-      stopGlobalHandlers(button);
-      button.addEventListener('click', function () {
-        setActiveCategory(filter);
-      });
+      button.addEventListener('click', function () { setActiveCategory(filter); });
     });
 
-    cards.forEach(function (card) {
-      card.categoryLabel = filterLabels[card.category] || prettyToken(card.category);
-    });
+    if (loadMoreButton) {
+      loadMoreButton.addEventListener('click', function () { appendNextPage(); });
+    }
 
-    root.querySelectorAll('[data-recipe-download]').forEach(function (button) {
-      stopGlobalHandlers(button);
-      button.addEventListener('click', function () {
+    // Per-card download via delegation (cards are re-rendered on every filter).
+    if (grid) {
+      grid.addEventListener('click', function (event) {
+        var button = event.target.closest ? event.target.closest('[data-recipe-download]') : null;
+        if (!button || !grid.contains(button)) return;
         var card = button.closest('[data-recipe-card]');
-        if (!card) return;
-        downloadRecipe(card).catch(function () {
-          downloadJson('security-recipe-' + sanitizeFilePart(card.dataset.recipeSlug || card.dataset.recipeTitle) + '.json', {
-            schema: 'https://security-recipes.ai/schemas/recipe-download/v1',
-            downloaded_at: new Date().toISOString(),
-            recipe: recipeFromCard(card)
-          });
-          setStatus('Downloaded a fallback recipe card.', 'info');
-        });
+        var slug = card ? card.getAttribute('data-recipe-slug') : '';
+        if (slug) downloadRecipe(slug).catch(function () { setStatus('Recipe download failed.', 'error'); });
       });
-    });
+    }
 
     var downloadAll = root.querySelector('[data-recipe-download-all]');
     if (downloadAll) {
-      stopGlobalHandlers(downloadAll);
       downloadAll.addEventListener('click', function () {
-        downloadAllRecipes().catch(function () {
-          setStatus('Recipe library download failed.', 'error');
-        });
+        downloadAllRecipes().catch(function () { setStatus('Recipe library download failed.', 'error'); });
       });
     }
 
     var copyButton = root.querySelector('[data-recipe-copy-endpoint]');
-    if (copyButton) {
-      stopGlobalHandlers(copyButton);
-      copyButton.addEventListener('click', copyEndpoint);
-    }
+    if (copyButton) copyButton.addEventListener('click', copyEndpoint);
 
     var copyPromptButton = root.querySelector('[data-recipe-copy-agent-prompt]');
-    if (copyPromptButton) {
-      stopGlobalHandlers(copyPromptButton);
-      copyPromptButton.addEventListener('click', copyAgentPrompt);
-    }
+    if (copyPromptButton) copyPromptButton.addEventListener('click', copyAgentPrompt);
 
     root.dataset.recipeBrowserReady = 'true';
-    applyFilters();
+
+    // Fetch the catalogue feed, then take over rendering. Until it arrives the
+    // server-rendered first page stays on screen, so there is never a blank grid.
+    loadFeed().then(function (recipes) {
+      if (!recipes) {
+        setStatus('Showing recent recipes. Reload to load the full searchable catalogue.', 'info');
+        return;
+      }
+      allCards = recipes.map(toCard);
+      applyFilters();
+    }).catch(function () {
+      setStatus('Showing recent recipes. Reload to load the full searchable catalogue.', 'info');
+    });
   }
 
   function init() {
