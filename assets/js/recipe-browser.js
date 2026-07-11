@@ -164,6 +164,64 @@
     };
   }
 
+  // Inline seed emitted by lib/shortcodes/recipe-browser.js: the SSR first
+  // page plus a bounded slice of every lane, so filters always have data
+  // even before (or without) the full feed.
+  function parseSeed(root) {
+    var script = root.querySelector('script[type="application/json"][data-recipe-seed]');
+    if (!script) return [];
+    try {
+      var data = JSON.parse(script.textContent || '[]');
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  // Map a rich /api/recipes.json entry onto the slim feed-entry shape so it
+  // can flow through toCard(). Browser lanes are narrower than feed
+  // categories: tool-specific lanes (claude, codex, ...) fold into General.
+  var BROWSER_LANES = {
+    'cve': 'CVE',
+    'classic-defaults': 'Defaults',
+    'compliance-standards': 'Compliance',
+    'crypto-defi': 'Crypto/DeFi'
+  };
+
+  function apiRecipeToFeedEntry(recipe) {
+    var feedSlug = recipe.category && recipe.category.slug ? recipe.category.slug : 'general';
+    var lane = BROWSER_LANES[feedSlug] ? feedSlug : 'general';
+    var label = BROWSER_LANES[lane] || 'General';
+    var tags = Array.isArray(recipe.tags) ? recipe.tags : [];
+    var aliases = Array.isArray(recipe.aliases) ? recipe.aliases : [];
+    var facets = Array.isArray(recipe.facets) ? recipe.facets : [];
+    var searchParts = [
+      recipe.title, recipe.summary, recipe.cve, recipe.ghsa, label,
+      recipe.severity, recipe.maturity, tags.join(' '), facets.join(' '),
+      recipe.ecosystem, recipe.model, recipe.date
+    ].concat(aliases);
+    return {
+      slug: recipe.slug || '',
+      title: recipe.title || '',
+      url: recipe.path || recipe.url || '',
+      category: lane,
+      categoryLabel: label,
+      severity: recipe.severity || 'unspecified',
+      maturity: recipe.maturity || 'unspecified',
+      quality: (recipe.quality && recipe.quality.score) || 0,
+      tier: (recipe.quality && recipe.quality.tier) || 'starter',
+      facets: facets,
+      date: recipe.date || '',
+      published: lane === 'cve' ? recipe.date || '' : '',
+      ecosystem: recipe.ecosystem || '',
+      identity: recipe.cve || recipe.ghsa || recipe.agent || label,
+      summary: recipe.summary || '',
+      model: recipe.model || '',
+      zeroDay: !!recipe.zero_day,
+      search: searchParts.filter(Boolean).join(' ').toLowerCase()
+    };
+  }
+
   // Server-side mirror of lib/recipe-cards.js renderCardHtml(). Must match.
   function buildCardHtml(card) {
     var severity = card.severity || 'unspecified';
@@ -186,7 +244,7 @@
     }).join('');
 
     return (
-      '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '">' +
+      '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '" data-recipe-path="' + escapeHtml(card.url) + '">' +
       '<div class="recipe-browser-card__visual" aria-hidden="true"><span>' + escapeHtml(card.categoryLabel.slice(0, 2).toUpperCase()) + '</span></div>' +
       '<div class="recipe-browser-card__content">' +
       '<div class="recipe-browser-card__topline">' + topline + '</div>' +
@@ -231,6 +289,14 @@
     var renderedCount = 0;
     var activeCategory = 'all';
     var loadedIndex = null;
+    // False until the full catalogue (feed or API fallback) has loaded; until
+    // then allCards holds only the inline seed slice. catalogueFailed flips
+    // when every source has been tried, so messaging stops saying "loading".
+    var catalogueComplete = false;
+    var catalogueFailed = false;
+
+    var seed = parseSeed(root);
+    if (seed.length) allCards = seed.map(toCard);
 
     function setStatus(message, tone) {
       if (!status) return;
@@ -282,7 +348,13 @@
     function renderSummary(count) {
       if (!summary) return;
       var suffix = activeCategory === 'all' ? '' : ' in ' + (filterLabels[activeCategory] || 'this category');
-      summary.textContent = 'Showing ' + pluralize(count, 'recipe', 'recipes') + suffix + '.';
+      var note = '';
+      if (!catalogueComplete) {
+        note = catalogueFailed
+          ? ' Partial list — reload for the full catalogue.'
+          : ' Full catalogue still loading.';
+      }
+      summary.textContent = 'Showing ' + pluralize(count, 'recipe', 'recipes') + suffix + '.' + note;
     }
 
     function updateLoadMore() {
@@ -582,13 +654,18 @@
 
     /* ---- downloads ---------------------------------------------------- */
 
-    async function downloadRecipe(slug) {
+    async function downloadRecipe(slug, path) {
       var index = await loadIndex();
-      var recipe = index.recipes.find(function (item) {
+      // Match by path first: filename-derived slugs can collide across tool
+      // directories, but page paths are unique.
+      var recipe = (path && index.recipes.find(function (item) {
+        return (item.path || '') === path;
+      })) || index.recipes.find(function (item) {
         return (item.slug || '') === slug;
       });
       if (!recipe) {
-        var card = allCards.find(function (c) { return c.slug === slug; });
+        var card = allCards.find(function (c) { return c.url === path; }) ||
+          allCards.find(function (c) { return c.slug === slug; });
         recipe = card ? {
           slug: card.slug, title: card.displayTitle, url: absoluteUrl(card.url), path: card.url,
           category: card.category, severity: card.severity, facets: card.facets,
@@ -713,7 +790,8 @@
         if (!button || !grid.contains(button)) return;
         var card = button.closest('[data-recipe-card]');
         var slug = card ? card.getAttribute('data-recipe-slug') : '';
-        if (slug) downloadRecipe(slug).catch(function () { setStatus('Recipe download failed.', 'error'); });
+        var path = card ? card.getAttribute('data-recipe-path') : '';
+        if (slug || path) downloadRecipe(slug, path).catch(function () { setStatus('Recipe download failed.', 'error'); });
       });
     }
 
@@ -733,16 +811,34 @@
     root.dataset.recipeBrowserReady = 'true';
 
     // Fetch the catalogue feed, then take over rendering. Until it arrives the
-    // server-rendered first page stays on screen, so there is never a blank grid.
+    // server-rendered first page stays on screen and filters run over the
+    // inline seed, so there is never a blank grid. If the slim feed is
+    // unavailable, fall back to the rich agent feed before settling for the
+    // seed slice.
+    function adoptPartialCatalogue() {
+      catalogueFailed = true;
+      setStatus('Showing a partial recipe list. Reload to fetch the full catalogue.', 'info');
+      if (root.dataset.filtered === 'true') applyFilters();
+    }
+
     loadFeed().then(function (recipes) {
-      if (!recipes) {
-        setStatus('Showing recent recipes. Reload to load the full searchable catalogue.', 'info');
-        return;
+      if (recipes) {
+        allCards = recipes.map(toCard);
+        catalogueComplete = true;
+        applyFilters();
+        return null;
       }
-      allCards = recipes.map(toCard);
-      applyFilters();
+      return loadIndex().then(function (index) {
+        if (index.recipes.length) {
+          allCards = index.recipes.map(apiRecipeToFeedEntry).map(toCard);
+          catalogueComplete = true;
+          applyFilters();
+        } else {
+          adoptPartialCatalogue();
+        }
+      });
     }).catch(function () {
-      setStatus('Showing recent recipes. Reload to load the full searchable catalogue.', 'info');
+      adoptPartialCatalogue();
     });
   }
 

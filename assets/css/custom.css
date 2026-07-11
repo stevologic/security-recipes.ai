@@ -1152,17 +1152,16 @@ html[data-recipe-browser-page="true"] #content > .content {
   transform: translateY(-1px);
 }
 
-.recipe-browser__category--all { --recipe-category-accent: #22d3ee; }
+/* Lane accents. One distinct hue per browse lane, shared by the lane button
+   and its cards (see .recipe-browser-card--* below — keep the two in sync):
+   all=teal, 0-day=yellow, cve=amber, general=fuchsia, defaults=cyan,
+   compliance=emerald, crypto/defi=rose. */
+.recipe-browser__category--all { --recipe-category-accent: #2dd4bf; }
 .recipe-browser__category--cve { --recipe-category-accent: #f59e0b; }
 .recipe-browser__category--general { --recipe-category-accent: #d946ef; }
 .recipe-browser__category--classic-defaults { --recipe-category-accent: #22d3ee; }
 .recipe-browser__category--compliance-standards { --recipe-category-accent: #34d399; }
-.recipe-browser__category--crypto-defi { --recipe-category-accent: #f59e0b; }
-.recipe-browser__category--claude { --recipe-category-accent: #22d3ee; }
-.recipe-browser__category--github-copilot { --recipe-category-accent: #d946ef; }
-.recipe-browser__category--cursor { --recipe-category-accent: #f59e0b; }
-.recipe-browser__category--codex { --recipe-category-accent: #22d3ee; }
-.recipe-browser__category--devin { --recipe-category-accent: #22d3ee; }
+.recipe-browser__category--crypto-defi { --recipe-category-accent: #fb7185; }
 
 .recipe-browser__category--zero-day {
   --recipe-category-accent: #facc15;
@@ -1316,15 +1315,15 @@ html[data-recipe-browser-page="true"] #content > .content {
   transform: translateY(-2px);
 }
 
+/* Card accents — must mirror the .recipe-browser__category--* lane hues.
+   Zero-day cards keep their CVE amber; the yellow 0-Day topline badge is the
+   freshness signal (a bulk import can put hundreds of cards in the window,
+   and an accent override would turn the whole default view yellow). */
 .recipe-browser-card--cve { --recipe-accent: #f59e0b; }
+.recipe-browser-card--general { --recipe-accent: #d946ef; }
 .recipe-browser-card--classic-defaults { --recipe-accent: #22d3ee; }
 .recipe-browser-card--compliance-standards { --recipe-accent: #34d399; }
-.recipe-browser-card--crypto-defi { --recipe-accent: #f59e0b; }
-.recipe-browser-card--claude { --recipe-accent: #22d3ee; }
-.recipe-browser-card--github-copilot { --recipe-accent: #d946ef; }
-.recipe-browser-card--cursor { --recipe-accent: #f59e0b; }
-.recipe-browser-card--codex { --recipe-accent: #22d3ee; }
-.recipe-browser-card--devin { --recipe-accent: #22d3ee; }
+.recipe-browser-card--crypto-defi { --recipe-accent: #fb7185; }
 
 .recipe-browser-card__visual {
   position: absolute;
