@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -10,16 +11,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# The pip cache mount persists wheels across builds, so a requirements change
+# reinstalls from the local cache instead of the network.
 COPY requirements-mcp-server.txt /app/requirements-mcp-server.txt
-RUN pip install --no-cache-dir -r /app/requirements-mcp-server.txt
-
-COPY mcp_server.py /app/mcp_server.py
-COPY scripts /app/scripts
-COPY mcp-server.toml.example /app/mcp-server.toml.example
-COPY data /app/data
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r /app/requirements-mcp-server.txt
 
 # Copy default config if the caller doesn't mount one.
+COPY mcp-server.toml.example /app/mcp-server.toml.example
 RUN cp /app/mcp-server.toml.example /app/mcp-server.toml
+
+# Server code, then data last: evidence packs churn with recipe ingests and
+# should invalidate as few layers as possible.
+COPY mcp_server.py /app/mcp_server.py
+COPY data /app/data
 
 EXPOSE 80
 
