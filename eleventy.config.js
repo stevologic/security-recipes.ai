@@ -268,6 +268,7 @@ module.exports = function (eleventyConfig) {
     "recipes-index.11ty.js": { permalink: "/recipes-index.json", build: feeds.recipesIndex },
     "recipes-browser.11ty.js": { permalink: "/recipes-browser.json", build: feeds.recipesBrowser },
     "api-recipes.11ty.js": { permalink: "/api/recipes.json", build: feeds.agentRecipes },
+    "api-recipes-index.11ty.js": { permalink: "/api/recipes-index.json", build: feeds.recipesMcpIndex },
     "marketplace-catalog.11ty.js": {
       permalink: "/marketplace-catalog.json",
       build: () => JSON.stringify(require("./lib/site-data").marketplace().catalog),
