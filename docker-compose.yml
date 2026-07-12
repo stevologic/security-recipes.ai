@@ -10,6 +10,28 @@ services:
       - "${SECURITY_RECIPES_HTTP_PORT:-127.0.0.1:8080}:80"
     restart: unless-stopped
 
+  # Automatic HTTPS termination. Opt-in via COMPOSE_PROFILES=caddy in .env
+  # (the droplet default) so local checkouts and hosts that already run their
+  # own proxy on 80/443 are unaffected. Certificates live in caddy_data and
+  # survive rebuilds and redeploys.
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["caddy"]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SECURITY_RECIPES_DOMAIN: "${SECURITY_RECIPES_DOMAIN:-security-recipes.ai}"
+      SECURITY_RECIPES_ACME_EMAIL: "${SECURITY_RECIPES_ACME_EMAIL:-admin@security-recipes.ai}"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - security-recipes
+    restart: unless-stopped
+
   mcp-server:
     build:
       context: .
@@ -28,3 +50,7 @@ services:
     expose:
       - "80"
     restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,29 @@
+# Caddy reverse proxy for the security-recipes.ai compose stack.
+#
+# Caddy obtains the Let's Encrypt certificate for SECURITY_RECIPES_DOMAIN
+# automatically on first start and renews it in the background; certificates
+# persist in the caddy_data volume across deploys. Enabled through the
+# "caddy" compose profile (COMPOSE_PROFILES=caddy in .env).
+#
+# Placeholders come from the caddy service environment in docker-compose.yml.
+{
+	email {$SECURITY_RECIPES_ACME_EMAIL:admin@security-recipes.ai}
+}
+
+{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
+	encode zstd gzip
+
+	# The site container's nginx serves the static site and proxies /mcp to
+	# the private MCP container. lb_try_duration makes Caddy hold and retry
+	# requests while deploy.sh swaps the site container, so a redeploy causes
+	# a brief delay instead of dropped requests.
+	reverse_proxy security-recipes:80 {
+		lb_try_duration 30s
+		lb_try_interval 250ms
+	}
+}
+
+# To also serve www, add DNS for it and uncomment:
+# www.{$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
+# 	redir https://{$SECURITY_RECIPES_DOMAIN:security-recipes.ai}{uri} permanent
+# }

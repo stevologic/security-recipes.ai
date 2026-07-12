@@ -95,4 +95,7 @@ docker compose logs --tail=100 security-recipes
 ```
 
 - If you want the existing one-shot host bootstrapper with automatic HTTPS,
-  `scripts/setup_digitalocean_droplet.sh` still supports the Caddy path.
+  `scripts/setup_digitalocean_droplet.sh` still supports the host Caddy path.
+- For fully automatic HTTPS inside the compose stack (no host proxy at all),
+  see [README.caddy-deploy.md](README.caddy-deploy.md) — that path is the
+  recommended default and pairs with `deploy.sh` for cron-driven updates.
