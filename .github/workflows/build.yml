@@ -4,6 +4,7 @@ name: Build
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -51,6 +52,7 @@ jobs:
       - name: Run lint and tests
         run: |
           python3 scripts/run_checks.py
+          python3 scripts/validate_cve_catalog.py
 
       - name: Compute production baseURL
         id: site
@@ -68,7 +70,10 @@ jobs:
         env:
           SECURITY_RECIPES_BASE_URL: ${{ steps.site.outputs.base_url }}
           SECURITY_RECIPES_REPO_URL: "https://github.com/${{ github.repository }}"
-        run: npx eleventy
+        run: npm run build
+
+      - name: Enforce production performance budgets
+        run: npm run check:performance
 
       - name: Check Compose config
         run: docker compose config

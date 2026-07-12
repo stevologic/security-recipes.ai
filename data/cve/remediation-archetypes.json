@@ -1,0 +1,652 @@
+{
+  "schema_version": 1,
+  "default_archetype": "generic",
+  "archetypes": {
+    "generic": {
+      "title": "General vulnerability remediation",
+      "description": "Conservative inventory, vendor-fix, containment, and verification guidance when authoritative evidence does not identify a more specific vulnerability family.",
+      "matching_cwes": [],
+      "exposure_checks": [
+        "Confirm the affected component, deployment paths, reachable interfaces, and enabled features from inventories and configuration, without probing production destructively.",
+        "Compare the advisory's affected conditions with the repository lockfiles, build manifests, artifacts, and runtime inventory.",
+        "Identify data sensitivity, trust boundaries, and privilege level for every confirmed affected deployment."
+      ],
+      "remediation_steps": [
+        "Apply a vendor-supported fix or remove the affected component or feature; record the selected change and its source in the repository.",
+        "Update direct and transitive dependency locks, generated artifacts, deployment manifests, and asset inventories together.",
+        "Add a regression test for the documented unsafe condition using inert inputs and preserve rollback instructions."
+      ],
+      "containment_steps": [
+        "Disable or restrict the affected feature and reduce network reachability to explicitly trusted callers.",
+        "Apply least privilege and increase monitoring for the affected component until the permanent fix is deployed."
+      ],
+      "verification_steps": [
+        "Rebuild from clean inputs and verify the deployed component identity and configuration against the remediated repository state.",
+        "Run focused regression, integration, and authorization tests with non-destructive fixtures.",
+        "Confirm the temporary containment can be removed only after all affected deployments are remediated."
+      ],
+      "stop_conditions": [
+        "Stop and escalate when affected scope or asset ownership cannot be established.",
+        "Switch to incident response if evidence suggests exploitation, persistence, or unexpected data access.",
+        "Do not continue if verification would require destructive payloads, real secrets, or uncontrolled production testing."
+      ],
+      "watch_for": [
+        "Transitive, bundled, vendored, statically linked, or dormant copies omitted from the primary manifest.",
+        "Fixes applied to source but not propagated to images, caches, deployment manifests, or long-lived workers.",
+        "Compensating controls being mistaken for a permanent fix."
+      ]
+    },
+    "command_code_injection": {
+      "title": "Command, code, expression, and template injection",
+      "description": "Remediation for untrusted input that can cross an interpreter, shell, evaluator, template, or dynamic-code boundary.",
+      "matching_cwes": ["CWE-77", "CWE-78", "CWE-94", "CWE-95", "CWE-96", "CWE-917", "CWE-1336"],
+      "exposure_checks": [
+        "Trace untrusted values to process execution, interpreters, evaluators, template engines, dynamic imports, and administrative scripting features.",
+        "Determine whether the affected path is reachable across each trust boundary and which service account or host privilege it inherits.",
+        "Review configuration for optional execution features, unsafe compatibility modes, and shell invocation."
+      ],
+      "remediation_steps": [
+        "Replace string-built commands or evaluated code with fixed operations and structured argument APIs that do not invoke a shell.",
+        "Use strict allowlists for operation identifiers and reject unexpected input before it reaches any interpreter.",
+        "Update the affected component and add inert regression tests covering metacharacters, encoding variants, and alternate request paths."
+      ],
+      "containment_steps": [
+        "Disable the affected execution or templating feature, or restrict it to authenticated administrative networks and identities.",
+        "Run the component with a minimal filesystem, network policy, capability set, and service account."
+      ],
+      "verification_steps": [
+        "Confirm untrusted input is handled only as data and cannot select an executable, expression, template, or argument boundary.",
+        "Run static data-flow checks and focused tests with harmless sentinel strings; verify no child process or evaluator is invoked.",
+        "Review logs and process telemetry for unexpected interpreter or child-process activity after deployment."
+      ],
+      "stop_conditions": [
+        "Stop if a proposed fix still concatenates untrusted data into an execution or evaluation string.",
+        "Switch to incident response if unexpected commands, processes, files, or outbound connections are observed.",
+        "Do not validate by executing a functional payload on shared or production systems."
+      ],
+      "watch_for": [
+        "Indirect execution through wrappers, job runners, hooks, converters, plugins, or template helpers.",
+        "Double decoding, alternate encodings, argument injection, and platform-specific parsing differences.",
+        "Sanitization that relies on incomplete deny lists."
+      ]
+    },
+    "sql_query_injection": {
+      "title": "SQL and data-query injection",
+      "description": "Remediation for untrusted values that can change the structure or authority of SQL, ORM, or other data-query operations.",
+      "matching_cwes": ["CWE-89", "CWE-564", "CWE-943"],
+      "exposure_checks": [
+        "Trace request, message, file, and stored values into SQL, ORM query fragments, filters, sort expressions, and other data-query languages.",
+        "Inventory database roles, reachable schemas, multi-tenant boundaries, and whether stacked or administrative operations are enabled.",
+        "Check both direct queries and second-order use of previously stored values."
+      ],
+      "remediation_steps": [
+        "Use parameterized queries or safe query builders for all values; map identifiers and operators through explicit allowlists.",
+        "Remove raw query concatenation and give the application account only the tables and operations it requires.",
+        "Update affected data-access components and add regression tests for query structure preservation with inert edge-case inputs."
+      ],
+      "containment_steps": [
+        "Restrict the vulnerable route or feature and narrow database permissions, network access, and statement capabilities.",
+        "Enable query anomaly monitoring and rate controls while preserving evidence according to incident policy."
+      ],
+      "verification_steps": [
+        "Inspect generated queries to confirm values remain bound parameters and cannot alter identifiers, operators, or clauses.",
+        "Run repository tests against disposable data and verify tenant and row-level boundaries remain enforced.",
+        "Confirm runtime database credentials have the intended least-privilege grants."
+      ],
+      "stop_conditions": [
+        "Stop if remediation depends only on escaping or a deny list instead of structural parameterization.",
+        "Switch to incident response if query logs indicate unauthorized reads, writes, schema changes, or credential access.",
+        "Do not test against production data or use destructive query fragments."
+      ],
+      "watch_for": [
+        "Dynamic table, column, ordering, JSON-path, full-text, and ORM expression fragments that cannot be parameterized normally.",
+        "Second-order injection through stored profile fields, imports, reports, or audit data.",
+        "Read-only accounts that can still expose sensitive or cross-tenant data."
+      ]
+    },
+    "authentication_bypass": {
+      "title": "Authentication bypass and missing authentication",
+      "description": "Remediation for paths that establish identity or session state without complete, correctly bound authentication checks.",
+      "matching_cwes": ["CWE-287", "CWE-288", "CWE-294", "CWE-305", "CWE-306", "CWE-307", "CWE-798"],
+      "exposure_checks": [
+        "Map every affected endpoint and protocol path, including alternate ports, legacy routes, recovery flows, service accounts, and machine-to-machine access.",
+        "Confirm which deployments enable the affected authentication mode and whether the interface is reachable from untrusted networks.",
+        "Review session, token, credential, and proxy trust configuration without attempting account takeover."
+      ],
+      "remediation_steps": [
+        "Apply the supported fix and centralize fail-closed authentication before protected request handling.",
+        "Remove default or embedded credentials, rotate affected secrets and sessions, and bind authentication decisions to the intended audience and channel.",
+        "Add negative tests for alternate routes, malformed or absent credentials, recovery flows, and proxy-derived identity."
+      ],
+      "containment_steps": [
+        "Disable the affected login mode or interface and require access through a trusted identity-aware gateway or private network.",
+        "Restrict administrative operations to named identities and rotate potentially exposed authentication material."
+      ],
+      "verification_steps": [
+        "Verify every protected operation rejects missing, invalid, expired, replayed, and wrong-audience credentials consistently.",
+        "Confirm session invalidation and credential rotation reached all replicas, caches, gateways, and long-lived connections.",
+        "Review authentication telemetry for anomalous success paths before and after deployment."
+      ],
+      "stop_conditions": [
+        "Stop if any protected path lacks an explicit, testable authentication decision.",
+        "Switch to incident response if unauthorized sessions or unexplained administrative access are identified.",
+        "Do not validate using credentials or accounts not authorized for the test."
+      ],
+      "watch_for": [
+        "Fail-open behavior during identity-provider, cache, or network failure.",
+        "Alternate protocol handlers, case normalization, duplicate headers, recovery links, and pre-authentication APIs.",
+        "Authentication being present without equivalent authorization for the requested action."
+      ]
+    },
+    "authorization_idor": {
+      "title": "Authorization bypass, IDOR, and cross-tenant access",
+      "description": "Remediation for missing or incorrect permission, ownership, role, and tenant-boundary enforcement after identity is known.",
+      "matching_cwes": ["CWE-284", "CWE-285", "CWE-639", "CWE-862", "CWE-863"],
+      "exposure_checks": [
+        "Map object and action authorization checks across API, UI, batch, import/export, and background-job paths.",
+        "Identify tenant, ownership, role, and policy boundaries for affected resources and administrative operations.",
+        "Use synthetic fixtures to compare intended access matrices without accessing another user's real data."
+      ],
+      "remediation_steps": [
+        "Enforce server-side authorization at each resource access and state transition using the authenticated principal and trusted tenant context.",
+        "Scope data queries by tenant and ownership; treat client-supplied identifiers, roles, and policy claims as untrusted.",
+        "Add deny-by-default policy tests for horizontal and vertical access across every affected transport."
+      ],
+      "containment_steps": [
+        "Disable affected operations or limit them to a small, named administrative group.",
+        "Reduce exposed object metadata and add monitoring for cross-tenant or privilege-boundary denials."
+      ],
+      "verification_steps": [
+        "Run an explicit role-by-resource-by-action matrix with isolated test tenants and verify both allow and deny cases.",
+        "Confirm direct object references, bulk operations, exports, nested resources, and asynchronous jobs use the same policy.",
+        "Verify caches cannot return data across principal or tenant boundaries."
+      ],
+      "stop_conditions": [
+        "Stop if the fix relies on hidden identifiers, UI controls, or client-side checks.",
+        "Switch to incident response if logs or data indicate unauthorized cross-user, cross-tenant, or administrative access.",
+        "Do not test authorization boundaries with real customer records."
+      ],
+      "watch_for": [
+        "Bulk endpoints, indirect references, nested objects, exports, search results, and presigned links.",
+        "Policy differences between REST, GraphQL, RPC, WebSocket, and worker paths.",
+        "Cache keys or background jobs that omit principal or tenant context."
+      ]
+    },
+    "unsafe_deserialization": {
+      "title": "Unsafe deserialization and object reconstruction",
+      "description": "Remediation for untrusted serialized data that can instantiate dangerous types, invoke behavior, or violate object invariants.",
+      "matching_cwes": ["CWE-502"],
+      "exposure_checks": [
+        "Inventory serialization formats accepted from requests, queues, caches, files, cookies, and cross-service messages.",
+        "Trace whether untrusted input can select classes, types, callbacks, constructors, or object hooks during decoding.",
+        "Identify signing, schema validation, trust-boundary, and compatibility settings for each decoder."
+      ],
+      "remediation_steps": [
+        "Replace native object deserialization with a data-only format and explicit schema validation.",
+        "If replacement is not immediate, use a safe decoder with a minimal type allowlist and disable polymorphic or executable hooks.",
+        "Update the affected library and add inert tests for unknown types, extra fields, malformed nesting, and unsigned data."
+      ],
+      "containment_steps": [
+        "Stop accepting serialized objects from untrusted sources or require authenticated, integrity-protected messages from named producers.",
+        "Isolate the decoder with minimal filesystem, network, process, and credential access."
+      ],
+      "verification_steps": [
+        "Confirm the decoded representation contains data values only and cannot instantiate arbitrary application or library classes.",
+        "Verify schema, size, depth, type, and signature failures are rejected before object construction.",
+        "Review dependency and runtime telemetry for unexpected class loading, child processes, or outbound connections."
+      ],
+      "stop_conditions": [
+        "Stop if untrusted input can still name a class, invoke a hook, or select an executable type.",
+        "Switch to incident response if unexpected processes, class loads, filesystem changes, or network activity are observed.",
+        "Do not use weaponized serialized objects for verification."
+      ],
+      "watch_for": [
+        "Signed data from a producer that can itself be influenced by untrusted users.",
+        "Hidden deserialization in sessions, view state, message brokers, caches, plugins, and migration tools.",
+        "Type allowlists that include broad framework or reflection-capable base classes."
+      ]
+    },
+    "path_traversal_file_handling": {
+      "title": "Path traversal, unsafe upload, and file handling",
+      "description": "Remediation for attacker-controlled paths, archives, uploads, links, or file operations that escape intended storage boundaries.",
+      "matching_cwes": ["CWE-22", "CWE-23", "CWE-36", "CWE-59", "CWE-73", "CWE-98", "CWE-377", "CWE-379", "CWE-434"],
+      "exposure_checks": [
+        "Trace untrusted filenames, archive entries, URLs, and path segments into read, write, include, extraction, and upload operations.",
+        "Identify filesystem roots, mount permissions, symbolic-link behavior, archive handling, and whether uploaded content is web-accessible or executable.",
+        "Review canonicalization and containment checks across supported operating systems and storage backends."
+      ],
+      "remediation_steps": [
+        "Generate server-side storage identifiers and resolve paths beneath a fixed root using filesystem-aware containment checks.",
+        "Reject absolute, parent-relative, alternate-separator, device, link, and archive entries that escape the intended root.",
+        "Store uploads outside executable or served paths, validate type and size, and use private atomic temporary files."
+      ],
+      "containment_steps": [
+        "Disable affected upload, extraction, include, or file-serving features and make the target filesystem read-only where possible.",
+        "Restrict the service account to dedicated storage and block execution or direct serving of newly written files."
+      ],
+      "verification_steps": [
+        "Test containment with disposable fixtures covering normalization, separators, links, archives, collisions, and case behavior.",
+        "Confirm every resulting path remains within the intended root after final resolution and at time of use.",
+        "Verify uploaded or generated files cannot execute and do not inherit public access unexpectedly."
+      ],
+      "stop_conditions": [
+        "Stop if validation occurs only before a later path transformation or does not account for links and platform semantics.",
+        "Switch to incident response if unexpected files, modified application content, or unauthorized reads are found.",
+        "Do not test with sensitive system paths or production files."
+      ],
+      "watch_for": [
+        "Archive extraction, Unicode normalization, encoded separators, Windows device names, network paths, and case-insensitive filesystems.",
+        "Symlink and time-of-check/time-of-use races between validation and file access.",
+        "File-type decisions based only on extension or caller-supplied content type."
+      ]
+    },
+    "ssrf": {
+      "title": "Server-side request forgery and unintended proxying",
+      "description": "Remediation for server-side network requests that let untrusted input select destinations, protocols, credentials, or internal services.",
+      "matching_cwes": ["CWE-441", "CWE-610", "CWE-918"],
+      "exposure_checks": [
+        "Inventory server-side URL fetchers, webhooks, importers, previews, redirects, proxies, and protocol handlers reachable from untrusted input.",
+        "Map egress paths to internal services, metadata endpoints, loopback, private address space, and privileged control planes.",
+        "Review DNS resolution, redirect, proxy, credential-forwarding, and URL parsing behavior without requesting sensitive targets."
+      ],
+      "remediation_steps": [
+        "Replace arbitrary destinations with named integrations or a strict allowlist of schemes, hosts, ports, and paths.",
+        "Resolve and validate every destination and redirect hop, then enforce egress policy independently of application checks.",
+        "Remove ambient credentials and sensitive headers from fetchers; apply response size, time, and content limits."
+      ],
+      "containment_steps": [
+        "Disable the affected fetch or proxy feature, or route it through an authenticated egress proxy with deny-by-default policy.",
+        "Block access from the workload to metadata, loopback, private control planes, and unrelated internal networks."
+      ],
+      "verification_steps": [
+        "Use controlled benign endpoints to verify only approved destinations and protocols are reachable.",
+        "Confirm redirects, DNS changes, alternate IP representations, and proxy settings cannot cross the egress policy.",
+        "Verify requests do not forward caller credentials, internal tokens, or unrestricted response bodies."
+      ],
+      "stop_conditions": [
+        "Stop if destination validation and actual connection can disagree or if redirects bypass validation.",
+        "Switch to incident response if logs show access to metadata, control planes, internal services, or unexpected destinations.",
+        "Do not probe third-party or sensitive internal endpoints during verification."
+      ],
+      "watch_for": [
+        "DNS rebinding, redirect chains, IPv4 and IPv6 variants, user-info fields, parser disagreements, and non-HTTP schemes.",
+        "Environment proxy variables and service-mesh routing that bypass expected egress controls.",
+        "Blind request behavior where the response is hidden but side effects remain possible."
+      ]
+    },
+    "cross_site_scripting": {
+      "title": "Cross-site scripting and unsafe browser output",
+      "description": "Remediation for untrusted content that reaches an executable browser context without context-appropriate encoding or isolation.",
+      "matching_cwes": ["CWE-79", "CWE-80", "CWE-83", "CWE-87"],
+      "exposure_checks": [
+        "Trace reflected, stored, and DOM-derived untrusted values into HTML, attributes, URLs, styles, scripts, and client-side template sinks.",
+        "Identify affected origins, authenticated user roles, sensitive browser capabilities, and where content is shared across tenants.",
+        "Review framework escaping, rich-text sanitization, legacy templates, and client-side rendering paths."
+      ],
+      "remediation_steps": [
+        "Use context-aware framework output encoding and safe DOM APIs; keep untrusted data out of executable contexts.",
+        "Sanitize intentionally supported markup with a maintained allowlist policy and validate URLs and attributes separately.",
+        "Update affected rendering components and add tests for every output context using inert sentinel markup."
+      ],
+      "containment_steps": [
+        "Disable affected rich-content or rendering features and restrict content creation to trusted roles.",
+        "Deploy a restrictive, tested Content Security Policy as defense in depth and invalidate affected cached content."
+      ],
+      "verification_steps": [
+        "Confirm untrusted values render as text or approved markup across server rendering, hydration, and client updates.",
+        "Run browser tests with harmless markers across HTML, attribute, URL, style, and script-adjacent contexts.",
+        "Verify session cookies and sensitive tokens use appropriate browser protections and are not exposed to scripts unnecessarily."
+      ],
+      "stop_conditions": [
+        "Stop if the fix relies only on a browser policy, deny list, or a single encoder for every context.",
+        "Switch to incident response if stored active content or suspicious authenticated browser actions are found.",
+        "Do not validate with payloads that transmit data or affect other users."
+      ],
+      "watch_for": [
+        "Mutation after sanitization, hydration differences, template escape hatches, URL schemes, SVG, and rich-text plugins.",
+        "Stored values rendered in administrative, email, PDF, mobile-webview, or analytics interfaces.",
+        "Third-party scripts and permissive policy exceptions that weaken defense in depth."
+      ]
+    },
+    "xxe": {
+      "title": "XML external entity and unsafe XML processing",
+      "description": "Remediation for XML parser features that resolve external entities, access local resources, or expand attacker-controlled documents unsafely.",
+      "matching_cwes": ["CWE-611", "CWE-827"],
+      "exposure_checks": [
+        "Inventory XML parsers used by APIs, file imports, office or image formats, identity protocols, feeds, and background jobs.",
+        "Determine whether document type declarations, external entities, XInclude, schemas, or network resolvers are enabled.",
+        "Map parser filesystem and network access and the sensitivity of documents it processes."
+      ],
+      "remediation_steps": [
+        "Configure each parser to reject document type declarations and disable external entity, XInclude, and network resolution features.",
+        "Prefer a data format or hardened parser that does not support external resolution, and apply input size and depth limits.",
+        "Update affected XML libraries and centralize secure parser construction so callers cannot silently override it."
+      ],
+      "containment_steps": [
+        "Disable affected XML import or protocol features and block the parser workload from unnecessary filesystem and network access.",
+        "Accept XML only from authenticated trusted producers until the permanent fix is deployed."
+      ],
+      "verification_steps": [
+        "Use inert local fixtures to verify declarations and external references are rejected without reading files or making network requests.",
+        "Confirm secure parser settings apply to every entry point, content-type alias, nested format, and worker process.",
+        "Verify entity expansion, input size, nesting, and processing time are bounded."
+      ],
+      "stop_conditions": [
+        "Stop if parser settings cannot be demonstrated for the deployed library and all entry points.",
+        "Switch to incident response if parser telemetry shows unexpected file reads or outbound requests.",
+        "Do not reference real sensitive files or third-party endpoints in tests."
+      ],
+      "watch_for": [
+        "Separate parsers used for validation and processing, or libraries that reset secure defaults.",
+        "XML embedded in office files, SVG, SAML, SOAP, RSS, and other container formats.",
+        "Entity expansion denial of service even when data exfiltration is blocked."
+      ]
+    },
+    "http_request_smuggling": {
+      "title": "HTTP request smuggling and message-boundary ambiguity",
+      "description": "Remediation for inconsistent HTTP framing or normalization between request-processing components across a proxy chain.",
+      "matching_cwes": ["CWE-444"],
+      "exposure_checks": [
+        "Inventory every proxy, CDN, gateway, load balancer, service mesh, and application server hop on affected request paths.",
+        "Compare documented parsing and normalization behavior for message length, transfer coding, duplicate headers, and protocol translation.",
+        "Identify connection reuse and which downstream services trust headers added by intermediaries."
+      ],
+      "remediation_steps": [
+        "Update affected intermediaries and origin servers and align them on a single standards-compliant request framing policy.",
+        "Reject ambiguous length, transfer-coding, duplicate, malformed, and unsupported framing before forwarding.",
+        "Normalize or remove hop-by-hop and identity headers at one controlled boundary and add multi-hop regression tests."
+      ],
+      "containment_steps": [
+        "Disable connection reuse or affected protocol translation on the vulnerable path when operationally safe.",
+        "Route traffic through one hardened parsing boundary or temporarily restrict the affected endpoint to trusted clients."
+      ],
+      "verification_steps": [
+        "Test the complete staging proxy chain with benign paired requests and confirm all hops agree on boundaries and routing.",
+        "Verify ambiguous requests are rejected and cannot influence the next request on a reused connection.",
+        "Confirm cache keys, client identity, and routing headers are produced only by trusted intermediaries."
+      ],
+      "stop_conditions": [
+        "Stop if staging does not reproduce the complete production intermediary chain and parsing configuration.",
+        "Switch to incident response if logs show cross-request response mix-ups, unexplained routing, or poisoned cache entries.",
+        "Do not test ambiguous framing against shared production connections."
+      ],
+      "watch_for": [
+        "HTTP/2 or HTTP/3 downgrades, vendor defaults, duplicate header normalization, and intermediary-specific tolerances.",
+        "A patched edge with an unpatched alternate ingress or origin path.",
+        "Monitoring that records normalized requests and hides the bytes seen by an affected hop."
+      ]
+    },
+    "memory_corruption": {
+      "title": "Buffer bounds, memory safety, and memory corruption",
+      "description": "Remediation for unsafe bounds, arithmetic, parsing, or memory operations that can corrupt process state or disclose memory.",
+      "matching_cwes": ["CWE-119", "CWE-120", "CWE-121", "CWE-122", "CWE-124", "CWE-125", "CWE-126", "CWE-127", "CWE-129", "CWE-131", "CWE-415", "CWE-476", "CWE-787", "CWE-788", "CWE-805", "CWE-823", "CWE-824"],
+      "exposure_checks": [
+        "Identify affected native-code versions, build flags, architectures, parsers, codecs, drivers, and input paths in all shipped artifacts.",
+        "Determine whether untrusted data reaches the affected routine and the process privilege, sandbox, and network exposure.",
+        "Confirm statically linked, vendored, firmware, and platform-provided copies, not only package-manager records."
+      ],
+      "remediation_steps": [
+        "Apply the maintained upstream correction or replace the affected component, then rebuild every dependent artifact from clean inputs.",
+        "Adopt bounds-checked interfaces, validated sizes and integer conversions, clear ownership, and memory-safe components where practical.",
+        "Enable supported compiler and runtime hardening and add sanitized tests and fuzz regression seeds derived from non-weaponized fixtures."
+      ],
+      "containment_steps": [
+        "Disable the affected parser, codec, file type, or service endpoint and isolate the process with least privilege and a restrictive sandbox.",
+        "Limit accepted input sizes and sources and reduce network and filesystem access for the affected process."
+      ],
+      "verification_steps": [
+        "Run focused unit, sanitizer, and fuzz tests in an isolated environment and confirm clean termination for malformed fixtures.",
+        "Verify the deployed binary identity, linkage, architecture, and hardening flags match the rebuilt artifact.",
+        "Review crash telemetry for the affected call path without reproducing a weaponized condition."
+      ],
+      "stop_conditions": [
+        "Stop if testing causes uncontrolled corruption, affects shared systems, or requires a weaponized proof of concept.",
+        "Switch to incident response if suspicious crashes, control-flow anomalies, or unexpected process behavior are observed.",
+        "Do not treat a crash-only mitigation or input deny list as a complete fix."
+      ],
+      "watch_for": [
+        "Integer truncation or overflow preceding allocation and copy operations.",
+        "Architecture-, compiler-, feature-, or file-format-specific vulnerable paths.",
+        "Old native libraries embedded in containers, appliances, mobile apps, plugins, and statically linked binaries."
+      ]
+    },
+    "use_after_free": {
+      "title": "Use-after-free, double free, and expired resource use",
+      "description": "Remediation for object or resource lifetime errors that permit access, release, or reuse after ownership has ended.",
+      "matching_cwes": ["CWE-415", "CWE-416", "CWE-672", "CWE-825"],
+      "exposure_checks": [
+        "Trace ownership, references, callbacks, asynchronous tasks, and teardown paths around the affected object or resource.",
+        "Identify reachable inputs and timing or state transitions that can release the object while references remain.",
+        "Confirm affected builds, allocators, feature flags, architectures, and process privileges."
+      ],
+      "remediation_steps": [
+        "Apply the maintained ownership or lifetime fix and rebuild all artifacts containing the affected native code.",
+        "Use explicit ownership, safe reference management, cancellation and join semantics, and idempotent teardown.",
+        "Add deterministic lifetime tests plus isolated sanitizer and concurrency coverage for shutdown and error paths."
+      ],
+      "containment_steps": [
+        "Disable the affected feature or concurrency path and isolate the process with least privilege and restricted inputs.",
+        "Reduce exposure to trusted sources and restart affected long-lived processes after deploying containment when operationally approved."
+      ],
+      "verification_steps": [
+        "Run address, thread, and undefined-behavior sanitizers as supported, using non-weaponized fixtures and repeated lifecycle tests.",
+        "Confirm callbacks and tasks cannot access an object after cancellation, teardown, failure, or owner destruction.",
+        "Verify deployed binaries contain the corrected code across every architecture and distribution channel."
+      ],
+      "stop_conditions": [
+        "Stop if verification requires uncontrolled heap manipulation or weaponized exploitation techniques.",
+        "Switch to incident response if suspicious crashes, allocator corruption, or unexpected control flow is observed.",
+        "Do not accept timing delays or process restarts as the permanent remediation."
+      ],
+      "watch_for": [
+        "Callbacks, weak references, deferred cleanup, error unwinding, shutdown ordering, and foreign-function boundaries.",
+        "Fixes that cover the common path but leave cancellation or failure paths unsafe.",
+        "Allocator and optimization differences that hide the defect in routine tests."
+      ]
+    },
+    "race_lifetime": {
+      "title": "Race condition, TOCTOU, and lifecycle synchronization",
+      "description": "Remediation for security decisions invalidated by concurrent state changes, unsafe signal handling, or incomplete lifecycle synchronization.",
+      "matching_cwes": ["CWE-362", "CWE-364", "CWE-366", "CWE-367", "CWE-368", "CWE-421", "CWE-662", "CWE-664", "CWE-667"],
+      "exposure_checks": [
+        "Map concurrent actors, shared state, lock boundaries, signals, callbacks, retries, and check-then-use sequences in the affected path.",
+        "Determine whether untrusted users can influence timing, object names, filesystem state, or repeated state transitions.",
+        "Identify clustered and multi-process behavior that repository-local tests may not represent."
+      ],
+      "remediation_steps": [
+        "Make the sensitive state transition atomic or protect it with a consistently ordered synchronization primitive.",
+        "Perform authorization and invariant checks on the same authoritative object and transaction used for the operation.",
+        "Use unique private resources, safe ownership transfer, and idempotent operations; add deterministic concurrency regression tests."
+      ],
+      "containment_steps": [
+        "Serialize or disable the affected operation and restrict it to trusted identities while the fix is prepared.",
+        "Reduce shared resource access and isolate temporary files, queues, and state stores per tenant or process."
+      ],
+      "verification_steps": [
+        "Run repeated controlled concurrency tests with scheduling instrumentation and verify invariants at every state transition.",
+        "Confirm behavior across processes, replicas, retries, cancellation, timeout, and failure recovery.",
+        "Review synchronization diagnostics and state-transition logs for duplicate, stale, or out-of-order operations."
+      ],
+      "stop_conditions": [
+        "Stop if the proposed fix relies on timing, sleeps, or probabilistic ordering.",
+        "Switch to incident response if races have caused unauthorized state changes, corrupted data, or privilege-boundary violations.",
+        "Do not stress shared production systems to reproduce the race."
+      ],
+      "watch_for": [
+        "Lock-order inversions, deadlocks, stale caches, retries, distributed leases, and non-atomic storage operations.",
+        "A check and use performed through different identities, handles, paths, transactions, or replicas.",
+        "Error and cancellation paths that skip synchronization or cleanup."
+      ]
+    },
+    "resource_exhaustion_dos": {
+      "title": "Resource exhaustion and denial of service",
+      "description": "Remediation for unbounded work, allocation, recursion, concurrency, or state retention that can exhaust service resources.",
+      "matching_cwes": ["CWE-400", "CWE-401", "CWE-404", "CWE-409", "CWE-674", "CWE-770", "CWE-776", "CWE-789", "CWE-834"],
+      "exposure_checks": [
+        "Identify attacker-influenced work factors including input size, nesting, compression, fan-out, regex cost, allocation, recursion, retries, and connection lifetime.",
+        "Map per-request and shared CPU, memory, disk, descriptor, thread, queue, and downstream-service limits.",
+        "Determine whether authentication, tenancy, quotas, and rate controls apply before expensive processing begins."
+      ],
+      "remediation_steps": [
+        "Bound input size, nesting, expansion, work, concurrency, queue depth, retries, and execution time before resource-intensive processing.",
+        "Release resources on every success, error, cancellation, and timeout path and use backpressure instead of unbounded buffering.",
+        "Update affected components and add small deterministic tests that assert resource ceilings rather than exhausting a host."
+      ],
+      "containment_steps": [
+        "Disable or rate-limit the affected feature and cap worker, process, container, and downstream resource consumption.",
+        "Restrict unauthenticated access and shed load predictably while preserving capacity for health and administrative operations."
+      ],
+      "verification_steps": [
+        "Measure bounded CPU, memory, disk, descriptor, queue, and response-time behavior with synthetic inputs in an isolated environment.",
+        "Verify limits apply per principal and tenant as well as globally and fail with controlled errors.",
+        "Confirm the service recovers without leaked resources or manual intervention after limits are reached."
+      ],
+      "stop_conditions": [
+        "Stop before a test threatens shared infrastructure, downstream dependencies, or production availability.",
+        "Switch to incident response if resource anomalies appear coordinated or availability controls are being bypassed.",
+        "Do not classify rate limiting alone as a permanent fix for unbounded algorithmic work."
+      ],
+      "watch_for": [
+        "Asymmetric amplification, compressed or nested formats, catastrophic backtracking, retry storms, and slow clients.",
+        "Limits enforced after allocation or expansion has already occurred.",
+        "Global caps that allow one tenant to starve unrelated tenants or control-plane traffic."
+      ]
+    },
+    "crypto_certificate_validation": {
+      "title": "Cryptography, certificate, signature, and channel validation",
+      "description": "Remediation for incorrect cryptographic use, incomplete certificate or signature validation, and insecure channel or key handling.",
+      "matching_cwes": ["CWE-295", "CWE-296", "CWE-297", "CWE-298", "CWE-299", "CWE-311", "CWE-319", "CWE-321", "CWE-326", "CWE-327", "CWE-328", "CWE-330", "CWE-338"],
+      "exposure_checks": [
+        "Inventory affected algorithms, key uses, trust stores, certificate validation settings, random sources, and plaintext channels across clients and services.",
+        "Determine which secrets, identities, signatures, or data protections depend on the affected primitive or validation path.",
+        "Check debug, compatibility, fallback, and hostname or audience override settings in build and runtime configuration."
+      ],
+      "remediation_steps": [
+        "Use a maintained platform cryptographic API with approved algorithms, modes, parameters, randomness, and full peer identity validation.",
+        "Remove insecure fallback and validation bypasses; separate keys by purpose and load them from managed secret storage.",
+        "Plan rotation or reissuance for affected keys, certificates, tokens, hashes, or ciphertext and document compatibility sequencing."
+      ],
+      "containment_steps": [
+        "Disable the affected protocol, cipher, trust override, or integration and require a known-good authenticated channel.",
+        "Restrict access to trusted networks and rotate exposed or suspect key material according to incident policy."
+      ],
+      "verification_steps": [
+        "Verify valid peers succeed and expired, untrusted, mismatched, revoked, malformed, and downgraded identities fail closed.",
+        "Inspect negotiated protocol and algorithm settings and confirm no plaintext or insecure fallback path remains.",
+        "Confirm key rotation, trust-store changes, and certificate deployment reached every client, replica, and background worker."
+      ],
+      "stop_conditions": [
+        "Stop if remediation would expose private keys, weaken validation, or rotate trust without a coordinated recovery plan.",
+        "Switch to incident response if key compromise, forged identity, downgrade, or unauthorized decryption is suspected.",
+        "Do not invent cryptographic constructions or implement primitives directly."
+      ],
+      "watch_for": [
+        "Hostname, audience, chain, revocation, time, and purpose checks that are performed separately or skipped on retries.",
+        "Legacy clients and fallback paths re-enabling weak settings after the primary path is fixed.",
+        "Encrypted data that remains affected until re-encrypted or retired."
+      ]
+    },
+    "information_disclosure": {
+      "title": "Information disclosure and sensitive data exposure",
+      "description": "Remediation for unintended access to secrets, personal data, tenant content, memory, logs, metadata, or other protected information.",
+      "matching_cwes": ["CWE-200", "CWE-201", "CWE-203", "CWE-209", "CWE-212", "CWE-359", "CWE-497", "CWE-522", "CWE-532", "CWE-538"],
+      "exposure_checks": [
+        "Trace sensitive data through responses, errors, logs, metrics, traces, caches, exports, files, backups, and client bundles.",
+        "Identify affected subjects, tenants, retention windows, access controls, and downstream copies without opening unnecessary sensitive records.",
+        "Review metadata, timing, status, length, and existence signals as well as direct content disclosure."
+      ],
+      "remediation_steps": [
+        "Minimize collection and output, apply field-level authorization and redaction at a centralized boundary, and return generic external errors.",
+        "Remove secrets and sensitive data from logs, artifacts, URLs, caches, and client-side bundles; rotate credentials that may have been exposed.",
+        "Update the affected component and add synthetic-data tests for response, error, observability, and export paths."
+      ],
+      "containment_steps": [
+        "Disable affected endpoints or exports, narrow access, and stop further propagation to logs, analytics, and downstream systems.",
+        "Invalidate exposed caches or links and restrict preserved evidence according to privacy and incident policy."
+      ],
+      "verification_steps": [
+        "Use synthetic canary values to verify sensitive fields do not appear in unauthorized responses, errors, logs, traces, caches, or artifacts.",
+        "Confirm authorized workflows still return only the minimum required fields and preserve tenant boundaries.",
+        "Verify credential rotation, cache invalidation, retention cleanup, and downstream notification tasks are complete where applicable."
+      ],
+      "stop_conditions": [
+        "Stop if assessment would broaden access to sensitive records or copy them into less controlled systems.",
+        "Switch to incident response and privacy review if actual unauthorized disclosure is confirmed.",
+        "Do not place real secrets or personal data in regression fixtures."
+      ],
+      "watch_for": [
+        "Debug modes, stack traces, source maps, presigned URLs, browser history, referrers, and observability pipelines.",
+        "Inference through response differences even after direct fields are removed.",
+        "Historical copies in caches, backups, search indexes, logs, tickets, and analytics systems."
+      ]
+    },
+    "privilege_escalation": {
+      "title": "Privilege escalation and unsafe privilege management",
+      "description": "Remediation for operations that let a lower-privileged actor acquire, inherit, or exercise capabilities beyond the intended boundary.",
+      "matching_cwes": ["CWE-250", "CWE-266", "CWE-269", "CWE-270", "CWE-271", "CWE-272", "CWE-273", "CWE-274", "CWE-276", "CWE-732"],
+      "exposure_checks": [
+        "Map service accounts, operating-system identities, roles, capabilities, impersonation, set-user transitions, and administrative helper paths.",
+        "Determine whether untrusted users or lower-privilege processes can reach the affected transition or modify inputs it trusts.",
+        "Review file, socket, registry, device, job, container, and cloud-role permissions used before and after privilege changes."
+      ],
+      "remediation_steps": [
+        "Apply the supported fix and redesign privileged operations as a minimal, authenticated, allowlisted interface.",
+        "Drop privileges before processing untrusted input, verify the drop succeeds, and remove unnecessary roles, capabilities, and write permissions.",
+        "Validate ownership and permissions at time of use and add explicit lower-to-higher privilege boundary tests."
+      ],
+      "containment_steps": [
+        "Disable the affected privileged helper or operation and restrict it to named administrators through a controlled access path.",
+        "Remove unnecessary elevated permissions and isolate the workload from sensitive host, container, and cloud control planes."
+      ],
+      "verification_steps": [
+        "Run tests from a dedicated low-privilege identity and confirm privileged actions require the intended authorization and fixed operation set.",
+        "Verify effective identity, capabilities, groups, tokens, file permissions, and cloud roles before and after every transition.",
+        "Review audit logs for unexpected elevation attempts and ensure denial paths leave no partial privileged state."
+      ],
+      "stop_conditions": [
+        "Stop if tests require modifying real administrative accounts or shared host security controls.",
+        "Switch to incident response if unexplained elevated identities, permission changes, or privileged actions are found.",
+        "Do not accept obscurity, caller-supplied roles, or environment-controlled paths as trust boundaries."
+      ],
+      "watch_for": [
+        "Writable executables, libraries, search paths, configuration, service definitions, scheduled jobs, sockets, and temporary files.",
+        "Privilege restoration, error, child-process, and impersonation-revert paths.",
+        "Container root, host mounts, device access, and cloud metadata privileges that exceed apparent application roles."
+      ]
+    },
+    "supply_chain_update_integrity": {
+      "title": "Supply-chain, dependency, build, and update integrity",
+      "description": "Remediation for untrusted packages, build inputs, update channels, signatures, or search paths that can compromise delivered artifacts.",
+      "matching_cwes": ["CWE-345", "CWE-353", "CWE-426", "CWE-427", "CWE-494", "CWE-506", "CWE-829", "CWE-1104", "CWE-1395"],
+      "exposure_checks": [
+        "Trace affected packages, source archives, build actions, plugins, installers, and updates from declared source to deployed artifact.",
+        "Confirm provenance, signatures or digests, namespace ownership, lockfile resolution, registry configuration, and build-runner trust boundaries.",
+        "Inventory direct, transitive, vendored, generated, and bundled copies across releases and distribution channels."
+      ],
+      "remediation_steps": [
+        "Move to a maintained trusted artifact or remove the dependency; pin immutable identities and verify provenance and integrity before use.",
+        "Regenerate lockfiles and artifacts in a clean isolated build, minimize build credentials and network access, and produce an updated software bill of materials.",
+        "Require reviewed update policy, protected publishing, and reproducible or independently attestable builds where supported."
+      ],
+      "containment_steps": [
+        "Pause affected builds, releases, plugin loading, or automatic updates and quarantine unverified artifacts without deleting evidence.",
+        "Restrict registries and update endpoints to approved sources and revoke or rotate exposed publishing and build credentials."
+      ],
+      "verification_steps": [
+        "Rebuild from clean inputs and compare resolved dependency identities, provenance, digests, bill of materials, and deployed artifact identity.",
+        "Verify unapproved registries, unsigned or mismatched updates, mutable references, and namespace-confusion candidates fail closed.",
+        "Confirm all release channels and long-lived deployments received artifacts from the corrected pipeline."
+      ],
+      "stop_conditions": [
+        "Stop release activity if artifact origin, integrity, or build-runner trust cannot be established.",
+        "Switch to incident response if malicious code, unauthorized publishing, signing-key misuse, or build-system compromise is suspected.",
+        "Do not replace an affected dependency with an unreviewed fork or unverifiable binary."
+      ],
+      "watch_for": [
+        "Dependency confusion, typosquatting, install scripts, build plugins, generated code, mirrors, caches, and mutable tags.",
+        "A corrected manifest paired with stale vendored files, lockfiles, containers, release assets, or client-side bundles.",
+        "Maintainer or signing-key changes and provenance gaps that require human trust review."
+      ]
+    }
+  }
+}

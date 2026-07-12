@@ -47,6 +47,7 @@ services:
       RECIPES_MCP_PUBLIC_BASE_URL: "${RECIPES_MCP_PUBLIC_BASE_URL:-https://security-recipes.ai/mcp}"
       RECIPES_MCP_LOG_LEVEL: "${RECIPES_MCP_LOG_LEVEL:-info}"
       RECIPES_MCP_EAGER_REFRESH: "${RECIPES_MCP_EAGER_REFRESH:-false}"
+      RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-true}"
     expose:
       - "80"
     restart: unless-stopped

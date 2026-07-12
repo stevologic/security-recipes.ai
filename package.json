@@ -2,9 +2,13 @@
   "name": "security-recipes.ai",
   "version": "1.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "description": "security-recipes.ai — bounded security recipes for agent-assisted remediation",
   "scripts": {
-    "build": "eleventy",
+    "prebuild": "npm run clean",
+    "build": "eleventy --quiet && node scripts/prepare_static_assets.js",
+    "check:performance": "node scripts/check_site_performance.js",
+    "icons": "node scripts/generate_site_icons.js",
     "serve": "eleventy --serve",
     "clean": "node -e \"require('fs').rmSync('public', { recursive: true, force: true })\""
   },

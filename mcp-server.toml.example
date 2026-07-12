@@ -6,6 +6,10 @@
 # legacy /recipes-index.json array are still accepted for compatibility.
 source_index_url = "https://security-recipes.ai/api/recipes-index.json"
 
+# Complete High/Critical CVE catalog. Docker builds copy this directory into
+# the same path so exact-CVE lookups stay local and do not depend on NVD uptime.
+cve_catalog_path = "./static/api/cve-catalog"
+
 # Security allow-list: hostname from source_index_url MUST exist here.
 allowed_source_hosts = ["security-recipes.ai"]
 

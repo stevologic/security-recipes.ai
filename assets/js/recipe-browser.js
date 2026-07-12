@@ -2,11 +2,13 @@
  * Recipe browser for /recipes/.
  * The page ships a small server-rendered first page of cards; this layer
  * fetches the slim /recipes-browser.json feed and renders, filters, sorts,
- * and paginates the full catalogue client-side. Only a bounded window of
- * cards is ever in the DOM, so the page stays fast at 10k+ recipes.
+ * and paginates the reviewed workflow collection client-side. The much
+ * larger CVE collection remains on its lazy worker-and-shard search path.
  */
 (function () {
   'use strict';
+
+  var win = window;
 
   function escapeHtml(value) {
     return String(value == null ? '' : value)
@@ -101,6 +103,9 @@
       '- recipes_get: retrieve the selected recipe by slug, path, URL, or source_file.',
       '- recipes_match_finding: suggest best-fit recipes for one concrete finding.',
       '- recipes_quality_report: inspect quality tiers and find recipes missing world-class signals.',
+      '- recipes_cve_catalog_info: inspect the generated high and critical CVE catalog.',
+      '- recipes_cve_search: search CVEs by identifier, title, severity, year, or CISA KEV status.',
+      '- recipes_cve_get: retrieve one complete CVE remediation recipe by identifier.',
       '',
       'Select by facet before acting: remediation for patch work, risk for exploitability and impact, audit for evidence mapping, compliance for standards readiness, and code-hygiene for cleanup or hardening work.',
       '',
@@ -239,21 +244,17 @@
       (card.ecosystem ? '<span>' + escapeHtml(card.ecosystem) + '</span>' : '') +
       (card.model ? '<span>' + escapeHtml(card.model) + '</span>' : '');
 
-    var facets = card.facets.map(function (f) {
-      return '<span>' + escapeHtml(f.replace(/-/g, ' ')) + '</span>';
-    }).join('');
-
     return (
-      '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '" data-recipe-path="' + escapeHtml(card.url) + '">' +
+      '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '" data-recipe-path="' + escapeHtml(card.url) + '" aria-labelledby="recipe-card-' + escapeHtml(card.slug) + '">' +
       '<div class="recipe-browser-card__visual" aria-hidden="true"><span>' + escapeHtml(card.categoryLabel.slice(0, 2).toUpperCase()) + '</span></div>' +
       '<div class="recipe-browser-card__content">' +
       '<div class="recipe-browser-card__topline">' + topline + '</div>' +
-      '<h3><a href="' + escapeHtml(card.url) + '">' + escapeHtml(card.displayTitle) + '</a></h3>' +
+      '<h3 id="recipe-card-' + escapeHtml(card.slug) + '">' + escapeHtml(card.displayTitle) + '</h3>' +
       (card.summary ? '<p>' + escapeHtml(card.summary) + '</p>' : '') +
-      '<div class="recipe-browser-card__facets" aria-label="Recipe facets">' + facets + '</div>' +
+      '<ul class="recipe-browser-card__facets" aria-label="Recipe outcomes">' + card.facets.map(function (f) { return '<li>' + escapeHtml(f.replace(/-/g, ' ')) + '</li>'; }).join('') + '</ul>' +
       '<div class="recipe-browser-card__meta">' + meta + '</div>' +
       '<div class="recipe-browser-card__actions">' +
-      '<a class="recipe-browser-card__open" href="' + escapeHtml(card.url) + '">Open recipe</a>' +
+      '<a class="recipe-browser-card__open" href="' + escapeHtml(card.url) + '" aria-describedby="recipe-card-' + escapeHtml(card.slug) + '">Open</a>' +
       '<button type="button" class="recipe-browser-card__download" data-recipe-download aria-label="Download ' + escapeHtml(card.displayTitle) + ' recipe JSON">' +
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"/></svg>' +
       '<span>Download</span></button></div>' +
@@ -277,6 +278,15 @@
     var grid = root.querySelector('[data-recipe-grid]');
     var loadMoreButton = root.querySelector('[data-recipe-load-more]');
     var filterButtons = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-filter]'));
+    var resetFiltersButton = root.querySelector('[data-recipe-reset-filters]');
+    var activeFilters = root.querySelector('[data-recipe-active-filters]');
+    var collectionTabs = Array.prototype.slice.call(root.querySelectorAll('[data-library-tab]'));
+    var collectionPanels = Array.prototype.slice.call(root.querySelectorAll('[data-library-panel]'));
+    var filterDrawer = root.querySelector('.recipe-library__facets');
+    var filterToggle = root.querySelector('[data-recipe-filter-toggle]');
+    var filterClose = root.querySelector('[data-recipe-filter-close]');
+    var filterCount = root.querySelector('[data-recipe-filter-count]');
+    var cveSearchButton = root.querySelector('[data-recipe-search-cve]');
     var filterLabels = {};
     var typeahead = null;
     var typeaheadList = null;
@@ -288,6 +298,9 @@
     var visible = [];
     var renderedCount = 0;
     var activeCategory = 'all';
+    var activeCollection = 'curated';
+    var restoringHistory = false;
+    var filterReturnFocus = null;
     var loadedIndex = null;
     // False until the full catalogue (feed or API fallback) has loaded; until
     // then allCards holds only the inline seed slice. catalogueFailed flips
@@ -302,6 +315,227 @@
       if (!status) return;
       status.textContent = message || '';
       status.dataset.tone = tone || '';
+    }
+
+    function allowed(value, values, fallback) {
+      return values.indexOf(value) !== -1 ? value : fallback;
+    }
+
+    function relevantParams() {
+      try {
+        return new URL(win.location.href).searchParams;
+      } catch (error) {
+        return new URLSearchParams();
+      }
+    }
+
+    function replaceUrlForCurated() {
+      if (restoringHistory || !win.history || !win.history.replaceState) return;
+      var url = new URL(win.location.href);
+      ['view', 'q', 'category', 'severity', 'facet', 'quality', 'sort', 'year', 'kev'].forEach(function (key) {
+        url.searchParams.delete(key);
+      });
+      url.searchParams.set('view', 'curated');
+      var query = searchInput ? searchInput.value.trim().slice(0, 160) : '';
+      if (query) url.searchParams.set('q', query);
+      if (activeCategory !== 'all') url.searchParams.set('category', activeCategory);
+      if (severityFilter && severityFilter.value !== 'all') url.searchParams.set('severity', severityFilter.value);
+      if (facetFilter && facetFilter.value !== 'all') url.searchParams.set('facet', facetFilter.value);
+      if (qualityFilter && qualityFilter.value !== '0') url.searchParams.set('quality', qualityFilter.value);
+      if (sortSelect && sortSelect.value !== 'newest') url.searchParams.set('sort', sortSelect.value);
+      win.history.replaceState({ recipeLibrary: true }, '', url.pathname + url.search + url.hash);
+    }
+
+    function updateCollectionUrl(collection, push, options) {
+      if (restoringHistory || !win.history) return;
+      options = options || {};
+      var url = new URL(win.location.href);
+      ['view', 'q', 'category', 'severity', 'facet', 'quality', 'sort', 'year', 'kev'].forEach(function (key) {
+        url.searchParams.delete(key);
+      });
+      url.searchParams.set('view', collection);
+      if (collection === 'cve') {
+        var cveMount = root.querySelector('[data-cve-catalog]');
+        var cveInput = cveMount && cveMount.querySelector('[data-cve-search]');
+        var cveSeverity = cveMount && cveMount.querySelector('[data-cve-severity]');
+        var cveYear = cveMount && cveMount.querySelector('[data-cve-year]');
+        var cveKev = cveMount && cveMount.querySelector('[data-cve-kev]');
+        var explicitHandoff = Object.prototype.hasOwnProperty.call(options, 'query') || options.shortcut;
+        var query = explicitHandoff
+          ? String(options.query || '').trim().slice(0, 160)
+          : String(cveInput ? cveInput.value : (searchInput ? searchInput.value : '')).trim().slice(0, 160);
+        var cveSeverityValue = explicitHandoff ? 'all' : (cveSeverity ? cveSeverity.value : (severityFilter ? severityFilter.value : 'all'));
+        var cveYearValue = explicitHandoff ? 'all' : (cveYear ? cveYear.value : 'all');
+        var cveKevValue = explicitHandoff ? 'all' : (cveKev ? cveKev.value : 'all');
+        if (options.shortcut === 'critical' || options.shortcut === 'high') cveSeverityValue = options.shortcut;
+        if (options.shortcut === 'kev') cveKevValue = 'yes';
+        if (query) url.searchParams.set('q', query);
+        if (cveSeverityValue !== 'all') url.searchParams.set('severity', cveSeverityValue);
+        if (cveYearValue !== 'all') url.searchParams.set('year', cveYearValue);
+        if (cveKevValue !== 'all') url.searchParams.set('kev', cveKevValue);
+      } else {
+        var curatedQuery = searchInput ? searchInput.value.trim().slice(0, 160) : '';
+        if (curatedQuery) url.searchParams.set('q', curatedQuery);
+        if (activeCategory !== 'all') url.searchParams.set('category', activeCategory);
+        if (severityFilter && severityFilter.value !== 'all') url.searchParams.set('severity', severityFilter.value);
+        if (facetFilter && facetFilter.value !== 'all') url.searchParams.set('facet', facetFilter.value);
+        if (qualityFilter && qualityFilter.value !== '0') url.searchParams.set('quality', qualityFilter.value);
+        if (sortSelect && sortSelect.value !== 'newest') url.searchParams.set('sort', sortSelect.value);
+      }
+      var method = push && win.history.pushState ? 'pushState' : 'replaceState';
+      win.history[method]({ recipeLibrary: true }, '', url.pathname + url.search + url.hash);
+    }
+
+    function mountCveCatalog(query, shortcut) {
+      var panel = root.querySelector('[data-library-panel="cve"]');
+      var mount = panel && panel.querySelector('[data-cve-catalog]');
+      if (!mount) return;
+      mount.removeAttribute('data-cve-catalog-deferred');
+      if (win.SecurityRecipesCveCatalog && typeof win.SecurityRecipesCveCatalog.mount === 'function') {
+        win.SecurityRecipesCveCatalog.mount(mount);
+      }
+      win.requestAnimationFrame(function () {
+        var params = relevantParams();
+        var input = mount.querySelector('[data-cve-search]');
+        var severity = mount.querySelector('[data-cve-severity]');
+        var year = mount.querySelector('[data-cve-year]');
+        var kev = mount.querySelector('[data-cve-kev]');
+        var requestedQuery = String(params.get('q') || query || '').slice(0, 160);
+        var requestedSeverity = allowed(params.get('severity') || 'all', ['all', 'critical', 'high'], 'all');
+        var requestedYear = /^\d{4}$/.test(params.get('year') || '') ? params.get('year') : 'all';
+        var requestedKev = allowed(params.get('kev') || 'all', ['all', 'yes', 'no'], 'all');
+        if (input) input.value = requestedQuery;
+        if (severity) severity.value = requestedSeverity;
+        if (year && (requestedYear === 'all' || Array.prototype.some.call(year.options, function (option) {
+          return option.value === requestedYear;
+        }))) year.value = requestedYear;
+        if (kev) kev.value = requestedKev;
+        if (input) {
+          var form = input.closest('form');
+          if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        }
+      });
+    }
+
+    function setCollection(nextCollection, options) {
+      options = options || {};
+      var next = nextCollection === 'cve' ? 'cve' : 'curated';
+      activeCollection = next;
+      collectionTabs.forEach(function (tab) {
+        var active = tab.getAttribute('data-library-tab') === next;
+        tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        tab.tabIndex = active ? 0 : -1;
+      });
+      collectionPanels.forEach(function (panel) {
+        panel.hidden = panel.getAttribute('data-library-panel') !== next;
+      });
+      root.dataset.libraryCollection = next;
+      if (!options.fromHistory) updateCollectionUrl(next, options.push !== false, options);
+      if (next === 'cve') mountCveCatalog(options.query, options.shortcut);
+      if (options.focus) {
+        var activeTab = collectionTabs.find(function (tab) {
+          return tab.getAttribute('data-library-tab') === next;
+        });
+        if (activeTab) activeTab.focus();
+      }
+    }
+
+    function renderActiveFilters() {
+      if (!activeFilters) return;
+      activeFilters.textContent = '';
+      var items = [];
+      var query = searchInput ? searchInput.value.trim() : '';
+      if (query) items.push({ key: 'query', label: 'Search: ' + query });
+      if (activeCategory !== 'all') {
+        items.push({ key: 'category', label: filterLabels[activeCategory] || prettyToken(activeCategory) });
+      }
+      if (severityFilter && severityFilter.value !== 'all') {
+        items.push({ key: 'severity', label: 'Severity: ' + prettyToken(severityFilter.value) });
+      }
+      if (facetFilter && facetFilter.value !== 'all') {
+        items.push({ key: 'facet', label: 'Outcome: ' + prettyToken(facetFilter.value) });
+      }
+      if (qualityFilter && qualityFilter.value !== '0') {
+        items.push({ key: 'quality', label: 'Review score: ' + qualityFilter.options[qualityFilter.selectedIndex].text });
+      }
+      items.forEach(function (item) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.activeFilter = item.key;
+        button.textContent = item.label + ' ×';
+        button.setAttribute('aria-label', 'Remove ' + item.label + ' filter');
+        activeFilters.appendChild(button);
+      });
+      activeFilters.hidden = items.length === 0;
+      if (filterCount) filterCount.textContent = String(items.length);
+      root.dataset.filterCount = String(items.length);
+    }
+
+    function resetCuratedFilters(focusSearch) {
+      if (searchInput) searchInput.value = '';
+      if (severityFilter) severityFilter.value = 'all';
+      if (facetFilter) facetFilter.value = 'all';
+      if (qualityFilter) qualityFilter.value = '0';
+      if (sortSelect) sortSelect.value = 'newest';
+      activeCategory = 'all';
+      filterButtons.forEach(function (button) {
+        var active = button.getAttribute('data-recipe-filter') === 'all';
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      applyFilters();
+      closeTypeahead();
+      if (focusSearch && searchInput) searchInput.focus();
+    }
+
+    function setFilterDrawer(open) {
+      if (!filterDrawer || !filterToggle) return;
+      var mobile = win.matchMedia && win.matchMedia('(max-width: 900px)').matches;
+      var expanded = !!open && mobile;
+      filterDrawer.classList.toggle('is-open', expanded);
+      filterDrawer.setAttribute('aria-hidden', mobile && !expanded ? 'true' : 'false');
+      filterDrawer.inert = mobile && !expanded;
+      filterToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      document.documentElement.classList.toggle('recipe-filter-open', expanded);
+      if (expanded) {
+        filterReturnFocus = document.activeElement;
+        var first = filterDrawer.querySelector('button, select');
+        if (first) first.focus();
+      } else if (filterReturnFocus && typeof filterReturnFocus.focus === 'function') {
+        filterReturnFocus.focus();
+        filterReturnFocus = null;
+      }
+    }
+
+    function restoreFromUrl() {
+      var params = relevantParams();
+      var categories = filterButtons.map(function (button) {
+        return button.getAttribute('data-recipe-filter');
+      });
+      restoringHistory = true;
+      if (searchInput) searchInput.value = String(params.get('q') || '').slice(0, 160);
+      activeCategory = allowed(params.get('category') || 'all', categories, 'all');
+      if (severityFilter) {
+        severityFilter.value = allowed(params.get('severity') || 'all', ['all', 'critical', 'high', 'medium', 'low', 'unspecified'], 'all');
+      }
+      if (facetFilter) {
+        facetFilter.value = allowed(params.get('facet') || 'all', ['all', 'remediation', 'risk', 'audit', 'compliance', 'code-hygiene'], 'all');
+      }
+      if (qualityFilter) qualityFilter.value = allowed(params.get('quality') || '0', ['0', '50', '70', '85'], '0');
+      if (sortSelect) sortSelect.value = allowed(params.get('sort') || 'newest', ['newest', 'title', 'severity', 'quality'], 'newest');
+      filterButtons.forEach(function (button) {
+        var active = button.getAttribute('data-recipe-filter') === activeCategory;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+      var requestedCollection = params.get('view') === 'cve' ? 'cve' : 'curated';
+      setCollection(requestedCollection, {
+        fromHistory: true,
+        push: false,
+        query: requestedCollection === 'cve' ? params.get('q') || '' : ''
+      });
+      restoringHistory = false;
+      if (requestedCollection === 'curated') applyFilters();
     }
 
     // Rich agent feed (/api/recipes.json), used for downloads only.
@@ -351,10 +585,11 @@
       var note = '';
       if (!catalogueComplete) {
         note = catalogueFailed
-          ? ' Partial list — reload for the full catalogue.'
-          : ' Full catalogue still loading.';
+          ? ' Partial curated list — reload to retry the curated feed.'
+          : ' Curated collection still loading.';
       }
-      summary.textContent = 'Showing ' + pluralize(count, 'recipe', 'recipes') + suffix + '.' + note;
+      summary.textContent = 'Showing ' + Math.min(renderedCount, count) + ' of ' +
+        pluralize(count, 'curated recipe', 'curated recipes') + suffix + '.' + note;
     }
 
     function updateLoadMore() {
@@ -388,6 +623,10 @@
       for (var i = 0; i < slice.length; i++) html += buildCardHtml(slice[i]);
       grid.insertAdjacentHTML('beforeend', html);
       updateLoadMore();
+      renderSummary(visible.length);
+      var firstAdded = grid.children[from];
+      var firstAction = firstAdded && firstAdded.querySelector('a, button');
+      if (firstAction) firstAction.focus();
     }
 
     function sortVisible(items) {
@@ -437,8 +676,10 @@
 
       if (clearSearchButton) clearSearchButton.hidden = queryTokens.length === 0;
       renderSummary(visible.length);
+      renderActiveFilters();
       root.dataset.filtered = queryTokens.length || activeCategory !== 'all' || severity !== 'all' || facet !== 'all' || minimumQuality > 0 ? 'true' : 'false';
       if (document.activeElement === searchInput) renderTypeahead();
+      if (activeCollection === 'curated') replaceUrlForCurated();
     }
 
     function setActiveCategory(nextCategory) {
@@ -620,6 +861,7 @@
         button.className = 'recipe-browser__typeahead-item recipe-browser__typeahead-item--' + suggestion.kind;
         button.setAttribute('role', 'option');
         button.setAttribute('aria-selected', 'false');
+        button.tabIndex = -1;
         button.dataset.typeaheadIndex = String(index);
 
         var label = document.createElement('span');
@@ -690,8 +932,8 @@
         endpoint: absoluteUrl(root.getAttribute('data-recipe-api') || '/api/recipes.json'),
         recipes: allCards
       };
-      downloadJson('security-recipes-agent-library.json', payload);
-      setStatus('Downloaded the recipe library JSON.', 'ok');
+      downloadJson('security-recipes-curated-library.json', payload);
+      setStatus('Downloaded the curated recipe feed.', 'ok');
     }
 
     async function copyEndpoint() {
@@ -732,10 +974,17 @@
         searchInput.setAttribute('aria-controls', typeaheadList.id);
         searchInput.setAttribute('aria-haspopup', 'listbox');
       }
-      searchInput.addEventListener('input', function () { applyFilters(); renderTypeahead(); });
-      searchInput.addEventListener('search', function () { applyFilters(); renderTypeahead(); });
+      searchInput.addEventListener('input', applyFilters);
+      searchInput.addEventListener('search', applyFilters);
       searchInput.addEventListener('focus', renderTypeahead);
       searchInput.addEventListener('keydown', function (event) {
+        var exactCve = /^CVE-\d{4}-\d{4,}$/i.test(searchInput.value.trim());
+        if (event.key === 'Enter' && exactCve && activeTypeaheadIndex < 0) {
+          event.preventDefault();
+          closeTypeahead();
+          setCollection('cve', { push: true, query: searchInput.value.trim().toUpperCase() });
+          return;
+        }
         if (!typeahead || typeahead.hidden) return;
         if (event.key === 'ArrowDown') {
           event.preventDefault();
@@ -779,6 +1028,74 @@
       button.addEventListener('click', function () { setActiveCategory(filter); });
     });
 
+    if (resetFiltersButton) {
+      resetFiltersButton.addEventListener('click', function () { resetCuratedFilters(true); });
+    }
+
+    if (activeFilters) {
+      activeFilters.addEventListener('click', function (event) {
+        var button = event.target.closest ? event.target.closest('[data-active-filter]') : null;
+        if (!button || !activeFilters.contains(button)) return;
+        var key = button.getAttribute('data-active-filter');
+        if (key === 'query' && searchInput) searchInput.value = '';
+        if (key === 'category') activeCategory = 'all';
+        if (key === 'severity' && severityFilter) severityFilter.value = 'all';
+        if (key === 'facet' && facetFilter) facetFilter.value = 'all';
+        if (key === 'quality' && qualityFilter) qualityFilter.value = '0';
+        filterButtons.forEach(function (filterButton) {
+          var active = filterButton.getAttribute('data-recipe-filter') === activeCategory;
+          filterButton.classList.toggle('is-active', active);
+          filterButton.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        applyFilters();
+        if (searchInput) searchInput.focus();
+      });
+    }
+
+    collectionTabs.forEach(function (tab, index) {
+      tab.addEventListener('click', function () {
+        setCollection(tab.getAttribute('data-library-tab'), { push: true });
+      });
+      tab.addEventListener('keydown', function (event) {
+        var nextIndex = index;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % collectionTabs.length;
+        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + collectionTabs.length) % collectionTabs.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = collectionTabs.length - 1;
+        else return;
+        event.preventDefault();
+        var nextTab = collectionTabs[nextIndex];
+        setCollection(nextTab.getAttribute('data-library-tab'), { push: true, focus: true });
+      });
+    });
+
+    if (filterToggle) filterToggle.addEventListener('click', function () { setFilterDrawer(true); });
+    if (filterClose) filterClose.addEventListener('click', function () { setFilterDrawer(false); });
+    win.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && filterDrawer && filterDrawer.classList.contains('is-open')) {
+        setFilterDrawer(false);
+      }
+    });
+    if (win.matchMedia) {
+      var mobileFilters = win.matchMedia('(max-width: 900px)');
+      var syncFilterDrawer = function () { setFilterDrawer(false); };
+      if (mobileFilters.addEventListener) mobileFilters.addEventListener('change', syncFilterDrawer);
+      else if (mobileFilters.addListener) mobileFilters.addListener(syncFilterDrawer);
+      syncFilterDrawer();
+    }
+
+    if (cveSearchButton) {
+      cveSearchButton.addEventListener('click', function () {
+        setCollection('cve', { push: true, query: searchInput ? searchInput.value.trim() : '' });
+      });
+    }
+
+    root.querySelectorAll('[data-cve-shortcut]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        setCollection('cve', { push: true, shortcut: button.getAttribute('data-cve-shortcut') });
+      });
+    });
+
     if (loadMoreButton) {
       loadMoreButton.addEventListener('click', function () { appendNextPage(); });
     }
@@ -798,7 +1115,7 @@
     var downloadAll = root.querySelector('[data-recipe-download-all]');
     if (downloadAll) {
       downloadAll.addEventListener('click', function () {
-        downloadAllRecipes().catch(function () { setStatus('Recipe library download failed.', 'error'); });
+        downloadAllRecipes().catch(function () { setStatus('Curated recipe download failed.', 'error'); });
       });
     }
 
@@ -808,6 +1125,8 @@
     var copyPromptButton = root.querySelector('[data-recipe-copy-agent-prompt]');
     if (copyPromptButton) copyPromptButton.addEventListener('click', copyAgentPrompt);
 
+    restoreFromUrl();
+    win.addEventListener('popstate', restoreFromUrl);
     root.dataset.recipeBrowserReady = 'true';
 
     // Fetch the catalogue feed, then take over rendering. Until it arrives the
@@ -817,7 +1136,7 @@
     // seed slice.
     function adoptPartialCatalogue() {
       catalogueFailed = true;
-      setStatus('Showing a partial recipe list. Reload to fetch the full catalogue.', 'info');
+      setStatus('Showing a partial curated collection. Reload to fetch the complete curated feed.', 'info');
       if (root.dataset.filtered === 'true') applyFilters();
     }
 
