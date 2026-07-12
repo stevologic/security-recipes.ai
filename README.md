@@ -17,6 +17,14 @@ It is not a scanner, ticketing system, SOAR platform, deployment tool, or custom
 security toolkit. Existing security tools should produce the findings; this
 site helps agents use the right remediation context and stop at the right time.
 
+## Screenshots
+
+![Home page: security recipes for AI-assisted fixes, showing the findings-to-reviewed-PR context flow](docs/screenshots/home.png)
+
+| Recipes catalogue | Remediation playbooks | Agent setup |
+| --- | --- | --- |
+| ![Recipes catalogue with search, filters, and agent JSON/MCP endpoints](docs/screenshots/recipes-catalogue.png) | ![Remediation playbooks hub describing bounded, single-finding recipes](docs/screenshots/security-remediation.png) | ![Agent setup guide covering Copilot, Claude, Cursor, Codex, and Devin](docs/screenshots/agent-setup.png) |
+
 ## What this project is for
 
 AI coding agents can help close security findings when their work is bounded:
@@ -58,6 +66,7 @@ security-recipes.ai helps teams answer:
 | `lib/` | Build modules: shortcode ports, JSON feed builders, SEO head. |
 | `assets/` | Site CSS and JavaScript for the recipe browser, navigation, and helper tools. |
 | `static/` | Images, logos, schemas, and static assets. |
+| `docs/` | Repository documentation assets, including the README screenshots. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
 | `mcp-server.toml.example` | MCP server configuration template. |
 | `Dockerfile` | Site image. |
