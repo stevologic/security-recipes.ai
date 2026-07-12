@@ -6,7 +6,6 @@ const path = require('node:path');
 const test = require('node:test');
 
 const ROOT = path.resolve(__dirname, '..');
-const CURATED_FEED = path.join(ROOT, 'public', 'recipes-browser.json');
 const RUNTIME_SUMMARY = path.join(
   ROOT,
   'static',
@@ -23,6 +22,13 @@ function formatCount(value) {
   return Number(value).toLocaleString('en-US');
 }
 
+function curatedFeed() {
+  // Exercise the same generator Eleventy uses without depending on a prior
+  // build having populated public/recipes-browser.json.
+  const { recipesBrowser } = require('../lib/feeds.js');
+  return JSON.parse(recipesBrowser());
+}
+
 function renderedLibrary() {
   // Load after the generated inputs so this test exercises the same data path
   // used by the shortcode rather than duplicating its catalog counters.
@@ -30,7 +36,7 @@ function renderedLibrary() {
 }
 
 test('recipe library federates curated and CVE counts without double-counting overrides', () => {
-  const curated = readJson(CURATED_FEED);
+  const curated = curatedFeed();
   const runtime = readJson(RUNTIME_SUMMARY);
   const catalogCount = Number(runtime.totals.catalog_records);
   const overrideCount = Number(runtime.totals.stable_markdown_overrides);
@@ -48,7 +54,7 @@ test('recipe library federates curated and CVE counts without double-counting ov
 });
 
 test('recipe library server render is bounded and remains useful without JavaScript', () => {
-  const curated = readJson(CURATED_FEED);
+  const curated = curatedFeed();
   const html = renderedLibrary();
   const cards = html.match(/\bdata-recipe-card(?:\s|>)/g) || [];
   const expectedCards = Math.min(18, Number(curated.count));
