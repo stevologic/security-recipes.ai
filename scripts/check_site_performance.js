@@ -114,6 +114,9 @@ budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * 
 budget("CVE manifest", size("api/cve-catalog/manifest.json"), 256 * KiB);
 budget("CVE remediation archetypes", size("api/cve-catalog/archetypes.json"), 1 * MiB);
 budget("CVE hub HTML", size("prompt-library/cve/index.html"), 512 * KiB);
+budget("recipe library HTML", size("recipes/index.html"), 768 * KiB);
+budget("recipe library JavaScript", size("js/recipe-browser.js"), 160 * KiB);
+budget("recipe library styles", size("css/recipe-library.css"), 160 * KiB);
 budget("generic docs search index", size("recipes-index.json"), 2 * MiB);
 budget("generic recipe browser feed", size("recipes-browser.json"), 2 * MiB);
 budget("generic rich agent feed", size("api/recipes.json"), 8 * MiB);
@@ -151,7 +154,7 @@ for (const [file, expectedSize] of [
   checkOpaquePng(file, expectedSize);
 }
 
-for (const file of ["index.html", "prompt-library/cve/index.html"]) {
+for (const file of ["index.html", "recipes/index.html", "prompt-library/cve/index.html"]) {
   const htmlPath = path.join(ROOT, file);
   if (!fs.existsSync(htmlPath)) {
     fail(`missing installable page output: ${file}`);
@@ -210,6 +213,29 @@ const docs = readJson("recipes-index.json") || [];
 const browser = readJson("recipes-browser.json")?.recipes || [];
 const rich = readJson("api/recipes.json")?.recipes || [];
 const mcp = readJson("api/recipes-index.json")?.recipes || [];
+const runtimeSummary = readJson("api/cve-catalog/runtime-summary.json") || {};
+if (browser.length > 5000) {
+  fail(`recipe browser feed has ${browser.length.toLocaleString()} records; keep the CVE catalog on its worker index`);
+}
+
+const recipeLibraryPath = path.join(ROOT, "recipes", "index.html");
+if (fs.existsSync(recipeLibraryPath)) {
+  const recipeLibrary = fs.readFileSync(recipeLibraryPath, "utf8");
+  const ssrCards = (recipeLibrary.match(/\bdata-recipe-card(?:\s|>)/g) || []).length;
+  if (ssrCards > 18) fail(`recipe library server-renders ${ssrCards} cards; budget is 18`);
+  if (!recipeLibrary.includes('data-library-tab="curated"') || !recipeLibrary.includes('data-library-tab="cve"')) {
+    fail("recipe library is missing its curated and CVE collection tabs");
+  }
+  if (!recipeLibrary.includes("data-cve-catalog-deferred")) {
+    fail("recipe library eagerly mounts the CVE catalog");
+  }
+  const catalogRecords = Number(runtimeSummary?.totals?.catalog_records || 0);
+  const overlap = Number(runtimeSummary?.totals?.stable_markdown_overrides || 0);
+  const uniqueTotal = browser.length + catalogRecords - overlap;
+  if (!recipeLibrary.includes(uniqueTotal.toLocaleString("en-US"))) {
+    fail(`recipe library does not display its ${uniqueTotal.toLocaleString("en-US")} unique-entry total`);
+  }
+}
 const surfaces = [
   ["docs search", new Set(docs.map((item) => item.path))],
   ["recipe browser", new Set(browser.map((item) => item.url))],
