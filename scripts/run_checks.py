@@ -53,6 +53,10 @@ def main() -> int:
         dry_run=args.dry_run,
     )
     run_command([python, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py"], dry_run=args.dry_run)
+    run_command([python, "scripts/sync_compliance_recipes.py", "--check"], dry_run=args.dry_run)
+    run_command([python, "scripts/validate_compliance_recipes.py"], dry_run=args.dry_run)
+    run_command([python, "scripts/sync_code_hygiene_recipes.py", "--check"], dry_run=args.dry_run)
+    run_command([python, "scripts/validate_code_hygiene_recipes.py"], dry_run=args.dry_run)
 
     node = node_binary()
     for script in sorted((REPO_ROOT / "assets" / "js").glob("*.js")):

@@ -49,6 +49,19 @@ def write_synthetic_catalog(catalog_dir: Path) -> None:
         "has_markdown": False,
         "shard": shard,
     }
+    medium_compact = {
+        "cve": "CVE-2021-44229",
+        "title": "Apache Log4j moderate information exposure",
+        "severity": "medium",
+        "score": 6.4,
+        "published": "2021-12-11",
+        "ecosystem": "java/maven",
+        "kev": False,
+        "archetype": "generic",
+        "archetypes": ["generic"],
+        "has_markdown": False,
+        "shard": shard,
+    }
     full = {
         **compact,
         "summary": "Log4Shell permits remote code execution through unsafe lookup and deserialization behavior.",
@@ -61,6 +74,19 @@ def write_synthetic_catalog(catalog_dir: Path) -> None:
         "markdown": [],
         "recipe_kind": "composed",
         "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-44228",
+    }
+    medium_full = {
+        **medium_compact,
+        "summary": "A synthetic medium-severity information exposure used to exercise catalog filtering.",
+        "metrics": [{"version": "3.1", "score": 6.4, "severity": "medium"}],
+        "products": [{"vendor": "apache", "product": "log4j"}],
+        "product_match_count": 1,
+        "products_stored": 1,
+        "products_truncated": False,
+        "references": [],
+        "markdown": [],
+        "recipe_kind": "composed",
+        "nvd_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-44229",
     }
     archetypes = {
         "schema_version": 1,
@@ -75,34 +101,46 @@ def write_synthetic_catalog(catalog_dir: Path) -> None:
     # not read it: exact lookups use shards and text search uses the much
     # smaller browser index.
     (catalog_dir / "index.json").write_text(
-        json.dumps({"schema_version": 1, "total": 1, "records": [compact]}),
+        json.dumps({"schema_version": 2, "total": 2, "partition_key": "published_year", "partitions": []}),
         encoding="utf-8",
     )
     archetypes_payload = json.dumps(archetypes).encode("utf-8")
     (catalog_dir / "archetypes.json").write_bytes(archetypes_payload)
     shard_path = catalog_dir / shard
     shard_path.parent.mkdir(parents=True)
-    shard_uncompressed = (json.dumps(full) + "\n").encode("utf-8")
+    shard_uncompressed = (json.dumps(full) + "\n" + json.dumps(medium_full) + "\n").encode("utf-8")
     shard_compressed = gzip.compress(shard_uncompressed, mtime=0)
     shard_path.write_bytes(shard_compressed)
     browser_uncompressed = json.dumps(
         {
-            "schema_version": 1,
+            "schema_version": 2,
+            "severity_codes": {"0": "medium", "1": "high", "2": "critical"},
             "fields": list(CVERecipeCatalog.BROWSER_INDEX_FIELDS),
             "ecosystems": ["java/maven"],
-            "archetypes": ["command_code_injection", "unsafe_deserialization"],
+            "archetypes": ["command_code_injection", "unsafe_deserialization", "generic"],
             "records": [
                 [
                     "CVE-2021-44228",
                     "Apache Log4j remote code execution",
-                    1,
+                    2,
                     10.0,
                     "2021-12-10",
                     0,
                     True,
                     [0, 1],
                     False,
-                ]
+                ],
+                [
+                    "CVE-2021-44229",
+                    "Apache Log4j moderate information exposure",
+                    0,
+                    6.4,
+                    "2021-12-11",
+                    0,
+                    False,
+                    [2],
+                    False,
+                ],
             ],
         },
         separators=(",", ":"),
@@ -110,9 +148,9 @@ def write_synthetic_catalog(catalog_dir: Path) -> None:
     browser_compressed = gzip.compress(browser_uncompressed, mtime=0)
     (catalog_dir / "browser-index.json.gz").write_bytes(browser_compressed)
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "scope": {},
-        "totals": {"catalog_records": 1},
+        "totals": {"catalog_records": 2},
         "archetypes_asset": {
             "path": "archetypes.json",
             "bytes": len(archetypes_payload),
@@ -120,7 +158,7 @@ def write_synthetic_catalog(catalog_dir: Path) -> None:
         },
         "browser_index": {
             "path": "browser-index.json.gz",
-            "records": 1,
+            "records": 2,
             "bytes": len(browser_compressed),
             "uncompressed_bytes": len(browser_uncompressed),
             "sha256": hashlib.sha256(browser_compressed).hexdigest(),
@@ -128,7 +166,7 @@ def write_synthetic_catalog(catalog_dir: Path) -> None:
         "shard_manifest": [
             {
                 "path": shard,
-                "records": 1,
+                "records": 2,
                 "bytes": len(shard_compressed),
                 "uncompressed_bytes": len(shard_uncompressed),
                 "sha256": hashlib.sha256(shard_compressed).hexdigest(),
@@ -189,6 +227,9 @@ def catalog_result(markdown: list[dict[str, object]], *, recipe_kind: str) -> di
 class CVERecipeCatalogTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
+        manifest = json.loads((CATALOG_PATH / "manifest.json").read_text(encoding="utf-8"))
+        if manifest.get("schema_version") != 2:
+            raise unittest.SkipTest("generated schema-v2 catalog fixture is not present")
         cls.catalog = CVERecipeCatalog(str(CATALOG_PATH))
 
     def test_catalog_reports_complete_declared_coverage(self) -> None:
@@ -196,7 +237,9 @@ class CVERecipeCatalogTests(unittest.TestCase):
 
         self.assertTrue(info["available"])
         totals = info["manifest"]["totals"]
-        self.assertGreaterEqual(totals["catalog_records"], 150_000)
+        self.assertGreaterEqual(totals["catalog_records"], 260_000)
+        self.assertGreaterEqual(info["manifest"]["by_severity"]["medium"], 110_000)
+        self.assertEqual(info["manifest"]["browser_index"]["records"], totals["catalog_records"])
         self.assertEqual(totals["catalog_records"], totals["composed_recipe_coverage"])
         self.assertEqual(totals["coverage_percent"], 100.0)
         self.assertGreaterEqual(totals["in_scope_kev"], 1_200)
@@ -219,6 +262,24 @@ class CVERecipeCatalogTests(unittest.TestCase):
         self.assertTrue(recipe["composed_recipe"]["remediation_steps"])
         self.assertTrue(recipe["composed_recipe"]["verification_steps"])
         self.assertTrue(recipe["composed_recipe"]["stop_conditions"])
+
+    def test_exact_search_and_get_cover_every_supported_severity(self) -> None:
+        samples = {
+            "CVE-1999-0199": "critical",
+            "CVE-2002-20001": "high",
+            "CVE-2002-20002": "medium",
+        }
+
+        for cve, severity in samples.items():
+            with self.subTest(cve=cve, severity=severity):
+                search = self.catalog.search(cve, severity=severity, limit=1)
+                recipe = self.catalog.get_recipe(cve)
+
+                self.assertEqual([result["cve"] for result in search], [cve])
+                self.assertEqual(search[0]["severity"], severity)
+                self.assertTrue(recipe["found"])
+                self.assertEqual(recipe["source_record"]["severity"], severity)
+                self.assertEqual(recipe["source_record"]["cve"], cve)
 
     def test_exact_lookup_and_query_limits(self) -> None:
         exact = self.catalog.search("cve-2024-3400", limit=50)
@@ -288,6 +349,42 @@ class CVERecipeCatalogTests(unittest.TestCase):
 
 
 class CVERecipeCompositionTests(unittest.TestCase):
+    def test_medium_exact_lookup_text_search_and_severity_filter_round_trip(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            catalog_dir = Path(tmpdir)
+            write_synthetic_catalog(catalog_dir)
+            catalog = CVERecipeCatalog(str(catalog_dir))
+
+            exact = catalog.search("CVE-2021-44229", severity="medium")
+            text = catalog.search("moderate information", severity="medium")
+            excluded = catalog.search("moderate information", severity="high")
+            recipe = catalog.get_recipe("CVE-2021-44229")
+
+        self.assertEqual([record["cve"] for record in exact], ["CVE-2021-44229"])
+        self.assertEqual(exact[0]["severity"], "medium")
+        self.assertEqual([record["cve"] for record in text], ["CVE-2021-44229"])
+        self.assertEqual(excluded, [])
+        self.assertTrue(recipe["found"])
+        self.assertEqual(recipe["source_record"]["severity"], "medium")
+        source = recipe["source_record"]
+        self.assertTrue(source["summary"])
+        self.assertTrue(source["metrics"])
+        self.assertTrue(source["products"])
+        self.assertTrue(source["nvd_url"])
+        composed = recipe["composed_recipe"]
+        for field in (
+            "exposure_checks",
+            "remediation_steps",
+            "containment_steps",
+            "verification_steps",
+            "stop_conditions",
+            "watch_for",
+        ):
+            self.assertTrue(composed[field], field)
+        self.assertTrue(composed["required_output"])
+        self.assertTrue(recipe["safety_boundary"])
+        self.assertEqual(recipe["data_limits"], {})
+
     def test_log4shell_composes_all_archetypes_and_deduplicates_steps(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             catalog_dir = Path(tmpdir)
@@ -407,6 +504,34 @@ class CVERecipeCompositionTests(unittest.TestCase):
 
 
 class CVERecipeToolTests(unittest.TestCase):
+    def test_mcp_search_forwards_medium_severity_filter(self) -> None:
+        class CapturingCatalog(StubCatalog):
+            def __init__(self) -> None:
+                super().__init__(catalog_result([], recipe_kind="composed"))
+                self.kwargs: dict[str, object] = {}
+
+            def search(self, query: str, **kwargs: object) -> list[dict[str, object]]:
+                self.thread_ids.append(threading.get_ident())
+                self.kwargs = kwargs
+                return [{"cve": query.upper(), "severity": "medium"}]
+
+        stub_catalog = CapturingCatalog()
+        with patch.object(mcp_server, "cve_catalog", stub_catalog):
+            result = asyncio.run(
+                mcp_server.recipes_cve_search(
+                    "moderate information",
+                    severity="medium",
+                    published_year=2021,
+                )
+            )
+
+        self.assertEqual(result["count"], 1)
+        self.assertEqual(result["results"][0]["severity"], "medium")
+        self.assertEqual(stub_catalog.kwargs["severity"], "medium")
+        self.assertEqual(stub_catalog.kwargs["published_year"], 2021)
+        self.assertEqual(result["details"]["tool"], "recipes_cve_get")
+        self.assertEqual(result["details"]["argument"], "cve")
+
     def test_catalog_wrappers_offload_synchronous_work(self) -> None:
         main_thread = threading.get_ident()
         stub_catalog = StubCatalog(catalog_result([], recipe_kind="composed"))

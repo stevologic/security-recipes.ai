@@ -1,0 +1,16 @@
+---
+title: "Java & Kotlin Code Hygiene"
+linkTitle: "Java & Kotlin"
+description: "Compiler, type-contract, resource, concurrency, and coroutine hygiene for JVM repositories."
+weight: 40
+sidebar:
+  open: false
+---
+
+Compiler, type-contract, resource, concurrency, and coroutine hygiene for JVM repositories.
+
+Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+
+## Recipes
+
+{{< prompt-toc >}}

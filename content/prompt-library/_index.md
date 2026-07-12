@@ -22,7 +22,7 @@ cascade:
 ---
 
 Browse two purpose-built collections: reviewed workflows for common security
-tasks and the complete high/critical CVE catalog. Search, filter, share a
+tasks and the complete medium/high/critical CVE catalog. Search, filter, share a
 filtered URL, or retrieve the same material through JSON and MCP.
 
 {{< recipe-browser >}}

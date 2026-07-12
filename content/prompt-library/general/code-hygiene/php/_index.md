@@ -1,0 +1,16 @@
+---
+title: "PHP Code Hygiene"
+linkTitle: "PHP"
+description: "Type, static-analysis, exception, stream, and resource hygiene."
+weight: 100
+sidebar:
+  open: false
+---
+
+Type, static-analysis, exception, stream, and resource hygiene.
+
+Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+
+## Recipes
+
+{{< prompt-toc >}}

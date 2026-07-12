@@ -720,6 +720,7 @@ class RecipeIndex:
         self.config = config
         self._docs: list[dict[str, Any]] = []
         self._doc_by_slug: dict[str, dict[str, Any]] = {}
+        self._ambiguous_slugs: set[str] = set()
         self._doc_by_path: dict[str, dict[str, Any]] = {}
         self._fetched_at: float = 0.0
         self._etag: str | None = None
@@ -849,6 +850,22 @@ class RecipeIndex:
                     indexed.setdefault(key, doc)
         return indexed
 
+    @classmethod
+    def _index_unique_keys(
+        cls, docs: list[dict[str, Any]], fields: list[str]
+    ) -> tuple[dict[str, dict[str, Any]], set[str]]:
+        indexed: dict[str, dict[str, Any]] = {}
+        ambiguous: set[str] = set()
+        for doc in docs:
+            for field_name in fields:
+                for key in cls._candidate_keys(doc.get(field_name)):
+                    if key in indexed and indexed[key] is not doc:
+                        ambiguous.add(key)
+                        indexed.pop(key, None)
+                    elif key not in ambiguous:
+                        indexed[key] = doc
+        return indexed, ambiguous
+
     async def refresh(self, force: bool = False) -> dict[str, Any]:
         async with self._lock:
             if not force and self._docs and (time.time() - self._fetched_at) < self.config.cache_ttl_seconds:
@@ -874,7 +891,9 @@ class RecipeIndex:
 
             payload = self._normalize_payload(payload)
             self._docs = payload
-            self._doc_by_slug = self._index_by_keys(payload, ["slug"])
+            self._doc_by_slug, self._ambiguous_slugs = self._index_unique_keys(
+                payload, ["recipe_id", "slug"]
+            )
             self._doc_by_path = self._index_by_keys(payload, ["path", "source_file", "url"])
             self._fetched_at = time.time()
             self._etag = etag
@@ -935,6 +954,10 @@ class RecipeIndex:
         await self.ensure_fresh()
         key = slug_or_path.strip()
         for candidate in self._candidate_keys(key):
+            if candidate in self._ambiguous_slugs:
+                raise ValueError(
+                    f"ambiguous recipe key {candidate!r}; use recipe_id, canonical path, URL, or source_file"
+                )
             doc = self._doc_by_slug.get(candidate) or self._doc_by_path.get(candidate)
             if doc:
                 return doc
@@ -1052,11 +1075,16 @@ class RecipeIndex:
                     " ".join([str(x) for x in (d.get("tags") or [])]),
                     " ".join([str(x) for x in (d.get("aliases") or [])]),
                     str(d.get("slug", "")),
+                    str(d.get("recipe_id", "")),
                     str(d.get("path", "")),
                     str(d.get("source_file", "")),
                     str(d.get("agent", "")),
                     str(d.get("severity", "")),
                     str(d.get("ecosystem", "")),
+                    str(d.get("framework", "")),
+                    str(d.get("framework_version", "")),
+                    str(d.get("jurisdiction", "")),
+                    " ".join([str(x) for x in (d.get("industry") or [])]),
                     " ".join([str(x) for x in (d.get("facets") or [])]),
                     str((d.get("quality") or {}).get("tier", "")),
                     str(d.get("cve", "")),
@@ -1100,6 +1128,7 @@ class RecipeIndex:
     def _shape_preview(doc: dict[str, Any], score: float | None = None) -> dict[str, Any]:
         out = {
             "slug": doc.get("slug"),
+            "recipe_id": doc.get("recipe_id"),
             "title": doc.get("title"),
             "path": doc.get("path"),
             "url": doc.get("url"),
@@ -1109,6 +1138,10 @@ class RecipeIndex:
             "severity": doc.get("severity"),
             "maturity": doc.get("maturity"),
             "ecosystem": doc.get("ecosystem"),
+            "framework": doc.get("framework"),
+            "framework_version": doc.get("framework_version"),
+            "jurisdiction": doc.get("jurisdiction"),
+            "industry": doc.get("industry") or [],
             "cve": doc.get("cve"),
             "ghsa": doc.get("ghsa"),
             "zero_day": doc.get("zero_day"),
@@ -1180,6 +1213,7 @@ class CVERecipeCatalog:
         "archetype_indexes",
         "has_markdown",
     )
+    SEVERITY_BY_CODE = {0: "medium", 1: "high", 2: "critical"}
     MAX_QUERY_LENGTH = 120
     MAX_QUERY_TERMS = 8
     MAX_INDEX_TOKENS_PER_RECORD = 64
@@ -1187,8 +1221,8 @@ class CVERecipeCatalog:
     MAX_MANIFEST_BYTES = 4 * 1024 * 1024
     MAX_ARCHETYPES_BYTES = 4 * 1024 * 1024
     MAX_SEARCH_INDEX_COMPRESSED_BYTES = 16 * 1024 * 1024
-    MAX_SEARCH_INDEX_UNCOMPRESSED_BYTES = 32 * 1024 * 1024
-    MAX_SEARCH_RECORDS = 300_000
+    MAX_SEARCH_INDEX_UNCOMPRESSED_BYTES = 64 * 1024 * 1024
+    MAX_SEARCH_RECORDS = 400_000
     MAX_SHARD_COMPRESSED_BYTES = 2 * 1024 * 1024
     MAX_SHARD_UNCOMPRESSED_BYTES = 8 * 1024 * 1024
     MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
@@ -1324,7 +1358,7 @@ class CVERecipeCatalog:
                 raise ValueError("CVE catalog manifest exceeds the runtime size limit")
             manifest_payload = manifest_path.read_bytes()
             manifest = json.loads(manifest_payload)
-            if manifest.get("schema_version") != 1:
+            if manifest.get("schema_version") != 2:
                 raise ValueError("unsupported CVE catalog manifest schema")
 
             archetypes_entry = manifest.get("archetypes_asset")
@@ -1440,8 +1474,9 @@ class CVERecipeCatalog:
                 del uncompressed, payload
                 if (
                     not isinstance(browser, dict)
-                    or browser.get("schema_version") != 1
+                    or browser.get("schema_version") != 2
                     or tuple(browser.get("fields") or ()) != self.BROWSER_INDEX_FIELDS
+                    or browser.get("severity_codes") != {"0": "medium", "1": "high", "2": "critical"}
                     or not isinstance(browser.get("records"), list)
                     or not isinstance(browser.get("ecosystems"), list)
                     or not isinstance(browser.get("archetypes"), list)
@@ -1472,7 +1507,7 @@ class CVERecipeCatalog:
                         or not self.CVE_RE.fullmatch(row[0])
                         or not isinstance(row[1], str)
                         or type(row[2]) is not int
-                        or row[2] not in {0, 1}
+                        or row[2] not in self.SEVERITY_BY_CODE
                         or type(ecosystem_index) is not int
                         or not 0 <= ecosystem_index < len(ecosystems)
                         or not isinstance(archetype_indexes, list)
@@ -1570,7 +1605,7 @@ class CVERecipeCatalog:
         return {
             "cve": row[0],
             "title": row[1],
-            "severity": "critical" if row[2] else "high",
+            "severity": CVERecipeCatalog.SEVERITY_BY_CODE[row[2]],
             "score": row[3],
             "published": row[4],
             "ecosystem": ecosystems[row[5]],
@@ -1611,9 +1646,11 @@ class CVERecipeCatalog:
             "catalog_path": str(self.path),
             "manifest": manifest,
             "agent_contract": (
-                "Use an exact CVE lookup before remediation. Treat NVD/CISA facts as evidence, resolve a supported "
-                "vendor fix, follow the stable Markdown override when present or otherwise all composed archetypes, "
-                "and stop for TRIAGE.md when exposure or fix ownership cannot be proven."
+                "Every manifest catalog record is searchable by exact CVE ID and through the lazy text index. "
+                "Pass a search result's cve value to recipes_cve_get before remediation to retrieve its NVD/CISA "
+                "evidence and recommended recipe. Resolve a supported vendor fix, follow the stable Markdown "
+                "override when present or otherwise all composed archetypes, and stop for TRIAGE.md when exposure "
+                "or fix ownership cannot be proven."
             ),
             "runtime": {
                 "exact_lookup": "deterministic integrity-checked shard",
@@ -1653,8 +1690,8 @@ class CVERecipeCatalog:
         terms = tuple(dict.fromkeys(normalized_terms))
 
         severity_key = str(severity or "").lower().strip()
-        if severity_key and severity_key not in {"high", "critical"}:
-            raise ValueError("severity must be 'high' or 'critical'")
+        if severity_key and severity_key not in {"medium", "high", "critical"}:
+            raise ValueError("severity must be 'medium', 'high', or 'critical'")
         cap = max(1, min(int(limit), 50))
 
         def matches_filters(record: CVECompactRecord) -> bool:
@@ -1705,7 +1742,7 @@ class CVERecipeCatalog:
                 return [self._preview_search_row(records[record_id], ecosystems, archetypes) for record_id in cached_ids]
 
         def row_matches_filters(row: list[Any]) -> bool:
-            if severity_key and ("critical" if row[2] else "high") != severity_key:
+            if severity_key and self.SEVERITY_BY_CODE[row[2]] != severity_key:
                 return False
             if published_year and str(row[4])[:4] != str(published_year):
                 return False
@@ -1976,7 +2013,10 @@ class CVERecipeCatalog:
                 "found": False,
                 "cve": cve_id,
                 "scope": scope,
-                "next_action": "Run the CVE intelligence intake gate; the ID may be out of scope, rejected, or not yet scored High/Critical by NVD.",
+                "next_action": (
+                    "Run the CVE intelligence intake gate; the ID may be outside the catalog publication window, "
+                    "rejected, or not yet scored Medium/High/Critical (CVSS 4.0 or higher) by NVD."
+                ),
             }
 
         composed = self._compose_archetypes(record, archetype_catalog)
@@ -10793,7 +10833,7 @@ async def recipes_get(slug_or_path: str) -> dict[str, Any]:
 
 @mcp.tool()
 async def recipes_cve_catalog_info() -> dict[str, Any]:
-    """Return the complete High/Critical CVE catalog scope, coverage, provenance, and counts."""
+    """Return the complete Medium/High/Critical CVE catalog scope, coverage, provenance, and counts."""
     try:
         return await asyncio.to_thread(cve_catalog.info)
     except Exception as exc:
@@ -10808,7 +10848,7 @@ async def recipes_cve_search(
     kev_only: bool = False,
     limit: int = 20,
 ) -> dict[str, Any]:
-    """Search all in-scope High/Critical CVEs by canonical ID, title, ecosystem, or archetype."""
+    """Search every in-scope Medium/High/Critical CVE; use recipes_cve_get for complete details."""
     try:
         search_call = partial(
             cve_catalog.search,
@@ -10835,7 +10875,19 @@ async def recipes_cve_search(
                 raise
             concurrent_search.add_done_callback(lambda _: cve_text_search_admission.release())
             results = await asyncio.wrap_future(concurrent_search)
-        return {"query": query, "count": len(results), "results": results}
+        return {
+            "query": query,
+            "count": len(results),
+            "results": results,
+            "details": {
+                "tool": "recipes_cve_get",
+                "argument": "cve",
+                "description": (
+                    "Pass any result's cve value to retrieve source evidence, affected-product data limits, "
+                    "authoritative links, and the recommended remediation recipe."
+                ),
+            },
+        }
     except Exception as exc:
         return {"query": query, "count": 0, "results": [], "error": str(exc)}
 
@@ -10986,7 +11038,7 @@ async def _attach_authoritative_cve_recipe(
 
 @mcp.tool()
 async def recipes_cve_get(cve: str) -> dict[str, Any]:
-    """Get one exact CVE plus its stable override or conservative multi-archetype recipe."""
+    """Get complete evidence, product limits, links, and the recommended recipe for one exact CVE."""
     try:
         result = await asyncio.to_thread(cve_catalog.get_recipe, cve)
         return await _attach_authoritative_cve_recipe(result, index)

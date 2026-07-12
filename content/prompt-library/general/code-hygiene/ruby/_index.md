@@ -1,0 +1,16 @@
+---
+title: "Ruby & Rails Code Hygiene"
+linkTitle: "Ruby & Rails"
+description: "RuboCop debt and Active Record query, transaction, and callback hygiene."
+weight: 90
+sidebar:
+  open: false
+---
+
+RuboCop debt and Active Record query, transaction, and callback hygiene.
+
+Select one bounded recipe. Start in audit mode; authorize fixes only after reviewing the candidate evidence.
+
+## Recipes
+
+{{< prompt-toc >}}

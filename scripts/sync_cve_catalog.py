@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the complete, source-backed High/Critical CVE recipe catalog.
+"""Build the complete, source-backed Medium/High/Critical CVE recipe catalog.
 
 The catalog is intentionally separate from the hand-curated Markdown recipe
 overrides. One normalized CVE record plus all applicable vetted remediation
@@ -51,6 +51,7 @@ CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_v
 USER_AGENT = "security-recipes.ai/cve-catalog-sync"
 
 SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
 VERSION_RANK = {"2.0": 20, "3.0": 30, "3.1": 31, "4.0": 40}
 BROWSER_INDEX_FIELDS = [
     "cve",
@@ -300,10 +301,12 @@ def kev_by_cve(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 def severity_for_score(version: str, score: float, supplied: object = "") -> str:
     supplied_severity = str(supplied or "").strip().lower()
-    if supplied_severity in {"high", "critical"}:
+    if supplied_severity in {"medium", "high", "critical"}:
         return supplied_severity
+    if score < 4.0:
+        return "low"
     if score < 7.0:
-        return supplied_severity or ("medium" if score >= 4.0 else "low")
+        return "medium"
     if version.startswith("2"):
         return "high"
     return "critical" if score >= 9.0 else "high"
@@ -350,7 +353,7 @@ def extract_metrics(cve: dict[str, Any]) -> list[Metric]:
 
 
 def selected_metric(metrics: list[Metric]) -> Metric | None:
-    return next((metric for metric in metrics if metric.score >= 7.0), None)
+    return next((metric for metric in metrics if metric.score >= 4.0), None)
 
 
 def english_description(cve: dict[str, Any]) -> str:
@@ -875,7 +878,7 @@ def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, b
         [
             record["cve"],
             record["title"],
-            1 if record["severity"] == "critical" else 0,
+            BROWSER_SEVERITY_CODES[record["severity"]],
             record["score"],
             record["published"],
             ecosystem_indexes[record["ecosystem"]],
@@ -887,7 +890,8 @@ def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, b
     ]
     uncompressed = json_bytes(
         {
-            "schema_version": 1,
+            "schema_version": 2,
+            "severity_codes": {str(code): severity for severity, code in BROWSER_SEVERITY_CODES.items()},
             "fields": BROWSER_INDEX_FIELDS,
             "ecosystems": ecosystems,
             "archetypes": archetypes,
@@ -991,7 +995,7 @@ def build_outputs(
                 index_records.append(compact_index_record(record, shard))
                 record_count += 1
                 year = record["published"][:4]
-                counts = by_year.setdefault(year, {"critical": 0, "high": 0, "total": 0})
+                counts = by_year.setdefault(year, {"critical": 0, "high": 0, "medium": 0, "total": 0})
                 counts[record["severity"]] = counts.get(record["severity"], 0) + 1
                 counts["total"] += 1
                 by_severity[record["severity"]] = by_severity.get(record["severity"], 0) + 1
@@ -1053,13 +1057,13 @@ def build_outputs(
         "uncompressed_bytes": len(browser_uncompressed),
     }
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": source_timestamp,
         "scope": {
             "published_start": start_date.isoformat(),
             "published_end": end_date.isoformat(),
             "statuses_excluded": ["Reject", "Rejected"],
-            "metric_policy": "Any NVD-supplied CVSS v2/v3/v4 observation with baseScore >= 7.0; effective severity is the highest supplied/derived severity.",
+            "metric_policy": "Any NVD-supplied CVSS v2/v3/v4 observation with baseScore >= 4.0; effective severity is the highest supplied/derived severity.",
             "recipe_policy": "Every record composes with all applicable vetted remediation archetypes. Only maturity=stable Markdown is an authoritative self-contained override; has_markdown excludes drafts.",
         },
         "totals": {
@@ -1099,7 +1103,7 @@ def build_outputs(
     # at startup.  Keep a compact, independently hashed bootstrap document so
     # the common page-load path does not transfer the full audit manifest.
     runtime_summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": source_timestamp,
         "scope": {
             "published_start": start_date.isoformat(),
@@ -1120,14 +1124,48 @@ def build_outputs(
         "bytes": len(runtime_summary_payload),
         "sha256": hash_bytes(runtime_summary_payload),
     }
+    index_partitions: list[dict[str, Any]] = []
+    records_by_year: dict[str, list[dict[str, Any]]] = {}
+    for record in index_records:
+        records_by_year.setdefault(str(record["published"])[:4], []).append(record)
+    for year, year_records in sorted(records_by_year.items()):
+        relative = Path("indexes") / f"{year}.json.gz"
+        uncompressed = index_json_bytes(
+            {
+                "schema_version": 2,
+                "catalog_updated_at": source_timestamp,
+                "year": year,
+                "total": len(year_records),
+                "records": year_records,
+            }
+        )
+        compressed = gzip.compress(uncompressed, compresslevel=9, mtime=0)
+        outputs[relative] = compressed
+        index_partitions.append(
+            {
+                "year": year,
+                "path": relative.as_posix(),
+                "records": len(year_records),
+                "sha256": hash_bytes(compressed),
+                "bytes": len(compressed),
+                "uncompressed_bytes": len(uncompressed),
+            }
+        )
     index = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": source_timestamp,
         "total": len(index_records),
         "scope": manifest["scope"],
-        "records": index_records,
+        "partition_key": "published_year",
+        "partitions": index_partitions,
     }
-    outputs[Path("index.json")] = index_json_bytes(index)
+    outputs[Path("index.json")] = json_bytes(index, pretty=True)
+    manifest["complete_index"] = {
+        "path": "index.json",
+        "format": "published-year-partitions",
+        "records": len(index_records),
+        "partitions": index_partitions,
+    }
     outputs[Path("manifest.json")] = json_bytes(manifest, pretty=True)
     outputs[Path("archetypes.json")] = archetypes_payload
     return outputs, manifest
@@ -1144,14 +1182,14 @@ def write_outputs(output_dir: Path, outputs: dict[Path, bytes], *, dry_run: bool
         else:
             unchanged += 1
 
-    shards_dir = output_dir / "shards"
-    if shards_dir.exists():
-        for stale in shards_dir.rglob("*.jsonl.gz"):
-            relative = stale.relative_to(output_dir).as_posix()
-            if relative not in expected:
-                if not dry_run:
-                    stale.unlink()
-                removed += 1
+    for generated_dir, pattern in ((output_dir / "shards", "*.jsonl.gz"), (output_dir / "indexes", "*.json.gz")):
+        if generated_dir.exists():
+            for stale in generated_dir.rglob(pattern):
+                relative = stale.relative_to(output_dir).as_posix()
+                if relative not in expected:
+                    if not dry_run:
+                        stale.unlink()
+                    removed += 1
     return {"changed": changed, "unchanged": unchanged, "removed": removed}
 
 
@@ -1263,7 +1301,7 @@ def main(argv: list[str] | None = None) -> int:
                     "metadata": metadata,
                 }
             )
-            print(f"[{year}] accepted {accepted:,} in-scope High/Critical records", flush=True)
+            print(f"[{year}] accepted {accepted:,} in-scope Medium/High/Critical records", flush=True)
             del payload, year_records
             gc.collect()
 

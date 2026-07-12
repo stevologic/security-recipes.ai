@@ -28,7 +28,8 @@ function recipe(title) {
 
 function browserIndex(rows) {
   return worker.validateIndex({
-    schema_version: 1,
+    schema_version: 2,
+    severity_codes: { 0: 'medium', 1: 'high', 2: 'critical' },
     fields: [
       'cve',
       'title',
@@ -150,14 +151,14 @@ test('all archetype compositions are deduplicated and primary is first', () => {
 
 test('runtime summary metadata produces coverage without loading the browser index', () => {
   const manifest = controller.validateManifest({
-    schema_version: 1,
+    schema_version: 2,
     totals: {
-      catalog_records: 152335,
+      catalog_records: 264423,
       in_scope_kev: 1278,
       coverage_percent: 100,
       stable_markdown_overrides: 6
     },
-    by_severity: { critical: 40982, high: 111353 },
+    by_severity: { critical: 40982, high: 111353, medium: 112088 },
     scope: { published_start: '2016-07-12', published_end: '2026-07-12' },
     by_publication_year: { 2025: 100, 2026: 200 },
     browser_index: {
@@ -165,7 +166,7 @@ test('runtime summary metadata produces coverage without loading the browser ind
       sha256: 'a'.repeat(64),
       bytes: 3303059,
       uncompressed_bytes: 19313638,
-      records: 152335
+      records: 264423
     },
     archetypes: {
       path: 'archetypes.json',
@@ -175,15 +176,16 @@ test('runtime summary metadata produces coverage without loading the browser ind
     shard_set_sha256: 'c'.repeat(64)
   });
   const summary = controller.manifestCoverageText(manifest);
-  assert.match(summary, /152,335 high\/critical CVEs/);
+  assert.match(summary, /264,423 medium\/high\/critical CVEs/);
   assert.match(summary, /40,982 critical/);
+  assert.match(summary, /112,088 medium/);
   assert.match(summary, /1,278 CISA KEV/);
   assert.match(summary, /100% composed-recipe coverage/);
 });
 
 test('runtime summary requires content-derived shard and archetype versions', () => {
   const base = {
-    schema_version: 1,
+    schema_version: 2,
     totals: {},
     by_severity: {},
     scope: {},
@@ -266,16 +268,19 @@ test('full-record cache is bounded and refreshes recently used entries', () => {
   assert.equal(cache.size, controller.MAX_FULL_RECORD_CACHE);
 });
 
-test('browser index dictionaries decode compact rows without losing zero-valued high severity', () => {
+test('browser index dictionaries decode medium, high, and critical severity codes', () => {
   const index = browserIndex([
-    ['CVE-2024-3400', 'GlobalProtect command injection', 1, 10, '2024-04-12', 0, 1, [1, 0, 1], 1],
-    ['CVE-2024-3401', 'Another GlobalProtect issue', 0, 8.1, '2023-04-12', 1, 0, [0], 0]
+    ['CVE-2024-3400', 'GlobalProtect command injection', 2, 10, '2024-04-12', 0, 1, [1, 0, 1], 1],
+    ['CVE-2024-3401', 'Another GlobalProtect issue', 1, 8.1, '2023-04-12', 1, 0, [0], 0],
+    ['CVE-2024-3402', 'Moderate GlobalProtect issue', 0, 6.4, '2022-04-12', 1, 0, [0], 0]
   ]);
   const critical = worker.decodeRecord(index, index.records[0]);
   const high = worker.decodeRecord(index, index.records[1]);
+  const medium = worker.decodeRecord(index, index.records[2]);
 
   assert.equal(critical.severity, 'critical');
   assert.equal(high.severity, 'high');
+  assert.equal(medium.severity, 'medium');
   assert.equal(critical.ecosystem, 'network-appliance');
   assert.deepEqual(critical.archetypes, ['command_code_injection', 'generic']);
   assert.equal(critical.hasMarkdown, true);
@@ -284,17 +289,22 @@ test('browser index dictionaries decode compact rows without losing zero-valued 
 
 test('worker search ranks, filters, caps previews, and supports stale cancellation', async () => {
   const rows = [
-    ['CVE-2024-3400', 'GlobalProtect command injection', 1, 10, '2024-04-12', 0, 1, [1], 1],
-    ['CVE-2024-3401', 'Another GlobalProtect issue', 0, 8.1, '2023-04-12', 1, 0, [0], 0],
-    ['CVE-2021-44228', 'Log4Shell', 1, 10, '2021-12-10', 1, 1, [1], 1]
+    ['CVE-2024-3400', 'GlobalProtect command injection', 2, 10, '2024-04-12', 0, 1, [1], 1],
+    ['CVE-2024-3401', 'Another GlobalProtect issue', 1, 8.1, '2023-04-12', 1, 0, [0], 0],
+    ['CVE-2024-3402', 'Moderate GlobalProtect issue', 0, 6.4, '2022-04-12', 1, 0, [0], 0],
+    ['CVE-2021-44228', 'Log4Shell', 2, 10, '2021-12-10', 1, 1, [1], 1]
   ];
   const index = browserIndex(rows);
   const all = await worker.searchIndex(index, {
     query: 'globalprotect',
     filters: { severity: 'all', year: 'all', kev: 'all' }
   }, { yieldControl: async () => {} });
-  assert.equal(all.totalMatches, 2);
-  assert.deepEqual(all.results.map((record) => record.cve), ['CVE-2024-3400', 'CVE-2024-3401']);
+  assert.equal(all.totalMatches, 3);
+  assert.deepEqual(all.results.map((record) => record.cve), [
+    'CVE-2024-3400',
+    'CVE-2024-3401',
+    'CVE-2024-3402'
+  ]);
 
   const high = await worker.searchIndex(index, {
     query: '',
@@ -302,10 +312,16 @@ test('worker search ranks, filters, caps previews, and supports stale cancellati
   }, { yieldControl: async () => {} });
   assert.deepEqual(high.results.map((record) => record.cve), ['CVE-2024-3401']);
 
+  const medium = await worker.searchIndex(index, {
+    query: '',
+    filters: { severity: 'medium', year: '2022', kev: 'no' }
+  }, { yieldControl: async () => {} });
+  assert.deepEqual(medium.results.map((record) => record.cve), ['CVE-2024-3402']);
+
   const manyRows = Array.from({ length: 150 }, (_, indexNumber) => [
     `CVE-2025-${String(1000 + indexNumber)}`,
     `Matching title ${indexNumber}`,
-    indexNumber % 2,
+    indexNumber % 3,
     7 + (indexNumber % 30) / 10,
     '2025-01-01',
     0,
@@ -332,7 +348,7 @@ test('worker broad searches decode only retained rows and reuse normalized title
   const rows = Array.from({ length: 5_000 }, (_, indexNumber) => [
     `CVE-2024-${String(1000 + indexNumber)}`,
     `Shared performance title ${indexNumber}`,
-    indexNumber % 2,
+    indexNumber % 3,
     7 + (indexNumber % 30) / 10,
     `2024-${String((indexNumber % 12) + 1).padStart(2, '0')}-01`,
     indexNumber % 2,
@@ -383,7 +399,7 @@ test('cold CVE-prefix search does not normalize titles for identity matches', as
     [0],
     0
   ]);
-  rows.push(['CVE-2023-9999', 'Unrelated title', 0, 8, '2023-01-01', 0, 0, [0], 0]);
+  rows.push(['CVE-2023-9999', 'Unrelated title', 1, 8, '2023-01-01', 0, 0, [0], 0]);
   const index = browserIndex(rows);
   let stats;
   const result = await worker.searchIndex(index, {
@@ -475,8 +491,13 @@ test('generated browser index supports full-catalog title search when present', 
   }
 
   const runtimeSummaryBytes = fs.readFileSync(runtimeSummaryPath);
+  const runtimeSummaryPayload = JSON.parse(runtimeSummaryBytes);
+  if (runtimeSummaryPayload.schema_version !== 2) {
+    context.skip('generated schema-v2 browser catalog artifacts are not present');
+    return;
+  }
   assert.ok(runtimeSummaryBytes.length < 4 * 1024, 'runtime bootstrap stays below 4 KiB');
-  const runtimeSummary = controller.validateManifest(JSON.parse(runtimeSummaryBytes));
+  const runtimeSummary = controller.validateManifest(runtimeSummaryPayload);
   const compressed = fs.readFileSync(browserIndexPath);
   const uncompressed = zlib.gunzipSync(compressed);
   assert.equal(runtimeSummary.browser_index.path, 'browser-index.json.gz');
@@ -486,11 +507,57 @@ test('generated browser index supports full-catalog title search when present', 
     runtimeSummary.browser_index.sha256,
     crypto.createHash('sha256').update(compressed).digest('hex')
   );
-  assert.ok(compressed.length < 4 * 1024 * 1024, 'compressed browser payload stays below 4 MiB');
-  assert.ok(uncompressed.length < 24 * 1024 * 1024, 'parsed browser payload stays below 24 MiB');
+  assert.ok(compressed.length < 8 * 1024 * 1024, 'compressed browser payload stays below 8 MiB');
+  assert.ok(uncompressed.length < 48 * 1024 * 1024, 'parsed browser payload stays below 48 MiB');
   const payload = JSON.parse(uncompressed.toString('utf8'));
   const index = worker.validateIndex(payload);
-  assert.ok(index.records.length >= 150_000);
+  assert.equal(
+    index.records.length,
+    runtimeSummary.totals.catalog_records,
+    'the browser-search payload contains every in-scope catalog record'
+  );
+  assert.equal(
+    index.records.length,
+    runtimeSummary.browser_index.records,
+    'runtime metadata and the actual searchable payload agree exactly'
+  );
+
+  const searchableIds = new Set();
+  const severityCounts = { medium: 0, high: 0, critical: 0 };
+  const severityNames = { 0: 'medium', 1: 'high', 2: 'critical' };
+  for (const row of index.records) {
+    const cve = row[index.indexes.cve];
+    const severityName = severityNames[row[index.indexes.severity]];
+    assert.match(cve, /^CVE-\d{4}-\d{4,}$/);
+    assert.ok(!searchableIds.has(cve), `duplicate searchable CVE ID: ${cve}`);
+    assert.ok(severityName, `${cve} has an unsupported browser severity code`);
+    searchableIds.add(cve);
+    severityCounts[severityName] += 1;
+  }
+  assert.equal(searchableIds.size, runtimeSummary.totals.catalog_records);
+  assert.deepEqual(severityCounts, {
+    medium: Number(runtimeSummary.by_severity.medium),
+    high: Number(runtimeSummary.by_severity.high),
+    critical: Number(runtimeSummary.by_severity.critical)
+  });
+
+  const mediumRow = index.records.find((row) => row[index.indexes.severity] === 0);
+  assert.ok(mediumRow, 'the generated searchable payload includes medium-severity CVEs');
+  const mediumCve = mediumRow[index.indexes.cve];
+  const mediumShard = path.join(
+    root,
+    'static',
+    'api',
+    'cve-catalog',
+    ...controller.shardPathForCve(mediumCve).split('/')
+  );
+  const mediumRecord = controller.parseJsonLineRecord(
+    zlib.gunzipSync(fs.readFileSync(mediumShard)).toString('utf8'),
+    mediumCve
+  );
+  assert.equal(mediumRecord.cve, mediumCve, 'a searchable medium CVE resolves through exact-ID lookup');
+  assert.equal(mediumRecord.severity, 'medium');
+
   let stats;
   const result = await worker.searchIndex(
     index,

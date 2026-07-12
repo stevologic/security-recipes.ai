@@ -1,200 +1,189 @@
 ---
-title: "PCI DSS CDE and agent boundary check"
-linkTitle: "PCI DSS CDE boundary"
-description: "Read-only recipe for checking whether agents, CI, logs, and repositories cross cardholder-data environment boundaries."
-tool: "general"
-author: "Codex"
-team: "Security"
-maturity: "development"
+title: "PCI DSS 4.0.1 Cardholder Data Environment Evidence Check"
+linkTitle: "PCI DSS 4.0.1"
+description: "Entities that store, process, or transmit payment account data, and service providers that can affect the cardholder data environment."
+recipe_id: "compliance.pci-dss-4-0-1"
+framework_id: "pci-dss"
+framework: "PCI DSS 4.0.1"
+framework_version: "4.0.1"
+framework_status: "final"
+source_reviewed: "2026-07-12"
+jurisdiction: ["global"]
+jurisdictions: ["global"]
+industry: ["payments", "retail", "financial-services"]
+industries: ["payments", "retail", "financial-services"]
+facets: ["audit", "compliance", "data-protection", "boundary"]
+official_sources: ["https://blog.pcisecuritystandards.org/just-published-pci-dss-v4-0-1", "https://www.pcisecuritystandards.org/document_library/"]
+routing_positive: ["assess PCI DSS 4.0.1 evidence", "verify cardholder data environment boundaries", "prepare payment security assessment artifacts"]
+routing_hard_negative: ["perform a HIPAA security risk analysis", "assess general CIS Controls coverage"]
+license_boundary: "summary-only"
+tool: "Compliance evidence review"
+author: "Security Recipes"
+team: "GRC and Security Engineering"
+maturity: "stable"
 model: "gpt-5-codex"
-tags: ["compliance", "pci-dss", "cde", "cardholder-data", "agent-boundary", "audit"]
-weight: 30
-date: 2026-06-25
-severity: "high"
+tags: ["compliance", "pci-dss", "regulated-industries", "audit", "data-protection", "boundary", "payments", "retail"]
+weight: 140
+date: "2026-07-12"
+severity: "info"
 ---
 
-A bounded PCI DSS boundary check for repositories and agentic remediation
-workflows. It focuses on whether code, CI, logs, scanners, model providers, or
-MCP tools can touch cardholder data environment (CDE) assets or account data.
+# PCI DSS 4.0.1 Cardholder Data Environment Evidence Check
+
+Use this recipe to produce a source-aware evidence-readiness assessment for **PCI DSS 4.0.1**. It creates an auditable gap record; it does not certify compliance, provide legal advice, or replace an assessor, regulator, or certification body.
+
+## Section index
+
+- [Framework basis](#framework-basis)
+- [When to use it](#when-to-use-it)
+- [Inputs](#inputs)
+- [The prompt](#the-prompt)
+- [Output contract](#output-contract)
+- [Verification](#verification)
+- [Guardrails](#guardrails)
+- [Routing examples](#routing-examples)
+- [References](#references)
+
+## Framework basis
+
+- **Publisher:** PCI Security Standards Council
+- **Version:** 4.0.1
+- **Status:** `final`
+- **Sources reviewed:** 2026-07-12
+- **Jurisdictions:** global
+- **Industries:** payments, retail, financial-services
+- **License boundary:** `summary-only`
+
+Entities that store, process, or transmit payment account data, and service providers that can affect the cardholder data environment.
+
+The cataloged version is final; still verify scope and any later official updates.
+
+This recipe intentionally summarizes domains and evidence needs. Do not reproduce licensed control text; use an organization-supplied licensed copy for requirement-level work.
 
 ## When to use it
 
-- Before enabling coding agents on repositories that might touch payment flows.
-- When a service is newly marked CDE-adjacent.
-- During PCI DSS evidence collection for change management, access control, or
-  logging requirements.
+Use this recipe when the organization has established that PCI DSS 4.0.1 is applicable or wants a readiness assessment against it. Use the routing positives below to distinguish this recipe from adjacent frameworks. If applicability, the effective version, or the authoritative requirement set is unresolved, stop at a scoped intake and record the decision owner.
 
 ## Inputs
 
-- Repository path and payment-related service name.
-- Known CDE scope statement if available.
-- Payment routes, tokenization provider, vault, gateway, or PSP hints.
-- CI, scanner, agent, and model-provider configuration.
+- The business purpose, legal entities, products, services, systems, and locations in scope.
+- The organization's role, applicability decision, selected profile, level, baseline, or control set where the framework requires one.
+- The official publication URLs above and, for licensed material, an authorized organization-supplied copy.
+- Evidence from the complete review period, including populations—not only hand-picked examples.
+- Named owners, inherited/shared responsibilities, exceptions, compensating measures, and accepted risks.
+- Read-only access by default. Redacted exports are acceptable when provenance and coverage remain testable.
+
+Evidence domains for this framework:
+
+- CDE scope and segmentation: begin with current data-flow and network diagrams.
+- secure configurations and access: begin with segmentation validation results.
+- payment data protection: begin with access and authentication reviews.
+- logging, testing, and vulnerability management: begin with ASV, penetration-test, and remediation records.
 
 ## The prompt
 
-~~~markdown
-You are running a PCI DSS CDE and agent boundary check. Run read-only. Do not
-edit code, run payment transactions, call production systems, rotate secrets,
-change access, or claim PCI DSS compliance.
-
-## Step 0 - Scope statement
-
-Record:
-
-- Repository and service name.
-- Whether the operator supplied a CDE scope statement.
-- Payment functions found in the repo: collection, processing, transmission,
-  storage, tokenization, vaulting, reconciliation, dispute handling, or reporting.
-- Third-party payment providers, gateways, PSP SDKs, token vaults, or webhooks.
-- Agent, CI, scanner, MCP, model-provider, and log sinks that can read this repo.
-
-If no CDE scope is available, treat the report as a boundary-discovery packet.
-
-## Step 1 - Search for account-data and payment surfaces
-
-Search source, config, docs, tests, fixtures, and logs for:
-
-- PAN, cardholder data, sensitive authentication data, track data, CVV/CVC, PIN,
-  expiry, cardholder name, payment token, network token, and gateway customer
-  identifiers.
-- Payment SDKs, hosted fields, redirect flows, webhooks, reconciliation jobs,
-  chargeback flows, and admin payment tools.
-- Database columns, log fields, analytics events, and data exports that may
-  carry account data or tokens.
-
-Do not print full card numbers, tokens, or customer data. Redact values and
-reference only file paths and field names.
-
-## Step 2 - Check agent and CI access paths
-
-For each agent, CI workflow, scanner, MCP server, or model-provider integration,
-record:
-
-- What repository data it can read.
-- Whether it can reach payment config, logs, fixtures, secrets, or production
-  credentials.
-- Whether it has write permissions, deployment permissions, secret access, or
-  ticket/PR creation permissions.
-- Whether access is scoped per run and logged.
-- Whether human review is required before merge, deploy, or data access.
-
-Flag any path that can expose account data or CDE secrets to a model provider,
-third-party SaaS, broad CI job, or unapproved MCP connector.
-
-## Step 3 - Check PCI-relevant evidence
-
-Collect repository evidence for:
-
-- Change review and testing before production release.
-- Least-privilege access to payment code and secrets.
-- Logging and monitoring around payment-sensitive actions.
-- Secret management and masking.
-- Vulnerability scanning, dependency review, and patch flow.
-- Segmentation or boundary documentation between CDE, connected-to-CDE, and
-  non-CDE systems.
-
-Mark each item `observed`, `partial`, `missing`, or `out of repo`.
-
-## Step 4 - Score boundary findings
-
-Assign severity:
-
-- `critical`: live account data or CDE secrets are exposed to unauthorized
-  systems or logs.
-- `high`: an agent/CI path can access CDE-sensitive code or credentials without
-  scoped approval and logging.
-- `medium`: evidence exists but is incomplete, inconsistent, or missing an
-  owner.
-- `low`: documentation or metadata cleanup.
-
-## Step 5 - Write the report
-
-Write `PCI_DSS_CDE_AGENT_BOUNDARY_CHECK.md` at the repo root, or print to
-stdout if write access is unavailable.
-
-Use this structure:
-
 ```markdown
-# PCI DSS CDE and agent boundary check - <repo>
+You are a compliance evidence-readiness analyst. Evaluate the supplied scope against PCI DSS 4.0.1 (4.0.1). The catalog status is final and the source review date is 2026-07-12.
 
-Generated on <date>. Scope note: <scope note>.
+Never claim certification or legal compliance. Never invent applicability, evidence, control operation, sampling results, or requirement text. Separate observed facts, organization assertions, and analyst inferences. Treat missing or inaccessible evidence as unknown, not as failure, unless the authoritative assessment method says otherwise.
 
-## Payment Surface Inventory
-- ...
+## Step 0 — Lock authority, version, and scope
 
-## Agent and CI Access Matrix
-| Actor | Read scope | Write scope | Secret/data access | Logging | Status |
-| ... |
+1. Record the exact official source, version, publication/update identifier, and effective date used.
+2. Record the organization, role, jurisdiction, industry, system/product boundary, review period, and decision owner.
+3. Confirm any selected level, profile, baseline, overlay, assessment type, or licensed requirement set.
+4. The cataloged version is final; still verify scope and any later official updates.
+5. This recipe intentionally summarizes domains and evidence needs. Do not reproduce licensed control text; use an organization-supplied licensed copy for requirement-level work.
+6. Stop and request a decision when applicability or the authoritative requirement set cannot be established.
 
-## PCI-Relevant Evidence
-| Evidence area | Status | Evidence | Gap |
-| ... |
+## Step 1 — Build the applicability map
 
-## Findings
-### <Severity> - <short title>
-- **Path:** ...
-- **Boundary:** ...
-- **Why it matters:** ...
-- **Recommended next action:** ...
-- **Verification:** ...
+For every supplied requirement identifier or official outcome in scope, record: applicability, rationale, responsible owner, implementation location, inherited/shared responsibility, evidence expected, and any dependency. Use only identifiers present in the authoritative source supplied for this engagement. Do not reconstruct licensed text.
 
-## Data Redactions
-- Values were redacted from: ...
+## Step 2 — Collect evidence by framework domain
 
-## Out-of-Scope Evidence Needed
-- ...
+Review these domains without treating the labels as substitutes for authoritative requirements:
+
+1. CDE scope and segmentation
+2. secure configurations and access
+3. payment data protection
+4. logging, testing, and vulnerability management
+
+Start with these likely artifacts, then validate provenance and coverage:
+
+1. current data-flow and network diagrams
+2. segmentation validation results
+3. access and authentication reviews
+4. ASV, penetration-test, and remediation records
+
+For every artifact record: artifact ID, source system, owner, collection time, review period, access path, integrity/provenance note, population covered, and requirement/outcome links. Prefer system exports and immutable records over screenshots or narrative attestations.
+
+## Step 3 — Test design and operation
+
+For each applicable item, evaluate design, implementation, and operating evidence separately. Check whether evidence is authentic, complete, current for the review period, population-representative, and directly linked to the scoped system. Where sampling is permitted, state the population, method, sample size, selections, exceptions, and limitations; do not imply statistical assurance without a justified method.
+
+## Step 4 — Classify gaps without overstating them
+
+Use only: supported, partially supported, unsupported, not applicable with rationale, or not assessed. Record gaps as evidence-readiness findings—not declarations of legal noncompliance. Each finding must include the affected requirement/outcome, observed fact, missing or weak evidence, risk, owner, corrective action, due date, dependencies, retest method, and confidence.
+
+## Step 5 — Produce the evidence bundle
+
+Return one Markdown file named PCI_DSS_CDE_AGENT_BOUNDARY_CHECK.md with:
+
+1. Executive summary and explicit assurance limitations.
+2. Authority/version/status and scope/applicability record.
+3. Coverage totals by status and evidence domain.
+4. Requirement/outcome-to-evidence matrix with artifact provenance.
+5. Findings ordered by risk and evidence impact.
+6. A 30/60/90-day remediation and evidence-collection plan.
+7. Open questions, unavailable sources, conflicts, and decisions required.
+8. Official references with access/review date.
+
+Before finalizing, verify that every conclusion is traceable to an artifact or clearly labeled assertion/inference, all denominators reconcile, all unavailable evidence is visible, licensed text is not reproduced, and no sentence claims certification or legal approval.
 ```
-
-## Stop conditions
-
-Stop immediately and write an incident-style top finding if you find:
-
-- unmasked PAN, CVV/CVC, track data, PIN data, or live payment credentials in
-  source, logs, tests, or generated artifacts;
-- a workflow that sends account data to an unapproved model/provider/tool;
-- instructions requiring a live payment or production query.
-~~~
 
 ## Output contract
 
-- Boundary-discovery and evidence report only.
-- No live payment actions.
-- No unredacted account data in output.
-- No final PCI DSS compliance claim.
+The response must contain one evidence matrix row per scoped authoritative item or outcome. At minimum include `item_id`, `applicability`, `owner`, `implementation`, `artifact_ids`, `test_method`, `coverage_period`, `status`, `gap`, and `confidence`. Every artifact ID must resolve to the artifact register, and every total must reconcile to the matrix.
 
 ## Verification
 
-Before handing the report to a PCI or payment-platform owner, verify that:
-
-- every payment surface, agent, CI workflow, MCP server, and model-provider
-  path has a repository path, configuration reference, or `out of scope`
-  marker;
-- PAN, CVV/CVC, track data, PIN data, payment credentials, gateway tokens, and
-  customer IDs are redacted in all examples;
-- ambiguous payment-adjacent paths are marked `CDE-adjacent` rather than
-  excluded without owner review;
-- each finding states whether it affects data, secrets, logging, build access,
-  deployment access, or review/approval evidence;
-- no validation step required a live payment, production query, credential
-  test, or external model upload.
+- Confirm the official source, version, status, and review date in both the executive summary and matrix metadata.
+- Reconcile applicable, not applicable, and not assessed counts to the complete supplied scope.
+- Trace each supported assertion to provenance-bearing evidence covering the stated period and population.
+- Independently reperform a risk-based sample of mappings and document all exceptions.
+- Verify findings distinguish control/design weakness from missing evidence and unknown scope.
+- Have the accountable owner and, where required, qualified counsel or an authorized assessor review conclusions.
 
 ## Guardrails
 
-- Treat payment tokens and gateway customer IDs as sensitive even when they are
-  not PAN.
-- Default to "CDE-adjacent" when evidence is ambiguous.
-- Require human compliance-owner review before changing CDE scope.
+- This is an evidence-readiness workflow, not certification, attestation, audit opinion, or legal advice.
+- Do not infer that a voluntary framework is mandatory or that one framework proves another.
+- Do not paste, paraphrase at length, or reconstruct licensed controls. Use source summaries and organization-supplied licensed material.
+- Do not expose secrets, personal data, regulated data, or full production exports in the report.
+- Do not modify systems, close findings, accept risk, or submit regulatory reports without explicit owner authorization.
+- If versions conflict, preserve both citations, label the conflict, and escalate rather than choosing silently.
+
+## Routing examples
+
+Route here:
+
+- assess PCI DSS 4.0.1 evidence
+- verify cardholder data environment boundaries
+- prepare payment security assessment artifacts
+
+Hard negatives—route elsewhere or clarify:
+
+- perform a HIPAA security risk analysis
+- assess general CIS Controls coverage
 
 ## Related recipes
 
-- [Source code audit - secrets and data exposure]({{< relref "/prompt-library/general/source-code-secrets-data-exposure-audit" >}})
-- [Source code audit - auth and tenant boundaries]({{< relref "/prompt-library/general/source-code-authz-tenant-boundary-audit" >}})
-- [SOC 2 change-management evidence check]({{< relref "/prompt-library/general/compliance-standards/soc2-change-management-evidence-check" >}})
-- [Context egress boundary]({{< relref "/security-remediation/context-egress-boundary" >}})
+- [HIPAA Security Rule](../hipaa-security-rule-evidence-check/)
+- [GLBA Safeguards Rule](../glba-safeguards-rule-evidence-check/)
+- [NYDFS Part 500](../nydfs-part-500-evidence-check/)
 
 ## References
 
-- [PCI DSS overview](https://www.pcisecuritystandards.org/standards/pci-dss/)
-- [PCI Security Standards Council document library](https://www.pcisecuritystandards.org/document_library/)
-- [Security Remediation - Compliance & Audit]({{< relref "/security-remediation/compliance" >}})
+1. [PCI Security Standards Council official source 1](https://blog.pcisecuritystandards.org/just-published-pci-dss-v4-0-1)
+2. [PCI Security Standards Council official source 2](https://www.pcisecuritystandards.org/document_library/)

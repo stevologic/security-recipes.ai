@@ -107,9 +107,8 @@ budget("site output", totalBytes, 320 * MiB);
 if (files.length > 5500) fail(`site output has ${files.length.toLocaleString()} files; budget is 5,500`);
 if (cveHtml.length > 4000) fail(`CVE HTML has ${cveHtml.length.toLocaleString()} files; budget is 4,000`);
 budget("CVE HTML", cveHtmlBytes, 110 * MiB);
-budget("CVE browser index", size("api/cve-catalog/browser-index.json.gz"), 5 * MiB);
-budget("CVE complete index", size("api/cve-catalog/index.json"), 80 * MiB);
-budget("precompressed CVE complete index", size("api/cve-catalog/index.json.gz"), 12 * MiB);
+budget("CVE browser index", size("api/cve-catalog/browser-index.json.gz"), 8 * MiB);
+budget("CVE complete index manifest", size("api/cve-catalog/index.json"), 1 * MiB);
 budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * KiB);
 budget("CVE manifest", size("api/cve-catalog/manifest.json"), 256 * KiB);
 budget("CVE remediation archetypes", size("api/cve-catalog/archetypes.json"), 1 * MiB);
@@ -176,7 +175,21 @@ for (const file of ["index.html", "recipes/index.html", "prompt-library/cve/inde
 
 const shards = files.filter((file) => file.includes(`${path.sep}api${path.sep}cve-catalog${path.sep}shards${path.sep}`));
 const largestShard = shards.reduce((largest, file) => Math.max(largest, fs.statSync(file).size), 0);
-budget("largest compressed CVE shard", largestShard, 512 * KiB);
+budget("largest compressed CVE shard", largestShard, 1 * MiB);
+
+const cveIndexPartitions = files.filter((file) =>
+  file.includes(`${path.sep}api${path.sep}cve-catalog${path.sep}indexes${path.sep}`) && file.endsWith(".json.gz"),
+);
+const cveIndexPartitionBytes = cveIndexPartitions.reduce((sum, file) => sum + fs.statSync(file).size, 0);
+const largestCveIndexPartition = cveIndexPartitions.reduce(
+  (largest, file) => Math.max(largest, fs.statSync(file).size),
+  0,
+);
+if (cveIndexPartitions.length > 12) {
+  fail(`CVE complete index has ${cveIndexPartitions.length} partitions; budget is 12 rolling-window years`);
+}
+budget("CVE complete index partitions", cveIndexPartitionBytes, 24 * MiB);
+budget("largest CVE complete index partition", largestCveIndexPartition, 4 * MiB);
 
 for (const feed of [
   "recipes-index.json",

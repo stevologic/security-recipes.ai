@@ -158,6 +158,15 @@ def build_catalog_outputs(
     )
 
 
+def output_index_records(outputs: dict[Path, bytes]) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for path, payload in sorted(outputs.items()):
+        if path.as_posix().startswith("indexes/") and path.name.endswith(".json.gz"):
+            partition = json.loads(gzip.decompress(payload))
+            records.extend(partition["records"])
+    return sorted(records, key=lambda record: record["cve"])
+
+
 def write_catalog_fixture(
     base: Path, records: list[dict[str, Any]]
 ) -> tuple[Path, Path, dict[str, Any]]:
@@ -170,6 +179,21 @@ def write_catalog_fixture(
 
 
 class SyncCveCatalogTests(unittest.TestCase):
+    def test_cvss_score_four_is_medium_and_below_four_is_excluded(self) -> None:
+        for version in ("2.0", "3.1", "4.0"):
+            with self.subTest(version=version):
+                normalized = normalize(
+                    nvd_record(observations=[cvss_observation(version, 4.0)])
+                )
+                self.assertIsNotNone(normalized)
+                assert normalized is not None
+                self.assertEqual(normalized["severity"], "medium")
+                self.assertEqual(normalized["score"], 4.0)
+
+        self.assertIsNone(
+            normalize(nvd_record(observations=[cvss_observation("3.1", 3.9)]))
+        )
+
     def test_cvss_v2_score_at_least_seven_is_high(self) -> None:
         record = nvd_record(
             observations=[
@@ -227,17 +251,32 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertEqual(by_version["4.0"]["severity"], "critical")
         self.assertEqual(by_version["4.0"]["source"], "adp@example.test")
 
-    def test_rejected_out_of_window_and_below_high_records_are_excluded(self) -> None:
+    def test_high_observation_wins_over_medium_observation(self) -> None:
+        normalized = normalize(
+            nvd_record(
+                observations=[
+                    cvss_observation("4.0", 5.5, severity="MEDIUM"),
+                    cvss_observation("3.1", 8.2, severity="HIGH"),
+                ]
+            )
+        )
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["severity"], "high")
+        self.assertEqual(normalized["score"], 8.2)
+
+    def test_rejected_out_of_window_and_below_medium_records_are_excluded(self) -> None:
         rejected = nvd_record(status="Rejected")
         before_window = nvd_record(published="2016-07-11T23:59:59.000Z")
         after_window = nvd_record(published="2026-07-13T00:00:00.000Z")
-        below_high = nvd_record(observations=[cvss_observation("3.1", 6.9, severity="MEDIUM")])
+        below_medium = nvd_record(observations=[cvss_observation("3.1", 3.9, severity="LOW")])
 
         for label, record in (
             ("rejected", rejected),
             ("before window", before_window),
             ("after window", after_window),
-            ("below high", below_high),
+            ("below medium", below_medium),
         ):
             with self.subTest(label=label):
                 self.assertIsNone(normalize(record))
@@ -607,7 +646,7 @@ class SyncCveCatalogTests(unittest.TestCase):
                 archetypes=archetype_payload(),
                 existing=inventory,
             )
-            compact = json.loads(outputs[Path("index.json")])["records"]
+            compact = output_index_records(outputs)
             by_cve = {record["cve"]: record for record in compact}
             self.assertTrue(by_cve["CVE-2024-1111"]["has_markdown"])
             self.assertFalse(by_cve["CVE-2024-2222"]["has_markdown"])
@@ -686,6 +725,25 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertIn("physical shard set does not match manifest", failures)
             self.assertIn("shards/1999/9999.jsonl.gz", failures)
 
+    def test_validator_rejects_orphan_and_tampered_complete_index_partitions(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        with tempfile.TemporaryDirectory(prefix="test-cve-index-partitions-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(Path(tmpdir), [record])
+            orphan = output_dir / "indexes" / "1999.json.gz"
+            orphan.write_bytes(gzip.compress(b'{}\n', mtime=0))
+            partition = output_dir / "indexes" / "2024.json.gz"
+            partition.write_bytes(partition.read_bytes() + b"tampered")
+
+            validation = validator.validate(output_dir, content_dir)
+            failures = "\n".join(validation["failures"])
+            self.assertFalse(validation["ok"])
+            self.assertIn("physical complete-index partition set does not match index", failures)
+            self.assertIn("indexes/1999.json.gz", failures)
+            self.assertIn("complete-index compressed size mismatch: indexes/2024.json.gz", failures)
+            self.assertIn("complete-index hash mismatch: indexes/2024.json.gz", failures)
+
     def test_validator_enforces_product_storage_metadata_consistency(self) -> None:
         record = normalize(nvd_record())
         self.assertIsNotNone(record)
@@ -760,14 +818,22 @@ class SyncCveCatalogTests(unittest.TestCase):
     def test_build_outputs_are_byte_deterministic_and_report_full_composed_coverage(self) -> None:
         first = normalize(nvd_record("CVE-2014-1000", published="2021-01-02T00:00:00Z"))
         second = normalize(nvd_record("CVE-2025-2001", published="2025-06-07T00:00:00Z"))
+        medium = normalize(
+            nvd_record(
+                "CVE-2024-3000",
+                published="2025-03-04T00:00:00Z",
+                observations=[cvss_observation("3.1", 6.9, severity="MEDIUM")],
+            )
+        )
         self.assertIsNotNone(first)
         self.assertIsNotNone(second)
-        assert first is not None and second is not None
+        self.assertIsNotNone(medium)
+        assert first is not None and second is not None and medium is not None
 
         kwargs = {
             "start_date": START_DATE,
             "end_date": END_DATE,
-            "feed_sources": complete_feed_sources(2),
+            "feed_sources": complete_feed_sources(3),
             "kev_data": {
                 "catalogVersion": "2026.07.01",
                 "dateReleased": "2026-07-02T00:00:00Z",
@@ -778,36 +844,63 @@ class SyncCveCatalogTests(unittest.TestCase):
             "existing": {},
         }
 
-        outputs_a, manifest_a = catalog.build_outputs([second, first], **kwargs)
-        outputs_b, manifest_b = catalog.build_outputs([first, second], **kwargs)
+        outputs_a, manifest_a = catalog.build_outputs([second, medium, first], **kwargs)
+        outputs_b, manifest_b = catalog.build_outputs([first, second, medium], **kwargs)
 
         self.assertEqual(manifest_a, manifest_b)
         self.assertEqual(outputs_a, outputs_b)
-        self.assertEqual(manifest_a["totals"]["catalog_records"], 2)
-        self.assertEqual(manifest_a["totals"]["composed_recipe_coverage"], 2)
+        self.assertEqual(manifest_a["schema_version"], 2)
+        self.assertEqual(manifest_a["totals"]["catalog_records"], 3)
+        self.assertEqual(manifest_a["totals"]["composed_recipe_coverage"], 3)
         self.assertEqual(manifest_a["totals"]["coverage_percent"], 100.0)
+        self.assertEqual(manifest_a["by_severity"], {"high": 2, "medium": 1})
         self.assertEqual(manifest_a["by_publication_year"]["2021"]["total"], 1)
+        self.assertEqual(manifest_a["by_publication_year"]["2025"]["medium"], 1)
         self.assertIn(Path("shards/2014/0001.jsonl.gz"), outputs_a)
         self.assertIn(Path("browser-index.json.gz"), outputs_a)
         self.assertIn(Path("runtime-summary.json"), outputs_a)
+        self.assertIn(Path("indexes/2021.json.gz"), outputs_a)
+        self.assertIn(Path("indexes/2025.json.gz"), outputs_a)
 
         serialized_manifest = json.loads(outputs_a[Path("manifest.json")])
         self.assertEqual(serialized_manifest["totals"]["coverage_percent"], 100.0)
-        self.assertEqual(serialized_manifest["totals"]["composed_recipe_coverage"], 2)
+        self.assertEqual(serialized_manifest["totals"]["composed_recipe_coverage"], 3)
+        complete_index = json.loads(outputs_a[Path("index.json")])
+        self.assertEqual(complete_index["schema_version"], 2)
+        self.assertEqual(complete_index["partition_key"], "published_year")
+        self.assertNotIn("records", complete_index)
+        self.assertEqual([entry["year"] for entry in complete_index["partitions"]], ["2021", "2025"])
+        self.assertEqual(manifest_a["complete_index"]["partitions"], complete_index["partitions"])
+        self.assertEqual(manifest_a["complete_index"]["records"], 3)
+        partition_records = output_index_records(outputs_a)
+        self.assertEqual(
+            [record["cve"] for record in partition_records],
+            ["CVE-2014-1000", "CVE-2024-3000", "CVE-2025-2001"],
+        )
+        for entry in complete_index["partitions"]:
+            payload = outputs_a[Path(entry["path"])]
+            self.assertEqual(int.from_bytes(payload[4:8], "little"), 0)
+            self.assertEqual(entry["bytes"], len(payload))
+            self.assertEqual(entry["sha256"], hashlib.sha256(payload).hexdigest())
+            self.assertEqual(entry["uncompressed_bytes"], len(gzip.decompress(payload)))
 
         browser_gzip = outputs_a[Path("browser-index.json.gz")]
         browser_raw = gzip.decompress(browser_gzip)
         browser = json.loads(browser_raw)
         self.assertEqual(int.from_bytes(browser_gzip[4:8], "little"), 0)
+        self.assertEqual(browser["schema_version"], 2)
+        self.assertEqual(browser["severity_codes"], {"0": "medium", "1": "high", "2": "critical"})
         self.assertEqual(browser["fields"], catalog.BROWSER_INDEX_FIELDS)
         self.assertEqual(browser["ecosystems"], ["software/application"])
         self.assertEqual(browser["archetypes"], ["generic-remediation"])
-        self.assertEqual([row[0] for row in browser["records"]], ["CVE-2014-1000", "CVE-2025-2001"])
-        self.assertTrue(all(row[2] == 0 for row in browser["records"]))
-        self.assertLess(len(browser_gzip), len(outputs_a[Path("index.json")]) * 0.75)
+        self.assertEqual(
+            [row[0] for row in browser["records"]],
+            ["CVE-2014-1000", "CVE-2024-3000", "CVE-2025-2001"],
+        )
+        self.assertEqual([row[2] for row in browser["records"]], [1, 0, 1])
         browser_manifest = manifest_a["browser_index"]
         self.assertEqual(browser_manifest["path"], "browser-index.json.gz")
-        self.assertEqual(browser_manifest["records"], 2)
+        self.assertEqual(browser_manifest["records"], 3)
         self.assertEqual(browser_manifest["bytes"], len(browser_gzip))
         self.assertEqual(browser_manifest["uncompressed_bytes"], len(browser_raw))
         self.assertEqual(browser_manifest["sha256"], hashlib.sha256(browser_gzip).hexdigest())
@@ -831,7 +924,7 @@ class SyncCveCatalogTests(unittest.TestCase):
 
         changed_record = deepcopy(first)
         changed_record["summary"] = str(changed_record.get("summary") or "") + " reviewed content change"
-        _, record_changed_manifest = catalog.build_outputs([changed_record, second], **kwargs)
+        _, record_changed_manifest = catalog.build_outputs([changed_record, second, medium], **kwargs)
         self.assertEqual(record_changed_manifest["catalog_updated_at"], manifest_a["catalog_updated_at"])
         self.assertNotEqual(
             record_changed_manifest["shard_set_sha256"],
@@ -842,7 +935,7 @@ class SyncCveCatalogTests(unittest.TestCase):
         default_id = changed_archetypes["default_archetype"]
         changed_archetypes["archetypes"][default_id]["title"] += " revised"
         _, archetype_changed_manifest = catalog.build_outputs(
-            [first, second],
+            [first, second, medium],
             **{**kwargs, "archetypes": changed_archetypes},
         )
         self.assertEqual(archetype_changed_manifest["catalog_updated_at"], manifest_a["catalog_updated_at"])
@@ -859,7 +952,7 @@ class SyncCveCatalogTests(unittest.TestCase):
             catalog.write_outputs(output_dir, outputs_a)
             validation = validator.validate(output_dir, content_dir)
             self.assertTrue(validation["ok"], validation["failures"])
-            self.assertEqual(validation["browser_records"], 2)
+            self.assertEqual(validation["browser_records"], 3)
 
 
 if __name__ == "__main__":

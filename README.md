@@ -47,10 +47,15 @@ security-recipes.ai helps teams answer:
   default-hardening remediation.
 - CVE intelligence intake policy, prompt, fixtures, and evaluator for routing
   advisory signals before an agent patches.
-- A complete rolling ten-year High/Critical CVE catalog composed from
+- A complete rolling ten-year Medium/High/Critical CVE catalog composed from
   integrity-verified NVD JSON 2.0 feeds, CISA KEV metadata, and every applicable
   vetted remediation archetype. Only reviewed `stable` Markdown pages override
   that conservative baseline.
+- A structured compliance library spanning 39 security, privacy, assurance,
+  resilience, and software-supply-chain frameworks without reproducing
+  licensed control text.
+- A 72-recipe code-hygiene library covering cross-language and ecosystem-
+  specific audit, remediation, verification, and stop-condition workflows.
 - Recipes with existing prompt collections preserved.
 - Agent setup guides for GitHub Copilot, Claude, Cursor, Codex, and Devin.
 - MCP integration guidance for public and organization-approved security data
@@ -70,8 +75,10 @@ security-recipes.ai helps teams answer:
 | `lib/` | Build modules: shortcode ports, JSON feed builders, SEO head. |
 | `assets/` | Site CSS and JavaScript for the recipe browser, navigation, and helper tools. |
 | `static/` | Images, logos, schemas, and static assets. |
-| `static/api/cve-catalog/` | Complete sharded CVE catalog, machine index, compressed browser-search index, provenance manifest, and archetypes. |
+| `static/api/cve-catalog/` | Complete sharded CVE catalog, year-partitioned machine index, compressed browser-search index, provenance manifest, and archetypes. |
 | `data/cve/` | Human-reviewed remediation archetype source. |
+| `data/compliance-frameworks/` | Structured compliance-framework catalog and source registry. |
+| `data/code-hygiene/` | Structured code-hygiene catalog, source registry, and routing fixtures. |
 | `docs/` | Repository documentation assets, including the README screenshots. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
 | `mcp-server.toml.example` | MCP server configuration template. |
@@ -159,14 +166,17 @@ The complete CVE catalog is also available without MCP:
   source hashes, coverage counts, and shard inventory.
 - `/api/cve-catalog/runtime-summary.json` is the small browser bootstrap with
   coverage totals and content-derived cache versions for every runtime asset.
-- `/api/cve-catalog/index.json` is the complete bulk/offline machine index;
-  neither a browser page load nor an exact MCP lookup parses it.
+- `/api/cve-catalog/index.json` is a small manifest for the complete
+  publication-year partitions under `/api/cve-catalog/indexes/`. Offline
+  consumers can fetch only the years they need; neither a browser page load
+  nor an exact MCP lookup parses those partitions.
 - `/api/cve-catalog/browser-index.json.gz` is the smaller dictionary-encoded
   index searched off the browser's main thread.
 - `/api/cve-catalog/archetypes.json` contains the reviewed remediation
   contracts used to compose a conservative recipe for every catalog record.
-- The index points to compressed JSONL shards containing CVSS, CWE, bounded
-  CPE, reference, and KEV provenance for exact-CVE retrieval.
+- Each partition maps every in-scope CVE to its integrity-hashed compressed
+  JSONL shard. Shard records contain CVSS, CWE, bounded CPE, reference, and KEV
+  provenance for exact-CVE retrieval.
 - To keep records bounded, a shard stores at most 12 vulnerable CPE/version
   rows together with the source match total and an explicit truncation flag;
   consumers must follow NVD/vendor evidence when that flag is set.
@@ -175,6 +185,14 @@ Development CVE Markdown keeps its direct page URL for compatibility but is
 excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.
 Use the dedicated catalog or `recipes_cve_*` MCP tools for complete discovery;
 only reviewed `maturity: stable` Markdown is republished in generic indexes.
+
+The browser's exact-ID path and compressed worker index both cover every
+in-scope Medium, High, and Critical record declared by the manifest. The MCP
+server exposes the same coverage through `recipes_cve_search`; a successful
+`recipes_cve_get` returns the normalized source record, source identifiers and
+references, applicable archetypes, and composed remediation contract,
+including explicit CPE truncation metadata when the source match set exceeds
+the bounded record.
 
 The runtime paths are deliberately bounded for catalog-scale traffic:
 

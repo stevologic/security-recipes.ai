@@ -22,6 +22,7 @@ GHSA_RE = re.compile(r"GHSA-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", re.IGNORECASE)
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*\n", re.DOTALL)
 SHA256_RE = re.compile(r"[0-9a-f]{64}", re.IGNORECASE)
 SHARD_PATH_RE = re.compile(r"shards/\d{4}/\d{4,}\.jsonl\.gz")
+INDEX_PARTITION_PATH_RE = re.compile(r"indexes/(\d{4})\.json\.gz")
 NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
 CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 NVD_METADATA_FIELDS = ("lastModifiedDate", "size", "zipSize", "gzSize", "sha256")
@@ -36,6 +37,8 @@ BROWSER_INDEX_FIELDS = [
     "archetype_indexes",
     "has_markdown",
 ]
+BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
+BROWSER_SEVERITY_NAMES = {str(code): severity for severity, code in BROWSER_SEVERITY_CODES.items()}
 MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
 ARCHETYPE_LIST_FIELDS = (
     "exposure_checks",
@@ -249,6 +252,164 @@ def validate_markdown_recipes(
     return counts, inventory
 
 
+def validate_complete_index(
+    catalog_dir: Path,
+    index: dict[str, Any],
+    manifest: dict[str, Any],
+    failures: list[str],
+) -> list[dict[str, Any]]:
+    """Validate and combine the published-year compact index partitions."""
+    expected_index_keys = {
+        "schema_version",
+        "catalog_updated_at",
+        "total",
+        "scope",
+        "partition_key",
+        "partitions",
+    }
+    if set(index) != expected_index_keys:
+        fail(failures, "index does not match the required partition-manifest schema")
+    if index.get("schema_version") != 2:
+        fail(failures, "index schema_version must be 2")
+    if index.get("scope") != manifest.get("scope"):
+        fail(failures, "index scope does not match manifest scope")
+    if index.get("catalog_updated_at") != manifest.get("catalog_updated_at"):
+        fail(failures, "index catalog_updated_at does not match manifest")
+    if index.get("partition_key") != "published_year":
+        fail(failures, "index partition_key must be published_year")
+    if "records" in index:
+        fail(failures, "index must not embed the complete records array")
+
+    raw_partitions = index.get("partitions")
+    if not isinstance(raw_partitions, list):
+        fail(failures, "index partitions must be an array")
+        raw_partitions = []
+    complete_index = manifest.get("complete_index")
+    if not isinstance(complete_index, dict):
+        fail(failures, "manifest complete_index is missing")
+        complete_index = {}
+    if complete_index.get("path") != "index.json":
+        fail(failures, "manifest complete_index path must be index.json")
+    if complete_index.get("format") != "published-year-partitions":
+        fail(failures, "manifest complete_index format is invalid")
+    if complete_index.get("partitions") != raw_partitions:
+        fail(failures, "manifest complete_index partitions do not match index.json")
+
+    declared_paths: set[str] = set()
+    declared_years: set[str] = set()
+    expected_years = set((manifest.get("by_publication_year") or {}).keys())
+    records: list[dict[str, Any]] = []
+    for position, entry in enumerate(raw_partitions):
+        if not isinstance(entry, dict):
+            fail(failures, f"index partition {position} must be an object")
+            continue
+        expected_entry_keys = {"year", "path", "records", "sha256", "bytes", "uncompressed_bytes"}
+        if set(entry) != expected_entry_keys:
+            fail(failures, f"index partition {position} metadata schema is invalid")
+        year = str(entry.get("year") or "")
+        relative = str(entry.get("path") or "")
+        path_match = INDEX_PARTITION_PATH_RE.fullmatch(relative)
+        if not re.fullmatch(r"\d{4}", year) or path_match is None or path_match.group(1) != year:
+            fail(failures, f"index partition {position} has invalid year/path")
+            continue
+        if year in declared_years:
+            fail(failures, f"duplicate complete-index publication year {year}")
+        if relative in declared_paths:
+            fail(failures, f"duplicate complete-index partition path {relative}")
+        declared_years.add(year)
+        declared_paths.add(relative)
+
+        path = catalog_dir / relative
+        if not path.is_file():
+            fail(failures, f"missing complete-index partition: {relative}")
+            continue
+        payload = path.read_bytes()
+        if len(payload) != entry.get("bytes"):
+            fail(failures, f"complete-index compressed size mismatch: {relative}")
+        if hashlib.sha256(payload).hexdigest() != entry.get("sha256"):
+            fail(failures, f"complete-index hash mismatch: {relative}")
+        if len(payload) < 10 or int.from_bytes(payload[4:8], "little") != 0:
+            fail(failures, f"complete-index gzip mtime is not deterministic zero: {relative}")
+        try:
+            uncompressed = gzip.decompress(payload)
+        except (OSError, EOFError) as exc:
+            fail(failures, f"invalid complete-index gzip {relative}: {exc}")
+            continue
+        if len(uncompressed) != entry.get("uncompressed_bytes"):
+            fail(failures, f"complete-index uncompressed size mismatch: {relative}")
+        try:
+            partition = json.loads(uncompressed)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            fail(failures, f"invalid complete-index JSON {relative}: {exc}")
+            continue
+        expected_keys = {"schema_version", "catalog_updated_at", "year", "total", "records"}
+        if not isinstance(partition, dict) or set(partition) != expected_keys:
+            fail(failures, f"complete-index partition schema is invalid: {relative}")
+            continue
+        if partition.get("schema_version") != 2:
+            fail(failures, f"complete-index partition schema_version must be 2: {relative}")
+        if partition.get("catalog_updated_at") != manifest.get("catalog_updated_at"):
+            fail(failures, f"complete-index timestamp mismatch: {relative}")
+        if str(partition.get("year") or "") != year:
+            fail(failures, f"complete-index publication year mismatch: {relative}")
+        partition_records = partition.get("records")
+        if not isinstance(partition_records, list):
+            fail(failures, f"complete-index records must be an array: {relative}")
+            continue
+        if partition.get("total") != len(partition_records) or entry.get("records") != len(partition_records):
+            fail(failures, f"complete-index record count mismatch: {relative}")
+        if not partition_records:
+            fail(failures, f"complete-index partition must not be empty: {relative}")
+        year_summary = (manifest.get("by_publication_year") or {}).get(year)
+        if not isinstance(year_summary, dict) or year_summary.get("total") != len(partition_records):
+            fail(failures, f"complete-index count does not match publication-year summary: {relative}")
+        cve_ids: list[str] = []
+        for record_number, record in enumerate(partition_records):
+            if not isinstance(record, dict):
+                fail(failures, f"complete-index record {record_number} is not an object: {relative}")
+                continue
+            if str(record.get("published") or "")[:4] != year:
+                fail(failures, f"complete-index record is in the wrong publication-year partition: {relative}")
+            cve_ids.append(str(record.get("cve") or ""))
+            records.append(record)
+        if cve_ids != sorted(cve_ids):
+            fail(failures, f"complete-index partition records are not sorted by CVE ID: {relative}")
+
+    indexes_dir = catalog_dir / "indexes"
+    physical_paths = (
+        {
+            path.relative_to(catalog_dir).as_posix()
+            for path in indexes_dir.rglob("*.json.gz")
+            if path.is_file()
+        }
+        if indexes_dir.is_dir()
+        else set()
+    )
+    if physical_paths != declared_paths:
+        missing = sorted(declared_paths - physical_paths)
+        orphaned = sorted(physical_paths - declared_paths)
+        fail(
+            failures,
+            f"physical complete-index partition set does not match index: missing={missing[:10]}, orphaned={orphaned[:10]}",
+        )
+    if declared_years != expected_years:
+        fail(failures, "complete-index years do not match manifest publication-year coverage")
+
+    expected_total = len(records)
+    if index.get("total") != expected_total:
+        fail(failures, f"index total {index.get('total')} does not match {expected_total} partition records")
+    if complete_index.get("records") != expected_total:
+        fail(failures, "manifest complete_index record total does not match partitions")
+    declared_total = sum(
+        entry.get("records", 0)
+        for entry in raw_partitions
+        if isinstance(entry, dict) and type(entry.get("records")) is int
+    )
+    if declared_total != expected_total:
+        fail(failures, "complete-index partition metadata totals do not match records")
+    return sorted(records, key=lambda record: str(record.get("cve") or ""))
+
+
 def validate_browser_index(
     catalog_dir: Path,
     manifest: dict[str, Any],
@@ -286,12 +447,21 @@ def validate_browser_index(
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         fail(failures, f"invalid browser index JSON: {exc}")
         return 0
-    expected_keys = {"schema_version", "fields", "ecosystems", "archetypes", "records"}
+    expected_keys = {
+        "schema_version",
+        "severity_codes",
+        "fields",
+        "ecosystems",
+        "archetypes",
+        "records",
+    }
     if not isinstance(browser, dict) or set(browser) != expected_keys:
         fail(failures, "browser index does not match the required top-level schema")
         return 0
-    if browser.get("schema_version") != 1:
-        fail(failures, "browser index schema_version must be 1")
+    if browser.get("schema_version") != 2:
+        fail(failures, "browser index schema_version must be 2")
+    if browser.get("severity_codes") != BROWSER_SEVERITY_NAMES:
+        fail(failures, "browser index severity_codes are invalid")
     if browser.get("fields") != BROWSER_INDEX_FIELDS:
         fail(failures, "browser index fields do not match the required order")
     ecosystems = browser.get("ecosystems")
@@ -328,7 +498,7 @@ def validate_browser_index(
             continue
         ecosystem_index = row[5]
         family_indexes = row[7]
-        if type(row[2]) is not int or row[2] not in {0, 1}:
+        if type(row[2]) is not int or row[2] not in set(BROWSER_SEVERITY_CODES.values()):
             fail(failures, f"browser index record {position} has invalid numeric severity")
             continue
         if type(ecosystem_index) is not int or not 0 <= ecosystem_index < len(ecosystems):
@@ -352,7 +522,7 @@ def validate_browser_index(
         expected = [
             compact.get("cve"),
             compact.get("title"),
-            1 if compact.get("severity") == "critical" else 0,
+            BROWSER_SEVERITY_CODES.get(str(compact.get("severity") or ""), -1),
             compact.get("score"),
             compact.get("published"),
             ecosystems.index(compact.get("ecosystem")),
@@ -395,7 +565,7 @@ def validate_runtime_summary(
 
     scope = manifest.get("scope") or {}
     expected = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": manifest.get("catalog_updated_at"),
         "scope": {
             "published_start": scope.get("published_start"),
@@ -552,10 +722,8 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
     manifest = load_json(manifest_path)
     archetypes = load_json(archetype_path)
     markdown_counts, markdown_inventory = validate_markdown_recipes(content_dir, failures)
-    if index.get("schema_version") != 1:
-        fail(failures, "index schema_version must be 1")
-    if manifest.get("schema_version") != 1:
-        fail(failures, "manifest schema_version must be 1")
+    if manifest.get("schema_version") != 2:
+        fail(failures, "manifest schema_version must be 2")
     if archetypes.get("schema_version") != 1:
         fail(failures, "archetype schema_version must be 1")
 
@@ -577,15 +745,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         end_date = date.max
     if scope_valid and start_date != ten_year_cutoff(end_date):
         fail(failures, "manifest publication scope must span exactly 10 calendar years")
-    if index.get("scope") != scope:
-        fail(failures, "index scope does not match manifest scope")
-
-    records = index.get("records")
-    if not isinstance(records, list):
-        fail(failures, "index records must be an array")
-        records = []
-    if index.get("total") != len(records):
-        fail(failures, f"index total {index.get('total')} does not match {len(records)} records")
+    if scope.get("statuses_excluded") != ["Reject", "Rejected"]:
+        fail(failures, "manifest rejected-status policy is invalid")
+    metric_policy = scope.get("metric_policy")
+    if not isinstance(metric_policy, str) or "baseScore >= 4.0" not in metric_policy:
+        fail(failures, "manifest metric policy must declare the CVSS 4.0 inclusion threshold")
+    records = validate_complete_index(catalog_dir, index, manifest, failures)
 
     index_by_cve: dict[str, dict[str, Any]] = {}
     valid_composed_cves: set[str] = set()
@@ -600,11 +765,11 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         if cve in index_by_cve:
             fail(failures, f"duplicate catalog identity: {cve}")
         index_by_cve[cve] = record
-        if record.get("severity") not in {"high", "critical"}:
+        if record.get("severity") not in {"medium", "high", "critical"}:
             fail(failures, f"{cve} has out-of-scope severity {record.get('severity')!r}")
         try:
-            if float(record.get("score")) < 7.0:
-                fail(failures, f"{cve} has score below 7.0")
+            if float(record.get("score")) < 4.0:
+                fail(failures, f"{cve} has score below 4.0")
         except (TypeError, ValueError):
             fail(failures, f"{cve} has invalid score")
         try:
@@ -852,8 +1017,8 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                     metric_scores.append(float(metric.get("score")))
                 except (TypeError, ValueError):
                     pass
-            if not any(score >= 7.0 for score in metric_scores):
-                fail(failures, f"{cve} lacks a stored High/Critical metric observation")
+            if not any(score >= 4.0 for score in metric_scores):
+                fail(failures, f"{cve} lacks a stored Medium/High/Critical metric observation")
             if record.get("kev") and not record.get("kev_details"):
                 fail(failures, f"{cve} is marked KEV without KEV provenance")
 

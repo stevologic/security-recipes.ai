@@ -5,14 +5,14 @@ weight: 9
 sidebar:
   open: false
 description: >
-  Complete ten-year High and Critical CVE intelligence, joined to
+  Complete ten-year Medium, High, and Critical CVE intelligence, joined to
   conservative remediation recipes for agents and human reviewers.
 ---
 
 {{< callout type="info" >}}
 **Complete facts, careful remediation.** The catalog covers every non-rejected
 NVD record published in the rolling ten-year window that has at least one
-NVD-supplied CVSS v2, v3, or v4 score of 7.0 or higher. Each record composes
+NVD-supplied CVSS v2, v3, or v4 score of 4.0 or higher. Each record composes
 with one or more reviewed remediation archetypes. A product-specific Markdown
 recipe overrides that baseline only after it reaches `stable` maturity and has
 important patch history, exposure conditions, or mitigations that a generic
@@ -32,15 +32,22 @@ workflow cannot safely infer.
    it cannot silently replace the conservative composed recipe.
 
 The machine-readable [coverage manifest](/api/cve-catalog/manifest.json),
-[complete index](/api/cve-catalog/index.json), and
+[complete partition manifest](/api/cve-catalog/index.json), and
 [remediation archetypes](/api/cve-catalog/archetypes.json) are public API
-artifacts for companies and agents. Full records are stored in integrity-hashed
-shards referenced by the index. The interactive browser uses a separate
+artifacts for companies and agents. The partition manifest points to compressed
+publication-year indexes; those indexes map every in-scope CVE to an
+integrity-hashed full-record shard. The interactive browser uses a separate
 compact [runtime summary](/api/cve-catalog/runtime-summary.json) for its initial
 coverage and content-version metadata, then loads the compressed
 [worker search index](/api/cve-catalog/browser-index.json.gz) only for a title
-or filter search. It never parses the full machine index on the page's main
-thread.
+or filter search. The worker index covers every in-scope record and is decoded
+off the page's main thread; a browser page never parses the machine partitions.
+
+Agents have the same catalog coverage through the dedicated MCP tools.
+`recipes_cve_search` searches the in-scope Medium/High/Critical index, while
+`recipes_cve_get` retrieves the full normalized source record, source
+identifiers and references, applicable archetypes, and composed remediation
+contract for an exact CVE ID.
 
 ## What a CVE recipe contains
 
@@ -75,8 +82,8 @@ fixed version is not authoritative. A Markdown override should only land when
 the remediation path is specific enough for a production reviewer to trust an
 agent-authored PR.
 
-For product-specific high and critical overrides, that means each prompt must
-include:
+For product-specific medium, high, and critical overrides, that means each
+prompt must include:
 
 - the model context used to generate it, currently `GPT 5.5 Extra High
   reasoning`;
@@ -157,7 +164,7 @@ source record and all applicable remediation archetypes from one shard.
 <noscript>
 JavaScript is required for interactive search. The complete catalog remains
 available through the machine-readable
-<a href="/api/cve-catalog/index.json">index</a> and
+<a href="/api/cve-catalog/index.json">partition manifest</a> and
 <a href="/api/cve-catalog/manifest.json">coverage manifest</a>.
 </noscript>
 
@@ -238,7 +245,7 @@ recipe end-to-end and produce a reviewable PR. That means:
   year embedded in the CVE ID. Every identifier-year feed is scanned so late
   publication of an older ID is not lost.
 - A record is included when it is not rejected and at least one NVD-supplied
-  CVSS v2, v3, or v4 observation has a base score of 7.0 or higher. The
+  CVSS v2, v3, or v4 observation has a base score of 4.0 or higher. The
   effective label uses the highest supported severity while retaining up to
   four source observations for review.
 - CISA KEV enriches exploitation priority but never manufactures or upgrades a
