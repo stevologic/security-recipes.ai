@@ -16,6 +16,7 @@ const feeds = require("./lib/feeds");
 const { escapeHtml, stripTags, isoDate } = require("./lib/util");
 const { lastmodFor } = require("./lib/git-lastmod");
 const { seoHead } = require("./lib/seo");
+const { isDiscoveryPage } = contentIndex;
 
 // Hugo-goldmark-compatible heading ids: lowercase, spaces to hyphens,
 // punctuation dropped, underscores kept.
@@ -94,6 +95,7 @@ function buildTagList() {
   const { pages } = contentIndex.getIndex();
   const map = new Map();
   for (const p of pages) {
+    if (!isDiscoveryPage(p)) continue;
     for (const tag of p.tags) {
       const slug = slugifyTag(tag);
       if (!slug) continue;
@@ -359,7 +361,7 @@ module.exports = function (eleventyConfig) {
         `<url><loc>${feeds.absURL(loc)}</loc>` +
         (lastmod ? `<lastmod>${lastmod}</lastmod>` : "") +
         `<changefreq>weekly</changefreq><priority>0.7</priority></url>`;
-      for (const p of pages) {
+      for (const p of pages.filter(isDiscoveryPage)) {
         urls.push(row(p.url, lastmodFor(p.sourcePath, p.date)));
       }
       const tags = buildTagList();
@@ -488,7 +490,7 @@ module.exports = function (eleventyConfig) {
           const dir = sec.sourcePath.replace(/_index\.md$/, "");
           const items = contentIndex
             .regularPagesUnder(dir)
-            .filter((p) => p.date)
+            .filter((p) => p.date && isDiscoveryPage(p))
             .sort((a, b) => b.date - a.date);
           return { title: sec.title, url: sec.url, items };
         });

@@ -57,6 +57,8 @@ def main() -> int:
     node = node_binary()
     for script in sorted((REPO_ROOT / "assets" / "js").glob("*.js")):
         run_command([node, "--check", str(script.relative_to(REPO_ROOT))], dry_run=args.dry_run)
+    for test_script in sorted((REPO_ROOT / "tests").glob("test_*.js")):
+        run_command([node, "--test", str(test_script.relative_to(REPO_ROOT))], dry_run=args.dry_run)
 
     return 0
 

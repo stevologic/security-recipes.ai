@@ -1,0 +1,866 @@
+from __future__ import annotations
+
+import gzip
+import hashlib
+import json
+import tempfile
+import unittest
+from copy import deepcopy
+from datetime import date
+from pathlib import Path
+from typing import Any
+
+from scripts import sync_cve_catalog as catalog
+from scripts import validate_cve_catalog as validator
+
+
+START_DATE = date(2016, 7, 12)
+END_DATE = date(2026, 7, 12)
+
+
+def cvss_observation(
+    version: str,
+    score: float,
+    *,
+    severity: str | None = None,
+    source: str = "synthetic-cna@example.test",
+    metric_type: str = "Primary",
+    vector: str | None = None,
+) -> tuple[str, dict[str, Any]]:
+    keys = {
+        "2.0": "cvssMetricV2",
+        "3.0": "cvssMetricV30",
+        "3.1": "cvssMetricV31",
+        "4.0": "cvssMetricV40",
+    }
+    data: dict[str, Any] = {
+        "version": version,
+        "baseScore": score,
+        "vectorString": vector or f"CVSS:{version}/SYNTHETIC",
+    }
+    if severity is not None:
+        data["baseSeverity"] = severity
+    return keys[version], {"source": source, "type": metric_type, "cvssData": data}
+
+
+def nvd_record(
+    cve_id: str = "CVE-2024-1234",
+    *,
+    published: str = "2024-05-06T12:00:00.000Z",
+    status: str = "Analyzed",
+    observations: list[tuple[str, dict[str, Any]]] | None = None,
+) -> dict[str, Any]:
+    metrics: dict[str, list[dict[str, Any]]] = {}
+    if observations is None:
+        observations = [cvss_observation("3.1", 8.1, severity="HIGH")]
+    for key, observation in observations:
+        metrics.setdefault(key, []).append(observation)
+    return {
+        "id": cve_id,
+        "sourceIdentifier": "synthetic-cna@example.test",
+        "published": published,
+        "lastModified": "2026-07-01T00:00:00.000Z",
+        "vulnStatus": status,
+        "descriptions": [
+            {
+                "lang": "en",
+                "value": f"{cve_id} allows remote attackers to exercise a synthetic vulnerable path.",
+            }
+        ],
+        "metrics": metrics,
+        "weaknesses": [{"description": [{"lang": "en", "value": "CWE-20"}]}],
+        "configurations": [],
+        "references": [
+            {
+                "url": f"https://vendor.example.test/advisories/{cve_id}",
+                "tags": ["Vendor Advisory"],
+            }
+        ],
+    }
+
+
+def normalize(
+    record: dict[str, Any],
+    *,
+    kev_map: dict[str, dict[str, Any]] | None = None,
+    existing: dict[str, list[catalog.ExistingRecipe]] | None = None,
+    cwe_mapping: dict[str, list[str] | str] | None = None,
+    default_archetype: str = "generic-remediation",
+) -> dict[str, Any] | None:
+    return catalog.normalize_cve(
+        record,
+        start_date=START_DATE,
+        end_date=END_DATE,
+        kev_map=kev_map or {},
+        cwe_mapping=cwe_mapping or {},
+        default_archetype=default_archetype,
+        existing=existing or {},
+    )
+
+
+def archetype_contract(title: str, *, matching_cwes: list[str] | None = None) -> dict[str, Any]:
+    return {
+        "title": title,
+        "description": f"{title} remediation contract.",
+        "matching_cwes": matching_cwes or [],
+        "exposure_checks": ["Confirm exposure."],
+        "remediation_steps": ["Apply the supported fix."],
+        "containment_steps": ["Contain the affected surface."],
+        "verification_steps": ["Verify the fixed state."],
+        "stop_conditions": ["Stop when ownership is unknown."],
+        "watch_for": ["Watch for incomplete rollout."],
+    }
+
+
+def archetype_payload(*ids: str, default: str = "generic-remediation") -> dict[str, Any]:
+    selected = ids or (default,)
+    return {
+        "schema_version": 1,
+        "default_archetype": default,
+        "archetypes": {archetype_id: archetype_contract(archetype_id) for archetype_id in selected},
+    }
+
+
+def complete_feed_sources(catalog_records: int, *, end_year: int = END_DATE.year) -> list[dict[str, Any]]:
+    return [
+        {
+            "year": year,
+            "url": f"{catalog.NVD_FEED_ROOT}/nvdcve-2.0-{year}.json.gz",
+            "accepted_records": catalog_records if year == end_year else 0,
+            "metadata": {
+                "lastModifiedDate": "2026-07-01T00:00:00Z",
+                "size": "1000",
+                "zipSize": "500",
+                "gzSize": "400",
+                "sha256": f"{year:064x}",
+            },
+        }
+        for year in range(2002, end_year + 1)
+    ]
+
+
+def build_catalog_outputs(
+    records: list[dict[str, Any]],
+) -> tuple[dict[Path, bytes], dict[str, Any]]:
+    return catalog.build_outputs(
+        records,
+        start_date=START_DATE,
+        end_date=END_DATE,
+        feed_sources=complete_feed_sources(len(records)),
+        kev_data={
+            "catalogVersion": "2026.07.01",
+            "dateReleased": "2026-07-01T00:00:00Z",
+            "vulnerabilities": [],
+        },
+        kev_payload=b'{"vulnerabilities":[]}\n',
+        archetypes=archetype_payload(),
+        existing={},
+    )
+
+
+def write_catalog_fixture(
+    base: Path, records: list[dict[str, Any]]
+) -> tuple[Path, Path, dict[str, Any]]:
+    output_dir = base / "catalog"
+    content_dir = base / "content"
+    content_dir.mkdir()
+    outputs, manifest = build_catalog_outputs(records)
+    catalog.write_outputs(output_dir, outputs)
+    return output_dir, content_dir, manifest
+
+
+class SyncCveCatalogTests(unittest.TestCase):
+    def test_cvss_v2_score_at_least_seven_is_high(self) -> None:
+        record = nvd_record(
+            observations=[
+                cvss_observation(
+                    "2.0",
+                    7.0,
+                    source="nvd@nist.gov",
+                    vector="AV:N/AC:L/Au:N/C:P/I:P/A:P",
+                )
+            ]
+        )
+
+        normalized = normalize(record)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["severity"], "high")
+        self.assertEqual(normalized["score"], 7.0)
+        self.assertEqual(normalized["cvss_version"], "2.0")
+        self.assertEqual(normalized["metric_source"], "nvd@nist.gov")
+
+    def test_v3_and_v4_critical_metrics_select_newer_version_and_keep_provenance(self) -> None:
+        record = nvd_record(
+            observations=[
+                cvss_observation(
+                    "3.1",
+                    9.8,
+                    severity="CRITICAL",
+                    source="cna@example.test",
+                    metric_type="Primary",
+                    vector="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                ),
+                cvss_observation(
+                    "4.0",
+                    9.8,
+                    severity="CRITICAL",
+                    source="adp@example.test",
+                    metric_type="Secondary",
+                    vector="CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H",
+                ),
+            ]
+        )
+
+        normalized = normalize(record)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["severity"], "critical")
+        self.assertEqual(normalized["cvss_version"], "4.0")
+        self.assertEqual(normalized["metric_source"], "adp@example.test")
+        self.assertEqual(normalized["metric_type"], "Secondary")
+        by_version = {metric["version"]: metric for metric in normalized["metrics"]}
+        self.assertEqual(by_version["3.1"]["severity"], "critical")
+        self.assertEqual(by_version["3.1"]["source"], "cna@example.test")
+        self.assertEqual(by_version["4.0"]["severity"], "critical")
+        self.assertEqual(by_version["4.0"]["source"], "adp@example.test")
+
+    def test_rejected_out_of_window_and_below_high_records_are_excluded(self) -> None:
+        rejected = nvd_record(status="Rejected")
+        before_window = nvd_record(published="2016-07-11T23:59:59.000Z")
+        after_window = nvd_record(published="2026-07-13T00:00:00.000Z")
+        below_high = nvd_record(observations=[cvss_observation("3.1", 6.9, severity="MEDIUM")])
+
+        for label, record in (
+            ("rejected", rejected),
+            ("before window", before_window),
+            ("after window", after_window),
+            ("below high", below_high),
+        ):
+            with self.subTest(label=label):
+                self.assertIsNone(normalize(record))
+
+    def test_publication_window_does_not_assume_cve_id_year(self) -> None:
+        record = nvd_record(
+            "CVE-2014-98765",
+            published="2021-03-04T05:06:07.000Z",
+        )
+
+        normalized = normalize(record)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["cve"], "CVE-2014-98765")
+        self.assertEqual(normalized["published"], "2021-03-04")
+
+    def test_cpe_product_and_all_version_bounds_are_extracted(self) -> None:
+        record = nvd_record()
+        record["configurations"] = [
+            {
+                "nodes": [
+                    {
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:a:acme:widget:1.2.3:*:*:*:*:*:*:*",
+                                "versionStartIncluding": "1.0.0",
+                                "versionStartExcluding": "0.9.0",
+                                "versionEndIncluding": "1.9.9",
+                                "versionEndExcluding": "2.0.0",
+                            },
+                            {
+                                "vulnerable": False,
+                                "criteria": "cpe:2.3:a:acme:not_vulnerable:*:*:*:*:*:*:*:*",
+                            },
+                        ]
+                    }
+                ]
+            }
+        ]
+
+        products, match_count = catalog.extract_products(record)
+
+        self.assertEqual(match_count, 1)
+        self.assertEqual(len(products), 1)
+        self.assertEqual(
+            products[0],
+            {
+                "part": "a",
+                "vendor": "acme",
+                "product": "widget",
+                "version": "1.2.3",
+                "version_start_including": "1.0.0",
+                "version_start_excluding": "0.9.0",
+                "version_end_including": "1.9.9",
+                "version_end_excluding": "2.0.0",
+                "cpe": "cpe:2.3:a:acme:widget:1.2.3:*:*:*:*:*:*:*",
+            },
+        )
+
+    def test_normalized_records_make_product_truncation_explicit(self) -> None:
+        record = nvd_record()
+        record["configurations"] = [
+            {
+                "cpeMatch": [
+                    {
+                        "vulnerable": True,
+                        "criteria": f"cpe:2.3:a:acme:widget_{position}:1.0:*:*:*:*:*:*:*",
+                    }
+                    for position in range(13)
+                ]
+            }
+        ]
+
+        normalized = normalize(record)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["product_match_count"], 13)
+        self.assertEqual(normalized["products_stored"], 12)
+        self.assertEqual(len(normalized["products"]), 12)
+        self.assertTrue(normalized["products_truncated"])
+
+        without_products = normalize(nvd_record("CVE-2024-5678"))
+        self.assertIsNotNone(without_products)
+        assert without_products is not None
+        self.assertEqual(without_products["product_match_count"], 0)
+        self.assertEqual(without_products["products_stored"], 0)
+        self.assertFalse(without_products["products_truncated"])
+
+    def test_log4shell_composes_all_mapped_cwe_families_in_risk_order(self) -> None:
+        record = nvd_record(
+            "CVE-2021-44228",
+            published="2021-12-10T10:15:00.000Z",
+            observations=[cvss_observation("3.1", 10.0, severity="CRITICAL")],
+        )
+        record["descriptions"][0]["value"] = (
+            "Apache Log4j2 message lookup substitution can let a remote attacker execute arbitrary code; "
+            "related unsafe object reconstruction and resource exhaustion conditions also apply."
+        )
+        record["weaknesses"] = [
+            {"description": [{"lang": "en", "value": "CWE-917"}]},
+            {"description": [{"lang": "en", "value": "CWE-502"}]},
+            {"description": [{"lang": "en", "value": "CWE-400"}]},
+        ]
+        record["configurations"] = [
+            {
+                "nodes": [
+                    {
+                        "cpeMatch": [
+                            {
+                                "vulnerable": True,
+                                "criteria": "cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*",
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+        mapping = {
+            "CWE-917": ["command_code_injection"],
+            "CWE-502": ["unsafe_deserialization"],
+            "CWE-400": ["resource_exhaustion_dos"],
+        }
+
+        normalized = normalize(record, cwe_mapping=mapping)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["archetype"], "command_code_injection")
+        self.assertEqual(
+            normalized["archetypes"],
+            ["command_code_injection", "unsafe_deserialization", "resource_exhaustion_dos"],
+        )
+        self.assertEqual(normalized["ecosystem"], "java/maven")
+
+    def test_keyword_rce_does_not_override_mapped_memory_corruption_cwe(self) -> None:
+        record = nvd_record()
+        record["descriptions"][0]["value"] = "An out-of-bounds write may allow remote code execution."
+        record["weaknesses"] = [{"description": [{"lang": "en", "value": "CWE-787"}]}]
+        mapping = {
+            "CWE-787": ["memory_corruption"],
+            "CWE-917": ["command_code_injection"],
+        }
+
+        normalized = normalize(record, cwe_mapping=mapping)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertEqual(normalized["archetype"], "memory_corruption")
+        self.assertEqual(normalized["archetypes"], ["memory_corruption"])
+
+    def test_ecosystem_inference_uses_exact_tokens_and_primary_cpe(self) -> None:
+        cases = (
+            (
+                "Log4Shell",
+                [{"part": "a", "vendor": "apache", "product": "log4j"}],
+                "Apache Log4j message processing vulnerability.",
+                "java/maven",
+            ),
+            (
+                "Log4Shell mixed CPE order",
+                [
+                    {"part": "o", "vendor": "linux", "product": "linux_kernel"},
+                    {"part": "a", "vendor": "apache", "product": "log4j"},
+                ],
+                "Apache Log4j message processing vulnerability on Linux.",
+                "java/maven",
+            ),
+            (
+                "Nagios",
+                [{"part": "a", "vendor": "nagios", "product": "nagios_xi"}],
+                "Nagios XI authorization vulnerability.",
+                "software/application",
+            ),
+            (
+                "Cisco IOS",
+                [{"part": "o", "vendor": "cisco", "product": "ios"}],
+                "A vulnerability in Cisco IOS network software used to route Apple iOS traffic.",
+                "operating-system",
+            ),
+            (
+                "BIOS",
+                [{"part": "h", "vendor": "acme", "product": "bios_firmware"}],
+                "A BIOS firmware validation vulnerability.",
+                "hardware/firmware",
+            ),
+            (
+                "Apple iOS",
+                [{"part": "o", "vendor": "apple", "product": "iphone_os"}],
+                "Apple iOS memory corruption vulnerability.",
+                "apple/platform",
+            ),
+        )
+        for label, products, summary, expected in cases:
+            with self.subTest(label=label):
+                self.assertEqual(catalog.infer_ecosystem(products, summary), expected)
+
+    def test_kev_enrichment_never_invents_or_upgrades_severity(self) -> None:
+        cve_id = "CVE-2024-1234"
+        kev_data = {
+            "vulnerabilities": [
+                {
+                    "cveID": cve_id,
+                    "vulnerabilityName": "Synthetic KEV entry",
+                    "dateAdded": "2025-01-02",
+                    "dueDate": "2025-01-23",
+                    "requiredAction": "Apply the vendor update.",
+                }
+            ]
+        }
+        kev_map = catalog.kev_by_cve(kev_data)
+        no_metric = nvd_record(cve_id, observations=[])
+        v2_high = nvd_record(cve_id, observations=[cvss_observation("2.0", 8.8)])
+
+        self.assertIsNone(normalize(no_metric, kev_map=kev_map))
+        normalized = normalize(v2_high, kev_map=kev_map)
+
+        self.assertIsNotNone(normalized)
+        assert normalized is not None
+        self.assertTrue(normalized["kev"])
+        self.assertEqual(normalized["severity"], "high")
+        self.assertEqual(normalized["title"], "Synthetic KEV entry")
+        self.assertEqual(normalized["kev_details"]["date_added"], "2025-01-02")
+
+    def test_matching_verified_marker_still_rehashes_cached_feed_contents(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-cve-cache-", dir=catalog.ROOT) as tmpdir:
+            cache_dir = Path(tmpdir)
+            stem = "nvdcve-2.0-2024"
+            raw = b'{"vulnerabilities":[]}\n'
+            expected_sha = hashlib.sha256(raw).hexdigest()
+            (cache_dir / f"{stem}.meta").write_text(f"sha256: {expected_sha}\n", encoding="utf-8")
+            (cache_dir / f"{stem}.verified").write_text(expected_sha + "\n", encoding="ascii")
+            gzip_path = cache_dir / f"{stem}.json.gz"
+            gzip_path.write_bytes(gzip.compress(raw, mtime=0))
+
+            resolved, _ = catalog.cache_feed(2024, cache_dir, offline=True)
+            self.assertEqual(resolved, gzip_path)
+
+            gzip_path.write_bytes(gzip.compress(b'{"vulnerabilities":[{"tampered":true}]}\n', mtime=0))
+            with self.assertRaisesRegex(ValueError, "integrity failure"):
+                catalog.cache_feed(2024, cache_dir, offline=True)
+
+    def test_archetype_contract_requires_descriptions_and_nonempty_string_lists(self) -> None:
+        payload = archetype_payload()
+        self.assertEqual(catalog.archetype_contract_errors(payload), [])
+        del payload["archetypes"]["generic-remediation"]["description"]
+        payload["archetypes"]["generic-remediation"]["verification_steps"] = []
+
+        errors = catalog.archetype_contract_errors(payload)
+
+        self.assertTrue(any("description" in error for error in errors))
+        self.assertTrue(any("verification_steps" in error for error in errors))
+        with tempfile.TemporaryDirectory(prefix="test-archetypes-", dir=catalog.ROOT) as tmpdir:
+            path = Path(tmpdir) / "archetypes.json"
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "invalid remediation archetypes"):
+                catalog.load_archetypes(path)
+
+    def test_override_path_validation_rejects_absolute_and_traversal_paths(self) -> None:
+        self.assertTrue(
+            validator.is_safe_relative_path("content/prompt-library/cve/cve-2024-1111-example.md")
+        )
+        for unsafe in (
+            "../cve-2024-1111.md",
+            "/content/prompt-library/cve/cve-2024-1111.md",
+            "C:/content/prompt-library/cve/cve-2024-1111.md",
+            "content\\prompt-library\\cve\\cve-2024-1111.md",
+            "content/prompt-library/general/not-a-cve.md",
+        ):
+            with self.subTest(path=unsafe):
+                self.assertFalse(validator.is_safe_relative_path(unsafe))
+
+    def test_markdown_inventory_uses_only_primary_frontmatter_cve_and_reports_duplicates(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-cve-inventory-", dir=catalog.ROOT) as tmpdir:
+            content_dir = Path(tmpdir)
+            (content_dir / "a.md").write_text(
+                "---\n"
+                'title: "First"\n'
+                'cve: "CVE-2024-1111"\n'
+                'maturity: "stable"\n'
+                "---\n\n"
+                "Body mentions CVE-2025-9999, which must not become inventory.\n",
+                encoding="utf-8",
+            )
+            (content_dir / "b.md").write_text(
+                "---\n"
+                'title: "Duplicate"\n'
+                "cve: CVE-2024-1111\n"
+                'maturity: "development"\n'
+                "---\n\n"
+                "Second primary recipe.\n",
+                encoding="utf-8",
+            )
+            (content_dir / "body-only.md").write_text(
+                "---\n"
+                'title: "No primary CVE"\n'
+                "---\n\n"
+                "Only prose mentions CVE-2024-2222 and CVE-2024-1111.\n",
+                encoding="utf-8",
+            )
+
+            inventory = catalog.markdown_inventory(content_dir)
+
+            self.assertEqual(set(inventory), {"CVE-2024-1111"})
+            self.assertEqual([item.maturity for item in inventory["CVE-2024-1111"]], ["stable", "development"])
+            self.assertEqual(len(inventory["CVE-2024-1111"]), 2)
+            self.assertEqual(inventory["CVE-2024-1111"][0].title, "First")
+            self.assertEqual(
+                inventory["CVE-2024-1111"][0].content_markdown,
+                "Body mentions CVE-2025-9999, which must not become inventory.",
+            )
+            self.assertEqual(inventory["CVE-2024-1111"][1].content_markdown, "")
+
+            _, manifest = catalog.build_outputs(
+                [],
+                start_date=START_DATE,
+                end_date=END_DATE,
+                feed_sources=[{"metadata": {"lastModifiedDate": "2026-07-01T00:00:00Z"}}],
+                kev_data={"vulnerabilities": [], "dateReleased": "2026-07-01T00:00:00Z"},
+                kev_payload=b"{}\n",
+                archetypes=archetype_payload(),
+                existing=inventory,
+            )
+            duplicate_paths = manifest["markdown_duplicate_ids"]["CVE-2024-1111"]
+            self.assertEqual(len(duplicate_paths), 2)
+            self.assertTrue(duplicate_paths[0].endswith("/a.md"))
+            self.assertTrue(duplicate_paths[1].endswith("/b.md"))
+
+    def test_only_stable_markdown_is_embedded_and_advertised_as_an_override(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-cve-overrides-", dir=catalog.ROOT) as tmpdir:
+            content_dir = Path(tmpdir)
+
+            def write_recipe(name: str, cve: str, maturity: str, body: str) -> None:
+                (content_dir / name).write_text(
+                    "---\n"
+                    f'title: "{cve} recipe"\n'
+                    f'cve: "{cve}"\n'
+                    f'maturity: "{maturity}"\n'
+                    "---\n\n"
+                    f"{body}\n",
+                    encoding="utf-8",
+                )
+
+            write_recipe("stable.md", "CVE-2024-1111", "stable", "Authoritative stable body.")
+            write_recipe("draft.md", "CVE-2024-2222", "development", "Draft body must not ship.")
+            inventory = catalog.markdown_inventory(content_dir)
+            stable = normalize(nvd_record("CVE-2024-1111"), existing=inventory)
+            draft = normalize(nvd_record("CVE-2024-2222"), existing=inventory)
+            self.assertIsNotNone(stable)
+            self.assertIsNotNone(draft)
+            assert stable is not None and draft is not None
+
+            self.assertEqual(stable["recipe_kind"], "markdown-override")
+            self.assertEqual(stable["markdown"][0]["content_markdown"], "Authoritative stable body.")
+            self.assertEqual(draft["recipe_kind"], "markdown-draft")
+            self.assertNotIn("content_markdown", draft["markdown"][0])
+
+            outputs, manifest = catalog.build_outputs(
+                [draft, stable],
+                start_date=START_DATE,
+                end_date=END_DATE,
+                feed_sources=[{"metadata": {"lastModifiedDate": "2026-07-01T00:00:00Z"}}],
+                kev_data={"vulnerabilities": [], "dateReleased": "2026-07-01T00:00:00Z"},
+                kev_payload=b"{}\n",
+                archetypes=archetype_payload(),
+                existing=inventory,
+            )
+            compact = json.loads(outputs[Path("index.json")])["records"]
+            by_cve = {record["cve"]: record for record in compact}
+            self.assertTrue(by_cve["CVE-2024-1111"]["has_markdown"])
+            self.assertFalse(by_cve["CVE-2024-2222"]["has_markdown"])
+            self.assertEqual(manifest["totals"]["markdown_overrides"], 1)
+            self.assertEqual(manifest["totals"]["markdown_drafts"], 1)
+            self.assertEqual(manifest["totals"]["markdown_pages"], 2)
+
+            full_records = []
+            for path, payload in outputs.items():
+                if path.as_posix().startswith("shards/"):
+                    full_records.extend(json.loads(line) for line in gzip.decompress(payload).splitlines())
+            full_by_cve = {record["cve"]: record for record in full_records}
+            self.assertEqual(
+                full_by_cve["CVE-2024-1111"]["markdown"][0]["content_markdown"],
+                "Authoritative stable body.",
+            )
+            self.assertNotIn("content_markdown", full_by_cve["CVE-2024-2222"]["markdown"][0])
+
+    def test_cve_sharding_is_deterministic_and_uses_identifier_year_and_sequence_bucket(self) -> None:
+        cases = {
+            "CVE-2014-999": "shards/2014/0000.jsonl.gz",
+            "CVE-2014-1000": "shards/2014/0001.jsonl.gz",
+            "CVE-2014-1999": "shards/2014/0001.jsonl.gz",
+            "CVE-2026-123456": "shards/2026/0123.jsonl.gz",
+        }
+        for cve_id, expected in cases.items():
+            with self.subTest(cve=cve_id):
+                record = {"cve": cve_id}
+                self.assertEqual(catalog.cve_shard(record), expected)
+                self.assertEqual(catalog.cve_shard(deepcopy(record)), expected)
+
+    def test_validator_requires_exact_scope_complete_feeds_and_source_metadata(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        with tempfile.TemporaryDirectory(prefix="test-cve-completeness-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(Path(tmpdir), [record])
+            baseline = validator.validate(output_dir, content_dir)
+            self.assertTrue(baseline["ok"], baseline["failures"])
+
+            manifest_path = output_dir / "manifest.json"
+            index_path = output_dir / "index.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            manifest["scope"]["published_start"] = "2016-07-13"
+            index["scope"] = deepcopy(manifest["scope"])
+            feeds = manifest["sources"]["nvd"]["feeds"]
+            feeds[1] = deepcopy(feeds[0])  # Duplicate 2002 and omit 2003.
+            feeds[-1]["accepted_records"] += 1  # Model a post-normalization --limit.
+            del feeds[2]["metadata"]["sha256"]
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            index_path.write_text(json.dumps(index), encoding="utf-8")
+
+            validation = validator.validate(output_dir, content_dir)
+            failures = "\n".join(validation["failures"])
+            self.assertFalse(validation["ok"])
+            self.assertIn("exactly 10 calendar years", failures)
+            self.assertIn("feed years are not unique", failures)
+            self.assertIn("feed years must be exactly 2002..2026", failures)
+            self.assertIn("accepted_records sum 2 does not match catalog_records 1", failures)
+            self.assertIn("metadata is missing required fields", failures)
+
+    def test_validator_rejects_orphan_physical_shards(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        with tempfile.TemporaryDirectory(prefix="test-cve-orphan-shard-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(Path(tmpdir), [record])
+            orphan = output_dir / "shards" / "1999" / "9999.jsonl.gz"
+            orphan.parent.mkdir(parents=True)
+            orphan.write_bytes(gzip.compress(b'{"cve":"CVE-1999-9999999"}\n', mtime=0))
+
+            validation = validator.validate(output_dir, content_dir)
+            failures = "\n".join(validation["failures"])
+            self.assertFalse(validation["ok"])
+            self.assertIn("physical shard set does not match manifest", failures)
+            self.assertIn("shards/1999/9999.jsonl.gz", failures)
+
+    def test_validator_enforces_product_storage_metadata_consistency(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        record["products_truncated"] = True
+        with tempfile.TemporaryDirectory(prefix="test-cve-product-counts-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(Path(tmpdir), [record])
+
+            validation = validator.validate(output_dir, content_dir)
+            failures = "\n".join(validation["failures"])
+            self.assertFalse(validation["ok"])
+            self.assertIn("products_truncated is inconsistent with product counts", failures)
+
+    def test_validator_rejects_stale_embedded_stable_markdown(self) -> None:
+        cve_id = "CVE-2024-1111"
+        content_parent = catalog.ROOT / "content" / "prompt-library" / "cve"
+        with (
+            tempfile.TemporaryDirectory(prefix=".test-stale-markdown-", dir=content_parent) as content_tmp,
+            tempfile.TemporaryDirectory(prefix="test-cve-stale-output-", dir=catalog.ROOT) as output_tmp,
+        ):
+            content_dir = Path(content_tmp)
+            recipe_path = content_dir / "stable.md"
+            recipe_path.write_text(
+                "---\n"
+                f'title: "{cve_id} reviewed recipe"\n'
+                f'cve: "{cve_id}"\n'
+                'known_as: "Synthetic reviewed CVE"\n'
+                "kev: false\n"
+                "severity: high\n"
+                'ecosystem: "test/application"\n'
+                'disclosed: "2024-01-01"\n'
+                'maturity: "stable"\n'
+                "---\n\n"
+                "Authoritative body version one.\n",
+                encoding="utf-8",
+            )
+            inventory = catalog.markdown_inventory(content_dir)
+            record = normalize(nvd_record(cve_id), existing=inventory)
+            self.assertIsNotNone(record)
+            assert record is not None
+            outputs, _ = catalog.build_outputs(
+                [record],
+                start_date=START_DATE,
+                end_date=END_DATE,
+                feed_sources=complete_feed_sources(1),
+                kev_data={
+                    "catalogVersion": "2026.07.01",
+                    "dateReleased": "2026-07-01T00:00:00Z",
+                    "vulnerabilities": [],
+                },
+                kev_payload=b'{"vulnerabilities":[]}\n',
+                archetypes=archetype_payload(),
+                existing=inventory,
+            )
+            output_dir = Path(output_tmp) / "catalog"
+            catalog.write_outputs(output_dir, outputs)
+
+            baseline = validator.validate(output_dir, content_dir)
+            self.assertTrue(baseline["ok"], baseline["failures"])
+
+            recipe_path.write_text(
+                recipe_path.read_text(encoding="utf-8").replace(
+                    "Authoritative body version one.",
+                    "Authoritative body version two.",
+                ),
+                encoding="utf-8",
+            )
+            stale = validator.validate(output_dir, content_dir)
+            self.assertFalse(stale["ok"])
+            self.assertIn("content_markdown is stale", "\n".join(stale["failures"]))
+
+    def test_build_outputs_are_byte_deterministic_and_report_full_composed_coverage(self) -> None:
+        first = normalize(nvd_record("CVE-2014-1000", published="2021-01-02T00:00:00Z"))
+        second = normalize(nvd_record("CVE-2025-2001", published="2025-06-07T00:00:00Z"))
+        self.assertIsNotNone(first)
+        self.assertIsNotNone(second)
+        assert first is not None and second is not None
+
+        kwargs = {
+            "start_date": START_DATE,
+            "end_date": END_DATE,
+            "feed_sources": complete_feed_sources(2),
+            "kev_data": {
+                "catalogVersion": "2026.07.01",
+                "dateReleased": "2026-07-02T00:00:00Z",
+                "vulnerabilities": [],
+            },
+            "kev_payload": b'{"vulnerabilities":[]}\n',
+            "archetypes": archetype_payload(),
+            "existing": {},
+        }
+
+        outputs_a, manifest_a = catalog.build_outputs([second, first], **kwargs)
+        outputs_b, manifest_b = catalog.build_outputs([first, second], **kwargs)
+
+        self.assertEqual(manifest_a, manifest_b)
+        self.assertEqual(outputs_a, outputs_b)
+        self.assertEqual(manifest_a["totals"]["catalog_records"], 2)
+        self.assertEqual(manifest_a["totals"]["composed_recipe_coverage"], 2)
+        self.assertEqual(manifest_a["totals"]["coverage_percent"], 100.0)
+        self.assertEqual(manifest_a["by_publication_year"]["2021"]["total"], 1)
+        self.assertIn(Path("shards/2014/0001.jsonl.gz"), outputs_a)
+        self.assertIn(Path("browser-index.json.gz"), outputs_a)
+        self.assertIn(Path("runtime-summary.json"), outputs_a)
+
+        serialized_manifest = json.loads(outputs_a[Path("manifest.json")])
+        self.assertEqual(serialized_manifest["totals"]["coverage_percent"], 100.0)
+        self.assertEqual(serialized_manifest["totals"]["composed_recipe_coverage"], 2)
+
+        browser_gzip = outputs_a[Path("browser-index.json.gz")]
+        browser_raw = gzip.decompress(browser_gzip)
+        browser = json.loads(browser_raw)
+        self.assertEqual(int.from_bytes(browser_gzip[4:8], "little"), 0)
+        self.assertEqual(browser["fields"], catalog.BROWSER_INDEX_FIELDS)
+        self.assertEqual(browser["ecosystems"], ["software/application"])
+        self.assertEqual(browser["archetypes"], ["generic-remediation"])
+        self.assertEqual([row[0] for row in browser["records"]], ["CVE-2014-1000", "CVE-2025-2001"])
+        self.assertTrue(all(row[2] == 0 for row in browser["records"]))
+        self.assertLess(len(browser_gzip), len(outputs_a[Path("index.json")]) * 0.75)
+        browser_manifest = manifest_a["browser_index"]
+        self.assertEqual(browser_manifest["path"], "browser-index.json.gz")
+        self.assertEqual(browser_manifest["records"], 2)
+        self.assertEqual(browser_manifest["bytes"], len(browser_gzip))
+        self.assertEqual(browser_manifest["uncompressed_bytes"], len(browser_raw))
+        self.assertEqual(browser_manifest["sha256"], hashlib.sha256(browser_gzip).hexdigest())
+
+        runtime_payload = outputs_a[Path("runtime-summary.json")]
+        runtime_summary = json.loads(runtime_payload)
+        self.assertEqual(runtime_summary["totals"], manifest_a["totals"])
+        self.assertEqual(runtime_summary["by_severity"], manifest_a["by_severity"])
+        self.assertEqual(runtime_summary["browser_index"], browser_manifest)
+        self.assertEqual(runtime_summary["archetypes"], manifest_a["archetypes_asset"])
+        self.assertEqual(runtime_summary["shard_set_sha256"], manifest_a["shard_set_sha256"])
+        self.assertRegex(runtime_summary["shard_set_sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(
+            runtime_summary["scope"],
+            {"published_start": START_DATE.isoformat(), "published_end": END_DATE.isoformat()},
+        )
+        runtime_manifest = manifest_a["runtime_summary"]
+        self.assertEqual(runtime_manifest["path"], "runtime-summary.json")
+        self.assertEqual(runtime_manifest["bytes"], len(runtime_payload))
+        self.assertEqual(runtime_manifest["sha256"], hashlib.sha256(runtime_payload).hexdigest())
+
+        changed_record = deepcopy(first)
+        changed_record["summary"] = str(changed_record.get("summary") or "") + " reviewed content change"
+        _, record_changed_manifest = catalog.build_outputs([changed_record, second], **kwargs)
+        self.assertEqual(record_changed_manifest["catalog_updated_at"], manifest_a["catalog_updated_at"])
+        self.assertNotEqual(
+            record_changed_manifest["shard_set_sha256"],
+            manifest_a["shard_set_sha256"],
+        )
+
+        changed_archetypes = deepcopy(kwargs["archetypes"])
+        default_id = changed_archetypes["default_archetype"]
+        changed_archetypes["archetypes"][default_id]["title"] += " revised"
+        _, archetype_changed_manifest = catalog.build_outputs(
+            [first, second],
+            **{**kwargs, "archetypes": changed_archetypes},
+        )
+        self.assertEqual(archetype_changed_manifest["catalog_updated_at"], manifest_a["catalog_updated_at"])
+        self.assertNotEqual(
+            archetype_changed_manifest["archetypes_asset"]["sha256"],
+            manifest_a["archetypes_asset"]["sha256"],
+        )
+
+        with tempfile.TemporaryDirectory(prefix="test-cve-output-", dir=catalog.ROOT) as tmpdir:
+            base = Path(tmpdir)
+            output_dir = base / "catalog"
+            content_dir = base / "content"
+            content_dir.mkdir()
+            catalog.write_outputs(output_dir, outputs_a)
+            validation = validator.validate(output_dir, content_dir)
+            self.assertTrue(validation["ok"], validation["failures"])
+            self.assertEqual(validation["browser_records"], 2)
+
+
+if __name__ == "__main__":
+    unittest.main()

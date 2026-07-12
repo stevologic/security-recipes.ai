@@ -47,6 +47,10 @@ security-recipes.ai helps teams answer:
   default-hardening remediation.
 - CVE intelligence intake policy, prompt, fixtures, and evaluator for routing
   advisory signals before an agent patches.
+- A complete rolling ten-year High/Critical CVE catalog composed from
+  integrity-verified NVD JSON 2.0 feeds, CISA KEV metadata, and every applicable
+  vetted remediation archetype. Only reviewed `stable` Markdown pages override
+  that conservative baseline.
 - Recipes with existing prompt collections preserved.
 - Agent setup guides for GitHub Copilot, Claude, Cursor, Codex, and Devin.
 - MCP integration guidance for public and organization-approved security data
@@ -66,6 +70,8 @@ security-recipes.ai helps teams answer:
 | `lib/` | Build modules: shortcode ports, JSON feed builders, SEO head. |
 | `assets/` | Site CSS and JavaScript for the recipe browser, navigation, and helper tools. |
 | `static/` | Images, logos, schemas, and static assets. |
+| `static/api/cve-catalog/` | Complete sharded CVE catalog, machine index, compressed browser-search index, provenance manifest, and archetypes. |
+| `data/cve/` | Human-reviewed remediation archetype source. |
 | `docs/` | Repository documentation assets, including the README screenshots. |
 | `mcp_server.py` | Optional read-only MCP server for recipe search and approved upstream MCP context. |
 | `mcp-server.toml.example` | MCP server configuration template. |
@@ -132,6 +138,9 @@ Common tools:
 - `recipes_search`
 - `recipes_list`
 - `recipes_get`
+- `recipes_cve_catalog_info`
+- `recipes_cve_search`
+- `recipes_cve_get`
 - `recipes_match_finding`
 - `recipes_mcp_upstream_servers`
 - `recipes_mcp_upstream_tools`
@@ -143,6 +152,59 @@ The MCP server accepts both generated recipe feeds:
 - `/api/recipes.json` is the preferred agent feed with category, severity,
   CVE/GHSA, ecosystem, and handoff metadata.
 - `/recipes-index.json` remains supported for legacy consumers.
+
+The complete CVE catalog is also available without MCP:
+
+- `/api/cve-catalog/manifest.json` declares the exact date/severity policy,
+  source hashes, coverage counts, and shard inventory.
+- `/api/cve-catalog/runtime-summary.json` is the small browser bootstrap with
+  coverage totals and content-derived cache versions for every runtime asset.
+- `/api/cve-catalog/index.json` is the complete bulk/offline machine index;
+  neither a browser page load nor an exact MCP lookup parses it.
+- `/api/cve-catalog/browser-index.json.gz` is the smaller dictionary-encoded
+  index searched off the browser's main thread.
+- `/api/cve-catalog/archetypes.json` contains the reviewed remediation
+  contracts used to compose a conservative recipe for every catalog record.
+- The index points to compressed JSONL shards containing CVSS, CWE, bounded
+  CPE, reference, and KEV provenance for exact-CVE retrieval.
+- To keep records bounded, a shard stores at most 12 vulnerable CPE/version
+  rows together with the source match total and an explicit truncation flag;
+  consumers must follow NVD/vendor evidence when that flag is set.
+
+Development CVE Markdown keeps its direct page URL for compatibility but is
+excluded from generic recipe/search feeds, tag pages, RSS, and the sitemap.
+Use the dedicated catalog or `recipes_cve_*` MCP tools for complete discovery;
+only reviewed `maturity: stable` Markdown is republished in generic indexes.
+
+The runtime paths are deliberately bounded for catalog-scale traffic:
+
+- the hub bootstraps from the compact runtime summary, exact lookups transfer
+  one integrity-hashed shard, and title/filter search loads the compressed
+  worker index only on demand;
+- the worker returns at most 100 previews, yields cooperatively, and uses
+  bounded record/title caches instead of rendering or decoding the full
+  catalog on the main thread;
+- MCP metadata and exact retrieval remain shard-only; non-exact text search
+  lazily loads a compact shared index behind admission control, candidate
+  limits, and bounded query/shard caches;
+- immutable browser cache keys come from the actual browser-index, archetype,
+  and shard-set hashes rather than an upstream timestamp.
+
+The bundled production Compose service defaults
+`RECIPES_MCP_EAGER_CVE_SEARCH=true`, building the shared text index before it
+accepts traffic so the first title/ecosystem query does not pay the cold-start
+cost. Exact-only deployments can set it to `false` for minimal startup time and
+memory. For sustained novel-search traffic, run multiple MCP instances behind
+a session-aware load balancer; exact lookups remain isolated from the bounded
+text-search worker and queue.
+
+Run `npm run icons` after changing the site mark. It regenerates the opaque
+Apple touch icon and the 192/512/maskable installed-app assets checked by the
+production performance gate.
+
+Production builds precompress large JSON/XML feeds for nginx `gzip_static`,
+validate stable/draft discovery boundaries, and enforce payload/file-count
+budgets with `npm run check:performance`.
 
 Run it with Docker:
 
@@ -356,3 +418,15 @@ python -m pip install -r requirements-dev.txt
 python scripts/run_checks.py
 npm run build
 ```
+
+## License
+
+The project's original code, documentation, remediation recipes, generated
+site, and MCP server are licensed under the [Apache License
+2.0](LICENSE). This permits private and commercial use, modification, and
+redistribution, including incorporation into proprietary company systems,
+subject to the license's notice and change-marking requirements.
+
+Source vulnerability data and bundled third-party software retain their own
+terms and attribution requirements. See [NOTICE](NOTICE) and
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

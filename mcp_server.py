@@ -7,12 +7,22 @@ Exposes a read-only MCP tool surface backed by the site's generated recipe feeds
 from __future__ import annotations
 
 import asyncio
+import gzip
+import hashlib
+import heapq
+import io
 import json
 import math
 import os
 import re
+import threading
 import time
+from array import array
+from bisect import bisect_left
+from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
@@ -95,6 +105,10 @@ class ServerConfig:
     gateway_policy_path: str = os.environ.get(
         "RECIPES_MCP_GATEWAY_POLICY_PATH",
         "./data/policy/mcp-gateway-policy.json",
+    )
+    cve_catalog_path: str = os.environ.get(
+        "RECIPES_MCP_CVE_CATALOG_PATH",
+        "./static/api/cve-catalog",
     )
     assurance_pack_path: str = os.environ.get(
         "RECIPES_MCP_ASSURANCE_PACK_PATH",
@@ -1127,6 +1141,879 @@ class RecipeIndex:
         if score < 85:
             return "Promote this recipe by adding stronger contracts, verification, and related context until it reaches world-class readiness."
         return "No immediate quality gap detected."
+
+
+@dataclass(frozen=True, slots=True)
+class CVECompactRecord:
+    cve: str
+    title: str
+    severity: str
+    score: object
+    published: str
+    ecosystem: str
+    kev: bool
+    archetype: str
+    archetypes: tuple[str, ...]
+    has_markdown: bool
+    shard: str
+
+
+class CVERecipeCatalog:
+    """Two-tier local reader for the complete sharded CVE recipe catalog.
+
+    Catalog metadata and exact CVE reads stay cheap: an exact ID maps directly to
+    one integrity-checked shard.  The compact browser search index and its token
+    postings are loaded only when a non-exact search actually needs them.
+    """
+
+    CVE_RE = re.compile(r"^CVE-(\d{4})-(\d{4,})$", re.IGNORECASE)
+    CVE_PREFIX_RE = re.compile(r"^CVE-\d{4}(?:-\d{0,3})?$", re.IGNORECASE)
+    TOKEN_RE = re.compile(r"[a-z0-9]+")
+    BROWSER_INDEX_FIELDS = (
+        "cve",
+        "title",
+        "severity",
+        "score",
+        "published",
+        "ecosystem_index",
+        "kev",
+        "archetype_indexes",
+        "has_markdown",
+    )
+    MAX_QUERY_LENGTH = 120
+    MAX_QUERY_TERMS = 8
+    MAX_INDEX_TOKENS_PER_RECORD = 64
+    MAX_INDEX_TOKEN_LENGTH = 64
+    MAX_MANIFEST_BYTES = 4 * 1024 * 1024
+    MAX_ARCHETYPES_BYTES = 4 * 1024 * 1024
+    MAX_SEARCH_INDEX_COMPRESSED_BYTES = 16 * 1024 * 1024
+    MAX_SEARCH_INDEX_UNCOMPRESSED_BYTES = 32 * 1024 * 1024
+    MAX_SEARCH_RECORDS = 300_000
+    MAX_SHARD_COMPRESSED_BYTES = 2 * 1024 * 1024
+    MAX_SHARD_UNCOMPRESSED_BYTES = 8 * 1024 * 1024
+    MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
+    # Large enough for common security-domain searches (for example,
+    # "injection") while still rejecting corpus-wide terms before ranking.
+    MAX_RANKED_CANDIDATES = 40_000
+    SHARD_CACHE_MAX_BYTES = 16 * 1024 * 1024
+    QUERY_CACHE_MAX_ENTRIES = 128
+    RELOAD_CHECK_INTERVAL_SECONDS = 1.0
+    SEARCH_FIELD_CVE = 1
+    SEARCH_FIELD_TITLE = 2
+    SEARCH_FIELD_ARCHETYPE = 4
+    SEARCH_FIELD_ECOSYSTEM = 8
+    RECIPE_STEP_FIELDS = (
+        "exposure_checks",
+        "remediation_steps",
+        "containment_steps",
+        "verification_steps",
+        "stop_conditions",
+        "watch_for",
+    )
+
+    def __init__(self, catalog_path: str):
+        self.path = Path(catalog_path)
+        self._core_signature: tuple[tuple[int, int], ...] | None = None
+        self._core_loaded = False
+        self._next_core_check = 0.0
+        self._core_lock = threading.RLock()
+        self._search_lock = threading.Lock()
+        self._shard_lock = threading.RLock()
+        self._shard_key_locks: dict[str, threading.Lock] = {}
+        self._shard_decode_admission = threading.BoundedSemaphore(value=4)
+        self._manifest: dict[str, Any] = {}
+        self._archetypes: dict[str, Any] = {}
+        self._shard_manifest: dict[str, dict[str, Any]] = {}
+        self._search_signature: tuple[object, ...] | None = None
+        self._search_records: list[list[Any]] = []
+        self._search_ecosystems: tuple[str, ...] = ()
+        self._search_archetypes: tuple[str, ...] = ()
+        self._search_postings: dict[str, array[int]] = {}
+        self._search_posting_masks: dict[str, bytearray] = {}
+        self._query_cache: OrderedDict[tuple[object, ...], tuple[int, ...]] = OrderedDict()
+        self._shard_cache: OrderedDict[str, bytes] = OrderedDict()
+        self._shard_cache_bytes = 0
+
+    @classmethod
+    def _normalized_tokens(cls, value: object) -> list[str]:
+        return cls.TOKEN_RE.findall(str(value or "").casefold())
+
+    @classmethod
+    def _bounded_record_tokens(cls, *values: object) -> frozenset[str]:
+        tokens: list[str] = []
+        seen: set[str] = set()
+        for value in values:
+            for token in cls._normalized_tokens(value):
+                if len(token) > cls.MAX_INDEX_TOKEN_LENGTH or token in seen:
+                    continue
+                seen.add(token)
+                tokens.append(token)
+                if len(tokens) >= cls.MAX_INDEX_TOKENS_PER_RECORD:
+                    return frozenset(tokens)
+        return frozenset(tokens)
+
+    @staticmethod
+    def _record_archetype_ids(record: dict[str, Any], archetypes: dict[str, Any]) -> list[str]:
+        raw_ids = record.get("archetypes")
+        candidates: list[object] = []
+        if isinstance(raw_ids, list):
+            candidates.extend(raw_ids)
+        elif isinstance(raw_ids, str):
+            candidates.append(raw_ids)
+        if not any(str(value or "").strip() for value in candidates):
+            candidates.append(record.get("archetype"))
+        if not any(str(value or "").strip() for value in candidates):
+            candidates.append(archetypes.get("default_archetype"))
+
+        ordered: list[str] = []
+        seen: set[str] = set()
+        for value in candidates:
+            archetype_id = str(value or "").strip()
+            if archetype_id and archetype_id not in seen:
+                ordered.append(archetype_id)
+                seen.add(archetype_id)
+        return ordered
+
+    @staticmethod
+    def _files_signature(paths: tuple[Path, ...]) -> tuple[tuple[int, int], ...]:
+        signatures: list[tuple[int, int]] = []
+        for path in paths:
+            stat = path.stat()
+            signatures.append((stat.st_mtime_ns, stat.st_size))
+        return tuple(signatures)
+
+    @staticmethod
+    def _decompress_bounded(payload: bytes, expected_bytes: int, maximum_bytes: int) -> bytes:
+        if expected_bytes < 0 or expected_bytes > maximum_bytes:
+            raise ValueError("catalog declares an unsafe uncompressed payload size")
+        try:
+            with gzip.GzipFile(fileobj=io.BytesIO(payload)) as stream:
+                uncompressed = stream.read(expected_bytes + 1)
+        except (EOFError, OSError) as exc:
+            raise ValueError(f"catalog contains invalid gzip data: {exc}") from exc
+        if len(uncompressed) != expected_bytes:
+            raise ValueError("catalog uncompressed payload size does not match its manifest")
+        return uncompressed
+
+    def _load_core(self) -> None:
+        now = time.monotonic()
+        if self._core_loaded and now < self._next_core_check:
+            return
+        with self._core_lock:
+            now = time.monotonic()
+            if self._core_loaded and now < self._next_core_check:
+                return
+            manifest_path = self.path / "manifest.json"
+            archetypes_path = self.path / "archetypes.json"
+            required_paths = (manifest_path, archetypes_path)
+            if not all(path.is_file() for path in required_paths):
+                missing = [
+                    str(path)
+                    for path in required_paths
+                    if not path.is_file()
+                ]
+                raise FileNotFoundError(f"CVE catalog is incomplete; missing: {', '.join(missing)}")
+
+            signature = self._files_signature(required_paths)
+            if self._core_loaded and self._core_signature == signature:
+                self._next_core_check = now + self.RELOAD_CHECK_INTERVAL_SECONDS
+                return
+
+            manifest_size = manifest_path.stat().st_size
+            if manifest_size > self.MAX_MANIFEST_BYTES:
+                raise ValueError("CVE catalog manifest exceeds the runtime size limit")
+            manifest_payload = manifest_path.read_bytes()
+            manifest = json.loads(manifest_payload)
+            if manifest.get("schema_version") != 1:
+                raise ValueError("unsupported CVE catalog manifest schema")
+
+            archetypes_entry = manifest.get("archetypes_asset")
+            if not isinstance(archetypes_entry, dict) or archetypes_entry.get("path") != "archetypes.json":
+                raise ValueError("CVE catalog manifest is missing archetype integrity metadata")
+            declared_archetype_bytes = archetypes_entry.get("bytes")
+            archetype_digest = str(archetypes_entry.get("sha256") or "")
+            if (
+                type(declared_archetype_bytes) is not int
+                or not 0 < declared_archetype_bytes <= self.MAX_ARCHETYPES_BYTES
+                or not re.fullmatch(r"[0-9a-f]{64}", archetype_digest)
+                or archetypes_path.stat().st_size != declared_archetype_bytes
+            ):
+                raise ValueError("CVE catalog archetype integrity metadata is invalid")
+            archetypes_payload = archetypes_path.read_bytes()
+            if hashlib.sha256(archetypes_payload).hexdigest() != archetype_digest:
+                raise ValueError("CVE remediation archetype hash does not match its manifest")
+            archetypes = json.loads(archetypes_payload)
+            if archetypes.get("schema_version") != 1 or not isinstance(archetypes.get("archetypes"), dict):
+                raise ValueError("unsupported CVE remediation archetype schema")
+
+            raw_shards = manifest.get("shard_manifest")
+            if not isinstance(raw_shards, list):
+                raise ValueError("CVE catalog manifest is missing its shard integrity inventory")
+            shard_manifest: dict[str, dict[str, Any]] = {}
+            for entry in raw_shards:
+                if not isinstance(entry, dict):
+                    raise ValueError("CVE catalog manifest contains an invalid shard entry")
+                relative = str(entry.get("path") or "")
+                digest = str(entry.get("sha256") or "")
+                if (
+                    not re.fullmatch(r"shards/\d{4}/\d{4,}\.jsonl\.gz", relative)
+                    or relative in shard_manifest
+                    or not re.fullmatch(r"[0-9a-f]{64}", digest)
+                    or type(entry.get("bytes")) is not int
+                    or type(entry.get("uncompressed_bytes")) is not int
+                    or not 0 < entry["bytes"] <= self.MAX_SHARD_COMPRESSED_BYTES
+                    or not 0 < entry["uncompressed_bytes"] <= self.MAX_SHARD_UNCOMPRESSED_BYTES
+                ):
+                    raise ValueError("CVE catalog manifest contains an invalid shard integrity entry")
+                shard_manifest[relative] = entry
+
+            self._manifest = manifest
+            self._archetypes = archetypes
+            self._shard_manifest = shard_manifest
+            self._core_signature = signature
+            self._core_loaded = True
+            self._next_core_check = now + self.RELOAD_CHECK_INTERVAL_SECONDS
+            self._search_signature = None
+            self._search_records = []
+            self._search_ecosystems = ()
+            self._search_archetypes = ()
+            self._search_postings = {}
+            self._search_posting_masks = {}
+            self._query_cache.clear()
+            with self._shard_lock:
+                self._shard_cache.clear()
+                self._shard_cache_bytes = 0
+                self._shard_key_locks.clear()
+
+    def _load_search(self) -> None:
+        self._load_core()
+        with self._core_lock:
+            if self._search_signature is not None:
+                return
+        with self._search_lock:
+            while True:
+                self._load_core()
+                with self._core_lock:
+                    core_signature = self._core_signature
+                    entry = self._manifest.get("browser_index")
+                    if not isinstance(entry, dict):
+                        raise ValueError("CVE catalog manifest is missing its compact search index")
+                    entry = dict(entry)
+
+                relative = str(entry.get("path") or "")
+                if relative != "browser-index.json.gz":
+                    raise ValueError("CVE catalog declares an unsupported compact search index")
+                path = self._safe_catalog_path(relative)
+                if not path.is_file():
+                    raise FileNotFoundError(f"CVE compact search index is missing: {path}")
+                file_signature = self._files_signature((path,))[0]
+                digest = str(entry.get("sha256") or "")
+                declared_bytes = entry.get("bytes")
+                expected_uncompressed = entry.get("uncompressed_bytes")
+                declared_records = entry.get("records")
+                if (
+                    type(declared_bytes) is not int
+                    or not 0 < declared_bytes <= self.MAX_SEARCH_INDEX_COMPRESSED_BYTES
+                    or type(expected_uncompressed) is not int
+                    or not 0 < expected_uncompressed <= self.MAX_SEARCH_INDEX_UNCOMPRESSED_BYTES
+                    or type(declared_records) is not int
+                    or not 0 <= declared_records <= self.MAX_SEARCH_RECORDS
+                    or path.stat().st_size != declared_bytes
+                ):
+                    raise ValueError("CVE compact search index exceeds runtime safety limits")
+                search_signature: tuple[object, ...] = (core_signature, file_signature, digest)
+                with self._core_lock:
+                    if self._search_signature == search_signature:
+                        return
+
+                payload = path.read_bytes()
+                if len(payload) != declared_bytes:
+                    raise ValueError("CVE compact search index size does not match its manifest")
+                if not re.fullmatch(r"[0-9a-f]{64}", digest) or hashlib.sha256(payload).hexdigest() != digest:
+                    raise ValueError("CVE compact search index hash does not match its manifest")
+                uncompressed = self._decompress_bounded(
+                    payload,
+                    expected_uncompressed,
+                    self.MAX_SEARCH_INDEX_UNCOMPRESSED_BYTES,
+                )
+                browser = json.loads(uncompressed)
+                del uncompressed, payload
+                if (
+                    not isinstance(browser, dict)
+                    or browser.get("schema_version") != 1
+                    or tuple(browser.get("fields") or ()) != self.BROWSER_INDEX_FIELDS
+                    or not isinstance(browser.get("records"), list)
+                    or not isinstance(browser.get("ecosystems"), list)
+                    or not isinstance(browser.get("archetypes"), list)
+                ):
+                    raise ValueError("unsupported CVE compact search index schema")
+                records = browser["records"]
+                ecosystems = tuple(browser["ecosystems"])
+                archetypes = tuple(browser["archetypes"])
+                if (
+                    any(not isinstance(value, str) or not value for value in ecosystems + archetypes)
+                    or len(records) != declared_records
+                ):
+                    raise ValueError("CVE compact search index dictionaries or record count are invalid")
+
+                postings: dict[str, list[int]] = {}
+                posting_masks: dict[str, bytearray] = {}
+                ecosystem_token_cache = tuple(
+                    self._bounded_record_tokens(value) for value in ecosystems
+                )
+                archetype_token_cache: dict[tuple[int, ...], frozenset[str]] = {}
+                for record_id, row in enumerate(records):
+                    if not isinstance(row, list) or len(row) != len(self.BROWSER_INDEX_FIELDS):
+                        raise ValueError("CVE compact search index contains an invalid record")
+                    ecosystem_index = row[5]
+                    archetype_indexes = row[7]
+                    if (
+                        not isinstance(row[0], str)
+                        or not self.CVE_RE.fullmatch(row[0])
+                        or not isinstance(row[1], str)
+                        or type(row[2]) is not int
+                        or row[2] not in {0, 1}
+                        or type(ecosystem_index) is not int
+                        or not 0 <= ecosystem_index < len(ecosystems)
+                        or not isinstance(archetype_indexes, list)
+                        or any(
+                            type(value) is not int or not 0 <= value < len(archetypes)
+                            for value in archetype_indexes
+                        )
+                        or not isinstance(row[6], bool)
+                        or not isinstance(row[8], bool)
+                    ):
+                        raise ValueError("CVE compact search index contains an invalid record value")
+                    cve_tokens = self._bounded_record_tokens(row[0])
+                    title_tokens = self._bounded_record_tokens(row[1])
+                    ecosystem_tokens = ecosystem_token_cache[ecosystem_index]
+                    archetype_key = tuple(archetype_indexes)
+                    archetype_tokens = archetype_token_cache.get(archetype_key)
+                    if archetype_tokens is None:
+                        archetype_tokens = self._bounded_record_tokens(
+                            *(archetypes[index] for index in archetype_indexes)
+                        )
+                        archetype_token_cache[archetype_key] = archetype_tokens
+                    token_masks: dict[str, int] = {}
+                    for token in cve_tokens:
+                        token_masks[token] = token_masks.get(token, 0) | self.SEARCH_FIELD_CVE
+                    for token in title_tokens:
+                        token_masks[token] = token_masks.get(token, 0) | self.SEARCH_FIELD_TITLE
+                    for token in archetype_tokens:
+                        token_masks[token] = token_masks.get(token, 0) | self.SEARCH_FIELD_ARCHETYPE
+                    for token in ecosystem_tokens:
+                        token_masks[token] = token_masks.get(token, 0) | self.SEARCH_FIELD_ECOSYSTEM
+                    for token, field_mask in token_masks.items():
+                        postings.setdefault(token, []).append(record_id)
+                        posting_masks.setdefault(token, bytearray()).append(field_mask)
+
+                packed_postings = {
+                    token: array("I", record_ids) for token, record_ids in postings.items()
+                }
+                if any(
+                    len(packed_postings[token]) != len(posting_masks.get(token, ()))
+                    for token in packed_postings
+                ):
+                    raise ValueError("CVE compact search posting metadata is inconsistent")
+                with self._core_lock:
+                    if self._core_signature != core_signature:
+                        continue
+                    self._search_records = records
+                    self._search_ecosystems = ecosystems
+                    self._search_archetypes = archetypes
+                    self._search_postings = packed_postings
+                    self._search_posting_masks = posting_masks
+                    self._query_cache.clear()
+                    self._search_signature = search_signature
+                    return
+
+    @staticmethod
+    def _preview(record: CVECompactRecord) -> dict[str, Any]:
+        return {
+            "cve": record.cve,
+            "title": record.title,
+            "severity": record.severity,
+            "score": record.score,
+            "published": record.published,
+            "ecosystem": record.ecosystem,
+            "kev": record.kev,
+            "archetype": record.archetype,
+            "archetypes": list(record.archetypes),
+            "has_markdown": record.has_markdown,
+            "shard": record.shard,
+        }
+
+    def _compact_from_full_record(self, record: dict[str, Any]) -> CVECompactRecord:
+        archetype_ids = self._record_archetype_ids(record, self._archetypes)
+        cve = str(record.get("cve") or "").upper()
+        return CVECompactRecord(
+            cve=cve,
+            title=str(record.get("title") or ""),
+            severity=str(record.get("severity") or ""),
+            score=record.get("score"),
+            published=str(record.get("published") or ""),
+            ecosystem=str(record.get("ecosystem") or ""),
+            kev=bool(record.get("kev")),
+            archetype=str(record.get("archetype") or (archetype_ids[0] if archetype_ids else "")),
+            archetypes=tuple(archetype_ids),
+            has_markdown=str(record.get("recipe_kind") or "") == "markdown-override",
+            shard=self._shard_for_cve(cve),
+        )
+
+    @staticmethod
+    def _preview_search_row(
+        row: list[Any],
+        ecosystems: tuple[str, ...],
+        archetypes: tuple[str, ...],
+    ) -> dict[str, Any]:
+        archetype_ids = [archetypes[index] for index in row[7]]
+        return {
+            "cve": row[0],
+            "title": row[1],
+            "severity": "critical" if row[2] else "high",
+            "score": row[3],
+            "published": row[4],
+            "ecosystem": ecosystems[row[5]],
+            "kev": row[6],
+            "archetype": archetype_ids[0] if archetype_ids else "",
+            "archetypes": archetype_ids,
+            "has_markdown": row[8],
+            "shard": CVERecipeCatalog._shard_for_cve(row[0]),
+        }
+
+    @staticmethod
+    def _posting_contains(posting: array[int] | None, record_id: int) -> bool:
+        if posting is None:
+            return False
+        position = bisect_left(posting, record_id)
+        return position < len(posting) and posting[position] == record_id
+
+    def _cache_query_ids(
+        self,
+        cache_key: tuple[object, ...],
+        record_ids: tuple[int, ...],
+        search_signature: tuple[object, ...] | None,
+    ) -> None:
+        with self._core_lock:
+            if self._search_signature != search_signature:
+                return
+            self._query_cache[cache_key] = record_ids
+            self._query_cache.move_to_end(cache_key)
+            while len(self._query_cache) > self.QUERY_CACHE_MAX_ENTRIES:
+                self._query_cache.popitem(last=False)
+
+    def info(self) -> dict[str, Any]:
+        self._load_core()
+        manifest = dict(self._manifest)
+        manifest.pop("shard_manifest", None)
+        return {
+            "available": True,
+            "catalog_path": str(self.path),
+            "manifest": manifest,
+            "agent_contract": (
+                "Use an exact CVE lookup before remediation. Treat NVD/CISA facts as evidence, resolve a supported "
+                "vendor fix, follow the stable Markdown override when present or otherwise all composed archetypes, "
+                "and stop for TRIAGE.md when exposure or fix ownership cannot be proven."
+            ),
+            "runtime": {
+                "exact_lookup": "deterministic integrity-checked shard",
+                "full_text_search": "lazy compact shared index",
+                "full_index_required": False,
+            },
+        }
+
+    def warm_search(self) -> dict[str, int]:
+        """Preload the optional full-text index for latency-sensitive deployments."""
+        self._load_search()
+        with self._core_lock:
+            return {
+                "records": len(self._search_records),
+                "tokens": len(self._search_postings),
+            }
+
+    def search(
+        self,
+        query: str,
+        *,
+        severity: str | None = None,
+        published_year: int | None = None,
+        kev_only: bool = False,
+        limit: int = 20,
+    ) -> list[dict[str, Any]]:
+        query_text = str(query or "").strip()
+        if not query_text:
+            raise ValueError("query must not be blank")
+        if len(query_text) > self.MAX_QUERY_LENGTH:
+            raise ValueError(f"query must be at most {self.MAX_QUERY_LENGTH} characters")
+        normalized_terms = self._normalized_tokens(query_text)
+        if not normalized_terms:
+            raise ValueError("query must contain at least one searchable term")
+        if len(normalized_terms) > self.MAX_QUERY_TERMS:
+            raise ValueError(f"query must contain at most {self.MAX_QUERY_TERMS} terms")
+        terms = tuple(dict.fromkeys(normalized_terms))
+
+        severity_key = str(severity or "").lower().strip()
+        if severity_key and severity_key not in {"high", "critical"}:
+            raise ValueError("severity must be 'high' or 'critical'")
+        cap = max(1, min(int(limit), 50))
+
+        def matches_filters(record: CVECompactRecord) -> bool:
+            if severity_key and record.severity != severity_key:
+                return False
+            if published_year and record.published[:4] != str(published_year):
+                return False
+            if kev_only and not record.kev:
+                return False
+            return True
+
+        exact_cve = query_text.upper()
+        if self.CVE_RE.fullmatch(exact_cve):
+            while True:
+                self._load_core()
+                with self._core_lock:
+                    core_signature = self._core_signature
+                record = self._full_record(exact_cve)
+                with self._core_lock:
+                    if self._core_signature != core_signature:
+                        continue
+                    if record is None:
+                        return []
+                    exact_record = self._compact_from_full_record(record)
+                    break
+            if not matches_filters(exact_record):
+                return []
+            return [self._preview(exact_record)]
+        prefix_query = self.CVE_PREFIX_RE.fullmatch(exact_cve) is not None
+
+        while True:
+            self._load_search()
+            with self._core_lock:
+                if self._search_signature is not None:
+                    break
+        query_cache_identity: object = ("cve-prefix", exact_cve) if prefix_query else terms
+        cache_key = (query_cache_identity, severity_key, str(published_year or ""), bool(kev_only), cap)
+        with self._core_lock:
+            records = self._search_records
+            ecosystems = self._search_ecosystems
+            archetypes = self._search_archetypes
+            postings = self._search_postings
+            posting_masks = self._search_posting_masks
+            search_signature = self._search_signature
+            cached_ids = self._query_cache.get(cache_key)
+            if cached_ids is not None:
+                self._query_cache.move_to_end(cache_key)
+                return [self._preview_search_row(records[record_id], ecosystems, archetypes) for record_id in cached_ids]
+
+        def row_matches_filters(row: list[Any]) -> bool:
+            if severity_key and ("critical" if row[2] else "high") != severity_key:
+                return False
+            if published_year and str(row[4])[:4] != str(published_year):
+                return False
+            if kev_only and not row[6]:
+                return False
+            return True
+
+        if prefix_query:
+            start = bisect_left(records, exact_cve, key=lambda row: str(row[0]))
+            end = bisect_left(records, exact_cve + "\uffff", key=lambda row: str(row[0]))
+            prefix_candidates = [
+                record_id
+                for record_id in range(start, end)
+                if row_matches_filters(records[record_id])
+            ]
+
+            def prefix_rank(record_id: int) -> tuple[object, ...]:
+                row = records[record_id]
+                try:
+                    score = float(row[3] or 0)
+                except (TypeError, ValueError):
+                    score = 0.0
+                return (-int(row[2]), -int(row[6]), -score, row[0])
+
+            selected_ids = tuple(heapq.nsmallest(cap, prefix_candidates, key=prefix_rank))
+            self._cache_query_ids(cache_key, selected_ids, search_signature)
+            return [self._preview_search_row(records[record_id], ecosystems, archetypes) for record_id in selected_ids]
+
+        term_postings = {term: postings.get(term) for term in terms}
+        if any(posting is None for posting in term_postings.values()):
+            self._cache_query_ids(cache_key, (), search_signature)
+            return []
+        term_masks = {term: posting_masks.get(term) for term in terms}
+        if any(mask is None for mask in term_masks.values()):
+            raise ValueError("CVE compact search posting metadata is incomplete")
+        seed_term = min(terms, key=lambda term: len(term_postings[term] or ()))
+        candidate_ids = list(term_postings[seed_term] or ())
+        for term in terms:
+            if term == seed_term:
+                continue
+            posting = term_postings[term]
+            candidate_ids = [
+                record_id
+                for record_id in candidate_ids
+                if self._posting_contains(posting, record_id)
+            ]
+            if not candidate_ids:
+                self._cache_query_ids(cache_key, (), search_signature)
+                return []
+
+        term_set = frozenset(terms)
+
+        def rank(record_id: int) -> tuple[object, ...]:
+            row = records[record_id]
+            cve_hits = 0
+            title_hits = 0
+            archetype_hits = 0
+            ecosystem_hits = 0
+            for term in term_set:
+                posting = term_postings[term]
+                masks = term_masks[term]
+                if posting is None or masks is None:
+                    raise ValueError("CVE compact search posting metadata is incomplete")
+                position = bisect_left(posting, record_id)
+                if position >= len(posting) or posting[position] != record_id:
+                    continue
+                field_mask = masks[position]
+                cve_hits += int(bool(field_mask & self.SEARCH_FIELD_CVE))
+                title_hits += int(bool(field_mask & self.SEARCH_FIELD_TITLE))
+                archetype_hits += int(bool(field_mask & self.SEARCH_FIELD_ARCHETYPE))
+                ecosystem_hits += int(bool(field_mask & self.SEARCH_FIELD_ECOSYSTEM))
+            try:
+                score = float(row[3] or 0)
+            except (TypeError, ValueError):
+                score = 0.0
+            return (-cve_hits, -title_hits, -archetype_hits, -ecosystem_hits, -int(row[6]), -score, row[0])
+
+        if len(candidate_ids) > self.MAX_RANKED_CANDIDATES and not (
+            severity_key or published_year or kev_only
+        ):
+            raise ValueError(
+                "query is too broad for bounded ranking; add a more specific term or severity/year/KEV filter"
+            )
+        candidates = [
+            record_id
+            for record_id in candidate_ids
+            if record_id < len(records) and row_matches_filters(records[record_id])
+        ]
+        if len(candidates) > self.MAX_RANKED_CANDIDATES:
+            raise ValueError(
+                "query and filters are too broad for bounded ranking; add a more specific term or year filter"
+            )
+        selected = heapq.nsmallest(cap, candidates, key=rank)
+        selected_ids = tuple(selected)
+        self._cache_query_ids(cache_key, selected_ids, search_signature)
+        return [self._preview_search_row(records[record_id], ecosystems, archetypes) for record_id in selected_ids]
+
+    def _safe_catalog_path(self, relative: str) -> Path:
+        root = self.path.resolve()
+        candidate = (root / relative).resolve()
+        if root not in candidate.parents or candidate.suffix != ".gz":
+            raise ValueError("catalog manifest contains an invalid compressed data path")
+        return candidate
+
+    @classmethod
+    def _shard_for_cve(cls, cve: str) -> str:
+        match = cls.CVE_RE.fullmatch(str(cve or "").upper())
+        if not match:
+            raise ValueError("cve must use the canonical CVE-YYYY-NNNN form")
+        year, sequence = match.groups()
+        return f"shards/{year}/{int(sequence) // 1000:04d}.jsonl.gz"
+
+    def _read_verified_shard(self, relative: str, entry: dict[str, Any]) -> bytes:
+        with self._shard_decode_admission:
+            shard = self._safe_catalog_path(relative)
+            if not shard.is_file():
+                raise FileNotFoundError(f"CVE catalog shard is missing: {shard}")
+            if shard.stat().st_size != entry["bytes"]:
+                raise ValueError(f"CVE catalog shard size does not match its manifest: {relative}")
+            compressed = shard.read_bytes()
+            if len(compressed) != entry["bytes"]:
+                raise ValueError(f"CVE catalog shard size does not match its manifest: {relative}")
+            if hashlib.sha256(compressed).hexdigest() != entry["sha256"]:
+                raise ValueError(f"CVE catalog shard hash does not match its manifest: {relative}")
+            return self._decompress_bounded(
+                compressed,
+                entry["uncompressed_bytes"],
+                self.MAX_SHARD_UNCOMPRESSED_BYTES,
+            )
+
+    def _shard_payload(self, relative: str) -> bytes | None:
+        while True:
+            self._load_core()
+            with self._core_lock:
+                core_signature = self._core_signature
+                entry = self._shard_manifest.get(relative)
+                if entry is None:
+                    return None
+                entry = dict(entry)
+                with self._shard_lock:
+                    cached = self._shard_cache.get(relative)
+                    if cached is not None:
+                        self._shard_cache.move_to_end(relative)
+                        return cached
+                    key_lock = self._shard_key_locks.setdefault(relative, threading.Lock())
+
+            # Only callers for the same cold shard wait on one another. Disk
+            # I/O, hashing, and decompression for unrelated shards can proceed
+            # in parallel; global locks cover only generation/LRU bookkeeping.
+            with key_lock:
+                with self._core_lock:
+                    if self._core_signature != core_signature:
+                        continue
+                    with self._shard_lock:
+                        cached = self._shard_cache.get(relative)
+                        if cached is not None:
+                            self._shard_cache.move_to_end(relative)
+                            return cached
+
+                payload = self._read_verified_shard(relative, entry)
+
+                with self._core_lock:
+                    if self._core_signature != core_signature:
+                        continue
+                    if len(payload) <= self.SHARD_CACHE_MAX_BYTES:
+                        with self._shard_lock:
+                            while (
+                                self._shard_cache
+                                and self._shard_cache_bytes + len(payload) > self.SHARD_CACHE_MAX_BYTES
+                            ):
+                                _, evicted = self._shard_cache.popitem(last=False)
+                                self._shard_cache_bytes -= len(evicted)
+                            self._shard_cache[relative] = payload
+                            self._shard_cache_bytes += len(payload)
+                    return payload
+
+    def _full_record(self, cve: str) -> dict[str, Any] | None:
+        cve_id = str(cve or "").strip().upper()
+        relative = self._shard_for_cve(cve_id)
+        payload = self._shard_payload(relative)
+        if payload is None:
+            return None
+        needle = json.dumps(cve_id).encode("utf-8")
+        position = payload.find(needle)
+        while position >= 0:
+            start = payload.rfind(b"\n", 0, position) + 1
+            end = payload.find(b"\n", position)
+            if end < 0:
+                end = len(payload)
+            line = payload[start:end].strip()
+            if line:
+                record = json.loads(line)
+                if isinstance(record, dict) and str(record.get("cve") or "").upper() == cve_id:
+                    return record
+            position = payload.find(needle, end)
+        return None
+
+    @staticmethod
+    def _ordered_strings(archetypes: list[tuple[str, dict[str, Any]]], field_name: str) -> list[str]:
+        values: list[str] = []
+        seen: set[str] = set()
+        for _, archetype in archetypes:
+            raw_values = archetype.get(field_name) or []
+            if not isinstance(raw_values, list):
+                continue
+            for raw_value in raw_values:
+                value = str(raw_value or "").strip()
+                if value and value not in seen:
+                    values.append(value)
+                    seen.add(value)
+        return values
+
+    def _compose_archetypes(
+        self,
+        record: dict[str, Any],
+        archetype_catalog: dict[str, Any],
+    ) -> dict[str, Any]:
+        archetype_map = archetype_catalog.get("archetypes") or {}
+        requested_ids = self._record_archetype_ids(record, archetype_catalog)
+        resolved: list[tuple[str, dict[str, Any]]] = []
+        for archetype_id in requested_ids:
+            archetype = archetype_map.get(archetype_id)
+            if not isinstance(archetype, dict):
+                raise ValueError(f"CVE catalog record references unknown archetype {archetype_id!r}")
+            resolved.append((archetype_id, archetype))
+
+        if not resolved:
+            default_id = str(archetype_catalog.get("default_archetype") or "").strip()
+            default = archetype_map.get(default_id)
+            if not default_id or not isinstance(default, dict):
+                raise ValueError("CVE remediation catalog has no usable default archetype")
+            resolved.append((default_id, default))
+
+        primary_id, primary = resolved[0]
+        archetype_ids = [archetype_id for archetype_id, _ in resolved]
+        composed: dict[str, Any] = {
+            "archetype_id": primary_id,
+            "primary_archetype_id": primary_id,
+            "archetype_ids": archetype_ids,
+            "title": str(primary.get("title") or primary_id),
+            "archetype_titles": [
+                {"archetype_id": archetype_id, "title": str(archetype.get("title") or archetype_id)}
+                for archetype_id, archetype in resolved
+            ],
+            "matching_cwes": self._ordered_strings(resolved, "matching_cwes"),
+        }
+        for field_name in self.RECIPE_STEP_FIELDS:
+            composed[field_name] = self._ordered_strings(resolved, field_name)
+        return composed
+
+    def get_recipe(self, cve: str) -> dict[str, Any]:
+        cve_id = str(cve or "").strip().upper()
+        if not self.CVE_RE.fullmatch(cve_id):
+            raise ValueError("cve must use the canonical CVE-YYYY-NNNN form")
+        while True:
+            self._load_core()
+            with self._core_lock:
+                core_signature = self._core_signature
+            record = self._full_record(cve_id)
+            with self._core_lock:
+                if self._core_signature != core_signature:
+                    continue
+                scope = self._manifest.get("scope")
+                archetype_catalog = self._archetypes
+                break
+        if record is None:
+            return {
+                "found": False,
+                "cve": cve_id,
+                "scope": scope,
+                "next_action": "Run the CVE intelligence intake gate; the ID may be out of scope, rejected, or not yet scored High/Critical by NVD.",
+            }
+
+        composed = self._compose_archetypes(record, archetype_catalog)
+        product_total = int(record.get("product_match_count") or 0)
+        products_stored = int(record.get("products_stored") or len(record.get("products") or []))
+        product_limit = None
+        if record.get("products_truncated") or product_total > products_stored:
+            product_limit = {
+                "stored": products_stored,
+                "total_matches": product_total,
+                "truncated": True,
+                "required_action": (
+                    "Treat stored CPE rows as a representative slice, not a complete affected-version list; "
+                    "resolve scope from the linked NVD record and vendor advisory."
+                ),
+            }
+        composed.update(
+            {
+                "product_specific_override": record.get("markdown") or [],
+                "required_output": (
+                    "Return a reviewer-ready minimal patch with exposure evidence, authoritative fixed-version "
+                    "evidence, regression tests, deployed-artifact verification, rollback notes, and source links; "
+                    "otherwise return TRIAGE.md with the blocking decision and owner."
+                ),
+            }
+        )
+        return {
+            "found": True,
+            "cve": cve_id,
+            "source_record": record,
+            "composed_recipe": composed,
+            "data_limits": {"affected_products": product_limit} if product_limit else {},
+            "safety_boundary": (
+                "Do not execute exploit payloads against public or production targets, invent fixed versions, "
+                "suppress findings without evidence, or broaden the change beyond this CVE without approval."
+            ),
+        }
 
 
 class WorkflowControlPlane:
@@ -9379,6 +10266,7 @@ def load_config(config_path: str) -> ServerConfig:
         cfg.control_plane_manifest_path,
     )
     cfg.gateway_policy_path = data.get("gateway_policy_path", cfg.gateway_policy_path)
+    cfg.cve_catalog_path = data.get("cve_catalog_path", cfg.cve_catalog_path)
     cfg.assurance_pack_path = data.get("assurance_pack_path", cfg.assurance_pack_path)
     cfg.identity_ledger_path = data.get("identity_ledger_path", cfg.identity_ledger_path)
     cfg.entitlement_review_pack_path = data.get(
@@ -9651,6 +10539,13 @@ def run_mcp_server() -> None:
 
 config = load_config(DEFAULT_CONFIG_PATH)
 index = RecipeIndex(config)
+cve_catalog = CVERecipeCatalog(config.cve_catalog_path)
+# Non-exact catalog searches are CPU-heavy only on a cache miss. A dedicated
+# single worker coalesces that pressure naturally and prevents cold/broad
+# searches from occupying the shared asyncio executor used by exact CVE gets
+# and unrelated MCP tools.
+cve_text_search_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="cve-text-search")
+cve_text_search_admission = threading.BoundedSemaphore(value=8)
 control_plane = WorkflowControlPlane(config.control_plane_manifest_path)
 gateway_policy = MCPGatewayPolicyPack(config.gateway_policy_path)
 assurance_pack = AgenticAssurancePack(config.assurance_pack_path)
@@ -9718,6 +10613,7 @@ async def recipes_server_info() -> dict[str, Any]:
         "name": "security-recipes-mcp",
         "server_public_base_url": config.server_public_base_url,
         "source_index_url": config.source_index_url,
+        "cve_catalog_path": config.cve_catalog_path,
         "allowed_source_hosts": config.allowed_source_hosts,
         "cache_ttl_seconds": config.cache_ttl_seconds,
         "control_plane_manifest_path": config.control_plane_manifest_path,
@@ -9893,6 +10789,209 @@ async def recipes_get(slug_or_path: str) -> dict[str, Any]:
     if not doc:
         return {"found": False, "slug_or_path": slug_or_path}
     return {"found": True, "recipe": doc}
+
+
+@mcp.tool()
+async def recipes_cve_catalog_info() -> dict[str, Any]:
+    """Return the complete High/Critical CVE catalog scope, coverage, provenance, and counts."""
+    try:
+        return await asyncio.to_thread(cve_catalog.info)
+    except Exception as exc:
+        return {"available": False, "error": str(exc), "catalog_path": config.cve_catalog_path}
+
+
+@mcp.tool()
+async def recipes_cve_search(
+    query: str,
+    severity: str | None = None,
+    published_year: int | None = None,
+    kev_only: bool = False,
+    limit: int = 20,
+) -> dict[str, Any]:
+    """Search all in-scope High/Critical CVEs by canonical ID, title, ecosystem, or archetype."""
+    try:
+        search_call = partial(
+            cve_catalog.search,
+            query,
+            severity=severity,
+            published_year=published_year,
+            kev_only=kev_only,
+            limit=limit,
+        )
+        if CVERecipeCatalog.CVE_RE.fullmatch(str(query or "").strip()):
+            results = await asyncio.to_thread(search_call)
+        else:
+            if not cve_text_search_admission.acquire(blocking=False):
+                return {
+                    "query": query,
+                    "count": 0,
+                    "results": [],
+                    "error": "CVE text search is busy; retry shortly or use an exact canonical CVE lookup",
+                }
+            try:
+                concurrent_search = cve_text_search_executor.submit(search_call)
+            except Exception:
+                cve_text_search_admission.release()
+                raise
+            concurrent_search.add_done_callback(lambda _: cve_text_search_admission.release())
+            results = await asyncio.wrap_future(concurrent_search)
+        return {"query": query, "count": len(results), "results": results}
+    except Exception as exc:
+        return {"query": query, "count": 0, "results": [], "error": str(exc)}
+
+
+def _cve_override_source_path(value: object) -> str | None:
+    source_path = str(value or "").strip().replace("\\", "/").lstrip("/")
+    if source_path.startswith("content/"):
+        source_path = source_path[len("content/") :]
+    parts = source_path.split("/")
+    if (
+        len(parts) < 3
+        or parts[:2] != ["prompt-library", "cve"]
+        or any(part in {"", ".", ".."} for part in parts)
+        or not parts[-1].lower().endswith(".md")
+    ):
+        return None
+    return "/".join(parts)
+
+
+def _cve_override_triage(result: dict[str, Any], error: str) -> dict[str, Any]:
+    composed = result.get("composed_recipe") if isinstance(result.get("composed_recipe"), dict) else {}
+    composed["role"] = "fallback"
+    result["composed_recipe"] = composed
+    result["authoritative_recipe"] = None
+    result["recommended_recipe"] = {
+        "kind": "markdown-override",
+        "available": False,
+        "status": "unresolved",
+        "reason": "authoritative-markdown-override-unavailable",
+    }
+    result["triage_required"] = True
+    result["error"] = error
+    result["next_action"] = (
+        "Do not treat the generated multi-archetype baseline as authoritative. Return TRIAGE.md identifying the "
+        "missing stable Markdown override and its owning team."
+    )
+    return result
+
+
+async def _attach_authoritative_cve_recipe(
+    result: dict[str, Any],
+    recipe_index: RecipeIndex,
+) -> dict[str, Any]:
+    if not result.get("found"):
+        return result
+
+    source_record = result.get("source_record") if isinstance(result.get("source_record"), dict) else {}
+    composed = result.get("composed_recipe") if isinstance(result.get("composed_recipe"), dict) else {}
+    markdown_entries = source_record.get("markdown") if isinstance(source_record.get("markdown"), list) else []
+    recipe_kind = str(source_record.get("recipe_kind") or "composed").strip().lower()
+
+    def trim_embedded_provenance() -> None:
+        metadata_entries: list[dict[str, Any]] = []
+        for raw_entry in markdown_entries:
+            if not isinstance(raw_entry, dict):
+                continue
+            shaped = {key: value for key, value in raw_entry.items() if key != "content_markdown"}
+            if isinstance(raw_entry.get("content_markdown"), str) and raw_entry["content_markdown"].strip():
+                shaped["content_available"] = True
+            metadata_entries.append(shaped)
+        shaped_source = dict(source_record)
+        shaped_source["markdown"] = metadata_entries
+        result["source_record"] = shaped_source
+        composed["product_specific_override"] = metadata_entries
+
+    def recommend_composed() -> dict[str, Any]:
+        trim_embedded_provenance()
+        composed["role"] = "recommended"
+        result["composed_recipe"] = composed
+        result["authoritative_recipe"] = None
+        result["recommended_recipe"] = {
+            "kind": "composed",
+            "primary_archetype_id": composed.get("primary_archetype_id") or composed.get("archetype_id"),
+            "archetype_ids": composed.get("archetype_ids") or [composed.get("archetype_id")],
+        }
+        return result
+
+    if recipe_kind != "markdown-override":
+        return recommend_composed()
+
+    stable_entries = [
+        entry
+        for entry in markdown_entries
+        if isinstance(entry, dict) and str(entry.get("maturity") or "").strip().lower() == "stable"
+    ]
+    if not stable_entries:
+        return recommend_composed()
+    if len(stable_entries) != 1:
+        trim_embedded_provenance()
+        return _cve_override_triage(
+            result,
+            "catalog declares more than one stable Markdown override",
+        )
+
+    entry = stable_entries[0]
+    source_path = _cve_override_source_path(entry.get("path"))
+    if source_path is None:
+        trim_embedded_provenance()
+        return _cve_override_triage(result, "catalog stable Markdown override has an invalid content path")
+
+    embedded = entry.get("content_markdown")
+    if isinstance(embedded, str) and embedded.strip():
+        if len(embedded.encode("utf-8")) > CVERecipeCatalog.MAX_STABLE_MARKDOWN_BYTES:
+            trim_embedded_provenance()
+            return _cve_override_triage(result, "stable Markdown override exceeds the MCP response size limit")
+        authoritative_recipe: dict[str, Any] = {
+            "kind": "markdown-override",
+            "source_file": source_path,
+            "path": str(entry.get("path") or ""),
+            "maturity": "stable",
+            "content_markdown": embedded,
+        }
+    else:
+        try:
+            indexed_recipe = await recipe_index.get_doc(source_path)
+        except Exception:
+            indexed_recipe = None
+        indexed_content = str(indexed_recipe.get("content") or "") if indexed_recipe else ""
+        if not indexed_recipe or not indexed_content.strip():
+            trim_embedded_provenance()
+            return _cve_override_triage(
+                result,
+                f"stable Markdown override could not be resolved through the recipe index: {source_path}",
+            )
+        if len(indexed_content.encode("utf-8")) > CVERecipeCatalog.MAX_STABLE_MARKDOWN_BYTES:
+            trim_embedded_provenance()
+            return _cve_override_triage(result, "stable Markdown override exceeds the MCP response size limit")
+        authoritative_recipe = {
+            **{key: value for key, value in indexed_recipe.items() if key != "content"},
+            "kind": "markdown-override",
+            "source_file": source_path,
+            "path": str(entry.get("path") or ""),
+            "maturity": "stable",
+            "content_markdown": indexed_content,
+        }
+
+    trim_embedded_provenance()
+    composed["role"] = "fallback"
+    result["composed_recipe"] = composed
+    result["authoritative_recipe"] = authoritative_recipe
+    result["recommended_recipe"] = {
+        "kind": "markdown-override",
+        "source_file": source_path,
+        "maturity": "stable",
+    }
+    return result
+
+
+@mcp.tool()
+async def recipes_cve_get(cve: str) -> dict[str, Any]:
+    """Get one exact CVE plus its stable override or conservative multi-archetype recipe."""
+    try:
+        result = await asyncio.to_thread(cve_catalog.get_recipe, cve)
+        return await _attach_authoritative_cve_recipe(result, index)
+    except Exception as exc:
+        return {"found": False, "cve": cve, "error": str(exc)}
 
 
 @mcp.tool()
@@ -10886,6 +11985,8 @@ async def recipes_match_finding(
 def main() -> None:
     if _env_bool("RECIPES_MCP_EAGER_REFRESH", False):
         asyncio.run(index.refresh(force=False))
+    if _env_bool("RECIPES_MCP_EAGER_CVE_SEARCH", False):
+        cve_catalog.warm_search()
     run_mcp_server()
 
 

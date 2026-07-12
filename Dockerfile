@@ -60,6 +60,7 @@ COPY assets ./assets
 COPY static ./static
 COPY data ./data
 COPY content ./content
+COPY scripts/prepare_static_assets.js scripts/check_site_performance.js ./scripts/
 
 # If REPO_URL points at a fork, rewrite canonical repo references in content
 # markdown (matches the CI approach for forks under a different org). The
@@ -78,7 +79,7 @@ RUN if [ -n "${REPO_URL}" ]; then \
 # and the path prefix for subpath deploys.
 RUN SECURITY_RECIPES_BASE_URL="${BASE_URL}" \
     SECURITY_RECIPES_REPO_URL="${REPO_URL:-https://github.com/stevologic/security-recipes.ai}" \
-    npx eleventy \
+    npm run build \
     && touch public/.nojekyll
 
 

@@ -25,6 +25,7 @@ RUN cp /app/mcp-server.toml.example /app/mcp-server.toml
 # should invalidate as few layers as possible.
 COPY mcp_server.py /app/mcp_server.py
 COPY data /app/data
+COPY static/api/cve-catalog /app/static/api/cve-catalog
 
 EXPOSE 80
 

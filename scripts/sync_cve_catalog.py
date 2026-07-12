@@ -1,0 +1,1301 @@
+#!/usr/bin/env python3
+"""Build the complete, source-backed High/Critical CVE recipe catalog.
+
+The catalog is intentionally separate from the hand-curated Markdown recipe
+overrides. One normalized CVE record plus all applicable vetted remediation
+archetypes is a complete, conservative recipe; a stable Markdown page may
+override that composed recipe when a vulnerability needs product-specific
+treatment.
+
+Initial backfills use NVD's integrity-hashed annual JSON 2.0 feeds.  The feeds
+are partitioned by CVE identifier year, so an exact publication-date window scans
+every available identifier-year feed rather than assuming that the CVE year
+and publication year are the same.  CISA KEV data is joined by CVE ID and is
+never used to invent a severity.
+"""
+
+from __future__ import annotations
+
+import argparse
+import gc
+import gzip
+import hashlib
+import heapq
+import html
+import itertools
+import json
+import os
+import re
+import sys
+import tempfile
+from collections import OrderedDict
+import time
+from dataclasses import asdict, dataclass
+from datetime import date, datetime, timezone
+from pathlib import Path
+from typing import Any, Iterable, Iterator
+from urllib.error import HTTPError, URLError
+from urllib.parse import unquote, urlparse
+from urllib.request import Request, urlopen
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_CONTENT_DIR = ROOT / "content" / "prompt-library" / "cve"
+DEFAULT_ARCHETYPES = ROOT / "data" / "cve" / "remediation-archetypes.json"
+DEFAULT_OUTPUT_DIR = ROOT / "static" / "api" / "cve-catalog"
+DEFAULT_CACHE_DIR = ROOT / "tmp" / "nvd-cve-feeds"
+
+NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
+NVD_DETAIL_ROOT = "https://nvd.nist.gov/vuln/detail"
+CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+USER_AGENT = "security-recipes.ai/cve-catalog-sync"
+
+SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+VERSION_RANK = {"2.0": 20, "3.0": 30, "3.1": 31, "4.0": 40}
+BROWSER_INDEX_FIELDS = [
+    "cve",
+    "title",
+    "severity",
+    "score",
+    "published",
+    "ecosystem_index",
+    "kev",
+    "archetype_indexes",
+    "has_markdown",
+]
+MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
+ARCHETYPE_LIST_FIELDS = (
+    "exposure_checks",
+    "remediation_steps",
+    "containment_steps",
+    "verification_steps",
+    "stop_conditions",
+    "watch_for",
+)
+# This ordering is deliberately independent of JSON object/CWE order.  It
+# chooses the family that best communicates immediate impact while preserving
+# every other applicable family in the full ordered list.
+ARCHETYPE_RISK_PRECEDENCE = (
+    "command_code_injection",
+    "unsafe_deserialization",
+    "memory_corruption",
+    "use_after_free",
+    "privilege_escalation",
+    "authentication_bypass",
+    "authorization_idor",
+    "sql_query_injection",
+    "ssrf",
+    "xxe",
+    "path_traversal_file_handling",
+    "supply_chain_update_integrity",
+    "http_request_smuggling",
+    "crypto_certificate_validation",
+    "information_disclosure",
+    "cross_site_scripting",
+    "race_lifetime",
+    "resource_exhaustion_dos",
+)
+FRONTMATTER_RE = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*\n", re.DOTALL)
+FRONTMATTER_CVE_RE = re.compile(r'^cve:\s*["\']?(CVE-\d{4}-\d+)["\']?\s*$', re.MULTILINE | re.I)
+FRONTMATTER_MATURITY_RE = re.compile(r'^maturity:\s*["\']?([^"\'\r\n]+)', re.MULTILINE | re.I)
+FRONTMATTER_TITLE_RE = re.compile(r'^title:\s*(.+?)\s*$', re.MULTILINE | re.I)
+
+
+@dataclass(frozen=True)
+class Metric:
+    version: str
+    score: float
+    severity: str
+    vector: str
+    source: str
+    metric_type: str
+
+
+@dataclass(frozen=True)
+class ExistingRecipe:
+    cve: str
+    path: str
+    maturity: str
+    title: str
+    content_markdown: str
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc).replace(microsecond=0)
+
+
+def parse_date(value: str) -> date:
+    return date.fromisoformat(value.strip()[:10])
+
+
+def ten_year_cutoff(today: date) -> date:
+    try:
+        return today.replace(year=today.year - 10)
+    except ValueError:  # February 29.
+        return today.replace(year=today.year - 10, day=28)
+
+
+def normalize_space(value: object, *, limit: int | None = None) -> str:
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    if limit and len(text) > limit:
+        text = text[: max(1, limit - 1)].rstrip(" ,;:-") + "…"
+    return text
+
+
+def safe_markdown_text(value: object, *, limit: int | None = None) -> str:
+    return html.escape(normalize_space(value, limit=limit), quote=False)
+
+
+def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
+    request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json, text/plain, */*"})
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            with urlopen(request, timeout=timeout) as response:
+                return response.read()
+        except HTTPError as exc:
+            last_error = exc
+            if exc.code not in {408, 429, 500, 502, 503, 504}:
+                raise
+            retry_after = exc.headers.get("Retry-After")
+            delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
+            time.sleep(min(delay, 30))
+        except (TimeoutError, URLError, OSError) as exc:
+            last_error = exc
+            time.sleep(min(2**attempt, 30))
+    if last_error is None:
+        raise RuntimeError(f"failed to fetch {url}")
+    raise last_error
+
+
+def write_if_changed(path: Path, payload: bytes, *, dry_run: bool = False) -> bool:
+    if path.exists() and path.read_bytes() == payload:
+        return False
+    if not dry_run:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_suffix(path.suffix + ".tmp")
+        temporary.write_bytes(payload)
+        os.replace(temporary, path)
+    return True
+
+
+def json_bytes(value: object, *, pretty: bool = False) -> bytes:
+    if pretty:
+        rendered = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True)
+    else:
+        rendered = json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    return (rendered + "\n").encode("utf-8")
+
+
+def index_json_bytes(index: dict[str, Any]) -> bytes:
+    """Serialize the large index with one compact record per diffable line."""
+    lines = ["{"]
+    metadata = {key: value for key, value in index.items() if key != "records"}
+    metadata_items = sorted(metadata.items())
+    for key, value in metadata_items:
+        lines.append(
+            "  "
+            + json.dumps(key, ensure_ascii=False)
+            + ": "
+            + json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+            + ","
+        )
+    lines.append('  "records": [')
+    records = index.get("records") or []
+    for position, record in enumerate(records):
+        suffix = "," if position + 1 < len(records) else ""
+        lines.append("    " + json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + suffix)
+    lines.extend(["  ]", "}"])
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def parse_meta(text: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for raw_line in text.splitlines():
+        key, separator, value = raw_line.partition(":")
+        if separator:
+            result[key.strip()] = value.strip()
+    if not result.get("sha256"):
+        raise ValueError("NVD feed metadata did not include sha256")
+    return result
+
+
+def verify_gzip_payload(path: Path, expected_sha256: str) -> None:
+    digest = hashlib.sha256()
+    with gzip.open(path, "rb") as stream:
+        while chunk := stream.read(1024 * 1024):
+            digest.update(chunk)
+    actual = digest.hexdigest()
+    if actual.lower() != expected_sha256.lower():
+        raise ValueError(f"NVD feed integrity failure for {path.name}: expected {expected_sha256}, got {actual}")
+
+
+def cache_feed(year: int, cache_dir: Path, *, offline: bool = False) -> tuple[Path, dict[str, str]]:
+    stem = f"nvdcve-2.0-{year}"
+    meta_path = cache_dir / f"{stem}.meta"
+    gzip_path = cache_dir / f"{stem}.json.gz"
+    verified_path = cache_dir / f"{stem}.verified"
+
+    if offline:
+        if not meta_path.exists() or not gzip_path.exists():
+            raise FileNotFoundError(f"offline cache is missing {stem}")
+        meta_text = meta_path.read_text(encoding="utf-8")
+    else:
+        meta_text = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.meta").decode("utf-8", errors="strict")
+        write_if_changed(meta_path, meta_text.encode("utf-8"))
+
+    metadata = parse_meta(meta_text)
+    expected_sha = metadata["sha256"].lower()
+    verified_sha = verified_path.read_text(encoding="ascii").strip().lower() if verified_path.exists() else ""
+    if not gzip_path.exists() or verified_sha != expected_sha:
+        if offline and not gzip_path.exists():
+            raise FileNotFoundError(f"offline cache is missing {gzip_path}")
+        if not offline:
+            payload = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.json.gz")
+            write_if_changed(gzip_path, payload)
+    # The marker records which upstream metadata was checked; it is not proof
+    # that cached bytes still match. Rehash decompressed feed contents on every
+    # run, including offline runs and matching-marker fast paths.
+    try:
+        verify_gzip_payload(gzip_path, expected_sha)
+    except (OSError, EOFError, ValueError):
+        if offline:
+            raise
+        payload = fetch_bytes(f"{NVD_FEED_ROOT}/{stem}.json.gz")
+        write_if_changed(gzip_path, payload)
+        verify_gzip_payload(gzip_path, expected_sha)
+    write_if_changed(verified_path, (expected_sha + "\n").encode("ascii"))
+    return gzip_path, metadata
+
+
+def load_feed(path: Path) -> dict[str, Any]:
+    with gzip.open(path, "rt", encoding="utf-8") as stream:
+        payload = json.load(stream)
+    if not isinstance(payload, dict) or not isinstance(payload.get("vulnerabilities"), list):
+        raise ValueError(f"invalid NVD JSON 2.0 feed: {path}")
+    return payload
+
+
+def cache_kev(cache_dir: Path, *, offline: bool = False) -> tuple[dict[str, Any], bytes]:
+    path = cache_dir / "known_exploited_vulnerabilities.json"
+    if offline:
+        payload = path.read_bytes()
+    else:
+        payload = fetch_bytes(CISA_KEV_URL)
+        write_if_changed(path, payload)
+    data = json.loads(payload)
+    if not isinstance(data, dict) or not isinstance(data.get("vulnerabilities"), list):
+        raise ValueError("invalid CISA KEV JSON feed")
+    return data, payload
+
+
+def kev_by_cve(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    result: dict[str, dict[str, Any]] = {}
+    for item in data.get("vulnerabilities", []):
+        cve = str(item.get("cveID") or "").upper()
+        if re.fullmatch(r"CVE-\d{4}-\d+", cve):
+            result[cve] = item
+    return result
+
+
+def severity_for_score(version: str, score: float, supplied: object = "") -> str:
+    supplied_severity = str(supplied or "").strip().lower()
+    if supplied_severity in {"high", "critical"}:
+        return supplied_severity
+    if score < 7.0:
+        return supplied_severity or ("medium" if score >= 4.0 else "low")
+    if version.startswith("2"):
+        return "high"
+    return "critical" if score >= 9.0 else "high"
+
+
+def extract_metrics(cve: dict[str, Any]) -> list[Metric]:
+    metrics: list[Metric] = []
+    seen: set[tuple[object, ...]] = set()
+    for key, observations in (cve.get("metrics") or {}).items():
+        if not str(key).startswith("cvssMetric") or not isinstance(observations, list):
+            continue
+        for observation in observations:
+            if not isinstance(observation, dict):
+                continue
+            data = observation.get("cvssData") or {}
+            try:
+                score = float(data.get("baseScore"))
+            except (TypeError, ValueError):
+                continue
+            version = normalize_space(data.get("version") or str(key).removeprefix("cvssMetricV").replace("1", ".1"))
+            severity = severity_for_score(version, score, data.get("baseSeverity") or observation.get("baseSeverity"))
+            metric = Metric(
+                version=version,
+                score=score,
+                severity=severity,
+                vector=normalize_space(data.get("vectorString"), limit=240),
+                source=normalize_space(observation.get("source") or cve.get("sourceIdentifier"), limit=160),
+                metric_type=normalize_space(observation.get("type"), limit=40),
+            )
+            identity = (metric.version, metric.score, metric.severity, metric.vector, metric.source, metric.metric_type)
+            if identity not in seen:
+                metrics.append(metric)
+                seen.add(identity)
+    metrics.sort(
+        key=lambda metric: (
+            SEVERITY_RANK.get(metric.severity, 0),
+            metric.score,
+            VERSION_RANK.get(metric.version, 0),
+            metric.metric_type.lower() == "primary",
+        ),
+        reverse=True,
+    )
+    return metrics
+
+
+def selected_metric(metrics: list[Metric]) -> Metric | None:
+    return next((metric for metric in metrics if metric.score >= 7.0), None)
+
+
+def english_description(cve: dict[str, Any]) -> str:
+    descriptions = cve.get("descriptions") or []
+    value = next(
+        (item.get("value") for item in descriptions if isinstance(item, dict) and item.get("lang") == "en"),
+        "",
+    )
+    if not value:
+        value = next((item.get("value") for item in descriptions if isinstance(item, dict) and item.get("value")), "")
+    return normalize_space(value, limit=1200) or (
+        "No description is present in the NVD record; consult the linked NVD entry and vendor references."
+    )
+
+
+def extract_cwes(cve: dict[str, Any]) -> list[str]:
+    found: list[str] = []
+    for weakness in cve.get("weaknesses") or []:
+        for description in weakness.get("description") or []:
+            value = str(description.get("value") or "").upper()
+            found.extend(re.findall(r"CWE-\d+", value))
+    return list(dict.fromkeys(found))[:12]
+
+
+def split_cpe(value: str) -> list[str]:
+    parts: list[str] = []
+    current: list[str] = []
+    escaped = False
+    for character in value:
+        if escaped:
+            current.append(character)
+            escaped = False
+        elif character == "\\":
+            escaped = True
+        elif character == ":":
+            parts.append("".join(current))
+            current = []
+        else:
+            current.append(character)
+    parts.append("".join(current))
+    return parts
+
+
+def iter_cpe_matches(value: object) -> Iterator[dict[str, Any]]:
+    if isinstance(value, dict):
+        matches = value.get("cpeMatch")
+        if isinstance(matches, list):
+            for match in matches:
+                if isinstance(match, dict) and match.get("vulnerable", True):
+                    yield match
+        for nested in value.values():
+            yield from iter_cpe_matches(nested)
+    elif isinstance(value, list):
+        for nested in value:
+            yield from iter_cpe_matches(nested)
+
+
+def extract_products(cve: dict[str, Any]) -> tuple[list[dict[str, str]], int]:
+    products: list[dict[str, str]] = []
+    seen: set[tuple[str, ...]] = set()
+    total = 0
+    for match in iter_cpe_matches(cve.get("configurations") or []):
+        total += 1
+        criteria = normalize_space(match.get("criteria"), limit=500)
+        parts = split_cpe(criteria)
+        part = unquote(parts[2]) if len(parts) > 2 else ""
+        vendor = unquote(parts[3]) if len(parts) > 3 else ""
+        product = unquote(parts[4]) if len(parts) > 4 else ""
+        version = unquote(parts[5]) if len(parts) > 5 else ""
+        entry = {
+            "part": part,
+            "vendor": vendor,
+            "product": product,
+            "version": version,
+            "version_start_including": normalize_space(match.get("versionStartIncluding"), limit=100),
+            "version_start_excluding": normalize_space(match.get("versionStartExcluding"), limit=100),
+            "version_end_including": normalize_space(match.get("versionEndIncluding"), limit=100),
+            "version_end_excluding": normalize_space(match.get("versionEndExcluding"), limit=100),
+            "cpe": criteria,
+        }
+        identity = tuple(entry.values())
+        if identity not in seen and len(products) < 12:
+            products.append(entry)
+            seen.add(identity)
+    return products, total
+
+
+def extract_references(cve: dict[str, Any]) -> list[dict[str, Any]]:
+    references: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for reference in cve.get("references") or []:
+        if not isinstance(reference, dict):
+            continue
+        url = normalize_space(reference.get("url"), limit=2000)
+        parsed = urlparse(url)
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc or url in seen:
+            continue
+        references.append({"url": url, "tags": sorted(str(tag) for tag in (reference.get("tags") or []))[:8]})
+        seen.add(url)
+    nvd_url = f"{NVD_DETAIL_ROOT}/{cve.get('id')}"
+    if nvd_url not in seen:
+        references.append({"url": nvd_url, "tags": ["NVD"]})
+
+    priority_tags = {"Patch": 0, "Vendor Advisory": 1, "Release Notes": 2, "Mitigation": 3, "NVD": 9}
+
+    def priority(reference: dict[str, Any]) -> tuple[int, str]:
+        rank = min((priority_tags.get(tag, 5) for tag in reference["tags"]), default=5)
+        return rank, reference["url"]
+
+    references.sort(key=priority)
+    return references[:16]
+
+
+def archetype_contract_errors(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if payload.get("schema_version") != 1:
+        errors.append("schema_version must be 1")
+    definitions = payload.get("archetypes")
+    if not isinstance(definitions, dict) or not definitions:
+        return [*errors, "archetypes must be a nonempty object"]
+    default = payload.get("default_archetype")
+    if not isinstance(default, str) or default not in definitions:
+        errors.append("default_archetype is not present in archetypes")
+    for archetype_id, archetype in definitions.items():
+        prefix = f"archetype {archetype_id!r}"
+        if not isinstance(archetype_id, str) or not archetype_id.strip():
+            errors.append("archetype IDs must be nonempty strings")
+            continue
+        if not isinstance(archetype, dict):
+            errors.append(f"{prefix} must be an object")
+            continue
+        for field in ("title", "description"):
+            if not isinstance(archetype.get(field), str) or not archetype[field].strip():
+                errors.append(f"{prefix} has invalid {field}")
+        for field in ARCHETYPE_LIST_FIELDS:
+            values = archetype.get(field)
+            if not isinstance(values, list) or not values:
+                errors.append(f"{prefix} has invalid {field}: expected a nonempty string list")
+            elif any(not isinstance(value, str) or not value.strip() for value in values):
+                errors.append(f"{prefix} has invalid {field}: every item must be a nonempty string")
+        matching_cwes = archetype.get("matching_cwes", archetype.get("cwes", []))
+        if not isinstance(matching_cwes, list) or any(
+            not isinstance(cwe, str) or not re.fullmatch(r"CWE-\d+", cwe.upper()) for cwe in matching_cwes
+        ):
+            errors.append(f"{prefix} has invalid matching_cwes")
+    return errors
+
+
+def valid_archetype_ids(payload: dict[str, Any]) -> set[str]:
+    definitions = payload.get("archetypes")
+    if not isinstance(definitions, dict):
+        return set()
+    valid: set[str] = set()
+    for archetype_id, archetype in definitions.items():
+        candidate = {
+            "schema_version": 1,
+            "default_archetype": archetype_id,
+            "archetypes": {archetype_id: archetype},
+        }
+        if not archetype_contract_errors(candidate):
+            valid.add(archetype_id)
+    return valid
+
+
+def load_archetypes(path: Path) -> tuple[dict[str, Any], dict[str, list[str]]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    errors = archetype_contract_errors(payload)
+    if errors:
+        raise ValueError(f"invalid remediation archetypes in {path}: " + "; ".join(errors))
+    mapping: dict[str, list[str]] = {}
+    for archetype_id, archetype in payload["archetypes"].items():
+        for cwe in archetype.get("matching_cwes") or archetype.get("cwes") or []:
+            families = mapping.setdefault(str(cwe).upper(), [])
+            if archetype_id not in families:
+                families.append(archetype_id)
+    return payload, mapping
+
+
+KEYWORD_ARCHETYPES: list[tuple[str, tuple[str, ...]]] = [
+    (
+        "command_code_injection",
+        (
+            "command injection",
+            "os command",
+            "shell injection",
+            "code injection",
+            "remote code execution",
+            "execute arbitrary code",
+            "arbitrary code execution",
+        ),
+    ),
+    ("sql_query_injection", ("sql injection", "sqli")),
+    ("unsafe_deserialization", ("deserialization of untrusted", "unsafe deserialization")),
+    ("authentication_bypass", ("authentication bypass", "improper authentication")),
+    ("authorization_idor", ("missing authorization", "improper authorization", "idor")),
+    ("path_traversal_file_handling", ("path traversal", "directory traversal", "arbitrary file")),
+    ("ssrf", ("server-side request forgery", "ssrf")),
+    ("cross_site_scripting", ("cross-site scripting", " xss ")),
+    ("xxe", ("external entity", " xxe ")),
+    ("http_request_smuggling", ("request smuggling",)),
+    ("use_after_free", ("use-after-free", "use after free", "double free")),
+    ("memory_corruption", ("buffer overflow", "out-of-bounds", "memory corruption", "integer overflow")),
+    ("resource_exhaustion_dos", ("denial of service", "resource consumption", "infinite loop")),
+    ("crypto_certificate_validation", ("certificate validation", "cryptographic", "signature verification")),
+    ("information_disclosure", ("information disclosure", "information exposure", "sensitive information")),
+    ("privilege_escalation", ("privilege escalation", "elevation of privilege")),
+]
+
+
+def _mapped_families(mapping: dict[str, list[str] | str], cwe: str) -> list[str]:
+    value = mapping.get(cwe, [])
+    return [value] if isinstance(value, str) else list(value)
+
+
+def choose_archetypes(
+    cwes: list[str], summary: str, mapping: dict[str, list[str] | str], default: str
+) -> list[str]:
+    cwe_families: set[str] = set()
+    for cwe in cwes:
+        cwe_families.update(_mapped_families(mapping, cwe))
+    candidates = set(cwe_families)
+    # CWE evidence is authoritative for family composition. Keyword inference
+    # is a fallback only when no CWE maps; mixing it into mapped records turns
+    # impact phrases such as "remote code execution" into false injection
+    # families for memory-safety defects.
+    if not cwe_families:
+        available = {
+            family for value in mapping.values() for family in ([value] if isinstance(value, str) else value)
+        }
+        lowered = f" {summary.lower()} "
+        keyword_candidates = {
+            archetype_id
+            for archetype_id, needles in KEYWORD_ARCHETYPES
+            if archetype_id in available and any(needle in lowered for needle in needles)
+        }
+        precedence = {archetype_id: position for position, archetype_id in enumerate(ARCHETYPE_RISK_PRECEDENCE)}
+        if keyword_candidates:
+            candidates.add(
+                min(
+                    keyword_candidates,
+                    key=lambda archetype_id: (precedence.get(archetype_id, len(precedence)), archetype_id),
+                )
+            )
+    if not candidates:
+        return [default]
+    candidates.discard(default)
+    precedence = {archetype_id: position for position, archetype_id in enumerate(ARCHETYPE_RISK_PRECEDENCE)}
+    return sorted(candidates, key=lambda archetype_id: (precedence.get(archetype_id, len(precedence)), archetype_id))
+
+
+def choose_archetype(cwes: list[str], summary: str, mapping: dict[str, list[str] | str], default: str) -> str:
+    """Backward-compatible primary-family helper."""
+    return choose_archetypes(cwes, summary, mapping, default)[0]
+
+
+def normalized_tokens(value: object) -> set[str]:
+    return {token for token in re.findall(r"[a-z0-9]+", unquote(str(value or "")).lower()) if token}
+
+
+def infer_ecosystem(products: list[dict[str, str]], summary: str) -> str:
+    # NVD configurations frequently list an OS CPE before the vulnerable
+    # application. Taxonomy follows the first application CPE when one exists,
+    # while retaining the first product as the fallback for OS/firmware CVEs.
+    primary = next((entry for entry in products if str(entry.get("part") or "").lower() == "a"), None)
+    primary = primary or (products[0] if products else {})
+    part = str(primary.get("part") or "").lower()
+    vendor_tokens = normalized_tokens(primary.get("vendor"))
+    product_tokens = normalized_tokens(primary.get("product"))
+    summary_tokens = normalized_tokens(summary)
+    primary_tokens = vendor_tokens | product_tokens
+
+    if vendor_tokens == {"linux"} and {"linux", "kernel"} <= product_tokens:
+        return "linux/kernel"
+    if "microsoft" in vendor_tokens or "windows" in product_tokens:
+        return "windows/system"
+    if "apple" in vendor_tokens:
+        return "apple/platform"
+    if primary_tokens & {"chrome", "chromium", "firefox", "webkit"}:
+        return "browser"
+    if "wordpress" in primary_tokens:
+        return "php/wordpress"
+    if primary_tokens & {"nodejs", "npm", "javascript"} or {"node", "js"} <= primary_tokens:
+        return "javascript/npm"
+    if primary_tokens & {"python", "pypi", "pip"}:
+        return "python/pypi"
+    if (
+        primary_tokens & {"java", "maven", "log4j", "log4j2"}
+        or {"spring", "framework"} <= primary_tokens
+        or ("apache" in vendor_tokens and bool(product_tokens & {"log4j", "log4j2"}))
+    ):
+        return "java/maven"
+    if part == "o":
+        return "operating-system"
+    if part == "h":
+        return "hardware/firmware"
+
+    # Description inference is a fallback only when the primary CPE does not
+    # identify a platform/package family. Exact tokens prevent `ios` from
+    # matching Nagios or BIOS, and a primary Cisco IOS CPE has already returned
+    # as an operating system above.
+    if {"linux", "kernel"} <= summary_tokens:
+        return "linux/kernel"
+    if "microsoft" in summary_tokens or "windows" in summary_tokens:
+        return "windows/system"
+    apple_products = {"ios", "ipados", "macos", "watchos", "tvos", "iphone"}
+    if "apple" in summary_tokens and bool(summary_tokens & apple_products):
+        return "apple/platform"
+    if summary_tokens & {"chrome", "chromium", "firefox", "webkit"}:
+        return "browser"
+    if "wordpress" in summary_tokens:
+        return "php/wordpress"
+    if summary_tokens & {"nodejs", "npm", "javascript"} or {"node", "js"} <= summary_tokens:
+        return "javascript/npm"
+    if summary_tokens & {"python", "pypi", "pip"}:
+        return "python/pypi"
+    if summary_tokens & {"java", "maven", "log4j", "log4j2"} or {
+        "spring",
+        "framework",
+    } <= summary_tokens:
+        return "java/maven"
+    return "software/application"
+
+
+def display_product(products: list[dict[str, str]]) -> str:
+    if not products:
+        return "Affected product"
+    first = products[0]
+    values = [first.get("vendor", ""), first.get("product", "")]
+    text = " ".join(value.replace("_", " ") for value in values if value and value not in {"*", "-"})
+    return normalize_space(text.title(), limit=72) or "Affected product"
+
+
+def candidate_title(cve_id: str, summary: str, products: list[dict[str, str]], kev: dict[str, Any] | None) -> str:
+    if kev and kev.get("vulnerabilityName"):
+        return normalize_space(kev["vulnerabilityName"], limit=140)
+    sentence = re.split(r"(?<=[.!?])\s+", summary, maxsplit=1)[0]
+    sentence = re.sub(rf"^{re.escape(cve_id)}\s*[:—-]?\s*", "", sentence, flags=re.I)
+    if 20 <= len(sentence) <= 140:
+        return sentence.rstrip(" .")
+    return normalize_space(f"{display_product(products)} security vulnerability", limit=140)
+
+
+def normalize_kev(item: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not item:
+        return None
+    return {
+        "date_added": item.get("dateAdded"),
+        "due_date": item.get("dueDate"),
+        "vendor_project": item.get("vendorProject"),
+        "product": item.get("product"),
+        "vulnerability_name": item.get("vulnerabilityName"),
+        "required_action": item.get("requiredAction"),
+        "known_ransomware_campaign_use": item.get("knownRansomwareCampaignUse"),
+        "notes": item.get("notes"),
+        "cwes": item.get("cwes") or [],
+        "source": CISA_KEV_URL,
+    }
+
+
+def frontmatter_scalar(frontmatter: str, pattern: re.Pattern[str]) -> str:
+    match = pattern.search(frontmatter)
+    if not match:
+        return ""
+    value = match.group(1).strip()
+    if value.startswith('"') and value.endswith('"'):
+        try:
+            parsed = json.loads(value)
+            return normalize_space(parsed)
+        except json.JSONDecodeError:
+            pass
+    return normalize_space(value.strip("\"'"))
+
+
+def markdown_inventory(content_dir: Path) -> dict[str, list[ExistingRecipe]]:
+    inventory: dict[str, list[ExistingRecipe]] = {}
+    for path in sorted(content_dir.glob("*.md")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        frontmatter = FRONTMATTER_RE.match(text)
+        if not frontmatter:
+            continue
+        body = frontmatter.group("body")
+        cve_match = FRONTMATTER_CVE_RE.search(body)
+        if not cve_match:
+            continue
+        maturity = frontmatter_scalar(body, FRONTMATTER_MATURITY_RE).lower()
+        title = frontmatter_scalar(body, FRONTMATTER_TITLE_RE)
+        content_markdown = text[frontmatter.end() :].strip() if maturity == "stable" else ""
+        if len(content_markdown.encode("utf-8")) > MAX_STABLE_MARKDOWN_BYTES:
+            raise ValueError(
+                f"stable Markdown override exceeds {MAX_STABLE_MARKDOWN_BYTES} bytes: {path}"
+            )
+        cve = cve_match.group(1).upper()
+        inventory.setdefault(cve, []).append(
+            ExistingRecipe(
+                cve=cve,
+                path=path.relative_to(ROOT).as_posix(),
+                maturity=maturity,
+                title=title,
+                content_markdown=content_markdown,
+            )
+        )
+    return inventory
+
+
+def serialize_markdown_recipe(recipe: ExistingRecipe) -> dict[str, str]:
+    result = {
+        "cve": recipe.cve,
+        "path": recipe.path,
+        "maturity": recipe.maturity,
+        "title": recipe.title,
+    }
+    if recipe.maturity == "stable":
+        result["content_markdown"] = recipe.content_markdown
+    return result
+
+
+def normalize_cve(
+    cve: dict[str, Any],
+    *,
+    start_date: date,
+    end_date: date,
+    kev_map: dict[str, dict[str, Any]],
+    cwe_mapping: dict[str, list[str] | str],
+    default_archetype: str,
+    existing: dict[str, list[ExistingRecipe]],
+) -> dict[str, Any] | None:
+    cve_id = str(cve.get("id") or "").upper()
+    if not re.fullmatch(r"CVE-\d{4}-\d+", cve_id):
+        return None
+    if str(cve.get("vulnStatus") or "").lower() in {"reject", "rejected"}:
+        return None
+    try:
+        published = parse_date(str(cve.get("published") or ""))
+    except ValueError:
+        return None
+    if published < start_date or published > end_date:
+        return None
+
+    metrics = extract_metrics(cve)
+    selected = selected_metric(metrics)
+    if selected is None:
+        return None
+
+    summary = english_description(cve)
+    cwes = extract_cwes(cve)
+    products, product_match_count = extract_products(cve)
+    products_stored = len(products)
+    references = extract_references(cve)
+    kev_item = kev_map.get(cve_id)
+    recipe_files = existing.get(cve_id, [])
+    stable_recipe_files = [recipe for recipe in recipe_files if recipe.maturity == "stable"]
+    selected_archetypes = choose_archetypes(cwes, summary, cwe_mapping, default_archetype)
+    archetype = selected_archetypes[0]
+    record = {
+        "cve": cve_id,
+        "title": candidate_title(cve_id, summary, products, kev_item),
+        "summary": summary,
+        "published": published.isoformat(),
+        "last_modified": normalize_space(cve.get("lastModified"), limit=64),
+        "status": normalize_space(cve.get("vulnStatus"), limit=64),
+        "source_identifier": normalize_space(cve.get("sourceIdentifier"), limit=160),
+        "severity": selected.severity,
+        "score": selected.score,
+        "cvss_version": selected.version,
+        "vector": selected.vector,
+        "metric_source": selected.source,
+        "metric_type": selected.metric_type,
+        "metrics": [asdict(metric) for metric in metrics[:4]],
+        "cwes": cwes,
+        "products": products,
+        "product_match_count": product_match_count,
+        "products_stored": products_stored,
+        "products_truncated": product_match_count > products_stored,
+        "references": references,
+        "kev": bool(kev_item),
+        "kev_details": normalize_kev(kev_item),
+        "ecosystem": infer_ecosystem(products, summary),
+        "archetype": archetype,
+        "archetypes": selected_archetypes,
+        "recipe_kind": (
+            "markdown-override" if stable_recipe_files else "markdown-draft" if recipe_files else "composed"
+        ),
+        "markdown": [serialize_markdown_recipe(recipe) for recipe in recipe_files],
+        "quality": "curated" if stable_recipe_files else "metadata-backed",
+        "nvd_url": f"{NVD_DETAIL_ROOT}/{cve_id}",
+    }
+    return record
+
+
+def cve_shard(record: dict[str, Any]) -> str:
+    match = re.fullmatch(r"CVE-(\d{4})-(\d+)", record["cve"])
+    if not match:
+        raise ValueError(f"invalid CVE ID in normalized record: {record['cve']}")
+    year, sequence = match.groups()
+    bucket = int(sequence) // 1000
+    return f"shards/{year}/{bucket:04d}.jsonl.gz"
+
+
+def compact_index_record(record: dict[str, Any], shard: str) -> dict[str, Any]:
+    return {
+        "cve": record["cve"],
+        "title": record["title"],
+        "severity": record["severity"],
+        "score": record["score"],
+        "published": record["published"],
+        "ecosystem": record["ecosystem"],
+        "kev": record["kev"],
+        "archetype": record["archetype"],
+        "archetypes": record["archetypes"],
+        # Authoritative override content is embedded only for stable Markdown.
+        "has_markdown": record["recipe_kind"] == "markdown-override",
+        "shard": shard,
+    }
+
+
+def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, bytes]:
+    ecosystems = sorted({str(record["ecosystem"]) for record in index_records})
+    archetypes = sorted({family for record in index_records for family in record["archetypes"]})
+    ecosystem_indexes = {value: position for position, value in enumerate(ecosystems)}
+    archetype_indexes = {value: position for position, value in enumerate(archetypes)}
+    records = [
+        [
+            record["cve"],
+            record["title"],
+            1 if record["severity"] == "critical" else 0,
+            record["score"],
+            record["published"],
+            ecosystem_indexes[record["ecosystem"]],
+            record["kev"],
+            [archetype_indexes[family] for family in record["archetypes"]],
+            record["has_markdown"],
+        ]
+        for record in index_records
+    ]
+    uncompressed = json_bytes(
+        {
+            "schema_version": 1,
+            "fields": BROWSER_INDEX_FIELDS,
+            "ecosystems": ecosystems,
+            "archetypes": archetypes,
+            "records": records,
+        }
+    )
+    return uncompressed, gzip.compress(uncompressed, compresslevel=9, mtime=0)
+
+
+def hash_bytes(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
+
+
+def catalog_timestamp(feed_metadata: Iterable[dict[str, str]], kev_data: dict[str, Any]) -> str:
+    candidates = [metadata.get("lastModifiedDate", "") for metadata in feed_metadata]
+    candidates.extend([str(kev_data.get("dateReleased") or ""), str(kev_data.get("catalogVersion") or "")])
+    valid: list[datetime] = []
+    for candidate in candidates:
+        if not candidate or "T" not in candidate:
+            continue
+        try:
+            parsed = datetime.fromisoformat(candidate.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            valid.append(parsed.astimezone(timezone.utc))
+        except ValueError:
+            continue
+    return (max(valid) if valid else utc_now()).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def record_has_valid_composition(
+    record: dict[str, Any], valid_ids: set[str], default_archetype: str
+) -> bool:
+    families = record.get("archetypes")
+    if not isinstance(families, list) or not families or any(not isinstance(value, str) for value in families):
+        return False
+    if len(families) != len(set(families)) or record.get("archetype") != families[0]:
+        return False
+    if any(family not in valid_ids for family in families):
+        return False
+    if default_archetype in families and families != [default_archetype]:
+        return False
+    return True
+
+
+def build_outputs(
+    records: Iterable[dict[str, Any]],
+    *,
+    start_date: date,
+    end_date: date,
+    feed_sources: list[dict[str, Any]],
+    kev_data: dict[str, Any],
+    kev_payload: bytes,
+    archetypes: dict[str, Any],
+    existing: dict[str, list[ExistingRecipe]],
+    presorted: bool = False,
+) -> tuple[dict[Path, bytes], dict[str, Any]]:
+    outputs: dict[Path, bytes] = {}
+    index_records: list[dict[str, Any]] = []
+    by_year: dict[str, dict[str, int]] = {}
+    by_severity: dict[str, int] = {}
+    in_scope_kev = 0
+    record_count = 0
+    composed_coverage = 0
+    authoritative_markdown = 0
+    markdown_drafts = 0
+    markdown_pages = 0
+    valid_ids = valid_archetype_ids(archetypes)
+    default_archetype = str(archetypes.get("default_archetype") or "")
+    shard_manifest: list[dict[str, Any]] = []
+    shard_counts: dict[str, int] = {}
+
+    ordered_records = records if presorted else sorted(records, key=lambda item: item["cve"])
+    with tempfile.TemporaryDirectory(prefix="security-recipes-cve-shards-") as shard_tmp:
+        shard_tmp_root = Path(shard_tmp)
+        shard_spools: dict[str, Path] = {}
+        open_spools: OrderedDict[str, Any] = OrderedDict()
+
+        def append_shard_record(shard: str, payload: bytes) -> None:
+            stream = open_spools.get(shard)
+            if stream is None:
+                if len(open_spools) >= 64:
+                    _, oldest = open_spools.popitem(last=False)
+                    oldest.close()
+                spool = shard_spools.get(shard)
+                if spool is None:
+                    spool = shard_tmp_root / Path(shard).with_suffix("")
+                    spool.parent.mkdir(parents=True, exist_ok=True)
+                    shard_spools[shard] = spool
+                stream = spool.open("ab")
+                open_spools[shard] = stream
+            else:
+                open_spools.move_to_end(shard)
+            stream.write(payload)
+
+        try:
+            for record in ordered_records:
+                shard = cve_shard(record)
+                append_shard_record(shard, json_bytes(record))
+                shard_counts[shard] = shard_counts.get(shard, 0) + 1
+                index_records.append(compact_index_record(record, shard))
+                record_count += 1
+                year = record["published"][:4]
+                counts = by_year.setdefault(year, {"critical": 0, "high": 0, "total": 0})
+                counts[record["severity"]] = counts.get(record["severity"], 0) + 1
+                counts["total"] += 1
+                by_severity[record["severity"]] = by_severity.get(record["severity"], 0) + 1
+                in_scope_kev += int(record["kev"])
+                composed_coverage += int(
+                    record_has_valid_composition(record, valid_ids, default_archetype)
+                )
+                authoritative_markdown += int(record["recipe_kind"] == "markdown-override")
+                markdown_drafts += int(record["recipe_kind"] == "markdown-draft")
+                markdown_pages += len(record["markdown"])
+        finally:
+            for stream in open_spools.values():
+                stream.close()
+
+        for shard, spool in sorted(shard_spools.items()):
+            uncompressed = spool.read_bytes()
+            payload = gzip.compress(uncompressed, compresslevel=9, mtime=0)
+            outputs[Path(shard)] = payload
+            shard_manifest.append(
+                {
+                    "path": shard,
+                    "records": shard_counts[shard],
+                    "sha256": hash_bytes(payload),
+                    "bytes": len(payload),
+                    "uncompressed_bytes": len(uncompressed),
+                }
+            )
+
+    shard_set_payload = json_bytes(
+        [
+            {"path": entry["path"], "sha256": entry["sha256"]}
+            for entry in shard_manifest
+        ]
+    )
+    shard_set_sha256 = hash_bytes(shard_set_payload)
+    archetypes_payload = json_bytes(archetypes, pretty=True)
+    archetypes_manifest = {
+        "path": "archetypes.json",
+        "bytes": len(archetypes_payload),
+        "sha256": hash_bytes(archetypes_payload),
+    }
+
+    source_timestamp = catalog_timestamp((source["metadata"] for source in feed_sources), kev_data)
+    duplicate_markdown = {
+        cve: [recipe.path for recipe in recipes]
+        for cve, recipes in sorted(existing.items())
+        if len(recipes) > 1
+    }
+    coverage_percent = round((composed_coverage * 100.0 / record_count), 6) if record_count else 0.0
+
+    browser_uncompressed, browser_compressed = browser_index_payload(index_records)
+    browser_path = "browser-index.json.gz"
+    outputs[Path(browser_path)] = browser_compressed
+    browser_manifest = {
+        "path": browser_path,
+        "records": len(index_records),
+        "sha256": hash_bytes(browser_compressed),
+        "bytes": len(browser_compressed),
+        "uncompressed_bytes": len(browser_uncompressed),
+    }
+    manifest = {
+        "schema_version": 1,
+        "catalog_updated_at": source_timestamp,
+        "scope": {
+            "published_start": start_date.isoformat(),
+            "published_end": end_date.isoformat(),
+            "statuses_excluded": ["Reject", "Rejected"],
+            "metric_policy": "Any NVD-supplied CVSS v2/v3/v4 observation with baseScore >= 7.0; effective severity is the highest supplied/derived severity.",
+            "recipe_policy": "Every record composes with all applicable vetted remediation archetypes. Only maturity=stable Markdown is an authoritative self-contained override; has_markdown excludes drafts.",
+        },
+        "totals": {
+            "catalog_records": record_count,
+            "composed_recipe_coverage": composed_coverage,
+            "coverage_percent": coverage_percent,
+            "markdown_overrides": authoritative_markdown,
+            "markdown_drafts": markdown_drafts,
+            "markdown_pages": markdown_pages,
+            "stable_markdown_overrides": authoritative_markdown,
+            "in_scope_kev": in_scope_kev,
+            "shards": len(shard_manifest),
+        },
+        "by_severity": dict(sorted(by_severity.items())),
+        "by_publication_year": dict(sorted(by_year.items())),
+        "sources": {
+            "nvd": {
+                "feed_root": NVD_FEED_ROOT,
+                "feeds": feed_sources,
+            },
+            "cisa_kev": {
+                "url": CISA_KEV_URL,
+                "catalog_version": kev_data.get("catalogVersion"),
+                "date_released": kev_data.get("dateReleased"),
+                "sha256": hash_bytes(kev_payload),
+                "catalog_records": len(kev_data.get("vulnerabilities") or []),
+            },
+        },
+        "markdown_duplicate_ids": duplicate_markdown,
+        "browser_index": browser_manifest,
+        "archetypes_asset": archetypes_manifest,
+        "shard_set_sha256": shard_set_sha256,
+        "shard_manifest": shard_manifest,
+    }
+    # The audit manifest intentionally carries every source and shard hash and
+    # is therefore much larger than the metadata the interactive catalog needs
+    # at startup.  Keep a compact, independently hashed bootstrap document so
+    # the common page-load path does not transfer the full audit manifest.
+    runtime_summary = {
+        "schema_version": 1,
+        "catalog_updated_at": source_timestamp,
+        "scope": {
+            "published_start": start_date.isoformat(),
+            "published_end": end_date.isoformat(),
+        },
+        "totals": manifest["totals"],
+        "by_severity": manifest["by_severity"],
+        "by_publication_year": manifest["by_publication_year"],
+        "browser_index": browser_manifest,
+        "archetypes": archetypes_manifest,
+        "shard_set_sha256": shard_set_sha256,
+    }
+    runtime_summary_payload = json_bytes(runtime_summary)
+    runtime_summary_path = "runtime-summary.json"
+    outputs[Path(runtime_summary_path)] = runtime_summary_payload
+    manifest["runtime_summary"] = {
+        "path": runtime_summary_path,
+        "bytes": len(runtime_summary_payload),
+        "sha256": hash_bytes(runtime_summary_payload),
+    }
+    index = {
+        "schema_version": 1,
+        "catalog_updated_at": source_timestamp,
+        "total": len(index_records),
+        "scope": manifest["scope"],
+        "records": index_records,
+    }
+    outputs[Path("index.json")] = index_json_bytes(index)
+    outputs[Path("manifest.json")] = json_bytes(manifest, pretty=True)
+    outputs[Path("archetypes.json")] = archetypes_payload
+    return outputs, manifest
+
+
+def write_outputs(output_dir: Path, outputs: dict[Path, bytes], *, dry_run: bool = False) -> dict[str, int]:
+    expected = {path.as_posix() for path in outputs}
+    changed = 0
+    unchanged = 0
+    removed = 0
+    for relative_path, payload in outputs.items():
+        if write_if_changed(output_dir / relative_path, payload, dry_run=dry_run):
+            changed += 1
+        else:
+            unchanged += 1
+
+    shards_dir = output_dir / "shards"
+    if shards_dir.exists():
+        for stale in shards_dir.rglob("*.jsonl.gz"):
+            relative = stale.relative_to(output_dir).as_posix()
+            if relative not in expected:
+                if not dry_run:
+                    stale.unlink()
+                removed += 1
+    return {"changed": changed, "unchanged": unchanged, "removed": removed}
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    today = utc_now().date()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--start-date", default=ten_year_cutoff(today).isoformat())
+    parser.add_argument("--end-date", default=today.isoformat())
+    parser.add_argument(
+        "--feed-start-year",
+        type=int,
+        default=2002,
+        help="Earliest NVD identifier-year feed to scan. Use 2002 for exact publication-window coverage.",
+    )
+    parser.add_argument("--feed-end-year", type=int, default=today.year)
+    parser.add_argument("--content-dir", type=Path, default=DEFAULT_CONTENT_DIR)
+    parser.add_argument("--archetypes", type=Path, default=DEFAULT_ARCHETYPES)
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
+    parser.add_argument("--offline", action="store_true", help="Use only cached NVD and KEV inputs.")
+    parser.add_argument("--dry-run", action="store_true", help="Fetch and validate sources without writing catalog files.")
+    parser.add_argument("--limit", type=int, help="Development-only cap after normalization.")
+    return parser.parse_args(argv)
+
+
+def resolve_path(path: Path) -> Path:
+    return path if path.is_absolute() else ROOT / path
+
+
+def iter_record_spool(path: Path) -> Iterator[dict[str, Any]]:
+    with path.open("rb") as stream:
+        for line in stream:
+            if line.strip():
+                record = json.loads(line)
+                if not isinstance(record, dict):
+                    raise ValueError(f"invalid normalized CVE spool record in {path}")
+                yield record
+
+
+def merged_record_spools(paths: Iterable[Path]) -> Iterator[dict[str, Any]]:
+    iterators = [iter_record_spool(path) for path in paths]
+    yield from heapq.merge(*iterators, key=lambda record: str(record.get("cve") or ""))
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    start_date = parse_date(args.start_date)
+    end_date = parse_date(args.end_date)
+    if start_date > end_date:
+        raise ValueError("--start-date must not be later than --end-date")
+    if args.feed_start_year > args.feed_end_year:
+        raise ValueError("--feed-start-year must not be later than --feed-end-year")
+
+    cache_dir = resolve_path(args.cache_dir)
+    content_dir = resolve_path(args.content_dir)
+    archetype_path = resolve_path(args.archetypes)
+    output_dir = resolve_path(args.output_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    archetypes, cwe_mapping = load_archetypes(archetype_path)
+    default_archetype = str(archetypes["default_archetype"])
+    existing = markdown_inventory(content_dir)
+    kev_data, kev_payload = cache_kev(cache_dir, offline=args.offline)
+    kev_map = kev_by_cve(kev_data)
+
+    feed_sources: list[dict[str, Any]] = []
+    with tempfile.TemporaryDirectory(prefix="normalized-cve-records-", dir=cache_dir) as spool_tmp:
+        spool_root = Path(spool_tmp)
+        spool_paths: list[Path] = []
+        seen_cves: set[str] = set()
+        years = range(args.feed_start_year, args.feed_end_year + 1)
+        for year in years:
+            print(f"[{year}] fetching and validating NVD feed", flush=True)
+            feed_path, metadata = cache_feed(year, cache_dir, offline=args.offline)
+            payload = load_feed(feed_path)
+            year_records: dict[str, bytes] = {}
+            for item in payload["vulnerabilities"]:
+                cve = item.get("cve") if isinstance(item, dict) else None
+                if not isinstance(cve, dict):
+                    continue
+                record = normalize_cve(
+                    cve,
+                    start_date=start_date,
+                    end_date=end_date,
+                    kev_map=kev_map,
+                    cwe_mapping=cwe_mapping,
+                    default_archetype=default_archetype,
+                    existing=existing,
+                )
+                if record is None:
+                    continue
+                cve_id = record["cve"]
+                if cve_id in year_records or cve_id in seen_cves:
+                    raise ValueError(f"NVD feeds contain duplicate normalized identity {cve_id}")
+                year_records[cve_id] = json_bytes(record)
+
+            spool_path = spool_root / f"{year}.jsonl"
+            with spool_path.open("wb") as stream:
+                for cve_id in sorted(year_records):
+                    stream.write(year_records[cve_id])
+            spool_paths.append(spool_path)
+            seen_cves.update(year_records)
+            accepted = len(year_records)
+            feed_sources.append(
+                {
+                    "year": year,
+                    "url": f"{NVD_FEED_ROOT}/nvdcve-2.0-{year}.json.gz",
+                    "accepted_records": accepted,
+                    "metadata": metadata,
+                }
+            )
+            print(f"[{year}] accepted {accepted:,} in-scope High/Critical records", flush=True)
+            del payload, year_records
+            gc.collect()
+
+        records: Iterable[dict[str, Any]] = merged_record_spools(spool_paths)
+        if args.limit is not None:
+            records = itertools.islice(records, max(0, args.limit))
+        outputs, manifest = build_outputs(
+            records,
+            start_date=start_date,
+            end_date=end_date,
+            feed_sources=feed_sources,
+            kev_data=kev_data,
+            kev_payload=kev_payload,
+            archetypes=archetypes,
+            existing=existing,
+            presorted=True,
+        )
+    write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
+    print(
+        json.dumps(
+            {
+                "scope": manifest["scope"],
+                "totals": manifest["totals"],
+                "output": str(output_dir),
+                "writes": write_summary,
+                "dry_run": args.dry_run,
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
