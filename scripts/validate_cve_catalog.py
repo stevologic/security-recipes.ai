@@ -45,9 +45,108 @@ ARCHETYPE_LIST_FIELDS = (
     "remediation_steps",
     "containment_steps",
     "verification_steps",
+    "rollback_steps",
     "stop_conditions",
     "watch_for",
 )
+AGENTIC_ACTION_ORDER = (
+    "discover",
+    "assess",
+    "mitigate",
+    "remediate",
+    "verify",
+    "rollback",
+    "triage",
+)
+AGENTIC_OPERATION_VALUES = ("inspect", "assess", "edit", "test", "restore", "report")
+AGENTIC_TARGET_KIND_VALUES = (
+    "source_code",
+    "dependency_manifest",
+    "lockfile",
+    "configuration",
+    "build_definition",
+    "deployment_manifest",
+    "infrastructure_as_code",
+    "runtime_policy",
+    "inventory",
+    "firmware_image",
+    "binary_artifact",
+    "test",
+    "documentation",
+    "triage_report",
+)
+AGENTIC_PHASE_CONTRACTS = {
+    "discover": ("exposure_checks", "inspect", False, False, "none", "triage"),
+    "assess": ("watch_for", "assess", False, False, "none", "triage"),
+    "mitigate": (
+        "containment_steps",
+        "edit",
+        True,
+        True,
+        "before_external_or_production_change",
+        "rollback_then_triage",
+    ),
+    "remediate": (
+        "remediation_steps",
+        "edit",
+        True,
+        True,
+        "before_external_or_production_change",
+        "rollback_then_triage",
+    ),
+    "verify": ("verification_steps", "test", False, False, "none", "triage"),
+    "rollback": (
+        "rollback_steps",
+        "restore",
+        True,
+        False,
+        "before_external_or_production_change",
+        "stop_and_triage",
+    ),
+    "triage": ("stop_conditions", "report", True, False, "none", "stop"),
+}
+AGENTIC_CONTRACT_KEYS = {
+    "schema_version",
+    "action_order",
+    "operation_values",
+    "target_kind_values",
+    "phase_contracts",
+    "required_outputs",
+    "fixed_version_policy",
+    "safety_boundaries",
+}
+AGENTIC_PHASE_KEYS = {
+    "source_field",
+    "operation",
+    "mutates_files",
+    "requires_rollback_plan",
+    "approval_gate",
+    "on_failure",
+    "required_evidence",
+}
+AGENTIC_ACTION_KEYS = {"id", "phase", "source_field", "operation", "target_kinds"}
+ECOSYSTEM_HINT_KEYS = {"file_globs", "target_kinds", "safe_edit_intent"}
+REQUIRED_ECOSYSTEM_HINTS = {
+    "javascript/npm",
+    "python/pypi",
+    "java/maven",
+    "php/wordpress",
+    "linux/kernel",
+    "windows/system",
+    "apple/platform",
+    "browser",
+    "operating-system",
+    "hardware/firmware",
+    "software/application",
+}
+VENDOR_CONTROLLED_ECOSYSTEMS = {
+    "linux/kernel",
+    "windows/system",
+    "apple/platform",
+    "browser",
+    "operating-system",
+    "hardware/firmware",
+}
 ARCHETYPE_RISK_PRECEDENCE = (
     "command_code_injection",
     "unsafe_deserialization",
@@ -121,12 +220,133 @@ def fail(failures: list[str], message: str, *, cap: int = 200) -> None:
         failures.append(message)
 
 
+def nonempty_unique_strings(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(isinstance(item, str) and bool(item.strip()) for item in value)
+        and len(value) == len(set(value))
+    )
+
+
+def validate_agentic_contract(archetypes: dict[str, Any], failures: list[str]) -> bool:
+    errors_before = len(failures)
+    contract = archetypes.get("agentic_contract")
+    if not isinstance(contract, dict) or set(contract) != AGENTIC_CONTRACT_KEYS:
+        fail(failures, "agentic_contract does not match the required top-level schema")
+        return False
+    if contract.get("schema_version") != 1:
+        fail(failures, "agentic_contract schema_version must be 1")
+    if contract.get("action_order") != list(AGENTIC_ACTION_ORDER):
+        fail(failures, "agentic_contract action_order is not the deterministic seven-phase workflow")
+    if contract.get("operation_values") != list(AGENTIC_OPERATION_VALUES):
+        fail(failures, "agentic_contract operation_values do not match the supported operations")
+    if contract.get("target_kind_values") != list(AGENTIC_TARGET_KIND_VALUES):
+        fail(failures, "agentic_contract target_kind_values do not match the supported target kinds")
+
+    phases = contract.get("phase_contracts")
+    if not isinstance(phases, dict) or set(phases) != set(AGENTIC_ACTION_ORDER):
+        fail(failures, "agentic_contract phase_contracts must contain every phase in action_order")
+    else:
+        expected_fields = (
+            "source_field",
+            "operation",
+            "mutates_files",
+            "requires_rollback_plan",
+            "approval_gate",
+            "on_failure",
+        )
+        for phase, expected_values in AGENTIC_PHASE_CONTRACTS.items():
+            policy = phases.get(phase)
+            prefix = f"agentic phase {phase!r}"
+            if not isinstance(policy, dict) or set(policy) != AGENTIC_PHASE_KEYS:
+                fail(failures, f"{prefix} does not match the required schema")
+                continue
+            actual_values = tuple(policy.get(field) for field in expected_fields)
+            if actual_values != expected_values:
+                fail(failures, f"{prefix} policy does not match the deterministic safety contract")
+            if not nonempty_unique_strings(policy.get("required_evidence")):
+                fail(failures, f"{prefix} required_evidence must be a nonempty unique string list")
+
+    required_outputs = contract.get("required_outputs")
+    if not isinstance(required_outputs, dict) or set(required_outputs) != set(AGENTIC_ACTION_ORDER):
+        fail(failures, "agentic_contract required_outputs must map every phase in action_order")
+    elif (
+        any(not isinstance(value, str) or not value.strip() for value in required_outputs.values())
+        or len(required_outputs) != len(set(required_outputs.values()))
+    ):
+        fail(failures, "agentic_contract required_outputs must be unique nonempty strings")
+
+    version_policy = contract.get("fixed_version_policy")
+    if not isinstance(version_policy, dict) or set(version_policy) != {
+        "allowed_sources",
+        "require_source_record",
+        "when_unknown",
+    }:
+        fail(failures, "agentic_contract fixed_version_policy does not match the required schema")
+    else:
+        if not nonempty_unique_strings(version_policy.get("allowed_sources")):
+            fail(failures, "fixed_version_policy allowed_sources must be a nonempty unique string list")
+        if version_policy.get("require_source_record") is not True:
+            fail(failures, "fixed_version_policy must require an authoritative source record")
+        unknown = version_policy.get("when_unknown")
+        if (
+            not isinstance(unknown, str)
+            or not unknown.strip()
+            or "do not" not in unknown.lower()
+            or not all(term in unknown.lower() for term in ("invent", "infer", "guess"))
+            or "triage.md" not in unknown.lower()
+        ):
+            fail(failures, "fixed_version_policy must forbid invented versions and require TRIAGE.md")
+
+    boundaries = contract.get("safety_boundaries")
+    if not nonempty_unique_strings(boundaries):
+        fail(failures, "agentic_contract safety_boundaries must be a nonempty unique string list")
+    else:
+        boundary_text = " ".join(boundaries).lower()
+        for concept in (
+            "scope", "exploit", "invent", "rollback", "secrets", "incident response",
+            "untrusted evidence", "embedded commands",
+        ):
+            if concept not in boundary_text:
+                fail(failures, f"agentic_contract safety_boundaries do not cover {concept!r}")
+
+    hints = archetypes.get("ecosystem_target_hints")
+    if not isinstance(hints, dict) or set(hints) != REQUIRED_ECOSYSTEM_HINTS:
+        fail(failures, "ecosystem_target_hints must cover every inferred ecosystem exactly")
+    else:
+        allowed_targets = set(AGENTIC_TARGET_KIND_VALUES)
+        for ecosystem, hint in hints.items():
+            prefix = f"ecosystem target hint {ecosystem!r}"
+            if not isinstance(hint, dict) or set(hint) != ECOSYSTEM_HINT_KEYS:
+                fail(failures, f"{prefix} does not match the required schema")
+                continue
+            globs = hint.get("file_globs")
+            if not nonempty_unique_strings(globs):
+                fail(failures, f"{prefix} file_globs must be a nonempty unique string list")
+            elif any("\\" in glob or ":" in glob or ".." in PurePosixPath(glob).parts for glob in globs):
+                fail(failures, f"{prefix} contains an unsafe file glob")
+            targets = hint.get("target_kinds")
+            if not nonempty_unique_strings(targets) or any(target not in allowed_targets for target in targets or []):
+                fail(failures, f"{prefix} target_kinds are invalid")
+            if ecosystem in VENDOR_CONTROLLED_ECOSYSTEMS and isinstance(targets, list) and "source_code" in targets:
+                fail(failures, f"{prefix} must not direct agents to edit vendor-controlled source")
+            intent = hint.get("safe_edit_intent")
+            if not isinstance(intent, str) or not intent.strip():
+                fail(failures, f"{prefix} has no safe_edit_intent")
+
+    return len(failures) == errors_before
+
+
 def valid_archetype_contracts(archetypes: dict[str, Any], failures: list[str]) -> set[str]:
+    contract_valid = validate_agentic_contract(archetypes, failures)
     definitions = archetypes.get("archetypes")
     if not isinstance(definitions, dict) or not definitions:
         fail(failures, "archetypes must be a nonempty object")
         return set()
     valid: set[str] = set()
+    global_action_ids: set[str] = set()
+    allowed_targets = set(AGENTIC_TARGET_KIND_VALUES)
     for archetype_id, archetype in definitions.items():
         prefix = f"archetype {archetype_id!r}"
         errors_before = len(failures)
@@ -141,12 +361,72 @@ def valid_archetype_contracts(archetypes: dict[str, Any], failures: list[str]) -
                 fail(failures, f"{prefix} has invalid {field}")
         for field in ARCHETYPE_LIST_FIELDS:
             values = archetype.get(field)
-            if not isinstance(values, list) or not values:
-                fail(failures, f"{prefix} has invalid {field}: expected a nonempty string list")
-            elif any(not isinstance(value, str) or not value.strip() for value in values):
-                fail(failures, f"{prefix} has invalid {field}: every item must be a nonempty string")
-        if len(failures) == errors_before:
+            if not nonempty_unique_strings(values):
+                fail(failures, f"{prefix} has invalid {field}: expected a nonempty unique string list")
+
+        actions = archetype.get("agentic_actions")
+        if not isinstance(actions, list) or len(actions) != len(AGENTIC_ACTION_ORDER):
+            fail(failures, f"{prefix} must define exactly one agentic action for every phase")
+            actions = []
+        elif [action.get("phase") if isinstance(action, dict) else None for action in actions] != list(
+            AGENTIC_ACTION_ORDER
+        ):
+            fail(failures, f"{prefix} agentic actions are not in deterministic phase order")
+        for position, action in enumerate(actions):
+            phase = AGENTIC_ACTION_ORDER[position]
+            action_prefix = f"{prefix} action {phase!r}"
+            if not isinstance(action, dict) or set(action) != AGENTIC_ACTION_KEYS:
+                fail(failures, f"{action_prefix} does not match the required schema")
+                continue
+            action_id = action.get("id")
+            if action_id != f"{archetype_id}.{phase}":
+                fail(failures, f"{action_prefix} has a nondeterministic ID {action_id!r}")
+            elif action_id in global_action_ids:
+                fail(failures, f"duplicate agentic action ID {action_id!r}")
+            else:
+                global_action_ids.add(action_id)
+            source_field, operation, *_ = AGENTIC_PHASE_CONTRACTS[phase]
+            if action.get("phase") != phase:
+                fail(failures, f"{action_prefix} has the wrong phase")
+            if action.get("source_field") != source_field:
+                fail(failures, f"{action_prefix} does not reference {source_field!r}")
+            if action.get("operation") != operation:
+                fail(failures, f"{action_prefix} does not use operation {operation!r}")
+            targets = action.get("target_kinds")
+            if not nonempty_unique_strings(targets) or any(target not in allowed_targets for target in targets or []):
+                fail(failures, f"{action_prefix} target_kinds are invalid")
+            if phase == "triage" and isinstance(targets, list) and "triage_report" not in targets:
+                fail(failures, f"{action_prefix} must target triage_report")
+            if phase in {"mitigate", "remediate"} and isinstance(targets, list) and not (
+                set(targets) - {"test", "documentation", "triage_report"}
+            ):
+                fail(failures, f"{action_prefix} has no mutable implementation target")
+        if contract_valid and len(failures) == errors_before:
             valid.add(archetype_id)
+    hints = archetypes.get("ecosystem_target_hints")
+    incompatible: set[str] = set()
+    if isinstance(hints, dict):
+        for archetype_id, archetype in definitions.items():
+            if not isinstance(archetype_id, str) or not isinstance(archetype, dict):
+                continue
+            for action in archetype.get("agentic_actions") or []:
+                if not isinstance(action, dict):
+                    continue
+                phase = str(action.get("phase") or "")
+                raw_targets = set(action.get("target_kinds") or [])
+                for ecosystem, hint in hints.items():
+                    if not isinstance(hint, dict):
+                        continue
+                    effective = raw_targets & set(hint.get("target_kinds") or [])
+                    if phase == "triage" and "triage_report" in raw_targets:
+                        effective.add("triage_report")
+                    if not effective:
+                        fail(
+                            failures,
+                            f"agentic action {action.get('id')!r} has no effective target for ecosystem {ecosystem!r}",
+                        )
+                        incompatible.add(archetype_id)
+    valid.difference_update(incompatible)
     return valid
 
 
@@ -585,6 +865,7 @@ def validate_runtime_summary(
 def validate_runtime_asset_versions(
     catalog_dir: Path,
     manifest: dict[str, Any],
+    archetypes: dict[str, Any],
     shard_entries: list[dict[str, Any]],
     failures: list[str],
 ) -> None:
@@ -598,6 +879,52 @@ def validate_runtime_asset_versions(
             fail(failures, "archetypes asset size mismatch")
         if archetypes_entry.get("sha256") != hashlib.sha256(payload).hexdigest():
             fail(failures, "archetypes asset hash mismatch")
+
+        definitions = archetypes.get("archetypes")
+        definitions = definitions if isinstance(definitions, dict) else {}
+        recipes = {
+            str(archetype_id): {
+                "agentic_actions": archetype.get("agentic_actions"),
+                "instruction_sources": {
+                    field: archetype.get(field) for field in ARCHETYPE_LIST_FIELDS
+                },
+            }
+            for archetype_id, archetype in sorted(definitions.items())
+            if isinstance(archetype, dict)
+        }
+        contract_payload = (
+            json.dumps(
+                {
+                    "agentic_contract": archetypes.get("agentic_contract"),
+                    "ecosystem_target_hints": archetypes.get("ecosystem_target_hints"),
+                    "archetypes": recipes,
+                },
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+            + "\n"
+        ).encode("utf-8")
+        metadata = archetypes_entry.get("agentic_contract")
+        target_hints = archetypes.get("ecosystem_target_hints")
+        expected_metadata = {
+            "schema_version": 1,
+            "sha256": hashlib.sha256(contract_payload).hexdigest(),
+            "bytes": len(contract_payload),
+            "archetypes": len(definitions),
+            "actions": sum(
+                len(archetype.get("agentic_actions") or [])
+                for archetype in definitions.values()
+                if isinstance(archetype, dict)
+            ),
+            "phases": len(AGENTIC_ACTION_ORDER),
+            "ecosystems": len(target_hints) if isinstance(target_hints, dict) else 0,
+            "target_hints": sum(
+                1 for hint in (target_hints or {}).values() if isinstance(hint, dict)
+            ) if isinstance(target_hints, dict) else 0,
+        }
+        if metadata != expected_metadata:
+            fail(failures, "manifest agentic contract metadata does not match the shared contract")
 
     canonical_inventory = [
         {"path": str(entry.get("path") or ""), "sha256": str(entry.get("sha256") or "")}
@@ -843,7 +1170,7 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
     if len(manifest_shard_paths) != len(set(manifest_shard_paths)):
         fail(failures, "manifest shard paths are not unique")
     manifest_shard_path_set = set(manifest_shard_paths)
-    validate_runtime_asset_versions(catalog_dir, manifest, shard_entries, failures)
+    validate_runtime_asset_versions(catalog_dir, manifest, archetypes, shard_entries, failures)
     shards_dir = catalog_dir / "shards"
     physical_shard_paths = (
         {
@@ -1064,6 +1391,10 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         fail(failures, "manifest composed_recipe_coverage does not match valid archetype compositions")
     if totals.get("coverage_percent") != expected_coverage_percent:
         fail(failures, "manifest coverage_percent is not exact")
+    if totals.get("agentic_recipe_coverage") != valid_composed_total:
+        fail(failures, "manifest agentic_recipe_coverage does not match valid agentic compositions")
+    if totals.get("agentic_coverage_percent") != expected_coverage_percent:
+        fail(failures, "manifest agentic_coverage_percent is not exact")
     if totals.get("shards") != len(shard_entries):
         fail(failures, "manifest shard total does not match shard_manifest")
     if shard_count != expected_total:
@@ -1091,6 +1422,17 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         "shards": len(shard_entries),
         "browser_records": browser_records,
         "archetypes": len(archetype_ids),
+        "agentic": {
+            "records": valid_composed_total,
+            "coverage_percent": expected_coverage_percent,
+            "actions": sum(
+                len(archetype.get("agentic_actions") or [])
+                for archetype in (archetypes.get("archetypes") or {}).values()
+                if isinstance(archetype, dict)
+            ),
+            "phases": len(AGENTIC_ACTION_ORDER),
+            "ecosystems": len(archetypes.get("ecosystem_target_hints") or {}),
+        },
         "markdown": markdown_counts,
         "failures": failures,
         "warnings": warnings,
