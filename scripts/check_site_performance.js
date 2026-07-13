@@ -145,8 +145,8 @@ if (manifest) {
     fail("site.webmanifest must keep installed navigation within the site root");
   }
   if (manifest.display !== "standalone") fail("site.webmanifest display must be standalone");
-  if (manifest.background_color !== "#04100f" || manifest.theme_color !== "#04100f") {
-    fail("site.webmanifest colors must match the opaque icon background");
+  if (manifest.background_color !== "#000000" || manifest.theme_color !== "#000000") {
+    fail("site.webmanifest launch and theme surfaces must be black");
   }
   const manifestIcons = new Map((manifest.icons || []).map((icon) => [icon.src, icon]));
   for (const [src, sizes, purpose] of [
@@ -180,6 +180,17 @@ for (const file of ["index.html", "recipes/index.html", "recipes/cve/index.html"
   const html = fs.readFileSync(htmlPath, "utf8");
   if (!html.includes('name="apple-mobile-web-app-capable" content="yes"')) {
     fail(`${file} does not enable Apple installed-app mode`);
+  }
+  const statusBarTags = html.match(/<meta name="apple-mobile-web-app-status-bar-style" content="black">/g) || [];
+  if (statusBarTags.length !== 1) {
+    fail(`${file} must request exactly one opaque black Apple status bar`);
+  }
+  const themeTags = html.match(/<meta name="theme-color"[^>]*>/g) || [];
+  if (themeTags.length !== 1 || themeTags[0] !== '<meta name="theme-color" content="#000000">') {
+    fail(`${file} must expose exactly one black HTML theme color`);
+  }
+  if (html.includes("black-translucent") || /name="theme-color"[^>]+content="#fff(?:fff)?"/i.test(html)) {
+    fail(`${file} contains a white or translucent installed-app status surface`);
   }
   if (!html.includes('rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png"')) {
     fail(`${file} does not advertise the versioned 180x180 Apple touch icon`);

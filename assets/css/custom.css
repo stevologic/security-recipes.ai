@@ -63,6 +63,9 @@ html.dark,
 
 html {
   overflow-y: auto;
+  /* Standalone iOS paints display insets from the root canvas. Keep that
+     canvas black while the page body retains the branded near-black surface. */
+  background-color: #000 !important;
 }
 
 html.dark body,
