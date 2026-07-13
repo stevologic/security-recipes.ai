@@ -80,6 +80,6 @@ trust for enforcement:
 ## See also
 
 - [Quick Start]({{< relref "/quickstart" >}})
-- [Recipes]({{< relref "/prompt-library" >}})
+- [Recipes]({{< relref "/recipes" >}})
 - [MCP Integration]({{< relref "/mcp-servers" >}})
 - [Integrate an AI Agent]({{< relref "/docs/agent-integration" >}})

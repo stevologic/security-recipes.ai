@@ -43,6 +43,8 @@ replace assumptions.
 
 
 
+{{< playbook-workflow >}}
+
 ## What the pack contains
 
 | Section | Purpose |

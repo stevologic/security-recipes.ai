@@ -46,6 +46,8 @@ hosted claims until a tenant-safe service exists.
 
 
 
+{{< playbook-workflow >}}
+
 ## Product decision
 
 The generated artifact currently reports:

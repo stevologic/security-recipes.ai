@@ -35,6 +35,8 @@ generated artifact. It gives security architecture, AI platform, GRC,
 procurement, and diligence reviewers a simple residual risk tier:
 `low`, `medium`, or `high`.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The capability-risk layer has three artifacts and one MCP surface:
@@ -50,6 +52,10 @@ The capability-risk layer has three artifacts and one MCP surface:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_agent_capability_risk_register.py
+python3 scripts/generate_agent_capability_risk_register.py --check
+```
 
 ## What is inside the register
 

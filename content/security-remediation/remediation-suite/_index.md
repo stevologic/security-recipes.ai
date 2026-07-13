@@ -5,29 +5,78 @@ weight: -10
 sidebar:
   open: true
 description: >
-  Domain-specific Python tools for planning security-recipes.ai remediation
-  work across SCA, SAST, sensitive data, containers, cache purge, reviews,
-  runtime controls, metrics, rollout, and audit.
+  Executable Python workflows for all 75 security-recipes.ai playbooks, with
+  bounded workspace inspection, durable run packets, evidence integrity, and
+  domain-specific generators and evaluators.
 ---
 
-The Python remediation suite turns each remediation section into a concrete
-tool command. It does not replace scanners, ticketing systems, source control,
-or human reviewers. It creates the bounded packet an agent or orchestrator needs
-before work starts:
+The Python remediation suite turns every playbook into a concrete, checked
+workflow. It does not replace scanners, ticketing systems, source control, or
+human reviewers. It creates the bounded packet an agent or orchestrator needs
+before work starts, then verifies the evidence attached to that run:
 
-- the selected remediation domain,
-- imported recipes from this site,
-- enterprise tooling compatibility notes,
-- allowed actions,
-- stop conditions,
-- evidence requirements,
-- an agent handoff prompt,
-- optional LLM-assist configuration.
+- a playbook-specific, hash-only workspace inventory;
+- the finding hash and exact workflow/decision gate;
+- a human-readable plan and bounded agent task;
+- explicit evidence requirements and expected outputs;
+- integrity-hashed test, scan, review, approval, or policy evidence;
+- deterministic verification before completion is claimed.
 
 <figure class="sr-suite-figure">
   <img src="/images/remediation-suite/suite-flow.svg" alt="Flow from finding to a domain-specific Python remediation tool, imported recipes and optional LLM help, then a PR handoff, triage note, evidence packet, or audit record." loading="lazy">
   <figcaption>The suite keeps one finding, one domain tool, one recipe-informed output, and human review.</figcaption>
 </figure>
+
+{{< playbook-workflow >}}
+
+## Tool commands
+
+The `playbook` interface covers all 75 published scenarios from the same
+versioned registry that renders their workflow visuals and serves the MCP
+tools. It uses only the Python standard library.
+
+```bash
+# Discover and inspect the contract before touching a workspace.
+python scripts/security_recipes_remediation_suite.py playbook list
+python scripts/security_recipes_remediation_suite.py playbook describe \
+  --playbook vulnerable-dependencies
+python scripts/security_recipes_remediation_suite.py playbook inspect \
+  --playbook vulnerable-dependencies --workspace .
+
+# Create a new, version-pinned run packet for one finding.
+python scripts/security_recipes_remediation_suite.py playbook start \
+  --playbook vulnerable-dependencies \
+  --workspace . \
+  --finding finding.json \
+  --run-dir .security-recipes/runs/vulnerable-dependencies
+
+# Attach evidence by path and SHA-256; file contents are not copied.
+python scripts/security_recipes_remediation_suite.py playbook record \
+  --run-dir .security-recipes/runs/vulnerable-dependencies \
+  --file reports/sca-rescan.json \
+  --kind scanner \
+  --requirement "tests and SCA re-scan"
+
+# Exit 0 only when the packet is valid and every evidence requirement is met.
+python scripts/security_recipes_remediation_suite.py playbook verify \
+  --run-dir .security-recipes/runs/vulnerable-dependencies
+```
+
+`start` creates four artifacts atomically:
+
+| Artifact | Purpose |
+| --- | --- |
+| `run.json` | Versioned playbook identity, finding hash, bounded inventory, and requirements. |
+| `PLAN.md` | The five workflow phases, decision gate, evidence checklist, and outputs. |
+| `AGENT_TASK.md` | A constrained coding-agent handoff with explicit stop conditions. |
+| `evidence.json` | Evidence metadata, requirement mapping, size, timestamp, and SHA-256. |
+
+Workspace discovery skips links, junctions, dependency trees, unrelated build
+output, and VCS data. A playbook can explicitly select a published recipe feed
+or prior run evidence, but traversal remains limited to that declared branch.
+File-count, individual-size, aggregate-size, and traversal limits are enforced
+before hashing. The suite never treats a matching file pattern as blanket
+write authorization.
 
 ## Dashboard container and UI
 
@@ -112,7 +161,7 @@ or an agent handoff. The command writes a JSON remediation packet by default.
 Use `--finding -` to read a free-text, generic JSON, or SARIF finding from
 standard input.
 
-## Tool commands
+## Domain planner commands
 
 | Section | Command | Best input |
 | --- | --- | --- |
@@ -159,10 +208,15 @@ Agents can also use the MCP server tools when the site is deployed with MCP:
 - `recipes_search`
 - `recipes_get`
 - `recipes_match_finding`
+- `recipes_playbooks_list`
+- `recipes_playbook_get`
+- `recipes_playbook_plan`
 
-The Python suite does not need MCP to run. It imports the same recipe corpus
-through JSON so enterprise schedulers and security platforms can use it without
-embedding a browser or a site-specific client.
+The three playbook MCP tools provide the same complete workflow contract and a
+deterministic planning checklist without writing to a repository. The Python
+suite does not need MCP to run. Its legacy domain planners can import the same
+recipe corpus through JSON so enterprise schedulers and security platforms can
+use it without embedding a browser or a site-specific client.
 
 ## Optional LLM assist
 
@@ -290,7 +344,12 @@ approval policies, and production actions stay in the enterprise control plane.
 
 ## Guardrails
 
-- One finding goes into one domain tool.
+- One finding goes into one playbook run or legacy domain planner.
+- Every playbook run is bound to one registry profile and one finding hash.
+- Inspection is bounded, hash-only, and link-safe; it never grants write scope.
+- Evidence is accepted only from regular files inside the recorded workspace.
+- Verification fails on profile drift, finding/evidence tampering, invalid
+  paths, missing evidence requirements, or schema mismatch.
 - A packet can produce a plan, PR handoff, audit packet, or triage note.
 - The suite never auto-merges.
 - The suite does not mutate cloud, registry, ticketing, source-control, GRC, or

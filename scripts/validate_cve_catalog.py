@@ -7,6 +7,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import os
 import re
 from collections import Counter
 from datetime import date, datetime
@@ -16,12 +17,13 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "static" / "api" / "cve-catalog"
-DEFAULT_CONTENT = ROOT / "content" / "prompt-library" / "cve"
+DEFAULT_CONTENT = ROOT / "content" / "recipes" / "cve"
 CVE_RE = re.compile(r"CVE-(\d{4})-(\d+)")
 GHSA_RE = re.compile(r"GHSA-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", re.IGNORECASE)
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*\n", re.DOTALL)
 SHA256_RE = re.compile(r"[0-9a-f]{64}", re.IGNORECASE)
 SHARD_PATH_RE = re.compile(r"shards/\d{4}/\d{4,}\.jsonl\.gz")
+INDEX_PARTITION_PATH_RE = re.compile(r"indexes/(\d{4})\.json\.gz")
 NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
 CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 NVD_METADATA_FIELDS = ("lastModifiedDate", "size", "zipSize", "gzSize", "sha256")
@@ -36,15 +38,116 @@ BROWSER_INDEX_FIELDS = [
     "archetype_indexes",
     "has_markdown",
 ]
+BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
+BROWSER_SEVERITY_NAMES = {str(code): severity for severity, code in BROWSER_SEVERITY_CODES.items()}
 MAX_STABLE_MARKDOWN_BYTES = 256 * 1024
 ARCHETYPE_LIST_FIELDS = (
     "exposure_checks",
     "remediation_steps",
     "containment_steps",
     "verification_steps",
+    "rollback_steps",
     "stop_conditions",
     "watch_for",
 )
+AGENTIC_ACTION_ORDER = (
+    "discover",
+    "assess",
+    "mitigate",
+    "remediate",
+    "verify",
+    "rollback",
+    "triage",
+)
+AGENTIC_OPERATION_VALUES = ("inspect", "assess", "edit", "test", "restore", "report")
+AGENTIC_TARGET_KIND_VALUES = (
+    "source_code",
+    "dependency_manifest",
+    "lockfile",
+    "configuration",
+    "build_definition",
+    "deployment_manifest",
+    "infrastructure_as_code",
+    "runtime_policy",
+    "inventory",
+    "firmware_image",
+    "binary_artifact",
+    "test",
+    "documentation",
+    "triage_report",
+)
+AGENTIC_PHASE_CONTRACTS = {
+    "discover": ("exposure_checks", "inspect", False, False, "none", "triage"),
+    "assess": ("watch_for", "assess", False, False, "none", "triage"),
+    "mitigate": (
+        "containment_steps",
+        "edit",
+        True,
+        True,
+        "before_external_or_production_change",
+        "rollback_then_triage",
+    ),
+    "remediate": (
+        "remediation_steps",
+        "edit",
+        True,
+        True,
+        "before_external_or_production_change",
+        "rollback_then_triage",
+    ),
+    "verify": ("verification_steps", "test", False, False, "none", "triage"),
+    "rollback": (
+        "rollback_steps",
+        "restore",
+        True,
+        False,
+        "before_external_or_production_change",
+        "stop_and_triage",
+    ),
+    "triage": ("stop_conditions", "report", True, False, "none", "stop"),
+}
+AGENTIC_CONTRACT_KEYS = {
+    "schema_version",
+    "action_order",
+    "operation_values",
+    "target_kind_values",
+    "phase_contracts",
+    "required_outputs",
+    "fixed_version_policy",
+    "safety_boundaries",
+}
+AGENTIC_PHASE_KEYS = {
+    "source_field",
+    "operation",
+    "mutates_files",
+    "requires_rollback_plan",
+    "approval_gate",
+    "on_failure",
+    "required_evidence",
+}
+AGENTIC_ACTION_KEYS = {"id", "phase", "source_field", "operation", "target_kinds"}
+ECOSYSTEM_HINT_KEYS = {"file_globs", "target_kinds", "safe_edit_intent"}
+REQUIRED_ECOSYSTEM_HINTS = {
+    "javascript/npm",
+    "python/pypi",
+    "java/maven",
+    "php/wordpress",
+    "linux/kernel",
+    "windows/system",
+    "apple/platform",
+    "browser",
+    "operating-system",
+    "hardware/firmware",
+    "software/application",
+}
+VENDOR_CONTROLLED_ECOSYSTEMS = {
+    "linux/kernel",
+    "windows/system",
+    "apple/platform",
+    "browser",
+    "operating-system",
+    "hardware/firmware",
+}
 ARCHETYPE_RISK_PRECEDENCE = (
     "command_code_injection",
     "unsafe_deserialization",
@@ -93,6 +196,110 @@ def valid_shard_path(value: object) -> bool:
     return not path.is_absolute() and ".." not in path.parts and SHARD_PATH_RE.fullmatch(value) is not None
 
 
+def _is_link_or_junction(path: Path) -> bool:
+    is_junction = getattr(path, "is_junction", None)
+    return path.is_symlink() or bool(is_junction and is_junction())
+
+
+def _safe_catalog_output_path(value: object) -> str | None:
+    if not isinstance(value, str) or not value or "\\" in value or ":" in value:
+        return None
+    path = PurePosixPath(value)
+    if path.is_absolute() or ".." in path.parts or str(path) == ".":
+        return None
+    return path.as_posix()
+
+
+def declared_catalog_output_paths(manifest: dict[str, Any]) -> set[str]:
+    """Return every physical file owned by one catalog generation."""
+    declared = {"manifest.json", "index.json", "archetypes.json"}
+
+    def add(value: object) -> None:
+        relative = _safe_catalog_output_path(value)
+        if relative:
+            declared.add(relative)
+
+    for key in ("browser_index", "runtime_summary", "archetypes_asset", "complete_index"):
+        entry = manifest.get(key)
+        if isinstance(entry, dict):
+            add(entry.get("path"))
+
+    complete_index = manifest.get("complete_index")
+    if isinstance(complete_index, dict):
+        for entry in complete_index.get("partitions") or []:
+            if isinstance(entry, dict):
+                add(entry.get("path"))
+
+    for entry in manifest.get("shard_manifest") or []:
+        if isinstance(entry, dict):
+            add(entry.get("path"))
+    return declared
+
+
+def _expected_catalog_dirs(declared: set[str]) -> set[str]:
+    directories: set[str] = set()
+    for relative in declared:
+        for parent in PurePosixPath(relative).parents:
+            if str(parent) != ".":
+                directories.add(parent.as_posix())
+    return directories
+
+
+def validate_physical_catalog_tree(
+    catalog_dir: Path,
+    manifest: dict[str, Any],
+    failures: list[str],
+) -> bool:
+    """Reject physical nodes that are not owned by the active manifest.
+
+    The traversal never follows links or junctions. The boolean result is
+    false only for filesystem node types that would be unsafe to read later;
+    ordinary missing/orphan files remain normal validation failures.
+    """
+    declared = declared_catalog_output_paths(manifest)
+    expected_dirs = _expected_catalog_dirs(declared)
+    physical_files: set[str] = set()
+    physical_dirs: set[str] = set()
+    links: set[str] = set()
+    special: set[str] = set()
+
+    def visit(directory: Path) -> None:
+        with os.scandir(directory) as scanned:
+            children = sorted(scanned, key=lambda entry: entry.name)
+        for child in children:
+            path = Path(child.path)
+            relative = path.relative_to(catalog_dir).as_posix()
+            if child.is_symlink() or _is_link_or_junction(path):
+                links.add(relative)
+            elif child.is_dir(follow_symlinks=False):
+                physical_dirs.add(relative)
+                visit(path)
+            elif child.is_file(follow_symlinks=False):
+                physical_files.add(relative)
+            else:
+                special.add(relative)
+
+    visit(catalog_dir)
+    if physical_files != declared:
+        missing = sorted(declared - physical_files)
+        orphaned = sorted(physical_files - declared)
+        fail(
+            failures,
+            f"physical catalog file set does not match declared outputs: missing={missing[:10]}, orphaned={orphaned[:10]}",
+        )
+    orphaned_dirs = sorted(physical_dirs - expected_dirs)
+    if orphaned_dirs:
+        fail(
+            failures,
+            f"physical catalog directory set contains undeclared directories: orphaned={orphaned_dirs[:10]}",
+        )
+    if links:
+        fail(failures, f"physical catalog contains links or junctions: {sorted(links)[:10]}")
+    if special:
+        fail(failures, f"physical catalog contains special filesystem entries: {sorted(special)[:10]}")
+    return not links and not special
+
+
 def parse_nonnegative_integer(value: object) -> int | None:
     if isinstance(value, bool):
         return None
@@ -118,12 +325,133 @@ def fail(failures: list[str], message: str, *, cap: int = 200) -> None:
         failures.append(message)
 
 
+def nonempty_unique_strings(value: object) -> bool:
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(isinstance(item, str) and bool(item.strip()) for item in value)
+        and len(value) == len(set(value))
+    )
+
+
+def validate_agentic_contract(archetypes: dict[str, Any], failures: list[str]) -> bool:
+    errors_before = len(failures)
+    contract = archetypes.get("agentic_contract")
+    if not isinstance(contract, dict) or set(contract) != AGENTIC_CONTRACT_KEYS:
+        fail(failures, "agentic_contract does not match the required top-level schema")
+        return False
+    if contract.get("schema_version") != 1:
+        fail(failures, "agentic_contract schema_version must be 1")
+    if contract.get("action_order") != list(AGENTIC_ACTION_ORDER):
+        fail(failures, "agentic_contract action_order is not the deterministic seven-phase workflow")
+    if contract.get("operation_values") != list(AGENTIC_OPERATION_VALUES):
+        fail(failures, "agentic_contract operation_values do not match the supported operations")
+    if contract.get("target_kind_values") != list(AGENTIC_TARGET_KIND_VALUES):
+        fail(failures, "agentic_contract target_kind_values do not match the supported target kinds")
+
+    phases = contract.get("phase_contracts")
+    if not isinstance(phases, dict) or set(phases) != set(AGENTIC_ACTION_ORDER):
+        fail(failures, "agentic_contract phase_contracts must contain every phase in action_order")
+    else:
+        expected_fields = (
+            "source_field",
+            "operation",
+            "mutates_files",
+            "requires_rollback_plan",
+            "approval_gate",
+            "on_failure",
+        )
+        for phase, expected_values in AGENTIC_PHASE_CONTRACTS.items():
+            policy = phases.get(phase)
+            prefix = f"agentic phase {phase!r}"
+            if not isinstance(policy, dict) or set(policy) != AGENTIC_PHASE_KEYS:
+                fail(failures, f"{prefix} does not match the required schema")
+                continue
+            actual_values = tuple(policy.get(field) for field in expected_fields)
+            if actual_values != expected_values:
+                fail(failures, f"{prefix} policy does not match the deterministic safety contract")
+            if not nonempty_unique_strings(policy.get("required_evidence")):
+                fail(failures, f"{prefix} required_evidence must be a nonempty unique string list")
+
+    required_outputs = contract.get("required_outputs")
+    if not isinstance(required_outputs, dict) or set(required_outputs) != set(AGENTIC_ACTION_ORDER):
+        fail(failures, "agentic_contract required_outputs must map every phase in action_order")
+    elif (
+        any(not isinstance(value, str) or not value.strip() for value in required_outputs.values())
+        or len(required_outputs) != len(set(required_outputs.values()))
+    ):
+        fail(failures, "agentic_contract required_outputs must be unique nonempty strings")
+
+    version_policy = contract.get("fixed_version_policy")
+    if not isinstance(version_policy, dict) or set(version_policy) != {
+        "allowed_sources",
+        "require_source_record",
+        "when_unknown",
+    }:
+        fail(failures, "agentic_contract fixed_version_policy does not match the required schema")
+    else:
+        if not nonempty_unique_strings(version_policy.get("allowed_sources")):
+            fail(failures, "fixed_version_policy allowed_sources must be a nonempty unique string list")
+        if version_policy.get("require_source_record") is not True:
+            fail(failures, "fixed_version_policy must require an authoritative source record")
+        unknown = version_policy.get("when_unknown")
+        if (
+            not isinstance(unknown, str)
+            or not unknown.strip()
+            or "do not" not in unknown.lower()
+            or not all(term in unknown.lower() for term in ("invent", "infer", "guess"))
+            or "triage.md" not in unknown.lower()
+        ):
+            fail(failures, "fixed_version_policy must forbid invented versions and require TRIAGE.md")
+
+    boundaries = contract.get("safety_boundaries")
+    if not nonempty_unique_strings(boundaries):
+        fail(failures, "agentic_contract safety_boundaries must be a nonempty unique string list")
+    else:
+        boundary_text = " ".join(boundaries).lower()
+        for concept in (
+            "scope", "exploit", "invent", "rollback", "secrets", "incident response",
+            "untrusted evidence", "embedded commands",
+        ):
+            if concept not in boundary_text:
+                fail(failures, f"agentic_contract safety_boundaries do not cover {concept!r}")
+
+    hints = archetypes.get("ecosystem_target_hints")
+    if not isinstance(hints, dict) or set(hints) != REQUIRED_ECOSYSTEM_HINTS:
+        fail(failures, "ecosystem_target_hints must cover every inferred ecosystem exactly")
+    else:
+        allowed_targets = set(AGENTIC_TARGET_KIND_VALUES)
+        for ecosystem, hint in hints.items():
+            prefix = f"ecosystem target hint {ecosystem!r}"
+            if not isinstance(hint, dict) or set(hint) != ECOSYSTEM_HINT_KEYS:
+                fail(failures, f"{prefix} does not match the required schema")
+                continue
+            globs = hint.get("file_globs")
+            if not nonempty_unique_strings(globs):
+                fail(failures, f"{prefix} file_globs must be a nonempty unique string list")
+            elif any("\\" in glob or ":" in glob or ".." in PurePosixPath(glob).parts for glob in globs):
+                fail(failures, f"{prefix} contains an unsafe file glob")
+            targets = hint.get("target_kinds")
+            if not nonempty_unique_strings(targets) or any(target not in allowed_targets for target in targets or []):
+                fail(failures, f"{prefix} target_kinds are invalid")
+            if ecosystem in VENDOR_CONTROLLED_ECOSYSTEMS and isinstance(targets, list) and "source_code" in targets:
+                fail(failures, f"{prefix} must not direct agents to edit vendor-controlled source")
+            intent = hint.get("safe_edit_intent")
+            if not isinstance(intent, str) or not intent.strip():
+                fail(failures, f"{prefix} has no safe_edit_intent")
+
+    return len(failures) == errors_before
+
+
 def valid_archetype_contracts(archetypes: dict[str, Any], failures: list[str]) -> set[str]:
+    contract_valid = validate_agentic_contract(archetypes, failures)
     definitions = archetypes.get("archetypes")
     if not isinstance(definitions, dict) or not definitions:
         fail(failures, "archetypes must be a nonempty object")
         return set()
     valid: set[str] = set()
+    global_action_ids: set[str] = set()
+    allowed_targets = set(AGENTIC_TARGET_KIND_VALUES)
     for archetype_id, archetype in definitions.items():
         prefix = f"archetype {archetype_id!r}"
         errors_before = len(failures)
@@ -138,12 +466,72 @@ def valid_archetype_contracts(archetypes: dict[str, Any], failures: list[str]) -
                 fail(failures, f"{prefix} has invalid {field}")
         for field in ARCHETYPE_LIST_FIELDS:
             values = archetype.get(field)
-            if not isinstance(values, list) or not values:
-                fail(failures, f"{prefix} has invalid {field}: expected a nonempty string list")
-            elif any(not isinstance(value, str) or not value.strip() for value in values):
-                fail(failures, f"{prefix} has invalid {field}: every item must be a nonempty string")
-        if len(failures) == errors_before:
+            if not nonempty_unique_strings(values):
+                fail(failures, f"{prefix} has invalid {field}: expected a nonempty unique string list")
+
+        actions = archetype.get("agentic_actions")
+        if not isinstance(actions, list) or len(actions) != len(AGENTIC_ACTION_ORDER):
+            fail(failures, f"{prefix} must define exactly one agentic action for every phase")
+            actions = []
+        elif [action.get("phase") if isinstance(action, dict) else None for action in actions] != list(
+            AGENTIC_ACTION_ORDER
+        ):
+            fail(failures, f"{prefix} agentic actions are not in deterministic phase order")
+        for position, action in enumerate(actions):
+            phase = AGENTIC_ACTION_ORDER[position]
+            action_prefix = f"{prefix} action {phase!r}"
+            if not isinstance(action, dict) or set(action) != AGENTIC_ACTION_KEYS:
+                fail(failures, f"{action_prefix} does not match the required schema")
+                continue
+            action_id = action.get("id")
+            if action_id != f"{archetype_id}.{phase}":
+                fail(failures, f"{action_prefix} has a nondeterministic ID {action_id!r}")
+            elif action_id in global_action_ids:
+                fail(failures, f"duplicate agentic action ID {action_id!r}")
+            else:
+                global_action_ids.add(action_id)
+            source_field, operation, *_ = AGENTIC_PHASE_CONTRACTS[phase]
+            if action.get("phase") != phase:
+                fail(failures, f"{action_prefix} has the wrong phase")
+            if action.get("source_field") != source_field:
+                fail(failures, f"{action_prefix} does not reference {source_field!r}")
+            if action.get("operation") != operation:
+                fail(failures, f"{action_prefix} does not use operation {operation!r}")
+            targets = action.get("target_kinds")
+            if not nonempty_unique_strings(targets) or any(target not in allowed_targets for target in targets or []):
+                fail(failures, f"{action_prefix} target_kinds are invalid")
+            if phase == "triage" and isinstance(targets, list) and "triage_report" not in targets:
+                fail(failures, f"{action_prefix} must target triage_report")
+            if phase in {"mitigate", "remediate"} and isinstance(targets, list) and not (
+                set(targets) - {"test", "documentation", "triage_report"}
+            ):
+                fail(failures, f"{action_prefix} has no mutable implementation target")
+        if contract_valid and len(failures) == errors_before:
             valid.add(archetype_id)
+    hints = archetypes.get("ecosystem_target_hints")
+    incompatible: set[str] = set()
+    if isinstance(hints, dict):
+        for archetype_id, archetype in definitions.items():
+            if not isinstance(archetype_id, str) or not isinstance(archetype, dict):
+                continue
+            for action in archetype.get("agentic_actions") or []:
+                if not isinstance(action, dict):
+                    continue
+                phase = str(action.get("phase") or "")
+                raw_targets = set(action.get("target_kinds") or [])
+                for ecosystem, hint in hints.items():
+                    if not isinstance(hint, dict):
+                        continue
+                    effective = raw_targets & set(hint.get("target_kinds") or [])
+                    if phase == "triage" and "triage_report" in raw_targets:
+                        effective.add("triage_report")
+                    if not effective:
+                        fail(
+                            failures,
+                            f"agentic action {action.get('id')!r} has no effective target for ecosystem {ecosystem!r}",
+                        )
+                        incompatible.add(archetype_id)
+    valid.difference_update(incompatible)
     return valid
 
 
@@ -155,7 +543,7 @@ def is_safe_relative_path(value: object) -> bool:
         not path.is_absolute()
         and ".." not in path.parts
         and path.suffix == ".md"
-        and path.parts[:3] == ("content", "prompt-library", "cve")
+        and path.parts[:3] == ("content", "recipes", "cve")
     )
 
 
@@ -249,6 +637,164 @@ def validate_markdown_recipes(
     return counts, inventory
 
 
+def validate_complete_index(
+    catalog_dir: Path,
+    index: dict[str, Any],
+    manifest: dict[str, Any],
+    failures: list[str],
+) -> list[dict[str, Any]]:
+    """Validate and combine the published-year compact index partitions."""
+    expected_index_keys = {
+        "schema_version",
+        "catalog_updated_at",
+        "total",
+        "scope",
+        "partition_key",
+        "partitions",
+    }
+    if set(index) != expected_index_keys:
+        fail(failures, "index does not match the required partition-manifest schema")
+    if index.get("schema_version") != 2:
+        fail(failures, "index schema_version must be 2")
+    if index.get("scope") != manifest.get("scope"):
+        fail(failures, "index scope does not match manifest scope")
+    if index.get("catalog_updated_at") != manifest.get("catalog_updated_at"):
+        fail(failures, "index catalog_updated_at does not match manifest")
+    if index.get("partition_key") != "published_year":
+        fail(failures, "index partition_key must be published_year")
+    if "records" in index:
+        fail(failures, "index must not embed the complete records array")
+
+    raw_partitions = index.get("partitions")
+    if not isinstance(raw_partitions, list):
+        fail(failures, "index partitions must be an array")
+        raw_partitions = []
+    complete_index = manifest.get("complete_index")
+    if not isinstance(complete_index, dict):
+        fail(failures, "manifest complete_index is missing")
+        complete_index = {}
+    if complete_index.get("path") != "index.json":
+        fail(failures, "manifest complete_index path must be index.json")
+    if complete_index.get("format") != "published-year-partitions":
+        fail(failures, "manifest complete_index format is invalid")
+    if complete_index.get("partitions") != raw_partitions:
+        fail(failures, "manifest complete_index partitions do not match index.json")
+
+    declared_paths: set[str] = set()
+    declared_years: set[str] = set()
+    expected_years = set((manifest.get("by_publication_year") or {}).keys())
+    records: list[dict[str, Any]] = []
+    for position, entry in enumerate(raw_partitions):
+        if not isinstance(entry, dict):
+            fail(failures, f"index partition {position} must be an object")
+            continue
+        expected_entry_keys = {"year", "path", "records", "sha256", "bytes", "uncompressed_bytes"}
+        if set(entry) != expected_entry_keys:
+            fail(failures, f"index partition {position} metadata schema is invalid")
+        year = str(entry.get("year") or "")
+        relative = str(entry.get("path") or "")
+        path_match = INDEX_PARTITION_PATH_RE.fullmatch(relative)
+        if not re.fullmatch(r"\d{4}", year) or path_match is None or path_match.group(1) != year:
+            fail(failures, f"index partition {position} has invalid year/path")
+            continue
+        if year in declared_years:
+            fail(failures, f"duplicate complete-index publication year {year}")
+        if relative in declared_paths:
+            fail(failures, f"duplicate complete-index partition path {relative}")
+        declared_years.add(year)
+        declared_paths.add(relative)
+
+        path = catalog_dir / relative
+        if not path.is_file():
+            fail(failures, f"missing complete-index partition: {relative}")
+            continue
+        payload = path.read_bytes()
+        if len(payload) != entry.get("bytes"):
+            fail(failures, f"complete-index compressed size mismatch: {relative}")
+        if hashlib.sha256(payload).hexdigest() != entry.get("sha256"):
+            fail(failures, f"complete-index hash mismatch: {relative}")
+        if len(payload) < 10 or int.from_bytes(payload[4:8], "little") != 0:
+            fail(failures, f"complete-index gzip mtime is not deterministic zero: {relative}")
+        try:
+            uncompressed = gzip.decompress(payload)
+        except (OSError, EOFError) as exc:
+            fail(failures, f"invalid complete-index gzip {relative}: {exc}")
+            continue
+        if len(uncompressed) != entry.get("uncompressed_bytes"):
+            fail(failures, f"complete-index uncompressed size mismatch: {relative}")
+        try:
+            partition = json.loads(uncompressed)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            fail(failures, f"invalid complete-index JSON {relative}: {exc}")
+            continue
+        expected_keys = {"schema_version", "catalog_updated_at", "year", "total", "records"}
+        if not isinstance(partition, dict) or set(partition) != expected_keys:
+            fail(failures, f"complete-index partition schema is invalid: {relative}")
+            continue
+        if partition.get("schema_version") != 2:
+            fail(failures, f"complete-index partition schema_version must be 2: {relative}")
+        if partition.get("catalog_updated_at") != manifest.get("catalog_updated_at"):
+            fail(failures, f"complete-index timestamp mismatch: {relative}")
+        if str(partition.get("year") or "") != year:
+            fail(failures, f"complete-index publication year mismatch: {relative}")
+        partition_records = partition.get("records")
+        if not isinstance(partition_records, list):
+            fail(failures, f"complete-index records must be an array: {relative}")
+            continue
+        if partition.get("total") != len(partition_records) or entry.get("records") != len(partition_records):
+            fail(failures, f"complete-index record count mismatch: {relative}")
+        if not partition_records:
+            fail(failures, f"complete-index partition must not be empty: {relative}")
+        year_summary = (manifest.get("by_publication_year") or {}).get(year)
+        if not isinstance(year_summary, dict) or year_summary.get("total") != len(partition_records):
+            fail(failures, f"complete-index count does not match publication-year summary: {relative}")
+        cve_ids: list[str] = []
+        for record_number, record in enumerate(partition_records):
+            if not isinstance(record, dict):
+                fail(failures, f"complete-index record {record_number} is not an object: {relative}")
+                continue
+            if str(record.get("published") or "")[:4] != year:
+                fail(failures, f"complete-index record is in the wrong publication-year partition: {relative}")
+            cve_ids.append(str(record.get("cve") or ""))
+            records.append(record)
+        if cve_ids != sorted(cve_ids):
+            fail(failures, f"complete-index partition records are not sorted by CVE ID: {relative}")
+
+    indexes_dir = catalog_dir / "indexes"
+    physical_paths = (
+        {
+            path.relative_to(catalog_dir).as_posix()
+            for path in indexes_dir.rglob("*.json.gz")
+            if path.is_file()
+        }
+        if indexes_dir.is_dir()
+        else set()
+    )
+    if physical_paths != declared_paths:
+        missing = sorted(declared_paths - physical_paths)
+        orphaned = sorted(physical_paths - declared_paths)
+        fail(
+            failures,
+            f"physical complete-index partition set does not match index: missing={missing[:10]}, orphaned={orphaned[:10]}",
+        )
+    if declared_years != expected_years:
+        fail(failures, "complete-index years do not match manifest publication-year coverage")
+
+    expected_total = len(records)
+    if index.get("total") != expected_total:
+        fail(failures, f"index total {index.get('total')} does not match {expected_total} partition records")
+    if complete_index.get("records") != expected_total:
+        fail(failures, "manifest complete_index record total does not match partitions")
+    declared_total = sum(
+        entry.get("records", 0)
+        for entry in raw_partitions
+        if isinstance(entry, dict) and type(entry.get("records")) is int
+    )
+    if declared_total != expected_total:
+        fail(failures, "complete-index partition metadata totals do not match records")
+    return sorted(records, key=lambda record: str(record.get("cve") or ""))
+
+
 def validate_browser_index(
     catalog_dir: Path,
     manifest: dict[str, Any],
@@ -286,12 +832,21 @@ def validate_browser_index(
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         fail(failures, f"invalid browser index JSON: {exc}")
         return 0
-    expected_keys = {"schema_version", "fields", "ecosystems", "archetypes", "records"}
+    expected_keys = {
+        "schema_version",
+        "severity_codes",
+        "fields",
+        "ecosystems",
+        "archetypes",
+        "records",
+    }
     if not isinstance(browser, dict) or set(browser) != expected_keys:
         fail(failures, "browser index does not match the required top-level schema")
         return 0
-    if browser.get("schema_version") != 1:
-        fail(failures, "browser index schema_version must be 1")
+    if browser.get("schema_version") != 2:
+        fail(failures, "browser index schema_version must be 2")
+    if browser.get("severity_codes") != BROWSER_SEVERITY_NAMES:
+        fail(failures, "browser index severity_codes are invalid")
     if browser.get("fields") != BROWSER_INDEX_FIELDS:
         fail(failures, "browser index fields do not match the required order")
     ecosystems = browser.get("ecosystems")
@@ -328,7 +883,7 @@ def validate_browser_index(
             continue
         ecosystem_index = row[5]
         family_indexes = row[7]
-        if type(row[2]) is not int or row[2] not in {0, 1}:
+        if type(row[2]) is not int or row[2] not in set(BROWSER_SEVERITY_CODES.values()):
             fail(failures, f"browser index record {position} has invalid numeric severity")
             continue
         if type(ecosystem_index) is not int or not 0 <= ecosystem_index < len(ecosystems):
@@ -352,7 +907,7 @@ def validate_browser_index(
         expected = [
             compact.get("cve"),
             compact.get("title"),
-            1 if compact.get("severity") == "critical" else 0,
+            BROWSER_SEVERITY_CODES.get(str(compact.get("severity") or ""), -1),
             compact.get("score"),
             compact.get("published"),
             ecosystems.index(compact.get("ecosystem")),
@@ -395,7 +950,7 @@ def validate_runtime_summary(
 
     scope = manifest.get("scope") or {}
     expected = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": manifest.get("catalog_updated_at"),
         "scope": {
             "published_start": scope.get("published_start"),
@@ -415,6 +970,7 @@ def validate_runtime_summary(
 def validate_runtime_asset_versions(
     catalog_dir: Path,
     manifest: dict[str, Any],
+    archetypes: dict[str, Any],
     shard_entries: list[dict[str, Any]],
     failures: list[str],
 ) -> None:
@@ -428,6 +984,52 @@ def validate_runtime_asset_versions(
             fail(failures, "archetypes asset size mismatch")
         if archetypes_entry.get("sha256") != hashlib.sha256(payload).hexdigest():
             fail(failures, "archetypes asset hash mismatch")
+
+        definitions = archetypes.get("archetypes")
+        definitions = definitions if isinstance(definitions, dict) else {}
+        recipes = {
+            str(archetype_id): {
+                "agentic_actions": archetype.get("agentic_actions"),
+                "instruction_sources": {
+                    field: archetype.get(field) for field in ARCHETYPE_LIST_FIELDS
+                },
+            }
+            for archetype_id, archetype in sorted(definitions.items())
+            if isinstance(archetype, dict)
+        }
+        contract_payload = (
+            json.dumps(
+                {
+                    "agentic_contract": archetypes.get("agentic_contract"),
+                    "ecosystem_target_hints": archetypes.get("ecosystem_target_hints"),
+                    "archetypes": recipes,
+                },
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+            + "\n"
+        ).encode("utf-8")
+        metadata = archetypes_entry.get("agentic_contract")
+        target_hints = archetypes.get("ecosystem_target_hints")
+        expected_metadata = {
+            "schema_version": 1,
+            "sha256": hashlib.sha256(contract_payload).hexdigest(),
+            "bytes": len(contract_payload),
+            "archetypes": len(definitions),
+            "actions": sum(
+                len(archetype.get("agentic_actions") or [])
+                for archetype in definitions.values()
+                if isinstance(archetype, dict)
+            ),
+            "phases": len(AGENTIC_ACTION_ORDER),
+            "ecosystems": len(target_hints) if isinstance(target_hints, dict) else 0,
+            "target_hints": sum(
+                1 for hint in (target_hints or {}).values() if isinstance(hint, dict)
+            ) if isinstance(target_hints, dict) else 0,
+        }
+        if metadata != expected_metadata:
+            fail(failures, "manifest agentic contract metadata does not match the shared contract")
 
     canonical_inventory = [
         {"path": str(entry.get("path") or ""), "sha256": str(entry.get("sha256") or "")}
@@ -539,23 +1141,28 @@ def validate_source_completeness(
 def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str, Any]:
     failures: list[str] = []
     warnings: list[str] = []
+    if _is_link_or_junction(catalog_dir):
+        fail(failures, f"catalog root must not be a link or junction: {catalog_dir}")
+        return {"ok": False, "failures": failures, "warnings": warnings}
     index_path = catalog_dir / "index.json"
     manifest_path = catalog_dir / "manifest.json"
     archetype_path = catalog_dir / "archetypes.json"
     for path in (index_path, manifest_path, archetype_path):
-        if not path.is_file():
+        if _is_link_or_junction(path):
+            fail(failures, f"required catalog file must not be a link or junction: {path}")
+        elif not path.is_file():
             fail(failures, f"missing required catalog file: {path}")
     if failures:
         return {"ok": False, "failures": failures, "warnings": warnings}
 
-    index = load_json(index_path)
     manifest = load_json(manifest_path)
+    if not validate_physical_catalog_tree(catalog_dir, manifest, failures):
+        return {"ok": False, "failures": failures, "warnings": warnings}
+    index = load_json(index_path)
     archetypes = load_json(archetype_path)
     markdown_counts, markdown_inventory = validate_markdown_recipes(content_dir, failures)
-    if index.get("schema_version") != 1:
-        fail(failures, "index schema_version must be 1")
-    if manifest.get("schema_version") != 1:
-        fail(failures, "manifest schema_version must be 1")
+    if manifest.get("schema_version") != 2:
+        fail(failures, "manifest schema_version must be 2")
     if archetypes.get("schema_version") != 1:
         fail(failures, "archetype schema_version must be 1")
 
@@ -577,15 +1184,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         end_date = date.max
     if scope_valid and start_date != ten_year_cutoff(end_date):
         fail(failures, "manifest publication scope must span exactly 10 calendar years")
-    if index.get("scope") != scope:
-        fail(failures, "index scope does not match manifest scope")
-
-    records = index.get("records")
-    if not isinstance(records, list):
-        fail(failures, "index records must be an array")
-        records = []
-    if index.get("total") != len(records):
-        fail(failures, f"index total {index.get('total')} does not match {len(records)} records")
+    if scope.get("statuses_excluded") != ["Reject", "Rejected"]:
+        fail(failures, "manifest rejected-status policy is invalid")
+    metric_policy = scope.get("metric_policy")
+    if not isinstance(metric_policy, str) or "baseScore >= 4.0" not in metric_policy:
+        fail(failures, "manifest metric policy must declare the CVSS 4.0 inclusion threshold")
+    records = validate_complete_index(catalog_dir, index, manifest, failures)
 
     index_by_cve: dict[str, dict[str, Any]] = {}
     valid_composed_cves: set[str] = set()
@@ -600,11 +1204,11 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         if cve in index_by_cve:
             fail(failures, f"duplicate catalog identity: {cve}")
         index_by_cve[cve] = record
-        if record.get("severity") not in {"high", "critical"}:
+        if record.get("severity") not in {"medium", "high", "critical"}:
             fail(failures, f"{cve} has out-of-scope severity {record.get('severity')!r}")
         try:
-            if float(record.get("score")) < 7.0:
-                fail(failures, f"{cve} has score below 7.0")
+            if float(record.get("score")) < 4.0:
+                fail(failures, f"{cve} has score below 4.0")
         except (TypeError, ValueError):
             fail(failures, f"{cve} has invalid score")
         try:
@@ -678,7 +1282,7 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
     if len(manifest_shard_paths) != len(set(manifest_shard_paths)):
         fail(failures, "manifest shard paths are not unique")
     manifest_shard_path_set = set(manifest_shard_paths)
-    validate_runtime_asset_versions(catalog_dir, manifest, shard_entries, failures)
+    validate_runtime_asset_versions(catalog_dir, manifest, archetypes, shard_entries, failures)
     shards_dir = catalog_dir / "shards"
     physical_shard_paths = (
         {
@@ -852,8 +1456,8 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                     metric_scores.append(float(metric.get("score")))
                 except (TypeError, ValueError):
                     pass
-            if not any(score >= 7.0 for score in metric_scores):
-                fail(failures, f"{cve} lacks a stored High/Critical metric observation")
+            if not any(score >= 4.0 for score in metric_scores):
+                fail(failures, f"{cve} lacks a stored Medium/High/Critical metric observation")
             if record.get("kev") and not record.get("kev_details"):
                 fail(failures, f"{cve} is marked KEV without KEV provenance")
 
@@ -899,6 +1503,10 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         fail(failures, "manifest composed_recipe_coverage does not match valid archetype compositions")
     if totals.get("coverage_percent") != expected_coverage_percent:
         fail(failures, "manifest coverage_percent is not exact")
+    if totals.get("agentic_recipe_coverage") != valid_composed_total:
+        fail(failures, "manifest agentic_recipe_coverage does not match valid agentic compositions")
+    if totals.get("agentic_coverage_percent") != expected_coverage_percent:
+        fail(failures, "manifest agentic_coverage_percent is not exact")
     if totals.get("shards") != len(shard_entries):
         fail(failures, "manifest shard total does not match shard_manifest")
     if shard_count != expected_total:
@@ -926,6 +1534,17 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         "shards": len(shard_entries),
         "browser_records": browser_records,
         "archetypes": len(archetype_ids),
+        "agentic": {
+            "records": valid_composed_total,
+            "coverage_percent": expected_coverage_percent,
+            "actions": sum(
+                len(archetype.get("agentic_actions") or [])
+                for archetype in (archetypes.get("archetypes") or {}).values()
+                if isinstance(archetype, dict)
+            ),
+            "phases": len(AGENTIC_ACTION_ORDER),
+            "ecosystems": len(archetypes.get("ecosystem_target_hints") or {}),
+        },
         "markdown": markdown_counts,
         "failures": failures,
         "warnings": warnings,

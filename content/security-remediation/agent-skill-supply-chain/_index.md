@@ -35,15 +35,34 @@ skills into governed inventory with owner, publisher, registry,
 permissions, package hash, version pinning, signature status, sandbox
 requirements, runtime approval requirements, and deterministic decisions.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/agent-skill-supply-chain-model.json` - the source
   model for skill provenance, permission, risk, and control credits.
 - `data/evidence/agent-skill-supply-chain-pack.json` - the generated
   evidence pack.
+- `scripts/evaluate_agent_skill_supply_chain_decision.py` - the
+  deterministic install, enable, update, and runtime decision point.
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_agent_skill_supply_chain_pack.py
+python3 scripts/generate_agent_skill_supply_chain_pack.py --check
+```
+
+Evaluate a pinned read-only context skill before the agent loads it:
+
+```bash
+python3 scripts/evaluate_agent_skill_supply_chain_decision.py \
+  --skill-id sr-secure-context-retrieval-skill \
+  --operation run \
+  --workflow-id vulnerable-dependency-remediation \
+  --platform codex \
+  --expect-decision allow_pinned_readonly_skill
+```
 
 The MCP server exposes the pack through
 `recipes_agent_skill_supply_chain_pack` and exposes runtime decisions
@@ -96,11 +115,23 @@ This feature follows current primary guidance:
 
 ## Runtime examples
 
-Evaluate a pinned, read-only context skill before running:
+Plan a pinned, read-only context skill before running:
 
+```text
+recipes_playbook_plan(
+  playbook_id="agent-skill-supply-chain",
+  finding="Pinned read-only context skill requested for a dependency-remediation workflow."
+)
+```
 
-Evaluate a high-consequence quarantine skill with approval:
+Plan a high-consequence quarantine skill with approval:
 
+```text
+recipes_playbook_plan(
+  playbook_id="agent-skill-supply-chain",
+  finding="High-consequence artifact quarantine skill requested with human approval."
+)
+```
 
 An unregistered marketplace skill, a changed package hash, a wildcard
 egress request, or a private-data-plus-egress pattern fails closed.

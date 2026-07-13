@@ -31,6 +31,8 @@ attestation seed that can be verified in CI today and signed later with a
 keyless signing system such as Sigstore or an enterprise attestation
 service.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/secure-context-attestation-profile.json` - the source
@@ -40,16 +42,34 @@ service.
   pack with in-toto-shaped subjects, verification policy,
   recertification queue, and signature readiness.
 - MCP tools:
-  `recipes_secure_context_attestation_pack` and
+  `recipes_secure_context_attestation_pack`, paired with `recipes_playbook_plan` using playbook id `secure-context-attestation`.
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_secure_context_attestation_pack.py
+python3 scripts/generate_secure_context_attestation_pack.py --check
+```
 
 Evaluate an open-reference context source:
 
+```bash
+python3 scripts/evaluate_context_attestation_decision.py \
+  --subject-type context_source \
+  --source-id recipes \
+  --environment open_reference \
+  --expect-decision allow_attested_context
+```
 
 Evaluate the same subject for production MCP use:
 
+```bash
+python3 scripts/evaluate_context_attestation_decision.py \
+  --subject-type context_source \
+  --source-id recipes \
+  --environment production_mcp \
+  --expect-decision hold_for_signature
+```
 
 That second hold is intentional. Production and diligence environments
 must present a signature bundle and transparency-log verification before

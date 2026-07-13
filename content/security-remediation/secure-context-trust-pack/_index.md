@@ -36,9 +36,11 @@ artifact. It is designed for AI platform intake, MCP server approval,
 retrieval-augmented-agent design review, procurement security, and
 trust review diligence.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
-The secure context layer has three artifacts:
+The secure context trust and release path has five artifacts:
 
 - `data/context/secure-context-registry.json` - the source registry for
   context roots, owners, trust tiers, retrieval decisions, freshness
@@ -46,9 +48,36 @@ The secure context layer has three artifacts:
 - `data/evidence/secure-context-trust-pack.json` - the generated pack
   with source hashes, registered file counts, retrieval contracts, and
   per-workflow context package hashes.
+- `scripts/generate_secure_context_trust_pack.py` - the deterministic
+  trust-pack generator and drift checker.
+- `data/context/secure-context-release-pack.json` - the generated
+  channel, source-hash, signature, poisoning, and eval release contract.
+- `scripts/evaluate_secure_context_release_decision.py` - the runtime
+  decision before context is promoted to an open, production MCP, or
+  trust-center channel.
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_secure_context_trust_pack.py
+python3 scripts/generate_secure_context_trust_pack.py --check
+python3 scripts/generate_secure_context_release_pack.py
+python3 scripts/generate_secure_context_release_pack.py --check
+```
+
+Evaluate the current open-reference release. The checked-in source pack
+intentionally holds while the documented poisoning findings remain
+unresolved, which makes the safety state explicit instead of silently
+promoting context:
+
+```bash
+python3 scripts/evaluate_secure_context_release_decision.py \
+  --release-id open-remediation-context-release \
+  --channel-id open-reference \
+  --environment open_reference \
+  --source-id recipes \
+  --expect-decision hold_for_poisoning_review
+```
 
 The local MCP server exposes the same bundle through
 `recipes_secure_context_trust_pack`, and exposes runtime retrieval

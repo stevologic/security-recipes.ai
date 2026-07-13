@@ -63,6 +63,9 @@ html.dark,
 
 html {
   overflow-y: auto;
+  /* Standalone iOS paints display insets from the root canvas. Keep that
+     canvas black while the page body retains the branded near-black surface. */
+  background-color: #000 !important;
 }
 
 html.dark body,
@@ -1161,6 +1164,7 @@ html[data-recipe-browser-page="true"] #content > .content {
 .recipe-browser__category--general { --recipe-category-accent: #d946ef; }
 .recipe-browser__category--classic-defaults { --recipe-category-accent: #22d3ee; }
 .recipe-browser__category--compliance-standards { --recipe-category-accent: #34d399; }
+.recipe-browser__category--code-hygiene { --recipe-category-accent: #a78bfa; }
 .recipe-browser__category--crypto-defi { --recipe-category-accent: #fb7185; }
 
 .recipe-browser__category--zero-day {
@@ -1323,6 +1327,7 @@ html[data-recipe-browser-page="true"] #content > .content {
 .recipe-browser-card--general { --recipe-accent: #d946ef; }
 .recipe-browser-card--classic-defaults { --recipe-accent: #22d3ee; }
 .recipe-browser-card--compliance-standards { --recipe-accent: #34d399; }
+.recipe-browser-card--code-hygiene { --recipe-accent: #a78bfa; }
 .recipe-browser-card--crypto-defi { --recipe-accent: #fb7185; }
 
 .recipe-browser-card__visual {

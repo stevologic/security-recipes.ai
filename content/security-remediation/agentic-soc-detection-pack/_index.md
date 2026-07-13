@@ -33,18 +33,44 @@ replay regressions.
 
 - Profile:
   `data/assurance/agentic-soc-detection-profile.json`
-- Generator:
-- Runtime evaluator:
+- Generator: `scripts/generate_agentic_soc_detection_pack.py`
+- Runtime evaluator: `scripts/evaluate_agentic_soc_detection_event.py`
 - Evidence pack:
   `data/evidence/agentic-soc-detection-pack.json`
 - MCP tools:
-  `recipes_agentic_soc_detection_pack` and
+  `recipes_agentic_soc_detection_pack`, paired with `recipes_playbook_plan` using playbook id `agentic-soc-detection-pack`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_agentic_soc_detection_pack.py
+python3 scripts/generate_agentic_soc_detection_pack.py --check
+```
 
 Evaluate one event:
 
+```bash
+python3 scripts/evaluate_agentic_soc_detection_event.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --event-class mcp.tools.call \
+  --attribute service.name=security-recipes-mcp \
+  --attribute deployment.environment=production \
+  --attribute trace_id=trace-ci \
+  --attribute span_id=span-ci \
+  --attribute workflow_id=vulnerable-dependency-remediation \
+  --attribute run_id=run-ci \
+  --attribute agent_id=sr-agent::vuln-deps::codex \
+  --attribute identity_id=sr-agent::vuln-deps::codex \
+  --attribute tenant_id=tenant-ci \
+  --attribute correlation_id=ci-correlation \
+  --attribute receipt_id=sr-run-receipt::vulnerable-dependency-remediation \
+  --attribute telemetry.redaction_state=metadata_only \
+  --attribute authorization.token_passthrough_detected=true \
+  --attribute authorization.decision=deny_token_passthrough \
+  --expect-decision soc_critical_kill_session
+```
+
+{{< playbook-workflow >}}
 
 ## Detection rules
 

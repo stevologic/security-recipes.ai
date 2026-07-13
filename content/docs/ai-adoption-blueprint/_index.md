@@ -69,7 +69,7 @@ safe, reviewable fix into a real repository.
 2. Read that agent recipe in [Agents]({{< relref "/agents" >}}).
 3. Pick one deterministic finding source: Dependabot, Renovate, GitHub
    code scanning, `npm audit`, `pip-audit`, or OSV-Scanner.
-4. Copy one relevant prompt from the [Prompt Library]({{< relref "/prompt-library" >}}).
+4. Copy one relevant prompt from the [Recipes]({{< relref "/recipes" >}}).
 5. Require the agent to open a branch and PR. Do not allow direct merge.
 
 ### First workflow

@@ -37,11 +37,13 @@ auditable envelope for one governed agent run. It is designed to be
 signed by a tenant KMS, Sigstore, or equivalent workload attestation
 system after the run closes.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source profile:
   `data/assurance/agentic-run-receipt-profile.json`
-- Generator:
+- Generator: `scripts/generate_agentic_run_receipt_pack.py`
 - Evidence pack:
   `data/evidence/agentic-run-receipt-pack.json`
 - MCP tool:
@@ -49,6 +51,10 @@ system after the run closes.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_agentic_run_receipt_pack.py
+python3 scripts/generate_agentic_run_receipt_pack.py --check
+```
 
 ## Receipt chain
 

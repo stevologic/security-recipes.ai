@@ -48,6 +48,8 @@ site to understand the security model. They can ask the MCP server for
 one export, then drill into the exact pack, section, or diligence
 question that matters.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/enterprise-trust-center-profile.json` - source

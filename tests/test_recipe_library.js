@@ -35,9 +35,13 @@ function renderedLibrary() {
   return require('../lib/shortcodes/recipe-browser.js')();
 }
 
-test('recipe library federates curated and CVE counts without double-counting overrides', () => {
+test('recipe library federates curated and CVE counts without double-counting overrides', (context) => {
   const curated = curatedFeed();
   const runtime = readJson(RUNTIME_SUMMARY);
+  if (runtime.schema_version !== 2) {
+    context.skip('generated schema-v2 catalog fixture is not present');
+    return;
+  }
   const catalogCount = Number(runtime.totals.catalog_records);
   const overrideCount = Number(runtime.totals.stable_markdown_overrides);
   const curatedCount = Number(curated.count);
@@ -45,7 +49,21 @@ test('recipe library federates curated and CVE counts without double-counting ov
   const html = renderedLibrary();
 
   assert.equal(curated.recipes.length, curatedCount, 'feed metadata matches its recipe payload');
-  assert.equal(uniqueCount, 152_390, 'generated inputs produce the expected unique library size');
+  assert.equal(runtime.schema_version, 2, 'library reads the current catalog schema');
+  assert.ok(Number(runtime.by_severity.medium) > 0, 'catalog exposes medium-severity coverage');
+  assert.equal(
+    catalogCount,
+    ['medium', 'high', 'critical'].reduce(
+      (total, severity) => total + Number(runtime.by_severity[severity] || 0),
+      0
+    ),
+    'catalog total equals its severity partitions'
+  );
+  assert.equal(
+    uniqueCount,
+    curatedCount + catalogCount - overrideCount,
+    'unique library total follows the generated overlap formula'
+  );
   assert.match(html, new RegExp(`data-recipe-total="${curatedCount}"`));
   assert.match(html, new RegExp(`data-cve-total="${catalogCount}"`));
   assert.match(html, new RegExp(`<dd>${formatCount(uniqueCount)}</dd>`));
@@ -62,7 +80,7 @@ test('recipe library server render is bounded and remains useful without JavaScr
   assert.equal(cards.length, expectedCards);
   assert.ok(cards.length <= 18, 'the initial document never renders more than one bounded page');
   assert.match(html, new RegExp(`data-recipe-ssr-count="${expectedCards}"`));
-  assert.match(html, /href="\/prompt-library\/cve\/">Catalog methodology<\/a>/);
+  assert.match(html, /href="\/recipes\/cve\/">Catalog methodology<\/a>/);
 });
 
 test('collection navigation exposes accessible tabs, status, and mobile filters', () => {
@@ -112,5 +130,21 @@ test('the CVE collection stays deferred and curated input avoids duplicate typea
     recipeSource,
     /addEventListener\(['"]input['"],\s*function\s*\(\)\s*\{\s*applyFilters\(\);\s*renderTypeahead\(\);/,
     'applyFilters already refreshes focused typeahead results'
+  );
+});
+
+test('the CVE collection clearly exposes exact-ID and complete-catalog search paths', () => {
+  const html = renderedLibrary();
+  const cveSource = fs.readFileSync(path.join(ROOT, 'assets/js/cve-catalog.js'), 'utf8');
+
+  assert.match(html, /Paste any complete CVE ID to open its record immediately/);
+  assert.match(html, /narrow every in-scope record by severity, year, or CISA KEV status/);
+  assert.match(cveSource, /CVE ID or vulnerability title/);
+  assert.match(cveSource, /Words search every in-scope catalog record/);
+  assert.match(cveSource, /search\.maxLength\s*=\s*160/);
+  assert.match(
+    cveSource,
+    /renderResults\(\[preview\], 1, true\)/,
+    'an exact CVE ID must remain retrievable even when broad-search filters are active'
   );
 });

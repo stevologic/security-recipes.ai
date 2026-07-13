@@ -1,0 +1,1192 @@
+{
+  "schema_version": 1,
+  "name": "code-hygiene recipe routing fixtures",
+  "version": "2026-07-12",
+  "positive_case_count": 144,
+  "positive_cases": [
+    {
+      "id": "code-hygiene.cross-language.lint-warning-baseline-and-budget.title",
+      "query": "Lint warning baseline and budget multi-language lint warnings baseline",
+      "expected_recipe_id": "code-hygiene.cross-language.lint-warning-baseline-and-budget",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/lint-warning-baseline-and-budget/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.lint-warning-baseline-and-budget.evidence",
+      "query": "turn an existing warning backlog into a measured, non-growing budget Inventory configured compilers, linters, warning-as-error gates, and suppression files.",
+      "expected_recipe_id": "code-hygiene.cross-language.lint-warning-baseline-and-budget",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/lint-warning-baseline-and-budget/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.dead-code-and-unused-symbol-removal.title",
+      "query": "Dead code and unused symbol removal multi-language dead-code unused reachability",
+      "expected_recipe_id": "code-hygiene.cross-language.dead-code-and-unused-symbol-removal",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/dead-code-and-unused-symbol-removal/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.dead-code-and-unused-symbol-removal.evidence",
+      "query": "remove unreachable code and unused symbols without deleting runtime-discovered behavior Combine compiler or linter diagnostics with call-site, export, reflection, plugin, and configuration searches.",
+      "expected_recipe_id": "code-hygiene.cross-language.dead-code-and-unused-symbol-removal",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/dead-code-and-unused-symbol-removal/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.duplicated-logic-consolidation.title",
+      "query": "Duplicated logic consolidation multi-language duplication refactor contracts",
+      "expected_recipe_id": "code-hygiene.cross-language.duplicated-logic-consolidation",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/duplicated-logic-consolidation/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.duplicated-logic-consolidation.evidence",
+      "query": "consolidate behaviorally equivalent logic while preserving each caller's contract Find structurally similar blocks and compare inputs, outputs, side effects, and error semantics.",
+      "expected_recipe_id": "code-hygiene.cross-language.duplicated-logic-consolidation",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/duplicated-logic-consolidation/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.complexity-and-long-function-reduction.title",
+      "query": "Complexity and long-function reduction multi-language complexity control-flow refactor",
+      "expected_recipe_id": "code-hygiene.cross-language.complexity-and-long-function-reduction",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/complexity-and-long-function-reduction/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.complexity-and-long-function-reduction.evidence",
+      "query": "reduce hard-to-review control flow without changing behavior Use configured complexity diagnostics and inspect nesting, early exits, state mutation, and mixed responsibilities.",
+      "expected_recipe_id": "code-hygiene.cross-language.complexity-and-long-function-reduction",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/complexity-and-long-function-reduction/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.deterministic-test-and-flake-remediation.title",
+      "query": "Deterministic test and flake remediation multi-language tests flaky determinism",
+      "expected_recipe_id": "code-hygiene.cross-language.deterministic-test-and-flake-remediation",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/deterministic-test-and-flake-remediation/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.deterministic-test-and-flake-remediation.evidence",
+      "query": "remove nondeterminism from a reproducibly flaky test Reproduce with repeated, shuffled, isolated, and parallel runs while recording seed and environment.",
+      "expected_recipe_id": "code-hygiene.cross-language.deterministic-test-and-flake-remediation",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/deterministic-test-and-flake-remediation/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.test-isolation-and-fixture-hygiene.title",
+      "query": "Test isolation and fixture hygiene multi-language tests fixtures isolation",
+      "expected_recipe_id": "code-hygiene.cross-language.test-isolation-and-fixture-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/test-isolation-and-fixture-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.test-isolation-and-fixture-hygiene.evidence",
+      "query": "eliminate order-dependent fixtures and leaked test state Run tests alone and in varied order while tracking global, database, filesystem, environment, and mock state.",
+      "expected_recipe_id": "code-hygiene.cross-language.test-isolation-and-fixture-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/test-isolation-and-fixture-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.deprecated-api-migration.title",
+      "query": "Deprecated API migration multi-language deprecation compatibility migration",
+      "expected_recipe_id": "code-hygiene.cross-language.deprecated-api-migration",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/deprecated-api-migration/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.deprecated-api-migration.evidence",
+      "query": "replace deprecated APIs using the repository's supported runtime versions Collect compiler and runtime deprecations and confirm the installed and minimum supported versions.",
+      "expected_recipe_id": "code-hygiene.cross-language.deprecated-api-migration",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/deprecated-api-migration/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.configuration-validation-and-default-hygiene.title",
+      "query": "Configuration validation and default hygiene multi-language configuration validation defaults",
+      "expected_recipe_id": "code-hygiene.cross-language.configuration-validation-and-default-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/configuration-validation-and-default-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.configuration-validation-and-default-hygiene.evidence",
+      "query": "make invalid configuration fail clearly and defaults behave consistently Trace configuration sources, precedence, parsing, coercion, defaults, and startup failure behavior.",
+      "expected_recipe_id": "code-hygiene.cross-language.configuration-validation-and-default-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/configuration-validation-and-default-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.structured-logging-and-cardinality-hygiene.title",
+      "query": "Structured logging and cardinality hygiene multi-language logging observability cardinality",
+      "expected_recipe_id": "code-hygiene.cross-language.structured-logging-and-cardinality-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/structured-logging-and-cardinality-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.structured-logging-and-cardinality-hygiene.evidence",
+      "query": "make logs structured, actionable, and bounded without exposing sensitive data Inventory free-form interpolation, inconsistent event names, high-cardinality fields, and duplicate error logs.",
+      "expected_recipe_id": "code-hygiene.cross-language.structured-logging-and-cardinality-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/structured-logging-and-cardinality-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.feature-flag-and-experiment-cleanup.title",
+      "query": "Feature flag and experiment cleanup multi-language feature-flags experiments dead-code",
+      "expected_recipe_id": "code-hygiene.cross-language.feature-flag-and-experiment-cleanup",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/feature-flag-and-experiment-cleanup/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.feature-flag-and-experiment-cleanup.evidence",
+      "query": "remove stale feature-flag branches after rollout state is proven Find flag definitions, readers, defaults, tests, analytics, rollout records, and operational ownership.",
+      "expected_recipe_id": "code-hygiene.cross-language.feature-flag-and-experiment-cleanup",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/feature-flag-and-experiment-cleanup/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.todo-fixme-and-suppression-debt.title",
+      "query": "TODO, FIXME, and suppression debt multi-language todo fixme suppressions",
+      "expected_recipe_id": "code-hygiene.cross-language.todo-fixme-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/todo-fixme-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.todo-fixme-and-suppression-debt.evidence",
+      "query": "turn stale annotations and diagnostic suppressions into owned, reviewable work Inventory TODO, FIXME, disabled-rule, ignore, pragma, and expected-failure annotations with history.",
+      "expected_recipe_id": "code-hygiene.cross-language.todo-fixme-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/todo-fixme-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.time-date-timezone-and-clock-hygiene.title",
+      "query": "Time, date, timezone, and clock hygiene multi-language time timezone clock",
+      "expected_recipe_id": "code-hygiene.cross-language.time-date-timezone-and-clock-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/time-date-timezone-and-clock-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.time-date-timezone-and-clock-hygiene.evidence",
+      "query": "make temporal logic explicit, testable, and timezone-safe Find direct wall-clock reads, naive timestamps, local-time assumptions, duration math, and implicit timezone conversion.",
+      "expected_recipe_id": "code-hygiene.cross-language.time-date-timezone-and-clock-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/time-date-timezone-and-clock-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.serialization-schema-and-versioning-hygiene.title",
+      "query": "Serialization schema and versioning hygiene multi-language serialization schema versioning",
+      "expected_recipe_id": "code-hygiene.cross-language.serialization-schema-and-versioning-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/serialization-schema-and-versioning-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.serialization-schema-and-versioning-hygiene.evidence",
+      "query": "make serialized contracts explicit and backward-compatible Inventory encoders, decoders, schema files, field aliases, defaults, and persisted payload versions.",
+      "expected_recipe_id": "code-hygiene.cross-language.serialization-schema-and-versioning-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/serialization-schema-and-versioning-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.regex-correctness-and-complexity-hygiene.title",
+      "query": "Regular-expression correctness and complexity hygiene multi-language regex complexity parsing",
+      "expected_recipe_id": "code-hygiene.cross-language.regex-correctness-and-complexity-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/regex-correctness-and-complexity-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.regex-correctness-and-complexity-hygiene.evidence",
+      "query": "make complex regular expressions bounded, readable, and behaviorally tested Find nested quantifiers, ambiguous alternation, catastrophic backtracking risk, and undocumented capture dependencies.",
+      "expected_recipe_id": "code-hygiene.cross-language.regex-correctness-and-complexity-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/regex-correctness-and-complexity-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.unicode-locale-and-normalization-hygiene.title",
+      "query": "Unicode, locale, and normalization hygiene multi-language unicode locale normalization",
+      "expected_recipe_id": "code-hygiene.cross-language.unicode-locale-and-normalization-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/unicode-locale-and-normalization-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.unicode-locale-and-normalization-hygiene.evidence",
+      "query": "make text comparison and normalization semantics intentional Trace case conversion, normalization, collation, length, slicing, identifier, and display operations.",
+      "expected_recipe_id": "code-hygiene.cross-language.unicode-locale-and-normalization-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/unicode-locale-and-normalization-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.dependency-manifest-and-lockfile-hygiene.title",
+      "query": "Dependency manifest and lockfile hygiene multi-language dependencies lockfiles manifests",
+      "expected_recipe_id": "code-hygiene.cross-language.dependency-manifest-and-lockfile-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/dependency-manifest-and-lockfile-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.cross-language.dependency-manifest-and-lockfile-hygiene.evidence",
+      "query": "align declared, resolved, direct, optional, and unused dependencies without upgrading them Compare manifests, lockfiles, workspace definitions, imports, build plugins, scripts, and deployment packaging.",
+      "expected_recipe_id": "code-hygiene.cross-language.dependency-manifest-and-lockfile-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/cross-language/dependency-manifest-and-lockfile-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.typescript-strictness-and-escape-hatches.title",
+      "query": "TypeScript strictness and escape-hatch debt javascript-typescript/npm typescript strict any",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.typescript-strictness-and-escape-hatches",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/typescript-strictness-and-escape-hatches/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.typescript-strictness-and-escape-hatches.evidence",
+      "query": "reduce unsafe any, ignore directives, assertions, and disabled strict checks incrementally Read the effective tsconfig graph and inventory any, unknown casts, non-null assertions, and ignore directives.",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.typescript-strictness-and-escape-hatches",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/typescript-strictness-and-escape-hatches/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.javascript-promise-abort-and-listener-lifecycle.title",
+      "query": "JavaScript promise, abort, and listener lifecycle javascript-typescript/npm javascript promises abortcontroller",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.javascript-promise-abort-and-listener-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/javascript-promise-abort-and-listener-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.javascript-promise-abort-and-listener-lifecycle.evidence",
+      "query": "close floating promises, lost failures, uncancelled work, and leaked event listeners Trace promise creation, awaiting, rejection ownership, AbortSignal propagation, and listener registration/removal.",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.javascript-promise-abort-and-listener-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/javascript-promise-abort-and-listener-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.javascript-module-cycles-side-effects-and-unused-exports.title",
+      "query": "JavaScript module cycles, side effects, and unused exports javascript-typescript/npm javascript modules cycles",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.javascript-module-cycles-side-effects-and-unused-exports",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/javascript-module-cycles-side-effects-and-unused-exports/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.javascript-module-cycles-side-effects-and-unused-exports.evidence",
+      "query": "make module initialization order and public exports predictable Build the import graph and inspect cycles, barrel files, side-effect imports, package exports, and unused symbols.",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.javascript-module-cycles-side-effects-and-unused-exports",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/javascript-module-cycles-side-effects-and-unused-exports/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.react-hook-effect-and-state-lifecycle.title",
+      "query": "React hook, effect, and state lifecycle javascript-typescript/npm react hooks effects",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.react-hook-effect-and-state-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/react-hook-effect-and-state-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.react-hook-effect-and-state-lifecycle.evidence",
+      "query": "remove stale closures, redundant state, and effect cleanup defects Inspect dependency arrays, derived state, effect ownership, subscriptions, async work, and Strict Mode behavior.",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.react-hook-effect-and-state-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/react-hook-effect-and-state-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.node-stream-emitter-and-handle-lifecycle.title",
+      "query": "Node.js stream, emitter, and handle lifecycle javascript-typescript/npm nodejs streams eventemitter",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.node-stream-emitter-and-handle-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/node-stream-emitter-and-handle-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.javascript-typescript.node-stream-emitter-and-handle-lifecycle.evidence",
+      "query": "prevent stream stalls, duplicate listeners, and handles that keep processes alive Trace stream backpressure, pipeline errors, listener counts, timers, sockets, and handle close ownership.",
+      "expected_recipe_id": "code-hygiene.javascript-typescript.node-stream-emitter-and-handle-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/javascript-typescript/node-stream-emitter-and-handle-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-typing-any-and-ignore-debt.title",
+      "query": "Python typing Any and ignore debt python/pypi python typing any",
+      "expected_recipe_id": "code-hygiene.python.python-typing-any-and-ignore-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-typing-any-and-ignore-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-typing-any-and-ignore-debt.evidence",
+      "query": "narrow Any, casts, and type-ignore suppressions at trusted boundaries Read the configured type checker and inventory explicit Any, implicit Any, casts, and ignore codes.",
+      "expected_recipe_id": "code-hygiene.python.python-typing-any-and-ignore-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-typing-any-and-ignore-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-mutable-default-dataclass-and-sentinel-hygiene.title",
+      "query": "Python mutable-default, dataclass, and sentinel hygiene python/pypi python dataclasses mutable-defaults",
+      "expected_recipe_id": "code-hygiene.python.python-mutable-default-dataclass-and-sentinel-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-mutable-default-dataclass-and-sentinel-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-mutable-default-dataclass-and-sentinel-hygiene.evidence",
+      "query": "remove shared mutable defaults and ambiguous sentinel values Find mutable parameter and field defaults, reused class state, and None overloaded as both data and absence.",
+      "expected_recipe_id": "code-hygiene.python.python-mutable-default-dataclass-and-sentinel-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-mutable-default-dataclass-and-sentinel-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-exception-chaining-context-and-resource-lifecycle.title",
+      "query": "Python exception, context, and resource lifecycle python/pypi python exceptions context-managers",
+      "expected_recipe_id": "code-hygiene.python.python-exception-chaining-context-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-exception-chaining-context-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-exception-chaining-context-and-resource-lifecycle.evidence",
+      "query": "preserve exception context and deterministically release files, locks, sessions, and generators Find broad catches, swallowed exceptions, raise-without-chaining, manual close paths, and generator cleanup gaps.",
+      "expected_recipe_id": "code-hygiene.python.python-exception-chaining-context-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-exception-chaining-context-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-asyncio-task-cancellation-and-timeouts.title",
+      "query": "Python asyncio task cancellation and timeouts python/pypi python asyncio cancellation",
+      "expected_recipe_id": "code-hygiene.python.python-asyncio-task-cancellation-and-timeouts",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-asyncio-task-cancellation-and-timeouts/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-asyncio-task-cancellation-and-timeouts.evidence",
+      "query": "eliminate orphaned tasks, swallowed cancellation, and unbounded awaits Trace create_task ownership, TaskGroup use, cancellation propagation, timeout boundaries, and blocking calls.",
+      "expected_recipe_id": "code-hygiene.python.python-asyncio-task-cancellation-and-timeouts",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-asyncio-task-cancellation-and-timeouts/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-import-packaging-and-module-boundaries.title",
+      "query": "Python import, packaging, and module boundaries python/pypi python imports packaging",
+      "expected_recipe_id": "code-hygiene.python.python-import-packaging-and-module-boundaries",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-import-packaging-and-module-boundaries/"
+      ]
+    },
+    {
+      "id": "code-hygiene.python.python-import-packaging-and-module-boundaries.evidence",
+      "query": "remove import cycles and make package exports and runtime discovery explicit Map imports, __init__ exports, entry points, namespace packages, import-time side effects, and optional extras.",
+      "expected_recipe_id": "code-hygiene.python.python-import-packaging-and-module-boundaries",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/python/python-import-packaging-and-module-boundaries/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-compiler-warning-deprecation-and-suppression-debt.title",
+      "query": "Java compiler warning, deprecation, and suppression debt java/maven-gradle java javac deprecation",
+      "expected_recipe_id": "code-hygiene.jvm.java-compiler-warning-deprecation-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-compiler-warning-deprecation-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-compiler-warning-deprecation-and-suppression-debt.evidence",
+      "query": "resolve javac warnings and narrow SuppressWarnings annotations Read Maven or Gradle compiler settings and inventory lint categories, deprecations, unchecked operations, and suppressions.",
+      "expected_recipe_id": "code-hygiene.jvm.java-compiler-warning-deprecation-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-compiler-warning-deprecation-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-nullability-optional-and-boundary-contracts.title",
+      "query": "Java nullability, Optional, and boundary contracts java/maven-gradle java nullability optional",
+      "expected_recipe_id": "code-hygiene.jvm.java-nullability-optional-and-boundary-contracts",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-nullability-optional-and-boundary-contracts/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-nullability-optional-and-boundary-contracts.evidence",
+      "query": "make null contracts explicit without misusing Optional in storage or fields Trace nullable inputs, dereferences, annotations, Optional creation, serialization, persistence, and framework injection.",
+      "expected_recipe_id": "code-hygiene.jvm.java-nullability-optional-and-boundary-contracts",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-nullability-optional-and-boundary-contracts/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-autocloseable-and-resource-lifecycle.title",
+      "query": "Java AutoCloseable and resource lifecycle java/maven-gradle java autocloseable resources",
+      "expected_recipe_id": "code-hygiene.jvm.java-autocloseable-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-autocloseable-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-autocloseable-and-resource-lifecycle.evidence",
+      "query": "close files, streams, clients, cursors, and scopes on every exit path Find AutoCloseable creation and trace ownership through returns, exceptions, wrappers, and asynchronous work.",
+      "expected_recipe_id": "code-hygiene.jvm.java-autocloseable-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-autocloseable-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-executor-future-and-threadlocal-lifecycle.title",
+      "query": "Java executor, Future, and ThreadLocal lifecycle java/maven-gradle java executor future",
+      "expected_recipe_id": "code-hygiene.jvm.java-executor-future-and-threadlocal-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-executor-future-and-threadlocal-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.java-executor-future-and-threadlocal-lifecycle.evidence",
+      "query": "bound background work and clean executor and thread-local state Trace executor creation, queue bounds, Future observation, cancellation, shutdown, and ThreadLocal removal.",
+      "expected_recipe_id": "code-hygiene.jvm.java-executor-future-and-threadlocal-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/java-executor-future-and-threadlocal-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.kotlin-compiler-detekt-and-suppression-debt.title",
+      "query": "Kotlin compiler, Detekt, and suppression debt kotlin/gradle kotlin detekt compiler",
+      "expected_recipe_id": "code-hygiene.jvm.kotlin-compiler-detekt-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/kotlin-compiler-detekt-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.kotlin-compiler-detekt-and-suppression-debt.evidence",
+      "query": "resolve Kotlin diagnostics and narrow file or declaration suppressions Read compiler, Gradle, and Detekt settings and inventory warnings, baseline entries, and Suppress annotations.",
+      "expected_recipe_id": "code-hygiene.jvm.kotlin-compiler-detekt-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/kotlin-compiler-detekt-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.kotlin-coroutine-scope-cancellation-and-flow.title",
+      "query": "Kotlin coroutine scope, cancellation, and Flow lifecycle kotlin/gradle kotlin coroutines flow",
+      "expected_recipe_id": "code-hygiene.jvm.kotlin-coroutine-scope-cancellation-and-flow",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/kotlin-coroutine-scope-cancellation-and-flow/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.kotlin-coroutine-scope-cancellation-and-flow.evidence",
+      "query": "replace orphaned coroutines and uncollected or multiply collected flows with owned lifecycles Trace scope creation, Job parentage, dispatcher use, cancellation, exception handlers, and Flow collection.",
+      "expected_recipe_id": "code-hygiene.jvm.kotlin-coroutine-scope-cancellation-and-flow",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/kotlin-coroutine-scope-cancellation-and-flow/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.kotlin-nullability-platform-types-and-immutability.title",
+      "query": "Kotlin nullability, platform types, and immutability kotlin/gradle kotlin nullability platform-types",
+      "expected_recipe_id": "code-hygiene.jvm.kotlin-nullability-platform-types-and-immutability",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/kotlin-nullability-platform-types-and-immutability/"
+      ]
+    },
+    {
+      "id": "code-hygiene.jvm.kotlin-nullability-platform-types-and-immutability.evidence",
+      "query": "contain Java platform types and remove unsafe assertions and unintended mutation Find platform types, double-bang assertions, unsafe casts, mutable collection exposure, and data-class copy assumptions.",
+      "expected_recipe_id": "code-hygiene.jvm.kotlin-nullability-platform-types-and-immutability",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/jvm/kotlin-nullability-platform-types-and-immutability/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-nullable-and-analyzer-suppression-debt.title",
+      "query": ".NET nullable and analyzer suppression debt dotnet/nuget dotnet nullable analyzers",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-nullable-and-analyzer-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-nullable-and-analyzer-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-nullable-and-analyzer-suppression-debt.evidence",
+      "query": "resolve nullable and analyzer warnings without null-forgiving or pragma expansion Read project, Directory.Build, and editorconfig settings and inventory nullable warnings, pragmas, and global suppressions.",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-nullable-and-analyzer-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-nullable-and-analyzer-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-async-cancellation-and-fire-and-forget.title",
+      "query": ".NET async cancellation and fire-and-forget lifecycle dotnet/nuget dotnet async cancellationtoken",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-async-cancellation-and-fire-and-forget",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-async-cancellation-and-fire-and-forget/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-async-cancellation-and-fire-and-forget.evidence",
+      "query": "propagate CancellationToken and observe every Task failure Trace Task creation, awaiting, token flow, timeout ownership, async void, and background service lifetime.",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-async-cancellation-and-fire-and-forget",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-async-cancellation-and-fire-and-forget/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-disposable-and-async-disposable-lifecycle.title",
+      "query": ".NET disposable and async-disposable lifecycle dotnet/nuget dotnet idisposable iasyncdisposable",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-disposable-and-async-disposable-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-disposable-and-async-disposable-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-disposable-and-async-disposable-lifecycle.evidence",
+      "query": "dispose synchronous and asynchronous resources exactly once after their final use Trace IDisposable and IAsyncDisposable ownership across factories, DI scopes, returns, exceptions, and unawaited tasks.",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-disposable-and-async-disposable-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-disposable-and-async-disposable-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-linq-enumeration-and-ef-query-boundaries.title",
+      "query": ".NET LINQ enumeration and EF query boundaries dotnet/nuget dotnet linq entity-framework",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-linq-enumeration-and-ef-query-boundaries",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-linq-enumeration-and-ef-query-boundaries/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dotnet.dotnet-linq-enumeration-and-ef-query-boundaries.evidence",
+      "query": "avoid repeated enumeration, client evaluation, N+1 loading, and leaked query lifetimes Trace IQueryable versus IEnumerable transitions, materialization points, repeated enumeration, includes, and per-row queries.",
+      "expected_recipe_id": "code-hygiene.dotnet.dotnet-linq-enumeration-and-ef-query-boundaries",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dotnet/dotnet-linq-enumeration-and-ef-query-boundaries/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-vet-and-lint-suppression-debt.title",
+      "query": "Go vet and lint suppression debt go/modules go vet lint",
+      "expected_recipe_id": "code-hygiene.go.go-vet-and-lint-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-vet-and-lint-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-vet-and-lint-suppression-debt.evidence",
+      "query": "resolve Go diagnostics and narrow nolint directives Read module, workspace, build-tag, vet, and configured linter settings and inventory nolint directives.",
+      "expected_recipe_id": "code-hygiene.go.go-vet-and-lint-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-vet-and-lint-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-error-wrapping-and-sentinel-contracts.title",
+      "query": "Go error wrapping and sentinel contracts go/modules go errors wrapping",
+      "expected_recipe_id": "code-hygiene.go.go-error-wrapping-and-sentinel-contracts",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-error-wrapping-and-sentinel-contracts/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-error-wrapping-and-sentinel-contracts.evidence",
+      "query": "preserve error identity and context without string matching or duplicate logging Trace error creation, wrapping, comparison, type assertion, logging, and translation at API boundaries.",
+      "expected_recipe_id": "code-hygiene.go.go-error-wrapping-and-sentinel-contracts",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-error-wrapping-and-sentinel-contracts/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-goroutine-context-cancellation-and-leaks.title",
+      "query": "Go goroutine, context, cancellation, and leak hygiene go/modules go goroutines context",
+      "expected_recipe_id": "code-hygiene.go.go-goroutine-context-cancellation-and-leaks",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-goroutine-context-cancellation-and-leaks/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-goroutine-context-cancellation-and-leaks.evidence",
+      "query": "give every goroutine and context a bounded owner and shutdown path Trace goroutine starts, context derivation, cancel calls, channel exits, timers, and WaitGroup or errgroup joins.",
+      "expected_recipe_id": "code-hygiene.go.go-goroutine-context-cancellation-and-leaks",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-goroutine-context-cancellation-and-leaks/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-channel-lock-and-shared-state-hygiene.title",
+      "query": "Go channel, lock, and shared-state hygiene go/modules go channels mutex",
+      "expected_recipe_id": "code-hygiene.go.go-channel-lock-and-shared-state-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-channel-lock-and-shared-state-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.go.go-channel-lock-and-shared-state-hygiene.evidence",
+      "query": "remove channel ownership ambiguity, lock misuse, and data races Map shared variables, lock scopes, channel creators, senders, closers, and blocking operations.",
+      "expected_recipe_id": "code-hygiene.go.go-channel-lock-and-shared-state-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/go/go-channel-lock-and-shared-state-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-clippy-lint-baseline-and-allow-debt.title",
+      "query": "Rust Clippy lint baseline and allow debt rust/cargo rust clippy lints",
+      "expected_recipe_id": "code-hygiene.rust.rust-clippy-lint-baseline-and-allow-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-clippy-lint-baseline-and-allow-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-clippy-lint-baseline-and-allow-debt.evidence",
+      "query": "resolve correctness and suspicious lints and narrow allow attributes Read Cargo lint tables, clippy configuration, MSRV, feature matrix, and allow or expect attributes.",
+      "expected_recipe_id": "code-hygiene.rust.rust-clippy-lint-baseline-and-allow-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-clippy-lint-baseline-and-allow-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-panic-unwrap-expect-and-error-boundaries.title",
+      "query": "Rust panic, unwrap, expect, and error boundaries rust/cargo rust panic unwrap",
+      "expected_recipe_id": "code-hygiene.rust.rust-panic-unwrap-expect-and-error-boundaries",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-panic-unwrap-expect-and-error-boundaries/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-panic-unwrap-expect-and-error-boundaries.evidence",
+      "query": "keep recoverable failures out of panic paths while preserving invariants Inventory unwrap, expect, panic, indexing, assertions, and error conversion by binary, library, test, and invariant boundary.",
+      "expected_recipe_id": "code-hygiene.rust.rust-panic-unwrap-expect-and-error-boundaries",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-panic-unwrap-expect-and-error-boundaries/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-unsafe-block-and-safety-invariants.title",
+      "query": "Rust unsafe block and safety-invariant hygiene rust/cargo rust unsafe invariants",
+      "expected_recipe_id": "code-hygiene.rust.rust-unsafe-block-and-safety-invariants",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-unsafe-block-and-safety-invariants/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-unsafe-block-and-safety-invariants.evidence",
+      "query": "minimize unsafe scope and make every safety invariant locally reviewable Inventory unsafe blocks, functions, impls, FFI boundaries, raw pointer lifetimes, aliasing, and layout assumptions.",
+      "expected_recipe_id": "code-hygiene.rust.rust-unsafe-block-and-safety-invariants",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-unsafe-block-and-safety-invariants/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-async-cancellation-lock-and-task-lifecycle.title",
+      "query": "Rust async cancellation, lock, and task lifecycle rust/cargo rust async cancellation",
+      "expected_recipe_id": "code-hygiene.rust.rust-async-cancellation-lock-and-task-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-async-cancellation-lock-and-task-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.rust.rust-async-cancellation-lock-and-task-lifecycle.evidence",
+      "query": "avoid detached tasks, locks across await, and cancellation-unsafe partial operations Trace spawn ownership, JoinHandle observation, select cancellation points, lock guards, and shutdown signals.",
+      "expected_recipe_id": "code-hygiene.rust.rust-async-cancellation-lock-and-task-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/rust/rust-async-cancellation-lock-and-task-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-compiler-warning-and-suppression-debt.title",
+      "query": "C and C++ compiler warning and suppression debt c-cpp/cmake c cpp compiler",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-compiler-warning-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-compiler-warning-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-compiler-warning-and-suppression-debt.evidence",
+      "query": "resolve portable compiler diagnostics without blanket flags or pragmas Read build flags per compiler, target, configuration, and generated-code boundary and inventory pragmas.",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-compiler-warning-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-compiler-warning-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-ownership-raii-and-resource-lifecycle.title",
+      "query": "C and C++ ownership, RAII, and resource lifecycle c-cpp/cmake c cpp ownership",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-ownership-raii-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-ownership-raii-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-ownership-raii-and-resource-lifecycle.evidence",
+      "query": "make memory, file, socket, lock, and handle ownership explicit Trace allocation, acquisition, transfer, release, error jumps, destructors, and raw owning pointers.",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-ownership-raii-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-ownership-raii-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-bounds-integer-and-undefined-behavior.title",
+      "query": "C and C++ bounds, integer, and undefined-behavior hygiene c-cpp/cmake c cpp bounds",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-bounds-integer-and-undefined-behavior",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-bounds-integer-and-undefined-behavior/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-bounds-integer-and-undefined-behavior.evidence",
+      "query": "remove unchecked bounds, lossy arithmetic, lifetime, and undefined-behavior hazards Trace lengths, offsets, signedness, narrowing, pointer arithmetic, shifts, overflow assumptions, and object lifetimes.",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-bounds-integer-and-undefined-behavior",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-bounds-integer-and-undefined-behavior/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-atomic-lock-and-thread-lifecycle.title",
+      "query": "C and C++ atomic, lock, and thread lifecycle c-cpp/cmake c cpp atomics",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-atomic-lock-and-thread-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-atomic-lock-and-thread-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-atomic-lock-and-thread-lifecycle.evidence",
+      "query": "remove data races, lock-order hazards, and detached thread lifetimes Map shared mutable state, synchronization, memory order, lock order, callbacks under locks, and thread join ownership.",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-atomic-lock-and-thread-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-atomic-lock-and-thread-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-const-span-view-and-lifetime-hygiene.title",
+      "query": "C and C++ const, span, view, and lifetime hygiene c-cpp/cmake c cpp const",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-const-span-view-and-lifetime-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-const-span-view-and-lifetime-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.c-cpp.c-cpp-const-span-view-and-lifetime-hygiene.evidence",
+      "query": "make mutation and non-owning view lifetimes explicit Find raw pointer-length pairs, dangling views, temporaries bound to references, unnecessary mutation, and const casts.",
+      "expected_recipe_id": "code-hygiene.c-cpp.c-cpp-const-span-view-and-lifetime-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/c-cpp/c-cpp-const-span-view-and-lifetime-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.ruby.ruby-rubocop-baseline-and-disable-debt.title",
+      "query": "Ruby RuboCop baseline and disable debt ruby/bundler ruby rubocop lint",
+      "expected_recipe_id": "code-hygiene.ruby.ruby-rubocop-baseline-and-disable-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/ruby/ruby-rubocop-baseline-and-disable-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.ruby.ruby-rubocop-baseline-and-disable-debt.evidence",
+      "query": "resolve RuboCop offenses and narrow disabled cops without broad rewrites Read inherited RuboCop configuration, target Ruby version, generated paths, TODO baselines, and inline disables.",
+      "expected_recipe_id": "code-hygiene.ruby.ruby-rubocop-baseline-and-disable-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/ruby/ruby-rubocop-baseline-and-disable-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.ruby.rails-query-transaction-and-callback-hygiene.title",
+      "query": "Rails query, transaction, and callback hygiene ruby/bundler ruby rails active-record",
+      "expected_recipe_id": "code-hygiene.ruby.rails-query-transaction-and-callback-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/ruby/rails-query-transaction-and-callback-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.ruby.rails-query-transaction-and-callback-hygiene.evidence",
+      "query": "make Active Record query count, transaction scope, and callback side effects explicit Trace relation materialization, associations, per-row queries, transactions, callbacks, validations, and after-commit work.",
+      "expected_recipe_id": "code-hygiene.ruby.rails-query-transaction-and-callback-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/ruby/rails-query-transaction-and-callback-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.php.php-strict-types-static-analysis-and-suppression-debt.title",
+      "query": "PHP strict types, static analysis, and suppression debt php/composer php strict-types static-analysis",
+      "expected_recipe_id": "code-hygiene.php.php-strict-types-static-analysis-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/php/php-strict-types-static-analysis-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.php.php-strict-types-static-analysis-and-suppression-debt.evidence",
+      "query": "narrow mixed values and static-analysis suppressions without breaking framework boundaries Read PHP version, analyzer configuration and baseline, strict_types use, docblocks, mixed values, and ignores.",
+      "expected_recipe_id": "code-hygiene.php.php-strict-types-static-analysis-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/php/php-strict-types-static-analysis-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.php.php-exception-stream-and-resource-lifecycle.title",
+      "query": "PHP exception, stream, and resource lifecycle php/composer php exceptions streams",
+      "expected_recipe_id": "code-hygiene.php.php-exception-stream-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/php/php-exception-stream-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.php.php-exception-stream-and-resource-lifecycle.evidence",
+      "query": "close resources and preserve failure context across PHP request and worker paths Trace fopen and stream resources, database handles, locks, temporary files, catches, finally blocks, and worker reuse.",
+      "expected_recipe_id": "code-hygiene.php.php-exception-stream-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/php/php-exception-stream-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.swift.swift-warning-deprecation-and-force-unwrap-debt.title",
+      "query": "Swift warning, deprecation, and force-unwrap debt swift/swiftpm swift warnings deprecation",
+      "expected_recipe_id": "code-hygiene.swift.swift-warning-deprecation-and-force-unwrap-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/swift/swift-warning-deprecation-and-force-unwrap-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.swift.swift-warning-deprecation-and-force-unwrap-debt.evidence",
+      "query": "resolve compiler warnings and unsafe optionals without obscuring invariants Read Swift language mode and deployment targets and inventory warnings, unavailable APIs, force unwraps, casts, and try-bang.",
+      "expected_recipe_id": "code-hygiene.swift.swift-warning-deprecation-and-force-unwrap-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/swift/swift-warning-deprecation-and-force-unwrap-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.swift.swift-actor-sendable-and-task-lifecycle.title",
+      "query": "Swift actor, Sendable, and task lifecycle swift/swiftpm swift actors sendable",
+      "expected_recipe_id": "code-hygiene.swift.swift-actor-sendable-and-task-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/swift/swift-actor-sendable-and-task-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.swift.swift-actor-sendable-and-task-lifecycle.evidence",
+      "query": "resolve isolation violations, unsafe sharing, and unowned tasks Trace actor isolation, Sendable crossings, detached tasks, task groups, cancellation, and main-actor work.",
+      "expected_recipe_id": "code-hygiene.swift.swift-actor-sendable-and-task-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/swift/swift-actor-sendable-and-task-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dart-flutter.dart-analyzer-null-safety-and-ignore-debt.title",
+      "query": "Dart analyzer, null-safety, and ignore debt dart/pub dart analyzer null-safety",
+      "expected_recipe_id": "code-hygiene.dart-flutter.dart-analyzer-null-safety-and-ignore-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dart-flutter/dart-analyzer-null-safety-and-ignore-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dart-flutter.dart-analyzer-null-safety-and-ignore-debt.evidence",
+      "query": "resolve analyzer diagnostics and remove unsafe null assertions and broad ignores Read analysis_options, SDK constraints, generated exclusions, ignore comments, dynamic values, casts, and bang assertions.",
+      "expected_recipe_id": "code-hygiene.dart-flutter.dart-analyzer-null-safety-and-ignore-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dart-flutter/dart-analyzer-null-safety-and-ignore-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dart-flutter.flutter-future-stream-controller-and-widget-lifecycle.title",
+      "query": "Flutter Future, stream, controller, and widget lifecycle dart/pub flutter futures streams",
+      "expected_recipe_id": "code-hygiene.dart-flutter.flutter-future-stream-controller-and-widget-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dart-flutter/flutter-future-stream-controller-and-widget-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.dart-flutter.flutter-future-stream-controller-and-widget-lifecycle.evidence",
+      "query": "cancel subscriptions and dispose controllers and async work with the owning widget or service Trace subscriptions, timers, controllers, focus nodes, animations, futures, mounted checks, and dispose ordering.",
+      "expected_recipe_id": "code-hygiene.dart-flutter.flutter-future-stream-controller-and-widget-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/dart-flutter/flutter-future-stream-controller-and-widget-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.shellcheck-quoting-and-word-splitting.title",
+      "query": "ShellCheck quoting and word-splitting hygiene shell/posix shell shellcheck quoting",
+      "expected_recipe_id": "code-hygiene.shell-powershell.shellcheck-quoting-and-word-splitting",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/shellcheck-quoting-and-word-splitting/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.shellcheck-quoting-and-word-splitting.evidence",
+      "query": "remove unintended expansion, globbing, and argument-boundary bugs Run the repository's ShellCheck dialect and trace variable, command, array, glob, here-document, and positional expansion.",
+      "expected_recipe_id": "code-hygiene.shell-powershell.shellcheck-quoting-and-word-splitting",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/shellcheck-quoting-and-word-splitting/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.shell-exit-pipeline-trap-and-temp-file-lifecycle.title",
+      "query": "Shell exit, pipeline, trap, and temporary-file lifecycle shell/posix shell exit-codes pipelines",
+      "expected_recipe_id": "code-hygiene.shell-powershell.shell-exit-pipeline-trap-and-temp-file-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/shell-exit-pipeline-trap-and-temp-file-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.shell-exit-pipeline-trap-and-temp-file-lifecycle.evidence",
+      "query": "propagate failures and clean temporary state on every signal and exit Trace pipeline status, subshells, command substitutions, conditional exceptions, traps, mktemp use, and cleanup ownership.",
+      "expected_recipe_id": "code-hygiene.shell-powershell.shell-exit-pipeline-trap-and-temp-file-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/shell-exit-pipeline-trap-and-temp-file-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.powershell-scriptanalyzer-and-suppression-debt.title",
+      "query": "PowerShell ScriptAnalyzer and suppression debt powershell/modules powershell psscriptanalyzer lint",
+      "expected_recipe_id": "code-hygiene.shell-powershell.powershell-scriptanalyzer-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/powershell-scriptanalyzer-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.powershell-scriptanalyzer-and-suppression-debt.evidence",
+      "query": "resolve PSScriptAnalyzer findings and narrow rule exclusions Read analyzer settings, target editions and versions, module manifests, suppressions, and compatibility rules.",
+      "expected_recipe_id": "code-hygiene.shell-powershell.powershell-scriptanalyzer-and-suppression-debt",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/powershell-scriptanalyzer-and-suppression-debt/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.powershell-error-output-and-resource-lifecycle.title",
+      "query": "PowerShell error, output, and resource lifecycle powershell/modules powershell errors pipeline",
+      "expected_recipe_id": "code-hygiene.shell-powershell.powershell-error-output-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/powershell-error-output-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.shell-powershell.powershell-error-output-and-resource-lifecycle.evidence",
+      "query": "make terminating behavior, pipeline output, and disposable resources predictable Trace ErrorAction, preference variables, try-catch-finally, native exit codes, Write-Output leakage, streams, jobs, and runspaces.",
+      "expected_recipe_id": "code-hygiene.shell-powershell.powershell-error-output-and-resource-lifecycle",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/shell-powershell/powershell-error-output-and-resource-lifecycle/"
+      ]
+    },
+    {
+      "id": "code-hygiene.data.sql-migration-idempotence-and-rollback.title",
+      "query": "SQL migration idempotence and rollback hygiene sql/database sql migrations rollback",
+      "expected_recipe_id": "code-hygiene.data.sql-migration-idempotence-and-rollback",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/data/sql-migration-idempotence-and-rollback/"
+      ]
+    },
+    {
+      "id": "code-hygiene.data.sql-migration-idempotence-and-rollback.evidence",
+      "query": "make schema migrations ordered, restartable where required, and operationally reversible Inspect migration framework ordering, transactional DDL support, backfills, locks, defaults, and deploy sequencing.",
+      "expected_recipe_id": "code-hygiene.data.sql-migration-idempotence-and-rollback",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/data/sql-migration-idempotence-and-rollback/"
+      ]
+    },
+    {
+      "id": "code-hygiene.data.sql-transaction-locking-and-concurrency.title",
+      "query": "SQL transaction, locking, and concurrency hygiene sql/database sql transactions locks",
+      "expected_recipe_id": "code-hygiene.data.sql-transaction-locking-and-concurrency",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/data/sql-transaction-locking-and-concurrency/"
+      ]
+    },
+    {
+      "id": "code-hygiene.data.sql-transaction-locking-and-concurrency.evidence",
+      "query": "make transaction scope and concurrent update behavior explicit Trace transaction begin and end, isolation, lock order, retries, read-modify-write sequences, and external calls inside transactions.",
+      "expected_recipe_id": "code-hygiene.data.sql-transaction-locking-and-concurrency",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/data/sql-transaction-locking-and-concurrency/"
+      ]
+    },
+    {
+      "id": "code-hygiene.data.sql-query-plan-index-and-n-plus-one.title",
+      "query": "SQL query plan, index, and N+1 hygiene sql/database sql query-plan indexes",
+      "expected_recipe_id": "code-hygiene.data.sql-query-plan-index-and-n-plus-one",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/data/sql-query-plan-index-and-n-plus-one/"
+      ]
+    },
+    {
+      "id": "code-hygiene.data.sql-query-plan-index-and-n-plus-one.evidence",
+      "query": "remove proven query amplification and plan regressions using representative evidence Capture query count, parameterized SQL, representative EXPLAIN output, row estimates, scans, joins, and sort or spill behavior.",
+      "expected_recipe_id": "code-hygiene.data.sql-query-plan-index-and-n-plus-one",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/data/sql-query-plan-index-and-n-plus-one/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.terraform-fmt-validate-and-provider-lock.title",
+      "query": "Terraform format, validation, and provider-lock hygiene terraform/providers terraform fmt validate",
+      "expected_recipe_id": "code-hygiene.platform.terraform-fmt-validate-and-provider-lock",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/terraform-fmt-validate-and-provider-lock/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.terraform-fmt-validate-and-provider-lock.evidence",
+      "query": "keep configuration canonical and provider resolution reproducible Inventory Terraform versions, required providers, lock hashes, modules, generated configuration, and workspace boundaries.",
+      "expected_recipe_id": "code-hygiene.platform.terraform-fmt-validate-and-provider-lock",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/terraform-fmt-validate-and-provider-lock/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.terraform-state-address-and-refactor-safety.title",
+      "query": "Terraform state-address and refactor safety terraform/providers terraform state moved-blocks",
+      "expected_recipe_id": "code-hygiene.platform.terraform-state-address-and-refactor-safety",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/terraform-state-address-and-refactor-safety/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.terraform-state-address-and-refactor-safety.evidence",
+      "query": "preserve resource identity through module and address refactors Map current and desired resource addresses, for_each keys, module paths, imports, moved blocks, and state ownership.",
+      "expected_recipe_id": "code-hygiene.platform.terraform-state-address-and-refactor-safety",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/terraform-state-address-and-refactor-safety/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.dockerfile-layer-cache-and-build-context.title",
+      "query": "Dockerfile layer, cache, and build-context hygiene containers/oci docker dockerfile layers",
+      "expected_recipe_id": "code-hygiene.platform.dockerfile-layer-cache-and-build-context",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/dockerfile-layer-cache-and-build-context/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.dockerfile-layer-cache-and-build-context.evidence",
+      "query": "make container builds reproducible, cache-efficient, and free of accidental context Inspect Dockerfile stage graph, context, dockerignore, copy order, package-manager caches, build arguments, and emitted artifacts.",
+      "expected_recipe_id": "code-hygiene.platform.dockerfile-layer-cache-and-build-context",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/dockerfile-layer-cache-and-build-context/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.container-signal-healthcheck-and-shutdown.title",
+      "query": "Container signal, healthcheck, and shutdown hygiene containers/oci containers signals healthcheck",
+      "expected_recipe_id": "code-hygiene.platform.container-signal-healthcheck-and-shutdown",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/container-signal-healthcheck-and-shutdown/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.container-signal-healthcheck-and-shutdown.evidence",
+      "query": "make PID 1 signal handling, readiness, health, and graceful shutdown correct Trace entrypoint form, PID 1, child processes, signal forwarding, grace periods, health commands, and open listeners.",
+      "expected_recipe_id": "code-hygiene.platform.container-signal-healthcheck-and-shutdown",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/container-signal-healthcheck-and-shutdown/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.kubernetes-schema-deprecation-and-selector-drift.title",
+      "query": "Kubernetes schema, deprecation, and selector drift kubernetes/manifests kubernetes schema deprecation",
+      "expected_recipe_id": "code-hygiene.platform.kubernetes-schema-deprecation-and-selector-drift",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/kubernetes-schema-deprecation-and-selector-drift/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.kubernetes-schema-deprecation-and-selector-drift.evidence",
+      "query": "remove deprecated fields and prevent selector and label contract drift Render manifests and inspect apiVersion, schema validation, immutable selectors, labels, patches, CRDs, and target cluster versions.",
+      "expected_recipe_id": "code-hygiene.platform.kubernetes-schema-deprecation-and-selector-drift",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/kubernetes-schema-deprecation-and-selector-drift/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.kubernetes-probe-resource-and-rollout-hygiene.title",
+      "query": "Kubernetes probe, resource, and rollout hygiene kubernetes/manifests kubernetes probes resources",
+      "expected_recipe_id": "code-hygiene.platform.kubernetes-probe-resource-and-rollout-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/kubernetes-probe-resource-and-rollout-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.kubernetes-probe-resource-and-rollout-hygiene.evidence",
+      "query": "make probes, resources, disruption, and rollout settings internally consistent Inspect startup, readiness, and liveness probes; requests and limits; termination grace; strategy; disruption budgets; and autoscaling inputs.",
+      "expected_recipe_id": "code-hygiene.platform.kubernetes-probe-resource-and-rollout-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/kubernetes-probe-resource-and-rollout-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.ci-workflow-timeout-concurrency-and-cache-hygiene.title",
+      "query": "CI workflow timeout, concurrency, and cache hygiene ci/workflows ci workflows timeouts",
+      "expected_recipe_id": "code-hygiene.platform.ci-workflow-timeout-concurrency-and-cache-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/ci-workflow-timeout-concurrency-and-cache-hygiene/"
+      ]
+    },
+    {
+      "id": "code-hygiene.platform.ci-workflow-timeout-concurrency-and-cache-hygiene.evidence",
+      "query": "bound CI jobs and prevent stale caches and duplicate workflow races Map triggers, permissions, job dependencies, timeouts, concurrency groups, cancellation, matrices, cache keys, and artifact lifetimes.",
+      "expected_recipe_id": "code-hygiene.platform.ci-workflow-timeout-concurrency-and-cache-hygiene",
+      "expected_paths": [
+        "/recipes/general/code-hygiene/platform/ci-workflow-timeout-concurrency-and-cache-hygiene/"
+      ]
+    }
+  ],
+  "hard_negative_cases": [
+    {
+      "id": "named-cve",
+      "query": "CVE-2024-3094 xz backdoor affected package remediation",
+      "expected_route": "cve-catalog"
+    },
+    {
+      "id": "sast-finding",
+      "query": "triage scanner finding rule SQL injection false positive",
+      "expected_route": "sast-finding-triage-and-fix"
+    },
+    {
+      "id": "authorization-audit",
+      "query": "audit tenant authorization boundary and IDOR exposure",
+      "expected_route": "source-code-authz-tenant-boundary-audit"
+    },
+    {
+      "id": "secret-exposure",
+      "query": "find leaked API keys and sensitive values in logs",
+      "expected_route": "source-code-secrets-data-exposure-audit"
+    },
+    {
+      "id": "supply-chain-evidence",
+      "query": "produce SLSA provenance evidence for release artifacts",
+      "expected_route": "slsa-provenance-evidence-check"
+    },
+    {
+      "id": "compliance-evidence",
+      "query": "map repository evidence to NIST SSDF practices",
+      "expected_route": "nist-ssdf-repo-evidence-check"
+    }
+  ]
+}

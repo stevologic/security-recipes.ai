@@ -38,6 +38,8 @@ or a dedicated DLP product for data-in-motion. The
 common scanners; the agentic remediation here picks up *after*
 the scanner has fired.
 
+{{< playbook-workflow >}}
+
 ## High-level flow
 
 ```mermaid
@@ -152,10 +154,6 @@ review. What changes:
   set.
 - **Tools.** When a new scanner joins intake, it's added as another
   MCP connector; the orchestrator itself doesn't change.
-
-## Python remediation tool
-
-{{< remediation-tool domain="sensitive-data" >}}
 
 ## Changelog
 

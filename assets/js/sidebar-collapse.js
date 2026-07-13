@@ -10,15 +10,15 @@
 (function () {
   'use strict';
 
-  var PROMPT_LIBRARY_PATH = /(^|\/)(prompt-library|recipes)(\/|$)/;
+  var RECIPES_PATH = /(^|\/)recipes(\/|$)/;
 
-  function isPromptLibraryPath() {
-    return PROMPT_LIBRARY_PATH.test(window.location.pathname || '');
+  function isRecipesPath() {
+    return RECIPES_PATH.test(window.location.pathname || '');
   }
 
-  function linkPointsToPromptLibrary(link) {
+  function linkPointsToRecipes(link) {
     try {
-      return PROMPT_LIBRARY_PATH.test(new URL(link.href, window.location.origin).pathname);
+      return RECIPES_PATH.test(new URL(link.href, window.location.origin).pathname);
     } catch (error) {
       return false;
     }
@@ -70,9 +70,9 @@
     });
   }
 
-  function flattenPromptLibraryLinks(root) {
+  function flattenRecipesLinks(root) {
     root.querySelectorAll('a').forEach(function (link) {
-      if (!linkPointsToPromptLibrary(link)) return;
+      if (!linkPointsToRecipes(link)) return;
 
       var item = link.parentElement;
       if (!item || !item.tagName || item.tagName.toLowerCase() !== 'li') return;
@@ -94,13 +94,13 @@
     var roots = getSidebarRoots();
     if (!roots.length) return;
 
-    var keepPromptLibraryFlat = isPromptLibraryPath();
+    var keepRecipesFlat = isRecipesPath();
 
     roots.forEach(function (root) {
       closeExpandedTrees(root);
 
-      if (keepPromptLibraryFlat) {
-        flattenPromptLibraryLinks(root);
+      if (keepRecipesFlat) {
+        flattenRecipesLinks(root);
       } else {
         openCurrentAncestry(root);
       }

@@ -25,7 +25,7 @@ useful triage note that followed a recipe and respected your repo rules.
    or CVE finding. Avoid a noisy backlog for the first run.
 2. **Pick the matching recipe.** Start in
    [Remediation]({{< relref "/security-remediation" >}}) or search the
-   [Recipes]({{< relref "/prompt-library" >}}).
+   [Recipes]({{< relref "/recipes" >}}).
 3. **Choose the agent your team already uses.** GitHub Copilot, Claude, Cursor,
    Codex, and Devin all work with this pattern.
 4. **Put the rules where the agent reads them.** Use the native instruction file
@@ -107,6 +107,6 @@ changes, secret rotation, and deployment should remain outside the first run.
 ## Next steps
 
 - [Agent Setup]({{< relref "/agents" >}}) for your exact tool.
-- [Recipes]({{< relref "/prompt-library" >}}) for reusable prompts.
+- [Recipes]({{< relref "/recipes" >}}) for reusable prompts.
 - [MCP Integration]({{< relref "/mcp-servers" >}}) when you need richer
   security context.

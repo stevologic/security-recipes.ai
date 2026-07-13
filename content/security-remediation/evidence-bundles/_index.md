@@ -37,6 +37,8 @@ one workflow cohort. It gives teams a single artifact they can
 attach to SOC 2, ISO 27001, PCI DSS, NIST SSDF, FedRAMP, or
 internal AI governance reviews.
 
+{{< playbook-workflow >}}
+
 ## What belongs in a bundle
 
 The minimum viable bundle includes:
@@ -62,19 +64,20 @@ normalization:
 | Field | Purpose |
 | --- | --- |
 | `run_id` | Correlates the full chain of custody for one agent attempt. |
+| `workflow_id` | Owns the run under one workflow, for example `vulnerable-dependencies`. Legacy `workflow` is accepted as an alias. |
 | `timestamp` | UTC timestamp, ISO 8601 preferred. |
 | `event_class` | Canonical receipt class such as `human_approval`, `verifier_result`, or `run_closed`. Legacy `event_type` is accepted as an alias. |
 
-Use `workflow_id` as the canonical workflow identifier; legacy `workflow` is
-accepted as an alias. If `timestamp` is omitted, the generator derives it from
-an event-specific field such as `issued_at`, `approved_at`, `completed_at`,
-`closed_at`, or `revoked_at` and normalizes it to UTC.
+Every event in one run must use the same workflow identifier; missing or mixed
+workflow ownership is rejected instead of producing an ambiguous audit record.
+If `timestamp` is omitted, the generator derives it from an event-specific field
+such as `issued_at`, `approved_at`, `completed_at`, `closed_at`, or `revoked_at`
+and normalizes it to UTC.
 
 Strongly recommended fields:
 
 | Field | Purpose |
 | --- | --- |
-| `workflow_id` | Workflow name, for example `vulnerable-dependencies`. |
 | `finding_id` | Scanner, ticket, advisory, or case identifier. |
 | `repository` | Repository affected by the run. |
 | `actor` | Human, agent, gateway, or system principal that emitted the event. |
@@ -110,6 +113,11 @@ contains:
 - `events.normalized.json`
 - `manifest.json`
 - `evidence-report.md`
+
+Those three files are one transactionally published bundle. Regeneration
+replaces the prior owned bundle as a unit, removes files that no longer belong,
+rolls back if publication fails, and recovers stale staging or backup directories
+without touching unrelated sibling paths.
 
 The generator is intentionally not tied to one vendor. Feed it
 GitHub webhooks, orchestrator events, MCP gateway logs, CI status

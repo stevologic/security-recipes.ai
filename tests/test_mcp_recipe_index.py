@@ -23,7 +23,7 @@ class RecipeIndexTests(unittest.TestCase):
                     "title": "React Server Components RCE",
                     "url": "https://example.test/recipes/cve-2025-55182/",
                     "path": "/recipes/cve-2025-55182/",
-                    "source_file": "prompt-library/cve/cve-2025-55182-react-server-components-rce.md",
+                    "source_file": "recipes/cve/cve-2025-55182-react-server-components-rce.md",
                     "category": {"slug": "cve", "label": "CVE"},
                     "agent": "general",
                     "severity": "critical",
@@ -42,7 +42,7 @@ class RecipeIndexTests(unittest.TestCase):
 
         self.assertEqual(len(docs), 1)
         self.assertEqual(docs[0]["content"], payload["recipes"][0]["content_text"])
-        self.assertEqual(docs[0]["section"], "prompt-library")
+        self.assertEqual(docs[0]["section"], "recipes")
         self.assertEqual(docs[0]["category"]["slug"], "cve")
         self.assertEqual(docs[0]["facets"], ["remediation", "risk", "code-hygiene"])
         self.assertEqual(docs[0]["quality"]["score"], 90)
@@ -59,7 +59,7 @@ class RecipeIndexTests(unittest.TestCase):
                                 "title": "React Server Components RCE",
                                 "url": "https://example.test/recipes/cve-2025-55182/",
                                 "path": "/recipes/cve-2025-55182/",
-                                "source_file": "prompt-library/cve/cve-2025-55182-react-server-components-rce.md",
+                                "source_file": "recipes/cve/cve-2025-55182-react-server-components-rce.md",
                                 "category": {"slug": "cve", "label": "CVE"},
                                 "agent": "general",
                                 "severity": "critical",
@@ -76,7 +76,7 @@ class RecipeIndexTests(unittest.TestCase):
                                 "title": "SAST Finding Triage and Fix",
                                 "url": "https://example.test/recipes/sast-finding-triage-and-fix/",
                                 "path": "/recipes/sast-finding-triage-and-fix/",
-                                "source_file": "prompt-library/general/sast-finding-triage-and-fix.md",
+                                "source_file": "recipes/general/sast-finding-triage-and-fix.md",
                                 "category": {"slug": "general", "label": "General"},
                                 "agent": "general",
                                 "severity": "unspecified",

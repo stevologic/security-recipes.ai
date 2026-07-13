@@ -540,4 +540,4 @@ ecosystem without rewriting the batch pipeline.
 - OpenAI: [`codex exec` (non-interactive mode)](https://developers.openai.com/codex/noninteractive) · [CLI reference](https://developers.openai.com/codex/cli/reference) · [models](https://developers.openai.com/codex/models)
 - [MCP Integration]({{< relref "/mcp-servers" >}}) — expose sandboxed tools as MCP for richer context
 - Recipe: [Devin]({{< relref "/devin" >}}) — end-to-end agent alternative
-- [Recipes]({{< relref "/prompt-library" >}}) — share your Codex driver prompts
+- [Recipes]({{< relref "/recipes" >}}) — share your Codex driver prompts

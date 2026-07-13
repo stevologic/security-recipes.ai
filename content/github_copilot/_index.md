@@ -525,4 +525,4 @@ configure existing plumbing.
 - GitHub: [Extend the coding agent with MCP](https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/extend-coding-agent-with-mcp)
 - [MCP Integration]({{< relref "/mcp-servers" >}}) — add richer context
 - Recipe: [Claude]({{< relref "/claude" >}}) — deeper MCP-driven flows
-- [Recipes]({{< relref "/prompt-library" >}}) — share your Copilot remediation prompts
+- [Recipes]({{< relref "/recipes" >}}) — share your Copilot remediation prompts

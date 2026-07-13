@@ -69,7 +69,7 @@ Branch names should read like commit messages. Prefixes we use:
 | Prefix      | Use                                                       |
 | ----------- | --------------------------------------------------------- |
 | `recipe/`   | New or updated per-agent recipe                           |
-| `prompt/`   | New or updated entry under `content/prompt-library/`      |
+| `prompt/`   | New or updated entry under `content/recipes/`      |
 | `docs/`     | Non-recipe documentation changes                          |
 | `chore/`    | Build, CI, deps, infra                                    |
 | `fix/`      | Bug fixes (broken links, typos, wrong snippets)           |
@@ -133,8 +133,8 @@ repeatable for the next team:
 - **An update to an existing recipe** — new guardrails, new failure
   mode, new verification step.
 - **A prompt, rules file, or skill** — drop under
-  `content/prompt-library/`.
-- **A CVE recipe prompt** — drop under `content/prompt-library/cve/`
+  `content/recipes/`.
+- **A CVE recipe prompt** — drop under `content/recipes/cve/`
   when a named CVE needs a specific remediation prompt.
 - **A fix** — broken link, wrong command, outdated screenshot.
 - **An issue** — file one if you spot something broken and don't
@@ -168,10 +168,10 @@ Things reviewers look for in a recipe PR:
 
 ## Contributing a prompt
 
-Recipes live under `content/prompt-library/`:
+Recipes live under `content/recipes/`:
 
 ```text
-content/prompt-library/
+content/recipes/
 ├── claude/
 ├── codex/
 ├── cursor/
@@ -182,9 +182,9 @@ content/prompt-library/
 ```
 
 Drop your file in the subdirectory that matches the agent it targets.
-If it's tool-agnostic, put it in `content/prompt-library/general/`.
+If it's tool-agnostic, put it in `content/recipes/general/`.
 If it is anchored to a specific CVE, put it in
-`content/prompt-library/cve/` so it appears in the CVE Recipes
+`content/recipes/cve/` so it appears in the CVE Recipes
 catalogue.
 
 Every prompt file has the same frontmatter:
@@ -224,7 +224,7 @@ Concrete trigger.
 
 ### CVE recipe prompts
 
-CVE recipe prompts live under `content/prompt-library/cve/`. Use this
+CVE recipe prompts live under `content/recipes/cve/`. Use this
 section when the prompt is tied to a named vulnerability and needs
 specific remediation guidance beyond the generic vulnerable-dependency
 workflow.
@@ -232,7 +232,7 @@ workflow.
 Name the file after the CVE and a short slug:
 
 ```text
-content/prompt-library/cve/cve-YYYY-NNNN-short-name.md
+content/recipes/cve/cve-YYYY-NNNN-short-name.md
 ```
 
 In addition to the standard prompt frontmatter, include the CVE fields
@@ -297,11 +297,11 @@ top-level grouping), edit the `menu` list in `lib/site-config.js`.
 Each hub page (`content/<section>/_index.md`) renders its catalogue
 through one of three shortcodes that walk the section tree:
 
-- `{{< prompt-toc >}}` — for `content/prompt-library/` tool
+- `{{< prompt-toc >}}` — for `content/recipes/` tool
   subsections and `classic-vulnerable-defaults`. Reads each child page's
   frontmatter and renders a card with title, description,
   maturity badge, author / team / model, and tags.
-- `{{< cve-toc >}}` — for `content/prompt-library/cve/`. Groups by
+- `{{< cve-toc >}}` — for `content/recipes/cve/`. Groups by
   `ecosystem` frontmatter, sorts by `disclosed` date, shows
   severity and KEV badges.
 - The Hextra `{{< cards >}}` shortcode — used on hubs where
@@ -312,8 +312,8 @@ through one of three shortcodes that walk the section tree:
 To add a new recipe, drop a markdown file in the section
 folder with the right frontmatter:
 
-**Recipe prompts** (`content/prompt-library/<tool>/*.md` and
-`content/prompt-library/general/classic-vulnerable-defaults/*.md`):
+**Recipe prompts** (`content/recipes/<tool>/*.md` and
+`content/recipes/general/classic-vulnerable-defaults/*.md`):
 
 ```yaml
 ---
@@ -331,7 +331,7 @@ date: 2026-04-25
 ---
 ```
 
-**CVE recipes** (`content/prompt-library/cve/cve-XXXX-YYYYY-<slug>.md`):
+**CVE recipes** (`content/recipes/cve/cve-XXXX-YYYYY-<slug>.md`):
 
 ```yaml
 ---
@@ -383,9 +383,9 @@ If you find yourself wanting to split, ask:
 ### What this means in practice
 
 - **Adding a CVE recipe?** New file under
-  `content/prompt-library/cve/`. Frontmatter as above. Done.
+  `content/recipes/cve/`. Frontmatter as above. Done.
 - **Adding a classic-default recipe?** New file under
-  `content/prompt-library/general/classic-vulnerable-defaults/`.
+  `content/recipes/general/classic-vulnerable-defaults/`.
   Frontmatter as above. Done.
 - **Adding a new workflow?** New folder under
   `content/security-remediation/<slug>/_index.md`. Add a card to

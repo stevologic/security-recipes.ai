@@ -684,7 +684,8 @@
       "capability": {
         "commercial_value": "The trust-center export turns risk coverage into procurement and acquisition diligence collateral.",
         "evidence_paths": [
-          "data/evidence/enterprise-trust-center-export.json"
+          "data/assurance/enterprise-trust-center-profile.json",
+          "content/security-remediation/enterprise-trust-center-export/_index.md"
         ],
         "id": "enterprise-trust-center-export",
         "mcp_tools": [
@@ -1825,7 +1826,8 @@
         {
           "commercial_value": "The trust-center export turns risk coverage into procurement and acquisition diligence collateral.",
           "evidence_paths": [
-            "data/evidence/enterprise-trust-center-export.json"
+            "data/assurance/enterprise-trust-center-profile.json",
+            "content/security-remediation/enterprise-trust-center-export/_index.md"
           ],
           "id": "enterprise-trust-center-export",
           "mcp_tools": [
@@ -1840,11 +1842,12 @@
       "diligence_question": "Which trace fields let a buyer reconstruct an agent, model, MCP, context, policy, egress, approval, and verifier path?",
       "evidence_expectation": "Telemetry, receipt, incident, measurement, and trust-center evidence defines trace attributes, redaction state, incident classes, replay cases, and buyer export fields.",
       "evidence_paths": [
+        "content/security-remediation/enterprise-trust-center-export/_index.md",
+        "data/assurance/enterprise-trust-center-profile.json",
         "data/evidence/agentic-incident-response-pack.json",
         "data/evidence/agentic-measurement-probe-pack.json",
         "data/evidence/agentic-run-receipt-pack.json",
-        "data/evidence/agentic-telemetry-contract.json",
-        "data/evidence/enterprise-trust-center-export.json"
+        "data/evidence/agentic-telemetry-contract.json"
       ],
       "id": "MCP08",
       "mcp_tools": [
@@ -3076,7 +3079,8 @@
         {
           "commercial_value": "The trust-center export turns risk coverage into procurement and acquisition diligence collateral.",
           "evidence_paths": [
-            "data/evidence/enterprise-trust-center-export.json"
+            "data/assurance/enterprise-trust-center-profile.json",
+            "content/security-remediation/enterprise-trust-center-export/_index.md"
           ],
           "id": "enterprise-trust-center-export",
           "mcp_tools": [
@@ -3139,11 +3143,12 @@
       "diligence_question": "Which artifact tells procurement, GRC, and platform teams which skills and agents are approved?",
       "evidence_expectation": "Trust-center, BOM, receipt, telemetry, and entitlement evidence covers inventory, owners, runtime evidence, leases, and review cadence.",
       "evidence_paths": [
+        "content/security-remediation/enterprise-trust-center-export/_index.md",
+        "data/assurance/enterprise-trust-center-profile.json",
         "data/evidence/agentic-entitlement-review-pack.json",
         "data/evidence/agentic-run-receipt-pack.json",
         "data/evidence/agentic-system-bom.json",
-        "data/evidence/agentic-telemetry-contract.json",
-        "data/evidence/enterprise-trust-center-export.json"
+        "data/evidence/agentic-telemetry-contract.json"
       ],
       "id": "AST09",
       "mcp_tools": [
@@ -3328,7 +3333,7 @@
     "capability_count": 24,
     "covered_risk_count": 20,
     "critical_or_high_risk_count": 16,
-    "distinct_mcp_tool_count": 39,
+    "distinct_mcp_tool_count": 24,
     "failure_count": 0,
     "mapped_capability_count": 24,
     "risk_count": 20,
@@ -3357,8 +3362,16 @@
   "source_artifacts": {
     "capability_evidence": [
       {
+        "path": "content/security-remediation/enterprise-trust-center-export/_index.md",
+        "sha256": "7bf211b1eb13913962214c68ca793ded1ad39db5c575c8704bca47bfc3f6a508"
+      },
+      {
+        "path": "data/assurance/enterprise-trust-center-profile.json",
+        "sha256": "474766314625c38141e448c82ec45d6b346c674510fbefb1a779c08a4c74ebed"
+      },
+      {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "b579617abcae95c50cc9a4accbc1ff782e63ef5293b8687c1d69461dcdb8e0b1"
+        "sha256": "c00be388586c96d7d1a9923bef89bd891714e89bcee6f859e8e186d2407c34f5"
       },
       {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
@@ -3370,23 +3383,23 @@
       },
       {
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
-        "sha256": "117e1c4f7ce7a8b321a492ce1518eff191bc0889222ca5c4947492e734f94a83"
+        "sha256": "b63d6233166de5bade5de7cb78c43b5a67ffd82fe8c474256cecb0d4b2ef2d68"
       },
       {
         "path": "data/evidence/agentic-action-runtime-pack.json",
-        "sha256": "1f14e28319f0f485971e2d8a926f3b01f58234cbbbc2486e1c819251bd378211"
+        "sha256": "9d7185b222672e059e367e8825d93290e96b323f8d527ba571ef847a0a33259d"
       },
       {
         "path": "data/evidence/agentic-entitlement-review-pack.json",
-        "sha256": "46f24184712125f8330494729cee9d10398b7af5fc6afa7dd2df8ffbdf6cbf45"
+        "sha256": "f700190fddeee595ae0a041ef60c6e7ff4e63d2338e47ecb68a86b6dcd434e31"
       },
       {
         "path": "data/evidence/agentic-incident-response-pack.json",
-        "sha256": "f60f6de6fa2c7cdd0bfc059c60954d133b3c001cd44236579fdcd086cf65da97"
+        "sha256": "04ae1b24b7e41cd9b328ec5e3c08e1fb94a79048b3b8a39d322575a0fbdcc6a7"
       },
       {
         "path": "data/evidence/agentic-measurement-probe-pack.json",
-        "sha256": "f674fe7b617adbcf2f5cdd6ce7c67beb2124c993618cf519c3a0c3156a880382"
+        "sha256": "81fba92c7c5689ed949db0267b0ae53fb23c4974b99a3c2d30c86532242744fa"
       },
       {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -3394,31 +3407,27 @@
       },
       {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "dbdae79c2eac3f0e04e3ce03bb354b5c077885a8dc8f96bb9094af06914257ae"
+        "sha256": "401fb324eae623611e052434886a186670cc55e51c59fa82a22e0ee24f979d04"
       },
       {
         "path": "data/evidence/agentic-system-bom.json",
-        "sha256": "65f17f06900af7042e6b6c16a706fb1225d954c4fc3ec6423e6de1939e743542"
+        "sha256": "360a4ae6e09a6105b9b215074e015237a24be414e5259d8dc291cf035efe0f2f"
       },
       {
         "path": "data/evidence/agentic-telemetry-contract.json",
-        "sha256": "81cd0a54885a262435acca2c36280baa14dc41a8a4980c3060db6c77ba89adf9"
+        "sha256": "132abb5fbb5ecb41b112a0b5e59d7f26cab4b16e8c5512c197120f5ea092cfbc"
       },
       {
         "path": "data/evidence/browser-agent-boundary-pack.json",
-        "sha256": "449bc19917e1baf5f15526027a76788f1a37e6a3f36daa378d7624c9944c5ad5"
+        "sha256": "9676f904e393d56af6b7f06005b156f3bfa59032e5585656ba16a054d8739a88"
       },
       {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "660ce19358255360eb2c33d617a962e1e9b1621c827afe0028e1b24c62dde73d"
+        "sha256": "5a5ad28c8c1a4183f4c139de8d9a037ae78d14533d98a465d70aebec9cc3bdb9"
       },
       {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "07ba1ea399fa5764f309f630463db2d353e4010ed4618fb1bfff2fffdd85b5fd"
-      },
-      {
-        "path": "data/evidence/enterprise-trust-center-export.json",
-        "sha256": "8b96d3fa68e5da0c857a7e12f4f2de04a3837356160312463bfd86877f164781"
+        "sha256": "d280bca6b889b627fb18898b22d3f727481158601368e60883ae8fda917e8fda"
       },
       {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
@@ -3434,7 +3443,7 @@
       },
       {
         "path": "data/evidence/mcp-stdio-launch-boundary-pack.json",
-        "sha256": "a32d229aacecb9b921e2d5bcdc39cfce972e4fc38ff6363a14807462989e0caf"
+        "sha256": "b22de2c81243451e64c883d49d5ffaf7d8a4f2873b168e76b272bec794a4bbeb"
       },
       {
         "path": "data/evidence/mcp-tool-risk-contract.json",
@@ -3446,7 +3455,7 @@
       },
       {
         "path": "data/evidence/secure-context-trust-pack.json",
-        "sha256": "46dcf0f9afcb194c4b93fd8f911c5d9469927afbf56ed0813f9231a8ce91507d"
+        "sha256": "95907c2b6a55cda0a4958423954ef5080716d1982319a5f9f4a43608977696f7"
       },
       {
         "path": "data/policy/mcp-gateway-policy.json",
@@ -3455,7 +3464,7 @@
     ],
     "mcp_risk_coverage_profile": {
       "path": "data/assurance/mcp-risk-coverage-profile.json",
-      "sha256": "a16bb5ccff7e49c6aad6581c9b8f46af98f96a61f0febbf996ed3c5386f029ad"
+      "sha256": "5e17b4a4004ce04de218d6bcb0774d4fed79f3f37fa0408b40a679a38af5ea5b"
     }
   },
   "source_references": [

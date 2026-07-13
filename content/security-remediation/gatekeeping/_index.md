@@ -41,6 +41,8 @@ maybe four or five gates from across the lifecycle, layered so
 that any one failure is contained by the next gate downstream.
 Defence-in-depth is the design; gatekeeping is the vocabulary.
 
+{{< playbook-workflow >}}
+
 ## The lifecycle
 
 ```mermaid
@@ -292,10 +294,6 @@ is defended in one layer.
   [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
   is what the reviewer reads after the gates have done their
   filtering.
-
-## Python remediation tool
-
-{{< remediation-tool domain="gatekeeping" >}}
 
 ## See also
 

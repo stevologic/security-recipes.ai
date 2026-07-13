@@ -38,6 +38,8 @@ catalogue. This page is the long-form treatment because the
 implementation details are where this pattern earns its keep
 or fails silently.
 
+{{< playbook-workflow >}}
+
 ## Why this is harder than it sounds
 
 A runtime gate sounds like "just put a proxy in front." The
@@ -346,10 +348,6 @@ that make agent-specific design sensible.
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
   — what reviewers do when telemetry hold flags an agent
   output.
-
-## Python remediation tool
-
-{{< remediation-tool domain="runtime-controls" >}}
 
 ## Changelog
 

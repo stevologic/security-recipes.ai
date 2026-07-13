@@ -520,4 +520,4 @@ orchestration is write-once.
 - Devin docs: [Knowledge](https://docs.devin.ai/product-guides/knowledge) · [Playbooks](https://docs.devin.ai/product-guides/using-playbooks) · [Integrations](https://docs.devin.ai/integrations/overview)
 - [MCP Server Access]({{< relref "/mcp-servers" >}}) — exposing richer context to agents
 - Recipe: [Codex]({{< relref "/codex" >}}) — for similar batch flows
-- [Recipes]({{< relref "/prompt-library" >}}) — share your Devin session briefs (see `prompt-library/devin/` for live examples)
+- [Recipes]({{< relref "/recipes" >}}) — share your Devin session briefs (see `recipes/devin/` for live examples)

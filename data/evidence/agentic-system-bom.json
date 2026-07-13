@@ -29,7 +29,10 @@
     "workflow_count": 8
   },
   "change_control_contract": {
-    "ci_commands": [],
+    "ci_commands": [
+      "python3 scripts/generate_agentic_system_bom.py",
+      "python3 scripts/generate_agentic_system_bom.py --check"
+    ],
     "manual_review_required_for": [
       "model_changed",
       "memory_changed",
@@ -2671,7 +2674,7 @@
         "component_id": "evidence::agentic-system-bom-profile",
         "component_type": "evidence_artifacts",
         "path": "data/assurance/agentic-system-bom-profile.json",
-        "sha256": "5d136e95149b04fbc6c7b856293b200ade4245bdb2c2697a583014878bea7725",
+        "sha256": "0b2952bed51bc88d108eb1b79577bb3fe753e6ddca414a35f0a75f02475fec4c",
         "title": "Agentic System BOM profile"
       },
       {
@@ -2719,7 +2722,7 @@
         "component_id": "evidence::agentic-readiness-scorecard",
         "component_type": "evidence_artifacts",
         "path": "data/evidence/agentic-readiness-scorecard.json",
-        "sha256": "171a76307cb1c678bbd4e66afa0cc75a98bf833472fc8fc20930c120ee819d0a",
+        "sha256": "93bc53ce3a5ff4d5ef492c9575cd87f21cef1353aea7f7b886f4b1e95a026add",
         "title": "Agentic readiness scorecard"
       },
       {
@@ -2727,7 +2730,7 @@
         "component_id": "evidence::agentic-assurance-pack",
         "component_type": "evidence_artifacts",
         "path": "data/evidence/agentic-assurance-pack.json",
-        "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f",
+        "sha256": "cf8d2bfe546aa1ff0ba13bcee1d3b9ad7268f8244eccba4645a479cbb35c38ff",
         "title": "Agentic assurance pack"
       },
       {
@@ -2741,12 +2744,12 @@
     ],
     "knowledge_sources": [
       {
-        "component_id": "knowledge::prompt-library",
+        "component_id": "knowledge::recipes",
         "component_type": "knowledge_sources",
         "drift_triggers": [
           "knowledge_changed"
         ],
-        "path": "content/prompt-library",
+        "path": "content/recipes",
         "purpose": "Reusable prompts and instructions consumed by agent hosts and workflow operators."
       },
       {
@@ -4362,11 +4365,11 @@
     },
     "agentic_assurance_pack": {
       "path": "data/evidence/agentic-assurance-pack.json",
-      "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f"
+      "sha256": "cf8d2bfe546aa1ff0ba13bcee1d3b9ad7268f8244eccba4645a479cbb35c38ff"
     },
     "agentic_readiness_scorecard": {
       "path": "data/evidence/agentic-readiness-scorecard.json",
-      "sha256": "171a76307cb1c678bbd4e66afa0cc75a98bf833472fc8fc20930c120ee819d0a"
+      "sha256": "93bc53ce3a5ff4d5ef492c9575cd87f21cef1353aea7f7b886f4b1e95a026add"
     },
     "agentic_red_team_drill_pack": {
       "path": "data/evidence/agentic-red-team-drill-pack.json",
@@ -4374,7 +4377,7 @@
     },
     "agentic_system_bom_profile": {
       "path": "data/assurance/agentic-system-bom-profile.json",
-      "sha256": "5d136e95149b04fbc6c7b856293b200ade4245bdb2c2697a583014878bea7725"
+      "sha256": "0b2952bed51bc88d108eb1b79577bb3fe753e6ddca414a35f0a75f02475fec4c"
     },
     "connector_trust_pack": {
       "path": "data/evidence/mcp-connector-trust-pack.json",

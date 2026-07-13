@@ -36,6 +36,8 @@ This workflow runs *after* a deterministic scanner, never instead
 of one. The scanner produces structured findings; the agent
 decides what to do with each one inside a tight policy envelope.
 
+{{< playbook-workflow >}}
+
 ## High-level flow
 
 ```mermaid
@@ -256,17 +258,13 @@ A few practical notes:
   orchestration. The catalogue maps rule IDs to fix shapes;
   scanners produce rule IDs.
 
-## Python remediation tool
-
-{{< remediation-tool domain="sast-findings" >}}
-
 ## See also
 
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
   — the seven-question checklist that gates these PRs.
 - [Emerging Patterns → AI-assisted SAST triage]({{< relref "/fundamentals/emerging-patterns#ai-assisted-sast-triage" >}})
   — broader landscape this workflow sits inside.
-- [OWASP Top 10:2025 remediation]({{< relref "/prompt-library/general/owasp-top-10-2025-remediate" >}})
+- [OWASP Top 10:2025 remediation]({{< relref "/recipes/general/owasp-top-10-2025-remediate" >}})
   — when a SAST finding maps to an OWASP category, this prompt
   is the durable fix template.
 

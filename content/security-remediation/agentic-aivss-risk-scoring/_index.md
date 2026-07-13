@@ -36,6 +36,8 @@ The pack is intentionally conservative: it is **AIVSS-aligned**, not an
 official OWASP calculator. The scoring vector is source-controlled so
 teams can inspect and fork the assumptions.
 
+{{< playbook-workflow >}}
+
 ## Generated artifacts
 
 
@@ -45,6 +47,11 @@ or incident evidence changes:
 
 Evaluate a runtime event:
 
+```bash
+python3 scripts/evaluate_agentic_aivss_risk_decision.py \
+  --scenario-id mcp_tool_misuse_lethal_session \
+  --expect-decision hold_for_human_security_review
+```
 
 Kill an unsafe high-autonomy event:
 

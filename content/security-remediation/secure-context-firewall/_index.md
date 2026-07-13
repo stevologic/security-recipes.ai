@@ -41,6 +41,8 @@ That is the enterprise shape reviewers and platform teams expect:
 - **Prohibited data kills.** Secrets, private keys, live tokens,
   signing material, and unrestricted customer logs disable the session.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The firewall has two runtime surfaces:
@@ -48,6 +50,14 @@ The firewall has two runtime surfaces:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/evaluate_secure_context_retrieval.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --source-id recipes \
+  --retrieval-mode workflow_prompt_context \
+  --requested-path content/recipes/general/base-image-bump.md \
+  --expect-decision allow_public_context
+```
 
 The output is a structured decision record with:
 

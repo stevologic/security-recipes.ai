@@ -32,18 +32,39 @@ procurement reviewer, or reviewer can inspect through MCP.
 
 - Source profile:
   `data/assurance/agentic-protocol-conformance-profile.json`
-- Generator:
+- Generator: `scripts/generate_agentic_protocol_conformance_pack.py`
 - Evidence pack:
   `data/evidence/agentic-protocol-conformance-pack.json`
-- Runtime evaluator:
+- Runtime evaluator: `scripts/evaluate_agentic_protocol_conformance_decision.py`
 - MCP tools:
-  `recipes_agentic_protocol_conformance_pack` and
+  `recipes_agentic_protocol_conformance_pack`, paired with `recipes_playbook_plan` using playbook id `agentic-protocol-conformance`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_agentic_protocol_conformance_pack.py
+python3 scripts/generate_agentic_protocol_conformance_pack.py --check
+```
 
 Evaluate an MCP authorization boundary:
 
+```bash
+python3 scripts/evaluate_agentic_protocol_conformance_decision.py \
+  --protocol-id mcp-authorization-2025-11-25 \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sec-auto-remediator \
+  --run-id run-2026-05-04-001 \
+  --session-id sess-001 \
+  --correlation-id corr-001 \
+  --transport streamable-http \
+  --resource-indicator-present \
+  --token-audience-bound \
+  --pkce-verified \
+  --client-metadata-reviewed \
+  --expect-decision allow_with_protocol_receipt
+```
+
+{{< playbook-workflow >}}
 
 ## Decision model
 
@@ -135,8 +156,14 @@ recipes_agentic_protocol_conformance_pack(
 )
 ```
 
-Evaluate one A2A boundary:
+Plan one A2A boundary:
 
+```text
+recipes_playbook_plan(
+  playbook_id="agentic-protocol-conformance",
+  finding="A2A agent discovery handoff needs protocol conformance review."
+)
+```
 
 ## See also
 

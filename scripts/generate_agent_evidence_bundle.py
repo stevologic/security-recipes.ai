@@ -3,7 +3,8 @@
 
 Input can be a JSON array or JSON Lines file. Each event must include:
 
-  run_id, event_class (or legacy event_type), and a timestamp
+  run_id, workflow_id (or legacy workflow), event_class (or legacy
+  event_type), and a timestamp
 
 Use workflow_id for the workflow identifier; legacy workflow is accepted.
 When timestamp is absent, canonical receipt time fields such as approved_at,
@@ -19,12 +20,25 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import shutil
+import tempfile
+import time
+import uuid
+from contextlib import contextmanager
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 REQUIRED_FIELDS = {"run_id"}
+BUNDLE_SCHEMA = "security-recipes.agent-evidence-bundle.v2"
+BUNDLE_FILENAMES = (
+    "events.normalized.json",
+    "manifest.json",
+    "evidence-report.md",
+)
+STALE_BUNDLE_TRANSACTION_SECONDS = 24 * 60 * 60
 TIMESTAMP_FIELDS = (
     "timestamp",
     "occurred_at",
@@ -92,7 +106,7 @@ def load_events(path: Path) -> list[dict[str, Any]]:
             raise ValueError(f"event {idx} missing required fields: {missing}")
         event = dict(event)
         normalize_alias(event, "event_class", "event_type", idx, required=True)
-        normalize_alias(event, "workflow_id", "workflow", idx, required=False)
+        normalize_alias(event, "workflow_id", "workflow", idx, required=True)
         event["timestamp"] = normalize_timestamp(event_timestamp(event, idx))
         for field in TIMESTAMP_FIELDS:
             if field != "timestamp" and str(event.get(field, "")).strip():
@@ -100,6 +114,7 @@ def load_events(path: Path) -> list[dict[str, Any]]:
         shaped.append(event)
 
     shaped.sort(key=lambda e: (e["timestamp"], str(e.get("run_id", "")), event_name(e)))
+    group_runs(shaped)
     return shaped
 
 
@@ -131,7 +146,7 @@ def event_name(event: dict[str, Any]) -> str:
 
 
 def event_workflow(event: dict[str, Any]) -> str:
-    return str(event.get("workflow_id") or event.get("workflow") or "unknown")
+    return str(event.get("workflow_id") or event.get("workflow") or "").strip()
 
 
 def normalize_timestamp(value: str) -> str:
@@ -150,6 +165,14 @@ def group_runs(events: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     runs: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for event in events:
         runs[str(event["run_id"])].append(event)
+    for run_id, run_events in runs.items():
+        workflow_ids = {event_workflow(event) for event in run_events}
+        if "" in workflow_ids:
+            raise ValueError(f"run {run_id!r} has an event missing workflow_id (or legacy workflow)")
+        if len(workflow_ids) != 1:
+            raise ValueError(
+                f"run {run_id!r} mixes workflow IDs: {', '.join(sorted(workflow_ids))}"
+            )
     return dict(runs)
 
 
@@ -219,8 +242,9 @@ def build_manifest(program: str, period: str, source: Path, events: list[dict[st
 
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     return {
-        "schema": "security-recipes.agent-evidence-bundle.v2",
+        "schema": BUNDLE_SCHEMA,
         "generated_at": now,
+        "owned_files": list(BUNDLE_FILENAMES),
         "program": program,
         "period": period,
         "source_file": str(source),
@@ -236,7 +260,7 @@ def build_manifest(program: str, period: str, source: Path, events: list[dict[st
     }
 
 
-def write_markdown_report(manifest: dict[str, Any], output_path: Path) -> None:
+def render_markdown_report(manifest: dict[str, Any]) -> str:
     lines = [
         "# Agentic Remediation Evidence Bundle",
         "",
@@ -276,25 +300,300 @@ def write_markdown_report(manifest: dict[str, Any], output_path: Path) -> None:
             ]
         )
 
-    output_path.write_text("\n".join(lines), encoding="utf-8")
+    return "\n".join(lines) + "\n"
+
+
+def write_markdown_report(manifest: dict[str, Any], output_path: Path) -> None:
+    _write_text_synced(output_path, render_markdown_report(manifest))
+
+
+def _write_text_synced(path: Path, text: str) -> None:
+    with path.open("x", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def _sync_directory(path: Path) -> None:
+    try:
+        descriptor = os.open(path, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(descriptor)
+    except OSError:
+        pass
+    finally:
+        os.close(descriptor)
+
+
+def _is_link(path: Path) -> bool:
+    if path.is_symlink():
+        return True
+    is_junction = getattr(path, "is_junction", None)
+    return bool(is_junction and is_junction())
+
+
+def _is_bundle_directory(path: Path, *, allow_empty: bool = False) -> bool:
+    if _is_link(path) or not path.is_dir():
+        return False
+    try:
+        entries = list(path.iterdir())
+    except OSError:
+        return False
+    if not entries:
+        return allow_empty
+    manifest_path = path / "manifest.json"
+    if _is_link(manifest_path) or not manifest_path.is_file():
+        return False
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    return isinstance(manifest, dict) and manifest.get("schema") == BUNDLE_SCHEMA
+
+
+def _transaction_prefix(output_dir: Path, kind: str) -> str:
+    return f".{output_dir.name}.{kind}-"
+
+
+def _safe_transaction_path(path: Path, output_dir: Path, kind: str) -> bool:
+    try:
+        return (
+            path.parent.resolve(strict=True) == output_dir.parent.resolve(strict=True)
+            and path.name.startswith(_transaction_prefix(output_dir, kind))
+            and not _is_link(path)
+            and path.is_dir()
+        )
+    except OSError:
+        return False
+
+
+def _remove_transaction_directory(path: Path, output_dir: Path, kind: str) -> bool:
+    if not _safe_transaction_path(path, output_dir, kind):
+        return False
+    if kind == "stage":
+        try:
+            children = list(path.iterdir())
+        except OSError:
+            return False
+        if any(
+            child.name not in BUNDLE_FILENAMES
+            or _is_link(child)
+            or not child.is_file()
+            for child in children
+        ):
+            return False
+        try:
+            for child in children:
+                child.unlink()
+            path.rmdir()
+        except OSError:
+            return False
+        return True
+    if kind == "backup" and _is_bundle_directory(path, allow_empty=True):
+        shutil.rmtree(path)
+        return True
+    return False
+
+
+def _stale_transaction_directories(output_dir: Path, kind: str) -> list[Path]:
+    cutoff_ns = time.time_ns() - STALE_BUNDLE_TRANSACTION_SECONDS * 1_000_000_000
+    prefix = _transaction_prefix(output_dir, kind)
+    stale: list[Path] = []
+    try:
+        candidates = output_dir.parent.iterdir()
+    except OSError:
+        return []
+    for candidate in candidates:
+        if not candidate.name.startswith(prefix) or _is_link(candidate):
+            continue
+        try:
+            if candidate.is_dir() and candidate.stat().st_mtime_ns <= cutoff_ns:
+                stale.append(candidate)
+        except OSError:
+            continue
+    return stale
+
+
+def _recover_stale_transactions(output_dir: Path) -> None:
+    backups = [
+        path
+        for path in _stale_transaction_directories(output_dir, "backup")
+        if _is_bundle_directory(path, allow_empty=True)
+    ]
+    if not output_dir.exists() and backups:
+        newest = max(backups, key=lambda path: path.stat().st_mtime_ns)
+        os.replace(newest, output_dir)
+        backups.remove(newest)
+        _sync_directory(output_dir.parent)
+    if output_dir.exists():
+        for backup in backups:
+            _remove_transaction_directory(backup, output_dir, "backup")
+    for stage in _stale_transaction_directories(output_dir, "stage"):
+        _remove_transaction_directory(stage, output_dir, "stage")
+
+
+def _validate_output_directory(output_dir: Path) -> None:
+    if not output_dir.exists():
+        return
+    if _is_link(output_dir) or not output_dir.is_dir():
+        raise ValueError(f"output directory must be a regular non-link directory: {output_dir}")
+    if not _is_bundle_directory(output_dir, allow_empty=True):
+        raise ValueError(
+            "refusing to replace a non-bundle directory; choose a new output directory "
+            "or one containing a security-recipes evidence-bundle manifest"
+        )
+
+
+def _lock_path(output_dir: Path) -> Path:
+    return output_dir.parent / f".{output_dir.name}.lock"
+
+
+def _read_lock_token(path: Path) -> str | None:
+    if _is_link(path) or not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict) or payload.get("kind") != "security-recipes.evidence-bundle-lock":
+        return None
+    token = payload.get("token")
+    return str(token) if isinstance(token, str) and token else None
+
+
+@contextmanager
+def _bundle_lock(output_dir: Path) -> Iterator[None]:
+    lock_path = _lock_path(output_dir)
+    token = str(uuid.uuid4())
+    payload = json.dumps(
+        {
+            "kind": "security-recipes.evidence-bundle-lock",
+            "output": output_dir.name,
+            "pid": os.getpid(),
+            "token": token,
+        },
+        sort_keys=True,
+    )
+    for attempt in range(2):
+        try:
+            descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        except FileExistsError:
+            if attempt or _read_lock_token(lock_path) is None:
+                raise RuntimeError(f"evidence bundle update is already in progress: {lock_path}")
+            try:
+                stale = (
+                    lock_path.stat().st_mtime_ns
+                    <= time.time_ns() - STALE_BUNDLE_TRANSACTION_SECONDS * 1_000_000_000
+                )
+            except OSError as exc:
+                raise RuntimeError(f"could not inspect evidence bundle lock: {lock_path}") from exc
+            if not stale:
+                raise RuntimeError(f"evidence bundle update is already in progress: {lock_path}")
+            lock_path.unlink()
+            continue
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(payload + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        break
+    try:
+        yield
+    finally:
+        if _read_lock_token(lock_path) == token:
+            lock_path.unlink()
+
+
+def _validate_bundle_payload(events: list[dict[str, Any]], manifest: dict[str, Any]) -> None:
+    runs = group_runs(events)
+    expected = {
+        "schema": BUNDLE_SCHEMA,
+        "owned_files": list(BUNDLE_FILENAMES),
+        "event_count": len(events),
+        "run_count": len(runs),
+        "events_sha256": sha256_json(events),
+    }
+    mismatched = [key for key, value in expected.items() if manifest.get(key) != value]
+    if mismatched:
+        raise ValueError(f"bundle manifest does not match its events: {', '.join(mismatched)}")
+
+
+def write_bundle(
+    output_dir: Path,
+    events: list[dict[str, Any]],
+    manifest: dict[str, Any],
+) -> None:
+    """Publish exactly one complete three-file bundle with rollback recovery."""
+
+    _validate_bundle_payload(events, manifest)
+    output_dir = output_dir.resolve()
+    output_dir.parent.mkdir(parents=True, exist_ok=True)
+    with _bundle_lock(output_dir):
+        _recover_stale_transactions(output_dir)
+        _validate_output_directory(output_dir)
+
+        stage = Path(
+            tempfile.mkdtemp(
+                prefix=_transaction_prefix(output_dir, "stage"),
+                dir=output_dir.parent,
+            )
+        )
+        backup: Path | None = None
+        published = False
+        try:
+            _write_text_synced(
+                stage / "events.normalized.json",
+                json.dumps(events, indent=2, ensure_ascii=False) + "\n",
+            )
+            _write_text_synced(
+                stage / "manifest.json",
+                json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+            )
+            write_markdown_report(manifest, stage / "evidence-report.md")
+            _sync_directory(stage)
+
+            if output_dir.exists():
+                backup = output_dir.parent / (
+                    _transaction_prefix(output_dir, "backup") + str(uuid.uuid4())
+                )
+                os.replace(output_dir, backup)
+                _sync_directory(output_dir.parent)
+            try:
+                os.replace(stage, output_dir)
+                published = True
+                _sync_directory(output_dir.parent)
+            except Exception:
+                if backup is not None and backup.exists() and not output_dir.exists():
+                    os.replace(backup, output_dir)
+                    backup = None
+                    _sync_directory(output_dir.parent)
+                raise
+
+            if backup is not None and backup.exists():
+                if not _remove_transaction_directory(backup, output_dir, "backup"):
+                    raise RuntimeError(f"could not remove replaced evidence bundle backup: {backup}")
+                backup = None
+                _sync_directory(output_dir.parent)
+        finally:
+            if stage.exists():
+                _remove_transaction_directory(stage, output_dir, "stage")
+            if backup is not None and backup.exists():
+                if not output_dir.exists():
+                    os.replace(backup, output_dir)
+                    _sync_directory(output_dir.parent)
+                elif published:
+                    _remove_transaction_directory(backup, output_dir, "backup")
 
 
 def main() -> None:
     args = parse_args()
     source = Path(args.events).resolve()
     output_dir = Path(args.output_dir).resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     events = load_events(source)
     manifest = build_manifest(args.program, args.period, source, events)
-
-    (output_dir / "events.normalized.json").write_text(
-        json.dumps(events, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    (output_dir / "manifest.json").write_text(
-        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    write_markdown_report(manifest, output_dir / "evidence-report.md")
+    write_bundle(output_dir, events, manifest)
 
     print(json.dumps({"output_dir": str(output_dir), "run_count": manifest["run_count"]}, indent=2))
 

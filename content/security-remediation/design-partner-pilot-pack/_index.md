@@ -44,6 +44,8 @@ motion required to prove it.
 
 
 
+{{< playbook-workflow >}}
+
 ## What the pack contains
 
 | Section | Purpose |

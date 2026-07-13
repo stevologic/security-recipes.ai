@@ -35,7 +35,7 @@ failure handling before they operate in high-stakes environments.
 
 - Profile:
   `data/assurance/agentic-measurement-probe-profile.json`
-- Generator:
+- Generator: `scripts/generate_agentic_measurement_probe_pack.py`
 - Evidence pack:
   `data/evidence/agentic-measurement-probe-pack.json`
 - MCP tool:
@@ -43,6 +43,12 @@ failure handling before they operate in high-stakes environments.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_agentic_measurement_probe_pack.py
+python3 scripts/generate_agentic_measurement_probe_pack.py --check
+```
+
+{{< playbook-workflow >}}
 
 ## Probe classes
 

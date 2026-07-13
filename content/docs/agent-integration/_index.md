@@ -166,6 +166,6 @@ Output:
 ## See also
 
 - [Agent Setup]({{< relref "/agents" >}})
-- [Recipes]({{< relref "/prompt-library" >}})
+- [Recipes]({{< relref "/recipes" >}})
 - [MCP Integration]({{< relref "/mcp-servers" >}})
 - [Recipes]({{< relref "/security-remediation" >}})

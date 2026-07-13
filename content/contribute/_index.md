@@ -133,8 +133,8 @@ or repeatable for the next team:
 - **An update to an existing recipe** — new guardrails, new failure
   mode, new verification step.
 - **A prompt, rules file, or skill** — drop under
-  `content/prompt-library/<tool>/`.
-- **A CVE recipe prompt** — drop under `content/prompt-library/cve/`
+  `content/recipes/<tool>/`.
+- **A CVE recipe prompt** — drop under `content/recipes/cve/`
   when a named CVE needs a specific remediation prompt.
 - **A fix** — broken link, wrong command, outdated screenshot.
 - **An issue** — file one if you spot something broken and don't
@@ -246,7 +246,7 @@ Things reviewers look for in a recipe PR:
 Recipes are organised by tool:
 
 ```text
-content/prompt-library/
+content/recipes/
 ├── claude/
 ├── codex/
 ├── cursor/
@@ -258,9 +258,9 @@ content/prompt-library/
 
 Drop your file in the subdirectory that matches the agent it
 targets. If it's tool-agnostic (e.g. a triage framework you use
-across every agent), put it in `content/prompt-library/general/`.
+across every agent), put it in `content/recipes/general/`.
 If it is anchored to a specific CVE, put it in
-`content/prompt-library/cve/` so it appears in the CVE Recipes
+`content/recipes/cve/` so it appears in the CVE Recipes
 catalogue.
 
 ### Template
@@ -302,12 +302,12 @@ breaking change wasn't auto-resolved."
 ```
 
 Want to see the template in action? The
-[Claude CVE triage skill]({{< relref "/prompt-library/claude/cve-triage-skill" >}})
+[Claude CVE triage skill]({{< relref "/recipes/claude/cve-triage-skill" >}})
 is a fully worked example.
 
 ### CVE recipe prompts
 
-CVE recipe prompts live under `content/prompt-library/cve/`. Use this
+CVE recipe prompts live under `content/recipes/cve/`. Use this
 section when the prompt is tied to a named vulnerability and needs
 specific remediation guidance beyond the generic vulnerable-dependency
 workflow.
@@ -315,7 +315,7 @@ workflow.
 Name the file after the CVE and a short slug:
 
 ```text
-content/prompt-library/cve/cve-YYYY-NNNN-short-name.md
+content/recipes/cve/cve-YYYY-NNNN-short-name.md
 ```
 
 In addition to the standard prompt frontmatter, include the CVE fields

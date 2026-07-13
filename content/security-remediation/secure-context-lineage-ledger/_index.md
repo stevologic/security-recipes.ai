@@ -34,6 +34,8 @@ retrieved?" It is:
 The Secure Context Lineage Ledger answers those questions as a generated
 JSON artifact and a runtime MCP decision tool.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The lineage layer has four artifacts:
@@ -45,9 +47,40 @@ The lineage layer has four artifacts:
   ledger joining the trust pack, attestation pack, poisoning guard,
   egress boundary, handoff boundary, telemetry contract, run receipts,
   and model-provider routing pack.
+- `scripts/evaluate_secure_context_lineage_decision.py` - the runtime
+  source/hash/evidence binding decision before context is reused.
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_secure_context_lineage_ledger.py
+python3 scripts/generate_secure_context_lineage_ledger.py --check
+```
+
+Evaluate a fully bound remediation run:
+
+```bash
+python3 scripts/evaluate_secure_context_lineage_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --source-id recipes \
+  --use-ledger-evidence \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id run-ci \
+  --tenant-id tenant-ci \
+  --correlation-id corr-ci \
+  --trace-id trace-ci \
+  --context-retrieval-decision allow_public_context \
+  --attestation-decision allow_attested_workflow_context \
+  --poisoning-scan-state clean \
+  --model-route-id tenant-remediation-frontier-route \
+  --model-route-decision allow_guarded_route \
+  --egress-decision allow_tenant_bound_egress \
+  --handoff-decision allow_metadata_handoff \
+  --telemetry-event-id telemetry-ci \
+  --telemetry-decision telemetry_ready \
+  --receipt-id sr-run-receipt::vulnerable-dependency-remediation \
+  --expect-decision allow_lineage_bound_context
+```
 
 The local MCP server exposes the ledger through
 `recipes_secure_context_lineage_ledger` and exposes runtime lineage
@@ -106,8 +139,14 @@ recipes_secure_context_lineage_ledger(
 )
 ```
 
-Evaluate runtime context reuse before an agent uses it:
+Plan runtime context reuse before an agent uses it:
 
+```text
+recipes_playbook_plan(
+  playbook_id="secure-context-lineage-ledger",
+  finding="Context from recipe and workflow-control-plane sources is proposed for reuse by a remediation agent."
+)
+```
 
 ## Industry alignment
 

@@ -731,7 +731,7 @@ flowchart LR
 - **Representative tooling.** Promptfoo, DeepEval, LangSmith
   evals, Braintrust, OpenAI Evals. See also
   [Reputable Prompt Sources]({{< relref
-  "/prompt-library/sources" >}}).
+  "/recipes/sources" >}}).
 
 ### Drift detection
 
