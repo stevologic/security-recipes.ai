@@ -38,13 +38,25 @@ keep remote-agent handoffs metadata-only?
 - `data/evidence/secure-context-eval-pack.json` - generated evidence
   pack for CI, MCP, diligence, and trust-center review.
 - MCP tools:
-  `recipes_secure_context_eval_pack` and
+  `recipes_secure_context_eval_pack`, paired with `recipes_playbook_plan` using playbook id `secure-context-evals`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_secure_context_eval_pack.py
+python3 scripts/generate_secure_context_eval_pack.py --check
+```
 
 Evaluate one runtime answer:
 
+```bash
+python3 scripts/evaluate_secure_context_eval_case.py \
+  --scenario-id ctx-eval-prohibited-data-kill \
+  --answer-text "kill_session" \
+  --expect-decision eval_ready
+```
+
+{{< playbook-workflow >}}
 
 ## Eval scenario classes
 

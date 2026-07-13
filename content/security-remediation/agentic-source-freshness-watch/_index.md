@@ -37,11 +37,13 @@ This run considered three high-value product directions:
 | More protocol conformance | Valuable, but MCP and A2A conformance already exists as a generated pack. | Extend later with live probes. |
 | Source freshness and standards drift | Directly strengthens every existing evidence pack and answers the reviewer question: "How do we know this is current?" | **Implemented now.** |
 
+{{< playbook-workflow >}}
+
 ## Generated artifact
 
 - Profile:
   `data/assurance/agentic-source-freshness-profile.json`
-- Generator:
+- Generator: `scripts/generate_agentic_source_freshness_watch.py`
 - Evidence pack:
   `data/evidence/agentic-source-freshness-watch.json`
 - MCP tool:
@@ -49,6 +51,10 @@ This run considered three high-value product directions:
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_agentic_source_freshness_watch.py
+python3 scripts/generate_agentic_source_freshness_watch.py --check
+```
 
 ## What it watches
 

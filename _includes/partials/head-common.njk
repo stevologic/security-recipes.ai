@@ -17,6 +17,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/css/docs-chrome.css">
 <link rel="stylesheet" href="/css/custom.css">
+{% if page.url and page.url.startsWith("/security-remediation/") %}<link rel="stylesheet" href="/css/playbook-workflows.css">{% endif %}
 {% if page.url == "/recipes/cve/" or page.url == "/recipes/" %}<link rel="stylesheet" href="/css/cve-catalog.css">{% endif %}
 {% if page.url == "/recipes/" %}<link rel="stylesheet" href="/css/recipe-library.css">{% endif %}
 <script>

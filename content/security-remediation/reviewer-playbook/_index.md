@@ -31,6 +31,8 @@ An agent-opened PR needs two reviews overlaid on the same diff:
 The provenance review is where most agent-PR regressions get
 caught. It's also the step reviewers most often skip.
 
+{{< playbook-workflow >}}
+
 ## Proof by default
 
 Proof by default does not mean the reviewer manually hunts for evidence after
@@ -256,10 +258,6 @@ The seven-question checklist is their running reference.
   [Program Metrics → auto-approve drift]({{< relref "/security-remediation/metrics#auto-approve-drift" >}}));
   a steadily-rising line is the signal that the habit is
   degrading even though no single PR looks wrong.
-
-## Python remediation tool
-
-{{< remediation-tool domain="reviewer-playbook" >}}
 
 ## See also
 

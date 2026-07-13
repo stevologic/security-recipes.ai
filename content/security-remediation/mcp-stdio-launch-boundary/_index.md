@@ -42,6 +42,8 @@ The high-value reviewer questions are straightforward:
 - Which launch changes require owner approval or full connector intake?
 - Which decision should an MCP client enforce before spawning?
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/mcp-stdio-launch-boundary-model.json` - source model
@@ -49,13 +51,27 @@ The high-value reviewer questions are straightforward:
   drills, and standards alignment.
 - `data/evidence/mcp-stdio-launch-boundary-pack.json` - generated launch
   boundaries, risk findings, source hashes, and reviewer evidence.
-- `recipes_mcp_stdio_launch_boundary_pack` and
+- `recipes_mcp_stdio_launch_boundary_pack`, paired with `recipes_playbook_plan` using playbook id `mcp-stdio-launch-boundary`.
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_mcp_stdio_launch_boundary_pack.py
+python3 scripts/generate_mcp_stdio_launch_boundary_pack.py --check
+```
 
 Evaluate the repo-shipped local server launch:
 
+```bash
+python3 scripts/evaluate_mcp_stdio_launch_decision.py \
+  --launch-id security-recipes-local-stdio \
+  --command python \
+  --arg mcp_server.py \
+  --sandboxed \
+  --network-egress allowlist \
+  --env-key RECIPES_MCP_TRANSPORT \
+  --expect-decision allow_pinned_sandboxed_stdio_launch
+```
 
 ## Launch decisions
 

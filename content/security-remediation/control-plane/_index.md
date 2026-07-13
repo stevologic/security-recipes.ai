@@ -34,6 +34,8 @@ security teams can start with the open recipe, then wire the same
 workflow into an MCP gateway, CI gate, or internal orchestrator without
 inventing the governance model from scratch.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The control plane currently lives in source-controlled JSON:

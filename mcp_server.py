@@ -21,6 +21,7 @@ from array import array
 from bisect import bisect_left
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path, PurePosixPath
@@ -109,6 +110,10 @@ class ServerConfig:
     cve_catalog_path: str = os.environ.get(
         "RECIPES_MCP_CVE_CATALOG_PATH",
         "./static/api/cve-catalog",
+    )
+    playbook_registry_path: str = os.environ.get(
+        "RECIPES_MCP_PLAYBOOK_REGISTRY_PATH",
+        "./data/remediation_suite/playbooks.json",
     )
     assurance_pack_path: str = os.environ.get(
         "RECIPES_MCP_ASSURANCE_PACK_PATH",
@@ -1174,6 +1179,407 @@ class RecipeIndex:
         if score < 85:
             return "Promote this recipe by adding stronger contracts, verification, and related context until it reaches world-class readiness."
         return "No immediate quality gap detected."
+
+
+class PlaybookRegistry:
+    """Lazy, validated reader for the agent-ready remediation playbook suite."""
+
+    ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+    REQUIRED_FIELDS = (
+        "id",
+        "title",
+        "page",
+        "category",
+        "summary",
+        "phases",
+        "gate",
+        "evidence",
+        "outputs",
+        "python",
+        "file_patterns",
+        "recipe_queries",
+    )
+    MAX_LIMIT = 100
+    MAX_QUERY_CHARS = 256
+    MAX_FINDING_CHARS = 8000
+
+    def __init__(self, registry_path: str):
+        self.registry_path = registry_path
+        self._pack: dict[str, Any] | None = None
+        self._playbooks: tuple[dict[str, Any], ...] = ()
+        self._playbook_by_id: dict[str, dict[str, Any]] = {}
+        self._load_error: Exception | None = None
+        self._load_attempted = False
+        self._lock = threading.Lock()
+
+    def _resolved_path(self) -> Path:
+        path = Path(self.registry_path)
+        if not path.is_absolute():
+            path = Path.cwd() / path
+        return path.resolve()
+
+    @staticmethod
+    def _required_text(value: Any, field_name: str) -> str:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field_name} must be a non-empty string")
+        return value.strip()
+
+    @classmethod
+    def _required_text_list(cls, value: Any, field_name: str) -> list[str]:
+        if not isinstance(value, list) or not value:
+            raise ValueError(f"{field_name} must be a non-empty list of strings")
+        entries = [cls._required_text(entry, f"{field_name} item") for entry in value]
+        if len(set(entries)) != len(entries):
+            raise ValueError(f"{field_name} must not contain duplicates")
+        return entries
+
+    @staticmethod
+    def _validate_file_pattern(pattern: str, field_name: str) -> None:
+        normalized = pattern.replace("\\", "/")
+        if normalized.startswith("/") or re.match(r"^[a-zA-Z]:/", normalized):
+            raise ValueError(f"{field_name} must be relative: {pattern}")
+        if ".." in PurePosixPath(normalized).parts:
+            raise ValueError(f"{field_name} must not traverse parent directories: {pattern}")
+
+    @classmethod
+    def _validate_profile(cls, value: Any, index: int) -> dict[str, Any]:
+        location = f"playbooks[{index}]"
+        if not isinstance(value, dict):
+            raise ValueError(f"{location} must be an object")
+
+        missing = [field_name for field_name in cls.REQUIRED_FIELDS if field_name not in value]
+        if missing:
+            raise ValueError(f"{location} missing required fields: {missing}")
+
+        profile = deepcopy(value)
+        for field_name in ("id", "title", "page", "category", "summary"):
+            profile[field_name] = cls._required_text(
+                profile.get(field_name),
+                f"{location}.{field_name}",
+            )
+
+        if not cls.ID_RE.fullmatch(profile["id"]):
+            raise ValueError(
+                f"{location}.id must match {cls.ID_RE.pattern}; got {profile['id']!r}"
+            )
+
+        expected_page = f"/security-remediation/{profile['id']}/"
+        if profile["page"] != expected_page:
+            raise ValueError(f"{location}.page must be {expected_page!r}")
+
+        phases = profile.get("phases")
+        if not isinstance(phases, list) or len(phases) != 5:
+            raise ValueError(f"{location}.phases must contain exactly five phases")
+        for phase_index, phase in enumerate(phases):
+            phase_location = f"{location}.phases[{phase_index}]"
+            if not isinstance(phase, dict):
+                raise ValueError(
+                    f"{phase_location} must be an object"
+                )
+            for field_name in ("label", "title", "detail"):
+                phase[field_name] = cls._required_text(
+                    phase.get(field_name),
+                    f"{phase_location}.{field_name}",
+                )
+
+        gate = profile.get("gate")
+        if not isinstance(gate, dict):
+            raise ValueError(f"{location}.gate must be an object")
+        for field_name in ("question", "pass", "stop"):
+            gate[field_name] = cls._required_text(
+                gate.get(field_name),
+                f"{location}.gate.{field_name}",
+            )
+
+        for field_name in ("evidence", "outputs", "file_patterns", "recipe_queries"):
+            profile[field_name] = cls._required_text_list(
+                profile.get(field_name),
+                f"{location}.{field_name}",
+            )
+        for pattern in profile["file_patterns"]:
+            cls._validate_file_pattern(pattern, f"{location}.file_patterns")
+
+        python = profile.get("python")
+        if not isinstance(python, dict):
+            raise ValueError(f"{location}.python must be an object")
+        python["scenario"] = cls._required_text(
+            python.get("scenario"),
+            f"{location}.python.scenario",
+        )
+        python["command"] = cls._required_text(
+            python.get("command"),
+            f"{location}.python.command",
+        )
+        padded_command = f" {python['command']} "
+        required_fragments = (
+            " playbook start ",
+            f"--playbook {profile['id']}",
+            "--workspace",
+            "--finding",
+            "--run-dir",
+        )
+        if any(fragment not in padded_command for fragment in required_fragments):
+            raise ValueError(
+                f"{location}.python.command must use the canonical playbook start interface"
+            )
+
+        return profile
+
+    def _load(self) -> None:
+        if self._load_attempted:
+            if self._load_error:
+                raise RuntimeError(str(self._load_error)) from self._load_error
+            return
+
+        with self._lock:
+            if self._load_attempted:
+                if self._load_error:
+                    raise RuntimeError(str(self._load_error)) from self._load_error
+                return
+
+            try:
+                path = self._resolved_path()
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                if not isinstance(payload, dict):
+                    raise ValueError("playbook registry root must be an object")
+
+                schema_version = self._required_text(
+                    payload.get("schema_version"),
+                    "schema_version",
+                )
+                suite_version = self._required_text(
+                    payload.get("suite_version"),
+                    "suite_version",
+                )
+                values = payload.get("playbooks")
+                if not isinstance(values, list) or not values:
+                    raise ValueError("playbooks must be a non-empty list")
+
+                profiles = tuple(
+                    self._validate_profile(profile, index)
+                    for index, profile in enumerate(values)
+                )
+                by_id: dict[str, dict[str, Any]] = {}
+                for profile in profiles:
+                    playbook_id = profile["id"]
+                    if playbook_id in by_id:
+                        raise ValueError(f"duplicate playbook id: {playbook_id}")
+                    by_id[playbook_id] = profile
+
+                self._pack = {
+                    **payload,
+                    "schema_version": schema_version,
+                    "suite_version": suite_version,
+                    "playbooks": list(profiles),
+                }
+                self._playbooks = profiles
+                self._playbook_by_id = by_id
+            except Exception as exc:
+                self._load_error = exc
+                raise
+            finally:
+                self._load_attempted = True
+
+    @classmethod
+    def _validated_id(cls, playbook_id: str) -> str:
+        if not isinstance(playbook_id, str):
+            raise ValueError("playbook_id must be a string")
+        value = playbook_id.strip()
+        if not cls.ID_RE.fullmatch(value):
+            raise ValueError(
+                f"playbook_id must match {cls.ID_RE.pattern}; got {playbook_id!r}"
+            )
+        return value
+
+    @classmethod
+    def _validated_limit(cls, limit: int) -> int:
+        if isinstance(limit, bool) or not isinstance(limit, int):
+            raise ValueError("limit must be an integer")
+        if limit < 1 or limit > cls.MAX_LIMIT:
+            raise ValueError(f"limit must be between 1 and {cls.MAX_LIMIT}")
+        return limit
+
+    @classmethod
+    def _validated_query(cls, query: str | None) -> str | None:
+        if query is None:
+            return None
+        if not isinstance(query, str):
+            raise ValueError("query must be a string or null")
+        value = query.strip()
+        if not value:
+            return None
+        if len(value) > cls.MAX_QUERY_CHARS:
+            raise ValueError(f"query must not exceed {cls.MAX_QUERY_CHARS} characters")
+        return value
+
+    @staticmethod
+    def _count_contract_items(value: Any) -> int:
+        if isinstance(value, (list, dict)):
+            return len(value)
+        return 0
+
+    @classmethod
+    def _preview(cls, profile: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "id": profile["id"],
+            "title": profile["title"],
+            "page": profile["page"],
+            "category": profile["category"],
+            "summary": profile["summary"],
+            "phase_count": len(profile["phases"]),
+            "evidence_count": cls._count_contract_items(profile["evidence"]),
+            "output_count": cls._count_contract_items(profile["outputs"]),
+            "python_available": bool(profile["python"]),
+        }
+
+    @staticmethod
+    def _search_text(profile: dict[str, Any]) -> str:
+        values = [
+            profile["id"],
+            profile["title"],
+            profile["category"],
+            profile["summary"],
+            profile["file_patterns"],
+            profile["recipe_queries"],
+            profile["python"],
+        ]
+        return " ".join(
+            value if isinstance(value, str) else json.dumps(value, sort_keys=True)
+            for value in values
+        ).casefold()
+
+    def metadata(self) -> dict[str, Any]:
+        try:
+            self._load()
+        except Exception as exc:
+            return {
+                "available": False,
+                "path": self.registry_path,
+                "error": str(exc),
+            }
+
+        assert self._pack is not None
+        return {
+            "available": True,
+            "path": self.registry_path,
+            "schema_version": self._pack["schema_version"],
+            "suite_version": self._pack["suite_version"],
+            "playbook_count": len(self._playbooks),
+            "categories": sorted({profile["category"] for profile in self._playbooks}),
+            "cache": "validated once per server process",
+        }
+
+    def list_playbooks(
+        self,
+        query: str | None = None,
+        category: str | None = None,
+        limit: int = 25,
+    ) -> dict[str, Any]:
+        query = self._validated_query(query)
+        limit = self._validated_limit(limit)
+        if category is not None and not isinstance(category, str):
+            raise ValueError("category must be a string or null")
+        category_value = str(category or "").strip()
+        self._load()
+
+        candidates = [
+            profile
+            for profile in self._playbooks
+            if not category_value
+            or profile["category"].casefold() == category_value.casefold()
+        ]
+        scored: list[tuple[int, str, dict[str, Any]]] = []
+        if query:
+            terms = re.findall(r"[a-z0-9][a-z0-9._/+:-]*", query.casefold())
+            if not terms:
+                raise ValueError("query must contain at least one searchable term")
+            for profile in candidates:
+                haystack = self._search_text(profile)
+                hits = sum(haystack.count(term) for term in terms)
+                if not hits:
+                    continue
+                score = hits
+                if query.casefold() == profile["id"].casefold():
+                    score += 100
+                if query.casefold() == profile["title"].casefold():
+                    score += 80
+                score += sum(
+                    10 for term in terms if term in profile["title"].casefold()
+                )
+                scored.append((-score, profile["id"], profile))
+            scored.sort(key=lambda item: (item[0], item[1]))
+            matched = [profile for _, _, profile in scored]
+        else:
+            matched = sorted(candidates, key=lambda profile: profile["id"])
+
+        assert self._pack is not None
+        return {
+            "schema_version": self._pack["schema_version"],
+            "suite_version": self._pack["suite_version"],
+            "query": query,
+            "category": category_value or None,
+            "matched_count": len(matched),
+            "count": min(len(matched), limit),
+            "results": [self._preview(profile) for profile in matched[:limit]],
+        }
+
+    def get_playbook(self, playbook_id: str) -> dict[str, Any] | None:
+        playbook_id = self._validated_id(playbook_id)
+        self._load()
+        value = self._playbook_by_id.get(playbook_id)
+        return deepcopy(value) if value else None
+
+    @staticmethod
+    def _pending_checklist(value: Any, label: str) -> list[dict[str, Any]]:
+        if isinstance(value, list):
+            items = value
+        elif isinstance(value, dict):
+            nested = next(
+                (
+                    value[key]
+                    for key in ("checks", "criteria", "requirements", "items")
+                    if isinstance(value.get(key), list) and value[key]
+                ),
+                None,
+            )
+            items = nested if nested is not None else [value]
+        else:
+            items = [value]
+        return [
+            {
+                "order": index,
+                "status": "pending",
+                label: deepcopy(item),
+            }
+            for index, item in enumerate(items, start=1)
+        ]
+
+    def plan(self, playbook_id: str, finding: str | None = None) -> dict[str, Any] | None:
+        if finding is not None and not isinstance(finding, str):
+            raise ValueError("finding must be a string or null")
+        normalized_finding = str(finding or "").strip() or None
+        if normalized_finding and len(normalized_finding) > self.MAX_FINDING_CHARS:
+            raise ValueError(
+                f"finding must not exceed {self.MAX_FINDING_CHARS} characters"
+            )
+        profile = self.get_playbook(playbook_id)
+        if profile is None:
+            return None
+
+        return {
+            "playbook": self._preview(profile),
+            "finding": normalized_finding,
+            "planning_only": True,
+            "side_effects": {"writes": False, "network": False},
+            "phase_checklist": self._pending_checklist(profile["phases"], "phase"),
+            "gate": deepcopy(profile["gate"]),
+            "gate_checklist": self._pending_checklist(profile["gate"], "criterion"),
+            "evidence_checklist": self._pending_checklist(profile["evidence"], "evidence"),
+            "output_contract": deepcopy(profile["outputs"]),
+            "python_contract": deepcopy(profile["python"]),
+            "file_patterns": deepcopy(profile["file_patterns"]),
+            "recipe_queries": deepcopy(profile["recipe_queries"]),
+        }
 
 
 @dataclass(frozen=True, slots=True)
@@ -11032,6 +11438,10 @@ def load_config(config_path: str) -> ServerConfig:
     )
     cfg.gateway_policy_path = data.get("gateway_policy_path", cfg.gateway_policy_path)
     cfg.cve_catalog_path = data.get("cve_catalog_path", cfg.cve_catalog_path)
+    cfg.playbook_registry_path = data.get(
+        "playbook_registry_path",
+        cfg.playbook_registry_path,
+    )
     cfg.assurance_pack_path = data.get("assurance_pack_path", cfg.assurance_pack_path)
     cfg.identity_ledger_path = data.get("identity_ledger_path", cfg.identity_ledger_path)
     cfg.entitlement_review_pack_path = data.get(
@@ -11305,6 +11715,7 @@ def run_mcp_server() -> None:
 config = load_config(DEFAULT_CONFIG_PATH)
 index = RecipeIndex(config)
 cve_catalog = CVERecipeCatalog(config.cve_catalog_path)
+playbook_registry = PlaybookRegistry(config.playbook_registry_path)
 # Non-exact catalog searches are CPU-heavy only on a cache miss. A dedicated
 # single worker coalesces that pressure naturally and prevents cold/broad
 # searches from occupying the shared asyncio executor used by exact CVE gets
@@ -11374,11 +11785,14 @@ mcp = FastMCP(name="security-recipes-mcp")
 @mcp.tool()
 async def recipes_server_info() -> dict[str, Any]:
     """Return MCP server metadata and source-index configuration."""
+    playbook_registry_metadata = await asyncio.to_thread(playbook_registry.metadata)
     return {
         "name": "security-recipes-mcp",
         "server_public_base_url": config.server_public_base_url,
         "source_index_url": config.source_index_url,
         "cve_catalog_path": config.cve_catalog_path,
+        "playbook_registry_path": config.playbook_registry_path,
+        "playbook_registry": playbook_registry_metadata,
         "allowed_source_hosts": config.allowed_source_hosts,
         "cache_ttl_seconds": config.cache_ttl_seconds,
         "control_plane_manifest_path": config.control_plane_manifest_path,
@@ -11554,6 +11968,64 @@ async def recipes_get(slug_or_path: str) -> dict[str, Any]:
     if not doc:
         return {"found": False, "slug_or_path": slug_or_path}
     return {"found": True, "recipe": doc}
+
+
+@mcp.tool()
+async def recipes_playbooks_list(
+    query: str | None = None,
+    category: str | None = None,
+    limit: int = 25,
+) -> dict[str, Any]:
+    """List concise remediation playbook records, optionally filtered by query or category."""
+    try:
+        return await asyncio.to_thread(
+            playbook_registry.list_playbooks,
+            query=query,
+            category=category,
+            limit=limit,
+        )
+    except Exception as exc:
+        return {
+            "query": query,
+            "category": category,
+            "count": 0,
+            "matched_count": 0,
+            "results": [],
+            "error": str(exc),
+        }
+
+
+@mcp.tool()
+async def recipes_playbook_get(playbook_id: str) -> dict[str, Any]:
+    """Get one complete remediation workflow, evidence, output, and Python contract."""
+    try:
+        profile = await asyncio.to_thread(playbook_registry.get_playbook, playbook_id)
+        if profile is None:
+            return {"found": False, "playbook_id": playbook_id}
+        metadata = await asyncio.to_thread(playbook_registry.metadata)
+        return {
+            "found": True,
+            "schema_version": metadata.get("schema_version"),
+            "suite_version": metadata.get("suite_version"),
+            "playbook": profile,
+        }
+    except Exception as exc:
+        return {"found": False, "playbook_id": playbook_id, "error": str(exc)}
+
+
+@mcp.tool()
+async def recipes_playbook_plan(
+    playbook_id: str,
+    finding: str | None = None,
+) -> dict[str, Any]:
+    """Build a deterministic, read-only phase, gate, and evidence checklist for a finding."""
+    try:
+        plan = await asyncio.to_thread(playbook_registry.plan, playbook_id, finding)
+        if plan is None:
+            return {"found": False, "playbook_id": playbook_id}
+        return {"found": True, **plan}
+    except Exception as exc:
+        return {"found": False, "playbook_id": playbook_id, "error": str(exc)}
 
 
 @mcp.tool()

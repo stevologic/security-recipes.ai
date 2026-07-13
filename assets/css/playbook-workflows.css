@@ -1,0 +1,509 @@
+/* ========================================================================
+   Playbook workflow maps
+
+   Static HTML/CSS by design: the ordered list is the accessible workflow,
+   while the visual rail, gate branches, and evidence lanes progressively
+   enhance it without a diagram runtime or client-side registry payload.
+   ======================================================================== */
+
+.sr-playbook-workflow {
+  --sr-workflow-line: rgba(103, 232, 249, 0.36);
+  --sr-workflow-panel: rgba(7, 16, 23, 0.88);
+  --sr-workflow-panel-soft: rgba(255, 255, 255, 0.035);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 1rem;
+  margin: 2rem 0 2.35rem;
+  padding: clamp(1rem, 2.2vw, 1.45rem);
+  overflow: hidden;
+  border: 1px solid rgba(103, 232, 249, 0.2);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(45, 212, 191, 0.16), transparent 34%),
+    radial-gradient(circle at 94% 12%, rgba(56, 189, 248, 0.11), transparent 30%),
+    linear-gradient(155deg, rgba(5, 14, 20, 0.97), rgba(4, 9, 14, 0.93));
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.sr-playbook-workflow::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    linear-gradient(rgba(103, 232, 249, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(103, 232, 249, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  content: "";
+  mask-image: linear-gradient(to bottom, black, transparent 48%);
+  pointer-events: none;
+}
+
+.sr-playbook-workflow p,
+.sr-playbook-workflow h2,
+.sr-playbook-workflow ol,
+.sr-playbook-workflow ul,
+.sr-playbook-workflow pre {
+  margin-top: 0;
+}
+
+.sr-playbook-workflow__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.sr-playbook-workflow__header h2 {
+  margin-bottom: 0.45rem;
+  color: var(--arr-ink-0, #f4f8fb);
+  font-size: clamp(1.3rem, 2.4vw, 1.72rem);
+  letter-spacing: -0.025em;
+}
+
+.sr-playbook-workflow__kicker,
+.sr-playbook-python__kicker {
+  margin-bottom: 0.24rem !important;
+  color: #79f2e5 !important;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sr-playbook-workflow__summary {
+  max-width: 66ch;
+  margin-bottom: 0;
+  color: var(--arr-ink-1, #d5e1e8);
+  font-size: 0.94rem;
+}
+
+.sr-playbook-workflow__category {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0.28rem 0.62rem;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.08);
+  color: #a5f3fc;
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: 0.045em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.sr-playbook-workflow__phases {
+  display: grid;
+  grid-template-columns: repeat(var(--phase-count), minmax(145px, 1fr));
+  gap: 0.72rem;
+  margin-bottom: 0;
+  padding: 0.38rem 0 0.45rem !important;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  list-style: none;
+  scrollbar-color: rgba(103, 232, 249, 0.32) transparent;
+  scrollbar-width: thin;
+}
+
+.sr-playbook-workflow__phase {
+  position: relative;
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  min-height: 184px;
+  padding: 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    rgba(3, 10, 15, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.sr-playbook-workflow__phase:not(:last-child)::after {
+  position: absolute;
+  z-index: 2;
+  top: 27px;
+  left: calc(100% + 1px);
+  width: calc(0.72rem - 2px);
+  height: 1px;
+  background: linear-gradient(90deg, var(--sr-workflow-line), rgba(134, 239, 172, 0.7));
+  content: "";
+}
+
+.sr-playbook-workflow__phase-number {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.72rem;
+  place-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.38);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(45, 212, 191, 0.2), rgba(56, 189, 248, 0.08));
+  color: #bffcf5;
+  font-family: var(--arr-font-mono, ui-monospace, monospace);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.sr-playbook-workflow__phase-label {
+  margin-bottom: 0.18rem;
+  color: #67e8f9;
+  font-size: 0.65rem;
+  font-weight: 820;
+  letter-spacing: 0.095em;
+  text-transform: uppercase;
+}
+
+.sr-playbook-workflow__phase-title {
+  margin-bottom: 0.38rem;
+  color: var(--arr-ink-0, #f4f8fb);
+  font-size: 0.9rem;
+  line-height: 1.28;
+}
+
+.sr-playbook-workflow__phase-detail {
+  margin-bottom: 0;
+  color: var(--arr-ink-2, #a9bac4);
+  font-size: 0.78rem;
+  line-height: 1.46;
+}
+
+.sr-playbook-gate {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.72fr) minmax(0, 1.45fr);
+  gap: 0.75rem;
+  padding: 0.78rem;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 13px;
+  background: linear-gradient(110deg, rgba(245, 158, 11, 0.075), rgba(255, 255, 255, 0.022));
+}
+
+.sr-playbook-gate__question {
+  display: grid;
+  align-content: center;
+  padding: 0.22rem 0.35rem;
+}
+
+.sr-playbook-gate__question > p:last-child {
+  margin-bottom: 0;
+  color: var(--arr-ink-0, #f4f8fb);
+  font-size: 0.91rem;
+  line-height: 1.4;
+}
+
+.sr-playbook-gate__paths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.62rem;
+}
+
+.sr-playbook-gate__path {
+  padding: 0.68rem 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.sr-playbook-gate__path > span {
+  display: block;
+  margin-bottom: 0.22rem;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sr-playbook-gate__path > p {
+  margin-bottom: 0;
+  color: var(--arr-ink-1, #d5e1e8);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.sr-playbook-gate__path--pass {
+  border-left: 3px solid rgba(74, 222, 128, 0.72);
+}
+
+.sr-playbook-gate__path--pass > span {
+  color: #86efac;
+}
+
+.sr-playbook-gate__path--stop {
+  border-left: 3px solid rgba(251, 146, 60, 0.78);
+}
+
+.sr-playbook-gate__path--stop > span {
+  color: #fdba74;
+}
+
+.sr-playbook-workflow__closeout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.sr-playbook-workflow__closeout > section {
+  min-width: 0;
+  padding: 0.75rem 0.82rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 11px;
+  background: var(--sr-workflow-panel-soft);
+}
+
+.sr-playbook-workflow__list-title {
+  margin-bottom: 0.42rem;
+  color: var(--arr-ink-0, #f4f8fb);
+  font-size: 0.8rem;
+  letter-spacing: 0.015em;
+}
+
+.sr-playbook-workflow__list {
+  display: grid;
+  gap: 0.28rem;
+  margin-bottom: 0;
+  padding-left: 1rem !important;
+  color: var(--arr-ink-2, #a9bac4);
+  font-size: 0.76rem;
+  line-height: 1.42;
+}
+
+.sr-playbook-workflow__list li::marker {
+  color: #5eead4;
+}
+
+.sr-playbook-python {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.8fr) minmax(250px, 1.3fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.82rem;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-left: 3px solid rgba(103, 232, 249, 0.52);
+  border-radius: 12px;
+  background: rgba(2, 8, 12, 0.62);
+}
+
+.sr-playbook-python__intro > p:last-child {
+  margin-bottom: 0;
+  color: var(--arr-ink-2, #a9bac4);
+  font-size: 0.77rem;
+  line-height: 1.42;
+}
+
+.sr-playbook-python__title {
+  margin-bottom: 0.22rem;
+  color: var(--arr-ink-0, #f4f8fb);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.sr-playbook-python__command {
+  min-width: 0;
+}
+
+.sr-playbook-python__command > span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--arr-ink-3, #80939f);
+  font-size: 0.64rem;
+  font-weight: 780;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.sr-playbook-python__command pre {
+  max-width: 100%;
+  margin-bottom: 0 !important;
+  padding: 0.6rem 0.7rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9px;
+  background: #020608 !important;
+  color: #c5f7ef;
+  font-size: 0.72rem !important;
+  line-height: 1.45 !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.sr-playbook-python__command pre:focus-visible {
+  outline: 2px solid rgba(103, 232, 249, 0.74);
+  outline-offset: 2px;
+}
+
+.sr-playbook-python__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 38px;
+  padding: 0.46rem 0.64rem;
+  border: 1px solid rgba(103, 232, 249, 0.25);
+  border-radius: 9px;
+  background: rgba(45, 212, 191, 0.08);
+  color: #a5f3fc !important;
+  font-size: 0.74rem;
+  font-weight: 760;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none !important;
+}
+
+.sr-playbook-python__link:hover,
+.sr-playbook-python__link:focus-visible {
+  border-color: rgba(103, 232, 249, 0.58);
+  background: rgba(45, 212, 191, 0.14);
+  outline: none;
+}
+
+html:not(.dark) .sr-playbook-workflow {
+  --sr-workflow-panel-soft: rgba(15, 118, 110, 0.035);
+  border-color: rgba(13, 148, 136, 0.2);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(45, 212, 191, 0.13), transparent 34%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.98), rgba(241, 249, 248, 0.96));
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.12);
+}
+
+html:not(.dark) .sr-playbook-workflow__phase,
+html:not(.dark) .sr-playbook-python {
+  background: rgba(255, 255, 255, 0.78);
+}
+
+html:not(.dark) .sr-playbook-python__command pre {
+  color: #c5f7ef;
+}
+
+@media (max-width: 860px) {
+  .sr-playbook-python {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sr-playbook-python__link {
+    justify-self: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .sr-playbook-workflow__header,
+  .sr-playbook-gate,
+  .sr-playbook-gate__paths,
+  .sr-playbook-workflow__closeout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sr-playbook-workflow__category {
+    justify-self: start;
+  }
+
+  .sr-playbook-workflow__phases {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.62rem;
+    overflow-x: visible;
+  }
+
+  .sr-playbook-workflow__phase {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.7rem;
+    min-height: 0;
+  }
+
+  .sr-playbook-workflow__phase-number {
+    margin-bottom: 0;
+  }
+
+  .sr-playbook-workflow__phase:not(:last-child)::after {
+    top: calc(100% + 1px);
+    left: 25px;
+    width: 1px;
+    height: calc(0.62rem - 2px);
+    background: linear-gradient(to bottom, var(--sr-workflow-line), rgba(134, 239, 172, 0.7));
+  }
+}
+
+@media (max-width: 460px) {
+  .sr-playbook-workflow {
+    margin-inline: -0.2rem;
+    padding: 0.82rem;
+    border-radius: 13px;
+  }
+}
+
+@media print {
+  .sr-playbook-workflow {
+    break-inside: avoid;
+    border: 1px solid #77838a;
+    background: #fff;
+    box-shadow: none;
+    color: #111 !important;
+  }
+
+  .sr-playbook-workflow::before {
+    display: none;
+  }
+
+  .sr-playbook-workflow__phases {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .sr-playbook-workflow__phase:not(:last-child)::after {
+    display: none;
+  }
+
+  .sr-playbook-workflow__phase,
+  .sr-playbook-gate,
+  .sr-playbook-python,
+  .sr-playbook-workflow__closeout > section {
+    border-color: #9aa3a8;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .sr-playbook-workflow__header h2,
+  .sr-playbook-workflow__summary,
+  .sr-playbook-workflow__category,
+  .sr-playbook-workflow__kicker,
+  .sr-playbook-workflow__phase-label,
+  .sr-playbook-workflow__phase-title,
+  .sr-playbook-workflow__phase-detail,
+  .sr-playbook-gate__question > p:last-child,
+  .sr-playbook-gate__path > span,
+  .sr-playbook-gate__path > p,
+  .sr-playbook-workflow__list-title,
+  .sr-playbook-workflow__list,
+  .sr-playbook-python__kicker,
+  .sr-playbook-python__title,
+  .sr-playbook-python__intro > p:last-child,
+  .sr-playbook-python__command > span,
+  .sr-playbook-python__link {
+    color: #111 !important;
+  }
+
+  .sr-playbook-workflow__category,
+  .sr-playbook-workflow__phase-number,
+  .sr-playbook-python__link {
+    border-color: #66737a;
+    background: #fff;
+  }
+
+  .sr-playbook-workflow__phase-number {
+    color: #111;
+  }
+
+  .sr-playbook-workflow__list li::marker {
+    color: #111;
+  }
+
+  .sr-playbook-python__command pre {
+    border-color: #66737a;
+    background: #fff !important;
+    color: #111 !important;
+  }
+}

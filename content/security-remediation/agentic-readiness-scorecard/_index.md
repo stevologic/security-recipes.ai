@@ -34,6 +34,8 @@ are moving from pilots to platform rollout. The hard question is no
 longer "can an agent fix this?" It is "which agentic workflows can we
 scale without inventing new governance every time?"
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The readiness layer lives in source-controlled and generated artifacts:
@@ -48,6 +50,10 @@ The readiness layer lives in source-controlled and generated artifacts:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_agentic_readiness_scorecard.py
+python3 scripts/generate_agentic_readiness_scorecard.py --check
+```
 
 ## What is inside the scorecard
 

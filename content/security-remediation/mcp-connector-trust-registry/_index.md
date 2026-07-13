@@ -34,6 +34,8 @@ The MCP Connector Trust Registry is the answer. It turns the connector
 catalog from prose into an inventory a gateway, agent host, auditor, or
 reviewer can consume directly.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The registry layer has three artifacts and one MCP tool:
@@ -47,6 +49,10 @@ The registry layer has three artifacts and one MCP tool:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_mcp_connector_trust_pack.py
+python3 scripts/generate_mcp_connector_trust_pack.py --check
+```
 
 add an MCP namespace without adding the connector trust contract.
 

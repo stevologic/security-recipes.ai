@@ -41,22 +41,37 @@ The Agent Memory Boundary turns that surface into a policy artifact:
 That is an enterprise-grade control because it converts "the agent
 remembered it" into an auditable decision.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source model:
   `data/assurance/agent-memory-boundary-model.json`
-- Generator:
-- Runtime evaluator:
+- Generator: `scripts/generate_agent_memory_boundary_pack.py`
+- Runtime evaluator: `scripts/evaluate_agent_memory_boundary_decision.py`
 - Evidence pack:
   `data/evidence/agent-memory-boundary-pack.json`
 - MCP tools:
-  `recipes_agent_memory_boundary_pack` and
+  `recipes_agent_memory_boundary_pack`, paired with `recipes_playbook_plan` using playbook id `agent-memory-boundary`.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_agent_memory_boundary_pack.py
+python3 scripts/generate_agent_memory_boundary_pack.py --check
+```
 
 Evaluate one memory operation:
 
+```bash
+python3 scripts/evaluate_agent_memory_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --memory-class-id run-receipt-evidence \
+  --operation write \
+  --tenant-id tenant-123 \
+  --provenance-hash example-source-hash \
+  --expect-decision allow_append_only_evidence_memory
+```
 
 ## Memory classes
 
@@ -112,11 +127,18 @@ recipes_agent_memory_boundary_pack(
 )
 ```
 
-Evaluate a policy-memory mutation attempt:
+Plan a policy-memory mutation attempt:
 
+```text
+recipes_playbook_plan(
+  playbook_id="agent-memory-boundary",
+  finding="Runtime agent attempted to write source-controlled workflow-policy memory."
+)
+```
 
-That returns `deny_runtime_memory_write` because workflow policy memory
-is source-controlled and read-only at runtime.
+The plan preserves `deny_runtime_memory_write` as the expected control outcome
+and asks the executor to retain proof that workflow policy memory remains
+source-controlled and read-only at runtime.
 
 ## Industry alignment
 

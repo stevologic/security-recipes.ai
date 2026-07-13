@@ -43,6 +43,8 @@ model; a production MCP server can sell hosted lease issuance,
 continuous access review, step-up approval receipts, revocation
 webhooks, and IdP/SIEM integrations.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/agentic-entitlement-review-profile.json` - source
@@ -57,9 +59,46 @@ webhooks, and IdP/SIEM integrations.
 
 Evaluate an active scoped branch-write entitlement:
 
+```bash
+python3 scripts/evaluate_agentic_entitlement_decision.py \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-class codex \
+  --namespace repo.contents \
+  --requested-access-mode write_branch \
+  --lease-id lease-ci \
+  --lease-status active \
+  --lease-expires-at 2099-01-01T00:00:00Z \
+  --review-status current \
+  --authorization-decision allow_authorized_mcp_request \
+  --run-id run-ci \
+  --tenant-id tenant-ci \
+  --correlation-id corr-ci \
+  --receipt-id receipt-ci \
+  --policy-pack-hash sha256:policy \
+  --expect-decision allow_active_entitlement
+```
 
 Evaluate an expired lease:
 
+```bash
+python3 scripts/evaluate_agentic_entitlement_decision.py \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-class codex \
+  --namespace repo.contents \
+  --requested-access-mode write_branch \
+  --lease-id lease-expired \
+  --lease-status expired \
+  --lease-expires-at 2026-01-01T00:00:00Z \
+  --review-status current \
+  --authorization-decision allow_authorized_mcp_request \
+  --run-id run-expired \
+  --tenant-id tenant-ci \
+  --correlation-id corr-expired \
+  --receipt-id receipt-expired \
+  --expect-decision deny_expired_or_missing_lease
+```
 
 ## What is inside
 

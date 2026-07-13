@@ -40,22 +40,41 @@ motion. It scores applications by:
 The result is a simple launch decision that AI platform, product
 security, GRC, procurement, and trust review reviewers can understand.
 
+{{< playbook-workflow >}}
+
 ## Generated artifact
 
 - Source profile:
   `data/assurance/agentic-app-intake-profile.json`
-- Generator:
-- Runtime evaluator:
+- Generator: `scripts/generate_agentic_app_intake_pack.py`
+- Runtime evaluator: `scripts/evaluate_agentic_app_intake_decision.py`
 - Evidence pack:
   `data/evidence/agentic-app-intake-pack.json`
 - MCP tools:
-  `recipes_agentic_app_intake_pack` and
+  `recipes_agentic_app_intake_pack`, paired with `recipes_playbook_plan` using playbook id `agentic-app-intake-gate`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_agentic_app_intake_pack.py
+python3 scripts/generate_agentic_app_intake_pack.py --check
+```
 
 Evaluate a guarded remediation agent host:
 
+```bash
+python3 scripts/evaluate_agentic_app_intake_decision.py \
+  --app-id repository-remediation-agent-host \
+  --deployment-environment enterprise_pilot \
+  --egress-decision allow_internal_boundary \
+  --authorization-decision allow_authorized_mcp_request \
+  --telemetry-decision telemetry_ready \
+  --human-approval-id approval-ci \
+  --approver product-security \
+  --approver service-owner \
+  --two-key-review \
+  --expect-decision approve_guarded_pilot
+```
 
 Block high-impact signer or production authority:
 

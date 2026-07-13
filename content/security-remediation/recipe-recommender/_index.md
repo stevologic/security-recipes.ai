@@ -38,6 +38,8 @@ small routing decision:
 If the recommender cannot make that decision confidently, it writes a triage
 note and stops.
 
+{{< playbook-workflow >}}
+
 ## High-level flow
 
 ```mermaid
@@ -266,10 +268,6 @@ Write a triage note instead of recommending a recipe when:
   evidence is really a dependency bump, container image issue, or SAST alert.
 - **Weak match means triage.** A safe non-answer is better than sending an agent
   into the wrong workflow.
-
-## Python remediation tool
-
-{{< remediation-tool domain="recipe-recommender" >}}
 
 ## See also
 

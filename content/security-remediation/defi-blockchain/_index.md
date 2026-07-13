@@ -23,6 +23,8 @@ final protocol decisions.
 - **Oracle and scope guardrails** for manipulation-resistant execution.
 - **Bridge and multisig emergency runbooks** for containment.
 
+{{< playbook-workflow >}}
+
 ## Eligibility profile
 
 A finding is eligible when:
@@ -50,10 +52,6 @@ A finding is eligible when:
 - Autonomous governance voting with production keys.
 - New protocol feature design.
 - Economic parameter tuning without risk committee sign-off.
-
-## Python remediation tool
-
-{{< remediation-tool domain="defi-blockchain" >}}
 
 ## See also
 

@@ -30,6 +30,8 @@ describes, produce more audit evidence than the manual processes
 they replace, not less. But only if you name the controls up
 front and log accordingly.
 
+{{< playbook-workflow >}}
+
 ## The three universal requirements
 
 Nearly every framework wants the same three things. If the
@@ -328,10 +330,6 @@ audit roles:
 Five logs, five evidence streams, one chain of custody per
 finding. If an auditor can't follow that chain in ten minutes,
 fix the instrumentation.
-
-## Python remediation tool
-
-{{< remediation-tool domain="compliance" >}}
 
 ## See also
 

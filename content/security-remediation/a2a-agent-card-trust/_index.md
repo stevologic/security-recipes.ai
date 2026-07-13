@@ -36,13 +36,30 @@ review, denial, or immediate session termination.
 - `data/evidence/a2a-agent-card-trust-profile.json` - generated
   evidence pack for CI, MCP, architecture review, and diligence.
 - MCP tools:
-  `recipes_a2a_agent_card_trust_profile` and
+  `recipes_a2a_agent_card_trust_profile`, paired with `recipes_playbook_plan` using playbook id `a2a-agent-card-trust`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_a2a_agent_card_trust_profile.py
+python3 scripts/generate_a2a_agent_card_trust_profile.py --check
+```
 
 Evaluate a trusted production card:
 
+```bash
+python3 scripts/evaluate_a2a_agent_card_trust_decision.py \
+  --pack data/assurance/a2a-agent-card-trust-profile.json \
+  --sample-card-id trusted-security-recipes-delegated-agent \
+  --expect-decision allow_trusted_agent_card
+```
+
+Use `--agent-card path/to/card.json --profile-id PROFILE` instead when
+evaluating a live discovery artifact. Named samples inherit their
+profile, production state, and declared controls from the source pack,
+so the example cannot drift from the generated trust model.
+
+{{< playbook-workflow >}}
 
 ## Trust profiles
 

@@ -13,6 +13,7 @@ const crypto = require("node:crypto");
 
 const ROOT = path.resolve(process.env.SITE_OUTPUT_DIR || "public");
 const CONTENT = path.resolve("content/recipes/cve");
+const PLAYBOOK_CONTENT = path.resolve("content/security-remediation");
 const MiB = 1024 * 1024;
 const KiB = 1024;
 const failures = [];
@@ -132,6 +133,7 @@ budget("CVE hub HTML", size("recipes/cve/index.html"), 512 * KiB);
 budget("recipe library HTML", size("recipes/index.html"), 768 * KiB);
 budget("recipe library JavaScript", size("js/recipe-browser.js"), 160 * KiB);
 budget("recipe library styles", size("css/recipe-library.css"), 160 * KiB);
+budget("playbook workflow styles", size("css/playbook-workflows.css"), 32 * KiB);
 budget("generic docs search index", size("recipes-index.json"), 2 * MiB);
 budget("generic recipe browser feed", size("recipes-browser.json"), 2 * MiB);
 budget("generic rich agent feed", size("api/recipes.json"), 8 * MiB);
@@ -188,6 +190,46 @@ for (const file of ["index.html", "recipes/index.html", "recipes/cve/index.html"
   if (!html.includes("manifest-src 'self'")) fail(`${file} CSP does not permit its own manifest`);
   if (html.includes("manifest-src 'none'")) fail(`${file} CSP still blocks installed-app manifests`);
 }
+
+const playbookSources = fs.readdirSync(PLAYBOOK_CONTENT, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .filter((slug) => fs.existsSync(path.join(PLAYBOOK_CONTENT, slug, "_index.md")))
+  .sort();
+if (playbookSources.length !== 75) {
+  fail(`playbook source count is ${playbookSources.length}; expected 75`);
+}
+
+let playbookHtmlBytes = 0;
+let largestPlaybookHtml = 0;
+for (const slug of playbookSources) {
+  const output = path.join(ROOT, "security-remediation", slug, "index.html");
+  if (!fs.existsSync(output)) {
+    fail(`missing playbook output: security-remediation/${slug}/index.html`);
+    continue;
+  }
+  const bytes = fs.statSync(output).size;
+  playbookHtmlBytes += bytes;
+  largestPlaybookHtml = Math.max(largestPlaybookHtml, bytes);
+  const html = fs.readFileSync(output, "utf8");
+  const workflowCount = (html.match(/\bdata-playbook-workflow(?:\s|>)/g) || []).length;
+  if (workflowCount !== 1) {
+    fail(`${slug} renders ${workflowCount} playbook workflow components; expected exactly one`);
+  }
+  const mainStart = html.indexOf('<main id="content"');
+  const mainEnd = html.indexOf("</main>", mainStart);
+  const workflowAt = html.indexOf("data-playbook-workflow", mainStart);
+  if (mainStart < 0 || mainEnd < 0 || workflowAt < mainStart || workflowAt > mainEnd) {
+    fail(`${slug} does not render its workflow inside the main document`);
+  } else if ((workflowAt - mainStart) / Math.max(1, mainEnd - mainStart) > 0.6) {
+    fail(`${slug} places its workflow below the first 60% of the main document`);
+  }
+  if (!html.includes("sr-playbook-python")) {
+    fail(`${slug} is missing the Python companion inside its workflow`);
+  }
+}
+budget("playbook HTML", playbookHtmlBytes, 10 * MiB);
+budget("largest playbook HTML", largestPlaybookHtml, 160 * KiB);
 
 const shards = files.filter((file) => file.includes(`${path.sep}api${path.sep}cve-catalog${path.sep}shards${path.sep}`));
 const largestShard = shards.reduce((largest, file) => Math.max(largest, fs.statSync(file).size), 0);

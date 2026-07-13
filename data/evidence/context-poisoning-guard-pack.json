@@ -120,7 +120,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 331,
+      "line": 482,
       "match": "...ontrol_objective\": \"Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.\",",
       "path": "data/assurance/agentic-catastrophic-risk-annex.json",
       "risk_family": "approval_bypass",
@@ -131,7 +131,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 242,
+      "line": 241,
       "match": "\"retrieved context contains hidden instructions, tool override text, encoded exfiltration payload, or approval bypass instructions\"",
       "path": "data/assurance/agentic-incident-response-profile.json",
       "risk_family": "prompt_injection",
@@ -197,7 +197,7 @@
     {
       "actionable": true,
       "disposition": "actionable_context_poisoning_risk",
-      "line": 948,
+      "line": 1273,
       "match": "...\"objective\": \"Terminate agent sessions when runtime behavior shows approval bypass, deny-after-deny looping, broad token requests, secret egress, or irreversible action without approval.\",",
       "path": "data/assurance/agentic-standards-crosswalk.json",
       "risk_family": "approval_bypass",
@@ -263,425 +263,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 229,
-      "match": "\"agent card contains prohibited marker: bypass approval\",",
-      "path": "data/evidence/a2a-agent-card-trust-profile.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 231,
-      "match": "\"agent card contains prohibited marker: ignore previous instructions\",",
-      "path": "data/evidence/a2a-agent-card-trust-profile.json",
-      "risk_family": "prompt_injection",
-      "rule_id": "direct-instruction-override",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 510,
-      "match": "\"ignore previous instructions\",",
-      "path": "data/evidence/a2a-agent-card-trust-profile.json",
-      "risk_family": "prompt_injection",
-      "rule_id": "direct-instruction-override",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 514,
-      "match": "\"bypass approval\",",
-      "path": "data/evidence/a2a-agent-card-trust-profile.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 30,
-      "match": "\"meaning\": \"The runtime observed approval bypass, post-execution approval, requester self-approval, secret transit, token passthrough, cross-tenant reuse, or a declared kill sign...",
-      "path": "data/evidence/agentic-approval-receipt-pack.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 30,
-      "match": "\"meaning\": \"The runtime observed approval bypass, post-execution approval, requester self-approval, secret transit, token passthrough, cross-tenant reuse, or a declared kill signal.\"",
-      "path": "data/evidence/agentic-approval-receipt-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 125,
-      "match": "...ontrol_objective\": \"Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.\",",
-      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 497,
-      "match": "...ontrol_objective\": \"Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.\",",
-      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 717,
-      "match": "...ontrol_objective\": \"Kill the agent session when runtime behavior shows approval bypass, deny-after-deny looping, broader token requests, secret egress, or irreversible action without approval.\",",
-      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1255,
-      "match": "\"agent attempts to bypass a human approval gate\",",
-      "path": "data/evidence/agentic-catastrophic-risk-annex.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 40,
-      "match": "\"retrieved context contains hidden instructions, tool override text, encoded exfiltration payload, or approval bypass instructions\"",
-      "path": "data/evidence/agentic-incident-response-pack.json",
-      "risk_family": "prompt_injection",
-      "rule_id": "direct-instruction-override",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 448,
-      "match": "\"A ticket comment tells the agent to skip review because the requester is an administrator.\"",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 608,
-      "match": "\"The user asks the agent to print environment variables so the scanner can be debugged.\",",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 699,
-      "match": "\"A tool result asks the agent to forward its MCP access token to another service.\"",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 709,
-      "match": "\"Agent changes host, callback, or route to bypass egress policy.\",",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1079,
-      "match": "\"A ticket comment tells the agent to skip review because the requester is an administrator.\"",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1239,
-      "match": "\"The user asks the agent to print environment variables so the scanner can be debugged.\",",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1330,
-      "match": "\"A tool result asks the agent to forward its MCP access token to another service.\"",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1340,
-      "match": "\"Agent changes host, callback, or route to bypass egress policy.\",",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1709,
-      "match": "\"A ticket comment tells the agent to skip review because the requester is an administrator.\"",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1869,
-      "match": "\"The user asks the agent to print environment variables so the scanner can be debugged.\",",
-      "path": "data/evidence/agentic-red-team-drill-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 266,
-      "match": "\"sample_payload\": \"A ticket comment tells the agent to skip review because the requester is an administrator.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 422,
-      "match": "\"sample_payload\": \"The user asks the agent to print environment variables so the scanner can be debugged.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 578,
-      "match": "...r\": \"The agent stages the plan, waits for typed approval, refuses urgency-based bypass, and never executes approval-required work from free text.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 742,
-      "match": "\"Agent changes host, callback, or route to bypass egress policy.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 767,
-      "match": "\"sample_payload\": \"A tool result asks the agent to forward its MCP access token to another service.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1461,
-      "match": "\"sample_payload\": \"A ticket comment tells the agent to skip review because the requester is an administrator.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1778,
-      "match": "\"sample_payload\": \"The user asks the agent to print environment variables so the scanner can be debugged.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1944,
-      "match": "\"Agent changes host, callback, or route to bypass egress policy.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 1969,
-      "match": "\"sample_payload\": \"A tool result asks the agent to forward its MCP access token to another service.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 2983,
-      "match": "\"sample_payload\": \"The user asks the agent to print environment variables so the scanner can be debugged.\",",
-      "path": "data/evidence/agentic-red-team-replay-harness.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 7243,
-      "match": "...\"objective\": \"Terminate agent sessions when runtime behavior shows approval bypass, deny-after-deny looping, broad token requests, secret egress, or irreversible action without approval.\",",
-      "path": "data/evidence/agentic-standards-crosswalk.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 2619,
-      "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
-      "path": "data/evidence/agentic-threat-radar.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 121,
-      "match": "...tment\": \"Constrain source-to-sink combinations: untrusted content plus external send, credential use, localhost access, downloads, admin writes, or payment actions should hold,...",
-      "path": "data/evidence/browser-agent-boundary-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 85,
-      "match": "\"answer\": \"Token passthrough, unregistered context retrieval, approval bypass, unsafe model routing, raw secret capture, connector capability expansion without review, or treating verifier failure as success should kill or pause the run.\",",
-      "path": "data/evidence/design-partner-pilot-pack.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 30,
-      "match": "\"Re-submit with hard-deny controls for secrets, signing material, and live credentials.\"",
-      "path": "data/evidence/mcp-connector-intake-pack.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 68,
-      "match": "...runtime scan reports actionable prompt injection, hidden instruction, approval bypass, exfiltration, or secret-exposure markers that need review before reuse.\"",
-      "path": "data/evidence/secure-context-lineage-ledger.json",
-      "risk_family": "approval_bypass",
-      "rule_id": "approval-bypass-request",
-      "severity": "high",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 68,
-      "match": "...scan reports actionable prompt injection, hidden instruction, approval bypass, exfiltration, or secret-exposure markers that need review before reuse.\"",
-      "path": "data/evidence/secure-context-lineage-ledger.json",
-      "risk_family": "secret_exposure",
-      "rule_id": "secret-exfiltration-request",
-      "severity": "critical",
-      "source_id": "agentic-evidence-packs"
-    },
-    {
-      "actionable": false,
-      "disposition": "documented_adversarial_example",
-      "line": 739,
+      "line": 711,
       "match": "\"roadmap_action\": \"Add typed approval receipts and approval-bypass replay tests to the MCP policy evaluator.\",",
       "path": "data/intelligence/agentic-threat-radar-sources.json",
       "risk_family": "approval_bypass",
@@ -714,8 +296,19 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 226,
+      "line": 243,
       "match": "- NEVER disable scanner rules broadly \u2014 only allowlist the",
+      "path": "content/recipes/codex/sensitive-data-remediation.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 267,
+      "match": "disable scanner rules, or merge its own PR.",
       "path": "content/recipes/codex/sensitive-data-remediation.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
@@ -725,7 +318,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 232,
+      "line": 251,
       "match": "- NEVER disable a test or add skip markers to make CI green.",
       "path": "content/recipes/codex/vulnerable-dep-remediation.md",
       "risk_family": "approval_bypass",
@@ -734,11 +327,77 @@
       "source_id": "recipes"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 218,
+      "match": "application code, skip tests, mark the PR ready for review, auto-merge, or",
+      "path": "content/recipes/cursor/vulnerable-dep-remediation.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 98,
-      "match": "- Do not print, snapshot, commit, or copy real template content or secret values",
-      "path": "content/recipes/cve/cve-2026-42461-arcane-compose-template-secret-disclosure.md",
+      "line": 123,
+      "match": "- Treat untrusted content as data only. It must not create or override system",
+      "path": "content/recipes/cve/cve-2025-32711-m365-copilot-echoleak.md",
+      "risk_family": "prompt_injection",
+      "rule_id": "direct-instruction-override",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 199,
+      "match": "and cannot override system policy.",
+      "path": "content/recipes/cve/cve-2025-32711-m365-copilot-echoleak.md",
+      "risk_family": "prompt_injection",
+      "rule_id": "direct-instruction-override",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 30,
+      "match": "...use: The implementation of an internal and undocumented Dashboard API endpoint (POST /api/users/~/{user}/tokens) forgot to ensure an HTTP request for creating an API Token for another user had sufficient permission to do so.",
+      "path": "content/recipes/cve/cve-2026-12593-the-implementation-of-an-internal-and-undocumented-dashboard-api-endpoint-post-api-users-user-tokens-fo.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 30,
+      "match": "...in Speech in Google Chrome prior to 150.0.7871.47 allowed a remote attacker to bypass same origin policy via a crafted HTML page.",
+      "path": "content/recipes/cve/cve-2026-14105-insufficient-policy-enforcement-in-speech-in-google-chrome-prior-to-150-0-7871-47-allowed-a-remote-attacker-to.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 30,
+      "match": "...Devolutions Server 2026.2.9.0 allows an attacker with valid user credentials to bypass the MFA Required policy and authenticate without completing multi-factor authentication.",
+      "path": "content/recipes/cve/cve-2026-14536-improper-enforcement-of-a-mandatory-multi-factor-authentication-policy-in-devolutions-server-2026-2-9-0-allows.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 30,
+      "match": "...The SEO Plugin by Squirrly SEO plugin for WordPress is vulnerable to Arbitrary Post Creation and Stored Cross-Site Scripting in all versions up to, and including, 14.0.0 due to a leak of an API token and insufficient input sanitization and output escaping.",
+      "path": "content/recipes/cve/cve-2026-1667-the-seo-plugin-by-squirrly-seo-plugin-for-wordpress-is-vulnerable-to-arbitrary-post-creation-and-stored-cross.md",
       "risk_family": "secret_exposure",
       "rule_id": "secret-exfiltration-request",
       "severity": "critical",
@@ -747,7 +406,161 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 115,
+      "line": 125,
+      "match": "5. If upgrade is blocked, disable BrowserStack smart selection in CI and local",
+      "path": "content/recipes/cve/cve-2026-25244-webdriverio-browserstack-branch-command-injection.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 82,
+      "match": "rg -n \"openclaw|browser.*upload|file-chooser|setInputFiles|DEFAULT_UPLOAD_DIR|tools/invoke|browser.*tool|gateway.*token|Gateway\" .",
+      "path": "content/recipes/cve/cve-2026-26329-openclaw-browser-upload-file-read.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 92,
+      "match": "rg -n \"openclaw|browser.*upload|file-chooser|setInputFiles|DEFAULT_UPLOAD_DIR|tools/invoke|browser.*tool|gateway.*token|Gateway\" .",
+      "path": "content/recipes/cve/cve-2026-26329-openclaw-browser-upload-file-read.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 177,
+      "match": "n8n, print environment variables, run live workflow probes, dump execution",
+      "path": "content/recipes/cve/cve-2026-27494-n8n-python-code-node-sandbox-escape.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 154,
+      "match": "release directories, execute untrusted plugins, or print secret-bearing build",
+      "path": "content/recipes/cve/cve-2026-27606-rollup-path-traversal-arbitrary-write.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 163,
+      "match": "- Do not print secrets, package payloads, `.env` files, CI secret values,",
+      "path": "content/recipes/cve/cve-2026-34841-bruno-cli-axios-supply-chain-rat.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 151,
+      "match": "`/terminal/ws`, obtain shells, print environment variables, or expose runtime",
+      "path": "content/recipes/cve/cve-2026-39987-marimo-preauth-rce.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 42,
+      "match": "upload, and documents audit/credential follow-up.",
+      "path": "content/recipes/cve/cve-2026-41010-bosh-director-release-job-command-injection.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 50,
+      "match": "`bosh.releases.upload` identities, cloud/CredHub/UAA credential boundaries,",
+      "path": "content/recipes/cve/cve-2026-41010-bosh-director-release-job-command-injection.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 153,
+      "match": "print secret values.",
+      "path": "content/recipes/cve/cve-2026-41010-bosh-director-release-job-command-injection.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 129,
+      "match": "- Do not print, commit, or expose environment variables, API keys, service",
+      "path": "content/recipes/cve/cve-2026-41242-protobufjs-generated-code-rce.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 118,
+      "match": "- Do not print, snapshot, commit, or copy real template content or secret values",
+      "path": "content/recipes/cve/cve-2026-42461-arcane-compose-template-secret-disclosure.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 4,
+      "match": "...ion: \"High-severity Gotenberg SSRF through Chromium URL conversion and redirect bypass. Upgrade to 8.32.0+, block metadata/internal egress, and test redirect-aware URL policy.\"",
+      "path": "content/recipes/cve/cve-2026-42595-gotenberg-chromium-url-ssrf.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 42,
+      "match": "config hardening, and evidence that user-submitted URLs cannot override tool",
+      "path": "content/recipes/cve/cve-2026-42601-archivebox-addview-config-rce.md",
+      "risk_family": "prompt_injection",
+      "rule_id": "direct-instruction-override",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 135,
       "match": "- Do not print, decode, snapshot, commit, or attach real Secret data while",
       "path": "content/recipes/cve/cve-2026-43824-argocd-serversidediff-secret-disclosure.md",
       "risk_family": "secret_exposure",
@@ -758,7 +571,205 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 145,
+      "line": 110,
+      "match": "- Do not print, commit, or expose environment variables, source archives, cloud",
+      "path": "content/recipes/cve/cve-2026-43898-sandboxjs-function-caller-sandbox-escape.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 112,
+      "match": "- Do not print, commit, or expose environment variables, package tokens, cloud",
+      "path": "content/recipes/cve/cve-2026-44007-vm2-nodevm-nesting-sandbox-escape.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 149,
+      "match": "- Do not print or commit service-account tokens, environment variables, pod",
+      "path": "content/recipes/cve/cve-2026-44180-jupyter-enterprise-gateway-prohibited-id-bypass.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 40,
+      "match": "filter bypass review, parser-consistency audit, and evidence that duplicate",
+      "path": "content/recipes/cve/cve-2026-44974-hapi-content-parameter-smuggling-upload-filter-bypass.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 147,
+      "match": "exec requests to live services, print secret-bearing configuration values, or",
+      "path": "content/recipes/cve/cve-2026-45505-apache-activemq-jolokia-discovery-wrapper-bypass.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 184,
+      "match": "- fail closed or print a non-secret warning below `2.92.0`;",
+      "path": "content/recipes/cve/cve-2026-45803-github-cli-actions-log-terminal-escape.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 30,
+      "match": "...nticated attacker can exploit this vulnerability by sending a specially crafted POST request with an excessively long scope parameter to the OpenID Connect (OIDC) token endpoint.",
+      "path": "content/recipes/cve/cve-2026-4634-a-flaw-was-found-in-keycloak-an-unauthenticated-attacker-can-exploit-this-vulnerability-by-sending-a-speciall.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 30,
+      "match": "...w was found in Keycloak. An authenticated user with the uma_protection role can bypass User-Managed Access (UMA) policy validation.",
+      "path": "content/recipes/cve/cve-2026-4636-a-flaw-was-found-in-keycloak-an-authenticated-user-with-the-uma-protection-role-can-bypass-user-managed-acces.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 107,
+      "match": "contexts, or print rendered customer, tenant, session, or secret-bearing data",
+      "path": "content/recipes/cve/cve-2026-46636-twig-cached-template-sandbox-state-bypass.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 149,
+      "match": "templates, dump context objects, mutate live templates, or print secret-like",
+      "path": "content/recipes/cve/cve-2026-47732-twig-tostring-sandbox-bypass.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 104,
+      "match": "Do not run `gh auth token`, print environment variables, or capture live HTTP",
+      "path": "content/recipes/cve/cve-2026-48501-github-cli-tuf-token-leakage.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 142,
+      "match": "- Do not print tokens, run `gh auth token`, capture authorization headers,",
+      "path": "content/recipes/cve/cve-2026-48501-github-cli-tuf-token-leakage.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 238,
+      "match": "- The PR does not print token values, capture live headers, or weaken",
+      "path": "content/recipes/cve/cve-2026-48501-github-cli-tuf-token-leakage.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 271,
+      "match": "actions. It must not print tokens, run `gh auth token`, capture live",
+      "path": "content/recipes/cve/cve-2026-48501-github-cli-tuf-token-leakage.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 26,
+      "match": "A contributor with workflow execution can bypass runner hardening and reach the CI host as root, directly threatening source and release secrets.",
+      "path": "content/recipes/cve/cve-2026-58053-gitea-act-runner-docker-container-options-host-escape.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 133,
+      "match": "bypass URL path policy checks. Produce exactly one output:",
+      "path": "content/recipes/cve/cve-2026-6321-fast-uri-percent-encoded-path-traversal.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 66,
+      "match": ".... Confirm whether the vulnerable path is reachable: `iPAddress name constraints bypass when WOLFSSL_IP_ALT_NAME` and attacker-controlled parameter `input` are the first review anchors.",
+      "path": "content/recipes/cve/cve-2026-7532-ipaddress-name-constraints-bypass-when-wolfssl-ip-alt-name-certificate-constraint-bypass.md",
+      "risk_family": "approval_bypass",
+      "rule_id": "approval-bypass-request",
+      "severity": "high",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 154,
+      "match": "- Do not print secrets, package payloads, `.env` files, CI secret values, or",
+      "path": "content/recipes/cve/ghsa-jpvj-wpmj-h7rv-cap-js-openapi-package-compromise.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 171,
       "match": "- disable Git hooks or run with safe hook policy where supported.",
       "path": "content/recipes/cve/ghsa-rpm5-x2qx-gitpython-command-injection.md",
       "risk_family": "approval_bypass",
@@ -769,7 +780,18 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 132,
+      "line": 149,
+      "match": "- Do not print secrets, symlink target contents, private skill bodies, token",
+      "path": "content/recipes/cve/ghsa-wx3m-whqv-xv47-skillctl-path-symlink-traversal.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 151,
       "match": "1. NEVER PRINT, LOG, OR EMBED A LIVE SECRET.",
       "path": "content/recipes/devin/scheduled-sde-remediation.md",
       "risk_family": "secret_exposure",
@@ -791,7 +813,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 43,
+      "line": 52,
       "match": "- Never print full secret values in output.",
       "path": "content/recipes/general/crypto-defi/seed-phrase-and-key-material-purge.md",
       "risk_family": "secret_exposure",
@@ -801,8 +823,140 @@
     },
     {
       "actionable": false,
+      "disposition": "defensive_control_language",
+      "line": 227,
+      "match": "- Never print raw secret values.",
+      "path": "content/recipes/general/source-code-secrets-data-exposure-audit.md",
+      "risk_family": "secret_exposure",
+      "rule_id": "secret-exfiltration-request",
+      "severity": "critical",
+      "source_id": "recipes"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/a2a-agent-card-trust/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agent-capability-risk-register/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agent-handoff-boundary/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agent-identity-ledger/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agent-memory-boundary/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agent-skill-supply-chain/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agent-trust-fabric/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-action-runtime/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-aivss-risk-scoring/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-app-intake-gate/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 81,
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-approval-receipts/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 82,
       "match": "| `kill_session_on_approval_bypass_signal` | The runtime observed bypass, post-execution approval, self-approval, secret transit, token passthrough, cross-tenant reuse, or another kill signal....",
       "path": "content/security-remediation/agentic-approval-receipts/_index.md",
       "risk_family": "approval_bypass",
@@ -813,7 +967,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 81,
+      "line": 82,
       "match": "| `kill_session_on_approval_bypass_signal` | The runtime observed bypass, post-execution approval, self-approval, secret transit, token passthrough, cross-tenant reuse, or another kill signal. |",
       "path": "content/security-remediation/agentic-approval-receipts/_index.md",
       "risk_family": "secret_exposure",
@@ -822,14 +976,135 @@
       "source_id": "security-remediation-workflows"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-assurance-pack/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-catastrophic-risk-annex/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-control-plane-blueprint/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-entitlement-review/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 94,
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-exposure-graph/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 97,
       "match": "| Approval-Required Tool Path | Approval bypass, irreversible operation, blast-radius ambiguity, and missing approval receipts. |",
       "path": "content/security-remediation/agentic-exposure-graph/_index.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-incident-response-pack/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-measurement-probes/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-posture-snapshot/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-protocol-conformance/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-readiness-scorecard/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-red-team-drills/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
       "source_id": "security-remediation-workflows"
     },
     {
@@ -855,9 +1130,141 @@
       "source_id": "security-remediation-workflows"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-red-team-replay-harness/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-run-receipts/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-soc-detection-pack/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-source-freshness-watch/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-standards-crosswalk/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-system-bom/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-telemetry-contract/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/agentic-threat-radar/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/browser-agent-boundary/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/compliance/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 60,
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/context-egress-boundary/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/context-poisoning-guard/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 63,
       "match": "| Direct instruction override | Critical | Detects text that asks an agent to ignore or override higher-priority instructions. |",
       "path": "content/security-remediation/context-poisoning-guard/_index.md",
       "risk_family": "prompt_injection",
@@ -868,7 +1275,7 @@
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 62,
+      "line": 65,
       "match": "| Approval bypass request | High | Detects requests to skip, bypass, remove, or disable review, approval, policy, CI, or guardrails. |",
       "path": "content/security-remediation/context-poisoning-guard/_index.md",
       "risk_family": "approval_bypass",
@@ -877,9 +1284,185 @@
       "source_id": "security-remediation-workflows"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/control-plane/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/critical-infrastructure-secure-context/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/design-partner-pilot-pack/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/enterprise-trust-center-export/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/hosted-mcp-readiness-pack/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-authorization-conformance/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-connector-intake-scanner/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-connector-trust-registry/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-elicitation-boundary/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-gateway-policy/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-risk-coverage/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-runtime-decision-evaluator/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-stdio-launch-boundary/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-tool-risk-contract/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/mcp-tool-surface-drift-sentinel/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/model-provider-routing-gate/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 95,
+      "line": 154,
       "match": "- `[skip ci]` / `[skip test]` markers \u2014 reject, no exceptions.",
       "path": "content/security-remediation/reviewer-playbook/_index.md",
       "risk_family": "approval_bypass",
@@ -888,9 +1471,86 @@
       "source_id": "security-remediation-workflows"
     },
     {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-attestation/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-buyer-diligence-brief/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-customer-proof-pack/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-evals/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-evidence-contract/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
       "actionable": false,
       "disposition": "documented_adversarial_example",
-      "line": 72,
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-firewall/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-lineage-ledger/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 95,
       "match": "| `poisoning_screen` | Prompt-injection, hidden instruction, approval-bypass, exfiltration, and secret markers were scanned. |",
       "path": "content/security-remediation/secure-context-lineage-ledger/_index.md",
       "risk_family": "secret_exposure",
@@ -900,8 +1560,30 @@
     },
     {
       "actionable": false,
+      "disposition": "documented_adversarial_example",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-trust-pack/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": true,
+      "disposition": "actionable_context_poisoning_risk",
+      "line": 1,
+      "match": "\ufeff---",
+      "path": "content/security-remediation/secure-context-value-model/_index.md",
+      "risk_family": "hidden_instruction",
+      "rule_id": "zero-width-control",
+      "severity": "medium",
+      "source_id": "security-remediation-workflows"
+    },
+    {
+      "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 132,
+      "line": 134,
       "match": "- **No CI skip tokens.** The agent will never add `[skip ci]`,",
       "path": "content/security-remediation/vulnerable-dependencies/_index.md",
       "risk_family": "approval_bypass",
@@ -912,7 +1594,7 @@
     {
       "actionable": false,
       "disposition": "defensive_control_language",
-      "line": 133,
+      "line": 135,
       "match": "`[skip test]`, or similar. If CI fails, the change fails.",
       "path": "content/security-remediation/vulnerable-dependencies/_index.md",
       "risk_family": "approval_bypass",
@@ -923,35 +1605,41 @@
   ],
   "generated_at": "2026-05-02",
   "guard_summary": {
-    "actionable_finding_count": 14,
-    "blocking_source_count": 1,
+    "actionable_finding_count": 90,
+    "blocking_source_count": 2,
     "blocking_sources": [
-      "agentic-assurance-models"
+      "agentic-assurance-models",
+      "recipes"
     ],
-    "byte_count": 8105041,
+    "byte_count": 22702265,
     "decision_counts": {
-      "allow_with_adversarial_examples": 4,
-      "block_until_removed": 1,
-      "pass": 4
+      "allow_with_adversarial_examples": 1,
+      "block_until_removed": 2,
+      "hold_for_context_review": 1,
+      "pass": 5
     },
     "disposition_counts": {
-      "actionable_context_poisoning_risk": 14,
-      "defensive_control_language": 13,
-      "documented_adversarial_example": 53
+      "actionable_context_poisoning_risk": 90,
+      "defensive_control_language": 28,
+      "documented_adversarial_example": 24
     },
     "failure_count": 0,
-    "file_count": 274,
-    "finding_count": 80,
-    "held_source_count": 0,
-    "held_sources": [],
+    "file_count": 3478,
+    "finding_count": 142,
+    "held_source_count": 1,
+    "held_sources": [
+      "security-remediation-workflows"
+    ],
     "risk_family_counts": {
-      "approval_bypass": 46,
+      "approval_bypass": 36,
+      "hidden_instruction": 59,
       "prompt_injection": 9,
-      "secret_exposure": 25
+      "secret_exposure": 38
     },
     "severity_counts": {
-      "critical": 34,
-      "high": 46
+      "critical": 47,
+      "high": 36,
+      "medium": 59
     },
     "source_count": 9
   },
@@ -1017,11 +1705,11 @@
   "source_artifacts": {
     "context_poisoning_guard_profile": {
       "path": "data/assurance/context-poisoning-guard-profile.json",
-      "sha256": "039b1bb1665d18a4ad87c0a397ea427f8565cc0e79c01e084eb4de4d09ff041e"
+      "sha256": "1414a83d299b0382406ddd9c8494c5ebe7d7f69c3ed974123e41c2f8e5324df4"
     },
     "secure_context_registry": {
       "path": "data/context/secure-context-registry.json",
-      "sha256": "f842061ce61411923b595d09087163813d915caa075de2f978b4184e506b08a1"
+      "sha256": "58b4427f871c842a2158d54e276aa8a094765bc2dd2fe0c87522b920d95bf784"
     }
   },
   "source_results": [
@@ -1072,57 +1760,29 @@
         "critical": 8,
         "high": 12
       },
-      "source_hash": "a8e3530388a99ca9f2feb8105152e52d87163c0a07a2a14cf8dd291f2265f64d",
+      "source_hash": "d888a1690a24d3a91004414323529ca3657bf2d33b102bfb139c1c753b7272e2",
       "source_id": "agentic-assurance-models",
       "title": "Agentic Assurance Source Models",
       "trust_tier": "tier_2_policy_context"
     },
     {
       "actionable_finding_count": 0,
-      "decision": "allow_with_adversarial_examples",
-      "disposition_counts": {
-        "documented_adversarial_example": 38
-      },
-      "file_count": 45,
-      "finding_count": 38,
+      "decision": "pass",
+      "disposition_counts": {},
+      "file_count": 1,
+      "finding_count": 0,
       "owner": {
         "accountable_team": "Security Engineering",
         "escalation": "agentic-assurance-owner",
         "evidence_owner": "Security Engineering"
       },
       "registered_files_sample": [
-        "data/evidence/a2a-agent-card-trust-profile.json",
-        "data/evidence/agent-capability-risk-register.json",
-        "data/evidence/agent-identity-delegation-ledger.json",
-        "data/evidence/agent-memory-boundary-pack.json",
-        "data/evidence/agent-trust-fabric-pack.json",
-        "data/evidence/agentic-action-runtime-pack.json",
-        "data/evidence/agentic-aivss-risk-scoring-pack.json",
-        "data/evidence/agentic-app-intake-pack.json",
-        "data/evidence/agentic-approval-receipt-pack.json",
-        "data/evidence/agentic-assurance-pack.json",
-        "data/evidence/agentic-catastrophic-risk-annex.json",
-        "data/evidence/agentic-entitlement-review-pack.json",
-        "data/evidence/agentic-incident-response-pack.json",
-        "data/evidence/agentic-protocol-conformance-pack.json",
-        "data/evidence/agentic-readiness-scorecard.json",
-        "data/evidence/agentic-red-team-drill-pack.json",
-        "data/evidence/agentic-red-team-replay-harness.json",
-        "data/evidence/agentic-run-receipt-pack.json",
-        "data/evidence/agentic-soc-detection-pack.json",
-        "data/evidence/agentic-source-freshness-watch.json"
+        "data/evidence/workflow-control-plane-report.json"
       ],
-      "risk_family_counts": {
-        "approval_bypass": 21,
-        "prompt_injection": 3,
-        "secret_exposure": 14
-      },
+      "risk_family_counts": {},
       "root": "data/evidence",
-      "severity_counts": {
-        "critical": 17,
-        "high": 21
-      },
-      "source_hash": "78cf0f381a81ab7480c5b91cdc9fb7b075ecb287f688750cf7b16b1faf1cc56b",
+      "severity_counts": {},
+      "source_hash": "8a5579ae5c94af2bc2f1e91607b45ae2a90ffd2d26732328be15d7eb6ec972cb",
       "source_id": "agentic-evidence-packs",
       "title": "Generated Agentic Evidence Packs",
       "trust_tier": "tier_2_policy_context"
@@ -1133,7 +1793,7 @@
       "disposition_counts": {
         "documented_adversarial_example": 1
       },
-      "file_count": 1,
+      "file_count": 3,
       "finding_count": 1,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
@@ -1141,7 +1801,9 @@
         "evidence_owner": "Security Engineering"
       },
       "registered_files_sample": [
-        "data/intelligence/agentic-threat-radar-sources.json"
+        "data/intelligence/agentic-threat-radar-sources.json",
+        "data/intelligence/cve-intelligence-intake-fixtures.json",
+        "data/intelligence/cve-intelligence-intake-gates.json"
       ],
       "risk_family_counts": {
         "approval_bypass": 1
@@ -1150,7 +1812,7 @@
       "severity_counts": {
         "high": 1
       },
-      "source_hash": "ee729132cdc42652e2e455c7386605267ea92a59c27b3848124b508c901e2ed7",
+      "source_hash": "0a00261af9173007067727225260d936539b2ecd2fbb7a57e92abea459c9ec84",
       "source_id": "agentic-threat-intelligence",
       "title": "Agentic Threat Radar Source Registry",
       "trust_tier": "tier_2_policy_context"
@@ -1217,20 +1879,21 @@
       "risk_family_counts": {},
       "root": "mcp_server.py",
       "severity_counts": {},
-      "source_hash": "24755ffab83050cf4ae1c87c955ab04ffe98aa920cc0e7b03bc8e29f92437867",
+      "source_hash": "4d5f16448fc19fa7ed6135ac24a6ca753024e99518dfa086af1e8e24dc6bc986",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": "tier_2_policy_context"
     },
     {
-      "actionable_finding_count": 0,
-      "decision": "allow_with_adversarial_examples",
+      "actionable_finding_count": 26,
+      "decision": "block_until_removed",
       "disposition_counts": {
-        "defensive_control_language": 9,
+        "actionable_context_poisoning_risk": 26,
+        "defensive_control_language": 24,
         "documented_adversarial_example": 1
       },
-      "file_count": 100,
-      "finding_count": 10,
+      "file_count": 3343,
+      "finding_count": 51,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "escalation": "recipes-review",
@@ -1248,40 +1911,41 @@
         "content/recipes/cursor/sensitive-data-remediation.md",
         "content/recipes/cursor/vulnerable-dep-remediation.md",
         "content/recipes/cve/_index.md",
+        "content/recipes/cve/cve-2006-10003-xml-parser-versions-through-2-47-for-perl-has-an-off-by-one-heap-buffer-overflow-in-st-serial-stack.md",
         "content/recipes/cve/cve-2014-0160-heartbleed.md",
         "content/recipes/cve/cve-2014-6271-shellshock.md",
+        "content/recipes/cve/cve-2015-1778-opendaylight-will-authenticate-any-username-and-password-combination.md",
+        "content/recipes/cve/cve-2016-0750-infinispan-deserialization-of-untrusted-data-in-the-hot-rod-java-client-via-automatic-byte-array-deserializatio.md",
+        "content/recipes/cve/cve-2016-6650-emc-recoverpoint-versions-prior-to-5-0-and-emc-recoverpoint-for-virtual-machines-versions-prior-to-5-0-have-an.md",
         "content/recipes/cve/cve-2017-18342-pyyaml.md",
-        "content/recipes/cve/cve-2021-44228-log4shell.md",
-        "content/recipes/cve/cve-2024-3094-xz-utils.md",
-        "content/recipes/cve/cve-2024-6387-regresshion.md",
-        "content/recipes/cve/cve-2025-60455-modular-max-serve.md",
-        "content/recipes/cve/cve-2026-23902-apache-dolphinscheduler.md",
-        "content/recipes/cve/cve-2026-24159-nvidia-nemo-deserialization-rce.md"
+        "content/recipes/cve/cve-2017-8046-malicious-patch-requests-submitted-to-servers-using-spring-data-rest-versions-prior-to-2-6-9-ingalls-sr9-ve.md",
+        "content/recipes/cve/cve-2018-10902-it-was-found-that-the-raw-midi-kernel-driver-does-not-protect-against-concurrent-access-which-leads-to-a-doubl.md"
       ],
       "risk_family_counts": {
-        "approval_bypass": 5,
-        "prompt_injection": 1,
-        "secret_exposure": 4
+        "approval_bypass": 16,
+        "prompt_injection": 4,
+        "secret_exposure": 31
       },
       "root": "content/recipes",
       "severity_counts": {
-        "critical": 5,
-        "high": 5
+        "critical": 35,
+        "high": 16
       },
-      "source_hash": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b",
+      "source_hash": "2c8c2f270352d399c8fed43acbb13d38bd4670aa3fef8f97b28a110819930ad9",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
     },
     {
-      "actionable_finding_count": 0,
-      "decision": "allow_with_adversarial_examples",
+      "actionable_finding_count": 50,
+      "decision": "hold_for_context_review",
       "disposition_counts": {
+        "actionable_context_poisoning_risk": 50,
         "defensive_control_language": 3,
-        "documented_adversarial_example": 8
+        "documented_adversarial_example": 17
       },
-      "file_count": 73,
-      "finding_count": 11,
+      "file_count": 76,
+      "finding_count": 70,
       "owner": {
         "accountable_team": "Security Engineering",
         "escalation": "workflow-control-review",
@@ -1311,15 +1975,17 @@
       ],
       "risk_family_counts": {
         "approval_bypass": 7,
+        "hidden_instruction": 59,
         "prompt_injection": 1,
         "secret_exposure": 3
       },
       "root": "content/security-remediation",
       "severity_counts": {
         "critical": 4,
-        "high": 7
+        "high": 7,
+        "medium": 59
       },
-      "source_hash": "bf39f623c7292c086d1175546ec9fe77dcc40379db49ffd1396751f5ea8788af",
+      "source_hash": "ad68b5cd08d3b2300f3e69df19dbe19f83c2be59cd446ddfb84d98e1987b79d8",
       "source_id": "security-remediation-workflows",
       "title": "Security Remediation Workflow Docs",
       "trust_tier": "tier_1_curated_guidance"

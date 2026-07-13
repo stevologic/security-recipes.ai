@@ -41,6 +41,8 @@ MCP servers. A serious reviewer will ask four questions:
 The assurance pack answers those questions without asking a reviewer to
 stitch together prose pages by hand.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The assurance layer lives in source-controlled and generated artifacts:
@@ -56,6 +58,10 @@ The assurance layer lives in source-controlled and generated artifacts:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_agentic_assurance_pack.py
+python3 scripts/generate_agentic_assurance_pack.py --check
+```
 
 The local MCP server exposes the same generated bundle through
 `recipes_agentic_assurance_pack`, so agent hosts and internal control

@@ -44,6 +44,8 @@ ask:
 
 The BOM answers those questions in one machine-readable file.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The BOM layer lives in three artifacts:
@@ -57,6 +59,10 @@ The BOM layer lives in three artifacts:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_agentic_system_bom.py
+python3 scripts/generate_agentic_system_bom.py --check
+```
 
 The local MCP server exposes the same bundle through
 `recipes_agentic_system_bom`.

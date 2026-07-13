@@ -28,18 +28,50 @@ diligence reviewers.
 
 - Profile:
   `data/assurance/agentic-telemetry-contract-profile.json`
-- Generator:
-- Runtime evaluator:
+- Generator: `scripts/generate_agentic_telemetry_contract.py`
+- Runtime evaluator: `scripts/evaluate_agentic_telemetry_event.py`
 - Evidence pack:
   `data/evidence/agentic-telemetry-contract.json`
 - MCP tools:
-  `recipes_agentic_telemetry_contract` and
+  `recipes_agentic_telemetry_contract`, paired with `recipes_playbook_plan` using playbook id `agentic-telemetry-contract`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_agentic_telemetry_contract.py
+python3 scripts/generate_agentic_telemetry_contract.py --check
+```
 
 Evaluate one telemetry event:
 
+```bash
+python3 scripts/evaluate_agentic_telemetry_event.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --event-class mcp.tools.call \
+  --attribute service.name=security-recipes-mcp \
+  --attribute deployment.environment=production \
+  --attribute trace_id=trace-ci \
+  --attribute span_id=span-ci \
+  --attribute workflow_id=vulnerable-dependency-remediation \
+  --attribute run_id=run-ci \
+  --attribute agent_id=sr-agent::vulnerable-dependency-remediation::codex \
+  --attribute identity_id=sr-agent::vulnerable-dependency-remediation::codex \
+  --attribute correlation_id=ci-correlation \
+  --attribute receipt_id=sr-run-receipt::vulnerable-dependency-remediation \
+  --attribute telemetry.redaction_state=metadata_only \
+  --attribute gen_ai.operation.name=execute_tool \
+  --attribute gen_ai.tool.name=repo.contents.patch \
+  --attribute mcp.protocol.version=2025-11-25 \
+  --attribute mcp.session.id=session-ci \
+  --attribute mcp.method.name=tools/call \
+  --attribute jsonrpc.request.id=req-ci \
+  --attribute network.transport=tcp \
+  --attribute policy.decision=allow \
+  --attribute authorization.decision=allow_authorized_mcp_request \
+  --expect-decision telemetry_ready
+```
+
+{{< playbook-workflow >}}
 
 ## Signal classes
 

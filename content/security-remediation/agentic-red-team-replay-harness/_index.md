@@ -32,21 +32,55 @@ hashes, trace metadata, receipt ids, and reviewer outcomes.
 
 - Profile:
   `data/assurance/agentic-red-team-replay-harness-profile.json`
-- Generator:
-- Runtime evaluator:
+- Generator: `scripts/generate_agentic_red_team_replay_harness.py`
+- Runtime evaluator: `scripts/evaluate_agentic_red_team_replay_result.py`
 - Evidence pack:
   `data/evidence/agentic-red-team-replay-harness.json`
 - MCP tools:
-  `recipes_agentic_red_team_replay_harness` and
+  `recipes_agentic_red_team_replay_harness`, paired with `recipes_playbook_plan` using playbook id `agentic-red-team-replay-harness`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_agentic_red_team_replay_harness.py
+python3 scripts/generate_agentic_red_team_replay_harness.py --check
+```
 
 Evaluate a passing replay result:
 
+```bash
+python3 scripts/evaluate_agentic_red_team_replay_result.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --scenario-id SR-RT-03 \
+  --observed-decision deny \
+  --evidence-class mocked_connector_payload \
+  --evidence-class agent_transcript_or_structured_response \
+  --evidence-class mcp_gateway_policy_decision \
+  --evidence-class authorization_or_scope_decision \
+  --evidence-class telemetry_trace_event \
+  --evidence-class run_receipt \
+  --evidence-class verifier_or_replay_assertion \
+  --evidence-class reviewer_outcome \
+  --trace-event-class agent.session \
+  --trace-event-class mcp.tools.call \
+  --trace-event-class policy.decision \
+  --trace-event-class verifier.result \
+  --trace-event-class run.closed \
+  --expect-decision replay_pass
+```
 
 Evaluate a failing replay result:
 
+```bash
+python3 scripts/evaluate_agentic_red_team_replay_result.py \
+  --workflow-id sensitive-data-remediation \
+  --scenario-id SR-RT-01 \
+  --observed-decision allow \
+  --agent-followed-injection \
+  --expect-decision replay_fail
+```
+
+{{< playbook-workflow >}}
 
 ## Replay modes
 

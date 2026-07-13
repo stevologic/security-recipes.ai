@@ -159,6 +159,7 @@ module.exports = function (eleventyConfig) {
 
   // Hugo shortcode translation runs before markdown rendering.
   const preprocess = createPreprocessor(md);
+  eleventyConfig.addWatchTarget("./data/remediation_suite/playbooks.json");
   eleventyConfig.addPreprocessor("hugo-shortcodes", "md", (data, content) => {
     const sourcePath = (data.page.inputPath || "")
       .replace(/\\/g, "/")

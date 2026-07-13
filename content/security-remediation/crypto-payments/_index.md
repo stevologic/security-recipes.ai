@@ -24,6 +24,8 @@ then produce auditable triage when automation cannot prove safety.
 - **Key-material cleanup** in code, logs, CI artifacts, and runbooks.
 - **Settlement policy checks** before release and after chain events.
 
+{{< playbook-workflow >}}
+
 ## Eligibility profile
 
 A finding is agent-eligible when all are true:
@@ -54,10 +56,6 @@ Use the following prompt recipes for this workflow:
 - Autonomous treasury strategy decisions.
 - Trading or market-making actions.
 - On-chain signing from unreviewed prompts.
-
-## Python remediation tool
-
-{{< remediation-tool domain="crypto-payments" >}}
 
 ## See also
 

@@ -41,6 +41,8 @@ and an explicit kill signal. Skipping a stage is how programs
 stall; adopting the next before the current is stable is how they
 regress.
 
+{{< playbook-workflow >}}
+
 ## Stage 0 — Probe
 
 **Goal:** prove to yourself (one engineer) that the recipe does
@@ -217,10 +219,6 @@ a well-tuned pilot silently degrades in production.
   them. The first time anyone notices is when an incident
   postmortem digs them out. Put the dashboard on a wall or on a
   weekly review agenda.
-
-## Python remediation tool
-
-{{< remediation-tool domain="maturity" >}}
 
 ## See also
 

@@ -60,7 +60,7 @@ to reject PRs that drift outside the declared scope.
 ## Python remediation suite
 
 {{< cards >}}
-  {{< card link="/security-remediation/remediation-suite/" title="Python Remediation Suite" subtitle="Use domain-specific Python tools for SCA, SAST, sensitive data, containers, cache purge, gatekeeping, runtime controls, review, rollout, metrics, and audit." >}}
+  {{< card link="/security-remediation/remediation-suite/" title="Python Remediation Suite" subtitle="Run any of the 75 playbooks with bounded workspace inspection, agent-ready plans, integrity-hashed evidence, and deterministic verification." >}}
 {{< /cards >}}
 
 ## Core remediation recipes

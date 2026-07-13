@@ -41,6 +41,8 @@ This makes AI easier for the enterprise operator: agents do not need to
 interpret policy text, and reviewers do not need to reconstruct why a
 tool call was allowed.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The evaluator lives in the runtime surface, not just the docs:

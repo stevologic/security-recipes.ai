@@ -34,25 +34,59 @@ The Secure Context Evidence Contract turns those questions into a
 generated artifact and deterministic release evaluator. It is a product
 foundation, not a marketing page.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source profile:
   `data/assurance/secure-context-evidence-contract-profile.json`
-- Generator:
+- Generator: `scripts/generate_secure_context_evidence_contract.py`
 - Evidence contract:
   `data/evidence/secure-context-evidence-contract.json`
-- Runtime evaluator:
+- Runtime evaluator: `scripts/evaluate_secure_context_evidence_release.py`
 - MCP tools:
-  `recipes_secure_context_evidence_contract` and
+  `recipes_secure_context_evidence_contract`, paired with `recipes_playbook_plan` using playbook id `secure-context-evidence-contract`.
 
 Regenerate and validate the contract:
 
+```bash
+python3 scripts/generate_secure_context_evidence_contract.py
+python3 scripts/generate_secure_context_evidence_contract.py --check
+```
 
 Evaluate a safe trust-center release:
 
+```bash
+python3 scripts/evaluate_secure_context_evidence_release.py \
+  --release-id trust-center-ci \
+  --release-channel trust_center_external \
+  --artifact-id enterprise_trust_center_export \
+  --artifact-id secure_context_customer_proof_pack \
+  --artifact-id agentic_run_receipt_pack \
+  --source-hashes-present \
+  --redaction-verified \
+  --signature-present \
+  --approval-receipt-id approval-ci \
+  --retention-policy-id retention-ci \
+  --dpa-state not_required \
+  --expect-decision allow_publish_evidence_release
+```
 
 Evaluate a blocked secret release:
 
+```bash
+python3 scripts/evaluate_secure_context_evidence_release.py \
+  --release-id secret-ci \
+  --release-channel trust_center_external \
+  --artifact-id enterprise_trust_center_export \
+  --source-hashes-present \
+  --redaction-verified \
+  --signature-present \
+  --approval-receipt-id approval-ci \
+  --retention-policy-id retention-ci \
+  --contains-token \
+  --expect-decision kill_session_on_secret_or_token_release
+```
 
 ## Decision model
 
@@ -171,8 +205,14 @@ Inspect one release channel:
 recipes_secure_context_evidence_contract(channel_id="trust_center_external")
 ```
 
-Evaluate a hosted API release:
+Plan a hosted API release:
 
+```text
+recipes_playbook_plan(
+  playbook_id="secure-context-evidence-contract",
+  finding="Hosted MCP API release includes customer proof, run receipts, and telemetry evidence."
+)
+```
 
 ## See also
 

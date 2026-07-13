@@ -45,6 +45,8 @@ attached before the operational-impact story becomes review-grade.
 
 
 
+{{< playbook-workflow >}}
+
 ## What the model contains
 
 | Section | Purpose |

@@ -45,6 +45,7 @@ services:
       RECIPES_MCP_SOURCE_INDEX_URL: "${RECIPES_MCP_SOURCE_INDEX_URL:-http://security-recipes/api/recipes-index.json}"
       RECIPES_MCP_ALLOWED_SOURCE_HOSTS: "${RECIPES_MCP_ALLOWED_SOURCE_HOSTS:-security-recipes,security-recipes.ai}"
       RECIPES_MCP_PUBLIC_BASE_URL: "${RECIPES_MCP_PUBLIC_BASE_URL:-https://security-recipes.ai/mcp}"
+      RECIPES_MCP_PLAYBOOK_REGISTRY_PATH: "${RECIPES_MCP_PLAYBOOK_REGISTRY_PATH:-/app/data/remediation_suite/playbooks.json}"
       RECIPES_MCP_LOG_LEVEL: "${RECIPES_MCP_LOG_LEVEL:-info}"
       RECIPES_MCP_EAGER_REFRESH: "${RECIPES_MCP_EAGER_REFRESH:-false}"
       RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-true}"

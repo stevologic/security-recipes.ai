@@ -49,6 +49,8 @@ telemetry contract, run receipts, app intake, and posture snapshot.
 
 
 
+{{< playbook-workflow >}}
+
 ## What the brief contains
 
 | Section | Purpose |

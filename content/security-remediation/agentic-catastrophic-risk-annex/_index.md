@@ -40,21 +40,52 @@ enterprise reviewers can inspect:
 
 - Source model:
   `data/assurance/agentic-catastrophic-risk-annex.json`
-- Generator:
+- Generator: `scripts/generate_agentic_catastrophic_risk_annex.py`
 - Evidence pack:
   `data/evidence/agentic-catastrophic-risk-annex.json`
-- Runtime evaluator:
+- Runtime evaluator: `scripts/evaluate_agentic_catastrophic_risk_decision.py`
 - MCP tools:
   `recipes_agentic_catastrophic_risk_annex`,
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_agentic_catastrophic_risk_annex.py
+python3 scripts/generate_agentic_catastrophic_risk_annex.py --check
+```
 
 Evaluate a held high-impact deployment decision:
 
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-123 \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --flag affects_prod=true \
+  --expect-decision hold_for_catastrophic_risk_review
+```
 
 Evaluate an approved high-impact action:
 
+```bash
+python3 scripts/evaluate_agentic_catastrophic_risk_decision.py \
+  --workflow-id base-image-remediation \
+  --action-class production_deployment \
+  --run-id run-123 \
+  --identity-id sr-agent::base-image-remediation::codex \
+  --policy-pack-hash policy-hash \
+  --authorization-decision allow_authorized_mcp_request \
+  --risk-acceptance-id risk-accept-123 \
+  --receipt-id receipt-123 \
+  --approval-id approval-123 \
+  --flag affects_prod=true \
+  --expect-decision allow_reviewed_high_impact_action
+```
+
+{{< playbook-workflow >}}
 
 ## Why this matters now
 

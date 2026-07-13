@@ -37,6 +37,8 @@ one workflow cohort. It gives teams a single artifact they can
 attach to SOC 2, ISO 27001, PCI DSS, NIST SSDF, FedRAMP, or
 internal AI governance reviews.
 
+{{< playbook-workflow >}}
+
 ## What belongs in a bundle
 
 The minimum viable bundle includes:

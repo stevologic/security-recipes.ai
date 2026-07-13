@@ -103,11 +103,30 @@ security-recipes.ai helps teams answer:
 - **MCP Integration**: how to connect security context safely.
 - **Docs**: site usage, agent consumption patterns, and contribution guidance.
 
-## Helper scripts only
+## Python remediation tooling
 
-The scripts in this repository support the content. They are useful for local
-maintenance, validation, advisory imports, and deployment, but they are not
-required for a company to use the recipes.
+The Python suite is an optional execution companion to the documentation. It
+can inspect a bounded workspace, select any of the 75 remediation playbooks,
+create a durable run packet, record integrity-hashed evidence, and verify the
+packet before agent or reviewer handoff. It remains local and conservative: it
+does not merge code, deploy changes, or call external systems on its own.
+
+```bash
+python scripts/security_recipes_remediation_suite.py playbook list
+python scripts/security_recipes_remediation_suite.py playbook inspect \
+  --playbook vulnerable-dependencies --workspace .
+python scripts/security_recipes_remediation_suite.py playbook start \
+  --playbook vulnerable-dependencies --workspace . \
+  --finding finding.json --run-dir .security-recipes/runs/dependency-fix
+python scripts/security_recipes_remediation_suite.py playbook verify \
+  --run-dir .security-recipes/runs/dependency-fix
+```
+
+The repository also includes domain-specific generators and evaluators for
+playbooks that need richer evidence packs or runtime policy decisions. The
+site and JSON registry remain useful without Python; the tools make the same
+workflow contracts directly executable by CI, orchestrators, and approved
+coding agents.
 
 Deployment helpers worth knowing:
 
@@ -127,16 +146,17 @@ Recommended operating model:
 4. Require tests and human review before merge.
 5. Keep broad automation, write access, and deployment outside the first loop.
 
-## Guidebook and helper tools
+## Guidebook and execution tools
 
 The site is a guidebook for remediation work: recipes, prompts, agent setup,
 MCP/API integration notes, and review patterns. Runtime automation belongs in
 the user's approved agent host, CI system, ticketing workflow, or scanner
 platform rather than a site-hosted chatbot.
 
-Python helper tools in `scripts/`, `tools/`, and `mcp_server.py` support
-maintainers and self-hosters with validation, advisory import, recipe search,
-and optional read-only MCP access.
+Python tools in `scripts/`, `tools/`, and `mcp_server.py` support maintainers
+and self-hosters with playbook execution packets, evidence verification,
+domain-specific evaluation and generation, validation, advisory import,
+recipe search, and optional read-only MCP access.
 
 ## Optional MCP server
 
@@ -154,6 +174,9 @@ Common tools:
 - `recipes_cve_search`
 - `recipes_cve_get`
 - `recipes_match_finding`
+- `recipes_playbooks_list`
+- `recipes_playbook_get`
+- `recipes_playbook_plan`
 - `recipes_mcp_upstream_servers`
 - `recipes_mcp_upstream_tools`
 - `recipes_mcp_upstream_call`

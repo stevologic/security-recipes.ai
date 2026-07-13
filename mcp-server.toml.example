@@ -10,6 +10,11 @@ source_index_url = "https://security-recipes.ai/api/recipes-index.json"
 # the same path so exact-CVE lookups stay local and do not depend on NVD uptime.
 cve_catalog_path = "./static/api/cve-catalog"
 
+# Agent-ready workflow registry shared with the playbook pages and Python suite.
+# These MCP tools are planning-only: recipes_playbooks_list,
+# recipes_playbook_get, and recipes_playbook_plan.
+playbook_registry_path = "./data/remediation_suite/playbooks.json"
+
 # Security allow-list: hostname from source_index_url MUST exist here.
 allowed_source_hosts = ["security-recipes.ai"]
 

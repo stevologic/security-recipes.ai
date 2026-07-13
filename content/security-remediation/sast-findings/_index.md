@@ -36,6 +36,8 @@ This workflow runs *after* a deterministic scanner, never instead
 of one. The scanner produces structured findings; the agent
 decides what to do with each one inside a tight policy envelope.
 
+{{< playbook-workflow >}}
+
 ## High-level flow
 
 ```mermaid
@@ -255,10 +257,6 @@ A few practical notes:
 - **Tools.** New scanners plug in via MCP without changing the
   orchestration. The catalogue maps rule IDs to fix shapes;
   scanners produce rule IDs.
-
-## Python remediation tool
-
-{{< remediation-tool domain="sast-findings" >}}
 
 ## See also
 

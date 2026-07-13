@@ -10,7 +10,7 @@
           "conformance_checks": [
             {
               "buyer_question": "Can SecurityRecipes prove which MCP resource a token was minted for before a tool call is allowed?",
-              "check_hash": "e19c2d8ee1f256ed2a6932e54cb2ea5a0ecbe805d9a59947c11bb53fdae81643",
+              "check_hash": "32f1adad802f0eaae311798ad76d77917ba12032ac7dc07eb163402710710e9e",
               "evidence_paths": [
                 "data/evidence/mcp-authorization-conformance-pack.json"
               ],
@@ -42,6 +42,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -49,6 +50,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -125,6 +127,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -132,6 +135,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -175,6 +179,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -182,6 +187,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -294,6 +300,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -301,6 +308,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -315,7 +323,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-authorization-2025-11-25",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "mcp-authorization-2025-11-25",
@@ -435,7 +443,7 @@
             },
             {
               "buyer_question": "What happens when a tool changes after a previous approval?",
-              "check_hash": "2bed201dda618696622f332a6999b4a28aa69568ef4b598b747b6a0b17affed4",
+              "check_hash": "d7ec2af5b5b966523d3c7836816fcbf2bec1022fd6e09153e40da21e7b82bcc8",
               "evidence_paths": [
                 "data/evidence/mcp-tool-surface-drift-pack.json"
               ],
@@ -627,12 +635,13 @@
                   "status": "ready",
                   "summaries": {
                     "eval_summary": {
-                      "average_score": 100,
+                      "average_score": 87,
                       "decision_counts": {
-                        "eval_ready": 7
+                        "eval_ready": 4,
+                        "hold_for_missing_evidence": 3
                       },
                       "failure_count": 0,
-                      "ready_scenario_count": 7,
+                      "ready_scenario_count": 4,
                       "scenario_count": 7,
                       "scenario_type_counts": {
                         "a2a_handoff_boundary": 1,
@@ -642,7 +651,7 @@
                         "retrieval_correctness": 1,
                         "source_attestation": 1
                       },
-                      "total_failed_checks": 0
+                      "total_failed_checks": 3
                     }
                   }
                 }
@@ -657,7 +666,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "mcp-tool-annotations-2026-03-16",
@@ -699,7 +708,7 @@
           "conformance_checks": [
             {
               "buyer_question": "Is a discovered remote agent complete enough to enter an enterprise trust workflow?",
-              "check_hash": "29fe08d793b5651fdbd2d2d8a0c076c5bec6fda93fc66d61d5bfc01c40db0a0b",
+              "check_hash": "bfee70f2abac8e68f23ad39a9ce819291b05e7adc61306793f30ce2a4d2d2074",
               "evidence_paths": [
                 "data/evidence/a2a-agent-card-trust-profile.json"
               ],
@@ -1002,7 +1011,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "a2a-agent-discovery",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "a2a-protocol-latest",
@@ -1057,7 +1066,7 @@
           "conformance_checks": [
             {
               "buyer_question": "Can SecurityRecipes prove which MCP resource a token was minted for before a tool call is allowed?",
-              "check_hash": "e19c2d8ee1f256ed2a6932e54cb2ea5a0ecbe805d9a59947c11bb53fdae81643",
+              "check_hash": "32f1adad802f0eaae311798ad76d77917ba12032ac7dc07eb163402710710e9e",
               "evidence_paths": [
                 "data/evidence/mcp-authorization-conformance-pack.json"
               ],
@@ -1089,6 +1098,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -1096,6 +1106,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -1172,6 +1183,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -1179,6 +1191,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -1222,6 +1235,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -1229,6 +1243,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -1341,6 +1356,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -1348,6 +1364,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -1362,7 +1379,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-authorization-2025-11-25",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "mcp-authorization-2025-11-25",
@@ -1404,7 +1421,7 @@
           "conformance_checks": [
             {
               "buyer_question": "Is a discovered remote agent complete enough to enter an enterprise trust workflow?",
-              "check_hash": "29fe08d793b5651fdbd2d2d8a0c076c5bec6fda93fc66d61d5bfc01c40db0a0b",
+              "check_hash": "bfee70f2abac8e68f23ad39a9ce819291b05e7adc61306793f30ce2a4d2d2074",
               "evidence_paths": [
                 "data/evidence/a2a-agent-card-trust-profile.json"
               ],
@@ -1707,7 +1724,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "a2a-agent-discovery",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "a2a-protocol-latest",
@@ -1936,35 +1953,41 @@
                   "status": "ready",
                   "summaries": {
                     "guard_summary": {
-                      "actionable_finding_count": 2,
-                      "blocking_source_count": 1,
+                      "actionable_finding_count": 90,
+                      "blocking_source_count": 2,
                       "blocking_sources": [
-                        "agentic-assurance-models"
+                        "agentic-assurance-models",
+                        "recipes"
                       ],
-                      "byte_count": 2967425,
+                      "byte_count": 22702265,
                       "decision_counts": {
-                        "allow_with_adversarial_examples": 4,
-                        "block_until_removed": 1,
-                        "pass": 4
+                        "allow_with_adversarial_examples": 1,
+                        "block_until_removed": 2,
+                        "hold_for_context_review": 1,
+                        "pass": 5
                       },
                       "disposition_counts": {
-                        "actionable_context_poisoning_risk": 2,
-                        "defensive_control_language": 12,
-                        "documented_adversarial_example": 23
+                        "actionable_context_poisoning_risk": 90,
+                        "defensive_control_language": 28,
+                        "documented_adversarial_example": 24
                       },
                       "failure_count": 0,
-                      "file_count": 168,
-                      "finding_count": 37,
-                      "held_source_count": 0,
-                      "held_sources": [],
+                      "file_count": 3478,
+                      "finding_count": 142,
+                      "held_source_count": 1,
+                      "held_sources": [
+                        "security-remediation-workflows"
+                      ],
                       "risk_family_counts": {
-                        "approval_bypass": 21,
-                        "prompt_injection": 3,
-                        "secret_exposure": 13
+                        "approval_bypass": 36,
+                        "hidden_instruction": 59,
+                        "prompt_injection": 9,
+                        "secret_exposure": 38
                       },
                       "severity_counts": {
-                        "critical": 16,
-                        "high": 21
+                        "critical": 47,
+                        "high": 36,
+                        "medium": 59
                       },
                       "source_count": 9
                     }
@@ -2002,26 +2025,27 @@
                   "status": "ready",
                   "summaries": {
                     "crosswalk_summary": {
-                      "capability_count": 27,
-                      "control_count": 29,
+                      "capability_count": 34,
+                      "control_count": 44,
                       "control_status_counts": {
-                        "ready": 29
+                        "ready": 44
                       },
-                      "covered_capability_count": 26,
-                      "distinct_mcp_tool_count": 37,
+                      "covered_capability_count": 34,
+                      "distinct_mcp_tool_count": 34,
                       "failure_count": 0,
                       "source_class_counts": {
-                        "frontier_lab_guidance": 3,
-                        "government_framework": 4,
+                        "frontier_lab_guidance": 4,
+                        "government_framework": 5,
                         "incident_intelligence": 1,
-                        "industry_standard": 4,
+                        "industry_framework": 1,
+                        "industry_standard": 5,
                         "protocol_guidance": 1,
                         "protocol_specification": 1
                       },
-                      "source_reference_count": 14,
-                      "standard_count": 5,
+                      "source_reference_count": 18,
+                      "standard_count": 8,
                       "standard_status_counts": {
-                        "ready": 5
+                        "ready": 8
                       },
                       "status": "standards_crosswalk_ready"
                     }
@@ -2033,9 +2057,8 @@
             },
             {
               "buyer_question": "Can a platform team or buyer inspect protocol conformance without reading implementation code?",
-              "check_hash": "c794e57c1d14d89335b88329e5466d7b74dde08df6405e1999ef9e54cfbf9d16",
+              "check_hash": "222e3d7f925a990c0bd2b1dcea1432044c133f474e1d3efa5a3d035c10d68653",
               "evidence_paths": [
-                "data/evidence/enterprise-trust-center-export.json",
                 "data/evidence/agentic-control-plane-blueprint.json",
                 "data/evidence/agentic-protocol-conformance-pack.json"
               ],
@@ -2050,7 +2073,6 @@
               ],
               "requirement": "Protocol conformance evidence should be exportable for procurement, platform review, and acquisition diligence.",
               "source_pack_keys": [
-                "enterprise_trust_center_export",
                 "agentic_control_plane_blueprint"
               ],
               "source_pack_status": {
@@ -2095,404 +2117,6 @@
                       "workflow_count": 8
                     }
                   }
-                },
-                "enterprise_trust_center_export": {
-                  "failure_count": 0,
-                  "path": "data/evidence/enterprise-trust-center-export.json",
-                  "schema_version": "1.0",
-                  "status": "ready",
-                  "summaries": {
-                    "export_summary": {
-                      "agent_card_trust_summary": {
-                        "default_state": "hold_for_agent_card_intake",
-                        "failure_count": 0,
-                        "intake_profile_count": 4,
-                        "required_agent_card_field_count": 8,
-                        "sample_decision_counts": {
-                          "allow_trusted_agent_card": 1,
-                          "kill_session_on_agent_card_secret": 1,
-                          "pilot_with_restricted_context": 1
-                        },
-                        "sample_evaluation_count": 3,
-                        "skill_risk_tier_counts": {
-                          "blocked": 1,
-                          "discovery": 1,
-                          "pilot": 1,
-                          "production": 1
-                        },
-                        "status": "agent_card_trust_profile_ready"
-                      },
-                      "bom_summary": {
-                        "active_workflow_count": 8,
-                        "agent_class_count": 5,
-                        "agent_identity_count": 32,
-                        "component_counts": {
-                          "agent_classes": 5,
-                          "agent_identities": 32,
-                          "evaluation_drills": 56,
-                          "evidence_artifacts": 9,
-                          "knowledge_sources": 4,
-                          "mcp_connectors": 16,
-                          "policy_components": 4,
-                          "workflows": 8
-                        },
-                        "connector_count": 16,
-                        "drift_trigger_count": 12,
-                        "evaluation_drill_count": 56,
-                        "failure_count": 0,
-                        "mcp_namespace_count": 16,
-                        "missing_identity_workflow_count": 0,
-                        "readiness_decision_counts": {
-                          "pilot_guarded": 4,
-                          "scale_ready": 4
-                        },
-                        "source_failure_count": 0,
-                        "workflow_count": 8
-                      },
-                      "category_counts": {
-                        "agent_protocols": 2,
-                        "agent_runtime": 2,
-                        "assurance": 2,
-                        "authorization": 1,
-                        "connector_trust": 3,
-                        "evals": 2,
-                        "identity": 2,
-                        "incident_response": 1,
-                        "inventory": 1,
-                        "risk": 3,
-                        "runtime_evidence": 2,
-                        "runtime_policy": 2,
-                        "secure_context": 5,
-                        "strategy": 3
-                      },
-                      "control_plane_acquisition_readiness": {
-                        "active_workflow_count": 8,
-                        "blueprint_score": 90,
-                        "distinct_mcp_tool_count": 36,
-                        "ready_layer_count": 10,
-                        "ready_source_pack_count": 25,
-                        "scale_ready_workflow_count": 4,
-                        "source_pack_count": 25,
-                        "status": "acquisition_diligence_ready",
-                        "total_layer_count": 10
-                      },
-                      "crosswalk_summary": {
-                        "capability_count": 27,
-                        "control_count": 29,
-                        "control_status_counts": {
-                          "ready": 29
-                        },
-                        "covered_capability_count": 26,
-                        "distinct_mcp_tool_count": 37,
-                        "failure_count": 0,
-                        "source_class_counts": {
-                          "frontier_lab_guidance": 3,
-                          "government_framework": 4,
-                          "incident_intelligence": 1,
-                          "industry_standard": 4,
-                          "protocol_guidance": 1,
-                          "protocol_specification": 1
-                        },
-                        "source_reference_count": 14,
-                        "standard_count": 5,
-                        "standard_status_counts": {
-                          "ready": 5
-                        },
-                        "status": "standards_crosswalk_ready"
-                      },
-                      "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
-                      "distinct_mcp_tool_count": 46,
-                      "entitlement_review_summary": {
-                        "access_mode_counts": {
-                          "approval_required": 3,
-                          "read": 56,
-                          "write_branch": 29,
-                          "write_ticket": 8
-                        },
-                        "approval_required_entitlement_count": 12,
-                        "distinct_identity_count": 32,
-                        "entitlement_count": 96,
-                        "failure_count": 0,
-                        "high_or_critical_entitlement_count": 12,
-                        "risk_counts": {
-                          "high": 12,
-                          "low": 56,
-                          "medium": 28
-                        },
-                        "status": "entitlement_review_ready",
-                        "tier_counts": {
-                          "privileged_action": 12,
-                          "read_context": 56,
-                          "write_scoped": 28
-                        },
-                        "workflow_count": 8
-                      },
-                      "exposure_graph_summary": {
-                        "decision_counts": {
-                          "architecture_review": 24,
-                          "guarded_rollout": 24,
-                          "hold_for_owner_review": 3,
-                          "standard_monitoring": 45
-                        },
-                        "distinct_agent_identity_count": 32,
-                        "distinct_context_source_count": 9,
-                        "distinct_mcp_namespace_count": 16,
-                        "edge_counts": {
-                          "delegates_mcp_scope": 96,
-                          "requests_mcp_namespace": 24,
-                          "requires_evidence_pack": 80,
-                          "retrieves_context": 64,
-                          "uses_identity": 32
-                        },
-                        "failure_count": 0,
-                        "highest_exposure_paths": [
-                          {
-                            "access": "approval_required",
-                            "agent_class": "claude",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::artifact-cache-quarantine::claude",
-                            "mcp_namespace": "registries.quarantine",
-                            "path_class_id": "approval_required_tool_path",
-                            "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
-                            "risk_tier": "high",
-                            "score": 83,
-                            "workflow_id": "artifact-cache-quarantine",
-                            "workflow_title": "Artifact Cache and Mirror Quarantine"
-                          },
-                          {
-                            "access": "approval_required",
-                            "agent_class": "codex",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::artifact-cache-quarantine::codex",
-                            "mcp_namespace": "registries.quarantine",
-                            "path_class_id": "approval_required_tool_path",
-                            "path_id": "exposure::artifact-cache-quarantine::codex::registries.quarantine",
-                            "risk_tier": "high",
-                            "score": 83,
-                            "workflow_id": "artifact-cache-quarantine",
-                            "workflow_title": "Artifact Cache and Mirror Quarantine"
-                          },
-                          {
-                            "access": "approval_required",
-                            "agent_class": "devin",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::artifact-cache-quarantine::devin",
-                            "mcp_namespace": "registries.quarantine",
-                            "path_class_id": "approval_required_tool_path",
-                            "path_id": "exposure::artifact-cache-quarantine::devin::registries.quarantine",
-                            "risk_tier": "high",
-                            "score": 83,
-                            "workflow_id": "artifact-cache-quarantine",
-                            "workflow_title": "Artifact Cache and Mirror Quarantine"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "claude",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::crypto-payment-security::claude",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::crypto-payment-security::claude::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "crypto-payment-security",
-                            "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "codex",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::crypto-payment-security::codex",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::crypto-payment-security::codex::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "crypto-payment-security",
-                            "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "cursor",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::crypto-payment-security::cursor",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::crypto-payment-security::cursor::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "crypto-payment-security",
-                            "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "claude",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::defi-blockchain-security::claude",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "defi-blockchain-security",
-                            "workflow_title": "DeFi and Blockchain Protocol Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "codex",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::defi-blockchain-security::codex",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::defi-blockchain-security::codex::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "defi-blockchain-security",
-                            "workflow_title": "DeFi and Blockchain Protocol Security"
-                          }
-                        ],
-                        "node_counts": {
-                          "agent_identity": 32,
-                          "context_source": 9,
-                          "evidence_pack": 10,
-                          "mcp_namespace": 16,
-                          "workflow": 8
-                        },
-                        "path_class_counts": {
-                          "approval_required_tool_path": 3,
-                          "context_to_read_tool": 9,
-                          "context_to_write_tool": 23,
-                          "high_impact_authority_path": 24,
-                          "tenant_sensitive_context_path": 37
-                        },
-                        "total_edge_count": 296,
-                        "total_node_count": 75,
-                        "total_path_count": 96,
-                        "workflow_count": 8
-                      },
-                      "failure_count": 0,
-                      "incident_response_summary": {
-                        "class_count": 8,
-                        "decision_counts": {
-                          "contain_and_open_war_room": 3,
-                          "hold_for_forensics": 2,
-                          "kill_session_and_escalate_board": 3
-                        },
-                        "failure_count": 0,
-                        "required_evidence_source_count": 15,
-                        "response_phase_count": 6,
-                        "sev0_class_count": 2,
-                        "sev1_class_count": 5,
-                        "source_failure_count": 0,
-                        "workflow_count": 8
-                      },
-                      "pack_count": 31,
-                      "pack_status_counts": {
-                        "ready": 31
-                      },
-                      "question_count": 28,
-                      "readiness_summary": {
-                        "active_workflow_count": 8,
-                        "average_score": 95.75,
-                        "blocked_workflow_count": 0,
-                        "decision_counts": {
-                          "pilot_guarded": 4,
-                          "scale_ready": 4
-                        },
-                        "failure_count": 0,
-                        "manual_gate_workflow_count": 0,
-                        "pilot_connector_workflows": [
-                          "artifact-cache-quarantine",
-                          "crypto-payment-security",
-                          "defi-blockchain-security"
-                        ],
-                        "pilot_guarded_workflow_count": 4,
-                        "scale_ready_workflow_count": 4,
-                        "source_failure_count": 0,
-                        "workflow_count": 8
-                      },
-                      "section_count": 9,
-                      "section_status_counts": {
-                        "ready": 9
-                      },
-                      "status": "trust_center_ready",
-                      "telemetry_summary": {
-                        "decision_counts": {
-                          "telemetry_ready": 8
-                        },
-                        "default_state": "untrusted_until_required_trace_fields_present",
-                        "failure_count": 0,
-                        "prohibited_field_count": 8,
-                        "redaction_tier_count": 4,
-                        "required_attribute_count": 26,
-                        "sensitive_opt_in_attribute_count": 7,
-                        "signal_class_count": 9,
-                        "telemetry_check_count": 8,
-                        "workflow_count": 8
-                      },
-                      "threat_radar_summary": {
-                        "confidence_counts": {
-                          "high": 12
-                        },
-                        "critical_or_high_signal_count": 11,
-                        "feature_backlog_count": 7,
-                        "horizon_counts": {
-                          "next": 2,
-                          "now": 10
-                        },
-                        "implemented_capability_count": 17,
-                        "priority_counts": {
-                          "critical": 4,
-                          "high": 7,
-                          "medium": 1
-                        },
-                        "signal_count": 12,
-                        "source_class_counts": {
-                          "frontier_lab_guidance": 3,
-                          "government_framework": 4,
-                          "government_guidance": 2,
-                          "industry_guidance": 3,
-                          "industry_standard": 3,
-                          "protocol_guidance": 1,
-                          "protocol_specification": 3,
-                          "vendor_architecture_guidance": 1
-                        },
-                        "source_reference_count": 20,
-                        "top_signals": [
-                          {
-                            "id": "agent-protocol-handoff-boundaries",
-                            "priority": "critical",
-                            "strategic_score": 98,
-                            "title": "Agent handoffs are becoming a protocol trust boundary"
-                          },
-                          {
-                            "id": "indirect-prompt-injection-social-engineering",
-                            "priority": "critical",
-                            "strategic_score": 98,
-                            "title": "Indirect prompt injection is now social engineering against agents"
-                          },
-                          {
-                            "id": "mcp-token-passthrough-and-scope-creep",
-                            "priority": "critical",
-                            "strategic_score": 95,
-                            "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
-                          },
-                          {
-                            "id": "agent-identity-explosion",
-                            "priority": "critical",
-                            "strategic_score": 93,
-                            "title": "Agent identities are becoming a new non-human identity class"
-                          },
-                          {
-                            "id": "capability-based-agentic-risk-governance",
-                            "priority": "high",
-                            "strategic_score": 93,
-                            "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
-                          }
-                        ]
-                      }
-                    }
-                  }
                 }
               },
               "status": "ready",
@@ -2505,7 +2129,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "agentic-identity-and-handoff",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "nist-ai-agent-standards-initiative-2026",
@@ -2569,7 +2193,7 @@
           "conformance_checks": [
             {
               "buyer_question": "Can SecurityRecipes prove which MCP resource a token was minted for before a tool call is allowed?",
-              "check_hash": "e19c2d8ee1f256ed2a6932e54cb2ea5a0ecbe805d9a59947c11bb53fdae81643",
+              "check_hash": "32f1adad802f0eaae311798ad76d77917ba12032ac7dc07eb163402710710e9e",
               "evidence_paths": [
                 "data/evidence/mcp-authorization-conformance-pack.json"
               ],
@@ -2601,6 +2225,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -2608,6 +2233,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -2684,6 +2310,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -2691,6 +2318,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -2734,6 +2362,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -2741,6 +2370,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -2853,6 +2483,7 @@
                         "deny_until_redesigned": 1,
                         "hold_for_authorization_evidence": 1
                       },
+                      "client_metadata_evidence_required_count": 16,
                       "connector_count": 16,
                       "failure_count": 0,
                       "metadata_evidence_required_count": 16,
@@ -2860,6 +2491,7 @@
                         "approve_public_context_no_auth": 1,
                         "approve_with_gateway_attestation": 15
                       },
+                      "step_up_connector_count": 1,
                       "workflow_count": 8
                     }
                   }
@@ -2874,7 +2506,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-authorization-2025-11-25",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "mcp-authorization-2025-11-25",
@@ -2994,7 +2626,7 @@
             },
             {
               "buyer_question": "What happens when a tool changes after a previous approval?",
-              "check_hash": "2bed201dda618696622f332a6999b4a28aa69568ef4b598b747b6a0b17affed4",
+              "check_hash": "d7ec2af5b5b966523d3c7836816fcbf2bec1022fd6e09153e40da21e7b82bcc8",
               "evidence_paths": [
                 "data/evidence/mcp-tool-surface-drift-pack.json"
               ],
@@ -3186,12 +2818,13 @@
                   "status": "ready",
                   "summaries": {
                     "eval_summary": {
-                      "average_score": 100,
+                      "average_score": 87,
                       "decision_counts": {
-                        "eval_ready": 7
+                        "eval_ready": 4,
+                        "hold_for_missing_evidence": 3
                       },
                       "failure_count": 0,
-                      "ready_scenario_count": 7,
+                      "ready_scenario_count": 4,
                       "scenario_count": 7,
                       "scenario_type_counts": {
                         "a2a_handoff_boundary": 1,
@@ -3201,7 +2834,7 @@
                         "retrieval_correctness": 1,
                         "source_attestation": 1
                       },
-                      "total_failed_checks": 0
+                      "total_failed_checks": 3
                     }
                   }
                 }
@@ -3216,7 +2849,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "mcp-tooling-safety",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "mcp-tool-annotations-2026-03-16",
@@ -3258,7 +2891,7 @@
           "conformance_checks": [
             {
               "buyer_question": "Is a discovered remote agent complete enough to enter an enterprise trust workflow?",
-              "check_hash": "29fe08d793b5651fdbd2d2d8a0c076c5bec6fda93fc66d61d5bfc01c40db0a0b",
+              "check_hash": "bfee70f2abac8e68f23ad39a9ce819291b05e7adc61306793f30ce2a4d2d2074",
               "evidence_paths": [
                 "data/evidence/a2a-agent-card-trust-profile.json"
               ],
@@ -3561,7 +3194,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "a2a-agent-discovery",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "a2a-protocol-latest",
@@ -3790,35 +3423,41 @@
                   "status": "ready",
                   "summaries": {
                     "guard_summary": {
-                      "actionable_finding_count": 2,
-                      "blocking_source_count": 1,
+                      "actionable_finding_count": 90,
+                      "blocking_source_count": 2,
                       "blocking_sources": [
-                        "agentic-assurance-models"
+                        "agentic-assurance-models",
+                        "recipes"
                       ],
-                      "byte_count": 2967425,
+                      "byte_count": 22702265,
                       "decision_counts": {
-                        "allow_with_adversarial_examples": 4,
-                        "block_until_removed": 1,
-                        "pass": 4
+                        "allow_with_adversarial_examples": 1,
+                        "block_until_removed": 2,
+                        "hold_for_context_review": 1,
+                        "pass": 5
                       },
                       "disposition_counts": {
-                        "actionable_context_poisoning_risk": 2,
-                        "defensive_control_language": 12,
-                        "documented_adversarial_example": 23
+                        "actionable_context_poisoning_risk": 90,
+                        "defensive_control_language": 28,
+                        "documented_adversarial_example": 24
                       },
                       "failure_count": 0,
-                      "file_count": 168,
-                      "finding_count": 37,
-                      "held_source_count": 0,
-                      "held_sources": [],
+                      "file_count": 3478,
+                      "finding_count": 142,
+                      "held_source_count": 1,
+                      "held_sources": [
+                        "security-remediation-workflows"
+                      ],
                       "risk_family_counts": {
-                        "approval_bypass": 21,
-                        "prompt_injection": 3,
-                        "secret_exposure": 13
+                        "approval_bypass": 36,
+                        "hidden_instruction": 59,
+                        "prompt_injection": 9,
+                        "secret_exposure": 38
                       },
                       "severity_counts": {
-                        "critical": 16,
-                        "high": 21
+                        "critical": 47,
+                        "high": 36,
+                        "medium": 59
                       },
                       "source_count": 9
                     }
@@ -3856,26 +3495,27 @@
                   "status": "ready",
                   "summaries": {
                     "crosswalk_summary": {
-                      "capability_count": 27,
-                      "control_count": 29,
+                      "capability_count": 34,
+                      "control_count": 44,
                       "control_status_counts": {
-                        "ready": 29
+                        "ready": 44
                       },
-                      "covered_capability_count": 26,
-                      "distinct_mcp_tool_count": 37,
+                      "covered_capability_count": 34,
+                      "distinct_mcp_tool_count": 34,
                       "failure_count": 0,
                       "source_class_counts": {
-                        "frontier_lab_guidance": 3,
-                        "government_framework": 4,
+                        "frontier_lab_guidance": 4,
+                        "government_framework": 5,
                         "incident_intelligence": 1,
-                        "industry_standard": 4,
+                        "industry_framework": 1,
+                        "industry_standard": 5,
                         "protocol_guidance": 1,
                         "protocol_specification": 1
                       },
-                      "source_reference_count": 14,
-                      "standard_count": 5,
+                      "source_reference_count": 18,
+                      "standard_count": 8,
                       "standard_status_counts": {
-                        "ready": 5
+                        "ready": 8
                       },
                       "status": "standards_crosswalk_ready"
                     }
@@ -3887,9 +3527,8 @@
             },
             {
               "buyer_question": "Can a platform team or buyer inspect protocol conformance without reading implementation code?",
-              "check_hash": "c794e57c1d14d89335b88329e5466d7b74dde08df6405e1999ef9e54cfbf9d16",
+              "check_hash": "222e3d7f925a990c0bd2b1dcea1432044c133f474e1d3efa5a3d035c10d68653",
               "evidence_paths": [
-                "data/evidence/enterprise-trust-center-export.json",
                 "data/evidence/agentic-control-plane-blueprint.json",
                 "data/evidence/agentic-protocol-conformance-pack.json"
               ],
@@ -3904,7 +3543,6 @@
               ],
               "requirement": "Protocol conformance evidence should be exportable for procurement, platform review, and acquisition diligence.",
               "source_pack_keys": [
-                "enterprise_trust_center_export",
                 "agentic_control_plane_blueprint"
               ],
               "source_pack_status": {
@@ -3949,404 +3587,6 @@
                       "workflow_count": 8
                     }
                   }
-                },
-                "enterprise_trust_center_export": {
-                  "failure_count": 0,
-                  "path": "data/evidence/enterprise-trust-center-export.json",
-                  "schema_version": "1.0",
-                  "status": "ready",
-                  "summaries": {
-                    "export_summary": {
-                      "agent_card_trust_summary": {
-                        "default_state": "hold_for_agent_card_intake",
-                        "failure_count": 0,
-                        "intake_profile_count": 4,
-                        "required_agent_card_field_count": 8,
-                        "sample_decision_counts": {
-                          "allow_trusted_agent_card": 1,
-                          "kill_session_on_agent_card_secret": 1,
-                          "pilot_with_restricted_context": 1
-                        },
-                        "sample_evaluation_count": 3,
-                        "skill_risk_tier_counts": {
-                          "blocked": 1,
-                          "discovery": 1,
-                          "pilot": 1,
-                          "production": 1
-                        },
-                        "status": "agent_card_trust_profile_ready"
-                      },
-                      "bom_summary": {
-                        "active_workflow_count": 8,
-                        "agent_class_count": 5,
-                        "agent_identity_count": 32,
-                        "component_counts": {
-                          "agent_classes": 5,
-                          "agent_identities": 32,
-                          "evaluation_drills": 56,
-                          "evidence_artifacts": 9,
-                          "knowledge_sources": 4,
-                          "mcp_connectors": 16,
-                          "policy_components": 4,
-                          "workflows": 8
-                        },
-                        "connector_count": 16,
-                        "drift_trigger_count": 12,
-                        "evaluation_drill_count": 56,
-                        "failure_count": 0,
-                        "mcp_namespace_count": 16,
-                        "missing_identity_workflow_count": 0,
-                        "readiness_decision_counts": {
-                          "pilot_guarded": 4,
-                          "scale_ready": 4
-                        },
-                        "source_failure_count": 0,
-                        "workflow_count": 8
-                      },
-                      "category_counts": {
-                        "agent_protocols": 2,
-                        "agent_runtime": 2,
-                        "assurance": 2,
-                        "authorization": 1,
-                        "connector_trust": 3,
-                        "evals": 2,
-                        "identity": 2,
-                        "incident_response": 1,
-                        "inventory": 1,
-                        "risk": 3,
-                        "runtime_evidence": 2,
-                        "runtime_policy": 2,
-                        "secure_context": 5,
-                        "strategy": 3
-                      },
-                      "control_plane_acquisition_readiness": {
-                        "active_workflow_count": 8,
-                        "blueprint_score": 90,
-                        "distinct_mcp_tool_count": 36,
-                        "ready_layer_count": 10,
-                        "ready_source_pack_count": 25,
-                        "scale_ready_workflow_count": 4,
-                        "source_pack_count": 25,
-                        "status": "acquisition_diligence_ready",
-                        "total_layer_count": 10
-                      },
-                      "crosswalk_summary": {
-                        "capability_count": 27,
-                        "control_count": 29,
-                        "control_status_counts": {
-                          "ready": 29
-                        },
-                        "covered_capability_count": 26,
-                        "distinct_mcp_tool_count": 37,
-                        "failure_count": 0,
-                        "source_class_counts": {
-                          "frontier_lab_guidance": 3,
-                          "government_framework": 4,
-                          "incident_intelligence": 1,
-                          "industry_standard": 4,
-                          "protocol_guidance": 1,
-                          "protocol_specification": 1
-                        },
-                        "source_reference_count": 14,
-                        "standard_count": 5,
-                        "standard_status_counts": {
-                          "ready": 5
-                        },
-                        "status": "standards_crosswalk_ready"
-                      },
-                      "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
-                      "distinct_mcp_tool_count": 46,
-                      "entitlement_review_summary": {
-                        "access_mode_counts": {
-                          "approval_required": 3,
-                          "read": 56,
-                          "write_branch": 29,
-                          "write_ticket": 8
-                        },
-                        "approval_required_entitlement_count": 12,
-                        "distinct_identity_count": 32,
-                        "entitlement_count": 96,
-                        "failure_count": 0,
-                        "high_or_critical_entitlement_count": 12,
-                        "risk_counts": {
-                          "high": 12,
-                          "low": 56,
-                          "medium": 28
-                        },
-                        "status": "entitlement_review_ready",
-                        "tier_counts": {
-                          "privileged_action": 12,
-                          "read_context": 56,
-                          "write_scoped": 28
-                        },
-                        "workflow_count": 8
-                      },
-                      "exposure_graph_summary": {
-                        "decision_counts": {
-                          "architecture_review": 24,
-                          "guarded_rollout": 24,
-                          "hold_for_owner_review": 3,
-                          "standard_monitoring": 45
-                        },
-                        "distinct_agent_identity_count": 32,
-                        "distinct_context_source_count": 9,
-                        "distinct_mcp_namespace_count": 16,
-                        "edge_counts": {
-                          "delegates_mcp_scope": 96,
-                          "requests_mcp_namespace": 24,
-                          "requires_evidence_pack": 80,
-                          "retrieves_context": 64,
-                          "uses_identity": 32
-                        },
-                        "failure_count": 0,
-                        "highest_exposure_paths": [
-                          {
-                            "access": "approval_required",
-                            "agent_class": "claude",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::artifact-cache-quarantine::claude",
-                            "mcp_namespace": "registries.quarantine",
-                            "path_class_id": "approval_required_tool_path",
-                            "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
-                            "risk_tier": "high",
-                            "score": 83,
-                            "workflow_id": "artifact-cache-quarantine",
-                            "workflow_title": "Artifact Cache and Mirror Quarantine"
-                          },
-                          {
-                            "access": "approval_required",
-                            "agent_class": "codex",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::artifact-cache-quarantine::codex",
-                            "mcp_namespace": "registries.quarantine",
-                            "path_class_id": "approval_required_tool_path",
-                            "path_id": "exposure::artifact-cache-quarantine::codex::registries.quarantine",
-                            "risk_tier": "high",
-                            "score": 83,
-                            "workflow_id": "artifact-cache-quarantine",
-                            "workflow_title": "Artifact Cache and Mirror Quarantine"
-                          },
-                          {
-                            "access": "approval_required",
-                            "agent_class": "devin",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::artifact-cache-quarantine::devin",
-                            "mcp_namespace": "registries.quarantine",
-                            "path_class_id": "approval_required_tool_path",
-                            "path_id": "exposure::artifact-cache-quarantine::devin::registries.quarantine",
-                            "risk_tier": "high",
-                            "score": 83,
-                            "workflow_id": "artifact-cache-quarantine",
-                            "workflow_title": "Artifact Cache and Mirror Quarantine"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "claude",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::crypto-payment-security::claude",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::crypto-payment-security::claude::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "crypto-payment-security",
-                            "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "codex",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::crypto-payment-security::codex",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::crypto-payment-security::codex::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "crypto-payment-security",
-                            "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "cursor",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::crypto-payment-security::cursor",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::crypto-payment-security::cursor::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "crypto-payment-security",
-                            "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "claude",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::defi-blockchain-security::claude",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "defi-blockchain-security",
-                            "workflow_title": "DeFi and Blockchain Protocol Security"
-                          },
-                          {
-                            "access": "write_branch",
-                            "agent_class": "codex",
-                            "decision": "architecture_review",
-                            "identity_id": "sr-agent::defi-blockchain-security::codex",
-                            "mcp_namespace": "repo.contents",
-                            "path_class_id": "high_impact_authority_path",
-                            "path_id": "exposure::defi-blockchain-security::codex::repo.contents",
-                            "risk_tier": "high",
-                            "score": 79,
-                            "workflow_id": "defi-blockchain-security",
-                            "workflow_title": "DeFi and Blockchain Protocol Security"
-                          }
-                        ],
-                        "node_counts": {
-                          "agent_identity": 32,
-                          "context_source": 9,
-                          "evidence_pack": 10,
-                          "mcp_namespace": 16,
-                          "workflow": 8
-                        },
-                        "path_class_counts": {
-                          "approval_required_tool_path": 3,
-                          "context_to_read_tool": 9,
-                          "context_to_write_tool": 23,
-                          "high_impact_authority_path": 24,
-                          "tenant_sensitive_context_path": 37
-                        },
-                        "total_edge_count": 296,
-                        "total_node_count": 75,
-                        "total_path_count": 96,
-                        "workflow_count": 8
-                      },
-                      "failure_count": 0,
-                      "incident_response_summary": {
-                        "class_count": 8,
-                        "decision_counts": {
-                          "contain_and_open_war_room": 3,
-                          "hold_for_forensics": 2,
-                          "kill_session_and_escalate_board": 3
-                        },
-                        "failure_count": 0,
-                        "required_evidence_source_count": 15,
-                        "response_phase_count": 6,
-                        "sev0_class_count": 2,
-                        "sev1_class_count": 5,
-                        "source_failure_count": 0,
-                        "workflow_count": 8
-                      },
-                      "pack_count": 31,
-                      "pack_status_counts": {
-                        "ready": 31
-                      },
-                      "question_count": 28,
-                      "readiness_summary": {
-                        "active_workflow_count": 8,
-                        "average_score": 95.75,
-                        "blocked_workflow_count": 0,
-                        "decision_counts": {
-                          "pilot_guarded": 4,
-                          "scale_ready": 4
-                        },
-                        "failure_count": 0,
-                        "manual_gate_workflow_count": 0,
-                        "pilot_connector_workflows": [
-                          "artifact-cache-quarantine",
-                          "crypto-payment-security",
-                          "defi-blockchain-security"
-                        ],
-                        "pilot_guarded_workflow_count": 4,
-                        "scale_ready_workflow_count": 4,
-                        "source_failure_count": 0,
-                        "workflow_count": 8
-                      },
-                      "section_count": 9,
-                      "section_status_counts": {
-                        "ready": 9
-                      },
-                      "status": "trust_center_ready",
-                      "telemetry_summary": {
-                        "decision_counts": {
-                          "telemetry_ready": 8
-                        },
-                        "default_state": "untrusted_until_required_trace_fields_present",
-                        "failure_count": 0,
-                        "prohibited_field_count": 8,
-                        "redaction_tier_count": 4,
-                        "required_attribute_count": 26,
-                        "sensitive_opt_in_attribute_count": 7,
-                        "signal_class_count": 9,
-                        "telemetry_check_count": 8,
-                        "workflow_count": 8
-                      },
-                      "threat_radar_summary": {
-                        "confidence_counts": {
-                          "high": 12
-                        },
-                        "critical_or_high_signal_count": 11,
-                        "feature_backlog_count": 7,
-                        "horizon_counts": {
-                          "next": 2,
-                          "now": 10
-                        },
-                        "implemented_capability_count": 17,
-                        "priority_counts": {
-                          "critical": 4,
-                          "high": 7,
-                          "medium": 1
-                        },
-                        "signal_count": 12,
-                        "source_class_counts": {
-                          "frontier_lab_guidance": 3,
-                          "government_framework": 4,
-                          "government_guidance": 2,
-                          "industry_guidance": 3,
-                          "industry_standard": 3,
-                          "protocol_guidance": 1,
-                          "protocol_specification": 3,
-                          "vendor_architecture_guidance": 1
-                        },
-                        "source_reference_count": 20,
-                        "top_signals": [
-                          {
-                            "id": "agent-protocol-handoff-boundaries",
-                            "priority": "critical",
-                            "strategic_score": 98,
-                            "title": "Agent handoffs are becoming a protocol trust boundary"
-                          },
-                          {
-                            "id": "indirect-prompt-injection-social-engineering",
-                            "priority": "critical",
-                            "strategic_score": 98,
-                            "title": "Indirect prompt injection is now social engineering against agents"
-                          },
-                          {
-                            "id": "mcp-token-passthrough-and-scope-creep",
-                            "priority": "critical",
-                            "strategic_score": 95,
-                            "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
-                          },
-                          {
-                            "id": "agent-identity-explosion",
-                            "priority": "critical",
-                            "strategic_score": 93,
-                            "title": "Agent identities are becoming a new non-human identity class"
-                          },
-                          {
-                            "id": "capability-based-agentic-risk-governance",
-                            "priority": "high",
-                            "strategic_score": 93,
-                            "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
-                          }
-                        ]
-                      }
-                    }
-                  }
                 }
               },
               "status": "ready",
@@ -4359,7 +3599,7 @@
           ],
           "effective_decision": "ready_for_enterprise_conformance",
           "id": "agentic-identity-and-handoff",
-          "readiness_score": 100,
+          "readiness_score": 100.0,
           "ready_check_count": 4,
           "source_ids": [
             "nist-ai-agent-standards-initiative-2026",
@@ -4467,7 +3707,7 @@
   "control_checks": [
     {
       "buyer_question": "Can SecurityRecipes prove which MCP resource a token was minted for before a tool call is allowed?",
-      "check_hash": "e19c2d8ee1f256ed2a6932e54cb2ea5a0ecbe805d9a59947c11bb53fdae81643",
+      "check_hash": "32f1adad802f0eaae311798ad76d77917ba12032ac7dc07eb163402710710e9e",
       "evidence_paths": [
         "data/evidence/mcp-authorization-conformance-pack.json"
       ],
@@ -4499,6 +3739,7 @@
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
+              "client_metadata_evidence_required_count": 16,
               "connector_count": 16,
               "failure_count": 0,
               "metadata_evidence_required_count": 16,
@@ -4506,6 +3747,7 @@
                 "approve_public_context_no_auth": 1,
                 "approve_with_gateway_attestation": 15
               },
+              "step_up_connector_count": 1,
               "workflow_count": 8
             }
           }
@@ -4582,6 +3824,7 @@
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
+              "client_metadata_evidence_required_count": 16,
               "connector_count": 16,
               "failure_count": 0,
               "metadata_evidence_required_count": 16,
@@ -4589,6 +3832,7 @@
                 "approve_public_context_no_auth": 1,
                 "approve_with_gateway_attestation": 15
               },
+              "step_up_connector_count": 1,
               "workflow_count": 8
             }
           }
@@ -4632,6 +3876,7 @@
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
+              "client_metadata_evidence_required_count": 16,
               "connector_count": 16,
               "failure_count": 0,
               "metadata_evidence_required_count": 16,
@@ -4639,6 +3884,7 @@
                 "approve_public_context_no_auth": 1,
                 "approve_with_gateway_attestation": 15
               },
+              "step_up_connector_count": 1,
               "workflow_count": 8
             }
           }
@@ -4751,6 +3997,7 @@
                 "deny_until_redesigned": 1,
                 "hold_for_authorization_evidence": 1
               },
+              "client_metadata_evidence_required_count": 16,
               "connector_count": 16,
               "failure_count": 0,
               "metadata_evidence_required_count": 16,
@@ -4758,6 +4005,7 @@
                 "approve_public_context_no_auth": 1,
                 "approve_with_gateway_attestation": 15
               },
+              "step_up_connector_count": 1,
               "workflow_count": 8
             }
           }
@@ -4846,7 +4094,7 @@
     },
     {
       "buyer_question": "What happens when a tool changes after a previous approval?",
-      "check_hash": "2bed201dda618696622f332a6999b4a28aa69568ef4b598b747b6a0b17affed4",
+      "check_hash": "d7ec2af5b5b966523d3c7836816fcbf2bec1022fd6e09153e40da21e7b82bcc8",
       "evidence_paths": [
         "data/evidence/mcp-tool-surface-drift-pack.json"
       ],
@@ -5038,12 +4286,13 @@
           "status": "ready",
           "summaries": {
             "eval_summary": {
-              "average_score": 100,
+              "average_score": 87,
               "decision_counts": {
-                "eval_ready": 7
+                "eval_ready": 4,
+                "hold_for_missing_evidence": 3
               },
               "failure_count": 0,
-              "ready_scenario_count": 7,
+              "ready_scenario_count": 4,
               "scenario_count": 7,
               "scenario_type_counts": {
                 "a2a_handoff_boundary": 1,
@@ -5053,7 +4302,7 @@
                 "retrieval_correctness": 1,
                 "source_attestation": 1
               },
-              "total_failed_checks": 0
+              "total_failed_checks": 3
             }
           }
         }
@@ -5063,7 +4312,7 @@
     },
     {
       "buyer_question": "Is a discovered remote agent complete enough to enter an enterprise trust workflow?",
-      "check_hash": "29fe08d793b5651fdbd2d2d8a0c076c5bec6fda93fc66d61d5bfc01c40db0a0b",
+      "check_hash": "bfee70f2abac8e68f23ad39a9ce819291b05e7adc61306793f30ce2a4d2d2074",
       "evidence_paths": [
         "data/evidence/a2a-agent-card-trust-profile.json"
       ],
@@ -5549,35 +4798,41 @@
           "status": "ready",
           "summaries": {
             "guard_summary": {
-              "actionable_finding_count": 2,
-              "blocking_source_count": 1,
+              "actionable_finding_count": 90,
+              "blocking_source_count": 2,
               "blocking_sources": [
-                "agentic-assurance-models"
+                "agentic-assurance-models",
+                "recipes"
               ],
-              "byte_count": 2967425,
+              "byte_count": 22702265,
               "decision_counts": {
-                "allow_with_adversarial_examples": 4,
-                "block_until_removed": 1,
-                "pass": 4
+                "allow_with_adversarial_examples": 1,
+                "block_until_removed": 2,
+                "hold_for_context_review": 1,
+                "pass": 5
               },
               "disposition_counts": {
-                "actionable_context_poisoning_risk": 2,
-                "defensive_control_language": 12,
-                "documented_adversarial_example": 23
+                "actionable_context_poisoning_risk": 90,
+                "defensive_control_language": 28,
+                "documented_adversarial_example": 24
               },
               "failure_count": 0,
-              "file_count": 168,
-              "finding_count": 37,
-              "held_source_count": 0,
-              "held_sources": [],
+              "file_count": 3478,
+              "finding_count": 142,
+              "held_source_count": 1,
+              "held_sources": [
+                "security-remediation-workflows"
+              ],
               "risk_family_counts": {
-                "approval_bypass": 21,
-                "prompt_injection": 3,
-                "secret_exposure": 13
+                "approval_bypass": 36,
+                "hidden_instruction": 59,
+                "prompt_injection": 9,
+                "secret_exposure": 38
               },
               "severity_counts": {
-                "critical": 16,
-                "high": 21
+                "critical": 47,
+                "high": 36,
+                "medium": 59
               },
               "source_count": 9
             }
@@ -5615,26 +4870,27 @@
           "status": "ready",
           "summaries": {
             "crosswalk_summary": {
-              "capability_count": 27,
-              "control_count": 29,
+              "capability_count": 34,
+              "control_count": 44,
               "control_status_counts": {
-                "ready": 29
+                "ready": 44
               },
-              "covered_capability_count": 26,
-              "distinct_mcp_tool_count": 37,
+              "covered_capability_count": 34,
+              "distinct_mcp_tool_count": 34,
               "failure_count": 0,
               "source_class_counts": {
-                "frontier_lab_guidance": 3,
-                "government_framework": 4,
+                "frontier_lab_guidance": 4,
+                "government_framework": 5,
                 "incident_intelligence": 1,
-                "industry_standard": 4,
+                "industry_framework": 1,
+                "industry_standard": 5,
                 "protocol_guidance": 1,
                 "protocol_specification": 1
               },
-              "source_reference_count": 14,
-              "standard_count": 5,
+              "source_reference_count": 18,
+              "standard_count": 8,
               "standard_status_counts": {
-                "ready": 5
+                "ready": 8
               },
               "status": "standards_crosswalk_ready"
             }
@@ -5646,9 +4902,8 @@
     },
     {
       "buyer_question": "Can a platform team or buyer inspect protocol conformance without reading implementation code?",
-      "check_hash": "c794e57c1d14d89335b88329e5466d7b74dde08df6405e1999ef9e54cfbf9d16",
+      "check_hash": "222e3d7f925a990c0bd2b1dcea1432044c133f474e1d3efa5a3d035c10d68653",
       "evidence_paths": [
-        "data/evidence/enterprise-trust-center-export.json",
         "data/evidence/agentic-control-plane-blueprint.json",
         "data/evidence/agentic-protocol-conformance-pack.json"
       ],
@@ -5663,7 +4918,6 @@
       ],
       "requirement": "Protocol conformance evidence should be exportable for procurement, platform review, and acquisition diligence.",
       "source_pack_keys": [
-        "enterprise_trust_center_export",
         "agentic_control_plane_blueprint"
       ],
       "source_pack_status": {
@@ -5706,404 +4960,6 @@
                 "active": 8
               },
               "workflow_count": 8
-            }
-          }
-        },
-        "enterprise_trust_center_export": {
-          "failure_count": 0,
-          "path": "data/evidence/enterprise-trust-center-export.json",
-          "schema_version": "1.0",
-          "status": "ready",
-          "summaries": {
-            "export_summary": {
-              "agent_card_trust_summary": {
-                "default_state": "hold_for_agent_card_intake",
-                "failure_count": 0,
-                "intake_profile_count": 4,
-                "required_agent_card_field_count": 8,
-                "sample_decision_counts": {
-                  "allow_trusted_agent_card": 1,
-                  "kill_session_on_agent_card_secret": 1,
-                  "pilot_with_restricted_context": 1
-                },
-                "sample_evaluation_count": 3,
-                "skill_risk_tier_counts": {
-                  "blocked": 1,
-                  "discovery": 1,
-                  "pilot": 1,
-                  "production": 1
-                },
-                "status": "agent_card_trust_profile_ready"
-              },
-              "bom_summary": {
-                "active_workflow_count": 8,
-                "agent_class_count": 5,
-                "agent_identity_count": 32,
-                "component_counts": {
-                  "agent_classes": 5,
-                  "agent_identities": 32,
-                  "evaluation_drills": 56,
-                  "evidence_artifacts": 9,
-                  "knowledge_sources": 4,
-                  "mcp_connectors": 16,
-                  "policy_components": 4,
-                  "workflows": 8
-                },
-                "connector_count": 16,
-                "drift_trigger_count": 12,
-                "evaluation_drill_count": 56,
-                "failure_count": 0,
-                "mcp_namespace_count": 16,
-                "missing_identity_workflow_count": 0,
-                "readiness_decision_counts": {
-                  "pilot_guarded": 4,
-                  "scale_ready": 4
-                },
-                "source_failure_count": 0,
-                "workflow_count": 8
-              },
-              "category_counts": {
-                "agent_protocols": 2,
-                "agent_runtime": 2,
-                "assurance": 2,
-                "authorization": 1,
-                "connector_trust": 3,
-                "evals": 2,
-                "identity": 2,
-                "incident_response": 1,
-                "inventory": 1,
-                "risk": 3,
-                "runtime_evidence": 2,
-                "runtime_policy": 2,
-                "secure_context": 5,
-                "strategy": 3
-              },
-              "control_plane_acquisition_readiness": {
-                "active_workflow_count": 8,
-                "blueprint_score": 90,
-                "distinct_mcp_tool_count": 36,
-                "ready_layer_count": 10,
-                "ready_source_pack_count": 25,
-                "scale_ready_workflow_count": 4,
-                "source_pack_count": 25,
-                "status": "acquisition_diligence_ready",
-                "total_layer_count": 10
-              },
-              "crosswalk_summary": {
-                "capability_count": 27,
-                "control_count": 29,
-                "control_status_counts": {
-                  "ready": 29
-                },
-                "covered_capability_count": 26,
-                "distinct_mcp_tool_count": 37,
-                "failure_count": 0,
-                "source_class_counts": {
-                  "frontier_lab_guidance": 3,
-                  "government_framework": 4,
-                  "incident_intelligence": 1,
-                  "industry_standard": 4,
-                  "protocol_guidance": 1,
-                  "protocol_specification": 1
-                },
-                "source_reference_count": 14,
-                "standard_count": 5,
-                "standard_status_counts": {
-                  "ready": 5
-                },
-                "status": "standards_crosswalk_ready"
-              },
-              "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
-              "distinct_mcp_tool_count": 46,
-              "entitlement_review_summary": {
-                "access_mode_counts": {
-                  "approval_required": 3,
-                  "read": 56,
-                  "write_branch": 29,
-                  "write_ticket": 8
-                },
-                "approval_required_entitlement_count": 12,
-                "distinct_identity_count": 32,
-                "entitlement_count": 96,
-                "failure_count": 0,
-                "high_or_critical_entitlement_count": 12,
-                "risk_counts": {
-                  "high": 12,
-                  "low": 56,
-                  "medium": 28
-                },
-                "status": "entitlement_review_ready",
-                "tier_counts": {
-                  "privileged_action": 12,
-                  "read_context": 56,
-                  "write_scoped": 28
-                },
-                "workflow_count": 8
-              },
-              "exposure_graph_summary": {
-                "decision_counts": {
-                  "architecture_review": 24,
-                  "guarded_rollout": 24,
-                  "hold_for_owner_review": 3,
-                  "standard_monitoring": 45
-                },
-                "distinct_agent_identity_count": 32,
-                "distinct_context_source_count": 9,
-                "distinct_mcp_namespace_count": 16,
-                "edge_counts": {
-                  "delegates_mcp_scope": 96,
-                  "requests_mcp_namespace": 24,
-                  "requires_evidence_pack": 80,
-                  "retrieves_context": 64,
-                  "uses_identity": 32
-                },
-                "failure_count": 0,
-                "highest_exposure_paths": [
-                  {
-                    "access": "approval_required",
-                    "agent_class": "claude",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::artifact-cache-quarantine::claude",
-                    "mcp_namespace": "registries.quarantine",
-                    "path_class_id": "approval_required_tool_path",
-                    "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
-                    "risk_tier": "high",
-                    "score": 83,
-                    "workflow_id": "artifact-cache-quarantine",
-                    "workflow_title": "Artifact Cache and Mirror Quarantine"
-                  },
-                  {
-                    "access": "approval_required",
-                    "agent_class": "codex",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::artifact-cache-quarantine::codex",
-                    "mcp_namespace": "registries.quarantine",
-                    "path_class_id": "approval_required_tool_path",
-                    "path_id": "exposure::artifact-cache-quarantine::codex::registries.quarantine",
-                    "risk_tier": "high",
-                    "score": 83,
-                    "workflow_id": "artifact-cache-quarantine",
-                    "workflow_title": "Artifact Cache and Mirror Quarantine"
-                  },
-                  {
-                    "access": "approval_required",
-                    "agent_class": "devin",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::artifact-cache-quarantine::devin",
-                    "mcp_namespace": "registries.quarantine",
-                    "path_class_id": "approval_required_tool_path",
-                    "path_id": "exposure::artifact-cache-quarantine::devin::registries.quarantine",
-                    "risk_tier": "high",
-                    "score": 83,
-                    "workflow_id": "artifact-cache-quarantine",
-                    "workflow_title": "Artifact Cache and Mirror Quarantine"
-                  },
-                  {
-                    "access": "write_branch",
-                    "agent_class": "claude",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::crypto-payment-security::claude",
-                    "mcp_namespace": "repo.contents",
-                    "path_class_id": "high_impact_authority_path",
-                    "path_id": "exposure::crypto-payment-security::claude::repo.contents",
-                    "risk_tier": "high",
-                    "score": 79,
-                    "workflow_id": "crypto-payment-security",
-                    "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                  },
-                  {
-                    "access": "write_branch",
-                    "agent_class": "codex",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::crypto-payment-security::codex",
-                    "mcp_namespace": "repo.contents",
-                    "path_class_id": "high_impact_authority_path",
-                    "path_id": "exposure::crypto-payment-security::codex::repo.contents",
-                    "risk_tier": "high",
-                    "score": 79,
-                    "workflow_id": "crypto-payment-security",
-                    "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                  },
-                  {
-                    "access": "write_branch",
-                    "agent_class": "cursor",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::crypto-payment-security::cursor",
-                    "mcp_namespace": "repo.contents",
-                    "path_class_id": "high_impact_authority_path",
-                    "path_id": "exposure::crypto-payment-security::cursor::repo.contents",
-                    "risk_tier": "high",
-                    "score": 79,
-                    "workflow_id": "crypto-payment-security",
-                    "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                  },
-                  {
-                    "access": "write_branch",
-                    "agent_class": "claude",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::defi-blockchain-security::claude",
-                    "mcp_namespace": "repo.contents",
-                    "path_class_id": "high_impact_authority_path",
-                    "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
-                    "risk_tier": "high",
-                    "score": 79,
-                    "workflow_id": "defi-blockchain-security",
-                    "workflow_title": "DeFi and Blockchain Protocol Security"
-                  },
-                  {
-                    "access": "write_branch",
-                    "agent_class": "codex",
-                    "decision": "architecture_review",
-                    "identity_id": "sr-agent::defi-blockchain-security::codex",
-                    "mcp_namespace": "repo.contents",
-                    "path_class_id": "high_impact_authority_path",
-                    "path_id": "exposure::defi-blockchain-security::codex::repo.contents",
-                    "risk_tier": "high",
-                    "score": 79,
-                    "workflow_id": "defi-blockchain-security",
-                    "workflow_title": "DeFi and Blockchain Protocol Security"
-                  }
-                ],
-                "node_counts": {
-                  "agent_identity": 32,
-                  "context_source": 9,
-                  "evidence_pack": 10,
-                  "mcp_namespace": 16,
-                  "workflow": 8
-                },
-                "path_class_counts": {
-                  "approval_required_tool_path": 3,
-                  "context_to_read_tool": 9,
-                  "context_to_write_tool": 23,
-                  "high_impact_authority_path": 24,
-                  "tenant_sensitive_context_path": 37
-                },
-                "total_edge_count": 296,
-                "total_node_count": 75,
-                "total_path_count": 96,
-                "workflow_count": 8
-              },
-              "failure_count": 0,
-              "incident_response_summary": {
-                "class_count": 8,
-                "decision_counts": {
-                  "contain_and_open_war_room": 3,
-                  "hold_for_forensics": 2,
-                  "kill_session_and_escalate_board": 3
-                },
-                "failure_count": 0,
-                "required_evidence_source_count": 15,
-                "response_phase_count": 6,
-                "sev0_class_count": 2,
-                "sev1_class_count": 5,
-                "source_failure_count": 0,
-                "workflow_count": 8
-              },
-              "pack_count": 31,
-              "pack_status_counts": {
-                "ready": 31
-              },
-              "question_count": 28,
-              "readiness_summary": {
-                "active_workflow_count": 8,
-                "average_score": 95.75,
-                "blocked_workflow_count": 0,
-                "decision_counts": {
-                  "pilot_guarded": 4,
-                  "scale_ready": 4
-                },
-                "failure_count": 0,
-                "manual_gate_workflow_count": 0,
-                "pilot_connector_workflows": [
-                  "artifact-cache-quarantine",
-                  "crypto-payment-security",
-                  "defi-blockchain-security"
-                ],
-                "pilot_guarded_workflow_count": 4,
-                "scale_ready_workflow_count": 4,
-                "source_failure_count": 0,
-                "workflow_count": 8
-              },
-              "section_count": 9,
-              "section_status_counts": {
-                "ready": 9
-              },
-              "status": "trust_center_ready",
-              "telemetry_summary": {
-                "decision_counts": {
-                  "telemetry_ready": 8
-                },
-                "default_state": "untrusted_until_required_trace_fields_present",
-                "failure_count": 0,
-                "prohibited_field_count": 8,
-                "redaction_tier_count": 4,
-                "required_attribute_count": 26,
-                "sensitive_opt_in_attribute_count": 7,
-                "signal_class_count": 9,
-                "telemetry_check_count": 8,
-                "workflow_count": 8
-              },
-              "threat_radar_summary": {
-                "confidence_counts": {
-                  "high": 12
-                },
-                "critical_or_high_signal_count": 11,
-                "feature_backlog_count": 7,
-                "horizon_counts": {
-                  "next": 2,
-                  "now": 10
-                },
-                "implemented_capability_count": 17,
-                "priority_counts": {
-                  "critical": 4,
-                  "high": 7,
-                  "medium": 1
-                },
-                "signal_count": 12,
-                "source_class_counts": {
-                  "frontier_lab_guidance": 3,
-                  "government_framework": 4,
-                  "government_guidance": 2,
-                  "industry_guidance": 3,
-                  "industry_standard": 3,
-                  "protocol_guidance": 1,
-                  "protocol_specification": 3,
-                  "vendor_architecture_guidance": 1
-                },
-                "source_reference_count": 20,
-                "top_signals": [
-                  {
-                    "id": "agent-protocol-handoff-boundaries",
-                    "priority": "critical",
-                    "strategic_score": 98,
-                    "title": "Agent handoffs are becoming a protocol trust boundary"
-                  },
-                  {
-                    "id": "indirect-prompt-injection-social-engineering",
-                    "priority": "critical",
-                    "strategic_score": 98,
-                    "title": "Indirect prompt injection is now social engineering against agents"
-                  },
-                  {
-                    "id": "mcp-token-passthrough-and-scope-creep",
-                    "priority": "critical",
-                    "strategic_score": 95,
-                    "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
-                  },
-                  {
-                    "id": "agent-identity-explosion",
-                    "priority": "critical",
-                    "strategic_score": 93,
-                    "title": "Agent identities are becoming a new non-human identity class"
-                  },
-                  {
-                    "id": "capability-based-agentic-risk-governance",
-                    "priority": "high",
-                    "strategic_score": 93,
-                    "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
-                  }
-                ]
-              }
             }
           }
         }
@@ -6155,7 +5011,7 @@
       "conformance_checks": [
         {
           "buyer_question": "Can SecurityRecipes prove which MCP resource a token was minted for before a tool call is allowed?",
-          "check_hash": "e19c2d8ee1f256ed2a6932e54cb2ea5a0ecbe805d9a59947c11bb53fdae81643",
+          "check_hash": "32f1adad802f0eaae311798ad76d77917ba12032ac7dc07eb163402710710e9e",
           "evidence_paths": [
             "data/evidence/mcp-authorization-conformance-pack.json"
           ],
@@ -6187,6 +5043,7 @@
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
+                  "client_metadata_evidence_required_count": 16,
                   "connector_count": 16,
                   "failure_count": 0,
                   "metadata_evidence_required_count": 16,
@@ -6194,6 +5051,7 @@
                     "approve_public_context_no_auth": 1,
                     "approve_with_gateway_attestation": 15
                   },
+                  "step_up_connector_count": 1,
                   "workflow_count": 8
                 }
               }
@@ -6270,6 +5128,7 @@
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
+                  "client_metadata_evidence_required_count": 16,
                   "connector_count": 16,
                   "failure_count": 0,
                   "metadata_evidence_required_count": 16,
@@ -6277,6 +5136,7 @@
                     "approve_public_context_no_auth": 1,
                     "approve_with_gateway_attestation": 15
                   },
+                  "step_up_connector_count": 1,
                   "workflow_count": 8
                 }
               }
@@ -6320,6 +5180,7 @@
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
+                  "client_metadata_evidence_required_count": 16,
                   "connector_count": 16,
                   "failure_count": 0,
                   "metadata_evidence_required_count": 16,
@@ -6327,6 +5188,7 @@
                     "approve_public_context_no_auth": 1,
                     "approve_with_gateway_attestation": 15
                   },
+                  "step_up_connector_count": 1,
                   "workflow_count": 8
                 }
               }
@@ -6439,6 +5301,7 @@
                     "deny_until_redesigned": 1,
                     "hold_for_authorization_evidence": 1
                   },
+                  "client_metadata_evidence_required_count": 16,
                   "connector_count": 16,
                   "failure_count": 0,
                   "metadata_evidence_required_count": 16,
@@ -6446,6 +5309,7 @@
                     "approve_public_context_no_auth": 1,
                     "approve_with_gateway_attestation": 15
                   },
+                  "step_up_connector_count": 1,
                   "workflow_count": 8
                 }
               }
@@ -6460,7 +5324,7 @@
       ],
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-authorization-2025-11-25",
-      "readiness_score": 100,
+      "readiness_score": 100.0,
       "ready_check_count": 4,
       "source_ids": [
         "mcp-authorization-2025-11-25",
@@ -6580,7 +5444,7 @@
         },
         {
           "buyer_question": "What happens when a tool changes after a previous approval?",
-          "check_hash": "2bed201dda618696622f332a6999b4a28aa69568ef4b598b747b6a0b17affed4",
+          "check_hash": "d7ec2af5b5b966523d3c7836816fcbf2bec1022fd6e09153e40da21e7b82bcc8",
           "evidence_paths": [
             "data/evidence/mcp-tool-surface-drift-pack.json"
           ],
@@ -6772,12 +5636,13 @@
               "status": "ready",
               "summaries": {
                 "eval_summary": {
-                  "average_score": 100,
+                  "average_score": 87,
                   "decision_counts": {
-                    "eval_ready": 7
+                    "eval_ready": 4,
+                    "hold_for_missing_evidence": 3
                   },
                   "failure_count": 0,
-                  "ready_scenario_count": 7,
+                  "ready_scenario_count": 4,
                   "scenario_count": 7,
                   "scenario_type_counts": {
                     "a2a_handoff_boundary": 1,
@@ -6787,7 +5652,7 @@
                     "retrieval_correctness": 1,
                     "source_attestation": 1
                   },
-                  "total_failed_checks": 0
+                  "total_failed_checks": 3
                 }
               }
             }
@@ -6802,7 +5667,7 @@
       ],
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "mcp-tooling-safety",
-      "readiness_score": 100,
+      "readiness_score": 100.0,
       "ready_check_count": 4,
       "source_ids": [
         "mcp-tool-annotations-2026-03-16",
@@ -6844,7 +5709,7 @@
       "conformance_checks": [
         {
           "buyer_question": "Is a discovered remote agent complete enough to enter an enterprise trust workflow?",
-          "check_hash": "29fe08d793b5651fdbd2d2d8a0c076c5bec6fda93fc66d61d5bfc01c40db0a0b",
+          "check_hash": "bfee70f2abac8e68f23ad39a9ce819291b05e7adc61306793f30ce2a4d2d2074",
           "evidence_paths": [
             "data/evidence/a2a-agent-card-trust-profile.json"
           ],
@@ -7147,7 +6012,7 @@
       ],
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "a2a-agent-discovery",
-      "readiness_score": 100,
+      "readiness_score": 100.0,
       "ready_check_count": 4,
       "source_ids": [
         "a2a-protocol-latest",
@@ -7376,35 +6241,41 @@
               "status": "ready",
               "summaries": {
                 "guard_summary": {
-                  "actionable_finding_count": 2,
-                  "blocking_source_count": 1,
+                  "actionable_finding_count": 90,
+                  "blocking_source_count": 2,
                   "blocking_sources": [
-                    "agentic-assurance-models"
+                    "agentic-assurance-models",
+                    "recipes"
                   ],
-                  "byte_count": 2967425,
+                  "byte_count": 22702265,
                   "decision_counts": {
-                    "allow_with_adversarial_examples": 4,
-                    "block_until_removed": 1,
-                    "pass": 4
+                    "allow_with_adversarial_examples": 1,
+                    "block_until_removed": 2,
+                    "hold_for_context_review": 1,
+                    "pass": 5
                   },
                   "disposition_counts": {
-                    "actionable_context_poisoning_risk": 2,
-                    "defensive_control_language": 12,
-                    "documented_adversarial_example": 23
+                    "actionable_context_poisoning_risk": 90,
+                    "defensive_control_language": 28,
+                    "documented_adversarial_example": 24
                   },
                   "failure_count": 0,
-                  "file_count": 168,
-                  "finding_count": 37,
-                  "held_source_count": 0,
-                  "held_sources": [],
+                  "file_count": 3478,
+                  "finding_count": 142,
+                  "held_source_count": 1,
+                  "held_sources": [
+                    "security-remediation-workflows"
+                  ],
                   "risk_family_counts": {
-                    "approval_bypass": 21,
-                    "prompt_injection": 3,
-                    "secret_exposure": 13
+                    "approval_bypass": 36,
+                    "hidden_instruction": 59,
+                    "prompt_injection": 9,
+                    "secret_exposure": 38
                   },
                   "severity_counts": {
-                    "critical": 16,
-                    "high": 21
+                    "critical": 47,
+                    "high": 36,
+                    "medium": 59
                   },
                   "source_count": 9
                 }
@@ -7442,26 +6313,27 @@
               "status": "ready",
               "summaries": {
                 "crosswalk_summary": {
-                  "capability_count": 27,
-                  "control_count": 29,
+                  "capability_count": 34,
+                  "control_count": 44,
                   "control_status_counts": {
-                    "ready": 29
+                    "ready": 44
                   },
-                  "covered_capability_count": 26,
-                  "distinct_mcp_tool_count": 37,
+                  "covered_capability_count": 34,
+                  "distinct_mcp_tool_count": 34,
                   "failure_count": 0,
                   "source_class_counts": {
-                    "frontier_lab_guidance": 3,
-                    "government_framework": 4,
+                    "frontier_lab_guidance": 4,
+                    "government_framework": 5,
                     "incident_intelligence": 1,
-                    "industry_standard": 4,
+                    "industry_framework": 1,
+                    "industry_standard": 5,
                     "protocol_guidance": 1,
                     "protocol_specification": 1
                   },
-                  "source_reference_count": 14,
-                  "standard_count": 5,
+                  "source_reference_count": 18,
+                  "standard_count": 8,
                   "standard_status_counts": {
-                    "ready": 5
+                    "ready": 8
                   },
                   "status": "standards_crosswalk_ready"
                 }
@@ -7473,9 +6345,8 @@
         },
         {
           "buyer_question": "Can a platform team or buyer inspect protocol conformance without reading implementation code?",
-          "check_hash": "c794e57c1d14d89335b88329e5466d7b74dde08df6405e1999ef9e54cfbf9d16",
+          "check_hash": "222e3d7f925a990c0bd2b1dcea1432044c133f474e1d3efa5a3d035c10d68653",
           "evidence_paths": [
-            "data/evidence/enterprise-trust-center-export.json",
             "data/evidence/agentic-control-plane-blueprint.json",
             "data/evidence/agentic-protocol-conformance-pack.json"
           ],
@@ -7490,7 +6361,6 @@
           ],
           "requirement": "Protocol conformance evidence should be exportable for procurement, platform review, and acquisition diligence.",
           "source_pack_keys": [
-            "enterprise_trust_center_export",
             "agentic_control_plane_blueprint"
           ],
           "source_pack_status": {
@@ -7535,404 +6405,6 @@
                   "workflow_count": 8
                 }
               }
-            },
-            "enterprise_trust_center_export": {
-              "failure_count": 0,
-              "path": "data/evidence/enterprise-trust-center-export.json",
-              "schema_version": "1.0",
-              "status": "ready",
-              "summaries": {
-                "export_summary": {
-                  "agent_card_trust_summary": {
-                    "default_state": "hold_for_agent_card_intake",
-                    "failure_count": 0,
-                    "intake_profile_count": 4,
-                    "required_agent_card_field_count": 8,
-                    "sample_decision_counts": {
-                      "allow_trusted_agent_card": 1,
-                      "kill_session_on_agent_card_secret": 1,
-                      "pilot_with_restricted_context": 1
-                    },
-                    "sample_evaluation_count": 3,
-                    "skill_risk_tier_counts": {
-                      "blocked": 1,
-                      "discovery": 1,
-                      "pilot": 1,
-                      "production": 1
-                    },
-                    "status": "agent_card_trust_profile_ready"
-                  },
-                  "bom_summary": {
-                    "active_workflow_count": 8,
-                    "agent_class_count": 5,
-                    "agent_identity_count": 32,
-                    "component_counts": {
-                      "agent_classes": 5,
-                      "agent_identities": 32,
-                      "evaluation_drills": 56,
-                      "evidence_artifacts": 9,
-                      "knowledge_sources": 4,
-                      "mcp_connectors": 16,
-                      "policy_components": 4,
-                      "workflows": 8
-                    },
-                    "connector_count": 16,
-                    "drift_trigger_count": 12,
-                    "evaluation_drill_count": 56,
-                    "failure_count": 0,
-                    "mcp_namespace_count": 16,
-                    "missing_identity_workflow_count": 0,
-                    "readiness_decision_counts": {
-                      "pilot_guarded": 4,
-                      "scale_ready": 4
-                    },
-                    "source_failure_count": 0,
-                    "workflow_count": 8
-                  },
-                  "category_counts": {
-                    "agent_protocols": 2,
-                    "agent_runtime": 2,
-                    "assurance": 2,
-                    "authorization": 1,
-                    "connector_trust": 3,
-                    "evals": 2,
-                    "identity": 2,
-                    "incident_response": 1,
-                    "inventory": 1,
-                    "risk": 3,
-                    "runtime_evidence": 2,
-                    "runtime_policy": 2,
-                    "secure_context": 5,
-                    "strategy": 3
-                  },
-                  "control_plane_acquisition_readiness": {
-                    "active_workflow_count": 8,
-                    "blueprint_score": 90,
-                    "distinct_mcp_tool_count": 36,
-                    "ready_layer_count": 10,
-                    "ready_source_pack_count": 25,
-                    "scale_ready_workflow_count": 4,
-                    "source_pack_count": 25,
-                    "status": "acquisition_diligence_ready",
-                    "total_layer_count": 10
-                  },
-                  "crosswalk_summary": {
-                    "capability_count": 27,
-                    "control_count": 29,
-                    "control_status_counts": {
-                      "ready": 29
-                    },
-                    "covered_capability_count": 26,
-                    "distinct_mcp_tool_count": 37,
-                    "failure_count": 0,
-                    "source_class_counts": {
-                      "frontier_lab_guidance": 3,
-                      "government_framework": 4,
-                      "incident_intelligence": 1,
-                      "industry_standard": 4,
-                      "protocol_guidance": 1,
-                      "protocol_specification": 1
-                    },
-                    "source_reference_count": 14,
-                    "standard_count": 5,
-                    "standard_status_counts": {
-                      "ready": 5
-                    },
-                    "status": "standards_crosswalk_ready"
-                  },
-                  "default_state": "not_trust_center_ready_until_all_required_packs_are_present_and_failure_free",
-                  "distinct_mcp_tool_count": 46,
-                  "entitlement_review_summary": {
-                    "access_mode_counts": {
-                      "approval_required": 3,
-                      "read": 56,
-                      "write_branch": 29,
-                      "write_ticket": 8
-                    },
-                    "approval_required_entitlement_count": 12,
-                    "distinct_identity_count": 32,
-                    "entitlement_count": 96,
-                    "failure_count": 0,
-                    "high_or_critical_entitlement_count": 12,
-                    "risk_counts": {
-                      "high": 12,
-                      "low": 56,
-                      "medium": 28
-                    },
-                    "status": "entitlement_review_ready",
-                    "tier_counts": {
-                      "privileged_action": 12,
-                      "read_context": 56,
-                      "write_scoped": 28
-                    },
-                    "workflow_count": 8
-                  },
-                  "exposure_graph_summary": {
-                    "decision_counts": {
-                      "architecture_review": 24,
-                      "guarded_rollout": 24,
-                      "hold_for_owner_review": 3,
-                      "standard_monitoring": 45
-                    },
-                    "distinct_agent_identity_count": 32,
-                    "distinct_context_source_count": 9,
-                    "distinct_mcp_namespace_count": 16,
-                    "edge_counts": {
-                      "delegates_mcp_scope": 96,
-                      "requests_mcp_namespace": 24,
-                      "requires_evidence_pack": 80,
-                      "retrieves_context": 64,
-                      "uses_identity": 32
-                    },
-                    "failure_count": 0,
-                    "highest_exposure_paths": [
-                      {
-                        "access": "approval_required",
-                        "agent_class": "claude",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::artifact-cache-quarantine::claude",
-                        "mcp_namespace": "registries.quarantine",
-                        "path_class_id": "approval_required_tool_path",
-                        "path_id": "exposure::artifact-cache-quarantine::claude::registries.quarantine",
-                        "risk_tier": "high",
-                        "score": 83,
-                        "workflow_id": "artifact-cache-quarantine",
-                        "workflow_title": "Artifact Cache and Mirror Quarantine"
-                      },
-                      {
-                        "access": "approval_required",
-                        "agent_class": "codex",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::artifact-cache-quarantine::codex",
-                        "mcp_namespace": "registries.quarantine",
-                        "path_class_id": "approval_required_tool_path",
-                        "path_id": "exposure::artifact-cache-quarantine::codex::registries.quarantine",
-                        "risk_tier": "high",
-                        "score": 83,
-                        "workflow_id": "artifact-cache-quarantine",
-                        "workflow_title": "Artifact Cache and Mirror Quarantine"
-                      },
-                      {
-                        "access": "approval_required",
-                        "agent_class": "devin",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::artifact-cache-quarantine::devin",
-                        "mcp_namespace": "registries.quarantine",
-                        "path_class_id": "approval_required_tool_path",
-                        "path_id": "exposure::artifact-cache-quarantine::devin::registries.quarantine",
-                        "risk_tier": "high",
-                        "score": 83,
-                        "workflow_id": "artifact-cache-quarantine",
-                        "workflow_title": "Artifact Cache and Mirror Quarantine"
-                      },
-                      {
-                        "access": "write_branch",
-                        "agent_class": "claude",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::crypto-payment-security::claude",
-                        "mcp_namespace": "repo.contents",
-                        "path_class_id": "high_impact_authority_path",
-                        "path_id": "exposure::crypto-payment-security::claude::repo.contents",
-                        "risk_tier": "high",
-                        "score": 79,
-                        "workflow_id": "crypto-payment-security",
-                        "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                      },
-                      {
-                        "access": "write_branch",
-                        "agent_class": "codex",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::crypto-payment-security::codex",
-                        "mcp_namespace": "repo.contents",
-                        "path_class_id": "high_impact_authority_path",
-                        "path_id": "exposure::crypto-payment-security::codex::repo.contents",
-                        "risk_tier": "high",
-                        "score": 79,
-                        "workflow_id": "crypto-payment-security",
-                        "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                      },
-                      {
-                        "access": "write_branch",
-                        "agent_class": "cursor",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::crypto-payment-security::cursor",
-                        "mcp_namespace": "repo.contents",
-                        "path_class_id": "high_impact_authority_path",
-                        "path_id": "exposure::crypto-payment-security::cursor::repo.contents",
-                        "risk_tier": "high",
-                        "score": 79,
-                        "workflow_id": "crypto-payment-security",
-                        "workflow_title": "Cryptocurrency and Crypto Payments Security"
-                      },
-                      {
-                        "access": "write_branch",
-                        "agent_class": "claude",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::defi-blockchain-security::claude",
-                        "mcp_namespace": "repo.contents",
-                        "path_class_id": "high_impact_authority_path",
-                        "path_id": "exposure::defi-blockchain-security::claude::repo.contents",
-                        "risk_tier": "high",
-                        "score": 79,
-                        "workflow_id": "defi-blockchain-security",
-                        "workflow_title": "DeFi and Blockchain Protocol Security"
-                      },
-                      {
-                        "access": "write_branch",
-                        "agent_class": "codex",
-                        "decision": "architecture_review",
-                        "identity_id": "sr-agent::defi-blockchain-security::codex",
-                        "mcp_namespace": "repo.contents",
-                        "path_class_id": "high_impact_authority_path",
-                        "path_id": "exposure::defi-blockchain-security::codex::repo.contents",
-                        "risk_tier": "high",
-                        "score": 79,
-                        "workflow_id": "defi-blockchain-security",
-                        "workflow_title": "DeFi and Blockchain Protocol Security"
-                      }
-                    ],
-                    "node_counts": {
-                      "agent_identity": 32,
-                      "context_source": 9,
-                      "evidence_pack": 10,
-                      "mcp_namespace": 16,
-                      "workflow": 8
-                    },
-                    "path_class_counts": {
-                      "approval_required_tool_path": 3,
-                      "context_to_read_tool": 9,
-                      "context_to_write_tool": 23,
-                      "high_impact_authority_path": 24,
-                      "tenant_sensitive_context_path": 37
-                    },
-                    "total_edge_count": 296,
-                    "total_node_count": 75,
-                    "total_path_count": 96,
-                    "workflow_count": 8
-                  },
-                  "failure_count": 0,
-                  "incident_response_summary": {
-                    "class_count": 8,
-                    "decision_counts": {
-                      "contain_and_open_war_room": 3,
-                      "hold_for_forensics": 2,
-                      "kill_session_and_escalate_board": 3
-                    },
-                    "failure_count": 0,
-                    "required_evidence_source_count": 15,
-                    "response_phase_count": 6,
-                    "sev0_class_count": 2,
-                    "sev1_class_count": 5,
-                    "source_failure_count": 0,
-                    "workflow_count": 8
-                  },
-                  "pack_count": 31,
-                  "pack_status_counts": {
-                    "ready": 31
-                  },
-                  "question_count": 28,
-                  "readiness_summary": {
-                    "active_workflow_count": 8,
-                    "average_score": 95.75,
-                    "blocked_workflow_count": 0,
-                    "decision_counts": {
-                      "pilot_guarded": 4,
-                      "scale_ready": 4
-                    },
-                    "failure_count": 0,
-                    "manual_gate_workflow_count": 0,
-                    "pilot_connector_workflows": [
-                      "artifact-cache-quarantine",
-                      "crypto-payment-security",
-                      "defi-blockchain-security"
-                    ],
-                    "pilot_guarded_workflow_count": 4,
-                    "scale_ready_workflow_count": 4,
-                    "source_failure_count": 0,
-                    "workflow_count": 8
-                  },
-                  "section_count": 9,
-                  "section_status_counts": {
-                    "ready": 9
-                  },
-                  "status": "trust_center_ready",
-                  "telemetry_summary": {
-                    "decision_counts": {
-                      "telemetry_ready": 8
-                    },
-                    "default_state": "untrusted_until_required_trace_fields_present",
-                    "failure_count": 0,
-                    "prohibited_field_count": 8,
-                    "redaction_tier_count": 4,
-                    "required_attribute_count": 26,
-                    "sensitive_opt_in_attribute_count": 7,
-                    "signal_class_count": 9,
-                    "telemetry_check_count": 8,
-                    "workflow_count": 8
-                  },
-                  "threat_radar_summary": {
-                    "confidence_counts": {
-                      "high": 12
-                    },
-                    "critical_or_high_signal_count": 11,
-                    "feature_backlog_count": 7,
-                    "horizon_counts": {
-                      "next": 2,
-                      "now": 10
-                    },
-                    "implemented_capability_count": 17,
-                    "priority_counts": {
-                      "critical": 4,
-                      "high": 7,
-                      "medium": 1
-                    },
-                    "signal_count": 12,
-                    "source_class_counts": {
-                      "frontier_lab_guidance": 3,
-                      "government_framework": 4,
-                      "government_guidance": 2,
-                      "industry_guidance": 3,
-                      "industry_standard": 3,
-                      "protocol_guidance": 1,
-                      "protocol_specification": 3,
-                      "vendor_architecture_guidance": 1
-                    },
-                    "source_reference_count": 20,
-                    "top_signals": [
-                      {
-                        "id": "agent-protocol-handoff-boundaries",
-                        "priority": "critical",
-                        "strategic_score": 98,
-                        "title": "Agent handoffs are becoming a protocol trust boundary"
-                      },
-                      {
-                        "id": "indirect-prompt-injection-social-engineering",
-                        "priority": "critical",
-                        "strategic_score": 98,
-                        "title": "Indirect prompt injection is now social engineering against agents"
-                      },
-                      {
-                        "id": "mcp-token-passthrough-and-scope-creep",
-                        "priority": "critical",
-                        "strategic_score": 95,
-                        "title": "MCP token audience, passthrough, and scope creep are control-plane risks"
-                      },
-                      {
-                        "id": "agent-identity-explosion",
-                        "priority": "critical",
-                        "strategic_score": 93,
-                        "title": "Agent identities are becoming a new non-human identity class"
-                      },
-                      {
-                        "id": "capability-based-agentic-risk-governance",
-                        "priority": "high",
-                        "strategic_score": 93,
-                        "title": "Capability-based risk scoring is becoming the enterprise gate for autonomous agents"
-                      }
-                    ]
-                  }
-                }
-              }
             }
           },
           "status": "ready",
@@ -7945,7 +6417,7 @@
       ],
       "effective_decision": "ready_for_enterprise_conformance",
       "id": "agentic-identity-and-handoff",
-      "readiness_score": 100,
+      "readiness_score": 100.0,
       "ready_check_count": 4,
       "source_ids": [
         "nist-ai-agent-standards-initiative-2026",
@@ -7995,68 +6467,64 @@
   "source_artifacts": {
     "agentic_protocol_conformance_profile": {
       "path": "data/assurance/agentic-protocol-conformance-profile.json",
-      "sha256": "ad0c65a5842c56a2801db94785b57d1ae73c87fb23a6da005901a01ce8b8e0c1"
+      "sha256": "48bc394829c1a083655d982e332950a1b3c2381a16e3cddf272c46488208b126"
     },
     "source_packs": {
       "a2a_agent_card_trust_profile": {
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
-        "sha256": "73774aeba0fd3934208e8a55c2a6fc3bdfbdff54f3632db8661a471c2fbe2ba9"
+        "sha256": "c9b4204579a430b1c53fca40b50f35b18b9bc474e56cff391a8d1c425326cc4e"
       },
       "agent_handoff_boundary_pack": {
         "path": "data/evidence/agent-handoff-boundary-pack.json",
-        "sha256": "10677181f519979bff5979ab955ba4ca511d3ea935026e4e328d6c1834a0aa1b"
+        "sha256": "df8717763883ff8b48dd89d92577b75578596d4a483ad845b2ac88126244152d"
       },
       "agent_identity_ledger": {
         "path": "data/evidence/agent-identity-delegation-ledger.json",
-        "sha256": "be4ea217448ffe5ddc732b5d27b6e8a66e4532335f1c2899bc04c0fdf6150b42"
+        "sha256": "2cd197d660a40486bd1fd5f0d26bc6a76d0fb6a91a023805494135235c826d4b"
       },
       "agentic_control_plane_blueprint": {
         "path": "data/evidence/agentic-control-plane-blueprint.json",
-        "sha256": "65e0505f72a688a135ebc2fc241ae2a921dd1df12b689bb2a1190dc82c54c6e7"
+        "sha256": "3fb6f2b7f9d4c49eabfe13660b8580d61cd55737f6aaa30654187008e6bfcdcf"
       },
       "agentic_red_team_drill_pack": {
         "path": "data/evidence/agentic-red-team-drill-pack.json",
-        "sha256": "f06b0824cd1fd68931a63152193469ab91ea480868e34dfde532ae94f229ba8b"
+        "sha256": "54627e38d67b719c1b33f96e3fb76c5f771f8dbbd716a0f3fee7eccb35d0c145"
       },
       "agentic_run_receipt_pack": {
         "path": "data/evidence/agentic-run-receipt-pack.json",
-        "sha256": "9491f190e32b41d2e14210c13a1a2e644e02e14d44d92a44d372ddbe335a417e"
+        "sha256": "9ca6af9cd3b36d38ce8b2e70a043a30c78776271bbe423aa219c86b7be68473f"
       },
       "context_egress_boundary_pack": {
         "path": "data/evidence/context-egress-boundary-pack.json",
-        "sha256": "22ee12cbf376252c5d8dd3c79c9e24f4cdbcc411bdb5aa14bae10994e6644833"
+        "sha256": "889f46d62a65b4d659d2375c83becc12771c62eeec84e95cf1636dd43d2ff31f"
       },
       "context_poisoning_guard_pack": {
         "path": "data/evidence/context-poisoning-guard-pack.json",
-        "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8"
-      },
-      "enterprise_trust_center_export": {
-        "path": "data/evidence/enterprise-trust-center-export.json",
-        "sha256": "53fd119b44425fb2971a4d0e5c21b2d8c73d48efebc43cc88d3a396c841494e2"
+        "sha256": "0548480006b567aee63cb21a126a69b966bd5787425aae14422bf1cda851c8f9"
       },
       "mcp_authorization_conformance_pack": {
         "path": "data/evidence/mcp-authorization-conformance-pack.json",
-        "sha256": "00906ed62b0c14b5dcda1a4eb8e6bddd740ee1026fa405ba5becf61f7505a367"
+        "sha256": "5497501fefe0800fed1671535b5f70fe6ec78e81d90e1c87fd58d1707b35df36"
       },
       "mcp_connector_intake_pack": {
         "path": "data/evidence/mcp-connector-intake-pack.json",
-        "sha256": "7f1f63920abe6121a181f17a856253db7e12bdc88cea16357e358b80d656f11f"
+        "sha256": "b690310927b5231559b4216a737bf33357a2a025f8288f82cb581645683ae6c3"
       },
       "mcp_tool_risk_contract": {
         "path": "data/evidence/mcp-tool-risk-contract.json",
-        "sha256": "db3a0be61433b2a193ccc5c80bd854ce626f06376c2f93057ae4c128ef03002a"
+        "sha256": "e9ff94a63d1d7cc2001e4f43f6724d5309d50984fb75a8212bcf6eb461f10684"
       },
       "mcp_tool_surface_drift_pack": {
         "path": "data/evidence/mcp-tool-surface-drift-pack.json",
-        "sha256": "397800a9a935c162067c29772bce422f79f52bf99444f6b64639f2b6f9673210"
+        "sha256": "4cb24b57f1a3f0ecd09f6a3f0eb884a453cfe1eea09800d61a447748962308d7"
       },
       "secure_context_eval_pack": {
         "path": "data/evidence/secure-context-eval-pack.json",
-        "sha256": "703980e458c89ea4984d23eaf56c12e7615ae3989e5a1290150d39460a55b995"
+        "sha256": "e67c7f7f6ddcc23437f144eb013b10b2b37e5b7d65a331e4911dc0ea7580377b"
       },
       "standards_crosswalk": {
         "path": "data/evidence/agentic-standards-crosswalk.json",
-        "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df"
+        "sha256": "9a30e486dae089b64fe7baebf914581dfd21b01e5f8a4ea32e35d802fc83c650"
       }
     }
   },

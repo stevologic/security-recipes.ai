@@ -46,13 +46,13 @@
     "dimensions": [
       {
         "id": "autonomy_exposure",
-        "max_score": 2,
+        "max_score": 2.0,
         "question": "How much can the agent plan or continue without direct human review?",
         "title": "Autonomy Exposure"
       },
       {
         "id": "authority_impact",
-        "max_score": 2,
+        "max_score": 2.0,
         "question": "Can the agent use delegated identity, privileged tools, external writes, production actions, or irreversible operations?",
         "title": "Authority and Impact"
       },
@@ -70,19 +70,19 @@
       },
       {
         "id": "exploit_maturity",
-        "max_score": 1,
+        "max_score": 1.0,
         "question": "Is the failure mode already represented in current OWASP, incident, red-team, or supply-chain evidence?",
         "title": "Exploit Maturity"
       },
       {
         "id": "control_confidence",
-        "max_score": 1,
+        "max_score": 1.0,
         "question": "How much confidence remains after current source-controlled controls, telemetry, approvals, and generated evidence are considered?",
         "title": "Control Confidence"
       },
       {
         "id": "business_materiality",
-        "max_score": 1,
+        "max_score": 1.0,
         "question": "Would this risk materially affect procurement, platform adoption, design-partner trust, or acquisition diligence?",
         "title": "Business Materiality"
       }
@@ -117,32 +117,32 @@
       },
       {
         "band": "high",
-        "minimum_score": 7,
+        "minimum_score": 7.0,
         "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
         "runtime_default_decision": "hold_for_human_security_review"
       },
       {
         "band": "medium",
-        "minimum_score": 4,
+        "minimum_score": 4.0,
         "remediation_sla": "30d remediation or documented acceptance; monitor with telemetry and run receipts",
         "runtime_default_decision": "allow_guarded_with_receipt"
       },
       {
         "band": "low",
-        "minimum_score": 0,
+        "minimum_score": 0.0,
         "remediation_sla": "track in posture backlog; review when scope, autonomy, identity, or tool reach changes",
         "runtime_default_decision": "allow_with_monitoring"
       }
     ]
   },
   "evidence_signal_summary": {
-    "actionable_context_poisoning_findings": 2,
+    "actionable_context_poisoning_findings": 90,
     "critical_or_high_skill_count": 1,
     "high_exposure_path_count": 24,
     "lethal_combination_workflow_count": 2,
     "pilot_connector_count": 5,
     "posture_decision": "guarded_enterprise_pilot",
-    "posture_score": 96,
+    "posture_score": 93,
     "runtime_action_class_count": 10,
     "top_risk_skill_count": 5,
     "workflow_count": 8,
@@ -250,7 +250,7 @@
       "title": "Identity and Privilege Abuse by an Agent"
     },
     {
-      "aivss_score": 8,
+      "aivss_score": 8.0,
       "first_control": "Demote retrieved context from instruction to cited evidence.",
       "owner": "Product Security",
       "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
@@ -260,7 +260,7 @@
       "title": "Agent Goal Hijack Through Poisoned Context"
     },
     {
-      "aivss_score": 8,
+      "aivss_score": 8.0,
       "first_control": "Pin skill, tool, and Agent Card hashes before execution.",
       "owner": "Supply Chain Security",
       "remediation_sla": "7d remediation plan; guarded pilot only with receipts, owner review, and rollback",
@@ -294,7 +294,7 @@
     {
       "aivss_score": 8.6,
       "aivss_vector": {
-        "authority_impact": 2,
+        "authority_impact": 2.0,
         "autonomy_exposure": 1.6,
         "business_materiality": 0.9,
         "context_data_sensitivity": 1.2,
@@ -330,13 +330,13 @@
       "scenario_id": "mcp_tool_misuse_lethal_session",
       "severity": "critical",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -385,13 +385,13 @@
       "scenario_id": "rogue_agent_shadow_mcp",
       "severity": "high",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -406,15 +406,15 @@
     {
       "aivss_score": 8.15,
       "aivss_vector": {
-        "authority_impact": 2,
+        "authority_impact": 2.0,
         "autonomy_exposure": 1.4,
-        "business_materiality": 1,
-        "context_data_sensitivity": 1,
+        "business_materiality": 1.0,
+        "context_data_sensitivity": 1.0,
         "control_confidence": 0.4,
         "exploit_maturity": 0.95,
         "tool_reachability": 1.4
       },
-      "business_materiality": 1,
+      "business_materiality": 1.0,
       "evidence_keys": [
         "mcp_stdio_launch_boundary_pack",
         "agent_skill_supply_chain_pack",
@@ -440,13 +440,13 @@
       "scenario_id": "unexpected_code_execution",
       "severity": "high",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -461,15 +461,15 @@
     {
       "aivss_score": 8.1,
       "aivss_vector": {
-        "authority_impact": 2,
+        "authority_impact": 2.0,
         "autonomy_exposure": 1.5,
-        "business_materiality": 1,
+        "business_materiality": 1.0,
         "context_data_sensitivity": 1.1,
         "control_confidence": 0.5,
         "exploit_maturity": 0.7,
         "tool_reachability": 1.3
       },
-      "business_materiality": 1,
+      "business_materiality": 1.0,
       "evidence_keys": [
         "agent_identity_delegation_ledger",
         "agentic_entitlement_review_pack",
@@ -497,13 +497,13 @@
       "scenario_id": "identity_privilege_abuse",
       "severity": "high",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -516,7 +516,7 @@
       "title": "Identity and Privilege Abuse by an Agent"
     },
     {
-      "aivss_score": 8,
+      "aivss_score": 8.0,
       "aivss_vector": {
         "authority_impact": 1.4,
         "autonomy_exposure": 1.7,
@@ -554,13 +554,13 @@
       "scenario_id": "agent_goal_hijack_context_poisoning",
       "severity": "high",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -573,14 +573,14 @@
       "title": "Agent Goal Hijack Through Poisoned Context"
     },
     {
-      "aivss_score": 8,
+      "aivss_score": 8.0,
       "aivss_vector": {
         "authority_impact": 1.7,
         "autonomy_exposure": 1.3,
         "business_materiality": 0.9,
-        "context_data_sensitivity": 1,
+        "context_data_sensitivity": 1.0,
         "control_confidence": 0.6,
-        "exploit_maturity": 1,
+        "exploit_maturity": 1.0,
         "tool_reachability": 1.5
       },
       "business_materiality": 0.9,
@@ -611,13 +611,13 @@
       "scenario_id": "agentic_supply_chain_skill_compromise",
       "severity": "high",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -667,13 +667,13 @@
       "scenario_id": "insecure_inter_agent_handoff",
       "severity": "high",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -722,13 +722,13 @@
       "scenario_id": "cascading_failure_runaway_agent",
       "severity": "high",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -746,7 +746,7 @@
         "authority_impact": 1.55,
         "autonomy_exposure": 1.2,
         "business_materiality": 0.8,
-        "context_data_sensitivity": 1,
+        "context_data_sensitivity": 1.0,
         "control_confidence": 0.6,
         "exploit_maturity": 0.7,
         "tool_reachability": 1.1
@@ -778,13 +778,13 @@
       "scenario_id": "human_agent_trust_exploitation",
       "severity": "medium",
       "source_signal_summary": {
-        "actionable_context_poisoning_findings": 2,
+        "actionable_context_poisoning_findings": 90,
         "critical_or_high_skill_count": 1,
         "high_exposure_path_count": 24,
         "lethal_combination_workflow_count": 2,
         "pilot_connector_count": 5,
         "posture_decision": "guarded_enterprise_pilot",
-        "posture_score": 96,
+        "posture_score": 93,
         "runtime_action_class_count": 10,
         "top_risk_skill_count": 5,
         "workflow_count": 8,
@@ -818,11 +818,11 @@
   "source_artifacts": {
     "agent_skill_supply_chain_pack": {
       "path": "data/evidence/agent-skill-supply-chain-pack.json",
-      "sha256": "24d383e04f71b30824689be2c6eb0b0817321ff677526aa2c2e349f73ee49450"
+      "sha256": "8c0cefe26d70e3f45d36d5c41838476bc56f3dd2a6bfaed822203221478830e2"
     },
     "agentic_action_runtime_pack": {
       "path": "data/evidence/agentic-action-runtime-pack.json",
-      "sha256": "557b1c53c422fdd256a085160fc2fa65609fc63113b627ea06140f671819b3f3"
+      "sha256": "43e60930fd455d8845f5edc40fb941eb64a0326820d74a4b0ca31d49fbf11abe"
     },
     "agentic_aivss_risk_scoring_profile": {
       "path": "data/assurance/agentic-aivss-risk-scoring-profile.json",
@@ -830,39 +830,39 @@
     },
     "agentic_app_intake_pack": {
       "path": "data/evidence/agentic-app-intake-pack.json",
-      "sha256": "8fc8923faca76a09dd198e5974e35252deaf10b1f112667419a72a74630f2ede"
+      "sha256": "51cba2c7da7756cdf9563a2230b9d64b8e4d334c463780e185e05becd42be93f"
     },
     "agentic_approval_receipt_pack": {
       "path": "data/evidence/agentic-approval-receipt-pack.json",
-      "sha256": "7df7c37c9332b498fb26a2fb622110ce5253acb954eb568c8d1a46132d5adc64"
+      "sha256": "1e4f4dafcbe8c372ab12c9019cef7098237620e1058cf0815a0a6f6c4006f381"
     },
     "agentic_exposure_graph": {
       "path": "data/evidence/agentic-exposure-graph.json",
-      "sha256": "467530248c4fe051cf942ff1f64e651b61731b7eeb9a5745c3b3777f5bf1eaba"
+      "sha256": "ac8b06971962afa5c6eac557919ac4254dbfdb925265d44261b6c9feb459b106"
     },
     "agentic_incident_response_pack": {
       "path": "data/evidence/agentic-incident-response-pack.json",
-      "sha256": "825e5a73eea1a59e54289ffa6513649822f9a0d1eebe37406f8cab155f5b4527"
+      "sha256": "ea10948748bc7f1ecb0d1fd925be924ca2336de54f44da01232957d449803ea2"
     },
     "agentic_posture_snapshot": {
       "path": "data/evidence/agentic-posture-snapshot.json",
-      "sha256": "19ea3207a783792db5674b67f721a41a7e2b4c98afced290c778e28c2fb037b0"
+      "sha256": "78b65012894970c87daa916d1a6c99332c13eb68b018d328ed9cceaf16f4af0a"
     },
     "agentic_standards_crosswalk": {
       "path": "data/evidence/agentic-standards-crosswalk.json",
-      "sha256": "ce4558c1c1e8a1ed547635f55c82b3628875c20bce7afe5daf30bd73f49473df"
+      "sha256": "9a30e486dae089b64fe7baebf914581dfd21b01e5f8a4ea32e35d802fc83c650"
     },
     "context_poisoning_guard_pack": {
       "path": "data/evidence/context-poisoning-guard-pack.json",
-      "sha256": "094fdee906164fdd32db3d2e5f4f30745f9602dc5283efda8da275c5886e91b8"
+      "sha256": "0548480006b567aee63cb21a126a69b966bd5787425aae14422bf1cda851c8f9"
     },
     "mcp_risk_coverage_pack": {
       "path": "data/evidence/mcp-risk-coverage-pack.json",
-      "sha256": "8726ae6bb7329c84783a4baf2ac54ca61e7fe418abb4f5a886ebfa46353f960f"
+      "sha256": "5cb266785ee4cfadfd71448cfce9cd85ff3386191331c77f0fa7b7a3f8133d2d"
     },
     "mcp_tool_risk_contract": {
       "path": "data/evidence/mcp-tool-risk-contract.json",
-      "sha256": "db3a0be61433b2a193ccc5c80bd854ce626f06376c2f93057ae4c128ef03002a"
+      "sha256": "e9ff94a63d1d7cc2001e4f43f6724d5309d50984fb75a8212bcf6eb461f10684"
     }
   },
   "source_references": [

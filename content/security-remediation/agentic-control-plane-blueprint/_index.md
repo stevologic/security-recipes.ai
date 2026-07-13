@@ -42,7 +42,7 @@ GRC reviewer, or reviewer can evaluate quickly:
 
 - Source model:
   `data/assurance/agentic-control-plane-blueprint.json`
-- Generator:
+- Generator: `scripts/generate_agentic_control_plane_blueprint.py`
 - Evidence pack:
   `data/evidence/agentic-control-plane-blueprint.json`
 - MCP tool:
@@ -50,6 +50,12 @@ GRC reviewer, or reviewer can evaluate quickly:
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_agentic_control_plane_blueprint.py
+python3 scripts/generate_agentic_control_plane_blueprint.py --check
+```
+
+{{< playbook-workflow >}}
 
 ## Why this matters
 

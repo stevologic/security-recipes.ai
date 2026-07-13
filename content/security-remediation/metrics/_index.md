@@ -132,6 +132,8 @@ What fraction of findings in scope actually reach the agent?
   frameworks, or deployment targets are supported today vs. the
   long tail.
 
+{{< playbook-workflow >}}
+
 ## What a good month looks like
 
 A single example report — the trends, not the numbers — that a
@@ -215,10 +217,6 @@ turn it back on until the root cause is understood:
   gets quietly destroyed.
 - **Reviewer approvals per hour.** Rewards rubber-stamping. If the
   program needs a throughput number, use findings closed.
-
-## Python remediation tool
-
-{{< remediation-tool domain="metrics" >}}
 
 ## See also
 

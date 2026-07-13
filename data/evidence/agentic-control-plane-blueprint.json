@@ -2,7 +2,7 @@
   "acquisition_readiness": {
     "active_workflow_count": 8,
     "blueprint_score": 90.0,
-    "distinct_mcp_tool_count": 36,
+    "distinct_mcp_tool_count": 25,
     "ready_layer_count": 10,
     "ready_source_pack_count": 25,
     "scale_ready_workflow_count": 4,
@@ -366,7 +366,7 @@
       ],
       "exit_value": "Shows the project is an enforceable control plane, not a static recipe catalog.",
       "id": "workflow_scope_and_default_deny",
-      "mcp_tool_count": 4,
+      "mcp_tool_count": 3,
       "mcp_tools": [
         "recipes_workflow_control_plane",
         "recipes_mcp_gateway_policy",
@@ -395,7 +395,7 @@
       ],
       "exit_value": "Creates a durable data moat around trusted agent context.",
       "id": "secure_context_provenance",
-      "mcp_tool_count": 6,
+      "mcp_tool_count": 4,
       "mcp_tools": [
         "recipes_secure_context_trust_pack",
         "recipes_secure_context_attestation_pack",
@@ -425,7 +425,7 @@
       ],
       "exit_value": "Directly maps to the MCP ecosystem problem large AI labs and platforms need solved.",
       "id": "mcp_authorization_and_connector_trust",
-      "mcp_tool_count": 4,
+      "mcp_tool_count": 3,
       "mcp_tools": [
         "recipes_mcp_connector_trust_pack",
         "recipes_mcp_connector_intake_pack",
@@ -455,7 +455,7 @@
       ],
       "exit_value": "Expands SecurityRecipes from MCP-safe tool use into the broader multi-agent interoperability control layer.",
       "id": "agent_handoff_and_protocol_boundaries",
-      "mcp_tool_count": 6,
+      "mcp_tool_count": 4,
       "mcp_tools": [
         "recipes_agent_handoff_boundary_pack",
         "recipes_a2a_agent_card_trust_profile",
@@ -487,7 +487,7 @@
       ],
       "exit_value": "Turns non-human identity for agents into a governed security category.",
       "id": "agent_identity_and_delegation",
-      "mcp_tool_count": 6,
+      "mcp_tool_count": 4,
       "mcp_tools": [
         "recipes_agent_identity_ledger",
         "recipes_agentic_entitlement_review_pack",
@@ -517,10 +517,11 @@
       ],
       "exit_value": "Covers the next agent supply-chain surface before most enterprises have tooling.",
       "id": "memory_skill_and_runtime_boundaries",
-      "mcp_tool_count": 4,
+      "mcp_tool_count": 3,
       "mcp_tools": [
         "recipes_agent_memory_boundary_pack",
-        "recipes_agent_skill_supply_chain_pack"
+        "recipes_agent_skill_supply_chain_pack",
+        "recipes_context_poisoning_guard_pack"
       ],
       "premium_path": "Hosted skill registry scanning, memory policy enforcement, vector-memory approvals, and drift replay tests.",
       "proof_question": "Can the buyer prevent persistent memory, vector recall, skills, hooks, and rules files from quietly inheriting agent authority?",
@@ -544,7 +545,7 @@
       ],
       "exit_value": "Makes security and privacy teams comfortable enough to approve agentic context at scale.",
       "id": "context_egress_and_data_boundaries",
-      "mcp_tool_count": 4,
+      "mcp_tool_count": 3,
       "mcp_tools": [
         "recipes_context_egress_boundary_pack",
         "recipes_secure_context_trust_pack",
@@ -636,7 +637,7 @@
       ],
       "exit_value": "Creates the board-grade severe-risk assurance layer frontier labs, agent hosts, and enterprise buyers need before approving high-impact autonomy.",
       "id": "catastrophic_risk_and_high_impact_autonomy",
-      "mcp_tool_count": 6,
+      "mcp_tool_count": 5,
       "mcp_tools": [
         "recipes_agentic_catastrophic_risk_annex",
         "recipes_agent_capability_risk_register",
@@ -718,7 +719,7 @@
         "hold_for_catastrophic_risk_review": 3,
         "kill_session_on_catastrophic_signal": 2
       },
-      "distinct_mcp_tool_count": 21,
+      "distinct_mcp_tool_count": 14,
       "failure_count": 0,
       "high_impact_action_class_count": 10,
       "ready_source_pack_count": 14,
@@ -780,7 +781,7 @@
         "ready": 44
       },
       "covered_capability_count": 34,
-      "distinct_mcp_tool_count": 52,
+      "distinct_mcp_tool_count": 34,
       "failure_count": 0,
       "source_class_counts": {
         "frontier_lab_guidance": 4,
@@ -973,35 +974,41 @@
       }
     },
     "context_poisoning": {
-      "actionable_finding_count": 14,
-      "blocking_source_count": 1,
+      "actionable_finding_count": 90,
+      "blocking_source_count": 2,
       "blocking_sources": [
-        "agentic-assurance-models"
+        "agentic-assurance-models",
+        "recipes"
       ],
-      "byte_count": 8105041,
+      "byte_count": 22702265,
       "decision_counts": {
-        "allow_with_adversarial_examples": 4,
-        "block_until_removed": 1,
-        "pass": 4
+        "allow_with_adversarial_examples": 1,
+        "block_until_removed": 2,
+        "hold_for_context_review": 1,
+        "pass": 5
       },
       "disposition_counts": {
-        "actionable_context_poisoning_risk": 14,
-        "defensive_control_language": 13,
-        "documented_adversarial_example": 53
+        "actionable_context_poisoning_risk": 90,
+        "defensive_control_language": 28,
+        "documented_adversarial_example": 24
       },
       "failure_count": 0,
-      "file_count": 274,
-      "finding_count": 80,
-      "held_source_count": 0,
-      "held_sources": [],
+      "file_count": 3478,
+      "finding_count": 142,
+      "held_source_count": 1,
+      "held_sources": [
+        "security-remediation-workflows"
+      ],
       "risk_family_counts": {
-        "approval_bypass": 46,
+        "approval_bypass": 36,
+        "hidden_instruction": 59,
         "prompt_injection": 9,
-        "secret_exposure": 25
+        "secret_exposure": 38
       },
       "severity_counts": {
-        "critical": 34,
-        "high": 46
+        "critical": 47,
+        "high": 36,
+        "medium": 59
       },
       "source_count": 9
     },
@@ -1014,8 +1021,8 @@
       "default_decision": "deny_unregistered_context",
       "failure_count": 0,
       "prohibited_data_class_count": 7,
-      "registered_byte_count": 8167175,
-      "registered_file_count": 275,
+      "registered_byte_count": 22702265,
+      "registered_file_count": 3478,
       "risk_family_counts": {
         "context_poisoning": 8,
         "memory_poisoning": 3,
@@ -1085,7 +1092,7 @@
   "source_artifacts": {
     "blueprint_profile": {
       "path": "data/assurance/agentic-control-plane-blueprint.json",
-      "sha256": "d69aec342b7bf5771d66a57a678b464a9b53e8a3db4109ff579835eb602cfab8"
+      "sha256": "8e60cebcd20cd251199899f9be42428b459a7b58817c12dcba5683a223f8b1bd"
     },
     "source_packs": [
       {
@@ -1112,7 +1119,7 @@
         "id": "agentic_assurance_pack",
         "path": "data/evidence/agentic-assurance-pack.json",
         "schema_version": "1.0",
-        "sha256": "541051b71524c51b91da88fb18bfc5884b1dded21886ecb895dd9d07e1e07a8f",
+        "sha256": "cf8d2bfe546aa1ff0ba13bcee1d3b9ad7268f8244eccba4645a479cbb35c38ff",
         "title": "Agentic Assurance Pack"
       },
       {
@@ -1130,7 +1137,7 @@
         "id": "agentic_entitlement_review_pack",
         "path": "data/evidence/agentic-entitlement-review-pack.json",
         "schema_version": "1.0",
-        "sha256": "c98567ccf7863f167820bceb946e9623c831ce8939462ff9fe09a3a13b4f25ac",
+        "sha256": "20c8ecee38a9617daf6391ab3735c641bd9731de083a9dd24a049b8c10871f9b",
         "title": "Agentic Entitlement Review Pack"
       },
       {
@@ -1175,7 +1182,7 @@
         "id": "agentic_readiness_scorecard",
         "path": "data/evidence/agentic-readiness-scorecard.json",
         "schema_version": "1.0",
-        "sha256": "171a76307cb1c678bbd4e66afa0cc75a98bf833472fc8fc20930c120ee819d0a",
+        "sha256": "93bc53ce3a5ff4d5ef492c9575cd87f21cef1353aea7f7b886f4b1e95a026add",
         "title": "Agentic Readiness Scorecard"
       },
       {
@@ -1184,7 +1191,7 @@
         "id": "agent_capability_risk_register",
         "path": "data/evidence/agent-capability-risk-register.json",
         "schema_version": "1.0",
-        "sha256": "badc69340a0f45d548da7e512f4a1931c24d003fc94da60a6bc0df0f604c48b3",
+        "sha256": "b2aa614ad1adea72509cbe55d4c5816191412d7c4389fc0768fc58cb0f529b28",
         "title": "Agent Capability Risk Register"
       },
       {
@@ -1202,7 +1209,7 @@
         "id": "agent_skill_supply_chain_pack",
         "path": "data/evidence/agent-skill-supply-chain-pack.json",
         "schema_version": "1.0",
-        "sha256": "117e1c4f7ce7a8b321a492ce1518eff191bc0889222ca5c4947492e734f94a83",
+        "sha256": "8c0cefe26d70e3f45d36d5c41838476bc56f3dd2a6bfaed822203221478830e2",
         "title": "Agent Skill Supply-Chain Pack"
       },
       {
@@ -1211,7 +1218,7 @@
         "id": "agent_handoff_boundary_pack",
         "path": "data/evidence/agent-handoff-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "a575340a947635bcd6b51a41b2648de38685906587c58f4e8db1c7520fb05ffc",
+        "sha256": "df8717763883ff8b48dd89d92577b75578596d4a483ad845b2ac88126244152d",
         "title": "Agent Handoff Boundary Pack"
       },
       {
@@ -1220,7 +1227,7 @@
         "id": "a2a_agent_card_trust_profile",
         "path": "data/evidence/a2a-agent-card-trust-profile.json",
         "schema_version": "1.0",
-        "sha256": "c3b4f4ae00b1444ca8e6807c303501b456f66795842f212aadf7111f2dfd1cb2",
+        "sha256": "c9b4204579a430b1c53fca40b50f35b18b9bc474e56cff391a8d1c425326cc4e",
         "title": "A2A Agent Card Trust Profile"
       },
       {
@@ -1229,7 +1236,7 @@
         "id": "agentic_system_bom",
         "path": "data/evidence/agentic-system-bom.json",
         "schema_version": "1.0",
-        "sha256": "65f17f06900af7042e6b6c16a706fb1225d954c4fc3ec6423e6de1939e743542",
+        "sha256": "360a4ae6e09a6105b9b215074e015237a24be414e5259d8dc291cf035efe0f2f",
         "title": "Agentic System BOM"
       },
       {
@@ -1238,7 +1245,7 @@
         "id": "agentic_run_receipt_pack",
         "path": "data/evidence/agentic-run-receipt-pack.json",
         "schema_version": "1.0",
-        "sha256": "024be26473b5d73ecccf22bed371acabbe2e02cd56a6ec152c577556f2f3d39b",
+        "sha256": "9ca6af9cd3b36d38ce8b2e70a043a30c78776271bbe423aa219c86b7be68473f",
         "title": "Agentic Run Receipt Pack"
       },
       {
@@ -1247,7 +1254,7 @@
         "id": "secure_context_trust_pack",
         "path": "data/evidence/secure-context-trust-pack.json",
         "schema_version": "1.0",
-        "sha256": "46dcf0f9afcb194c4b93fd8f911c5d9469927afbf56ed0813f9231a8ce91507d",
+        "sha256": "cc42ccfe8a5c5f3eb8c47c999147a860d2a7144df09de7071fe79f0c6da1bf2a",
         "title": "Secure Context Trust Pack"
       },
       {
@@ -1256,7 +1263,7 @@
         "id": "secure_context_attestation_pack",
         "path": "data/evidence/secure-context-attestation-pack.json",
         "schema_version": "1.0",
-        "sha256": "afbfc4221d228dbe77084e4a3b2a020c9b85aa86b934d413e8b5fa4bce14c268",
+        "sha256": "db765939c188a1511e1bb87766ad1c385f0ccd4ec70783c44117254db55bb283",
         "title": "Secure Context Attestation Pack"
       },
       {
@@ -1265,7 +1272,7 @@
         "id": "context_poisoning_guard_pack",
         "path": "data/evidence/context-poisoning-guard-pack.json",
         "schema_version": "1.0",
-        "sha256": "07ba1ea399fa5764f309f630463db2d353e4010ed4618fb1bfff2fffdd85b5fd",
+        "sha256": "0548480006b567aee63cb21a126a69b966bd5787425aae14422bf1cda851c8f9",
         "title": "Context Poisoning Guard Pack"
       },
       {
@@ -1274,7 +1281,7 @@
         "id": "context_egress_boundary_pack",
         "path": "data/evidence/context-egress-boundary-pack.json",
         "schema_version": "1.0",
-        "sha256": "660ce19358255360eb2c33d617a962e1e9b1621c827afe0028e1b24c62dde73d",
+        "sha256": "889f46d62a65b4d659d2375c83becc12771c62eeec84e95cf1636dd43d2ff31f",
         "title": "Context Egress Boundary Pack"
       },
       {
@@ -1283,7 +1290,7 @@
         "id": "agentic_threat_radar",
         "path": "data/evidence/agentic-threat-radar.json",
         "schema_version": "1.0",
-        "sha256": "29b5c143c7a8dee2bffdf0e4cbc79b9620aab1702fbd8e6429c1ce1866b41caf",
+        "sha256": "dd000d92d35d06442c760f1394063dcbe6ef86d8410166d28341cb401e156771",
         "title": "Agentic Threat Radar"
       },
       {
@@ -1292,7 +1299,7 @@
         "id": "agentic_standards_crosswalk",
         "path": "data/evidence/agentic-standards-crosswalk.json",
         "schema_version": "1.0",
-        "sha256": "3b75a3eedc5e9a5129c3ee52fa72a02cfa76629eb6ad7f8290943b2d911bb04f",
+        "sha256": "9a30e486dae089b64fe7baebf914581dfd21b01e5f8a4ea32e35d802fc83c650",
         "title": "Agentic Standards Crosswalk"
       },
       {
@@ -1301,7 +1308,7 @@
         "id": "agentic_measurement_probe_pack",
         "path": "data/evidence/agentic-measurement-probe-pack.json",
         "schema_version": "1.0",
-        "sha256": "ba3844622427e717661e34690d8661c0629a3a817d341bfd9bc78f3104913f7d",
+        "sha256": "5e1bbff4e0b8ce037579aa8d6afa94bc771658eec2b3c2dc86903b03c0628a1f",
         "title": "Agentic Measurement Probe Pack"
       },
       {
@@ -1310,7 +1317,7 @@
         "id": "agentic_catastrophic_risk_annex",
         "path": "data/evidence/agentic-catastrophic-risk-annex.json",
         "schema_version": "1.0",
-        "sha256": "d8e24bac8a627b00df04d2f525529afe6ae2101fef6785a494e24e9349dc6a43",
+        "sha256": "fb953545197f81a0610cac1e7b2c4b9725c49cf76edcba643d16a6655894f60d",
         "title": "Agentic Catastrophic Risk Annex"
       }
     ]
