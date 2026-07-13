@@ -33,13 +33,35 @@ delegations, provider-native subagents, and human approval bridges.
 - `data/evidence/agent-handoff-boundary-pack.json` - generated evidence
   pack for CI, MCP, platform review, and diligence.
 - MCP tools:
-  `recipes_agent_handoff_boundary_pack` and
+  `recipes_agent_handoff_boundary_pack`, paired with `recipes_playbook_plan` using playbook id `agent-handoff-boundary`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_agent_handoff_boundary_pack.py
+python3 scripts/generate_agent_handoff_boundary_pack.py --check
+```
 
 Evaluate a metadata-only A2A handoff:
 
+```bash
+python3 scripts/evaluate_agent_handoff_boundary_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --handoff-profile-id metadata-only \
+  --protocol a2a_task_delegation \
+  --target-trust-tier approved_vendor \
+  --agent-card-signed \
+  --authentication-scheme oauth2 \
+  --payload-field task_summary \
+  --payload-field workflow_id \
+  --payload-field source_ids \
+  --payload-field source_hashes \
+  --payload-field correlation_id \
+  --data-class curated_security_guidance \
+  --expect-decision allow_metadata_handoff
+```
+
+{{< playbook-workflow >}}
 
 ## Handoff profiles
 

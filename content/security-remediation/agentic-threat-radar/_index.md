@@ -38,7 +38,7 @@ guidance into a generated evidence pack:
 
 - Source registry:
   `data/intelligence/agentic-threat-radar-sources.json`
-- Generator:
+- Generator: `scripts/generate_agentic_threat_radar.py`
 - Evidence pack:
   `data/evidence/agentic-threat-radar.json`
 - MCP tool:
@@ -46,6 +46,12 @@ guidance into a generated evidence pack:
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_agentic_threat_radar.py
+python3 scripts/generate_agentic_threat_radar.py --check
+```
+
+{{< playbook-workflow >}}
 
 ## Current source-backed signals
 

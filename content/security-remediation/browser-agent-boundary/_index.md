@@ -47,6 +47,8 @@ about browser agents today. A hosted product can enforce the same
 decisions with browser isolation logs, origin policy, user confirmations,
 SIEM export, and signed run receipts.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/browser-agent-boundary-profile.json` - source contract
@@ -61,9 +63,73 @@ SIEM export, and signed run receipts.
 
 Evaluate safe public research:
 
+```bash
+python3 scripts/evaluate_browser_agent_boundary_decision.py \
+  --workspace-class-id public-research-browser \
+  --task-profile-id public-security-research \
+  --session-id browser-ci-public \
+  --run-id run-public \
+  --agent-id sr-browser-agent \
+  --tenant-id tenant-demo \
+  --user-intent "Collect cited public AI security references" \
+  --target-origin https://www.nist.gov \
+  --content-trust-level standards_body \
+  --auth-state logged_out \
+  --isolation-mode dedicated_agent_profile \
+  --action-class navigate \
+  --action-class read_page \
+  --action-class summarize \
+  --action-class copy_draft \
+  --data-class public_security_guidance \
+  --network-egress-policy origin_allowlist \
+  --browser-storage-policy ephemeral_or_scoped_storage \
+  --approval-state approved \
+  --telemetry-event-id telemetry-public \
+  --receipt-id receipt-public \
+  --control dedicated_agent_profile \
+  --control ephemeral_or_scoped_storage \
+  --control logged_out_by_default \
+  --control origin_allowlist \
+  --control metadata_only_telemetry \
+  --control run_receipt \
+  --expect-decision allow_isolated_browser_task
+```
 
 Evaluate a prompt-injected email attempting an external send:
 
+```bash
+python3 scripts/evaluate_browser_agent_boundary_decision.py \
+  --workspace-class-id email-document-browser-agent \
+  --task-profile-id email-document-triage \
+  --session-id browser-ci-kill \
+  --run-id run-kill \
+  --agent-id sr-browser-agent \
+  --tenant-id tenant-demo \
+  --user-intent "Summarize unread vendor emails" \
+  --target-origin https://mail.example.internal \
+  --content-trust-level email \
+  --auth-state scoped_agent_session \
+  --isolation-mode dedicated_agent_profile \
+  --action-class read_page \
+  --action-class draft_reply \
+  --data-class customer_pii \
+  --network-egress-policy origin_allowlist \
+  --browser-storage-policy ephemeral_or_scoped_storage \
+  --approval-state pending \
+  --telemetry-event-id telemetry-kill \
+  --receipt-id receipt-kill \
+  --control dedicated_agent_profile \
+  --control origin_allowlist \
+  --control no_raw_secret_capture \
+  --control draft_first_delivery \
+  --control human_confirmation_for_external_send \
+  --control metadata_only_telemetry \
+  --control run_receipt \
+  --control kill_switch \
+  --prompt-injection-signal \
+  --sends-external-message \
+  --expect-decision kill_session_on_browser_agent_signal
+```
 
 ## What is inside
 

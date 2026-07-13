@@ -26,6 +26,8 @@ lost its urgency; by the time someone got to it, three more had
 landed. This workflow drains the easy cases automatically so the
 humans only see the hard ones.
 
+{{< playbook-workflow >}}
+
 ## High-level flow
 
 ```mermaid
@@ -174,10 +176,6 @@ inputs evolve.
 - **Tools.** New ecosystem connectors (e.g. Rust `Cargo.lock`,
   PHP `composer.lock`) plug in as MCP servers without touching
   the orchestrator.
-
-## Python remediation tool
-
-{{< remediation-tool domain="vulnerable-dependencies" >}}
 
 ## Changelog
 

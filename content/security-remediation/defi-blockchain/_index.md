@@ -23,6 +23,8 @@ final protocol decisions.
 - **Oracle and scope guardrails** for manipulation-resistant execution.
 - **Bridge and multisig emergency runbooks** for containment.
 
+{{< playbook-workflow >}}
+
 ## Eligibility profile
 
 A finding is eligible when:
@@ -34,9 +36,9 @@ A finding is eligible when:
 
 ## Recipe catalog
 
-- [Smart-contract upgrade diff risk review]({{< relref "/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review" >}})
-- [DeFi oracle manipulation guardrails]({{< relref "/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails" >}})
-- [Bridge & multisig emergency response]({{< relref "/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
+- [Smart-contract upgrade diff risk review]({{< relref "/recipes/general/crypto-defi/smart-contract-upgrade-diff-risk-review" >}})
+- [DeFi oracle manipulation guardrails]({{< relref "/recipes/general/crypto-defi/defi-oracle-manipulation-guardrails" >}})
+- [Bridge & multisig emergency response]({{< relref "/recipes/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
 
 ## Guardrails
 
@@ -51,11 +53,7 @@ A finding is eligible when:
 - New protocol feature design.
 - Economic parameter tuning without risk committee sign-off.
 
-## Python remediation tool
-
-{{< remediation-tool domain="defi-blockchain" >}}
-
 ## See also
 
 - [Cryptocurrency & Crypto Payments Security]({{< relref "/security-remediation/crypto-payments" >}})
-- [Prompt catalog: Crypto + DeFi]({{< relref "/prompt-library/general/crypto-defi" >}})
+- [Prompt catalog: Crypto + DeFi]({{< relref "/recipes/general/crypto-defi" >}})

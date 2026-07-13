@@ -216,7 +216,7 @@
     ],
     "default_workflow_source_ids": [
       "security-remediation-workflows",
-      "prompt-library-recipes",
+      "recipes",
       "agentic-threat-intelligence",
       "workflow-control-plane",
       "mcp-gateway-policy",
@@ -237,16 +237,16 @@
   },
   "context_sources": [
     {
-      "id": "prompt-library-recipes",
+      "id": "recipes",
       "title": "Recipes",
       "kind": "markdown_corpus",
-      "root": "content/prompt-library",
+      "root": "content/recipes",
       "trust_tier": "tier_1_curated_guidance",
       "exposure": "public",
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
         "evidence_owner": "Security Engineering",
-        "escalation": "prompt-library-review"
+        "escalation": "recipes-review"
       },
       "retrieval_modes": [
         "recipes_search",
@@ -586,6 +586,7 @@
       "title": "Generated Agentic Evidence Packs",
       "kind": "generated_evidence",
       "root": "data/evidence",
+      "scan_root": "data/evidence/workflow-control-plane-report.json",
       "trust_tier": "tier_2_policy_context",
       "exposure": "public",
       "owner": {

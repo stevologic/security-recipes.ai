@@ -37,11 +37,13 @@ generated evidence pack that says whether a source passes, contains only
 documented adversarial examples, should hold for review, or should be
 blocked until fixed.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source profile:
   `data/assurance/context-poisoning-guard-profile.json`
-- Generator:
+- Generator: `scripts/generate_context_poisoning_guard_pack.py`
 - Evidence pack:
   `data/evidence/context-poisoning-guard-pack.json`
 - MCP tool:
@@ -49,6 +51,10 @@ blocked until fixed.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_context_poisoning_guard_pack.py
+python3 scripts/generate_context_poisoning_guard_pack.py --check
+```
 
 ## What it scans
 
@@ -114,7 +120,7 @@ Get actionable critical findings for one source:
 
 ```json
 {
-  "source_id": "prompt-library-recipes",
+  "source_id": "recipes",
   "severity": "critical",
   "actionable_only": true
 }

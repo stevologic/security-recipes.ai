@@ -39,22 +39,53 @@ The MCP Authorization Conformance pack answers those questions in a
 machine-readable artifact and exposes a runtime evaluator for pre-call
 authorization decisions.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source profile:
   `data/assurance/mcp-authorization-conformance-profile.json`
-- Generator:
+- Generator: `scripts/generate_mcp_authorization_conformance_pack.py`
 - Evidence pack:
   `data/evidence/mcp-authorization-conformance-pack.json`
-- Runtime evaluator:
+- Runtime evaluator: `scripts/evaluate_mcp_authorization_decision.py`
 - MCP tools:
-  `recipes_mcp_authorization_conformance_pack` and
+  `recipes_mcp_authorization_conformance_pack`, paired with `recipes_playbook_plan` using playbook id `mcp-authorization-conformance`.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_mcp_authorization_conformance_pack.py
+python3 scripts/generate_mcp_authorization_conformance_pack.py --check
+```
 
 Evaluate a runtime authorization request:
 
+```bash
+python3 scripts/evaluate_mcp_authorization_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --connector-id repository-contents \
+  --namespace repo.contents \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --run-id ci-allow \
+  --client-id https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-url https://agent.security-recipes.ai/client-metadata/codex.json \
+  --client-metadata-document-validated \
+  --authorization-server-discovery-method www_authenticate \
+  --protected-resource-metadata-url https://mcp.security-recipes.ai/.well-known/oauth-protected-resource \
+  --requested-access-mode write_branch \
+  --resource-indicator https://mcp.security-recipes.ai/mcp \
+  --token-audience https://mcp.security-recipes.ai/mcp \
+  --token-issuer https://auth.security-recipes.ai \
+  --token-expires-at 2099-01-01T00:15:00Z \
+  --token-scope repo.contents:write_branch \
+  --scope-challenge repo.contents:write_branch \
+  --consent-record-id consent-ci \
+  --session-id session-ci \
+  --correlation-id corr-ci \
+  --gateway-policy-hash sha256:ci-policy \
+  --expect-decision allow_authorized_mcp_request
+```
 
 ## Decision model
 
@@ -154,8 +185,14 @@ recipes_mcp_authorization_conformance_pack(
 )
 ```
 
-Evaluate one runtime request:
+Plan one runtime request:
 
+```text
+recipes_playbook_plan(
+  playbook_id="mcp-authorization-conformance",
+  finding="Repository-write MCP request needs OAuth and authorization conformance review."
+)
+```
 
 ## See also
 

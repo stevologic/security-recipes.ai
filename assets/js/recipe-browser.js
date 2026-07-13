@@ -103,7 +103,7 @@
       '- recipes_get: retrieve the selected recipe by slug, path, URL, or source_file.',
       '- recipes_match_finding: suggest best-fit recipes for one concrete finding.',
       '- recipes_quality_report: inspect quality tiers and find recipes missing world-class signals.',
-      '- recipes_cve_catalog_info: inspect the generated high and critical CVE catalog.',
+      '- recipes_cve_catalog_info: inspect the generated medium, high, and critical CVE catalog.',
       '- recipes_cve_search: search CVEs by identifier, title, severity, year, or CISA KEV status.',
       '- recipes_cve_get: retrieve one complete CVE remediation recipe by identifier.',
       '',
@@ -190,6 +190,7 @@
     'cve': 'CVE',
     'classic-defaults': 'Defaults',
     'compliance-standards': 'Compliance',
+    'code-hygiene': 'Code Hygiene',
     'crypto-defi': 'Crypto/DeFi'
   };
 
@@ -367,7 +368,7 @@
         var cveSeverityValue = explicitHandoff ? 'all' : (cveSeverity ? cveSeverity.value : (severityFilter ? severityFilter.value : 'all'));
         var cveYearValue = explicitHandoff ? 'all' : (cveYear ? cveYear.value : 'all');
         var cveKevValue = explicitHandoff ? 'all' : (cveKev ? cveKev.value : 'all');
-        if (options.shortcut === 'critical' || options.shortcut === 'high') cveSeverityValue = options.shortcut;
+        if (options.shortcut === 'critical' || options.shortcut === 'high' || options.shortcut === 'medium') cveSeverityValue = options.shortcut;
         if (options.shortcut === 'kev') cveKevValue = 'yes';
         if (query) url.searchParams.set('q', query);
         if (cveSeverityValue !== 'all') url.searchParams.set('severity', cveSeverityValue);
@@ -401,7 +402,7 @@
         var year = mount.querySelector('[data-cve-year]');
         var kev = mount.querySelector('[data-cve-kev]');
         var requestedQuery = String(params.get('q') || query || '').slice(0, 160);
-        var requestedSeverity = allowed(params.get('severity') || 'all', ['all', 'critical', 'high'], 'all');
+        var requestedSeverity = allowed(params.get('severity') || 'all', ['all', 'critical', 'high', 'medium'], 'all');
         var requestedYear = /^\d{4}$/.test(params.get('year') || '') ? params.get('year') : 'all';
         var requestedKev = allowed(params.get('kev') || 'all', ['all', 'yes', 'no'], 'all');
         if (input) input.value = requestedQuery;

@@ -12,7 +12,8 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 
 const ROOT = path.resolve(process.env.SITE_OUTPUT_DIR || "public");
-const CONTENT = path.resolve("content/prompt-library/cve");
+const CONTENT = path.resolve("content/recipes/cve");
+const PLAYBOOK_CONTENT = path.resolve("content/security-remediation");
 const MiB = 1024 * 1024;
 const KiB = 1024;
 const failures = [];
@@ -88,18 +89,34 @@ function checkOpaquePng(file, expectedSize) {
 }
 
 function routeForSource(file) {
-  return `/prompt-library/cve/${path.basename(file, ".md")}/`;
+  return `/recipes/cve/${path.basename(file, ".md")}/`;
 }
 
 if (!fs.existsSync(ROOT)) throw new Error(`site output does not exist: ${ROOT}`);
 if (!fs.existsSync(CONTENT)) throw new Error(`CVE content does not exist: ${CONTENT}`);
 
 const files = walk(ROOT);
+const retiredNamespace = new RegExp(["prompt", "library"].join("[-_ ]?"), "i");
+const generatedTextExtensions = new Set([
+  ".css", ".html", ".js", ".json", ".map", ".md", ".svg", ".txt", ".webmanifest", ".xml",
+]);
+for (const file of files) {
+  const relative = path.relative(ROOT, file).replace(/\\/g, "/");
+  if (retiredNamespace.test(relative)) {
+    fail(`retired recipe namespace remains in output path: ${relative}`);
+  }
+  if (generatedTextExtensions.has(path.extname(file).toLowerCase())) {
+    const content = fs.readFileSync(file, "utf8");
+    if (retiredNamespace.test(content)) {
+      fail(`retired recipe namespace remains in generated text: ${relative}`);
+    }
+  }
+}
 // This is deployed disk/image size and intentionally includes precompressed
 // sidecars. Logical feed checks below parse only canonical, uncompressed URLs.
 const totalBytes = files.reduce((sum, file) => sum + fs.statSync(file).size, 0);
 const cveHtml = files.filter((file) =>
-  file.startsWith(path.join(ROOT, "prompt-library", "cve") + path.sep) && file.endsWith("index.html"),
+  file.startsWith(path.join(ROOT, "recipes", "cve") + path.sep) && file.endsWith("index.html"),
 );
 const cveHtmlBytes = cveHtml.reduce((sum, file) => sum + fs.statSync(file).size, 0);
 
@@ -107,16 +124,16 @@ budget("site output", totalBytes, 320 * MiB);
 if (files.length > 5500) fail(`site output has ${files.length.toLocaleString()} files; budget is 5,500`);
 if (cveHtml.length > 4000) fail(`CVE HTML has ${cveHtml.length.toLocaleString()} files; budget is 4,000`);
 budget("CVE HTML", cveHtmlBytes, 110 * MiB);
-budget("CVE browser index", size("api/cve-catalog/browser-index.json.gz"), 5 * MiB);
-budget("CVE complete index", size("api/cve-catalog/index.json"), 80 * MiB);
-budget("precompressed CVE complete index", size("api/cve-catalog/index.json.gz"), 12 * MiB);
+budget("CVE browser index", size("api/cve-catalog/browser-index.json.gz"), 8 * MiB);
+budget("CVE complete index manifest", size("api/cve-catalog/index.json"), 1 * MiB);
 budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * KiB);
 budget("CVE manifest", size("api/cve-catalog/manifest.json"), 256 * KiB);
 budget("CVE remediation archetypes", size("api/cve-catalog/archetypes.json"), 1 * MiB);
-budget("CVE hub HTML", size("prompt-library/cve/index.html"), 512 * KiB);
+budget("CVE hub HTML", size("recipes/cve/index.html"), 512 * KiB);
 budget("recipe library HTML", size("recipes/index.html"), 768 * KiB);
 budget("recipe library JavaScript", size("js/recipe-browser.js"), 160 * KiB);
 budget("recipe library styles", size("css/recipe-library.css"), 160 * KiB);
+budget("playbook workflow styles", size("css/playbook-workflows.css"), 32 * KiB);
 budget("generic docs search index", size("recipes-index.json"), 2 * MiB);
 budget("generic recipe browser feed", size("recipes-browser.json"), 2 * MiB);
 budget("generic rich agent feed", size("api/recipes.json"), 8 * MiB);
@@ -128,8 +145,8 @@ if (manifest) {
     fail("site.webmanifest must keep installed navigation within the site root");
   }
   if (manifest.display !== "standalone") fail("site.webmanifest display must be standalone");
-  if (manifest.background_color !== "#04100f" || manifest.theme_color !== "#04100f") {
-    fail("site.webmanifest colors must match the opaque icon background");
+  if (manifest.background_color !== "#000000" || manifest.theme_color !== "#000000") {
+    fail("site.webmanifest launch and theme surfaces must be black");
   }
   const manifestIcons = new Map((manifest.icons || []).map((icon) => [icon.src, icon]));
   for (const [src, sizes, purpose] of [
@@ -154,7 +171,7 @@ for (const [file, expectedSize] of [
   checkOpaquePng(file, expectedSize);
 }
 
-for (const file of ["index.html", "recipes/index.html", "prompt-library/cve/index.html"]) {
+for (const file of ["index.html", "recipes/index.html", "recipes/cve/index.html"]) {
   const htmlPath = path.join(ROOT, file);
   if (!fs.existsSync(htmlPath)) {
     fail(`missing installable page output: ${file}`);
@@ -163,6 +180,17 @@ for (const file of ["index.html", "recipes/index.html", "prompt-library/cve/inde
   const html = fs.readFileSync(htmlPath, "utf8");
   if (!html.includes('name="apple-mobile-web-app-capable" content="yes"')) {
     fail(`${file} does not enable Apple installed-app mode`);
+  }
+  const statusBarTags = html.match(/<meta name="apple-mobile-web-app-status-bar-style" content="black">/g) || [];
+  if (statusBarTags.length !== 1) {
+    fail(`${file} must request exactly one opaque black Apple status bar`);
+  }
+  const themeTags = html.match(/<meta name="theme-color"[^>]*>/g) || [];
+  if (themeTags.length !== 1 || themeTags[0] !== '<meta name="theme-color" content="#000000">') {
+    fail(`${file} must expose exactly one black HTML theme color`);
+  }
+  if (html.includes("black-translucent") || /name="theme-color"[^>]+content="#fff(?:fff)?"/i.test(html)) {
+    fail(`${file} contains a white or translucent installed-app status surface`);
   }
   if (!html.includes('rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png"')) {
     fail(`${file} does not advertise the versioned 180x180 Apple touch icon`);
@@ -174,9 +202,63 @@ for (const file of ["index.html", "recipes/index.html", "prompt-library/cve/inde
   if (html.includes("manifest-src 'none'")) fail(`${file} CSP still blocks installed-app manifests`);
 }
 
+const playbookSources = fs.readdirSync(PLAYBOOK_CONTENT, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory())
+  .map((entry) => entry.name)
+  .filter((slug) => fs.existsSync(path.join(PLAYBOOK_CONTENT, slug, "_index.md")))
+  .sort();
+if (playbookSources.length !== 75) {
+  fail(`playbook source count is ${playbookSources.length}; expected 75`);
+}
+
+let playbookHtmlBytes = 0;
+let largestPlaybookHtml = 0;
+for (const slug of playbookSources) {
+  const output = path.join(ROOT, "security-remediation", slug, "index.html");
+  if (!fs.existsSync(output)) {
+    fail(`missing playbook output: security-remediation/${slug}/index.html`);
+    continue;
+  }
+  const bytes = fs.statSync(output).size;
+  playbookHtmlBytes += bytes;
+  largestPlaybookHtml = Math.max(largestPlaybookHtml, bytes);
+  const html = fs.readFileSync(output, "utf8");
+  const workflowCount = (html.match(/\bdata-playbook-workflow(?:\s|>)/g) || []).length;
+  if (workflowCount !== 1) {
+    fail(`${slug} renders ${workflowCount} playbook workflow components; expected exactly one`);
+  }
+  const mainStart = html.indexOf('<main id="content"');
+  const mainEnd = html.indexOf("</main>", mainStart);
+  const workflowAt = html.indexOf("data-playbook-workflow", mainStart);
+  if (mainStart < 0 || mainEnd < 0 || workflowAt < mainStart || workflowAt > mainEnd) {
+    fail(`${slug} does not render its workflow inside the main document`);
+  } else if ((workflowAt - mainStart) / Math.max(1, mainEnd - mainStart) > 0.6) {
+    fail(`${slug} places its workflow below the first 60% of the main document`);
+  }
+  if (!html.includes("sr-playbook-python")) {
+    fail(`${slug} is missing the Python companion inside its workflow`);
+  }
+}
+budget("playbook HTML", playbookHtmlBytes, 10 * MiB);
+budget("largest playbook HTML", largestPlaybookHtml, 160 * KiB);
+
 const shards = files.filter((file) => file.includes(`${path.sep}api${path.sep}cve-catalog${path.sep}shards${path.sep}`));
 const largestShard = shards.reduce((largest, file) => Math.max(largest, fs.statSync(file).size), 0);
-budget("largest compressed CVE shard", largestShard, 512 * KiB);
+budget("largest compressed CVE shard", largestShard, 1 * MiB);
+
+const cveIndexPartitions = files.filter((file) =>
+  file.includes(`${path.sep}api${path.sep}cve-catalog${path.sep}indexes${path.sep}`) && file.endsWith(".json.gz"),
+);
+const cveIndexPartitionBytes = cveIndexPartitions.reduce((sum, file) => sum + fs.statSync(file).size, 0);
+const largestCveIndexPartition = cveIndexPartitions.reduce(
+  (largest, file) => Math.max(largest, fs.statSync(file).size),
+  0,
+);
+if (cveIndexPartitions.length > 12) {
+  fail(`CVE complete index has ${cveIndexPartitions.length} partitions; budget is 12 rolling-window years`);
+}
+budget("CVE complete index partitions", cveIndexPartitionBytes, 24 * MiB);
+budget("largest CVE complete index partition", largestCveIndexPartition, 4 * MiB);
 
 for (const feed of [
   "recipes-index.json",

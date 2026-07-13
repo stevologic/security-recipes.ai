@@ -47,6 +47,8 @@ program has already declared, opens PRs against the affected
 Dockerfiles and manifests, and stops cleanly when the change
 escapes its blast radius.
 
+{{< playbook-workflow >}}
+
 ## High-level flow
 
 ```mermaid
@@ -258,10 +260,6 @@ deploys. A human reviewer is the gate between "PR merged" and
   vendor-internal) plug in via MCP. The classifier consumes
   structured findings; the agent doesn't know which scanner
   produced them.
-
-## Python remediation tool
-
-{{< remediation-tool domain="base-images" >}}
 
 ## See also
 

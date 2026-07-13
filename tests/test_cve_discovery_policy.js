@@ -8,7 +8,7 @@ const feeds = require("../lib/feeds");
 
 test("development CVE Markdown is excluded from generic discovery feeds", () => {
   const cvePages = contentIndex.getIndex().pages.filter(
-    (page) => page.sourcePath.startsWith("prompt-library/cve/") && !page.isSection,
+    (page) => page.sourcePath.startsWith("recipes/cve/") && !page.isSection,
   );
   const stable = cvePages.filter((page) => page.fm.maturity === "stable");
   const development = cvePages.filter((page) => page.fm.maturity !== "stable");

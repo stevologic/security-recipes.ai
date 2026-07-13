@@ -70,7 +70,7 @@ function buildSidebarTree() {
   // remaining sections alphabetically — the raw front-matter weights were
   // tuned for Hextra menus and produce a scrambled order on their own.
   const topOrder = [
-    "prompt-library", "security-remediation", "agents", "mcp-servers",
+    "recipes", "security-remediation", "agents", "mcp-servers",
     "docs", "quickstart", "how-to-use", "fundamentals", "claude",
     "github_copilot", "cursor", "codex", "devin", "automation", "contribute",
   ];
@@ -159,6 +159,7 @@ module.exports = function (eleventyConfig) {
 
   // Hugo shortcode translation runs before markdown rendering.
   const preprocess = createPreprocessor(md);
+  eleventyConfig.addWatchTarget("./data/remediation_suite/playbooks.json");
   eleventyConfig.addPreprocessor("hugo-shortcodes", "md", (data, content) => {
     const sourcePath = (data.page.inputPath || "")
       .replace(/\\/g, "/")
@@ -401,20 +402,6 @@ module.exports = function (eleventyConfig) {
     },
     render: (data) => {
       const target = feeds.absURL(data.aliasEntry.target);
-      return (
-        `<!DOCTYPE html><html lang="en-us"><head>` +
-        `<title>${target}</title><link rel="canonical" href="${target}">` +
-        `<meta charset="utf-8"><meta http-equiv="refresh" content="0; url=${target}">` +
-        `</head></html>`
-      );
-    },
-  });
-
-  // /prompt-library/ -> /recipes/ redirect stub (Hugo alias parity).
-  eleventyConfig.addTemplate("prompt-library-redirect.11ty.js", {
-    data: () => ({ permalink: "/prompt-library/index.html", eleventyExcludeFromCollections: true }),
-    render: () => {
-      const target = feeds.absURL("/recipes/");
       return (
         `<!DOCTYPE html><html lang="en-us"><head>` +
         `<title>${target}</title><link rel="canonical" href="${target}">` +

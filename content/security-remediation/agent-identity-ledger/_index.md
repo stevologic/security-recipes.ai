@@ -44,6 +44,8 @@ This makes AI easier for adopters because the model does not have to
 remember identity policy. The host, gateway, or orchestrator can load
 one JSON artifact and make a default-deny decision.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The identity layer lives in two generated artifacts and one MCP tool:
@@ -56,6 +58,10 @@ The identity layer lives in two generated artifacts and one MCP tool:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_agent_identity_ledger.py
+python3 scripts/generate_agent_identity_ledger.py --check
+```
 
 CI runs the same `--check` command after the workflow control plane,
 gateway policy pack, and assurance pack checks.

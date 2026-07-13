@@ -52,6 +52,8 @@ Bumping the lockfile evicts the compromised version from
 sitting in seventy build caches and a hundred laptops. This
 workflow targets the eviction.
 
+{{< playbook-workflow >}}
+
 ## High-level flow
 
 ```mermaid
@@ -267,10 +269,6 @@ acknowledged it — that is by design.
 - [Reviewer Playbook]({{< relref "/security-remediation/reviewer-playbook" >}})
   — what a reviewer looks for in a quarantine action's audit
   record.
-
-## Python remediation tool
-
-{{< remediation-tool domain="artifact-cache-purge" >}}
 
 ## Changelog
 

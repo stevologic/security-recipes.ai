@@ -38,6 +38,8 @@ This makes AI easier for enterprises because SOC, AI platform, security
 engineering, GRC, and procurement teams can inspect one machine-readable
 artifact instead of reverse-engineering a failure from chat transcripts.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/agentic-incident-response-profile.json` - source
@@ -53,6 +55,28 @@ artifact instead of reverse-engineering a failure from chat transcripts.
 
 Evaluate a token passthrough incident:
 
+```bash
+python3 scripts/evaluate_agentic_incident_response_decision.py \
+  --incident-id inc-ci-token \
+  --workflow-id vulnerable-dependency-remediation \
+  --run-id run-ci-token \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-ci-token \
+  --incident-class-id mcp-authorization-confused-deputy \
+  --severity-signal sev1 \
+  --source-event-id event-authz-1 \
+  --receipt-id receipt-ci-token \
+  --context-source-id workflow-manifest \
+  --context-source-hash hash-ci \
+  --mcp-namespace repo.contents \
+  --authorization-decision allow_authorized_mcp_request \
+  --containment-action-id freeze_mcp_namespace_or_scope \
+  --indicator raw_token_passthrough \
+  --token-passthrough \
+  --expect-decision kill_session_and_escalate_board
+```
 
 ## What is inside
 

@@ -46,22 +46,53 @@ The Model Provider Routing Gate makes that decision inspectable. It is a
 provider-neutral policy pack that enterprises can fork into their own
 model registry while keeping the open evidence shape stable.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source profile:
   `data/assurance/model-provider-routing-profile.json`
-- Generator:
-- Runtime evaluator:
+- Generator: `scripts/generate_model_provider_routing_pack.py`
+- Runtime evaluator: `scripts/evaluate_model_provider_routing_decision.py`
 - Evidence pack:
   `data/evidence/model-provider-routing-pack.json`
 - MCP tools:
-  `recipes_model_provider_routing_pack` and
+  `recipes_model_provider_routing_pack`, paired with `recipes_playbook_plan` using playbook id `model-provider-routing-gate`.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_model_provider_routing_pack.py
+python3 scripts/generate_model_provider_routing_pack.py --check
+```
 
 Evaluate a tenant-sensitive route before a model call starts:
 
+```bash
+python3 scripts/evaluate_model_provider_routing_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --provider-id frontier-enterprise-provider \
+  --model-id frontier-code-and-security-reasoning \
+  --route-class tenant_sensitive_remediation \
+  --data-class customer_source_code \
+  --data-class customer_finding_metadata \
+  --autonomy-level bounded_agent \
+  --tenant-id tenant-123 \
+  --tenant-region us \
+  --provider-region us \
+  --enterprise-contract \
+  --dpa-in-place \
+  --zero-data-retention \
+  --training-opt-out \
+  --mcp-gateway-enforced \
+  --tool-guardrails-enforced \
+  --output-guardrails-enforced \
+  --telemetry-redacted \
+  --run-receipt-attached \
+  --egress-decision allow_tenant_bound_egress \
+  --human-approval-id approval-123 \
+  --expect-decision allow_guarded_route
+```
 
 ## Routing contract
 
@@ -141,8 +172,14 @@ recipes_model_provider_routing_pack(
 )
 ```
 
-Evaluate a route:
+Plan a route:
 
+```text
+recipes_playbook_plan(
+  playbook_id="model-provider-routing-gate",
+  finding="Tenant-sensitive remediation data needs an approved US-region model route."
+)
+```
 
 ## Industry alignment
 

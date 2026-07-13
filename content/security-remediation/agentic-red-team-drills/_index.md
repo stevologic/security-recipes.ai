@@ -37,6 +37,8 @@ The generated result is an eval bundle an AI platform team can run
 before promoting a workflow, attach to a design review, or expose through
 MCP as context for an internal eval harness.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The red-team layer lives in three artifacts:
@@ -52,6 +54,10 @@ The red-team layer lives in three artifacts:
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_agentic_red_team_drill_pack.py
+python3 scripts/generate_agentic_red_team_drill_pack.py --check
+```
 
 The local MCP server exposes the pack through
 `recipes_agentic_red_team_drill_pack`.

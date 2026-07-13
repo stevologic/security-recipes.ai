@@ -38,17 +38,42 @@ This is the shape a reviewer can underwrite: recipes for adoption,
 manifests for governance, policy for enforcement, and evidence for
 audit.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 The policy pack is generated from the workflow control-plane manifest:
 
 - `data/policy/mcp-gateway-policy.json` - the generated policy bundle.
+- `scripts/generate_mcp_gateway_policy.py` - the deterministic compiler
+  from workflow manifests to gateway policy.
+- `scripts/evaluate_mcp_gateway_decision.py` - the runtime pre-call and
+  mid-run policy evaluator.
 - `recipes_mcp_gateway_policy` - an MCP tool that exposes the pack to
   connected agents and gateways.
 
+Regenerate the policy and fail CI on drift:
 
+```bash
+python3 scripts/generate_mcp_gateway_policy.py
+python3 scripts/generate_mcp_gateway_policy.py --check
+```
 
-manifest cannot change without updating the generated enforcement
+Evaluate a declared read-only tool call:
+
+```bash
+python3 scripts/evaluate_mcp_gateway_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --agent-class codex \
+  --run-id run-ci \
+  --tool-namespace advisories.vulnerability \
+  --tool-access-mode read \
+  --gate-phase tool_call \
+  --expect-decision allow
+```
+
+The manifest cannot change without updating the generated enforcement
 contract.
 
 ## Policy decisions

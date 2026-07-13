@@ -439,4 +439,4 @@ rules or add a scanner without rewriting the dispatch logic.
 - Cursor docs: [MCP](https://docs.cursor.com/context/mcp)
 - [MCP Integration]({{< relref "/mcp-servers" >}}) — connector catalog
 - Recipe: [Claude]({{< relref "/claude" >}}) — similar MCP + hooks patterns
-- [Recipes]({{< relref "/prompt-library" >}}) — share your `.cursor/rules` files
+- [Recipes]({{< relref "/recipes" >}}) — share your `.cursor/rules` files

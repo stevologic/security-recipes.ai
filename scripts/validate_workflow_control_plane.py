@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -29,6 +30,7 @@ VALID_MATURITY = {"crawl", "walk", "run"}
 VALID_AGENTS = {"claude", "codex", "cursor", "devin", "github_copilot"}
 VALID_MCP_ACCESS = {"read", "write_branch", "write_ticket", "approval_required"}
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]+$")
+DEFAULT_OUTPUT = Path("data/evidence/workflow-control-plane-report.json")
 
 
 class ValidationError(RuntimeError):
@@ -279,9 +281,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--manifest", type=Path, default=Path("data/control-plane/workflow-manifests.json"))
     parser.add_argument("--schema", type=Path, default=Path("data/control-plane/workflow-manifest.schema.json"))
-    parser.add_argument("--report", type=Path, default=Path("data/evidence/workflow-control-plane-report.json"))
+    parser.add_argument("--report", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--generated-at", default=None)
     parser.add_argument("--no-write-report", action="store_true")
+    parser.add_argument("--check", action="store_true", help="fail when the checked-in report is missing or stale")
     return parser.parse_args()
 
 
@@ -309,9 +312,16 @@ def main() -> int:
         failures,
         generated_at=args.generated_at,
     )
-    if not args.no_write_report:
+    rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
+    if args.check:
+        current = report_path.read_text(encoding="utf-8") if report_path.is_file() else None
+        if current != rendered:
+            failures.append(f"generated report is missing or stale: {report_path}")
+    elif not args.no_write_report:
         report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        temporary = report_path.with_suffix(report_path.suffix + ".tmp")
+        temporary.write_text(rendered, encoding="utf-8", newline="\n")
+        os.replace(temporary, report_path)
 
     if failures:
         print("workflow control-plane validation failed:", file=sys.stderr)

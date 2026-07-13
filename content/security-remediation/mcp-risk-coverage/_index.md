@@ -38,7 +38,7 @@ site.
 
 - Source model:
   `data/assurance/mcp-risk-coverage-profile.json`
-- Generator:
+- Generator: `scripts/generate_mcp_risk_coverage_pack.py`
 - Evidence pack:
   `data/evidence/mcp-risk-coverage-pack.json`
 - MCP tool:
@@ -46,6 +46,12 @@ site.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_mcp_risk_coverage_pack.py
+python3 scripts/generate_mcp_risk_coverage_pack.py --check
+```
+
+{{< playbook-workflow >}}
 
 ## Why this matters
 

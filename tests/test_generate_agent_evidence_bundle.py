@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
+import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from scripts.generate_agent_evidence_bundle import build_manifest, load_events
+from scripts.generate_agent_evidence_bundle import (
+    BUNDLE_FILENAMES,
+    BUNDLE_SCHEMA,
+    build_manifest,
+    load_events,
+    write_bundle,
+)
 
 
 class EvidenceBundleTests(unittest.TestCase):
@@ -94,12 +103,14 @@ class EvidenceBundleTests(unittest.TestCase):
         cases = [
             {
                 "run_id": "bad-alias",
+                "workflow_id": "sast-findings",
                 "event_class": "run_closed",
                 "event_type": "run_failed",
                 "timestamp": "2026-07-10T10:00:00Z",
             },
             {
                 "run_id": "missing-time",
+                "workflow_id": "sast-findings",
                 "event_class": "run_closed",
             },
         ]
@@ -110,6 +121,156 @@ class EvidenceBundleTests(unittest.TestCase):
                 source.write_text(json.dumps([payload]), encoding="utf-8")
                 with self.subTest(payload=payload), self.assertRaisesRegex(ValueError, rf"event 1"):
                     load_events(source)
+
+    def test_missing_or_mixed_workflow_ownership_is_rejected(self) -> None:
+        cases = {
+            "missing": [
+                {
+                    "run_id": "run-missing",
+                    "event_class": "run_closed",
+                    "timestamp": "2026-07-10T10:00:00Z",
+                }
+            ],
+            "mixed": [
+                {
+                    "run_id": "run-mixed",
+                    "workflow_id": "sast-findings",
+                    "event_class": "tests_passed",
+                    "timestamp": "2026-07-10T10:00:00Z",
+                },
+                {
+                    "run_id": "run-mixed",
+                    "workflow_id": "vulnerable-dependencies",
+                    "event_class": "run_closed",
+                    "timestamp": "2026-07-10T10:01:00Z",
+                },
+            ],
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            for label, payload in cases.items():
+                source = Path(tmpdir) / f"{label}.json"
+                source.write_text(json.dumps(payload), encoding="utf-8")
+                expected = "workflow_id" if label == "missing" else "mixes workflow IDs"
+                with self.subTest(label=label), self.assertRaisesRegex(ValueError, expected):
+                    load_events(source)
+
+    def test_transactional_bundle_replaces_extras_and_cleans_only_stale_siblings(self) -> None:
+        payload = [
+            {
+                "run_id": "run-1",
+                "workflow_id": "sast-findings",
+                "event_class": "run_closed",
+                "timestamp": "2026-07-10T10:00:00Z",
+            }
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            parent = Path(tmpdir)
+            source = parent / "events.json"
+            source.write_text(json.dumps(payload), encoding="utf-8")
+            events = load_events(source)
+            manifest = build_manifest("test-program", "2026-Q3", source, events)
+
+            output = parent / "bundle"
+            output.mkdir()
+            (output / "manifest.json").write_text(
+                json.dumps({"schema": BUNDLE_SCHEMA}),
+                encoding="utf-8",
+            )
+            (output / "obsolete.json").write_text("{}", encoding="utf-8")
+            (output / "obsolete").mkdir()
+            (output / "obsolete" / "nested.txt").write_text("old", encoding="utf-8")
+
+            stale_stage = parent / ".bundle.stage-abandoned"
+            stale_stage.mkdir()
+            (stale_stage / "events.normalized.json").write_text("[]", encoding="utf-8")
+            stale_backup = parent / ".bundle.backup-abandoned"
+            stale_backup.mkdir()
+            (stale_backup / "manifest.json").write_text(
+                json.dumps({"schema": BUNDLE_SCHEMA}),
+                encoding="utf-8",
+            )
+            (stale_backup / "old-extra.txt").write_text("old", encoding="utf-8")
+            unowned_stage = parent / ".bundle.stage-operator-owned"
+            unowned_stage.mkdir()
+            (unowned_stage / "operator-note.txt").write_text("keep", encoding="utf-8")
+            unowned_backup = parent / ".bundle.backup-operator-owned"
+            unowned_backup.mkdir()
+            (unowned_backup / "manifest.json").write_text("{}", encoding="utf-8")
+            unrelated = parent / ".other.stage-abandoned"
+            unrelated.mkdir()
+
+            old = time.time() - (2 * 24 * 60 * 60)
+            for path in (
+                stale_stage,
+                stale_backup,
+                unowned_stage,
+                unowned_backup,
+                unrelated,
+            ):
+                os.utime(path, (old, old))
+
+            write_bundle(output, events, manifest)
+
+            self.assertEqual({path.name for path in output.iterdir()}, set(BUNDLE_FILENAMES))
+            self.assertFalse(stale_stage.exists())
+            self.assertFalse(stale_backup.exists())
+            self.assertTrue(unowned_stage.exists())
+            self.assertTrue(unowned_backup.exists())
+            self.assertTrue(unrelated.exists())
+            written_manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(written_manifest["owned_files"], list(BUNDLE_FILENAMES))
+
+    def test_failed_publish_restores_prior_bundle_and_cleans_transaction_artifacts(self) -> None:
+        payload = [
+            {
+                "run_id": "run-1",
+                "workflow_id": "sast-findings",
+                "event_class": "run_closed",
+                "timestamp": "2026-07-10T10:00:00Z",
+            }
+        ]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            parent = Path(tmpdir)
+            source = parent / "events.json"
+            source.write_text(json.dumps(payload), encoding="utf-8")
+            events = load_events(source)
+            manifest = build_manifest("test-program", "2026-Q3", source, events)
+            output = parent / "bundle"
+            output.mkdir()
+            (output / "manifest.json").write_text(
+                json.dumps({"schema": BUNDLE_SCHEMA}),
+                encoding="utf-8",
+            )
+            (output / "prior.txt").write_text("preserve on rollback", encoding="utf-8")
+
+            real_replace = os.replace
+            failed = False
+
+            def fail_stage_publish(source_path: str | Path, destination_path: str | Path) -> None:
+                nonlocal failed
+                source_candidate = Path(source_path)
+                destination_candidate = Path(destination_path)
+                if (
+                    not failed
+                    and source_candidate.name.startswith(".bundle.stage-")
+                    and destination_candidate == output
+                ):
+                    failed = True
+                    raise OSError("injected publish failure")
+                real_replace(source_path, destination_path)
+
+            with patch(
+                "scripts.generate_agent_evidence_bundle.os.replace",
+                side_effect=fail_stage_publish,
+            ):
+                with self.assertRaisesRegex(OSError, "injected publish failure"):
+                    write_bundle(output, events, manifest)
+
+            self.assertEqual((output / "prior.txt").read_text(encoding="utf-8"), "preserve on rollback")
+            self.assertFalse(any(parent.glob(".bundle.stage-*")))
+            self.assertFalse(any(parent.glob(".bundle.backup-*")))
+            self.assertFalse((parent / ".bundle.lock").exists())
 
 
 if __name__ == "__main__":

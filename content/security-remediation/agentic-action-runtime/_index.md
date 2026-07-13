@@ -42,6 +42,8 @@ That is the trusted-source control point. The open site creates trust and
 distribution; the production MCP server can become the hosted action
 firewall that enterprises put in front of agent hosts.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/assurance/agentic-action-runtime-profile.json` - source contract
@@ -56,9 +58,41 @@ firewall that enterprises put in front of agent hosts.
 
 Evaluate a bounded repository write:
 
+```bash
+python3 scripts/evaluate_agentic_action_runtime_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --action-class repo_branch_write \
+  --run-id run-branch \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-branch \
+  --intent-summary "Patch dependency lockfiles on a scoped remediation branch" \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --receipt-id receipt-branch \
+  --expect-decision allow_bounded_action
+```
 
 Evaluate a secret-bearing action:
 
+```bash
+python3 scripts/evaluate_agentic_action_runtime_decision.py \
+  --workflow-id sensitive-data-remediation \
+  --action-class credential_or_secret_access \
+  --run-id run-secret \
+  --agent-id sr-agent::sensitive-data-remediation::codex \
+  --identity-id sr-agent::sensitive-data-remediation::codex \
+  --tenant-id tenant-demo \
+  --correlation-id corr-secret \
+  --intent-summary "Inspect whether a candidate finding contains a token" \
+  --policy-pack-hash sha256:policy \
+  --authorization-decision allow_authorized_mcp_request \
+  --egress-decision hold_for_redaction_or_dpa \
+  --receipt-id receipt-secret \
+  --contains-secret \
+  --expect-decision kill_session_on_runtime_action_signal
+```
 
 ## What is inside
 

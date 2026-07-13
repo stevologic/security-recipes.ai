@@ -34,25 +34,51 @@ The MCP Tool Surface Drift Sentinel gives the secure context layer a
 continuous control: fingerprint the approved surface, compare the live
 surface, then decide before the agent trusts it.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Profile:
   `data/assurance/mcp-tool-surface-drift-profile.json`
-- Generator:
-- Runtime evaluator:
+- Generator: `scripts/generate_mcp_tool_surface_drift_pack.py`
+- Runtime evaluator: `scripts/evaluate_mcp_tool_surface_drift_decision.py`
 - Evidence pack:
   `data/evidence/mcp-tool-surface-drift-pack.json`
 - MCP tools:
-  `recipes_mcp_tool_surface_drift_pack` and
+  `recipes_mcp_tool_surface_drift_pack`, paired with `recipes_playbook_plan` using playbook id `mcp-tool-surface-drift-sentinel`.
 
 Regenerate and validate:
 
+```bash
+python3 scripts/generate_mcp_tool_surface_drift_pack.py
+python3 scripts/generate_mcp_tool_surface_drift_pack.py --check
+```
 
 Evaluate a pinned live surface:
 
+```bash
+python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
+  --namespace repo.contents \
+  --tool-name repo.contents.patch_scoped_branch \
+  --workflow-id vulnerable-dependency-remediation \
+  --requested-access-mode write_branch \
+  --use-baseline-hashes \
+  --expect-decision allow_pinned_tool_surface
+```
 
 Evaluate capability expansion:
 
+```bash
+python3 scripts/evaluate_mcp_tool_surface_drift_decision.py \
+  --namespace registries.quarantine \
+  --tool-name registries.quarantine.stage_plan \
+  --workflow-id artifact-cache-quarantine \
+  --requested-access-mode approval_required \
+  --capability-expansion \
+  --added-capability-flag delete \
+  --added-capability-flag production_credential \
+  --expect-decision kill_session_on_tool_surface_signal
+```
 
 ## Decision model
 

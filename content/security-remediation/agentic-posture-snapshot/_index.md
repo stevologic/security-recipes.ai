@@ -36,6 +36,8 @@ It joins them into one generated artifact:
 The result is a generated posture decision, workflow-level posture rows,
 risk-factor summary, reviewer views, and source hashes for every source pack.
 
+{{< playbook-workflow >}}
+
 ## Why this is valuable
 
 Enterprise reviewers are no longer asking only whether an agent has a good
@@ -60,6 +62,12 @@ the posture view:
 
 Evaluate a runtime posture event:
 
+```bash
+python3 scripts/evaluate_agentic_posture_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --namespace repo.contents \
+  --expect-decision allow_with_posture_monitoring
+```
 
 Hold high-autonomy XPIA-sensitive execution until a human approval exists:
 

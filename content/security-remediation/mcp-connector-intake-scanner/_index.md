@@ -38,6 +38,8 @@ The MCP Connector Intake Scanner answers those questions with a
 source-controlled candidate registry, deterministic scoring, generated
 promotion plans, and an MCP-readable evidence pack.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - `data/mcp/connector-intake-candidates.json` - source-controlled
@@ -50,6 +52,10 @@ promotion plans, and an MCP-readable evidence pack.
 
 Run it locally from the repo root:
 
+```bash
+python3 scripts/generate_mcp_connector_intake_pack.py
+python3 scripts/generate_mcp_connector_intake_pack.py --check
+```
 
 ## Intake decisions
 

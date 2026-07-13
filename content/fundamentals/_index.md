@@ -183,7 +183,7 @@ A good remediation prompt carries four things:
 These four live in different files depending on the tool —
 `CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`,
 `.cursor/rules/*.mdc`, a Devin Knowledge entry — but the *shape*
-is the same. That's why [Recipes]({{< relref "/prompt-library" >}})
+is the same. That's why [Recipes]({{< relref "/recipes" >}})
 on this site is organised by tool: the content transfers between
 tools, the packaging does not.
 
@@ -566,7 +566,7 @@ the same.
   [Agents]({{< relref "/agents" >}}) section. Start with the one
   your team already uses.
 - **Browse real prompts** in the
-  [Recipes]({{< relref "/prompt-library" >}}). Every entry
+  [Recipes]({{< relref "/recipes" >}}). Every entry
   lists the model it was tested against, its maturity, and the
   team behind it.
 - **Look at reference workflows** under

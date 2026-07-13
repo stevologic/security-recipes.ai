@@ -38,7 +38,7 @@ an exposure-management surface for agentic AI.
 
 - Source profile:
   `data/assurance/agentic-exposure-graph-profile.json`
-- Generator:
+- Generator: `scripts/generate_agentic_exposure_graph.py`
 - Evidence pack:
   `data/evidence/agentic-exposure-graph.json`
 - MCP tool:
@@ -46,6 +46,12 @@ an exposure-management surface for agentic AI.
 
 Regenerate and validate the graph:
 
+```bash
+python3 scripts/generate_agentic_exposure_graph.py
+python3 scripts/generate_agentic_exposure_graph.py --check
+```
+
+{{< playbook-workflow >}}
 
 ## Why this matters now
 

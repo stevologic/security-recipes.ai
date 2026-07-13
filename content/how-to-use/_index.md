@@ -29,7 +29,7 @@ SecurityRecipes is meant to be read as a loop:
 {{< cards >}}
   {{< card link="/quickstart/" title="Quick Start" subtitle="The five-minute path to your first agentic remediation PR." >}}
   {{< card link="/agents/" title="Agents" subtitle="Pick the tool your team already uses and follow its recipe." >}}
-  {{< card link="/prompt-library/" title="Recipes" subtitle="Fork instruction files, skills, rules, and remediation prompts." >}}
+  {{< card link="/recipes/" title="Recipes" subtitle="Fork instruction files, skills, rules, and remediation prompts." >}}
   {{< card link="/mcp-servers/" title="MCP Servers" subtitle="Add controlled context and scoped enterprise tool access." >}}
   {{< card link="/security-remediation/" title="Security Remediation" subtitle="Operate reviewable workflows from intake to evidence." >}}
 {{< /cards >}}
@@ -90,7 +90,7 @@ reviewable.
   path to a first PR.
 - [Agents]({{< relref "/agents" >}}) if you already know which AI tool
   your team uses.
-- [Recipes]({{< relref "/prompt-library" >}}) if you need rules,
+- [Recipes]({{< relref "/recipes" >}}) if you need rules,
   skills, or prompts to copy into a repo.
 - [MCP Servers]({{< relref "/mcp-servers" >}}) if you need controlled
   context and enterprise connectors.

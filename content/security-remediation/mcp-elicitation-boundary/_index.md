@@ -41,25 +41,76 @@ version needs a default-deny policy:
 - every request creates receipt evidence tied to workflow, agent, run,
   server, user, session, and correlation ID.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source profile:
   `data/assurance/mcp-elicitation-boundary-profile.json`
-- Generator:
+- Generator: `scripts/generate_mcp_elicitation_boundary_pack.py`
 - Evidence pack:
   `data/evidence/mcp-elicitation-boundary-pack.json`
-- Runtime evaluator:
+- Runtime evaluator: `scripts/evaluate_mcp_elicitation_boundary_decision.py`
 - MCP tools:
-  `recipes_mcp_elicitation_boundary_pack` and
+  `recipes_mcp_elicitation_boundary_pack`, paired with `recipes_playbook_plan` using playbook id `mcp-elicitation-boundary`.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_mcp_elicitation_boundary_pack.py
+python3 scripts/generate_mcp_elicitation_boundary_pack.py --check
+```
 
 Evaluate a safe URL-mode OAuth request:
 
+```bash
+python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
+  --workflow-id mcp-connector-intake-scanner \
+  --agent-id sr-agent::mcp-connector-intake::codex \
+  --run-id run-123 \
+  --connector-id github \
+  --namespace github.oauth \
+  --server-id mcp-server::github \
+  --elicitation-profile-id profile-third-party-oauth-url \
+  --elicitation-id elicit-123 \
+  --mode url \
+  --url https://github.com/login/oauth/authorize \
+  --url-domain github.com \
+  --user-id user-123 \
+  --session-id session-123 \
+  --correlation-id corr-123 \
+  --authorization-pack-hash auth-pack-sha256 \
+  --client-supports-mode \
+  --server-identity-displayed \
+  --user-can-decline \
+  --user-consent-recorded \
+  --completion-notification-bound \
+  --https-url \
+  --url-allowlisted \
+  --expect-decision allow_elicitation_with_receipt
+```
 
 Evaluate a blocked secret-form request:
 
+```bash
+python3 scripts/evaluate_mcp_elicitation_boundary_decision.py \
+  --workflow-id mcp-gateway-policy \
+  --agent-id sr-agent::gateway::codex \
+  --run-id run-124 \
+  --server-id mcp-server::unknown \
+  --elicitation-profile-id profile-credential-form-prohibited \
+  --elicitation-id elicit-124 \
+  --mode form \
+  --data-class api_key \
+  --schema-field api_key \
+  --session-id session-124 \
+  --correlation-id corr-124 \
+  --client-supports-mode \
+  --server-identity-displayed \
+  --user-can-decline \
+  --user-can-review \
+  --expect-decision deny_sensitive_form_elicitation
+```
 
 ## Decision model
 
@@ -140,8 +191,14 @@ Review URL-mode profiles:
 recipes_mcp_elicitation_boundary_pack(mode="url")
 ```
 
-Evaluate one runtime request:
+Plan one runtime request:
 
+```text
+recipes_playbook_plan(
+  playbook_id="mcp-elicitation-boundary",
+  finding="GitHub OAuth URL elicitation request needs consent and domain validation."
+)
+```
 
 ## See also
 

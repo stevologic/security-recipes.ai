@@ -38,19 +38,25 @@ pipeline output, and connector responses in one workflow. A high-trust
 product needs to make the safe path obvious and the unsafe path boringly
 blocked.
 
+{{< playbook-workflow >}}
+
 ## What was added
 
 - Source model:
   `data/assurance/context-egress-boundary-model.json`
-- Generator:
+- Generator: `scripts/generate_context_egress_boundary_pack.py`
 - Evidence pack:
   `data/evidence/context-egress-boundary-pack.json`
-- Runtime evaluator:
+- Runtime evaluator: `scripts/evaluate_context_egress_decision.py`
 - MCP tools:
-  `recipes_context_egress_boundary_pack` and
+  `recipes_context_egress_boundary_pack`, paired with `recipes_playbook_plan` using playbook id `context-egress-boundary`.
 
 Regenerate and validate the pack:
 
+```bash
+python3 scripts/generate_context_egress_boundary_pack.py
+python3 scripts/generate_context_egress_boundary_pack.py --check
+```
 
 ## Decision model
 
@@ -108,12 +114,45 @@ validation, or tool-result inspection.
 
 Allow public guidance to an approved model provider:
 
+```bash
+python3 scripts/evaluate_context_egress_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --destination-class approved_model_provider \
+  --source-id recipes \
+  --data-class curated_security_guidance \
+  --dpa-in-place \
+  --zero-data-retention \
+  --residency-region us \
+  --required-region us \
+  --expect-decision allow_public_egress_with_citation
+```
 
 Hold customer source code that lacks required human approval:
 
+```bash
+python3 scripts/evaluate_context_egress_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --destination-class approved_model_provider \
+  --data-class customer_source_code \
+  --mcp-namespace repo.contents \
+  --tenant-id tenant-123 \
+  --dpa-in-place \
+  --zero-data-retention \
+  --residency-region us \
+  --required-region us \
+  --expect-decision hold_for_redaction_or_dpa
+```
 
 Kill a secret-egress attempt:
 
+```bash
+python3 scripts/evaluate_context_egress_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --destination-class approved_model_provider \
+  --data-class customer_source_code \
+  --contains-secret \
+  --expect-decision kill_session_on_secret_egress
+```
 
 ## MCP examples
 
@@ -129,8 +168,14 @@ Review one data class:
 recipes_context_egress_boundary_pack(data_class="customer_source_code")
 ```
 
-Evaluate one outbound context movement:
+Plan one outbound context movement:
 
+```text
+recipes_playbook_plan(
+  playbook_id="context-egress-boundary",
+  finding="Tenant-sensitive remediation context is proposed for an approved US-region model provider."
+)
+```
 
 ## Why this is enterprise-grade
 

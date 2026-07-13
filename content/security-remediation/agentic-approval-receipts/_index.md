@@ -47,6 +47,8 @@ Approval receipts are a product-grade answer:
 - **reviewers** get a differentiated control surface for an MCP-native
   secure context layer.
 
+{{< playbook-workflow >}}
+
 ## What Ships
 
 | Artifact | Purpose |
@@ -81,7 +83,36 @@ Approval receipts are a product-grade answer:
 
 ## Runtime Example
 
+```bash
+python3 scripts/generate_agentic_approval_receipt_pack.py
+python3 scripts/generate_agentic_approval_receipt_pack.py --check
+```
 
+```bash
+python3 scripts/evaluate_agentic_approval_receipt_decision.py \
+  --workflow-id vulnerable-dependency-remediation \
+  --action-class repo_branch_write \
+  --run-id run-123 \
+  --agent-id sr-agent::vulnerable-dependency-remediation::codex \
+  --identity-id sr-agent::vulnerable-dependency-remediation::codex \
+  --tenant-id tenant-123 \
+  --correlation-id corr-123 \
+  --approval-id approval-123 \
+  --approval-type pull_request_review \
+  --approval-status approved \
+  --approver-id reviewer-123 \
+  --approver-role security_reviewer \
+  --requester-id sr-agent::vulnerable-dependency-remediation::codex \
+  --requested-scope-hash sha256:scope-123 \
+  --approved-scope-hash sha256:scope-123 \
+  --issued-at 2099-01-01T00:00:00Z \
+  --expires-at 2099-01-02T00:00:00Z \
+  --now 2099-01-01T01:00:00Z \
+  --receipt-id receipt-123 \
+  --policy-pack-hash sha256:policy-123 \
+  --authorization-decision allow_authorized_mcp_request \
+  --expect-decision allow_scope_bound_approval
+```
 
 ## MCP Usage
 

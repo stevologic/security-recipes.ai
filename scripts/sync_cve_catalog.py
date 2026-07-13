@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the complete, source-backed High/Critical CVE recipe catalog.
+"""Build the complete, source-backed Medium/High/Critical CVE recipe catalog.
 
 The catalog is intentionally separate from the hand-curated Markdown recipe
 overrides. One normalized CVE record plus all applicable vetted remediation
@@ -32,7 +32,7 @@ from collections import OrderedDict
 import time
 from dataclasses import asdict, dataclass
 from datetime import date, datetime, timezone
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Iterator
 from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlparse
@@ -40,7 +40,7 @@ from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONTENT_DIR = ROOT / "content" / "prompt-library" / "cve"
+DEFAULT_CONTENT_DIR = ROOT / "content" / "recipes" / "cve"
 DEFAULT_ARCHETYPES = ROOT / "data" / "cve" / "remediation-archetypes.json"
 DEFAULT_OUTPUT_DIR = ROOT / "static" / "api" / "cve-catalog"
 DEFAULT_CACHE_DIR = ROOT / "tmp" / "nvd-cve-feeds"
@@ -51,6 +51,7 @@ CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_v
 USER_AGENT = "security-recipes.ai/cve-catalog-sync"
 
 SEVERITY_RANK = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+BROWSER_SEVERITY_CODES = {"medium": 0, "high": 1, "critical": 2}
 VERSION_RANK = {"2.0": 20, "3.0": 30, "3.1": 31, "4.0": 40}
 BROWSER_INDEX_FIELDS = [
     "cve",
@@ -69,8 +70,137 @@ ARCHETYPE_LIST_FIELDS = (
     "remediation_steps",
     "containment_steps",
     "verification_steps",
+    "rollback_steps",
     "stop_conditions",
     "watch_for",
+)
+AGENTIC_CONTRACT_SCHEMA_VERSION = 1
+AGENTIC_PHASES = (
+    "discover",
+    "assess",
+    "mitigate",
+    "remediate",
+    "verify",
+    "rollback",
+    "triage",
+)
+AGENTIC_ACTION_FIELDS = (
+    "id",
+    "phase",
+    "source_field",
+    "operation",
+    "target_kinds",
+)
+AGENTIC_OPERATION_VALUES = (
+    "inspect",
+    "assess",
+    "edit",
+    "test",
+    "restore",
+    "report",
+)
+AGENTIC_TARGET_KIND_VALUES = (
+    "source_code",
+    "dependency_manifest",
+    "lockfile",
+    "configuration",
+    "build_definition",
+    "deployment_manifest",
+    "infrastructure_as_code",
+    "runtime_policy",
+    "inventory",
+    "firmware_image",
+    "binary_artifact",
+    "test",
+    "documentation",
+    "triage_report",
+)
+AGENTIC_PHASE_CONTRACT_FIELDS = frozenset(
+    {
+        "source_field",
+        "operation",
+        "mutates_files",
+        "requires_rollback_plan",
+        "approval_gate",
+        "on_failure",
+        "required_evidence",
+    }
+)
+AGENTIC_CONTRACT_FIELDS = frozenset(
+    {
+        "schema_version",
+        "action_order",
+        "operation_values",
+        "target_kind_values",
+        "phase_contracts",
+        "required_outputs",
+        "fixed_version_policy",
+        "safety_boundaries",
+    }
+)
+AGENTIC_PHASE_POLICIES = {
+    "discover": ("exposure_checks", "inspect", False, False, "none", "triage"),
+    "assess": ("watch_for", "assess", False, False, "none", "triage"),
+    "mitigate": (
+        "containment_steps",
+        "edit",
+        True,
+        True,
+        "before_external_or_production_change",
+        "rollback_then_triage",
+    ),
+    "remediate": (
+        "remediation_steps",
+        "edit",
+        True,
+        True,
+        "before_external_or_production_change",
+        "rollback_then_triage",
+    ),
+    "verify": ("verification_steps", "test", False, False, "none", "triage"),
+    "rollback": (
+        "rollback_steps",
+        "restore",
+        True,
+        False,
+        "before_external_or_production_change",
+        "stop_and_triage",
+    ),
+    "triage": ("stop_conditions", "report", True, False, "none", "stop"),
+}
+AGENTIC_REQUIRED_OUTPUTS = {
+    "discover": "affected-surface-inventory",
+    "assess": "exposure-decision",
+    "mitigate": "mitigation-change-set",
+    "remediate": "remediation-change-set",
+    "verify": "verification-report",
+    "rollback": "rollback-report",
+    "triage": "TRIAGE.md",
+}
+INFERRED_ECOSYSTEMS = frozenset(
+    {
+        "apple/platform",
+        "browser",
+        "hardware/firmware",
+        "java/maven",
+        "javascript/npm",
+        "linux/kernel",
+        "operating-system",
+        "php/wordpress",
+        "python/pypi",
+        "software/application",
+        "windows/system",
+    }
+)
+VENDOR_CONTROLLED_ECOSYSTEMS = frozenset(
+    {
+        "apple/platform",
+        "browser",
+        "hardware/firmware",
+        "linux/kernel",
+        "operating-system",
+        "windows/system",
+    }
 )
 # This ordering is deliberately independent of JSON object/CWE order.  It
 # chooses the family that best communicates immediate impact while preserving
@@ -174,8 +304,15 @@ def write_if_changed(path: Path, payload: bytes, *, dry_run: bool = False) -> bo
     if not dry_run:
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary = path.with_suffix(path.suffix + ".tmp")
-        temporary.write_bytes(payload)
-        os.replace(temporary, path)
+        try:
+            temporary.write_bytes(payload)
+            os.replace(temporary, path)
+        finally:
+            # A normal write failure must not leave a second, unowned catalog
+            # representation behind. Hard process termination is handled by
+            # the whole-tree reconciliation at the start of the next sync.
+            if temporary.is_symlink() or temporary.exists():
+                temporary.unlink()
     return True
 
 
@@ -300,10 +437,12 @@ def kev_by_cve(data: dict[str, Any]) -> dict[str, dict[str, Any]]:
 
 def severity_for_score(version: str, score: float, supplied: object = "") -> str:
     supplied_severity = str(supplied or "").strip().lower()
-    if supplied_severity in {"high", "critical"}:
+    if supplied_severity in {"medium", "high", "critical"}:
         return supplied_severity
+    if score < 4.0:
+        return "low"
     if score < 7.0:
-        return supplied_severity or ("medium" if score >= 4.0 else "low")
+        return "medium"
     if version.startswith("2"):
         return "high"
     return "critical" if score >= 9.0 else "high"
@@ -350,7 +489,7 @@ def extract_metrics(cve: dict[str, Any]) -> list[Metric]:
 
 
 def selected_metric(metrics: list[Metric]) -> Metric | None:
-    return next((metric for metric in metrics if metric.score >= 7.0), None)
+    return next((metric for metric in metrics if metric.score >= 4.0), None)
 
 
 def english_description(cve: dict[str, Any]) -> str:
@@ -464,6 +603,243 @@ def extract_references(cve: dict[str, Any]) -> list[dict[str, Any]]:
     return references[:16]
 
 
+def _nonempty_string_list(value: object) -> bool:
+    return isinstance(value, list) and bool(value) and all(
+        isinstance(item, str) and bool(item.strip()) for item in value
+    )
+
+
+def _unique_nonempty_string_list(value: object) -> bool:
+    return _nonempty_string_list(value) and len(value) == len(set(value))
+
+
+def _archetype_definition_errors(archetype_id: object, archetype: object) -> list[str]:
+    prefix = f"archetype {archetype_id!r}"
+    if not isinstance(archetype_id, str) or not archetype_id.strip():
+        return ["archetype IDs must be nonempty strings"]
+    if not isinstance(archetype, dict):
+        return [f"{prefix} must be an object"]
+
+    errors: list[str] = []
+    for field in ("title", "description"):
+        if not isinstance(archetype.get(field), str) or not archetype[field].strip():
+            errors.append(f"{prefix} has invalid {field}")
+    for field in ARCHETYPE_LIST_FIELDS:
+        values = archetype.get(field)
+        if not _unique_nonempty_string_list(values):
+            errors.append(f"{prefix} has invalid {field}: expected a nonempty unique string list")
+    matching_cwes = archetype.get("matching_cwes", archetype.get("cwes", []))
+    if not isinstance(matching_cwes, list) or any(
+        not isinstance(cwe, str) or not re.fullmatch(r"CWE-\d+", cwe.upper()) for cwe in matching_cwes
+    ) or len(matching_cwes) != len(set(matching_cwes)):
+        errors.append(f"{prefix} has invalid matching_cwes")
+    return errors
+
+
+def _agentic_header_errors(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    contract = payload.get("agentic_contract")
+    if not isinstance(contract, dict):
+        return ["agentic_contract must be an object"]
+    if contract.get("schema_version") != AGENTIC_CONTRACT_SCHEMA_VERSION:
+        errors.append(
+            f"agentic_contract schema_version must be {AGENTIC_CONTRACT_SCHEMA_VERSION}"
+        )
+    if set(contract) != AGENTIC_CONTRACT_FIELDS:
+        errors.append(
+            "agentic_contract fields must exactly match the versioned contract: "
+            f"expected={sorted(AGENTIC_CONTRACT_FIELDS)}, actual={sorted(contract)}"
+        )
+    if contract.get("action_order") != list(AGENTIC_PHASES):
+        errors.append("agentic_contract action_order must contain the seven supported phases in order")
+    if contract.get("operation_values") != list(AGENTIC_OPERATION_VALUES):
+        errors.append("agentic_contract operation_values do not match the supported operations")
+    if contract.get("target_kind_values") != list(AGENTIC_TARGET_KIND_VALUES):
+        errors.append("agentic_contract target_kind_values do not match the supported target kinds")
+
+    phase_contracts = contract.get("phase_contracts")
+    if not isinstance(phase_contracts, dict) or list(phase_contracts) != list(AGENTIC_PHASES):
+        errors.append("agentic_contract phase_contracts must cover exactly the seven supported phases")
+    else:
+        for phase in AGENTIC_PHASES:
+            policy = phase_contracts[phase]
+            prefix = f"agentic_contract phase {phase!r}"
+            if not isinstance(policy, dict):
+                errors.append(f"{prefix} must be an object")
+                continue
+            if set(policy) != AGENTIC_PHASE_CONTRACT_FIELDS:
+                errors.append(f"{prefix} fields do not match the phase contract")
+            if policy.get("source_field") not in ARCHETYPE_LIST_FIELDS:
+                errors.append(f"{prefix} has invalid source_field")
+            if policy.get("operation") not in AGENTIC_OPERATION_VALUES:
+                errors.append(f"{prefix} has invalid operation")
+            for field in ("mutates_files", "requires_rollback_plan"):
+                if type(policy.get(field)) is not bool:
+                    errors.append(f"{prefix} has invalid {field}: expected a boolean")
+            if not isinstance(policy.get("approval_gate"), str) or not policy["approval_gate"].strip():
+                errors.append(f"{prefix} has invalid approval_gate")
+            if not isinstance(policy.get("on_failure"), str) or not policy["on_failure"].strip():
+                errors.append(f"{prefix} has invalid on_failure")
+            if not _unique_nonempty_string_list(policy.get("required_evidence")):
+                errors.append(f"{prefix} has invalid required_evidence")
+            expected_policy = AGENTIC_PHASE_POLICIES[phase]
+            actual_policy = (
+                policy.get("source_field"),
+                policy.get("operation"),
+                policy.get("mutates_files"),
+                policy.get("requires_rollback_plan"),
+                policy.get("approval_gate"),
+                policy.get("on_failure"),
+            )
+            if actual_policy != expected_policy:
+                errors.append(f"{prefix} does not match the version 1 safety policy")
+
+    required_outputs = contract.get("required_outputs")
+    if not isinstance(required_outputs, dict) or list(required_outputs) != list(AGENTIC_PHASES):
+        errors.append("agentic_contract required_outputs must follow action_order")
+    elif required_outputs != AGENTIC_REQUIRED_OUTPUTS:
+        errors.append("agentic_contract required_outputs do not match the version 1 outputs")
+    safety_boundaries = contract.get("safety_boundaries")
+    if not _unique_nonempty_string_list(safety_boundaries):
+        errors.append("agentic_contract has invalid safety_boundaries")
+    else:
+        boundary_text = " ".join(safety_boundaries).lower()
+        for concept in (
+            "scope", "exploit", "invent", "rollback", "secrets", "incident response",
+            "untrusted evidence", "embedded commands",
+        ):
+            if concept not in boundary_text:
+                errors.append(f"agentic_contract safety_boundaries do not cover {concept!r}")
+    fixed_version_policy = contract.get("fixed_version_policy")
+    if not isinstance(fixed_version_policy, dict) or set(fixed_version_policy) != {
+        "allowed_sources",
+        "require_source_record",
+        "when_unknown",
+    }:
+        errors.append("agentic_contract has invalid fixed_version_policy")
+    else:
+        if not _unique_nonempty_string_list(fixed_version_policy.get("allowed_sources")):
+            errors.append("agentic_contract fixed_version_policy has invalid allowed_sources")
+        if fixed_version_policy.get("require_source_record") is not True:
+            errors.append("agentic_contract fixed_version_policy must require a source record")
+        when_unknown = fixed_version_policy.get("when_unknown")
+        if not isinstance(when_unknown, str) or not when_unknown.strip():
+            errors.append("agentic_contract fixed_version_policy has invalid when_unknown")
+        else:
+            lowered = when_unknown.lower()
+            if (
+                "do not" not in lowered
+                or not all(term in lowered for term in ("invent", "infer", "guess"))
+                or "triage.md" not in lowered
+            ):
+                errors.append(
+                    "agentic_contract fixed_version_policy when_unknown must prohibit invention and require TRIAGE.md"
+                )
+
+    target_hints = payload.get("ecosystem_target_hints")
+    if not isinstance(target_hints, dict):
+        errors.append("ecosystem_target_hints must be an object")
+    else:
+        actual = set(target_hints)
+        if actual != INFERRED_ECOSYSTEMS:
+            missing = sorted(INFERRED_ECOSYSTEMS - actual)
+            extra = sorted(actual - INFERRED_ECOSYSTEMS)
+            errors.append(
+                f"ecosystem_target_hints must exactly cover inferred ecosystems: missing={missing}, extra={extra}"
+            )
+        for ecosystem, hints in target_hints.items():
+            prefix = f"ecosystem_target_hints {ecosystem!r}"
+            if not isinstance(hints, dict) or set(hints) != {
+                "file_globs",
+                "target_kinds",
+                "safe_edit_intent",
+            }:
+                errors.append(f"{prefix} must contain file_globs, target_kinds, and safe_edit_intent")
+                continue
+            if not _unique_nonempty_string_list(hints.get("file_globs")):
+                errors.append(f"{prefix} has invalid file_globs")
+            elif any(
+                "\\" in glob
+                or ":" in glob
+                or PurePosixPath(glob).is_absolute()
+                or ".." in PurePosixPath(glob).parts
+                for glob in hints["file_globs"]
+            ):
+                errors.append(f"{prefix} contains an unsafe file glob")
+            kinds = hints.get("target_kinds")
+            if not _nonempty_string_list(kinds) or any(
+                kind not in AGENTIC_TARGET_KIND_VALUES for kind in kinds
+            ):
+                errors.append(f"{prefix} has invalid target_kinds")
+            elif ecosystem in VENDOR_CONTROLLED_ECOSYSTEMS and "source_code" in kinds:
+                errors.append(f"{prefix} must not direct agents to edit vendor-controlled source")
+            if not isinstance(hints.get("safe_edit_intent"), str) or not hints["safe_edit_intent"].strip():
+                errors.append(f"{prefix} has invalid safe_edit_intent")
+    return errors
+
+
+def _agentic_archetype_errors(
+    archetype_id: object, archetype: object, contract: object
+) -> list[str]:
+    prefix = f"archetype {archetype_id!r}"
+    if not isinstance(archetype_id, str) or not isinstance(archetype, dict):
+        return [f"{prefix} cannot carry agentic actions"]
+    actions = archetype.get("agentic_actions")
+    if not isinstance(actions, list) or not actions:
+        return [f"{prefix} has invalid agentic_actions: expected a nonempty action list"]
+
+    errors: list[str] = []
+    phases: list[str] = []
+    phase_contracts = contract.get("phase_contracts") if isinstance(contract, dict) else {}
+    for position, action in enumerate(actions):
+        action_prefix = f"{prefix} agentic_actions[{position}]"
+        if not isinstance(action, dict):
+            errors.append(f"{action_prefix} must be an object")
+            continue
+        if set(action) != set(AGENTIC_ACTION_FIELDS):
+            errors.append(f"{action_prefix} fields do not match the action contract")
+            continue
+        action_id = action.get("id")
+        if not isinstance(action_id, str) or re.fullmatch(r"[a-z0-9][a-z0-9._-]*", action_id) is None:
+            errors.append(f"{action_prefix} has invalid id")
+        phase = action.get("phase")
+        if phase not in AGENTIC_PHASES:
+            errors.append(f"{action_prefix} has unsupported phase {phase!r}")
+        else:
+            phases.append(phase)
+            expected_id = f"{archetype_id}.{phase}"
+            if action_id != expected_id:
+                errors.append(f"{action_prefix} id must be {expected_id!r}")
+        source_field = action.get("source_field")
+        if source_field not in ARCHETYPE_LIST_FIELDS:
+            errors.append(f"{action_prefix} has unsupported source_field {source_field!r}")
+        elif not _nonempty_string_list(archetype.get(source_field)):
+            errors.append(f"{action_prefix} source_field {source_field!r} is not resolvable")
+        if action.get("operation") not in AGENTIC_OPERATION_VALUES:
+            errors.append(f"{action_prefix} has invalid operation")
+        target_kinds = action.get("target_kinds")
+        if not _unique_nonempty_string_list(target_kinds) or any(
+            target_kind not in AGENTIC_TARGET_KIND_VALUES for target_kind in (target_kinds or [])
+        ):
+            errors.append(f"{action_prefix} has invalid target_kinds")
+        elif phase == "triage" and "triage_report" not in target_kinds:
+            errors.append(f"{action_prefix} must target triage_report")
+        elif phase in {"mitigate", "remediate"} and not (
+            set(target_kinds) - {"test", "documentation", "triage_report"}
+        ):
+            errors.append(f"{action_prefix} has no mutable implementation target")
+        phase_policy = phase_contracts.get(phase) if isinstance(phase_contracts, dict) else None
+        if isinstance(phase_policy, dict) and (
+            source_field != phase_policy.get("source_field")
+            or action.get("operation") != phase_policy.get("operation")
+        ):
+            errors.append(f"{action_prefix} does not match its phase contract")
+
+    if phases != list(AGENTIC_PHASES):
+        errors.append(f"{prefix} agentic_actions must contain all seven supported phases in order")
+    return errors
+
+
 def archetype_contract_errors(payload: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     if payload.get("schema_version") != 1:
@@ -474,28 +850,41 @@ def archetype_contract_errors(payload: dict[str, Any]) -> list[str]:
     default = payload.get("default_archetype")
     if not isinstance(default, str) or default not in definitions:
         errors.append("default_archetype is not present in archetypes")
+
+    errors.extend(_agentic_header_errors(payload))
+    action_owners: dict[str, list[str]] = {}
     for archetype_id, archetype in definitions.items():
-        prefix = f"archetype {archetype_id!r}"
-        if not isinstance(archetype_id, str) or not archetype_id.strip():
-            errors.append("archetype IDs must be nonempty strings")
-            continue
-        if not isinstance(archetype, dict):
-            errors.append(f"{prefix} must be an object")
-            continue
-        for field in ("title", "description"):
-            if not isinstance(archetype.get(field), str) or not archetype[field].strip():
-                errors.append(f"{prefix} has invalid {field}")
-        for field in ARCHETYPE_LIST_FIELDS:
-            values = archetype.get(field)
-            if not isinstance(values, list) or not values:
-                errors.append(f"{prefix} has invalid {field}: expected a nonempty string list")
-            elif any(not isinstance(value, str) or not value.strip() for value in values):
-                errors.append(f"{prefix} has invalid {field}: every item must be a nonempty string")
-        matching_cwes = archetype.get("matching_cwes", archetype.get("cwes", []))
-        if not isinstance(matching_cwes, list) or any(
-            not isinstance(cwe, str) or not re.fullmatch(r"CWE-\d+", cwe.upper()) for cwe in matching_cwes
-        ):
-            errors.append(f"{prefix} has invalid matching_cwes")
+        errors.extend(_archetype_definition_errors(archetype_id, archetype))
+        errors.extend(
+            _agentic_archetype_errors(archetype_id, archetype, payload.get("agentic_contract"))
+        )
+        if isinstance(archetype_id, str) and isinstance(archetype, dict):
+            for action in archetype.get("agentic_actions") or []:
+                if isinstance(action, dict) and isinstance(action.get("id"), str):
+                    action_owners.setdefault(action["id"], []).append(archetype_id)
+    for action_id, owners in sorted(action_owners.items()):
+        if len(owners) > 1:
+            errors.append(f"agentic action id {action_id!r} is not globally unique: {owners}")
+    target_hints = payload.get("ecosystem_target_hints")
+    if isinstance(target_hints, dict):
+        for archetype_id, archetype in definitions.items():
+            if not isinstance(archetype_id, str) or not isinstance(archetype, dict):
+                continue
+            for action in archetype.get("agentic_actions") or []:
+                if not isinstance(action, dict):
+                    continue
+                phase = str(action.get("phase") or "")
+                raw_targets = set(action.get("target_kinds") or [])
+                for ecosystem, hint in target_hints.items():
+                    if not isinstance(hint, dict):
+                        continue
+                    effective = raw_targets & set(hint.get("target_kinds") or [])
+                    if phase == "triage" and "triage_report" in raw_targets:
+                        effective.add("triage_report")
+                    if not effective:
+                        errors.append(
+                            f"agentic action {action.get('id')!r} has no effective target for ecosystem {ecosystem!r}"
+                        )
     return errors
 
 
@@ -505,13 +894,34 @@ def valid_archetype_ids(payload: dict[str, Any]) -> set[str]:
         return set()
     valid: set[str] = set()
     for archetype_id, archetype in definitions.items():
-        candidate = {
-            "schema_version": 1,
-            "default_archetype": archetype_id,
-            "archetypes": {archetype_id: archetype},
-        }
-        if not archetype_contract_errors(candidate):
+        if not _archetype_definition_errors(archetype_id, archetype):
             valid.add(archetype_id)
+    return valid
+
+
+def valid_agentic_archetype_ids(payload: dict[str, Any]) -> set[str]:
+    definitions = payload.get("archetypes")
+    if not isinstance(definitions, dict) or _agentic_header_errors(payload):
+        return set()
+    valid = {
+        archetype_id
+        for archetype_id, archetype in definitions.items()
+        if isinstance(archetype_id, str)
+        and not _archetype_definition_errors(archetype_id, archetype)
+        and not _agentic_archetype_errors(
+            archetype_id, archetype, payload.get("agentic_contract")
+        )
+    }
+    action_owners: dict[str, set[str]] = {}
+    for archetype_id, archetype in definitions.items():
+        if not isinstance(archetype_id, str) or not isinstance(archetype, dict):
+            continue
+        for action in archetype.get("agentic_actions") or []:
+            if isinstance(action, dict) and isinstance(action.get("id"), str):
+                action_owners.setdefault(action["id"], set()).add(archetype_id)
+    for owners in action_owners.values():
+        if len(owners) > 1:
+            valid.difference_update(owners)
     return valid
 
 
@@ -875,7 +1285,7 @@ def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, b
         [
             record["cve"],
             record["title"],
-            1 if record["severity"] == "critical" else 0,
+            BROWSER_SEVERITY_CODES[record["severity"]],
             record["score"],
             record["published"],
             ecosystem_indexes[record["ecosystem"]],
@@ -887,7 +1297,8 @@ def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, b
     ]
     uncompressed = json_bytes(
         {
-            "schema_version": 1,
+            "schema_version": 2,
+            "severity_codes": {str(code): severity for severity, code in BROWSER_SEVERITY_CODES.items()},
             "fields": BROWSER_INDEX_FIELDS,
             "ecosystems": ecosystems,
             "archetypes": archetypes,
@@ -899,6 +1310,37 @@ def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, b
 
 def hash_bytes(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def agentic_recipe_contract_payload(archetypes: dict[str, Any]) -> bytes:
+    """Return the canonical shared agent contract without duplicating it per CVE."""
+    definitions = archetypes.get("archetypes")
+    recipes = {
+        str(archetype_id): {
+            "agentic_actions": archetype.get("agentic_actions"),
+            "instruction_sources": {
+                field: archetype.get(field) for field in ARCHETYPE_LIST_FIELDS
+            },
+        }
+        for archetype_id, archetype in sorted(
+            definitions.items() if isinstance(definitions, dict) else []
+        )
+        if isinstance(archetype, dict)
+    }
+    return json_bytes(
+        {
+            "agentic_contract": archetypes.get("agentic_contract"),
+            "ecosystem_target_hints": archetypes.get("ecosystem_target_hints"),
+            "archetypes": recipes,
+        }
+    )
+
+
+def count_ecosystem_target_hints(archetypes: dict[str, Any]) -> int:
+    target_hints = archetypes.get("ecosystem_target_hints")
+    if not isinstance(target_hints, dict):
+        return 0
+    return sum(1 for hints in target_hints.values() if isinstance(hints, dict))
 
 
 def catalog_timestamp(feed_metadata: Iterable[dict[str, str]], kev_data: dict[str, Any]) -> str:
@@ -952,10 +1394,12 @@ def build_outputs(
     in_scope_kev = 0
     record_count = 0
     composed_coverage = 0
+    agentic_coverage = 0
     authoritative_markdown = 0
     markdown_drafts = 0
     markdown_pages = 0
     valid_ids = valid_archetype_ids(archetypes)
+    valid_agentic_ids = valid_agentic_archetype_ids(archetypes)
     default_archetype = str(archetypes.get("default_archetype") or "")
     shard_manifest: list[dict[str, Any]] = []
     shard_counts: dict[str, int] = {}
@@ -991,13 +1435,16 @@ def build_outputs(
                 index_records.append(compact_index_record(record, shard))
                 record_count += 1
                 year = record["published"][:4]
-                counts = by_year.setdefault(year, {"critical": 0, "high": 0, "total": 0})
+                counts = by_year.setdefault(year, {"critical": 0, "high": 0, "medium": 0, "total": 0})
                 counts[record["severity"]] = counts.get(record["severity"], 0) + 1
                 counts["total"] += 1
                 by_severity[record["severity"]] = by_severity.get(record["severity"], 0) + 1
                 in_scope_kev += int(record["kev"])
                 composed_coverage += int(
                     record_has_valid_composition(record, valid_ids, default_archetype)
+                )
+                agentic_coverage += int(
+                    record_has_valid_composition(record, valid_agentic_ids, default_archetype)
                 )
                 authoritative_markdown += int(record["recipe_kind"] == "markdown-override")
                 markdown_drafts += int(record["recipe_kind"] == "markdown-draft")
@@ -1028,10 +1475,33 @@ def build_outputs(
     )
     shard_set_sha256 = hash_bytes(shard_set_payload)
     archetypes_payload = json_bytes(archetypes, pretty=True)
+    agentic_contract_payload = agentic_recipe_contract_payload(archetypes)
+    definitions = archetypes.get("archetypes")
+    action_count = sum(
+        len(archetype.get("agentic_actions") or [])
+        for archetype in (definitions.values() if isinstance(definitions, dict) else [])
+        if isinstance(archetype, dict)
+    )
+    target_hints = archetypes.get("ecosystem_target_hints")
+    agentic_contract = archetypes.get("agentic_contract")
     archetypes_manifest = {
         "path": "archetypes.json",
         "bytes": len(archetypes_payload),
         "sha256": hash_bytes(archetypes_payload),
+        "agentic_contract": {
+            "schema_version": (
+                agentic_contract.get("schema_version")
+                if isinstance(agentic_contract, dict)
+                else None
+            ),
+            "sha256": hash_bytes(agentic_contract_payload),
+            "bytes": len(agentic_contract_payload),
+            "archetypes": len(valid_agentic_ids),
+            "actions": action_count,
+            "phases": len(AGENTIC_PHASES),
+            "ecosystems": len(target_hints) if isinstance(target_hints, dict) else 0,
+            "target_hints": count_ecosystem_target_hints(archetypes),
+        },
     }
 
     source_timestamp = catalog_timestamp((source["metadata"] for source in feed_sources), kev_data)
@@ -1041,6 +1511,7 @@ def build_outputs(
         if len(recipes) > 1
     }
     coverage_percent = round((composed_coverage * 100.0 / record_count), 6) if record_count else 0.0
+    agentic_coverage_percent = round((agentic_coverage * 100.0 / record_count), 6) if record_count else 0.0
 
     browser_uncompressed, browser_compressed = browser_index_payload(index_records)
     browser_path = "browser-index.json.gz"
@@ -1053,19 +1524,21 @@ def build_outputs(
         "uncompressed_bytes": len(browser_uncompressed),
     }
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": source_timestamp,
         "scope": {
             "published_start": start_date.isoformat(),
             "published_end": end_date.isoformat(),
             "statuses_excluded": ["Reject", "Rejected"],
-            "metric_policy": "Any NVD-supplied CVSS v2/v3/v4 observation with baseScore >= 7.0; effective severity is the highest supplied/derived severity.",
+            "metric_policy": "Any NVD-supplied CVSS v2/v3/v4 observation with baseScore >= 4.0; effective severity is the highest supplied/derived severity.",
             "recipe_policy": "Every record composes with all applicable vetted remediation archetypes. Only maturity=stable Markdown is an authoritative self-contained override; has_markdown excludes drafts.",
         },
         "totals": {
             "catalog_records": record_count,
             "composed_recipe_coverage": composed_coverage,
             "coverage_percent": coverage_percent,
+            "agentic_recipe_coverage": agentic_coverage,
+            "agentic_coverage_percent": agentic_coverage_percent,
             "markdown_overrides": authoritative_markdown,
             "markdown_drafts": markdown_drafts,
             "markdown_pages": markdown_pages,
@@ -1099,7 +1572,7 @@ def build_outputs(
     # at startup.  Keep a compact, independently hashed bootstrap document so
     # the common page-load path does not transfer the full audit manifest.
     runtime_summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": source_timestamp,
         "scope": {
             "published_start": start_date.isoformat(),
@@ -1120,38 +1593,183 @@ def build_outputs(
         "bytes": len(runtime_summary_payload),
         "sha256": hash_bytes(runtime_summary_payload),
     }
+    index_partitions: list[dict[str, Any]] = []
+    records_by_year: dict[str, list[dict[str, Any]]] = {}
+    for record in index_records:
+        records_by_year.setdefault(str(record["published"])[:4], []).append(record)
+    for year, year_records in sorted(records_by_year.items()):
+        relative = Path("indexes") / f"{year}.json.gz"
+        uncompressed = index_json_bytes(
+            {
+                "schema_version": 2,
+                "catalog_updated_at": source_timestamp,
+                "year": year,
+                "total": len(year_records),
+                "records": year_records,
+            }
+        )
+        compressed = gzip.compress(uncompressed, compresslevel=9, mtime=0)
+        outputs[relative] = compressed
+        index_partitions.append(
+            {
+                "year": year,
+                "path": relative.as_posix(),
+                "records": len(year_records),
+                "sha256": hash_bytes(compressed),
+                "bytes": len(compressed),
+                "uncompressed_bytes": len(uncompressed),
+            }
+        )
     index = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog_updated_at": source_timestamp,
         "total": len(index_records),
         "scope": manifest["scope"],
-        "records": index_records,
+        "partition_key": "published_year",
+        "partitions": index_partitions,
     }
-    outputs[Path("index.json")] = index_json_bytes(index)
+    outputs[Path("index.json")] = json_bytes(index, pretty=True)
+    manifest["complete_index"] = {
+        "path": "index.json",
+        "format": "published-year-partitions",
+        "records": len(index_records),
+        "partitions": index_partitions,
+    }
     outputs[Path("manifest.json")] = json_bytes(manifest, pretty=True)
     outputs[Path("archetypes.json")] = archetypes_payload
     return outputs, manifest
 
 
+def _is_link_or_junction(path: Path) -> bool:
+    is_junction = getattr(path, "is_junction", None)
+    return path.is_symlink() or bool(is_junction and is_junction())
+
+
+def _validated_output_paths(outputs: dict[Path, bytes]) -> dict[str, bytes]:
+    expected: dict[str, bytes] = {}
+    for relative_path, payload in outputs.items():
+        relative = relative_path.as_posix()
+        pure = PurePosixPath(relative)
+        if (
+            not relative
+            or relative == "."
+            or "\\" in relative
+            or ":" in relative
+            or pure.is_absolute()
+            or ".." in pure.parts
+        ):
+            raise ValueError(f"unsafe generated catalog output path: {relative!r}")
+        if relative in expected:
+            raise ValueError(f"duplicate generated catalog output path: {relative}")
+        expected[relative] = payload
+    return expected
+
+
+def _expected_output_dirs(expected: set[str]) -> set[str]:
+    directories: set[str] = set()
+    for relative in expected:
+        for parent in PurePosixPath(relative).parents:
+            if str(parent) != ".":
+                directories.add(parent.as_posix())
+    return directories
+
+
+def _catalog_tree_entries(output_dir: Path) -> list[tuple[Path, str, str]]:
+    """Return catalog entries post-order without following links or junctions."""
+    if _is_link_or_junction(output_dir):
+        raise ValueError(f"catalog output root must not be a link or junction: {output_dir}")
+    if output_dir.exists() and not output_dir.is_dir():
+        raise NotADirectoryError(f"catalog output root is not a directory: {output_dir}")
+    if not output_dir.exists():
+        return []
+
+    entries: list[tuple[Path, str, str]] = []
+
+    def visit(directory: Path) -> None:
+        with os.scandir(directory) as scanned:
+            children = sorted(scanned, key=lambda entry: entry.name)
+        for child in children:
+            path = Path(child.path)
+            relative = path.relative_to(output_dir).as_posix()
+            if child.is_symlink() or _is_link_or_junction(path):
+                entries.append((path, relative, "link"))
+            elif child.is_dir(follow_symlinks=False):
+                visit(path)
+                entries.append((path, relative, "directory"))
+            elif child.is_file(follow_symlinks=False):
+                entries.append((path, relative, "file"))
+            else:
+                entries.append((path, relative, "special"))
+
+    visit(output_dir)
+    return entries
+
+
+def reconcile_output_tree(
+    output_dir: Path,
+    expected: set[str],
+    *,
+    dry_run: bool = False,
+) -> int:
+    """Remove every unowned node from the generated catalog tree.
+
+    Links are never valid generated outputs, even when their path is expected:
+    following one while updating the catalog could write outside ``output_dir``.
+    Directories are retained only when they are parents of expected files.
+    """
+    expected_dirs = _expected_output_dirs(expected)
+    removed = 0
+    for path, relative, kind in _catalog_tree_entries(output_dir):
+        should_remove = (
+            kind in {"link", "special"}
+            or (kind == "file" and relative not in expected)
+            or (kind == "directory" and relative not in expected_dirs)
+        )
+        if not should_remove:
+            continue
+        removed += 1
+        if dry_run:
+            continue
+        if kind == "directory":
+            path.rmdir()
+        elif kind == "link" and bool(
+            getattr(path, "is_junction", lambda: False)()
+        ) and not path.is_symlink():
+            path.rmdir()
+        else:
+            path.unlink()
+    return removed
+
+
+def _current_output_matches(output_dir: Path, relative: str, payload: bytes) -> bool:
+    current = output_dir
+    for part in PurePosixPath(relative).parts[:-1]:
+        current /= part
+        if _is_link_or_junction(current) or not current.is_dir():
+            return False
+    target = output_dir / Path(relative)
+    return (
+        not _is_link_or_junction(target)
+        and target.is_file()
+        and target.read_bytes() == payload
+    )
+
+
 def write_outputs(output_dir: Path, outputs: dict[Path, bytes], *, dry_run: bool = False) -> dict[str, int]:
-    expected = {path.as_posix() for path in outputs}
+    expected_payloads = _validated_output_paths(outputs)
+    expected = set(expected_payloads)
+    removed = reconcile_output_tree(output_dir, expected, dry_run=dry_run)
     changed = 0
     unchanged = 0
-    removed = 0
-    for relative_path, payload in outputs.items():
-        if write_if_changed(output_dir / relative_path, payload, dry_run=dry_run):
+    for relative, payload in expected_payloads.items():
+        if dry_run:
+            is_changed = not _current_output_matches(output_dir, relative, payload)
+        else:
+            is_changed = write_if_changed(output_dir / Path(relative), payload)
+        if is_changed:
             changed += 1
         else:
             unchanged += 1
-
-    shards_dir = output_dir / "shards"
-    if shards_dir.exists():
-        for stale in shards_dir.rglob("*.jsonl.gz"):
-            relative = stale.relative_to(output_dir).as_posix()
-            if relative not in expected:
-                if not dry_run:
-                    stale.unlink()
-                removed += 1
     return {"changed": changed, "unchanged": unchanged, "removed": removed}
 
 
@@ -1263,7 +1881,7 @@ def main(argv: list[str] | None = None) -> int:
                     "metadata": metadata,
                 }
             )
-            print(f"[{year}] accepted {accepted:,} in-scope High/Critical records", flush=True)
+            print(f"[{year}] accepted {accepted:,} in-scope Medium/High/Critical records", flush=True)
             del payload, year_records
             gc.collect()
 

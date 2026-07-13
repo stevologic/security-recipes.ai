@@ -116,12 +116,34 @@ def evaluate(index_path: Path, golden_path: Path, limit: int) -> dict[str, Any]:
     cases = golden.get("cases", [])
     if not isinstance(cases, list) or not cases:
         raise ValueError("golden file must contain non-empty cases")
+    available_paths = {
+        normalise_path(doc.get("path", ""))
+        for doc in docs
+        if isinstance(doc, dict) and str(doc.get("path", "")).strip()
+    }
+    seen_case_ids: set[str] = set()
 
     results = []
     top1_hits = 0
     top3_hits = 0
-    for case in cases:
-        expected = {normalise_path(path) for path in case["expected_paths"]}
+    for position, case in enumerate(cases):
+        if not isinstance(case, dict):
+            raise ValueError(f"golden case {position} must be an object")
+        case_id = str(case.get("id", "")).strip()
+        if not case_id or case_id in seen_case_ids:
+            raise ValueError(f"golden case {position} has a missing or duplicate id")
+        seen_case_ids.add(case_id)
+        if not str(case.get("query", "")).strip():
+            raise ValueError(f"golden case {case_id} has an empty query")
+        expected_paths = case.get("expected_paths")
+        if not isinstance(expected_paths, list) or not expected_paths or not all(
+            isinstance(path, str) and path.strip() for path in expected_paths
+        ):
+            raise ValueError(f"golden case {case_id} must have non-empty expected_paths")
+        expected = {normalise_path(path) for path in expected_paths}
+        missing = sorted(expected - available_paths)
+        if missing:
+            raise ValueError(f"golden case {case_id} references paths absent from the recipe index: {missing}")
         ranked = rank(case["query"], docs, limit)
         ranked_paths = [item["path"] for item in ranked]
         top1 = bool(ranked_paths[:1] and ranked_paths[0] in expected)
@@ -130,7 +152,7 @@ def evaluate(index_path: Path, golden_path: Path, limit: int) -> dict[str, Any]:
         top3_hits += int(top3)
         results.append(
             {
-                "id": case["id"],
+                "id": case_id,
                 "top1": top1,
                 "top3": top3,
                 "expected_paths": sorted(expected),
