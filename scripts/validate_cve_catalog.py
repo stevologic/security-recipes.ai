@@ -7,6 +7,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import os
 import re
 from collections import Counter
 from datetime import date, datetime
@@ -193,6 +194,110 @@ def valid_shard_path(value: object) -> bool:
         return False
     path = PurePosixPath(value)
     return not path.is_absolute() and ".." not in path.parts and SHARD_PATH_RE.fullmatch(value) is not None
+
+
+def _is_link_or_junction(path: Path) -> bool:
+    is_junction = getattr(path, "is_junction", None)
+    return path.is_symlink() or bool(is_junction and is_junction())
+
+
+def _safe_catalog_output_path(value: object) -> str | None:
+    if not isinstance(value, str) or not value or "\\" in value or ":" in value:
+        return None
+    path = PurePosixPath(value)
+    if path.is_absolute() or ".." in path.parts or str(path) == ".":
+        return None
+    return path.as_posix()
+
+
+def declared_catalog_output_paths(manifest: dict[str, Any]) -> set[str]:
+    """Return every physical file owned by one catalog generation."""
+    declared = {"manifest.json", "index.json", "archetypes.json"}
+
+    def add(value: object) -> None:
+        relative = _safe_catalog_output_path(value)
+        if relative:
+            declared.add(relative)
+
+    for key in ("browser_index", "runtime_summary", "archetypes_asset", "complete_index"):
+        entry = manifest.get(key)
+        if isinstance(entry, dict):
+            add(entry.get("path"))
+
+    complete_index = manifest.get("complete_index")
+    if isinstance(complete_index, dict):
+        for entry in complete_index.get("partitions") or []:
+            if isinstance(entry, dict):
+                add(entry.get("path"))
+
+    for entry in manifest.get("shard_manifest") or []:
+        if isinstance(entry, dict):
+            add(entry.get("path"))
+    return declared
+
+
+def _expected_catalog_dirs(declared: set[str]) -> set[str]:
+    directories: set[str] = set()
+    for relative in declared:
+        for parent in PurePosixPath(relative).parents:
+            if str(parent) != ".":
+                directories.add(parent.as_posix())
+    return directories
+
+
+def validate_physical_catalog_tree(
+    catalog_dir: Path,
+    manifest: dict[str, Any],
+    failures: list[str],
+) -> bool:
+    """Reject physical nodes that are not owned by the active manifest.
+
+    The traversal never follows links or junctions. The boolean result is
+    false only for filesystem node types that would be unsafe to read later;
+    ordinary missing/orphan files remain normal validation failures.
+    """
+    declared = declared_catalog_output_paths(manifest)
+    expected_dirs = _expected_catalog_dirs(declared)
+    physical_files: set[str] = set()
+    physical_dirs: set[str] = set()
+    links: set[str] = set()
+    special: set[str] = set()
+
+    def visit(directory: Path) -> None:
+        with os.scandir(directory) as scanned:
+            children = sorted(scanned, key=lambda entry: entry.name)
+        for child in children:
+            path = Path(child.path)
+            relative = path.relative_to(catalog_dir).as_posix()
+            if child.is_symlink() or _is_link_or_junction(path):
+                links.add(relative)
+            elif child.is_dir(follow_symlinks=False):
+                physical_dirs.add(relative)
+                visit(path)
+            elif child.is_file(follow_symlinks=False):
+                physical_files.add(relative)
+            else:
+                special.add(relative)
+
+    visit(catalog_dir)
+    if physical_files != declared:
+        missing = sorted(declared - physical_files)
+        orphaned = sorted(physical_files - declared)
+        fail(
+            failures,
+            f"physical catalog file set does not match declared outputs: missing={missing[:10]}, orphaned={orphaned[:10]}",
+        )
+    orphaned_dirs = sorted(physical_dirs - expected_dirs)
+    if orphaned_dirs:
+        fail(
+            failures,
+            f"physical catalog directory set contains undeclared directories: orphaned={orphaned_dirs[:10]}",
+        )
+    if links:
+        fail(failures, f"physical catalog contains links or junctions: {sorted(links)[:10]}")
+    if special:
+        fail(failures, f"physical catalog contains special filesystem entries: {sorted(special)[:10]}")
+    return not links and not special
 
 
 def parse_nonnegative_integer(value: object) -> int | None:
@@ -1036,17 +1141,24 @@ def validate_source_completeness(
 def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str, Any]:
     failures: list[str] = []
     warnings: list[str] = []
+    if _is_link_or_junction(catalog_dir):
+        fail(failures, f"catalog root must not be a link or junction: {catalog_dir}")
+        return {"ok": False, "failures": failures, "warnings": warnings}
     index_path = catalog_dir / "index.json"
     manifest_path = catalog_dir / "manifest.json"
     archetype_path = catalog_dir / "archetypes.json"
     for path in (index_path, manifest_path, archetype_path):
-        if not path.is_file():
+        if _is_link_or_junction(path):
+            fail(failures, f"required catalog file must not be a link or junction: {path}")
+        elif not path.is_file():
             fail(failures, f"missing required catalog file: {path}")
     if failures:
         return {"ok": False, "failures": failures, "warnings": warnings}
 
-    index = load_json(index_path)
     manifest = load_json(manifest_path)
+    if not validate_physical_catalog_tree(catalog_dir, manifest, failures):
+        return {"ok": False, "failures": failures, "warnings": warnings}
+    index = load_json(index_path)
     archetypes = load_json(archetype_path)
     markdown_counts, markdown_inventory = validate_markdown_recipes(content_dir, failures)
     if manifest.get("schema_version") != 2:

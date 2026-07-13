@@ -304,8 +304,15 @@ def write_if_changed(path: Path, payload: bytes, *, dry_run: bool = False) -> bo
     if not dry_run:
         path.parent.mkdir(parents=True, exist_ok=True)
         temporary = path.with_suffix(path.suffix + ".tmp")
-        temporary.write_bytes(payload)
-        os.replace(temporary, path)
+        try:
+            temporary.write_bytes(payload)
+            os.replace(temporary, path)
+        finally:
+            # A normal write failure must not leave a second, unowned catalog
+            # representation behind. Hard process termination is handled by
+            # the whole-tree reconciliation at the start of the next sync.
+            if temporary.is_symlink() or temporary.exists():
+                temporary.unlink()
     return True
 
 
@@ -1633,25 +1640,136 @@ def build_outputs(
     return outputs, manifest
 
 
+def _is_link_or_junction(path: Path) -> bool:
+    is_junction = getattr(path, "is_junction", None)
+    return path.is_symlink() or bool(is_junction and is_junction())
+
+
+def _validated_output_paths(outputs: dict[Path, bytes]) -> dict[str, bytes]:
+    expected: dict[str, bytes] = {}
+    for relative_path, payload in outputs.items():
+        relative = relative_path.as_posix()
+        pure = PurePosixPath(relative)
+        if (
+            not relative
+            or relative == "."
+            or "\\" in relative
+            or ":" in relative
+            or pure.is_absolute()
+            or ".." in pure.parts
+        ):
+            raise ValueError(f"unsafe generated catalog output path: {relative!r}")
+        if relative in expected:
+            raise ValueError(f"duplicate generated catalog output path: {relative}")
+        expected[relative] = payload
+    return expected
+
+
+def _expected_output_dirs(expected: set[str]) -> set[str]:
+    directories: set[str] = set()
+    for relative in expected:
+        for parent in PurePosixPath(relative).parents:
+            if str(parent) != ".":
+                directories.add(parent.as_posix())
+    return directories
+
+
+def _catalog_tree_entries(output_dir: Path) -> list[tuple[Path, str, str]]:
+    """Return catalog entries post-order without following links or junctions."""
+    if _is_link_or_junction(output_dir):
+        raise ValueError(f"catalog output root must not be a link or junction: {output_dir}")
+    if output_dir.exists() and not output_dir.is_dir():
+        raise NotADirectoryError(f"catalog output root is not a directory: {output_dir}")
+    if not output_dir.exists():
+        return []
+
+    entries: list[tuple[Path, str, str]] = []
+
+    def visit(directory: Path) -> None:
+        with os.scandir(directory) as scanned:
+            children = sorted(scanned, key=lambda entry: entry.name)
+        for child in children:
+            path = Path(child.path)
+            relative = path.relative_to(output_dir).as_posix()
+            if child.is_symlink() or _is_link_or_junction(path):
+                entries.append((path, relative, "link"))
+            elif child.is_dir(follow_symlinks=False):
+                visit(path)
+                entries.append((path, relative, "directory"))
+            elif child.is_file(follow_symlinks=False):
+                entries.append((path, relative, "file"))
+            else:
+                entries.append((path, relative, "special"))
+
+    visit(output_dir)
+    return entries
+
+
+def reconcile_output_tree(
+    output_dir: Path,
+    expected: set[str],
+    *,
+    dry_run: bool = False,
+) -> int:
+    """Remove every unowned node from the generated catalog tree.
+
+    Links are never valid generated outputs, even when their path is expected:
+    following one while updating the catalog could write outside ``output_dir``.
+    Directories are retained only when they are parents of expected files.
+    """
+    expected_dirs = _expected_output_dirs(expected)
+    removed = 0
+    for path, relative, kind in _catalog_tree_entries(output_dir):
+        should_remove = (
+            kind in {"link", "special"}
+            or (kind == "file" and relative not in expected)
+            or (kind == "directory" and relative not in expected_dirs)
+        )
+        if not should_remove:
+            continue
+        removed += 1
+        if dry_run:
+            continue
+        if kind == "directory":
+            path.rmdir()
+        elif kind == "link" and bool(
+            getattr(path, "is_junction", lambda: False)()
+        ) and not path.is_symlink():
+            path.rmdir()
+        else:
+            path.unlink()
+    return removed
+
+
+def _current_output_matches(output_dir: Path, relative: str, payload: bytes) -> bool:
+    current = output_dir
+    for part in PurePosixPath(relative).parts[:-1]:
+        current /= part
+        if _is_link_or_junction(current) or not current.is_dir():
+            return False
+    target = output_dir / Path(relative)
+    return (
+        not _is_link_or_junction(target)
+        and target.is_file()
+        and target.read_bytes() == payload
+    )
+
+
 def write_outputs(output_dir: Path, outputs: dict[Path, bytes], *, dry_run: bool = False) -> dict[str, int]:
-    expected = {path.as_posix() for path in outputs}
+    expected_payloads = _validated_output_paths(outputs)
+    expected = set(expected_payloads)
+    removed = reconcile_output_tree(output_dir, expected, dry_run=dry_run)
     changed = 0
     unchanged = 0
-    removed = 0
-    for relative_path, payload in outputs.items():
-        if write_if_changed(output_dir / relative_path, payload, dry_run=dry_run):
+    for relative, payload in expected_payloads.items():
+        if dry_run:
+            is_changed = not _current_output_matches(output_dir, relative, payload)
+        else:
+            is_changed = write_if_changed(output_dir / Path(relative), payload)
+        if is_changed:
             changed += 1
         else:
             unchanged += 1
-
-    for generated_dir, pattern in ((output_dir / "shards", "*.jsonl.gz"), (output_dir / "indexes", "*.json.gz")):
-        if generated_dir.exists():
-            for stale in generated_dir.rglob(pattern):
-                relative = stale.relative_to(output_dir).as_posix()
-                if relative not in expected:
-                    if not dry_run:
-                        stale.unlink()
-                    removed += 1
     return {"changed": changed, "unchanged": unchanged, "removed": removed}
 
 

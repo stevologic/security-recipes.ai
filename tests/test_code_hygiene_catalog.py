@@ -3,9 +3,13 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from collections import Counter
 from pathlib import Path
+from unittest import mock
+
+from scripts import sync_code_hygiene_recipes as sync_catalog
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -126,6 +130,32 @@ class CodeHygieneCatalogTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_sync_detects_and_removes_orphaned_recipe_and_family_index(self) -> None:
+        with tempfile.TemporaryDirectory(dir=ROOT) as temp_dir:
+            temp = Path(temp_dir)
+            content = temp / "code-hygiene"
+            routing = temp / "routing-fixtures.json"
+            with (
+                mock.patch.object(sync_catalog, "CONTENT_ROOT", content),
+                mock.patch.object(sync_catalog, "ROUTING_PATH", routing),
+            ):
+                sync_catalog.sync(check=False)
+                orphan_recipe = content / "retired" / "orphan.md"
+                orphan_index = content / "retired" / "_index.md"
+                orphan_recipe.parent.mkdir(parents=True)
+                orphan_recipe.write_text(sync_catalog.GENERATED_MARKER + "\n", encoding="utf-8")
+                orphan_index.write_text(sync_catalog.GENERATED_MARKER + "\n", encoding="utf-8")
+
+                stale = sync_catalog.sync(check=True)
+                self.assertIn(str(orphan_recipe.relative_to(ROOT)), stale)
+                self.assertIn(str(orphan_index.relative_to(ROOT)), stale)
+                self.assertTrue(orphan_recipe.exists())
+
+                sync_catalog.sync(check=False)
+                self.assertFalse(orphan_recipe.exists())
+                self.assertFalse(orphan_index.exists())
+                self.assertFalse(orphan_recipe.parent.exists())
 
 
 if __name__ == "__main__":

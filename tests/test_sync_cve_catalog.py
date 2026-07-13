@@ -859,6 +859,103 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertIn("accepted_records sum 2 does not match catalog_records 1", failures)
             self.assertIn("metadata is missing required fields", failures)
 
+    def test_write_outputs_reconciles_the_entire_owned_tree(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        with tempfile.TemporaryDirectory(prefix="test-cve-reconcile-", dir=catalog.ROOT) as tmpdir:
+            base = Path(tmpdir)
+            output_dir, content_dir, _ = write_catalog_fixture(base, [record])
+            outputs, _ = build_catalog_outputs([record])
+
+            root_orphan = output_dir / "obsolete-root.json"
+            temporary_orphan = output_dir / "manifest.json.tmp"
+            nested_orphan = output_dir / "legacy" / "deep" / "record.bin"
+            empty_directory = output_dir / "abandoned" / "empty"
+            root_orphan.write_text("obsolete", encoding="utf-8")
+            temporary_orphan.write_text("interrupted", encoding="utf-8")
+            nested_orphan.parent.mkdir(parents=True)
+            nested_orphan.write_bytes(b"orphan")
+            empty_directory.mkdir(parents=True)
+
+            dry_run = catalog.write_outputs(output_dir, outputs, dry_run=True)
+            self.assertEqual(dry_run["changed"], 0)
+            self.assertEqual(dry_run["unchanged"], len(outputs))
+            self.assertEqual(dry_run["removed"], 7)
+            for orphan in (root_orphan, temporary_orphan, nested_orphan, empty_directory):
+                self.assertTrue(orphan.exists())
+
+            cleanup = catalog.write_outputs(output_dir, outputs)
+            self.assertEqual(cleanup["changed"], 0)
+            self.assertEqual(cleanup["unchanged"], len(outputs))
+            self.assertEqual(cleanup["removed"], 7)
+            for orphan in (root_orphan, temporary_orphan, nested_orphan, empty_directory):
+                self.assertFalse(orphan.exists())
+            self.assertFalse((output_dir / "legacy").exists())
+            self.assertFalse((output_dir / "abandoned").exists())
+
+            validation = validator.validate(output_dir, content_dir)
+            self.assertTrue(validation["ok"], validation["failures"])
+            settled = catalog.write_outputs(output_dir, outputs, dry_run=True)
+            self.assertEqual(
+                settled,
+                {"changed": 0, "unchanged": len(outputs), "removed": 0},
+            )
+
+    def test_validator_rejects_unexpected_root_temp_and_nested_artifacts(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        with tempfile.TemporaryDirectory(prefix="test-cve-tree-validation-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(Path(tmpdir), [record])
+            (output_dir / "obsolete-root.json").write_text("obsolete", encoding="utf-8")
+            (output_dir / "manifest.json.tmp").write_text("interrupted", encoding="utf-8")
+            nested = output_dir / "legacy" / "deep" / "record.bin"
+            nested.parent.mkdir(parents=True)
+            nested.write_bytes(b"orphan")
+            (output_dir / "abandoned" / "empty").mkdir(parents=True)
+
+            validation = validator.validate(output_dir, content_dir)
+            failures = "\n".join(validation["failures"])
+            self.assertFalse(validation["ok"])
+            self.assertIn("physical catalog file set does not match declared outputs", failures)
+            self.assertIn("obsolete-root.json", failures)
+            self.assertIn("manifest.json.tmp", failures)
+            self.assertIn("legacy/deep/record.bin", failures)
+            self.assertIn("physical catalog directory set contains undeclared directories", failures)
+            self.assertIn("abandoned/empty", failures)
+
+    def test_catalog_links_are_rejected_and_cleaned_without_following(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        with tempfile.TemporaryDirectory(prefix="test-cve-link-cleanup-", dir=catalog.ROOT) as tmpdir:
+            base = Path(tmpdir)
+            output_dir, content_dir, _ = write_catalog_fixture(base, [record])
+            outputs, _ = build_catalog_outputs([record])
+            target = base / "outside-catalog.txt"
+            target.write_text("must survive", encoding="utf-8")
+            link = output_dir / "stale-link"
+            try:
+                link.symlink_to(target)
+            except (NotImplementedError, OSError) as exc:
+                self.skipTest(f"filesystem does not permit symlink tests: {exc}")
+
+            validation = validator.validate(output_dir, content_dir)
+            self.assertFalse(validation["ok"])
+            self.assertIn(
+                "physical catalog contains links or junctions",
+                "\n".join(validation["failures"]),
+            )
+
+            cleanup = catalog.write_outputs(output_dir, outputs)
+            self.assertEqual(cleanup["removed"], 1)
+            self.assertFalse(link.exists())
+            self.assertFalse(link.is_symlink())
+            self.assertEqual(target.read_text(encoding="utf-8"), "must survive")
+            validation = validator.validate(output_dir, content_dir)
+            self.assertTrue(validation["ok"], validation["failures"])
+
     def test_validator_rejects_orphan_physical_shards(self) -> None:
         record = normalize(nvd_record())
         self.assertIsNotNone(record)

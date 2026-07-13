@@ -8,6 +8,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -209,6 +210,48 @@ class PlaybookLifecycleTests(unittest.TestCase):
             tampered = verify_run(run_dir=run_dir, registry=self.registry)
             self.assertFalse(tampered["valid"])
             self.assertTrue(any("hash or size" in issue for issue in tampered["issues"]))
+
+    def test_start_removes_only_stale_owned_temporaries_for_its_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            (workspace / "finding.json").write_text("{}", encoding="utf-8")
+            run_parent = workspace / ".security-recipes" / "runs"
+            run_parent.mkdir(parents=True)
+
+            stale_owned = run_parent / ".base-images.tmp-stale-owned"
+            stale_owned.mkdir()
+            (stale_owned / "run.json").write_text("{}", encoding="utf-8")
+
+            fresh_owned = run_parent / ".base-images.tmp-fresh-owned"
+            fresh_owned.mkdir()
+            (fresh_owned / "run.json").write_text("{}", encoding="utf-8")
+
+            stale_other_destination = run_parent / ".sast-findings.tmp-stale"
+            stale_other_destination.mkdir()
+            (stale_other_destination / "run.json").write_text("{}", encoding="utf-8")
+
+            stale_unowned = run_parent / ".base-images.tmp-stale-unowned"
+            stale_unowned.mkdir()
+            (stale_unowned / "operator-note.txt").write_text("keep", encoding="utf-8")
+
+            old = time.time() - (2 * 24 * 60 * 60)
+            for path in (stale_owned, stale_other_destination, stale_unowned):
+                os.utime(path, (old, old))
+
+            run_dir = run_parent / "base-images"
+            start_run(
+                registry=self.registry,
+                playbook_id="base-images",
+                workspace=workspace,
+                finding="finding.json",
+                run_dir=run_dir,
+            )
+
+            self.assertFalse(stale_owned.exists())
+            self.assertTrue(fresh_owned.exists())
+            self.assertTrue(stale_other_destination.exists())
+            self.assertTrue(stale_unowned.exists())
+            self.assertTrue(run_dir.is_dir())
 
     def test_profile_tamper_is_detected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

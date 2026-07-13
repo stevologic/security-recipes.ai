@@ -1210,6 +1210,7 @@ class PlaybookRegistry:
         self._playbook_by_id: dict[str, dict[str, Any]] = {}
         self._load_error: Exception | None = None
         self._load_attempted = False
+        self._source_signature: tuple[int, int, int, int, int] | None = None
         self._lock = threading.Lock()
 
     def _resolved_path(self) -> Path:
@@ -1217,6 +1218,27 @@ class PlaybookRegistry:
         if not path.is_absolute():
             path = Path.cwd() / path
         return path.resolve()
+
+    @staticmethod
+    def _file_signature(path: Path) -> tuple[int, int, int, int, int]:
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f"playbook registry is missing or not a regular file: {path}")
+        stat = path.stat()
+        return (
+            int(stat.st_dev),
+            int(stat.st_ino),
+            int(stat.st_size),
+            int(stat.st_mtime_ns),
+            int(stat.st_ctime_ns),
+        )
+
+    def _clear_loaded_state(self, error: Exception, signature: tuple[int, int, int, int, int] | None) -> None:
+        self._pack = None
+        self._playbooks = ()
+        self._playbook_by_id = {}
+        self._load_error = error
+        self._load_attempted = True
+        self._source_signature = signature
 
     @staticmethod
     def _required_text(value: Any, field_name: str) -> str:
@@ -1326,19 +1348,30 @@ class PlaybookRegistry:
         return profile
 
     def _load(self) -> None:
-        if self._load_attempted:
+        path = self._resolved_path()
+        try:
+            signature = self._file_signature(path)
+        except Exception as exc:
+            with self._lock:
+                self._clear_loaded_state(exc, None)
+            raise
+        if self._load_attempted and signature == self._source_signature:
             if self._load_error:
                 raise RuntimeError(str(self._load_error)) from self._load_error
             return
 
         with self._lock:
-            if self._load_attempted:
+            try:
+                signature = self._file_signature(path)
+            except Exception as exc:
+                self._clear_loaded_state(exc, None)
+                raise
+            if self._load_attempted and signature == self._source_signature:
                 if self._load_error:
                     raise RuntimeError(str(self._load_error)) from self._load_error
                 return
 
             try:
-                path = self._resolved_path()
                 payload = json.loads(path.read_text(encoding="utf-8"))
                 if not isinstance(payload, dict):
                     raise ValueError("playbook registry root must be an object")
@@ -1374,11 +1407,12 @@ class PlaybookRegistry:
                 }
                 self._playbooks = profiles
                 self._playbook_by_id = by_id
-            except Exception as exc:
-                self._load_error = exc
-                raise
-            finally:
+                self._load_error = None
                 self._load_attempted = True
+                self._source_signature = signature
+            except Exception as exc:
+                self._clear_loaded_state(exc, signature)
+                raise
 
     @classmethod
     def _validated_id(cls, playbook_id: str) -> str:
@@ -1466,7 +1500,7 @@ class PlaybookRegistry:
             "suite_version": self._pack["suite_version"],
             "playbook_count": len(self._playbooks),
             "categories": sorted({profile["category"] for profile in self._playbooks}),
-            "cache": "validated once per server process",
+            "cache": "filesystem signature revalidated on every access; atomically reloaded on change",
         }
 
     def list_playbooks(

@@ -15,6 +15,7 @@ import json
 import os
 import re
 import tempfile
+import time
 import uuid
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
@@ -31,6 +32,7 @@ DEFAULT_MAX_FILE_BYTES = 2 * 1024 * 1024
 DEFAULT_MAX_TOTAL_BYTES = 32 * 1024 * 1024
 DEFAULT_MAX_ENTRIES = 50_000
 MAX_SKIPPED_DETAILS = 200
+STALE_RUN_TEMP_SECONDS = 24 * 60 * 60
 RUN_CONTROL_ARTIFACTS = frozenset({"run.json", "PLAN.md", "AGENT_TASK.md", "evidence.json"})
 IGNORED_DIRECTORY_NAMES = frozenset(
     {
@@ -519,6 +521,61 @@ def _new_run_path(workspace: Path, run_dir: str | Path) -> Path:
     return candidate
 
 
+def _remove_owned_run_temporary(path: Path) -> bool:
+    """Remove one run staging directory only when every entry is suite-owned."""
+
+    if _is_link(path) or not path.is_dir():
+        return False
+    try:
+        children = list(path.iterdir())
+    except OSError:
+        return False
+    if any(
+        child.name not in RUN_CONTROL_ARTIFACTS
+        or _is_link(child)
+        or not child.is_file()
+        for child in children
+    ):
+        return False
+    try:
+        for child in children:
+            child.unlink()
+        path.rmdir()
+    except OSError:
+        return False
+    return True
+
+
+def _cleanup_stale_run_temporaries(
+    destination: Path,
+    *,
+    stale_after_seconds: int = STALE_RUN_TEMP_SECONDS,
+) -> int:
+    """Clean abandoned staging directories for exactly one destination name."""
+
+    if stale_after_seconds < 0:
+        raise PlaybookError("stale run temporary age must be non-negative")
+    prefix = f".{destination.name}.tmp-"
+    cutoff_ns = time.time_ns() - int(stale_after_seconds * 1_000_000_000)
+    removed = 0
+    try:
+        candidates = list(destination.parent.iterdir())
+    except OSError:
+        return 0
+    for candidate in candidates:
+        if not candidate.name.startswith(prefix) or _is_link(candidate):
+            continue
+        try:
+            stat = candidate.stat()
+        except OSError:
+            continue
+        if stat.st_mtime_ns > cutoff_ns:
+            continue
+        if _remove_owned_run_temporary(candidate):
+            removed += 1
+    return removed
+
+
 def _render_plan(playbook: dict[str, Any], finding: dict[str, Any], inspection: dict[str, Any]) -> str:
     lines = [
         f"# {playbook['title']} plan",
@@ -608,6 +665,8 @@ def start_run(
     root = _workspace_root(workspace)
     finding_path, finding_relative = _existing_file_inside(root, finding)
     finding_metadata = {"path": finding_relative, **_hash_file(finding_path, max_bytes=max_file_bytes)}
+    destination = _new_run_path(root, run_dir)
+    _cleanup_stale_run_temporaries(destination)
     inspection = inspect_workspace(
         playbook=playbook,
         workspace=root,
@@ -616,7 +675,6 @@ def start_run(
         max_total_bytes=max_total_bytes,
         max_entries=max_entries,
     )
-    destination = _new_run_path(root, run_dir)
     run_id = str(uuid.uuid4())
     run = {
         "schema_version": RUN_SCHEMA_VERSION,
@@ -657,10 +715,7 @@ def start_run(
         os.replace(temporary, destination)
     except Exception:
         if temporary.exists():
-            for child in temporary.iterdir():
-                if child.is_file():
-                    child.unlink()
-            temporary.rmdir()
+            _remove_owned_run_temporary(temporary)
         raise
 
     return {

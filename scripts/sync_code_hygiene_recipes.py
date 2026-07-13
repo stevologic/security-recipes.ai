@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -203,6 +204,8 @@ def render_root_index(catalog: dict[str, Any]) -> str:
             "  open: false",
             "---",
             "",
+            GENERATED_MARKER,
+            "",
             "Use the narrowest ecosystem recipe that matches the repository. Cross-language recipes are intended for polyglot or language-independent work. Each recipe starts read-only and requires explicit authorization before edits.",
             "",
             "{{< callout type=\"warning\" >}}",
@@ -228,6 +231,8 @@ def render_family_index(key: str, family: dict[str, Any], weight: int) -> str:
             "sidebar:",
             "  open: false",
             "---",
+            "",
+            GENERATED_MARKER,
             "",
             family["description"],
             "",
@@ -292,19 +297,97 @@ def expected_outputs(catalog: dict[str, Any], sources: dict[str, Any]) -> dict[P
     return outputs
 
 
+def _is_link_or_junction(path: Path) -> bool:
+    is_junction = getattr(path, "is_junction", None)
+    return path.is_symlink() or bool(is_junction and is_junction())
+
+
+def _managed_content_entries() -> list[tuple[Path, str, str]]:
+    """Return the generated content tree post-order without following links."""
+
+    if _is_link_or_junction(CONTENT_ROOT):
+        raise ValueError(f"generated content root must not be a link or junction: {CONTENT_ROOT}")
+    if CONTENT_ROOT.exists() and not CONTENT_ROOT.is_dir():
+        raise ValueError(f"generated content root must be a directory: {CONTENT_ROOT}")
+    if not CONTENT_ROOT.exists():
+        return []
+    entries: list[tuple[Path, str, str]] = []
+
+    def visit(directory: Path) -> None:
+        with os.scandir(directory) as scanned:
+            children = sorted(scanned, key=lambda entry: entry.name)
+        for child in children:
+            path = Path(child.path)
+            relative = path.relative_to(CONTENT_ROOT).as_posix()
+            if child.is_symlink() or _is_link_or_junction(path):
+                entries.append((path, relative, "link"))
+            elif child.is_dir(follow_symlinks=False):
+                visit(path)
+                entries.append((path, relative, "directory"))
+            elif child.is_file(follow_symlinks=False):
+                entries.append((path, relative, "file"))
+            else:
+                entries.append((path, relative, "special"))
+
+    visit(CONTENT_ROOT)
+    return entries
+
+
+def reconcile_content_tree(expected_paths: set[Path], *, check: bool) -> list[str]:
+    """Reconcile the fully generated Markdown subtree to its catalog outputs."""
+
+    expected = {path.relative_to(CONTENT_ROOT).as_posix() for path in expected_paths}
+    expected_dirs = {
+        parent.as_posix()
+        for relative in expected
+        for parent in Path(relative).parents
+        if parent.as_posix() != "."
+    }
+    stale: list[str] = []
+    for path, relative, kind in _managed_content_entries():
+        remove = (
+            kind in {"link", "special"}
+            or (kind == "file" and relative not in expected)
+            or (kind == "directory" and relative not in expected_dirs)
+        )
+        if not remove:
+            continue
+        stale.append(str((CONTENT_ROOT / relative).relative_to(REPO_ROOT)))
+        if check:
+            continue
+        if kind == "directory":
+            path.rmdir()
+        elif kind == "link" and bool(getattr(path, "is_junction", lambda: False)()) and not path.is_symlink():
+            path.rmdir()
+        else:
+            path.unlink()
+    return stale
+
+
 def sync(check: bool = False) -> list[str]:
     catalog = load_json(CATALOG_PATH)
     sources = load_json(SOURCES_PATH)
-    stale: list[str] = []
-    for path, rendered in expected_outputs(catalog, sources).items():
-        current = path.read_text(encoding="utf-8") if path.exists() else None
+    outputs = expected_outputs(catalog, sources)
+    content_paths = {path for path in outputs if path.is_relative_to(CONTENT_ROOT)}
+    stale = reconcile_content_tree(content_paths, check=check)
+    for path, rendered in outputs.items():
+        current = (
+            path.read_text(encoding="utf-8")
+            if path.is_file() and not _is_link_or_junction(path)
+            else None
+        )
         if current == rendered:
             continue
         stale.append(str(path.relative_to(REPO_ROOT)))
         if not check:
+            if _is_link_or_junction(path):
+                if bool(getattr(path, "is_junction", lambda: False)()) and not path.is_symlink():
+                    path.rmdir()
+                else:
+                    path.unlink()
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(rendered, encoding="utf-8", newline="\n")
-    return stale
+    return sorted(set(stale))
 
 
 def main() -> int:

@@ -151,7 +151,7 @@ class PlaybookRegistryTests(unittest.TestCase):
             self.assertTrue(plan["evidence_checklist"])
             self.assertTrue(plan["python_contract"])
 
-    def test_list_is_concise_searchable_filterable_and_cached(self) -> None:
+    def test_list_is_concise_searchable_filterable_and_reloadable(self) -> None:
         result = self.registry.list_playbooks(query="lockfile", limit=10)
         self.assertEqual(result["count"], 1)
         self.assertEqual(result["matched_count"], 1)
@@ -176,9 +176,24 @@ class PlaybookRegistryTests(unittest.TestCase):
         self.assertEqual([item["id"] for item in incident["results"]], ["incident-containment"])
 
         self.registry_path.write_text("not JSON anymore", encoding="utf-8")
-        cached = self.registry.list_playbooks(limit=1)
-        self.assertEqual(cached["count"], 1)
-        self.assertEqual(cached["matched_count"], 2)
+        with self.assertRaises(json.JSONDecodeError):
+            self.registry.list_playbooks(limit=1)
+        self.assertFalse(self.registry.metadata()["available"])
+
+        replacement = registry_payload()
+        replacement["suite_version"] = "2026.08"
+        replacement["playbooks"] = [replacement["playbooks"][1]]
+        self.registry_path.write_text(json.dumps(replacement), encoding="utf-8")
+        reloaded = self.registry.list_playbooks(limit=10)
+        self.assertEqual(reloaded["suite_version"], "2026.08")
+        self.assertEqual([item["id"] for item in reloaded["results"]], ["incident-containment"])
+        self.assertIsNone(self.registry.get_playbook("dependency-remediation"))
+
+        self.registry_path.unlink()
+        missing = self.registry.metadata()
+        self.assertFalse(missing["available"])
+        with self.assertRaisesRegex(ValueError, "missing or not a regular file"):
+            self.registry.list_playbooks(limit=10)
 
     def test_get_returns_complete_isolated_contract(self) -> None:
         result = self.registry.get_playbook("dependency-remediation")
