@@ -114,7 +114,7 @@ Get actionable critical findings for one source:
 
 ```json
 {
-  "source_id": "prompt-library-recipes",
+  "source_id": "recipes",
   "severity": "critical",
   "actionable_only": true
 }

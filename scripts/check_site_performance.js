@@ -12,7 +12,7 @@ const path = require("node:path");
 const crypto = require("node:crypto");
 
 const ROOT = path.resolve(process.env.SITE_OUTPUT_DIR || "public");
-const CONTENT = path.resolve("content/prompt-library/cve");
+const CONTENT = path.resolve("content/recipes/cve");
 const MiB = 1024 * 1024;
 const KiB = 1024;
 const failures = [];
@@ -88,18 +88,34 @@ function checkOpaquePng(file, expectedSize) {
 }
 
 function routeForSource(file) {
-  return `/prompt-library/cve/${path.basename(file, ".md")}/`;
+  return `/recipes/cve/${path.basename(file, ".md")}/`;
 }
 
 if (!fs.existsSync(ROOT)) throw new Error(`site output does not exist: ${ROOT}`);
 if (!fs.existsSync(CONTENT)) throw new Error(`CVE content does not exist: ${CONTENT}`);
 
 const files = walk(ROOT);
+const retiredNamespace = new RegExp(["prompt", "library"].join("[-_ ]?"), "i");
+const generatedTextExtensions = new Set([
+  ".css", ".html", ".js", ".json", ".map", ".md", ".svg", ".txt", ".webmanifest", ".xml",
+]);
+for (const file of files) {
+  const relative = path.relative(ROOT, file).replace(/\\/g, "/");
+  if (retiredNamespace.test(relative)) {
+    fail(`retired recipe namespace remains in output path: ${relative}`);
+  }
+  if (generatedTextExtensions.has(path.extname(file).toLowerCase())) {
+    const content = fs.readFileSync(file, "utf8");
+    if (retiredNamespace.test(content)) {
+      fail(`retired recipe namespace remains in generated text: ${relative}`);
+    }
+  }
+}
 // This is deployed disk/image size and intentionally includes precompressed
 // sidecars. Logical feed checks below parse only canonical, uncompressed URLs.
 const totalBytes = files.reduce((sum, file) => sum + fs.statSync(file).size, 0);
 const cveHtml = files.filter((file) =>
-  file.startsWith(path.join(ROOT, "prompt-library", "cve") + path.sep) && file.endsWith("index.html"),
+  file.startsWith(path.join(ROOT, "recipes", "cve") + path.sep) && file.endsWith("index.html"),
 );
 const cveHtmlBytes = cveHtml.reduce((sum, file) => sum + fs.statSync(file).size, 0);
 
@@ -112,7 +128,7 @@ budget("CVE complete index manifest", size("api/cve-catalog/index.json"), 1 * Mi
 budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * KiB);
 budget("CVE manifest", size("api/cve-catalog/manifest.json"), 256 * KiB);
 budget("CVE remediation archetypes", size("api/cve-catalog/archetypes.json"), 1 * MiB);
-budget("CVE hub HTML", size("prompt-library/cve/index.html"), 512 * KiB);
+budget("CVE hub HTML", size("recipes/cve/index.html"), 512 * KiB);
 budget("recipe library HTML", size("recipes/index.html"), 768 * KiB);
 budget("recipe library JavaScript", size("js/recipe-browser.js"), 160 * KiB);
 budget("recipe library styles", size("css/recipe-library.css"), 160 * KiB);
@@ -153,7 +169,7 @@ for (const [file, expectedSize] of [
   checkOpaquePng(file, expectedSize);
 }
 
-for (const file of ["index.html", "recipes/index.html", "prompt-library/cve/index.html"]) {
+for (const file of ["index.html", "recipes/index.html", "recipes/cve/index.html"]) {
   const htmlPath = path.join(ROOT, file);
   if (!fs.existsSync(htmlPath)) {
     fail(`missing installable page output: ${file}`);

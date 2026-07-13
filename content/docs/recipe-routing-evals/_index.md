@@ -79,7 +79,7 @@ Each case needs a realistic query and one or more expected paths:
 {
   "id": "cve-example",
   "query": "CVE-20XX-12345 package ecosystem exploit shape",
-  "expected_paths": ["/prompt-library/cve/cve-20xx-12345-example/"],
+  "expected_paths": ["/recipes/cve/cve-20xx-12345-example/"],
   "tags": ["cve", "ecosystem"]
 }
 ```

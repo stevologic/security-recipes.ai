@@ -11624,7 +11624,7 @@ def _cve_override_source_path(value: object) -> str | None:
     parts = source_path.split("/")
     if (
         len(parts) < 3
-        or parts[:2] != ["prompt-library", "cve"]
+        or parts[:2] != ["recipes", "cve"]
         or any(part in {"", ".", ".."} for part in parts)
         or not parts[-1].lower().endswith(".md")
     ):

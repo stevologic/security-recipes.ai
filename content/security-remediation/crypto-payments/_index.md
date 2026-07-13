@@ -38,9 +38,9 @@ A finding is agent-eligible when all are true:
 
 Use the following prompt recipes for this workflow:
 
-- [Hot-wallet transaction policy enforcement]({{< relref "/prompt-library/general/crypto-defi/hot-wallet-transaction-policy-enforcement" >}})
-- [Crypto payment address integrity checks]({{< relref "/prompt-library/general/crypto-defi/crypto-payment-address-integrity-check" >}})
-- [Seed phrase and key-material purge]({{< relref "/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge" >}})
+- [Hot-wallet transaction policy enforcement]({{< relref "/recipes/general/crypto-defi/hot-wallet-transaction-policy-enforcement" >}})
+- [Crypto payment address integrity checks]({{< relref "/recipes/general/crypto-defi/crypto-payment-address-integrity-check" >}})
+- [Seed phrase and key-material purge]({{< relref "/recipes/general/crypto-defi/seed-phrase-and-key-material-purge" >}})
 
 ## Guardrails
 
@@ -62,4 +62,4 @@ Use the following prompt recipes for this workflow:
 ## See also
 
 - [DeFi & Blockchain Protocol Security]({{< relref "/security-remediation/defi-blockchain" >}})
-- [Prompt catalog: Crypto + DeFi]({{< relref "/prompt-library/general/crypto-defi" >}})
+- [Prompt catalog: Crypto + DeFi]({{< relref "/recipes/general/crypto-defi" >}})

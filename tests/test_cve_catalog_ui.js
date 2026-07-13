@@ -187,28 +187,28 @@ test('JSONL exact lookup never accepts a longer CVE prefix', () => {
 test('Markdown paths become safe internal rendered-page links', () => {
   assert.equal(
     controller.markdownPathToHref(
-      'content/prompt-library/cve/cve-2024-3400-pan-os-globalprotect-command-injection.md',
+      'content/recipes/cve/cve-2024-3400-pan-os-globalprotect-command-injection.md',
       '/docs/'
     ),
-    '/docs/prompt-library/cve/cve-2024-3400-pan-os-globalprotect-command-injection/'
+    '/docs/recipes/cve/cve-2024-3400-pan-os-globalprotect-command-injection/'
   );
   assert.equal(
-    controller.markdownPathToHref('content\\prompt-library\\cve\\recipe.md', '/'),
-    '/prompt-library/cve/recipe/'
+    controller.markdownPathToHref('content\\recipes\\cve\\recipe.md', '/'),
+    '/recipes/cve/recipe/'
   );
   assert.equal(
-    controller.markdownPathToHref('content/prompt-library/cve/_index.md', '/'),
-    '/prompt-library/cve/'
+    controller.markdownPathToHref('content/recipes/cve/_index.md', '/'),
+    '/recipes/cve/'
   );
   assert.equal(controller.markdownPathToHref('content/../secrets.md', '/'), '');
   assert.equal(controller.markdownPathToHref('https://example.com/recipe.md', '/'), '');
-  assert.equal(controller.markdownPathToHref('content/prompt-library/cve/recipe.txt', '/'), '');
-  assert.equal(controller.markdownPathToHref('content//prompt-library/recipe.md', '/'), '');
+  assert.equal(controller.markdownPathToHref('content/recipes/cve/recipe.txt', '/'), '');
+  assert.equal(controller.markdownPathToHref('content//recipes/recipe.md', '/'), '');
 });
 
 test('only stable Markdown in an explicit override record wins precedence', () => {
-  const stable = { path: 'content/prompt-library/cve/stable.md', maturity: 'stable' };
-  const development = { path: 'content/prompt-library/cve/dev.md', maturity: 'development' };
+  const stable = { path: 'content/recipes/cve/stable.md', maturity: 'stable' };
+  const development = { path: 'content/recipes/cve/dev.md', maturity: 'development' };
   assert.deepEqual(
     controller.authoritativeMarkdownEntries({
       recipe_kind: 'markdown-override',
@@ -226,7 +226,7 @@ test('only stable Markdown in an explicit override record wins precedence', () =
   assert.deepEqual(
     controller.authoritativeMarkdownEntries({
       recipe_kind: 'markdown-override',
-      markdown: [{ path: 'content/prompt-library/cve/legacy.md' }]
+      markdown: [{ path: 'content/recipes/cve/legacy.md' }]
     }),
     []
   );
@@ -352,7 +352,7 @@ test('browser plans fail closed for ambiguous or unsafe stable Markdown override
   };
   const validEntry = {
     cve: 'CVE-2024-1111',
-    path: 'content/prompt-library/cve/cve-2024-1111-example.md',
+    path: 'content/recipes/cve/cve-2024-1111-example.md',
     maturity: 'stable',
     content_markdown: '# Reviewed remediation\n'
   };
@@ -367,7 +367,7 @@ test('browser plans fail closed for ambiguous or unsafe stable Markdown override
 
   const duplicate = controller.buildAgenticChangePlan({
     ...base,
-    markdown: [validEntry, { ...validEntry, path: 'content/prompt-library/cve/duplicate.md' }]
+    markdown: [validEntry, { ...validEntry, path: 'content/recipes/cve/duplicate.md' }]
   }, catalog);
   assert.equal(duplicate.authoritative_recipe.kind, 'unavailable-stable-markdown-override');
   assert.equal(duplicate.authoritative_recipe.generated_plan_role, 'guardrails-only');

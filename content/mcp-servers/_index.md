@@ -456,6 +456,6 @@ catalog that would be awkward to paste into every task.
 
 - [Integrate an AI Agent]({{< relref "/docs/agent-integration" >}})
 - [Agent Setup]({{< relref "/agents" >}})
-- [Recipe Browser]({{< relref "/prompt-library" >}})
+- [Recipe Browser]({{< relref "/recipes" >}})
 - [Security Remediation]({{< relref "/security-remediation" >}})
 - [Local MCP runbook](https://github.com/stevologic/security-recipes.ai/blob/main/README.mcp-localhost.md)

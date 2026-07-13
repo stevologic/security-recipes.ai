@@ -40,7 +40,7 @@ from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONTENT_DIR = ROOT / "content" / "prompt-library" / "cve"
+DEFAULT_CONTENT_DIR = ROOT / "content" / "recipes" / "cve"
 DEFAULT_ARCHETYPES = ROOT / "data" / "cve" / "remediation-archetypes.json"
 DEFAULT_OUTPUT_DIR = ROOT / "static" / "api" / "cve-catalog"
 DEFAULT_CACHE_DIR = ROOT / "tmp" / "nvd-cve-feeds"

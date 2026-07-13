@@ -80,7 +80,7 @@ test('recipe library server render is bounded and remains useful without JavaScr
   assert.equal(cards.length, expectedCards);
   assert.ok(cards.length <= 18, 'the initial document never renders more than one bounded page');
   assert.match(html, new RegExp(`data-recipe-ssr-count="${expectedCards}"`));
-  assert.match(html, /href="\/prompt-library\/cve\/">Catalog methodology<\/a>/);
+  assert.match(html, /href="\/recipes\/cve\/">Catalog methodology<\/a>/);
 });
 
 test('collection navigation exposes accessible tabs, status, and mobile filters', () => {

@@ -11,13 +11,13 @@ class RecipeRoutingTests(unittest.TestCase):
             {
                 "title": "CVE-2021-44228 Log4Shell",
                 "slug": "cve-2021-44228-log4shell",
-                "path": "/prompt-library/cve/cve-2021-44228-log4shell/",
+                "path": "/recipes/cve/cve-2021-44228-log4shell/",
                 "content": "Patch log4j-core and disable unsafe JNDI lookups.",
             },
             {
                 "title": "Generic remote code execution response",
                 "slug": "generic-rce",
-                "path": "/prompt-library/general/generic-rce/",
+                "path": "/recipes/general/generic-rce/",
                 "content": "Remote code execution in a Maven service. " * 20,
             },
         ]
@@ -37,7 +37,7 @@ class RecipeRoutingTests(unittest.TestCase):
             {
                 "title": "Payment gateways",
                 "slug": "payment-gateways",
-                "path": "/prompt-library/general/payment-gateways/",
+                "path": "/recipes/general/payment-gateways/",
                 "content": "gateway gateways gateway gateways " * 20,
             },
         ]

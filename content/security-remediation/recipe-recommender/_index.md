@@ -125,12 +125,12 @@ at least 2. Otherwise write a triage note.
 | Compromised artifact, poisoned package cache, registry mirror, CI cache purge | [Artifact Cache Purge]({{< relref "/security-remediation/artifact-cache-purge" >}}) |
 | Wallet, address integrity, payment finality, custody, settlement workflow | [Crypto Payments]({{< relref "/security-remediation/crypto-payments" >}}) |
 | Smart contract, oracle, bridge, governance, multisig, protocol upgrade | [DeFi and Blockchain]({{< relref "/security-remediation/defi-blockchain" >}}) |
-| Fresh CVE or advisory where affectedness is not yet proven | [CVE Intelligence Intake Gate]({{< relref "/prompt-library/general/cve-intelligence-intake-gate" >}}) |
+| Fresh CVE or advisory where affectedness is not yet proven | [CVE Intelligence Intake Gate]({{< relref "/recipes/general/cve-intelligence-intake-gate" >}}) |
 | MCP connector, tool permissions, stdio launch, remote authorization, elicitation | [MCP Runtime Decision Evaluator]({{< relref "/security-remediation/mcp-runtime-decision-evaluator" >}}) or the specific MCP recipe in the hub |
 | Browser automation, browser-agent prompt injection, page-boundary risk | [Browser Agent Boundary]({{< relref "/security-remediation/browser-agent-boundary" >}}) |
 
 When a named CVE prompt exists in the
-[CVE Recipes]({{< relref "/prompt-library/cve" >}}), prefer that prompt after
+[CVE Recipes]({{< relref "/recipes/cve" >}}), prefer that prompt after
 the intake gate confirms the advisory is ready for remediation.
 
 ## The recommender prompt

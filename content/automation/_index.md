@@ -345,4 +345,4 @@ A minimal "automation first" posture, in order of return on effort:
 - [Agents]({{< relref "/agents" >}}) — per-tool remediation recipes for the problems automation can't handle
 - [MCP Integration]({{< relref "/mcp-servers" >}}) — how agents reach the context that deterministic tools don't need
 - [Agentic Security Remediation]({{< relref "/security-remediation" >}}) — security-team-operated workflows that combine both patterns
-- [Recipes]({{< relref "/prompt-library" >}}) — community prompts that extend automation into judgment calls
+- [Recipes]({{< relref "/recipes" >}}) — community prompts that extend automation into judgment calls

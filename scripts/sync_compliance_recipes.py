@@ -13,7 +13,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = ROOT / "data" / "compliance-frameworks" / "catalog.json"
 OUTPUT_DIR = (
-    ROOT / "content" / "prompt-library" / "general" / "compliance-standards"
+    ROOT / "content" / "recipes" / "general" / "compliance-standards"
 )
 EXPECTED_FRAMEWORK_COUNT = 39
 

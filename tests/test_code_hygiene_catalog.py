@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "code-hygiene"
-CONTENT = ROOT / "content" / "prompt-library" / "general" / "code-hygiene"
+CONTENT = ROOT / "content" / "recipes" / "general" / "code-hygiene"
 REQUIRED_HEADINGS = {
     "## When to use it",
     "## Inputs",

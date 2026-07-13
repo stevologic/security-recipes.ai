@@ -624,4 +624,4 @@ PR template — those have already earned their keep.
 - Anthropic: [GitHub Actions integration](https://code.claude.com/docs/en/github-actions) · [GitLab CI/CD](https://code.claude.com/docs/en/gitlab-ci-cd)
 - [MCP Integration]({{< relref "/mcp-servers" >}}) — connector catalog
 - Recipe: [Cursor]({{< relref "/cursor" >}}) — similar MCP + rules pattern
-- [Recipes]({{< relref "/prompt-library" >}}) — share your Claude skills & hooks
+- [Recipes]({{< relref "/recipes" >}}) — share your Claude skills & hooks

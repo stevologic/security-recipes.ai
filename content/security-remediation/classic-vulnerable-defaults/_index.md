@@ -67,7 +67,7 @@ flowchart LR
 A finding is eligible when:
 
 - The pattern matches one of the recipes catalogued under
-  [Classic Vulnerable Defaults]({{< relref "/prompt-library/general/classic-vulnerable-defaults" >}}).
+  [Classic Vulnerable Defaults]({{< relref "/recipes/general/classic-vulnerable-defaults" >}}).
 - The data flowing into the unsafe call is **untrusted** in at
   least some real call path. (A pickled file generated *and*
   consumed entirely on the same trusted host is a different
@@ -102,7 +102,7 @@ the repo's policy.
 ## Catalogue of recipes
 
 The full prompts live in Recipes. The
-[Classic Vulnerable Defaults]({{< relref "/prompt-library/general/classic-vulnerable-defaults" >}})
+[Classic Vulnerable Defaults]({{< relref "/recipes/general/classic-vulnerable-defaults" >}})
 hub catalogues each one; the per-recipe pages have the agent
 prompts.
 
@@ -209,9 +209,9 @@ template, and a regression-set entry.
 
 ## See also
 
-- [Classic Vulnerable Defaults — recipes]({{< relref "/prompt-library/general/classic-vulnerable-defaults" >}})
+- [Classic Vulnerable Defaults — recipes]({{< relref "/recipes/general/classic-vulnerable-defaults" >}})
   — the per-pattern agent prompts.
 - [SAST Finding Remediation]({{< relref "/security-remediation/sast-findings" >}})
   — when the same patterns are found by a scanner.
-- [OWASP Top 10:2025 remediation]({{< relref "/prompt-library/general/owasp-top-10-2025-remediate" >}})
+- [OWASP Top 10:2025 remediation]({{< relref "/recipes/general/owasp-top-10-2025-remediate" >}})
   — when one of these patterns maps to an OWASP category.

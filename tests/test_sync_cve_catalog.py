@@ -689,14 +689,14 @@ class SyncCveCatalogTests(unittest.TestCase):
 
     def test_override_path_validation_rejects_absolute_and_traversal_paths(self) -> None:
         self.assertTrue(
-            validator.is_safe_relative_path("content/prompt-library/cve/cve-2024-1111-example.md")
+            validator.is_safe_relative_path("content/recipes/cve/cve-2024-1111-example.md")
         )
         for unsafe in (
             "../cve-2024-1111.md",
-            "/content/prompt-library/cve/cve-2024-1111.md",
-            "C:/content/prompt-library/cve/cve-2024-1111.md",
-            "content\\prompt-library\\cve\\cve-2024-1111.md",
-            "content/prompt-library/general/not-a-cve.md",
+            "/content/recipes/cve/cve-2024-1111.md",
+            "C:/content/recipes/cve/cve-2024-1111.md",
+            "content\\recipes\\cve\\cve-2024-1111.md",
+            "content/recipes/general/not-a-cve.md",
         ):
             with self.subTest(path=unsafe):
                 self.assertFalse(validator.is_safe_relative_path(unsafe))
@@ -932,7 +932,7 @@ class SyncCveCatalogTests(unittest.TestCase):
 
     def test_validator_rejects_stale_embedded_stable_markdown(self) -> None:
         cve_id = "CVE-2024-1111"
-        content_parent = catalog.ROOT / "content" / "prompt-library" / "cve"
+        content_parent = catalog.ROOT / "content" / "recipes" / "cve"
         with (
             tempfile.TemporaryDirectory(prefix=".test-stale-markdown-", dir=content_parent) as content_tmp,
             tempfile.TemporaryDirectory(prefix="test-cve-stale-output-", dir=catalog.ROOT) as output_tmp,

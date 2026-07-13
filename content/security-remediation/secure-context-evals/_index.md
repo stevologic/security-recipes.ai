@@ -129,9 +129,9 @@ Evaluate an observed answer:
   "answer_text": "Use vulnerable-dependency-remediation context and preserve the source hash.",
   "citations": [
     {
-      "source_id": "prompt-library-recipes",
+      "source_id": "recipes",
       "source_hash": "<hash from the eval pack>",
-      "path": "content/prompt-library/codex/vulnerable-dep-remediation.md"
+      "path": "content/recipes/codex/vulnerable-dep-remediation.md"
     }
   ]
 }

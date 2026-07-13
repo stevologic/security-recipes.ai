@@ -34,9 +34,9 @@ A finding is eligible when:
 
 ## Recipe catalog
 
-- [Smart-contract upgrade diff risk review]({{< relref "/prompt-library/general/crypto-defi/smart-contract-upgrade-diff-risk-review" >}})
-- [DeFi oracle manipulation guardrails]({{< relref "/prompt-library/general/crypto-defi/defi-oracle-manipulation-guardrails" >}})
-- [Bridge & multisig emergency response]({{< relref "/prompt-library/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
+- [Smart-contract upgrade diff risk review]({{< relref "/recipes/general/crypto-defi/smart-contract-upgrade-diff-risk-review" >}})
+- [DeFi oracle manipulation guardrails]({{< relref "/recipes/general/crypto-defi/defi-oracle-manipulation-guardrails" >}})
+- [Bridge & multisig emergency response]({{< relref "/recipes/general/crypto-defi/defi-bridge-and-multisig-emergency-response" >}})
 
 ## Guardrails
 
@@ -58,4 +58,4 @@ A finding is eligible when:
 ## See also
 
 - [Cryptocurrency & Crypto Payments Security]({{< relref "/security-remediation/crypto-payments" >}})
-- [Prompt catalog: Crypto + DeFi]({{< relref "/prompt-library/general/crypto-defi" >}})
+- [Prompt catalog: Crypto + DeFi]({{< relref "/recipes/general/crypto-defi" >}})

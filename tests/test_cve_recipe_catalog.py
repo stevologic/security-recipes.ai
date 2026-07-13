@@ -1232,7 +1232,7 @@ class CVERecipeToolTests(unittest.TestCase):
 
     def test_stable_embedded_markdown_is_authoritative_without_index_lookup(self) -> None:
         entry = {
-            "path": "content/prompt-library/cve/cve-2021-44228-log4shell.md",
+            "path": "content/recipes/cve/cve-2021-44228-log4shell.md",
             "maturity": "stable",
             "content_markdown": "## Authoritative Log4Shell recipe\n\nUpgrade and verify.",
         }
@@ -1263,14 +1263,14 @@ class CVERecipeToolTests(unittest.TestCase):
 
     def test_stable_legacy_override_resolves_through_recipe_index(self) -> None:
         entry = {
-            "path": "content/prompt-library/cve/cve-2021-44228-log4shell.md",
+            "path": "content/recipes/cve/cve-2021-44228-log4shell.md",
             "maturity": "stable",
         }
         stub_catalog = StubCatalog(catalog_result([entry], recipe_kind="markdown-override"))
         stub_index = StubRecipeIndex(
             {
                 "title": "CVE-2021-44228 - Log4Shell",
-                "source_file": "prompt-library/cve/cve-2021-44228-log4shell.md",
+                "source_file": "recipes/cve/cve-2021-44228-log4shell.md",
                 "content": "Full indexed Log4Shell recipe body",
             }
         )
@@ -1281,7 +1281,7 @@ class CVERecipeToolTests(unittest.TestCase):
         ):
             result = asyncio.run(mcp_server.recipes_cve_get("CVE-2021-44228"))
 
-        self.assertEqual(stub_index.lookups, ["prompt-library/cve/cve-2021-44228-log4shell.md"])
+        self.assertEqual(stub_index.lookups, ["recipes/cve/cve-2021-44228-log4shell.md"])
         self.assertEqual(result["recommended_recipe"]["kind"], "markdown-override")
         self.assertEqual(
             result["authoritative_recipe"]["content_markdown"],
@@ -1292,7 +1292,7 @@ class CVERecipeToolTests(unittest.TestCase):
     def test_oversized_stable_override_fails_closed_without_returning_body(self) -> None:
         body = "oversized authoritative body"
         entry = {
-            "path": "content/prompt-library/cve/cve-2021-44228-log4shell.md",
+            "path": "content/recipes/cve/cve-2021-44228-log4shell.md",
             "maturity": "stable",
             "content_markdown": body,
         }
@@ -1312,7 +1312,7 @@ class CVERecipeToolTests(unittest.TestCase):
 
     def test_declared_override_with_only_development_metadata_fails_closed(self) -> None:
         entry = {
-            "path": "content/prompt-library/cve/cve-2021-44228-log4shell.md",
+            "path": "content/recipes/cve/cve-2021-44228-log4shell.md",
             "maturity": "development",
             "content_markdown": "Draft content must not be authoritative.",
         }
@@ -1389,7 +1389,7 @@ class CVERecipeToolTests(unittest.TestCase):
         body = "Must never be attached to a different CVE."
         entry = {
             "cve": "CVE-2021-44229",
-            "path": "content/prompt-library/cve/cve-2021-44228-log4shell.md",
+            "path": "content/recipes/cve/cve-2021-44228-log4shell.md",
             "maturity": "stable",
             "content_markdown": body,
         }
@@ -1413,7 +1413,7 @@ class CVERecipeToolTests(unittest.TestCase):
 
     def test_stable_metadata_without_override_recipe_kind_stays_composed(self) -> None:
         entry = {
-            "path": "content/prompt-library/cve/cve-2021-44228-log4shell.md",
+            "path": "content/recipes/cve/cve-2021-44228-log4shell.md",
             "maturity": "stable",
             "content_markdown": "Stable content must still require the override recipe kind.",
         }
@@ -1436,7 +1436,7 @@ class CVERecipeToolTests(unittest.TestCase):
 
     def test_declared_override_without_stable_resolvable_body_fails_closed(self) -> None:
         entry = {
-            "path": "content/prompt-library/cve/cve-2021-44228-log4shell.md",
+            "path": "content/recipes/cve/cve-2021-44228-log4shell.md",
             "maturity": "stable",
         }
         stub_catalog = StubCatalog(catalog_result([entry], recipe_kind="markdown-override"))

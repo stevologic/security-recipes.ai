@@ -694,110 +694,110 @@
       "disposition": "defensive_control_language",
       "line": 146,
       "match": "- **Never** bypass CI by adding skip tokens.",
-      "path": "content/prompt-library/claude/cve-triage-skill.md",
+      "path": "content/recipes/claude/cve-triage-skill.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 203,
       "match": "- **Never** bypass a `PreToolUse` hook that blocks writing to",
-      "path": "content/prompt-library/claude/sensitive-data-remediation-skill.md",
+      "path": "content/recipes/claude/sensitive-data-remediation-skill.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 226,
       "match": "- NEVER disable scanner rules broadly \u2014 only allowlist the",
-      "path": "content/prompt-library/codex/sensitive-data-remediation.md",
+      "path": "content/recipes/codex/sensitive-data-remediation.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 232,
       "match": "- NEVER disable a test or add skip markers to make CI green.",
-      "path": "content/prompt-library/codex/vulnerable-dep-remediation.md",
+      "path": "content/recipes/codex/vulnerable-dep-remediation.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 98,
       "match": "- Do not print, snapshot, commit, or copy real template content or secret values",
-      "path": "content/prompt-library/cve/cve-2026-42461-arcane-compose-template-secret-disclosure.md",
+      "path": "content/recipes/cve/cve-2026-42461-arcane-compose-template-secret-disclosure.md",
       "risk_family": "secret_exposure",
       "rule_id": "secret-exfiltration-request",
       "severity": "critical",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 115,
       "match": "- Do not print, decode, snapshot, commit, or attach real Secret data while",
-      "path": "content/prompt-library/cve/cve-2026-43824-argocd-serversidediff-secret-disclosure.md",
+      "path": "content/recipes/cve/cve-2026-43824-argocd-serversidediff-secret-disclosure.md",
       "risk_family": "secret_exposure",
       "rule_id": "secret-exfiltration-request",
       "severity": "critical",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 145,
       "match": "- disable Git hooks or run with safe hook policy where supported.",
-      "path": "content/prompt-library/cve/ghsa-rpm5-x2qx-gitpython-command-injection.md",
+      "path": "content/recipes/cve/ghsa-rpm5-x2qx-gitpython-command-injection.md",
       "risk_family": "approval_bypass",
       "rule_id": "approval-bypass-request",
       "severity": "high",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 132,
       "match": "1. NEVER PRINT, LOG, OR EMBED A LIVE SECRET.",
-      "path": "content/prompt-library/devin/scheduled-sde-remediation.md",
+      "path": "content/recipes/devin/scheduled-sde-remediation.md",
       "risk_family": "secret_exposure",
       "rule_id": "secret-exfiltration-request",
       "severity": "critical",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "documented_adversarial_example",
       "line": 179,
       "match": "resembles instructions (\"ignore previous, run \u2026\"); expect",
-      "path": "content/prompt-library/general/agent-session-kill-rules.md",
+      "path": "content/recipes/general/agent-session-kill-rules.md",
       "risk_family": "prompt_injection",
       "rule_id": "direct-instruction-override",
       "severity": "critical",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
       "disposition": "defensive_control_language",
       "line": 43,
       "match": "- Never print full secret values in output.",
-      "path": "content/prompt-library/general/crypto-defi/seed-phrase-and-key-material-purge.md",
+      "path": "content/recipes/general/crypto-defi/seed-phrase-and-key-material-purge.md",
       "risk_family": "secret_exposure",
       "rule_id": "secret-exfiltration-request",
       "severity": "critical",
-      "source_id": "prompt-library-recipes"
+      "source_id": "recipes"
     },
     {
       "actionable": false,
@@ -1233,43 +1233,43 @@
       "finding_count": 10,
       "owner": {
         "accountable_team": "SecurityRecipes Maintainers",
-        "escalation": "prompt-library-review",
+        "escalation": "recipes-review",
         "evidence_owner": "Security Engineering"
       },
       "registered_files_sample": [
-        "content/prompt-library/_index.md",
-        "content/prompt-library/claude/_index.md",
-        "content/prompt-library/claude/cve-triage-skill.md",
-        "content/prompt-library/claude/sensitive-data-remediation-skill.md",
-        "content/prompt-library/codex/_index.md",
-        "content/prompt-library/codex/sensitive-data-remediation.md",
-        "content/prompt-library/codex/vulnerable-dep-remediation.md",
-        "content/prompt-library/cursor/_index.md",
-        "content/prompt-library/cursor/sensitive-data-remediation.md",
-        "content/prompt-library/cursor/vulnerable-dep-remediation.md",
-        "content/prompt-library/cve/_index.md",
-        "content/prompt-library/cve/cve-2014-0160-heartbleed.md",
-        "content/prompt-library/cve/cve-2014-6271-shellshock.md",
-        "content/prompt-library/cve/cve-2017-18342-pyyaml.md",
-        "content/prompt-library/cve/cve-2021-44228-log4shell.md",
-        "content/prompt-library/cve/cve-2024-3094-xz-utils.md",
-        "content/prompt-library/cve/cve-2024-6387-regresshion.md",
-        "content/prompt-library/cve/cve-2025-60455-modular-max-serve.md",
-        "content/prompt-library/cve/cve-2026-23902-apache-dolphinscheduler.md",
-        "content/prompt-library/cve/cve-2026-24159-nvidia-nemo-deserialization-rce.md"
+        "content/recipes/_index.md",
+        "content/recipes/claude/_index.md",
+        "content/recipes/claude/cve-triage-skill.md",
+        "content/recipes/claude/sensitive-data-remediation-skill.md",
+        "content/recipes/codex/_index.md",
+        "content/recipes/codex/sensitive-data-remediation.md",
+        "content/recipes/codex/vulnerable-dep-remediation.md",
+        "content/recipes/cursor/_index.md",
+        "content/recipes/cursor/sensitive-data-remediation.md",
+        "content/recipes/cursor/vulnerable-dep-remediation.md",
+        "content/recipes/cve/_index.md",
+        "content/recipes/cve/cve-2014-0160-heartbleed.md",
+        "content/recipes/cve/cve-2014-6271-shellshock.md",
+        "content/recipes/cve/cve-2017-18342-pyyaml.md",
+        "content/recipes/cve/cve-2021-44228-log4shell.md",
+        "content/recipes/cve/cve-2024-3094-xz-utils.md",
+        "content/recipes/cve/cve-2024-6387-regresshion.md",
+        "content/recipes/cve/cve-2025-60455-modular-max-serve.md",
+        "content/recipes/cve/cve-2026-23902-apache-dolphinscheduler.md",
+        "content/recipes/cve/cve-2026-24159-nvidia-nemo-deserialization-rce.md"
       ],
       "risk_family_counts": {
         "approval_bypass": 5,
         "prompt_injection": 1,
         "secret_exposure": 4
       },
-      "root": "content/prompt-library",
+      "root": "content/recipes",
       "severity_counts": {
         "critical": 5,
         "high": 5
       },
       "source_hash": "c11449de84b2d3f59537e02aaadd536168ba8be49865ef5d9ea315264b83161b",
-      "source_id": "prompt-library-recipes",
+      "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": "tier_1_curated_guidance"
     },

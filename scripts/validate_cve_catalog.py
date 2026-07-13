@@ -16,7 +16,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "static" / "api" / "cve-catalog"
-DEFAULT_CONTENT = ROOT / "content" / "prompt-library" / "cve"
+DEFAULT_CONTENT = ROOT / "content" / "recipes" / "cve"
 CVE_RE = re.compile(r"CVE-(\d{4})-(\d+)")
 GHSA_RE = re.compile(r"GHSA-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}", re.IGNORECASE)
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(?P<body>.*?)\n---\s*\n", re.DOTALL)
@@ -438,7 +438,7 @@ def is_safe_relative_path(value: object) -> bool:
         not path.is_absolute()
         and ".." not in path.parts
         and path.suffix == ".md"
-        and path.parts[:3] == ("content", "prompt-library", "cve")
+        and path.parts[:3] == ("content", "recipes", "cve")
     )
 
 
