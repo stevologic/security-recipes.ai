@@ -570,6 +570,42 @@ test('browser index dictionaries decode medium, high, and critical severity code
   assert.equal(critical.shard, 'shards/2024/0003.jsonl.gz');
 });
 
+test('blank catalog searches show at least ten newest published CVEs first', async () => {
+  assert.ok(controller.RESULT_PAGE_SIZE >= 10, 'the initial catalog view exposes at least ten rows');
+
+  const rows = Array.from({ length: 12 }, (_, indexNumber) => [
+    `CVE-${2014 + indexNumber}-${String(2000 + indexNumber)}`,
+    `Catalog record ${indexNumber}`,
+    indexNumber === 0 ? 2 : 0,
+    indexNumber === 0 ? 10 : 7.1,
+    `${2014 + indexNumber}-07-01`,
+    0,
+    0,
+    [0],
+    0
+  ]);
+  let stats;
+  const latest = await worker.searchIndex(browserIndex(rows), {
+    query: '',
+    filters: { severity: 'all', year: 'all', kev: 'all' }
+  }, {
+    yieldControl: async () => {},
+    onStats: (value) => { stats = value; }
+  });
+
+  assert.equal(latest.results.length, 12);
+  assert.deepEqual(
+    latest.results.slice(0, 3).map((record) => record.published),
+    ['2025-07-01', '2024-07-01', '2023-07-01']
+  );
+  assert.equal(
+    latest.results.at(-1).cve,
+    'CVE-2014-2000',
+    'an older critical CVSS 10 record must not outrank newer publications'
+  );
+  assert.equal(stats.newNormalizedTitles, 0, 'blank latest searches do not normalize every title');
+});
+
 test('worker search ranks, filters, caps previews, and supports stale cancellation', async () => {
   const rows = [
     ['CVE-2024-3400', 'GlobalProtect command injection', 2, 10, '2024-04-12', 0, 1, [1], 1],
@@ -713,6 +749,21 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(controllerSource, /state\.runtimeSummary\.shard_set_sha256/);
   assert.match(controllerSource, /metadata && metadata\.sha256/);
   assert.match(workerSource, /browser-index\.json\.gz/);
+  assert.match(
+    controllerSource,
+    /loadManifest\(false\)\.then\([\s\S]*?if \(state\.requestId === 0\) runSearch\(\);/,
+    'the catalog runs its newest-first browse query after bootstrap'
+  );
+  assert.doesNotMatch(
+    controllerSource,
+    /if \(!query && filtersAreDefault\(\)\)\s*\{[\s\S]{0,200}?return;/,
+    'a blank default query must not restore the old filter-required empty state'
+  );
+  assert.match(
+    controllerSource,
+    /clear\.addEventListener\([\s\S]*?kev\.value = 'all';\s*runSearch\(\);/,
+    'clearing filters restores the newest-first browse view'
+  );
 });
 
 test('worker accepts only a single bounded cache-version parameter', () => {
@@ -840,6 +891,30 @@ test('generated browser index supports full-catalog title search when present', 
   );
   assert.equal(mediumRecord.cve, mediumCve, 'a searchable medium CVE resolves through exact-ID lookup');
   assert.equal(mediumRecord.severity, 'medium');
+
+  const latest = await worker.searchIndex(
+    index,
+    {
+      query: '',
+      filters: { severity: 'all', year: 'all', kev: 'all' }
+    },
+    { batchSize: 10_000, yieldControl: async () => {} }
+  );
+  const publishedIndex = index.indexes.published;
+  const newestPublished = index.records.reduce(
+    (newest, row) => String(row[publishedIndex] || '').localeCompare(newest) > 0
+      ? String(row[publishedIndex] || '')
+      : newest,
+    ''
+  );
+  assert.ok(latest.results.length >= 10, 'the generated catalog can fill the initial browse view');
+  assert.equal(latest.results[0].published, newestPublished);
+  for (let position = 1; position < latest.results.length; position += 1) {
+    assert.ok(
+      latest.results[position - 1].published >= latest.results[position].published,
+      'default catalog results stay newest-first'
+    );
+  }
 
   let stats;
   const result = await worker.searchIndex(
