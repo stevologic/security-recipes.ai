@@ -74,6 +74,16 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
 
 
+def canonical_text_byte_count(path: Path) -> int:
+    """Count UTF-8 text bytes after universal-newline normalization.
+
+    This keeps evidence metrics identical when Git checks out tracked text as
+    CRLF on Windows and LF on Linux.
+    """
+
+    return len(path.read_text(encoding="utf-8").encode("utf-8"))
+
+
 def require(condition: bool, failures: list[str], message: str) -> None:
     if not condition:
         failures.append(message)
@@ -249,7 +259,7 @@ def build_source_summaries(registry: dict[str, Any], repo_root: Path) -> list[di
             continue
         root = repo_root / str(source.get("root", ""))
         files = source_files(repo_root, source)
-        byte_count = sum(path.stat().st_size for path in files)
+        byte_count = sum(canonical_text_byte_count(path) for path in files)
         tier_id = str(source.get("trust_tier"))
         rows.append(
             {

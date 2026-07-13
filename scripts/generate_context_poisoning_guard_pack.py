@@ -103,6 +103,17 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
 
 
+def canonical_text_byte_count(path: Path) -> int:
+    """Count UTF-8 text bytes after universal-newline normalization.
+
+    Git may materialize the same tracked text with CRLF on Windows and LF on
+    Linux. Evidence metrics must describe canonical content, not checkout
+    mechanics, or a pack generated on one platform will be stale on another.
+    """
+
+    return len(path.read_text(encoding="utf-8").encode("utf-8"))
+
+
 def hash_source(repo_root: Path, files: list[Path]) -> str:
     digest = hashlib.sha256()
     for path in files:
@@ -397,7 +408,7 @@ def build_pack(
         source_findings: list[dict[str, Any]] = []
         for path in files:
             file_count += 1
-            byte_count += path.stat().st_size
+            byte_count += canonical_text_byte_count(path)
             file_findings = scan_file(
                 path=path,
                 source=source,

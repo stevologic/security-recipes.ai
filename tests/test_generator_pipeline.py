@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -17,7 +18,40 @@ sys.modules[SPEC.name] = PIPELINE
 SPEC.loader.exec_module(PIPELINE)
 
 
+def load_script_module(name: str, filename: str):
+    path = REPO_ROOT / "scripts" / filename
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:  # pragma: no cover - import machinery guard
+        raise RuntimeError(f"could not load {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
 class GeneratorPipelineTests(unittest.TestCase):
+    def test_content_metrics_are_checkout_newline_independent(self) -> None:
+        modules = [
+            load_script_module(
+                "generate_context_poisoning_guard_pack_test",
+                "generate_context_poisoning_guard_pack.py",
+            ),
+            load_script_module(
+                "generate_secure_context_trust_pack_test",
+                "generate_secure_context_trust_pack.py",
+            ),
+        ]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            lf_path = Path(temp_dir) / "lf.txt"
+            crlf_path = Path(temp_dir) / "crlf.txt"
+            lf_path.write_bytes(b"alpha\nbeta\n")
+            crlf_path.write_bytes(b"alpha\r\nbeta\r\n")
+            for module in modules:
+                self.assertEqual(
+                    module.canonical_text_byte_count(lf_path),
+                    module.canonical_text_byte_count(crlf_path),
+                )
+
     def test_inventory_contains_all_check_capable_generators(self) -> None:
         generators = PIPELINE.discover_generators(REPO_ROOT)
         self.assertEqual(56, len(generators))
