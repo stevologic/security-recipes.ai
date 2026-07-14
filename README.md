@@ -232,7 +232,8 @@ record.
 `.github/workflows/cve-catalog-sync.yml` runs every day at `09:23 UTC` and can
 also be dispatched manually. It verifies and joins the NVD JSON 2.0 annual
 feeds and CISA KEV catalog, regenerates every catalog index/shard, validates the
-result, runs the catalog tests, and opens or refreshes
+result, refreshes recipe-derived deterministic evidence in dependency order,
+runs the catalog tests, and opens or refreshes
 `automation/cve-catalog-sync` as a pull request to the default branch.
 Repository **Settings > Actions > General > Workflow permissions** must allow
 GitHub Actions to create pull requests for first-run PR publication.

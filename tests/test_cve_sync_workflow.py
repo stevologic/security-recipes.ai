@@ -106,13 +106,32 @@ class CveSyncWorkflowTests(unittest.TestCase):
             "if: github.event_name == 'schedule' || github.ref_name == github.event.repository.default_branch",
             commit_step,
         )
-        self.assertIn(
-            "git add -A -- static/api/cve-catalog data/cve/ai-enrichments.json "
-            "data/cve/ai-generated-recipes.json content/recipes/cve",
-            commit_step,
-        )
+        for path in (
+            "static/api/cve-catalog",
+            "data/cve/ai-enrichments.json",
+            "data/cve/ai-generated-recipes.json",
+            "content/recipes/cve",
+            "data/evidence",
+            "data/context/secure-context-release-pack.json",
+            "data/policy/mcp-gateway-policy.json",
+            "scripts/generated-output-ownership.json",
+        ):
+            with self.subTest(path=path):
+                self.assertIn(path, commit_step)
         self.assertIn("--json number,isCrossRepository", commit_step)
         self.assertIn("select(.isCrossRepository == false)", commit_step)
+
+    def test_recipe_derived_evidence_is_regenerated_before_validation_and_commit(self) -> None:
+        generator_step = self.step("Refresh deterministic recipe-derived evidence")
+        self.assertIn("python scripts/run_generator_pipeline.py --write", generator_step)
+        self.assertLess(
+            self.workflow.index("Refresh deterministic recipe-derived evidence"),
+            self.workflow.index("Validate every catalog record and shard"),
+        )
+        self.assertLess(
+            self.workflow.index("Refresh deterministic recipe-derived evidence"),
+            self.workflow.index("Open or refresh catalog pull request"),
+        )
 
     def test_manual_runs_upload_enrichment_results(self) -> None:
         artifact_step = self.step("Upload manual enrichment results")
