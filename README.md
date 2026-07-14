@@ -227,6 +227,64 @@ rollback, evidence, approval, and triage requirements. It also preserves
 explicit CPE truncation metadata when the source match set exceeds the bounded
 record.
 
+### Daily CVE synchronization and optional AI enrichment
+
+`.github/workflows/cve-catalog-sync.yml` runs every day at `09:23 UTC` and can
+also be dispatched manually. It verifies and joins the NVD JSON 2.0 annual
+feeds and CISA KEV catalog, regenerates every catalog index/shard, validates the
+result, refreshes recipe-derived deterministic evidence in dependency order,
+runs the catalog tests, and opens or refreshes
+`automation/cve-catalog-sync` as a pull request to the default branch.
+Repository **Settings > Actions > General > Workflow permissions** must allow
+GitHub Actions to create pull requests for first-run PR publication.
+
+The source sync does not require a secret. To additionally enrich bounded,
+high-priority records that have deterministic evidence gaps, add an Actions
+secret named `OPENAI_API_KEY`:
+
+```bash
+gh secret set OPENAI_API_KEY --repo stevologic/security-recipes.ai
+```
+
+The workflow defaults to the cost-sensitive `gpt-5.6-luna` Responses API model
+and at most 20 new or source-changed records per run. Both can be changed with
+optional Actions variables; the enrichment limit is hard-bounded from 0 to 50:
+
+```bash
+gh variable set OPENAI_MODEL --body "gpt-5.6-luna" --repo stevologic/security-recipes.ai
+gh variable set OPENAI_ENRICHMENT_LIMIT --body "20" --repo stevologic/security-recipes.ai
+```
+
+AI output is supplemental and explicitly labeled. It uses strict structured
+output, only cites URLs actually returned in the Responses API web-search
+provenance, and is stored reproducibly in `data/cve/ai-enrichments.json`. A
+complete enrichment becomes a CVE-specific Markdown draft only when a separate
+gate finds claim-level affected-product, exposure, remediation, and
+verification evidence tied to the exact URL of a tagged trusted advisory
+reference. Every required claim must independently meet that rule, and every
+generated recipe requires a cited, concrete fixed-version claim.
+
+Eligible drafts are written as `maturity: development` files named
+`content/recipes/cve/ai-enrichment-cve-*.md`. They stay outside generic recipe
+discovery and never override the composed catalog recipe. The ownership ledger
+in `data/cve/ai-generated-recipes.json` records each generated file hash;
+automation may refresh or remove only an untouched hash-matching draft. A human
+edit, or any existing human development/stable recipe for the same CVE, makes
+that Markdown human-owned and blocks automated replacement. AI generation never
+changes source CVSS/KEV facts, affected-version data, archetype selection, or
+reviewed stable Markdown. A
+missing key, API refusal, timeout, or rate limit does not block the NVD/CISA
+refresh; calls stop after three consecutive failures or a 15-minute budget,
+and valid cached enrichments remain attached. Use the manual input to
+temporarily change the request cap for a controlled backfill:
+
+```bash
+gh workflow run cve-catalog-sync.yml --ref main -f ai_enrichment_limit=50
+```
+
+A manual run on a non-default branch uploads its enrichment cache, ownership
+ledger, and generated drafts as a short-lived workflow artifact for review.
+
 The runtime paths are deliberately bounded for catalog-scale traffic:
 
 - the hub bootstraps from the compact runtime summary, exact lookups transfer

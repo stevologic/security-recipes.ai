@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import ast
 import gzip
 import hashlib
@@ -12,7 +13,10 @@ from copy import deepcopy
 from datetime import date
 from pathlib import Path
 from typing import Any
+from unittest.mock import patch
+from urllib.error import HTTPError
 
+from scripts import cve_ai_enrichment as ai
 from scripts import sync_cve_catalog as catalog
 from scripts import validate_cve_catalog as validator
 
@@ -277,6 +281,96 @@ def write_catalog_fixture(
 
 
 class SyncCveCatalogTests(unittest.TestCase):
+    def test_ai_enrichment_limit_is_hard_bounded(self) -> None:
+        self.assertEqual(catalog.parse_ai_enrichment_limit("0"), 0)
+        self.assertEqual(
+            catalog.parse_ai_enrichment_limit(str(ai.MAX_REQUEST_LIMIT)),
+            ai.MAX_REQUEST_LIMIT,
+        )
+        for invalid in ("-1", str(ai.MAX_REQUEST_LIMIT + 1), "unbounded"):
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(argparse.ArgumentTypeError, "AI enrichment limit"):
+                    catalog.parse_ai_enrichment_limit(invalid)
+
+    def test_fetch_bytes_retries_transient_nvd_404(self) -> None:
+        class Response:
+            def __enter__(self) -> "Response":
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+            def read(self) -> bytes:
+                return b"recovered feed"
+
+        transient = HTTPError(
+            "https://nvd.example.test/feed.json.gz",
+            404,
+            "temporarily unavailable",
+            {},
+            None,
+        )
+        with (
+            patch.object(catalog, "urlopen", side_effect=[transient, Response()]) as mocked_open,
+            patch.object(catalog.time, "sleep") as mocked_sleep,
+        ):
+            payload = catalog.fetch_bytes("https://nvd.example.test/feed.json.gz")
+
+        self.assertEqual(payload, b"recovered feed")
+        self.assertEqual(mocked_open.call_count, 2)
+        mocked_sleep.assert_called_once_with(1)
+
+    def test_build_and_validator_account_for_ai_enrichment(self) -> None:
+        record = normalize(nvd_record("CVE-2024-1234"))
+        self.assertIsNotNone(record)
+        assert record is not None
+        source_url = record["references"][0]["url"]
+        record["ai_enrichment"] = ai.build_enrichment_entry(
+            record,
+            {
+                "status": "complete",
+                "business_risk": "An exposed vulnerable service could be compromised.",
+                "exposure_conditions": ["The affected service is reachable."],
+                "remediation_steps": ["Apply the vendor-supported fixed release."],
+                "verification_steps": ["Confirm the fixed release is deployed."],
+                "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
+                "source_urls": [source_url],
+            },
+            model="test-model",
+            retrieved_source_urls=[source_url],
+        )
+        outputs, manifest = catalog.build_outputs(
+            [record],
+            start_date=START_DATE,
+            end_date=END_DATE,
+            feed_sources=complete_feed_sources(1),
+            kev_data={
+                "catalogVersion": "2026.07.01",
+                "dateReleased": "2026-07-02T00:00:00Z",
+                "vulnerabilities": [],
+            },
+            kev_payload=b'{"vulnerabilities":[]}\n',
+            archetypes=archetype_payload(),
+            existing={},
+        )
+        self.assertEqual(manifest["totals"]["ai_enriched_records"], 1)
+        self.assertEqual(manifest["totals"]["ai_enrichment_complete"], 1)
+        self.assertEqual(manifest["totals"]["ai_enrichment_insufficient_evidence"], 0)
+
+        with tempfile.TemporaryDirectory(prefix="test-cve-ai-output-", dir=catalog.ROOT) as tmpdir:
+            base = Path(tmpdir)
+            output_dir = base / "catalog"
+            content_dir = base / "content"
+            content_dir.mkdir()
+            catalog.write_outputs(output_dir, outputs)
+            validation = validator.validate(output_dir, content_dir)
+
+        self.assertTrue(validation["ok"], validation["failures"])
+        self.assertEqual(validation["ai_enrichment"]["records"], 1)
+        self.assertEqual(validation["ai_enrichment"]["complete"], 1)
+
     def test_cvss_score_four_is_medium_and_below_four_is_excluded(self) -> None:
         for version in ("2.0", "3.1", "4.0"):
             with self.subTest(version=version):
