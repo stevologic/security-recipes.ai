@@ -14,6 +14,11 @@ from datetime import date, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+try:
+    from scripts.cve_ai_enrichment import enrichment_errors
+except ModuleNotFoundError:  # Direct ``python scripts/validate_cve_catalog.py`` execution.
+    from cve_ai_enrichment import enrichment_errors  # type: ignore[no-redef]
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CATALOG = ROOT / "static" / "api" / "cve-catalog"
@@ -1306,6 +1311,9 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
     authoritative_markdown = 0
     markdown_drafts = 0
     markdown_pages = 0
+    ai_enriched = 0
+    ai_enrichment_complete = 0
+    ai_enrichment_insufficient = 0
     catalog_markdown_paths: set[str] = set()
     for entry in shard_entries:
         relative = entry.get("path")
@@ -1460,6 +1468,14 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
                 fail(failures, f"{cve} lacks a stored Medium/High/Critical metric observation")
             if record.get("kev") and not record.get("kev_details"):
                 fail(failures, f"{cve} is marked KEV without KEV provenance")
+            enrichment = record.get("ai_enrichment")
+            if enrichment is not None:
+                ai_enriched += 1
+                for error in enrichment_errors(enrichment, record):
+                    fail(failures, f"{cve} {error}")
+                if isinstance(enrichment, dict):
+                    ai_enrichment_complete += int(enrichment.get("status") == "complete")
+                    ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
 
     if shard_ids != set(index_by_cve):
         missing = sorted(set(index_by_cve) - shard_ids)
@@ -1519,6 +1535,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         fail(failures, "manifest Markdown draft count does not match shards")
     if totals.get("markdown_pages") != markdown_pages:
         fail(failures, "manifest Markdown page count does not match shards")
+    if totals.get("ai_enriched_records") != ai_enriched:
+        fail(failures, "manifest AI-enriched record count does not match shards")
+    if totals.get("ai_enrichment_complete") != ai_enrichment_complete:
+        fail(failures, "manifest complete AI-enrichment count does not match shards")
+    if totals.get("ai_enrichment_insufficient_evidence") != ai_enrichment_insufficient:
+        fail(failures, "manifest insufficient AI-enrichment count does not match shards")
 
     calculated_severity = Counter(record.get("severity") for record in records)
     if dict(sorted(calculated_severity.items())) != manifest.get("by_severity"):
@@ -1546,6 +1568,11 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
             "ecosystems": len(archetypes.get("ecosystem_target_hints") or {}),
         },
         "markdown": markdown_counts,
+        "ai_enrichment": {
+            "records": ai_enriched,
+            "complete": ai_enrichment_complete,
+            "insufficient_evidence": ai_enrichment_insufficient,
+        },
         "failures": failures,
         "warnings": warnings,
     }

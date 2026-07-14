@@ -748,6 +748,8 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.doesNotMatch(controllerSource, /fetchJson\('manifest\.json'\)/);
   assert.match(controllerSource, /state\.runtimeSummary\.shard_set_sha256/);
   assert.match(controllerSource, /metadata && metadata\.sha256/);
+  assert.match(controllerSource, /AI-assisted CVE enrichment \(supplemental\)/);
+  assert.match(controllerSource, /appendAiEnrichment\(body, fullRecord\.ai_enrichment\)/);
   assert.match(workerSource, /browser-index\.json\.gz/);
   assert.match(
     controllerSource,

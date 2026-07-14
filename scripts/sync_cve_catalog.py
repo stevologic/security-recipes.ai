@@ -38,10 +38,28 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import unquote, urlparse
 from urllib.request import Request, urlopen
 
+try:
+    from scripts.cve_ai_enrichment import (
+        DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
+        DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
+        MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
+        EnrichmentCache,
+        OpenAIEnricher,
+    )
+except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` execution.
+    from cve_ai_enrichment import (  # type: ignore[no-redef]
+        DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
+        DEFAULT_REQUEST_LIMIT as DEFAULT_AI_ENRICHMENT_LIMIT,
+        MAX_REQUEST_LIMIT as MAX_AI_ENRICHMENT_LIMIT,
+        EnrichmentCache,
+        OpenAIEnricher,
+    )
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTENT_DIR = ROOT / "content" / "recipes" / "cve"
 DEFAULT_ARCHETYPES = ROOT / "data" / "cve" / "remediation-archetypes.json"
+DEFAULT_ENRICHMENT_CACHE = ROOT / "data" / "cve" / "ai-enrichments.json"
 DEFAULT_OUTPUT_DIR = ROOT / "static" / "api" / "cve-catalog"
 DEFAULT_CACHE_DIR = ROOT / "tmp" / "nvd-cve-feeds"
 
@@ -285,7 +303,10 @@ def fetch_bytes(url: str, *, attempts: int = 4, timeout: int = 180) -> bytes:
                 return response.read()
         except HTTPError as exc:
             last_error = exc
-            if exc.code not in {408, 429, 500, 502, 503, 504}:
+            # NVD's CDN can briefly return 404 while annual feed objects rotate.
+            # The same immutable feed URL is available again seconds later, so a
+            # bounded retry is safer than abandoning a complete daily refresh.
+            if exc.code not in {404, 408, 429, 500, 502, 503, 504}:
                 raise
             retry_after = exc.headers.get("Retry-After")
             delay = float(retry_after) if retry_after and retry_after.isdigit() else 2**attempt
@@ -1398,6 +1419,9 @@ def build_outputs(
     authoritative_markdown = 0
     markdown_drafts = 0
     markdown_pages = 0
+    ai_enriched = 0
+    ai_enrichment_complete = 0
+    ai_enrichment_insufficient = 0
     valid_ids = valid_archetype_ids(archetypes)
     valid_agentic_ids = valid_agentic_archetype_ids(archetypes)
     default_archetype = str(archetypes.get("default_archetype") or "")
@@ -1449,6 +1473,11 @@ def build_outputs(
                 authoritative_markdown += int(record["recipe_kind"] == "markdown-override")
                 markdown_drafts += int(record["recipe_kind"] == "markdown-draft")
                 markdown_pages += len(record["markdown"])
+                enrichment = record.get("ai_enrichment")
+                if isinstance(enrichment, dict):
+                    ai_enriched += 1
+                    ai_enrichment_complete += int(enrichment.get("status") == "complete")
+                    ai_enrichment_insufficient += int(enrichment.get("status") == "insufficient_evidence")
         finally:
             for stream in open_spools.values():
                 stream.close()
@@ -1543,6 +1572,9 @@ def build_outputs(
             "markdown_drafts": markdown_drafts,
             "markdown_pages": markdown_pages,
             "stable_markdown_overrides": authoritative_markdown,
+            "ai_enriched_records": ai_enriched,
+            "ai_enrichment_complete": ai_enrichment_complete,
+            "ai_enrichment_insufficient_evidence": ai_enrichment_insufficient,
             "in_scope_kev": in_scope_kev,
             "shards": len(shard_manifest),
         },
@@ -1773,6 +1805,18 @@ def write_outputs(output_dir: Path, outputs: dict[Path, bytes], *, dry_run: bool
     return {"changed": changed, "unchanged": unchanged, "removed": removed}
 
 
+def parse_ai_enrichment_limit(value: str) -> int:
+    try:
+        limit = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("AI enrichment limit must be an integer") from exc
+    if not 0 <= limit <= MAX_AI_ENRICHMENT_LIMIT:
+        raise argparse.ArgumentTypeError(
+            f"AI enrichment limit must be between 0 and {MAX_AI_ENRICHMENT_LIMIT}"
+        )
+    return limit
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     today = utc_now().date()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -1787,8 +1831,28 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--feed-end-year", type=int, default=today.year)
     parser.add_argument("--content-dir", type=Path, default=DEFAULT_CONTENT_DIR)
     parser.add_argument("--archetypes", type=Path, default=DEFAULT_ARCHETYPES)
+    parser.add_argument("--enrichment-cache", type=Path, default=DEFAULT_ENRICHMENT_CACHE)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
+    parser.add_argument(
+        "--openai-model",
+        default=os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL),
+        help="Responses API model for optional evidence-constrained enrichment.",
+    )
+    parser.add_argument(
+        "--ai-enrichment-limit",
+        type=parse_ai_enrichment_limit,
+        default=os.environ.get("OPENAI_ENRICHMENT_LIMIT", str(DEFAULT_AI_ENRICHMENT_LIMIT)),
+        help=(
+            "Maximum new/source-changed CVEs enriched per run when OPENAI_API_KEY is set "
+            f"(0-{MAX_AI_ENRICHMENT_LIMIT})."
+        ),
+    )
+    parser.add_argument(
+        "--disable-ai-enrichment",
+        action="store_true",
+        help="Attach valid cached enrichments but make no OpenAI requests.",
+    )
     parser.add_argument("--offline", action="store_true", help="Use only cached NVD and KEV inputs.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and validate sources without writing catalog files.")
     parser.add_argument("--limit", type=int, help="Development-only cap after normalization.")
@@ -1822,10 +1886,13 @@ def main(argv: list[str] | None = None) -> int:
         raise ValueError("--start-date must not be later than --end-date")
     if args.feed_start_year > args.feed_end_year:
         raise ValueError("--feed-start-year must not be later than --feed-end-year")
+    if args.ai_enrichment_limit < 0:
+        raise ValueError("--ai-enrichment-limit must not be negative")
 
     cache_dir = resolve_path(args.cache_dir)
     content_dir = resolve_path(args.content_dir)
     archetype_path = resolve_path(args.archetypes)
+    enrichment_cache_path = resolve_path(args.enrichment_cache)
     output_dir = resolve_path(args.output_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1834,6 +1901,27 @@ def main(argv: list[str] | None = None) -> int:
     existing = markdown_inventory(content_dir)
     kev_data, kev_payload = cache_kev(cache_dir, offline=args.offline)
     kev_map = kev_by_cve(kev_data)
+    enrichment_cache = EnrichmentCache.load(enrichment_cache_path)
+    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    openai_client: OpenAIEnricher | None = None
+    if openai_key and not args.disable_ai_enrichment and not args.offline and not args.dry_run:
+        openai_client = OpenAIEnricher(openai_key, model=args.openai_model)
+        print(
+            f"Optional OpenAI enrichment enabled with model {openai_client.model!r} "
+            f"and limit {args.ai_enrichment_limit}.",
+            flush=True,
+        )
+    elif not openai_key:
+        print("OPENAI_API_KEY is not set; source sync and valid cached enrichments will continue.", flush=True)
+    else:
+        disabled_reason = (
+            "--disable-ai-enrichment"
+            if args.disable_ai_enrichment
+            else "offline mode"
+            if args.offline
+            else "dry-run mode"
+        )
+        print(f"Optional OpenAI requests are disabled by {disabled_reason}.", flush=True)
 
     feed_sources: list[dict[str, Any]] = []
     with tempfile.TemporaryDirectory(prefix="normalized-cve-records-", dir=cache_dir) as spool_tmp:
@@ -1885,9 +1973,17 @@ def main(argv: list[str] | None = None) -> int:
             del payload, year_records
             gc.collect()
 
-        records: Iterable[dict[str, Any]] = merged_record_spools(spool_paths)
-        if args.limit is not None:
-            records = itertools.islice(records, max(0, args.limit))
+        def output_records() -> Iterable[dict[str, Any]]:
+            records: Iterable[dict[str, Any]] = merged_record_spools(spool_paths)
+            if args.limit is not None:
+                records = itertools.islice(records, max(0, args.limit))
+            return records
+
+        enrichment_cache.select_candidates(
+            output_records(),
+            limit=args.ai_enrichment_limit if openai_client is not None else 0,
+        )
+        records = enrichment_cache.apply(output_records(), client=openai_client)
         outputs, manifest = build_outputs(
             records,
             start_date=start_date,
@@ -1900,6 +1996,7 @@ def main(argv: list[str] | None = None) -> int:
             presorted=True,
         )
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
+    enrichment_cache_changed = enrichment_cache.write(dry_run=args.dry_run)
     print(
         json.dumps(
             {
@@ -1907,6 +2004,12 @@ def main(argv: list[str] | None = None) -> int:
                 "totals": manifest["totals"],
                 "output": str(output_dir),
                 "writes": write_summary,
+                "ai_enrichment": {
+                    **enrichment_cache.stats,
+                    "cache": str(enrichment_cache_path),
+                    "cache_changed": enrichment_cache_changed,
+                    "api_enabled": openai_client is not None,
+                },
                 "dry_run": args.dry_run,
             },
             indent=2,
