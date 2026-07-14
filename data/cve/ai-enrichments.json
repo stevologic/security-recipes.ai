@@ -89,6 +89,196 @@
         "For potentially compromised internet-facing systems, perform authorized forensic triage consistent with applicable organizational and CISA requirements."
       ]
     },
+    "CVE-2026-1731": {
+      "business_risk": "Critical pre-authentication OS command injection/RCE affecting BeyondTrust Remote Support and older Privileged Remote Access deployments. An unauthenticated network attacker may execute operating-system commands as the site user, potentially causing system compromise, unauthorized access, data exfiltration, or service disruption. The vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, and BeyondTrust reports exploitation attempts against internet-facing, self-hosted instances that were unpatched before February 9, 2026.",
+      "claim_evidence": [
+        {
+          "claim": "BeyondTrust Remote Support and certain older Privileged Remote Access versions are affected by CVE-2026-1731.",
+          "kind": "affected_product",
+          "source_url": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02"
+        },
+        {
+          "claim": "BeyondTrust identifies Remote Support 25.3.1 and prior, and Privileged Remote Access 24.3.4 and prior, as affected.",
+          "kind": "affected_version",
+          "source_url": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02"
+        },
+        {
+          "claim": "The vulnerability is pre-authentication and may allow an unauthenticated remote attacker to execute operating-system commands; BeyondTrust reports observed exploitation against internet-facing, self-hosted environments that were unpatched before February 9, 2026.",
+          "kind": "exposure",
+          "source_url": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02"
+        },
+        {
+          "claim": "CVE-2026-1731 is listed in CISA's Known Exploited Vulnerabilities catalog with a required action to apply vendor mitigations or discontinue use if mitigations are unavailable.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-1731"
+        },
+        {
+          "claim": "BeyondTrust lists Remote Support 25.3.2 and later as fixed, and Privileged Remote Access 25.1 and later as fixed; its mitigation text recommends Privileged Remote Access 25.1.1 or newer.",
+          "kind": "fixed_version",
+          "source_url": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02"
+        },
+        {
+          "claim": "Self-hosted customers should apply BT26-02-RS or BT26-02-PRA through the appliance interface when automatic updates are not enabled; SaaS instances were reported as patched automatically.",
+          "kind": "remediation",
+          "source_url": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02"
+        },
+        {
+          "claim": "The advisory identifies the appliance interface as the location for applying the patch and provides fixed product versions, supporting verification through patch status or installed-version review rather than exploit testing.",
+          "kind": "verification",
+          "source_url": "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02"
+        }
+      ],
+      "exposure_conditions": [
+        "BeyondTrust Remote Support version 25.3.1 or earlier is affected.",
+        "BeyondTrust Privileged Remote Access version 24.3.4 or earlier is affected; NVD CPE data separately identifies versions before 25.1, so confirm the applicable product/version guidance with BeyondTrust.",
+        "Risk is highest for internet-facing, self-hosted appliances that had not received the BT26-02 patch before February 9, 2026.",
+        "Remote Support and Privileged Remote Access SaaS instances were reported by BeyondTrust as patched automatically; confirm status with the provider if assurance is required."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T23:39:17Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "specific",
+      "remediation_steps": [
+        "Immediately prioritize remediation because the vulnerability is actively exploited and listed in CISA KEV.",
+        "For self-hosted Remote Support, apply patch BT26-02-RS through the BeyondTrust appliance interface, or upgrade to Remote Support 25.3.2 or later.",
+        "For self-hosted Privileged Remote Access, apply patch BT26-02-PRA through the BeyondTrust appliance interface, or upgrade to a BeyondTrust-supported fixed release. BeyondTrust identifies 25.1 and later as fixed and separately recommends 25.1.1 or later; use the vendor's current guidance when selecting the target release.",
+        "If automatic updates are enabled, confirm that the BT26-02 update was successfully applied rather than relying solely on the update setting.",
+        "For internet-exposed, self-hosted instances that remained unpatched as of February 9, 2026, apply the update immediately and open a BeyondTrust Severity 1 support ticket citing BT26-02, consistent with the vendor advisory.",
+        "Until remediation is confirmed, reduce unnecessary internet exposure using approved access-control or network-segmentation measures without treating those measures as a substitute for patching."
+      ],
+      "retrieved_source_urls": [
+        "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-1731",
+        "https://www.beyondtrust.com/trust-center/security-advisories/bt26-01",
+        "https://www.cisa.gov/news-events/alerts/2025/04/17/cisa-adds-three-known-exploited-vulnerabilities-catalog",
+        "https://trustportal.beyondtrust.com/",
+        "https://docs.beyondtrust.com/pra/changelog/privileged-remote-access-25-3-2-release-notes",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.beyondtrust.com/trust-center/security-advisories/klue-security-incident",
+        "https://www.beyondtrust.com/trust-center",
+        "https://beekeepers.beyondtrust.com/general-45/beyondtrust-security-advisory-bt26-02-remote-support-privileged-remote-access-7909",
+        "https://www.beyondtrust.com/trust-center/security-advisories/bt26-03",
+        "https://www.beyondtrust.com/trust-center/application-security",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-011A_Joint_CSA_Understanding_and_Mitigating%20_Russian_Cyber_Threats_to_US_Critical_Infrastructure_TLP-WHITE_01-10-22_v1.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-12/SECURING%20THE%20SOFTWARE%20SUPPLY%20CHAIN%20RECOMMENDED%20PRACTICES%20FOR%20SOFTWARE%20BILL%20OF%20MATERIALS%20CONSUMPTION%20%282%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/aa22-228a-threat-actors-exploiting-multiple-cves-against-zimbra.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/aa22-257a-iranian-islamic-revolutionary-guard-corps-affiliated-cyber-actors.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "25bfd5cfaa8fc2c656d7dce9c2909549dd63aed54040c05a3bdc6db0a84f6273",
+      "source_urls": [
+        "https://www.beyondtrust.com/trust-center/security-advisories/bt26-02",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-1731"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "BeyondTrust's advisory contains a minor Privileged Remote Access version discrepancy: the fixed-version table states 25.1 and later, while the mitigation text recommends 25.1.1 or newer. Treat 25.1.1 or a later vendor-approved release as the conservative target unless BeyondTrust confirms otherwise.",
+        "The supplied source record's generic ecosystem classification does not identify deployment type, internet exposure, update configuration, or installed versions; those facts require asset-level validation.",
+        "No authoritative source reviewed here provides a detailed compromise-indicator set or a non-invasive exploit-specific test procedure."
+      ],
+      "verification_steps": [
+        "Review the BeyondTrust appliance interface and confirm that the applicable BT26-02 patch is installed or that the running product version is at or above the vendor-stated fixed release.",
+        "Verify Remote Support is running version 25.3.2 or later, or has BT26-02-RS applied.",
+        "Verify Privileged Remote Access is running the vendor-approved fixed release, with BeyondTrust's advisory identifying 25.1 or later and its mitigation text recommending 25.1.1 or later, or confirm BT26-02-PRA is applied.",
+        "For SaaS deployments, obtain confirmation from BeyondTrust or the service administration portal that the February 2, 2026 remediation was applied.",
+        "For internet-facing self-hosted systems, review vendor-recommended incident-response guidance and investigate signs of compromise; do not perform unauthenticated exploit testing against production systems."
+      ]
+    },
+    "CVE-2026-20127": {
+      "business_risk": "Critical. An unauthenticated remote attacker may bypass peering authentication, obtain a high-privileged internal account, access NETCONF, and manipulate the SD-WAN fabric configuration. Cisco reports limited exploitation, and CISA lists the CVE in the Known Exploited Vulnerabilities Catalog.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects Cisco Catalyst SD-WAN Controller, Manager, and Validator, including their former vSmart, vManage, and vBond names.",
+          "kind": "affected_product",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller+Authentication+Bypass+Vulnerability%26vs_k%3D1"
+        },
+        {
+          "claim": "Cisco states that affected products are vulnerable regardless of device configuration and that internet-exposed Controller systems or systems with ports exposed to the internet are at risk.",
+          "kind": "exposure",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller+Authentication+Bypass+Vulnerability%26vs_k%3D1"
+        },
+        {
+          "claim": "Cisco documents fixed releases including 20.9.8.2, 20.12.5.3, 20.12.6.1, 20.15.4.2, and 20.18.2.1, with migration required for releases earlier than 20.9.",
+          "kind": "fixed_version",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller+Authentication+Bypass+Vulnerability%26vs_k%3D1"
+        },
+        {
+          "claim": "Cisco released software updates, states that no workaround addresses the vulnerability, and recommends upgrading to a fixed release.",
+          "kind": "remediation",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller+Authentication+Bypass+Vulnerability%26vs_k%3D1"
+        },
+        {
+          "claim": "Cisco provides exposure indicators based on internet exposure and recommends checking the deployed release against its fixed-release table; it also recommends hardening by disabling unnecessary services and restricting administrative access.",
+          "kind": "verification",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller+Authentication+Bypass+Vulnerability%26vs_k%3D1"
+        },
+        {
+          "claim": "NVD records affected release ranges corresponding to versions before 20.9.8.2, 20.12.5.3, 20.15.4.2, and 20.18.2.1, with an additional affected 20.12.6 release entry.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20127"
+        }
+      ],
+      "exposure_conditions": [
+        "Cisco Catalyst SD-WAN Controller, Manager, or Validator is deployed in an affected release.",
+        "Cisco states the vulnerability affects on-premises, Cisco Hosted SD-WAN Cloud, Cisco Managed Cloud, and FedRAMP deployments regardless of device configuration.",
+        "Internet-exposed SD-WAN Controller systems or systems with relevant ports exposed to the internet are at risk of compromise."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T23:39:28Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade each affected Cisco Catalyst SD-WAN component to a Cisco-documented fixed release.",
+        "Use the applicable fixed release for the deployed branch: 20.9.8.2 for the 20.9 branch; 20.12.5.3 or 20.12.6.1 as applicable to the 20.12/20.12.6 branches; 20.15.4.2 for the 20.13–20.15 branches; and 20.18.2.1 for the 20.16–20.18 branches.",
+        "For releases earlier than 20.9, migrate to a fixed release. Cisco identifies some older branches as End of Software Maintenance and recommends upgrading to a supported release.",
+        "Do not rely on a workaround: Cisco states that no workaround addresses this vulnerability.",
+        "As interim hardening, restrict internet exposure and disable unnecessary network services, including HTTP and FTP, consistent with Cisco’s SD-WAN hardening guidance."
+      ],
+      "retrieved_source_urls": [
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20127",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller+Authentication+Bypass+Vulnerability%26vs_k%3D1",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sd-wan-priv-E6e8tEdF",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-arbfw-c2rZvQ",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-utd-dos-hDATqxs",
+        "https://sec.cloudapps.cisco.com/security/center/publicationListing.x",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-buffover-MWGucjtO",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-abyp-TnGFHrS",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20027",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-clipriv-9TO2QGVp",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-authbp-qwCX8D4v",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/NSTAC%20SDN%20Report%20%288-12-20%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-04/apt28-exploits-known-vulnerability-to-carry-out-reconnaissance-and-deploy-malware-on-cisco-routers.pdf",
+        "https://www.cisa.gov/sites/default/files/Joint_CISA_FBI_CSA-AA20-296A__Russian_State_Sponsored_APT_Actor_Compromise_US_Government_Targets.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "0fbce7ec8aa2076ed5e27d525576375aa93f9b20983828463909490c5f6651ab",
+      "source_urls": [
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa-EHchtZk?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller+Authentication+Bypass+Vulnerability%26vs_k%3D1",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20127"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied product list is truncated, so the complete set of affected CPEs and release branches cannot be independently enumerated here.",
+        "Cisco’s advisory provides fixed-release guidance and exposure conditions but does not provide a universal, non-invasive compromise-detection test; log review is therefore a defensive review step rather than proof of non-compromise.",
+        "Hosted-service remediation responsibilities may differ by deployment type; Cisco documentation states that some cloud environments may require provider-side action."
+      ],
+      "verification_steps": [
+        "Inventory all Catalyst SD-WAN Controller, Manager, and Validator instances, including hosted deployments, and record their software releases.",
+        "Compare each deployed release with Cisco’s fixed-release table; treat a component as requiring remediation unless its release is documented as fixed or later.",
+        "Confirm that internet exposure and unnecessary network services have been removed where operationally feasible.",
+        "Review Cisco SD-WAN logs and security telemetry for evidence of unauthorized administrative access or configuration changes; escalate suspected compromise through Cisco’s incident-response or TAC process."
+      ]
+    },
     "CVE-2026-20182": {
       "business_risk": "Critical, actively exploited authentication bypass in Cisco Catalyst SD-WAN Controller, Manager, and Validator. An unauthenticated remote attacker may obtain a high-privileged internal account, access NETCONF, and manipulate SD-WAN fabric configuration.",
       "claim_evidence": [
@@ -256,6 +446,291 @@
         "If the workaround is used, confirm through approved configuration-management or administrative review that the PostgreSQL sidecar service is disabled and that the change has taken effect after the required service restart.",
         "Confirm that any affected instance using Edge Processor, OpAmp, or SPL2 data pipelines was not mitigated by disabling PostgreSQL.",
         "Review asset exposure and security telemetry for unauthenticated access to the PostgreSQL sidecar service; Splunk's advisory lists no vendor-provided detections."
+      ]
+    },
+    "CVE-2026-21643": {
+      "business_risk": "Critical risk: an unauthenticated remote attacker can send specially crafted HTTP requests to FortiClientEMS 7.4.4 and potentially execute unauthorized code or commands. Fortinet states that exploitation has been observed in the wild, so internet-exposed or otherwise remotely reachable EMS instances should be treated as urgent remediation targets.",
+      "claim_evidence": [
+        {
+          "claim": "FortiClientEMS is affected by the SQL injection vulnerability.",
+          "kind": "affected_product",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+        },
+        {
+          "claim": "FortiClientEMS 7.4.4 is affected; FortiClientEMS 7.2 and 8.0 are listed as not affected.",
+          "kind": "affected_version",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+        },
+        {
+          "claim": "The vulnerability affects the administrative GUI, has an unauthenticated attack type, and can be reached through specially crafted HTTP requests.",
+          "kind": "exposure",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+        },
+        {
+          "claim": "Fortinet recommends upgrading FortiClientEMS 7.4.4 to 7.4.5 or later.",
+          "kind": "remediation",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+        },
+        {
+          "claim": "FortiClientEMS 7.4.5 or later is the vendor-provided solution for the affected 7.4 branch.",
+          "kind": "fixed_version",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+        },
+        {
+          "claim": "Version-based verification can be performed by confirming that the installed FortiClientEMS release is no longer 7.4.4 and is at least 7.4.5; the advisory provides the affected and solution versions but no dedicated verification procedure.",
+          "kind": "verification",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+        }
+      ],
+      "exposure_conditions": [
+        "FortiClientEMS version 7.4.4 is installed.",
+        "The FortiClientEMS administrative interface is reachable by an attacker over HTTP.",
+        "Authentication is not required for exploitation, according to Fortinet's advisory."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T23:39:38Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade FortiClientEMS 7.4.4 to version 7.4.5 or later.",
+        "If immediate upgrade is not possible, restrict network access to the FortiClientEMS administrative interface to trusted management networks and monitor for suspicious HTTP requests or unauthorized administrative activity. The advisory confirms the affected component is the GUI and the attack type is unauthenticated, but does not provide a detailed temporary mitigation procedure.",
+        "Review Fortinet's recommended upgrade path and applicable organizational incident-response procedures because the advisory reports exploitation in the wild."
+      ],
+      "retrieved_source_urls": [
+        "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142",
+        "https://fortiguard.fortinet.com/psirt",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-114",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-21643",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-25-528",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-143",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-108",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-118",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-084",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-090",
+        "https://www.cisa.gov/news-events/alerts/2025/09/29/cisa-adds-five-known-exploited-vulnerabilities-catalog",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-21643",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "2ad5f8af4f1cfc08abc3287071827ecf98d4e2bdd6a011af0bc9e827a54e51fb",
+      "source_urls": [
+        "https://fortiguard.fortinet.com/psirt/FG-IR-25-1142"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record marks this CVE as present in the CISA KEV catalog, while the Fortinet advisory's metadata states 'Known Exploited: No' but its summary says exploitation was observed in the wild. Treat the vulnerability as high priority and resolve the discrepancy against the current CISA catalog and vendor advisory during review.",
+        "The authoritative vendor advisory identifies FortiClientEMS 7.4.4 as affected and 7.4.5 or later as fixed; it states FortiClientEMS 7.2 and 8.0 are not affected.",
+        "No authoritative source retrieved here provided a product-specific temporary workaround, detailed log indicators, or a non-invasive technical test procedure."
+      ],
+      "verification_steps": [
+        "Confirm through the product's normal administrative version information or approved asset-inventory process that FortiClientEMS is running 7.4.5 or later.",
+        "Confirm that no managed FortiClientEMS instance remains on version 7.4.4.",
+        "Review relevant access and security logs for unexpected unauthenticated requests or unauthorized code/command execution after remediation; do not send exploit traffic as a verification method."
+      ]
+    },
+    "CVE-2026-22769": {
+      "business_risk": "Critical. An unauthenticated remote attacker who knows the hard-coded credential may gain unauthorized access to the underlying RecoverPoint operating system and establish root-level persistence. Dell reports limited active exploitation, and the CVE is listed in CISA's Known Exploited Vulnerabilities Catalog.",
+      "claim_evidence": [
+        {
+          "claim": "Dell RecoverPoint for Virtual Machines is affected by CVE-2026-22769.",
+          "kind": "affected_product",
+          "source_url": "https://www.dell.com/support/kbdoc/en-us/000426773/dsa-2026-079"
+        },
+        {
+          "claim": "Dell lists version 5.3 SP4 P1 and the specified 6.0, 6.0 SP1, 6.0 SP1 P1, 6.0 SP1 P2, 6.0 SP2, 6.0 SP2 P1, 6.0 SP3, and 6.0 SP3 P1 releases as affected; it also notes that additional earlier releases may be impacted.",
+          "kind": "affected_version",
+          "source_url": "https://www.dell.com/support/kbdoc/en-us/000426773/dsa-2026-079"
+        },
+        {
+          "claim": "An unauthenticated remote attacker with knowledge of the hard-coded credential may obtain unauthorized operating-system access and root-level persistence; Dell recommends trusted, access-controlled internal deployment rather than untrusted or public networks.",
+          "kind": "exposure",
+          "source_url": "https://www.dell.com/support/kbdoc/en-us/000426773/dsa-2026-079"
+        },
+        {
+          "claim": "Dell identifies 6.0.3.1 HF1 as the upgrade target that remediates the affected versions.",
+          "kind": "fixed_version",
+          "source_url": "https://www.dell.com/support/kbdoc/en-us/000426773/dsa-2026-079"
+        },
+        {
+          "claim": "Dell provides two remediation paths: upgrade to 6.0.3.1 HF1, with a required migration path for version 5.3 SP4 P1, or apply the vendor remediation script described in the linked Dell knowledge-base article.",
+          "kind": "remediation",
+          "source_url": "https://www.dell.com/support/kbdoc/en-us/000426773/dsa-2026-079"
+        },
+        {
+          "claim": "The Dell remediation article states that the procedure is nondisruptive to main RecoverPoint operations, does not require a reboot, and must be rerun after certain reimaging or new-appliance scenarios.",
+          "kind": "remediation",
+          "source_url": "https://www.dell.com/support/kbdoc/en-us/000426742/recoverpoint-for-vms-apply-the-remediation-script-for-dsa"
+        },
+        {
+          "claim": "Dell documents a successful completion indication for the remediation procedure and instructs administrators to contact Dell Support if an error or different output is received.",
+          "kind": "verification",
+          "source_url": "https://www.dell.com/support/kbdoc/en-us/000426742/recoverpoint-for-vms-apply-the-remediation-script-for-dsa"
+        },
+        {
+          "claim": "NVD records the vulnerability as critical, with CVSS 10.0, and notes its inclusion in CISA's Known Exploited Vulnerabilities Catalog.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-22769"
+        }
+      ],
+      "exposure_conditions": [
+        "RecoverPoint for Virtual Machines versions below 6.0.3.1 HF1 are affected, including the listed 5.3 SP4 P1 and 6.0-series releases.",
+        "Exploitation may be possible remotely without authentication when the attacker knows the hard-coded credential.",
+        "Risk is greater when the appliance is reachable from untrusted or public networks; Dell recommends deployment only within trusted, access-controlled internal networks with appropriate firewalls and segmentation."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T23:39:48Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade RecoverPoint for Virtual Machines to version 6.0.3.1 HF1 or later.",
+        "For version 5.3 SP4 P1, migrate to 6.0 SP3 and then upgrade to 6.0.3.1 HF1.",
+        "If upgrading is not immediately possible, apply Dell's remediation procedure for DSA-2026-079 using the vendor-provided remediation article.",
+        "After reimaging an appliance or deploying additional appliances running version 6.0 SP3 P1 or older, repeat the Dell remediation procedure as applicable.",
+        "Restrict appliance access to trusted internal networks and maintain firewall and network-segmentation controls."
+      ],
+      "retrieved_source_urls": [
+        "https://www.dell.com/support/kbdoc/en-us/000426742/recoverpoint-for-vms-apply-the-remediation-script-for-dsa",
+        "https://www.dell.com/support/kbdoc/en-us/000426773/dsa-2026-079",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-22769",
+        "https://www.dell.com/support/kbdoc/en-us/000430179/recoverpoint-for-vms-plug-in-shows-errors-following-upgrade-or-remediation-of-dsa-2026-079",
+        "https://www.dell.com/support/kbdoc/en-uk/000426742",
+        "https://www.dell.com/support/product-details/en-aw/product/recoverpoint-for-virtual-machines/resources/articles",
+        "https://www.dell.com/support/product-details/en-us/product/recoverpoint-for-virtual-machines/resources/articles",
+        "https://www.dell.com/support/kbdoc/en-us/000194531/dsa-2021-284-dell-emc-recoverpoint-security-update-for-apache-log4j-remote-code-execution-vulnerability-cve-2021-44228",
+        "https://www.dell.com/support/kbdoc/en-us/000158071/recoverpoint-main-kb-for-recoverpoint-licensing",
+        "https://www.dell.com/support/product-details/en-al/product/recoverpoint-for-virtual-machines/resources/articles",
+        "https://www.cisa.gov/news-events/alerts/2025/04/17/cisa-adds-three-known-exploited-vulnerabilities-catalog",
+        "https://www.dell.com/support/product-details/en-gh/product/recoverpoint-for-virtual-machines/resources/articles",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-011A_Joint_CSA_Understanding_and_Mitigating%20_Russian_Cyber_Threats_to_US_Critical_Infrastructure_TLP-WHITE_01-10-22_v1.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "8206528b5f8c6004fe7f689b13e91b836ba79b56b52e24d4773d89a9923d67ed",
+      "source_urls": [
+        "https://www.dell.com/support/kbdoc/en-us/000426773/dsa-2026-079",
+        "https://www.dell.com/support/kbdoc/en-us/000426742/recoverpoint-for-vms-apply-the-remediation-script-for-dsa",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-22769"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "Dell identifies versions 5.3 SP4, 5.3 SP3, 5.3 SP2, and potentially earlier releases as impacted, but does not enumerate every earlier version in the advisory.",
+        "The supplied record's generic ecosystem label is insufficient for asset matching; inventory should identify the product as Dell RecoverPoint for Virtual Machines and distinguish it from RecoverPoint Classic, which Dell states is not affected.",
+        "No evidence was reviewed establishing whether a particular deployment is externally reachable, whether the hard-coded credential is exposed, or whether remediation has already been applied."
+      ],
+      "verification_steps": [
+        "Confirm the deployed RecoverPoint for Virtual Machines version is 6.0.3.1 HF1 or later.",
+        "If the remediation procedure was used, confirm that Dell's documented completion indication reports successful deployment; contact Dell Support if a different result or error is shown.",
+        "Recheck all appliances, including newly deployed or reimaged appliances, because Dell states that the remediation procedure may need to be rerun for those systems.",
+        "Confirm that RecoverPoint management access is limited to trusted, access-controlled internal networks rather than untrusted or public networks."
+      ]
+    },
+    "CVE-2026-3055": {
+      "business_risk": "Critical risk. NetScaler ADC and NetScaler Gateway can be remotely affected by an out-of-bounds read when configured as a SAML identity provider. NVD records a CVSS 3.1 score of 9.8, and the vulnerability is listed in CISA's Known Exploited Vulnerabilities catalog, indicating active exploitation and a need for urgent remediation.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects NetScaler ADC and NetScaler Gateway.",
+          "kind": "affected_product",
+          "source_url": "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html"
+        },
+        {
+          "claim": "CVE-2026-3055 applies when NetScaler ADC or NetScaler Gateway is configured as a SAML identity provider.",
+          "kind": "exposure",
+          "source_url": "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html"
+        },
+        {
+          "claim": "Citrix identifies NetScaler ADC and Gateway 14.1 before 14.1-60.58, 13.1 before 13.1-62.23, and FIPS/NDcPP before 13.1-37.262 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html"
+        },
+        {
+          "claim": "The Citrix bulletin states that 14.1-60.58, 13.1-62.23, and 13.1-37.262 are remediating versions for the applicable product branches.",
+          "kind": "fixed_version",
+          "source_url": "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html"
+        },
+        {
+          "claim": "The NVD record contains CNA affected-version data listing NetScaler ADC/Gateway 14.1 versions below 14.1-66.59 and 13.1 versions below 13.1-62.23 as affected, creating a discrepancy with the Citrix bulletin for the 14.1 branch.",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-3055"
+        },
+        {
+          "claim": "Citrix directs customers to address the issue through the security bulletin and applicable product updates; the bulletin applies to customer-managed ADC and Gateway appliances.",
+          "kind": "remediation",
+          "source_url": "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html"
+        },
+        {
+          "claim": "Safe verification can be based on checking the deployed product branch/build against the vendor's affected and remediating version ranges and confirming the SAML identity-provider configuration condition.",
+          "kind": "verification",
+          "source_url": "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html"
+        }
+      ],
+      "exposure_conditions": [
+        "NetScaler ADC or NetScaler Gateway is deployed as a customer-managed appliance.",
+        "The appliance is configured as a SAML identity provider.",
+        "The deployed version is within an affected release range.",
+        "Cloud Software Group-managed cloud services are described by the vendor as receiving the necessary updates; do not assume this applies to customer-managed appliances."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T23:39:59Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Prioritize this CVE under the applicable CISA KEV remediation requirements.",
+        "Upgrade customer-managed NetScaler ADC and NetScaler Gateway according to the Citrix security bulletin.",
+        "The Citrix bulletin identifies these remediating versions: 14.1-60.58 or later, 13.1-62.23 or later, and 13.1 FIPS/NDcPP 13.1-37.262 or later.",
+        "If timely upgrade is unavailable, follow only mitigations explicitly provided by Citrix; otherwise consider discontinuing exposure of the affected product."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-3055",
+        "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2022-3055",
+        "https://www.cisa.gov/news-events/alerts/2025/04/17/cisa-adds-three-known-exploited-vulnerabilities-catalog",
+        "https://nvd.nist.gov/vuln/detail/CVE-2021-3055",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?_cldee=jpUNG-sft0Lr74jsazzEoZ17jTSFEy6lQDvCJArCUYT0C1B4SWuT29F0dx7GSSfN&esid=f8736f67-efb4-ec11-983e-000d3a5a7186&f%5B0%5D=vendor_project%3A813&f%5B1%5D=vendor_project%3A829&f%5B2%5D=vendor_project%3A849&f%5B3%5D=vendor_project%3A911&f%5B4%5D=vendor_project%3A1320&page=1&recipientid=contact-41de9e007aace811a963000d3a363879-a794569726594743b07ecd7aaff0e97c",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-25055",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A800&f%5B10%5D=vendor_project%3A886&f%5B11%5D=vendor_project%3A893&f%5B12%5D=vendor_project%3A902&f%5B13%5D=vendor_project%3A916&f%5B14%5D=vendor_project%3A917&f%5B15%5D=vendor_project%3A924&f%5B16%5D=vendor_project%3A938&f%5B17%5D=vendor_project%3A941&f%5B18%5D=vendor_project%3A1249&f%5B1%5D=vendor_project%3A801&f%5B2%5D=vendor_project%3A820&f%5B3%5D=vendor_project%3A823&f%5B4%5D=vendor_project%3A826&f%5B5%5D=vendor_project%3A828&f%5B6%5D=vendor_project%3A830&f%5B7%5D=vendor_project%3A837&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A854&page=1",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A802&f%5B1%5D=vendor_project%3A804&f%5B2%5D=vendor_project%3A811&f%5B3%5D=vendor_project%3A822&f%5B4%5D=vendor_project%3A826&f%5B5%5D=vendor_project%3A877&f%5B6%5D=vendor_project%3A880&f%5B7%5D=vendor_project%3A887&f%5B8%5D=vendor_project%3A927&f%5B9%5D=vendor_project%3A1249&page=14",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-8655",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=56",
+        "https://www.cisa.gov/sites/default/files/2025-01/joint-guidance-product-security-bad-practices-508c_0.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "5d746dace3acc840292a34a999486aea5bc1fd220386f88c9badb95cbafab980",
+      "source_urls": [
+        "https://support.citrix.com/external/article/CTX696300/netscaler-adc-and-netscaler-gateway-secu.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-3055"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The Citrix bulletin states that 14.1-60.58 remediates CVE-2026-3055, while the subsequently updated NVD CNA affected-version data lists NetScaler 14.1 versions below 14.1-66.59 as affected. This is an unresolved fixed-version discrepancy; obtain clarification from Citrix before treating 14.1-60.58 as sufficient where the NVD boundary is operationally relevant.",
+        "The supplied source record labels the vulnerability as KEV and provides KEV dates; the authoritative NVD page also records KEV inclusion and active exploitation metadata. Exploitation details and campaign scope are not established here.",
+        "No generic ecosystem-level remediation is appropriate; remediation is product- and build-specific for NetScaler ADC/Gateway."
+      ],
+      "verification_steps": [
+        "Using the supported NetScaler administrative interface or asset inventory, confirm the installed ADC/Gateway build is at or above the Citrix bulletin's stated remediating version for the applicable branch.",
+        "Confirm whether the appliance is configured as a SAML identity provider and treat such systems as exposed until upgraded.",
+        "Reconcile the installed build and remediation status against the current Citrix bulletin and NVD record because the NVD record contains a later 14.1 affected-version boundary than the Citrix bulletin."
       ]
     },
     "CVE-2026-33634": {
