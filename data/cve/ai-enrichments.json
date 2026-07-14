@@ -1,5 +1,550 @@
 {
   "entries": {
+    "CVE-2026-10520": {
+      "business_risk": "Critical. Ivanti Sentry is affected by an OS command-injection flaw that permits remote unauthenticated root-level remote code execution. NVD records a CNA CVSS 3.1 score of 10.0 and CISA SSVC data indicating active exploitation, automatable exploitation, and total technical impact.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is Ivanti Sentry.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "Affected releases are before R10.5.2, R10.6.0 through before R10.6.2, and R10.7.0.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "The vulnerability allows a remote unauthenticated user to achieve root-level remote code execution; NVD also records CISA SSVC attributes of active exploitation and automatable exploitation.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "NVD records R10.5.2, R10.6.2, and R10.7.1 as unaffected releases for Ivanti Sentry.",
+          "kind": "fixed_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "CISA’s recorded required action is to apply mitigations in accordance with vendor instructions and follow applicable KEV guidance; the concrete remediation is to move to the unaffected Sentry releases identified by NVD.",
+          "kind": "remediation",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        },
+        {
+          "claim": "A safe version-based verification is to confirm that the deployed Sentry release is one of the NVD-recorded unaffected releases or a later release in the same branch.",
+          "kind": "verification",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+        }
+      ],
+      "exposure_conditions": [
+        "The affected Sentry instance is reachable over the network by an attacker; the vulnerability is described as remotely exploitable without authentication.",
+        "Affected configurations include Sentry releases before R10.5.2, releases R10.6.0 through before R10.6.2, and R10.7.0.",
+        "Internet-exposed assets require urgent prioritization under applicable CISA KEV guidance."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:40:41Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Sentry to R10.5.2 or later for the R10.5 branch.",
+        "Upgrade Sentry to R10.6.2 or later for the R10.6 branch.",
+        "Upgrade Sentry to R10.7.1 or later for the R10.7 branch.",
+        "If an affected asset cannot be promptly remediated, follow Ivanti’s advisory mitigations and applicable CISA KEV guidance; assess whether continued use is appropriate when mitigations are unavailable."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-10520",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=21",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A801&f%5B10%5D=vendor_project%3A851&f%5B11%5D=vendor_project%3A854&f%5B12%5D=vendor_project%3A861&f%5B13%5D=vendor_project%3A866&f%5B14%5D=vendor_project%3A877&f%5B15%5D=vendor_project%3A886&f%5B16%5D=vendor_project%3A892&f%5B17%5D=vendor_project%3A893&f%5B18%5D=vendor_project%3A900&f%5B19%5D=vendor_project%3A904&f%5B1%5D=vendor_project%3A802&f%5B20%5D=vendor_project%3A910&f%5B21%5D=vendor_project%3A917&f%5B22%5D=vendor_project%3A931&f%5B23%5D=vendor_project%3A938&f%5B24%5D=vendor_project%3A940&f%5B2%5D=vendor_project%3A803&f%5B3%5D=vendor_project%3A816&f%5B4%5D=vendor_project%3A820&f%5B5%5D=vendor_project%3A823&f%5B6%5D=vendor_project%3A837&f%5B7%5D=vendor_project%3A842&f%5B8%5D=vendor_project%3A845&f%5B9%5D=vendor_project%3A846&page=1",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=38",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A797&f%5B10%5D=vendor_project%3A917&f%5B11%5D=vendor_project%3A918&f%5B12%5D=vendor_project%3A920&f%5B13%5D=vendor_project%3A932&f%5B14%5D=vendor_project%3A1168&f%5B15%5D=vendor_project%3A1249&f%5B1%5D=vendor_project%3A799&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A841&f%5B4%5D=vendor_project%3A842&f%5B5%5D=vendor_project%3A848&f%5B6%5D=vendor_project%3A880&f%5B7%5D=vendor_project%3A887&f%5B8%5D=vendor_project%3A889&f%5B9%5D=vendor_project%3A890&page=2",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A811&f%5B10%5D=vendor_project%3A1007&f%5B1%5D=vendor_project%3A813&f%5B2%5D=vendor_project%3A822&f%5B3%5D=vendor_project%3A862&f%5B4%5D=vendor_project%3A876&f%5B5%5D=vendor_project%3A891&f%5B6%5D=vendor_project%3A898&f%5B7%5D=vendor_project%3A901&f%5B8%5D=vendor_project%3A936&f%5B9%5D=vendor_project%3A952&page=2",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?f%5B0%5D=vendor_project%3A799&f%5B10%5D=vendor_project%3A923&f%5B11%5D=vendor_project%3A932&f%5B12%5D=vendor_project%3A943&f%5B13%5D=vendor_project%3A948&f%5B14%5D=vendor_project%3A1168&f%5B1%5D=vendor_project%3A804&f%5B2%5D=vendor_project%3A817&f%5B3%5D=vendor_project%3A842&f%5B4%5D=vendor_project%3A848&f%5B5%5D=vendor_project%3A865&f%5B6%5D=vendor_project%3A887&f%5B7%5D=vendor_project%3A917&f%5B8%5D=vendor_project%3A920&f%5B9%5D=vendor_project%3A922&page=1",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "5d8007e0eca6272dd5681723b03b1513b8299c7645a2244373d06e9357b60554",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-10520"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The Ivanti vendor advisory was referenced by NVD but was not directly retrievable during enrichment, so detailed vendor-specific mitigation steps and product-specific verification procedures are not independently confirmed here.",
+        "NVD displays inconsistent historical KEV due-date values in its change history; the current catalog action and organizational deadline should be confirmed directly with CISA.",
+        "No claim is made about compromise of a particular asset; exploitation status applies to the CVE generally, not to the supplied environment."
+      ],
+      "verification_steps": [
+        "Confirm the deployed product is Ivanti Sentry and identify its release branch.",
+        "Verify that the installed release is R10.5.2 or later, R10.6.2 or later, or R10.7.1 or later, as applicable to the branch.",
+        "Reassess external and internal network exposure after remediation and retain patch or change-management evidence.",
+        "For potentially compromised internet-facing systems, perform authorized forensic triage consistent with applicable organizational and CISA requirements."
+      ]
+    },
+    "CVE-2026-20182": {
+      "business_risk": "Critical, actively exploited authentication bypass in Cisco Catalyst SD-WAN Controller, Manager, and Validator. An unauthenticated remote attacker may obtain a high-privileged internal account, access NETCONF, and manipulate SD-WAN fabric configuration.",
+      "claim_evidence": [
+        {
+          "claim": "Cisco Catalyst SD-WAN Controller, Manager, and Validator are affected regardless of system configuration and across the listed deployment types.",
+          "kind": "affected_product",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW"
+        },
+        {
+          "claim": "Cisco identifies affected branches and versions through its fixed-release table, including vulnerable releases before 20.9.9.1, 20.12.5.4/20.12.6.2/20.12.7.1, 20.15.4.4/20.15.5.2, 20.18.2.2, and 26.1.1.1.",
+          "kind": "affected_version",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW"
+        },
+        {
+          "claim": "Internet-exposed control components and ports are at risk of compromise; Cisco PSIRT reports limited exploitation of this vulnerability.",
+          "kind": "exposure",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW"
+        },
+        {
+          "claim": "Cisco lists first fixed releases including 20.9.9.1, 20.12.5.4, 20.12.6.2, 20.12.7.1, 20.15.4.4, 20.15.5.2, 20.18.2.2, and 26.1.1.1, depending on branch.",
+          "kind": "fixed_version",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW"
+        },
+        {
+          "claim": "Cisco recommends upgrading to a fixed software release, states that no workarounds address the vulnerability, and advises TAC-directed remediation when compromise is confirmed.",
+          "kind": "remediation",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW"
+        },
+        {
+          "claim": "Cisco provides inert verification guidance based on reviewing authentication logs, validating control-connection peering events, preserving logs before upgrade, and checking indicators of compromise after upgrade.",
+          "kind": "verification",
+          "source_url": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW"
+        },
+        {
+          "claim": "NVD records the vulnerability as a critical unauthenticated remote authentication bypass with potential access to NETCONF and SD-WAN fabric configuration manipulation, and records its CISA KEV status.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20182"
+        }
+      ],
+      "exposure_conditions": [
+        "Cisco Catalyst SD-WAN Controller, Manager, or Validator is running an affected release; Cisco states the vulnerability affects these products regardless of system configuration and across on-premises, Cloud-Pro, Cisco Managed Cloud, and FedRAMP deployments.",
+        "Control components exposed to the internet, including those with internet-exposed ports, are at heightened risk of compromise.",
+        "CISA lists CVE-2026-20182 in the Known Exploited Vulnerabilities Catalog and identifies active exploitation."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:40:56Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "specific",
+      "remediation_steps": [
+        "Before upgrading, preserve relevant logs and collect the Cisco-recommended administrative diagnostic data from each SD-WAN control component using Cisco’s documented procedure, where operationally appropriate.",
+        "Upgrade each affected component to the Cisco fixed release corresponding to its software branch: 20.9.9.1 for 20.9; 20.12.5.4, 20.12.6.2, or 20.12.7.1 as applicable for 20.12; 20.15.4.4 or 20.15.5.2 as applicable for 20.15; 20.18.2.2 for 20.16 and 20.18; and 26.1.1.1 for 26.1.",
+        "For releases earlier than 20.9 or branches identified by Cisco as end-of-maintenance, migrate to a supported fixed release.",
+        "Cisco Managed SD-WAN Cloud customers should confirm the service has reached fixed release 20.15.506 through the service interface; Cisco states that no customer action is required for the managed cloud remediation.",
+        "There are no Cisco-provided workarounds that address the vulnerability. If compromise indicators are confirmed, do not rely on software upgrade alone; engage Cisco TAC for incident-specific remediation."
+      ],
+      "retrieved_source_urls": [
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ise-multi-G5WP8vv",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20182",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sd-wan-priv-E6e8tEdF",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-privesc-4uxFrdzx?vs_f=Cisco+Security+Advisory%26vs_cat%3DSecurity+Intelligence%26vs_type%3DRSS%26vs_p%3DCisco+Catalyst+SD-WAN+Controller%2C+Catalyst+SD-WAN+Manager%2C+and+Catalyst+SD-WAN+Validator+Authenticated+Privilege+Escalation+Vulnerability%26vs_k%3D1",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-notice-vwL7b0S7",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-ios-http-dos-sbv8XRpL",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-umbrella-priv-esc-F4wJB7AU",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-webexcc-xss-WEX5nUnA",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-clamav-88cFYyxR",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-multiprod-ikev2-dos-gPctUqv2",
+        "https://sec.cloudapps.cisco.com/security/center/publicationListing.x",
+        "https://www.cisa.gov/sites/default/files/publications/NSTAC%20SDN%20Report%20%288-12-20%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-04/apt28-exploits-known-vulnerability-to-carry-out-reconnaissance-and-deploy-malware-on-cisco-routers-uk.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/Joint_CISA_FBI_CSA-AA20-296A__Russian_State_Sponsored_APT_Actor_Compromise_US_Government_Targets.pdf",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-20190123-sdwan-unaccess",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-utd-dos-hDATqxs",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sd-wan-file-access-VW36d28P",
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sd-wan-GjR5pGOm"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "6dbfa95d9159ce57721fcc3c1b9f39348f2a12bbb247efe8b2465a6b1c7a0a19",
+      "source_urls": [
+        "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-sdwan-rpa2-v69WY2SW",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20182"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied product list is truncated; the Cisco advisory and NVD record should be treated as authoritative for the complete affected-product and version matrix.",
+        "Cisco’s fixed-release table contains multiple fixed releases for some branches; select the release appropriate to the deployed branch and supported upgrade path.",
+        "The advisory states that some peering events may occur during normal operations, so log indicators require environmental validation to avoid false positives.",
+        "No evidence was found establishing that a particular customer deployment is exposed or compromised."
+      ],
+      "verification_steps": [
+        "Confirm that every Controller, Manager, and Validator is running a Cisco fixed release appropriate to its branch and that no affected release remains in the deployment inventory.",
+        "Review preserved authentication logs for unexpected successful public-key authentication for the vmanage-admin account from unknown or unauthorized IP addresses; validate any finding against authorized system IPs and normal operational activity.",
+        "Review control-connection peering events for unexpected timestamps, unrecognized public IP addresses, undocumented peer assignments, or device types inconsistent with the SD-WAN topology.",
+        "Retain and review relevant logs after upgrading for the indicators of compromise described in Cisco’s advisory. Escalate suspicious findings to Cisco TAC rather than conducting intrusive validation against production systems."
+      ]
+    },
+    "CVE-2026-20253": {
+      "business_risk": "Critical. An unauthenticated, network-reachable user can invoke the PostgreSQL sidecar service endpoint to create or truncate arbitrary files. Splunk reports limited exploitation in June 2026, and NVD records the CVE in CISA's Known Exploited Vulnerabilities Catalog.",
+      "claim_evidence": [
+        {
+          "claim": "NVD records the vulnerability as being in CISA's Known Exploited Vulnerabilities Catalog and describes the affected network-reachable unauthenticated condition.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-20253"
+        }
+      ],
+      "exposure_conditions": [
+        "Splunk Enterprise 10.0.0 through 10.0.6 is installed.",
+        "Splunk Enterprise 10.2.0 through 10.2.3 is installed.",
+        "The PostgreSQL sidecar service endpoint is network-reachable by an unauthenticated user.",
+        "Splunk Enterprise 9.4 and earlier are not affected according to the vendor advisory."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:41:07Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Splunk Enterprise 10.0 installations to version 10.0.7 or later.",
+        "Upgrade Splunk Enterprise 10.2 installations to version 10.2.4 or later.",
+        "For the 10.4 base version, use version 10.4.0 or later; the vendor identifies 10.4.0 as not affected.",
+        "If immediate upgrade is not possible, disable the PostgreSQL sidecar service as a temporary mitigation, following Splunk's documented configuration guidance.",
+        "Do not use the sidecar-service workaround on instances using Edge Processor, OpAmp, or SPL2 data pipelines because Splunk states that disabling PostgreSQL breaks those features and may affect dependent sidecar processes.",
+        "Prioritize internet-exposed and otherwise network-reachable instances, and perform appropriate incident-response review because the vendor reports limited exploitation."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20253",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-20253",
+        "https://advisory.splunk.com/advisories",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-20253",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-22853",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-11253",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-24153",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-46253",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-23253",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "486d307c969b4b5289d6b3c500c60ee470fa6565875c81833082f7bcf5960fdb",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20253"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record's generic ecosystem classification is insufficient by itself; this enrichment applies specifically to Splunk Enterprise.",
+        "The vendor advisory does not provide a detailed safe endpoint-testing procedure, so verification is limited to version, configuration, exposure, and administrative review.",
+        "The vendor reports limited exploitation but does not quantify affected organizations or provide detection content."
+      ],
+      "verification_steps": [
+        "Confirm the deployed Splunk Enterprise version is at least 10.0.7 for the 10.0 branch or at least 10.2.4 for the 10.2 branch.",
+        "If the workaround is used, confirm through approved configuration-management or administrative review that the PostgreSQL sidecar service is disabled and that the change has taken effect after the required service restart.",
+        "Confirm that any affected instance using Edge Processor, OpAmp, or SPL2 data pipelines was not mitigated by disabling PostgreSQL.",
+        "Review asset exposure and security telemetry for unauthenticated access to the PostgreSQL sidecar service; Splunk's advisory lists no vendor-provided detections."
+      ]
+    },
+    "CVE-2026-33634": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:41:24Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://github.com/aquasecurity/trivy-action/releases",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-33634",
+        "https://github.com/aquasecurity/trivy/security/advisories/GHSA-69fq-xp46-6x23",
+        "https://github.com/aquasecurity/trivy/discussions/10425",
+        "https://github.com/aquasecurity/trivy",
+        "https://github.com/aquasecurity/trivy/actions",
+        "https://github.com/aquasecurity/trivy-action/issues/436",
+        "https://github.com/orgs/aquasecurity/packages",
+        "https://github.com/marketplace/actions/aqua-security-trivy",
+        "https://github.com/aquasecurity/trivy-action/blob/master/action.yaml",
+        "https://gist.github.com/antoninbas/278e89e94da17c1cdf83a752fac1f2a5",
+        "https://github.com/aquasecurity/trivy-action/issues/68",
+        "https://github.github.com/actions-cheat-sheet/actions-cheat-sheet.pdf",
+        "https://education.github.com/git-cheat-sheet-education.pdf?file=git-cheat-sheet-education.pdf",
+        "https://github.github.com/gh-aw/slides/20260224-github-agentic-workflows.pdf",
+        "https://resources.github.com/downloads/%E3%82%BB%E3%82%AD%E3%83%A5%E3%82%A2%E3%81%AASW%E9%96%8B%E7%99%BA%E3%81%AE%E3%81%9F%E3%82%81%E3%81%AEEbook.pdf",
+        "https://training.github.com/downloads/fr/github-git-cheat-sheet.pdf",
+        "https://github.com/aquasecurity/setup-trivy/releases",
+        "https://github.com/BerriAI/litellm/issues/24518",
+        "https://github.com/aquasecurity/trivy-action",
+        "https://github.com/aquasecurity/harbor-scanner-trivy"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "2fcd2f71c369c2b2ab8791cd3ff1215a3a88732a717f460475dd77251cbc78b0",
+      "source_urls": [
+        "https://github.com/aquasecurity/trivy/security/advisories/GHSA-69fq-xp46-6x23",
+        "https://github.com/aquasecurity/setup-trivy/releases",
+        "https://github.com/aquasecurity/trivy-action/releases",
+        "https://github.com/aquasecurity/trivy/discussions/10425",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-33634",
+        "https://github.com/BerriAI/litellm/issues/24518"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The returned authoritative Trivy advisory establishes affected and safe versions for Trivy, trivy-action, and setup-trivy, but it does not provide a complete remediation record for every downstream product listed in the supplied CPE data.",
+        "The supplied record lists Telnyx versions 4.87.1 and 4.87.2, but no returned authoritative Telnyx source established a fixed version or safe verification procedure.",
+        "The LiteLLM evidence is a project issue rather than a formal release advisory; it confirms the compromised versions and response guidance but does not establish a clean replacement version in the returned sources.",
+        "A version being installed does not by itself prove execution or compromise; exposure depends on whether the affected artifact ran and what privileges or secrets were available."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-34908": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:41:36Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34908",
+        "https://community.ui.com/releases/r/security/064",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34988",
+        "https://community.ui.com/questions/Security-Advisory-Bulletin-064-Discussion/2df2b2d7-38d6-4051-a04f-553f5c9a69c5",
+        "https://community.ui.com/releases/",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-065-065/aa46a22b-fc43-4eae-9382-6fc8feda967a",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-063/e468dd4b-5090-4ef8-89d8-939903c08e83",
+        "https://community.ui.com/releases/6b00e638-d383-4767-b886-fde29f5e331b?replyId=a2f50824-620f-4c7c-a0c9-9cd019edc377",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-066-066/984eceb3-49c8-4227-942d-671c289b3afc",
+        "https://community.ui.com/releases",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-062-062/c29719c0-405e-4d4a-8f26-e343e99f931b",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-011A_Joint_CSA_Understanding_and_Mitigating%20_Russian_Cyber_Threats_to_US_Critical_Infrastructure_TLP-WHITE_01-10-22_v1.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "89b8c516dd51af01832f71930b0672650adfa6a3e3b5eedcf1cd86bad635d9d3",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34908",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The vendor advisory page was only partially retrievable, and its complete product-to-fixed-version matrix was not available in the returned evidence.",
+        "The supplied product list is truncated; additional affected products and exceptions may exist.",
+        "The sources establish version thresholds but do not provide a detailed, vendor-defined safe verification procedure or product-specific administrative paths.",
+        "CISA KEV status and dates are time-sensitive and should be rechecked before operational prioritization."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-34909": {
+      "business_risk": "Critical. A network-accessible attacker may exploit path traversal in affected UniFi OS devices to access underlying-system files and potentially manipulate them to obtain access to an underlying account. NVD records a CNA CVSS 3.1 score of 10.0 with confidentiality, integrity, and availability impact, and identifies active exploitation through CISA KEV enrichment.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects UniFi OS Server and multiple Ubiquiti UniFi OS device and firmware families, including Cloud Gateways, Dream Machines, Express, UNVR, ENVR, and related products listed by the vendor.",
+          "kind": "affected_product",
+          "source_url": "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+        },
+        {
+          "claim": "NVD identifies UniFi OS Server versions below 5.0.8 and multiple UniFi firmware configurations below 5.1.12 as affected; the complete product-specific matrix is maintained in the CVE record and vendor advisory.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34909"
+        },
+        {
+          "claim": "The vulnerability description states that a malicious actor with access to the network could exploit the path traversal vulnerability.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34909"
+        },
+        {
+          "claim": "The vendor specifies UniFi OS Server 5.0.8 or later, most listed UniFi OS devices 5.1.12 or later, UNAS products 5.1.10 or later, UDM-Beast 5.1.11 or later, and Express 4.0.14 or later as mitigations, depending on product.",
+          "kind": "fixed_version",
+          "source_url": "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+        },
+        {
+          "claim": "The vendor’s remediation is to update each affected product to its applicable fixed version; CISA KEV requires applying vendor mitigations and prioritizing remediation.",
+          "kind": "remediation",
+          "source_url": "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+        },
+        {
+          "claim": "A safe, inert verification is to confirm the installed product version meets the vendor’s documented mitigation threshold; the sources do not provide an exploit-based validation method.",
+          "kind": "verification",
+          "source_url": "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+        }
+      ],
+      "exposure_conditions": [
+        "The affected UniFi OS product or firmware version is installed.",
+        "The attacker has network access to the device; the available description does not establish that Internet exposure is required.",
+        "The asset is running a version below the applicable vendor-provided remediation version."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:41:49Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Inventory UniFi OS devices and UniFi OS Server instances covered by the vendor advisory, including their product model and installed version.",
+        "Upgrade UniFi OS Server to version 5.0.8 or later.",
+        "Upgrade UCG-Industrial, UDM, UDM-Pro, UDM-SE, UDM-Pro-Max, EFG, UDW, UDR, UDR7, Express 7, UNVR-family devices, ENVR-family devices, UCG-Ultra, UCG-Max, and UCG-Fiber to version 5.1.12 or later, where applicable.",
+        "Upgrade UNAS-2, UNAS-4, UNAS-Pro, UNAS-Pro-4, and UNAS-Pro-8 to version 5.1.10 or later.",
+        "Upgrade UDM-Beast to version 5.1.11 or later.",
+        "Upgrade Express to version 4.0.14 or later.",
+        "Prioritize remediation under the applicable CISA KEV and organizational vulnerability-management requirements. If an affected asset cannot be remediated, assess whether restricting network exposure or discontinuing use is necessary; the supplied sources do not define a complete compensating-control procedure."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34909",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b?notification=5e3e9a1d-963d-4f08-849b-8ef2add818e0",
+        "https://community.ui.com/questions/Security-Advisory-Bulletin-064-Discussion/2df2b2d7-38d6-4051-a04f-553f5c9a69c5",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://community.ui.com/releases",
+        "https://community.ui.com/releases/",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-065-065/aa46a22b-fc43-4eae-9382-6fc8feda967a",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-063/e468dd4b-5090-4ef8-89d8-939903c08e83",
+        "https://community.ui.com/releases/r/ucgf/5.1.12",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-066-066/984eceb3-49c8-4227-942d-671c289b3afc",
+        "https://community.ui.com/releases/27e4730e-5fb7-4303-9c0f-d2f572d861c2",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "6a8cfa2e1c352ebdeae8cd73636fe2ce80ec5fa2177794f37be1e507c834090c",
+      "source_urls": [
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34909"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied product list is truncated, so additional affected UniFi models may require review against the complete vendor advisory.",
+        "The vendor advisory presents product-specific remediation versions; a single generic threshold of 5.1.12 must not be applied to every model.",
+        "The sources establish network access as a condition but do not fully describe required ports, services, authentication state, or whether a particular deployment is Internet-exposed.",
+        "The sources do not provide a complete, CVE-specific non-exploit verification procedure or confirmed post-update test result.",
+        "CISA KEV status and due-date information should be interpreted according to the current catalog and applicable organizational requirements."
+      ],
+      "verification_steps": [
+        "Confirm that each affected asset reports a running product and version at or above the applicable vendor mitigation version.",
+        "Confirm that the deployed product/model is covered by the vendor advisory’s affected-product list and that the upgrade completed successfully through the normal supported management process.",
+        "Reassess network and Internet exposure after remediation. Do not use exploit attempts or destructive probes as verification.",
+        "For potentially compromised assets, preserve relevant security and system records and follow the organization’s incident-response and forensic-triage procedures; the cited sources do not provide device-specific forensic indicators."
+      ]
+    },
+    "CVE-2026-34910": {
+      "business_risk": "Critical. A network-accessible UniFi OS device may be vulnerable to command injection. The CNA-assigned CVSS 3.1 score is 10.0, with impacts covering confidentiality, integrity, and availability. NVD also identifies the CVE as being in CISA's Known Exploited Vulnerabilities Catalog, indicating active exploitation risk.",
+      "claim_evidence": [
+        {
+          "claim": "CVE-2026-34910 affects UniFi OS Server and multiple Ubiquiti UniFi device firmware products, including product-specific CPE configurations listed by NVD.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34910"
+        },
+        {
+          "claim": "NVD identifies UniFi OS Server versions below 5.0.8 and multiple UniFi firmware products with versions below 5.1.12 as affected; additional products have separate thresholds.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34910"
+        },
+        {
+          "claim": "The vulnerability can be exploited by a malicious actor with access to the network and can result in command injection.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34910"
+        },
+        {
+          "claim": "Ubiquiti's advisory states that UniFi OS Server should be updated to version 5.0.8 or later and that applicable UniFi device groups should be updated to version 5.1.12 or later, with specified UNAS and UDM-Beast exceptions.",
+          "kind": "fixed_version",
+          "source_url": "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+        },
+        {
+          "claim": "The vendor's remediation is to update affected UniFi OS or firmware installations to the applicable fixed version specified in the advisory.",
+          "kind": "remediation",
+          "source_url": "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+        },
+        {
+          "claim": "Version-based verification is supported by comparing the installed UniFi OS or firmware version with the fixed-version thresholds in the vendor advisory and NVD affected-configuration record.",
+          "kind": "verification",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-34910"
+        }
+      ],
+      "exposure_conditions": [
+        "The affected UniFi OS product or firmware version is installed.",
+        "The vulnerable service is reachable by an attacker with network access.",
+        "Affected-version status is product-specific; NVD lists UniFi OS Server versions below 5.0.8 and multiple UniFi device firmware branches below 5.1.12, with some products using different thresholds.",
+        "Internet-exposed or otherwise broadly reachable devices should receive priority, consistent with the CISA KEV action."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:42:00Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade UniFi OS Server to version 5.0.8 or later.",
+        "For UCG-Industrial, UDM, UDM-Pro, UDM-SE, UDM-Pro-Max, EFG, UDW, UDR, UDR7, Express 7, UNVR, UNVR-Pro, UNVR-Instant, ENVR, UCG-Ultra, UCG-Max, UCG-Fiber, and other products identified by the vendor, upgrade to UniFi OS 5.1.12 or later where the vendor specifies that threshold.",
+        "Upgrade UNAS-2, UNAS-4, UNAS-Pro, UNAS-Pro-4, and UNAS-Pro-8 to UniFi OS 5.1.10 or later where applicable.",
+        "Upgrade UDM-Beast to 5.1.11 or later where applicable.",
+        "Use the vendor advisory's product-specific guidance rather than applying a single version threshold to every UniFi product.",
+        "Prioritize remediation for network- or internet-reachable assets and follow applicable CISA KEV response and forensic-triage procedures."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34910",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b?notification=5e3e9a1d-963d-4f08-849b-8ef2add818e0",
+        "https://community.ui.com/questions/Security-Advisory-Bulletin-064-Discussion/2df2b2d7-38d6-4051-a04f-553f5c9a69c5",
+        "https://community.ui.com/releases/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-065-065/aa46a22b-fc43-4eae-9382-6fc8feda967a",
+        "https://community.ui.com/releases/r/ucgf/5.1.12",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-063/e468dd4b-5090-4ef8-89d8-939903c08e83",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-066-066/984eceb3-49c8-4227-942d-671c289b3afc",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-061-061/1e4fe5f8-29c7-4a7d-a518-01b1537983ba",
+        "https://community.ui.com/releases/UniFi-OS-Express-7-5-1-12/abe29aaa-2851-4247-9a92-076a4a467841",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "4d9c0159a5fba71ab1a15e9974b202c514fa87473685d082cff63d9891e9560f",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-34910",
+        "https://community.ui.com/releases/Security-Advisory-Bulletin-064-064/84811c09-4cf4-42ab-bd61-cc994445963b"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied product list is truncated, and the NVD record contains additional affected product configurations not reproduced here.",
+        "The vendor advisory presents several CVEs in one bulletin; product and version thresholds must be matched to CVE-2026-34910 specifically.",
+        "The sources establish network reachability as the exposure condition but do not provide a complete deployment-specific determination of whether a particular asset is externally exposed.",
+        "No source reviewed provides a complete, CVE-specific forensic indicator list or a dedicated non-invasive validation procedure beyond checking the installed product version."
+      ],
+      "verification_steps": [
+        "Identify the device model and installed UniFi OS or firmware version using the platform's normal administrative interface or inventory process.",
+        "Confirm the installed version meets the vendor's product-specific fixed-version threshold: 5.0.8 for UniFi OS Server, 5.1.12 for the applicable general device group, 5.1.10 for the listed UNAS products, or 5.1.11 for UDM-Beast.",
+        "Confirm the asset is no longer running an affected version according to the NVD affected-configuration listing and the Ubiquiti advisory.",
+        "Review relevant administrative and security logs through established defensive monitoring procedures for unexpected command execution or other signs of compromise; this CVE's sources do not provide a complete indicator set."
+      ]
+    },
     "CVE-2026-35273": {
       "business_risk": "No additional source-verified CVE-specific business impact was established.",
       "claim_evidence": [],
@@ -45,6 +590,479 @@
         "The supplied record states known ransomware campaign use, but the authoritative sources returned here establish CISA KEV inclusion and active exploitation rather than independently confirming ransomware use."
       ],
       "verification_steps": []
+    },
+    "CVE-2026-35616": {
+      "business_risk": "Critical risk: an unauthenticated network attacker may execute unauthorized code or commands through crafted requests. Fortinet reports exploitation in the wild, so exposed vulnerable EMS deployments require urgent remediation.",
+      "claim_evidence": [
+        {
+          "claim": "Fortinet identifies FortiClient EMS as affected by an improper access control vulnerability.",
+          "kind": "affected_product",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-26-099"
+        },
+        {
+          "claim": "Fortinet identifies FortiClient EMS 7.4.5 through 7.4.6 as affected; NVD lists CPEs for versions 7.4.5 and 7.4.6.",
+          "kind": "affected_version",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-26-099"
+        },
+        {
+          "claim": "The vulnerability may be exploited by an unauthenticated attacker through crafted requests; Fortinet reports that it has been exploited in the wild.",
+          "kind": "exposure",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-26-099"
+        },
+        {
+          "claim": "Fortinet lists FortiClient EMS 7.4.7 or above as the solution for the affected 7.4 branch.",
+          "kind": "fixed_version",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-26-099"
+        },
+        {
+          "claim": "Fortinet states that the hotfix for FortiClient EMS 7.4.5 and 7.4.6 is sufficient to prevent the issue and provides release-specific installation documentation.",
+          "kind": "remediation",
+          "source_url": "https://fortiguard.fortinet.com/psirt/FG-IR-26-099"
+        }
+      ],
+      "exposure_conditions": [
+        "FortiClient EMS 7.4.5 or 7.4.6 is deployed.",
+        "The EMS API is reachable over the network by an attacker; authentication is not required for the described attack.",
+        "The deployment has not received Fortinet's applicable hotfix or been upgraded to a fixed release."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:42:13Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade FortiClient EMS 7.4.5 or 7.4.6 to FortiClient EMS 7.4.7 or later.",
+        "If immediate upgrade is not possible, apply Fortinet's vendor-provided hotfix for the installed 7.4.5 or 7.4.6 release using the applicable Fortinet EMS release-note procedure.",
+        "Prioritize remediation of EMS instances reachable from untrusted or external networks because the vendor describes the issue as unauthenticated and network exploitable.",
+        "Review Fortinet's advisory and applicable CISA KEV requirements when establishing remediation deadlines and incident-response actions."
+      ],
+      "retrieved_source_urls": [
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-099",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-35616",
+        "https://fortiguard.fortinet.com/psirt",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-096",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-090",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-098",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-136",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-093",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-097",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-25-260",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-101",
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-127"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "ce12f934f6600dc76ecb24fc89ed3bd69952ae3a72b2923319af82e5a6136e06",
+      "source_urls": [
+        "https://fortiguard.fortinet.com/psirt/FG-IR-26-099",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-35616"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record does not establish whether a particular deployment is externally reachable, whether Fortinet's hotfix has already been applied, or whether compromise occurred.",
+        "Fortinet's advisory states that FortiClient Cloud and FortiSASE were remediated by Fortinet; the deployment's service type is not established here.",
+        "The Fortinet release-note pages document hotfix installation and status verification, but do not label the package with CVE-2026-35616; the CVE-to-hotfix association is taken from Fortinet's PSIRT advisory."
+      ],
+      "verification_steps": [
+        "Confirm the deployed EMS release is 7.4.7 or later, or confirm that the vendor hotfix applicable to the installed 7.4.5 or 7.4.6 release is recorded as applied.",
+        "For hotfix-based remediation, use the Fortinet-documented EMS hotfix inventory/status mechanism and verify that the relevant package status is shown as applied.",
+        "Do not use exploit attempts or crafted requests for validation; rely on version and vendor-hotfix status evidence."
+      ]
+    },
+    "CVE-2026-41940": {
+      "business_risk": "Critical. An unauthenticated remote attacker may bypass authentication and obtain unauthorized access to the cPanel/WHM control panel, creating a risk of confidentiality, integrity, and availability compromise. The CVE is listed in CISA's Known Exploited Vulnerabilities catalog, indicating active exploitation. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2026-41940?utm_source=openai))",
+      "claim_evidence": [
+        {
+          "claim": "The issue is an authentication bypass in the login flow that permits unauthenticated remote attackers to gain unauthorized control-panel access.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-41940"
+        },
+        {
+          "claim": "The vendor lists WP Squared 136.1.7 and later as patched; the WP Squared changelog records a cPanel login-authentication fix in version 136.1.7.",
+          "kind": "fixed_version",
+          "source_url": "https://docs.wpsquared.com/changelogs/versions/changelog/"
+        },
+        {
+          "claim": "cPanel documentation identifies the WHM interface as a location where the current cPanel version can be viewed.",
+          "kind": "verification",
+          "source_url": "https://support.cpanel.net/hc/en-us/articles/360052528333-How-do-I-know-if-there-is-an-update-available-for-cPanel"
+        }
+      ],
+      "exposure_conditions": [
+        "The vulnerable cPanel, WHM, DNSOnly, or WP Squared software is deployed.",
+        "For cPanel/WHM/DNSOnly, the installed version is after 11.40 but below the applicable patched build.",
+        "The management interface is reachable by an attacker over the network; the vulnerability is described as remotely exploitable without authentication. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2026-41940?utm_source=openai))"
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:42:28Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Immediately update cPanel/WHM/DNSOnly to the applicable patched build: 11.86.0.41+, 11.94.0.28+, 11.102.0.39+, 11.110.0.97+, 11.118.0.63+, 11.124.0.35+, 11.126.0.54+, 11.130.0.19+, 11.132.0.29+, 11.134.0.20+, or 11.136.0.5+. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))",
+        "Update WP Squared to version 136.1.7 or later. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))",
+        "If immediate patching is unavailable, follow the vendor's documented mitigations, including restricting inbound access to the affected management services and disabling the relevant services, while prioritizing migration to a patched, supported version. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))",
+        "Review whether updates are disabled or the installation is pinned to an older tier, because such systems may not receive the security update automatically. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))",
+        "Because the vulnerability is cataloged as known exploited, prioritize patching and review authentication, administrative-session, and access logs for suspicious activity before and after remediation. The vendor provides an indicator-of-compromise detection procedure; use it according to the vendor documentation without modifying or purging evidence prematurely. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2026-41940?utm_source=openai))"
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-41940",
+        "https://docs.wpsquared.com/changelogs/versions/changelog/",
+        "https://support.cpanel.net/hc/en-us/community/posts/40156384541335-CVE-2026-41940-How-can-I-verify-the-patch-has-been-installed",
+        "https://docs.cpanel.net/release-notes/release-notes/?format=xml&url=https%3A%2F%2Fnews.cpanel.com%2Fimportant-11-32-security-update-cpanel-whm%2F",
+        "https://docs.wpsquared.com/changelogs/",
+        "https://support.cpanel.net/hc/en-us/articles/360052251053-How-to-install-a-specific-version-of-cPanel-WHM",
+        "https://support.cpanel.net/hc/en-us/articles/360052528333-How-do-I-know-if-there-is-an-update-available-for-cPanel",
+        "https://nvd.nist.gov/search",
+        "https://support.cpanel.net/hc/en-us/articles/1500004959421-How-do-I-update-cPanel-WHM-via-the-WHM-interface",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-3942",
+        "https://support.cpanel.net/hc/en-us/articles/360060084393-What-cPanel-IPs-do-my-cPanel-servers-need-to-connect-to",
+        "https://nvd.nist.gov/vuln/detail/cve-2023-48239"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "d5b6bafb243dae96188ddff9307c4dcb1b6b9c4d59a1f989e010bd6643620ecf",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-41940",
+        "https://docs.wpsquared.com/changelogs/versions/changelog/",
+        "https://support.cpanel.net/hc/en-us/articles/360052528333-How-do-I-know-if-there-is-an-update-available-for-cPanel"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied product list is truncated; the vendor advisory identifies additional cPanel/WHM branches beyond those shown in the input record. ([nvd.nist.gov](https://nvd.nist.gov/vuln/detail/CVE-2026-41940?utm_source=openai))",
+        "The sources establish patched versions and vendor mitigation guidance, but they do not establish that any particular asset is currently vulnerable, exposed, or compromised.",
+        "The vendor's detection guidance can identify certain indicators but cannot by itself prove that no exploitation occurred. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))"
+      ],
+      "verification_steps": [
+        "In the WHM administrative interface, confirm that the reported cPanel build is at or above the applicable patched build for its release tier. cPanel documentation identifies the WHM interface as a place to view the current cPanel version. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/360052528333-How-do-I-know-if-there-is-an-update-available-for-cPanel?utm_source=openai))",
+        "For WP Squared, confirm that the installed version is 136.1.7 or later and that the April 28, 2026 security update is present. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))",
+        "Confirm that the affected administrative interfaces are no longer exposed through the previously permitted network paths unless access is intentionally restricted and protected by compensating controls. This is a configuration review, not an exploit test. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))",
+        "Review the vendor-provided detection guidance and relevant authentication/session logs for indicators of compromise; do not treat absence of findings as proof that exploitation did not occur. ([support.cpanel.net](https://support.cpanel.net/hc/en-us/articles/40073787579671-cPanel-WHM-Security-Update-04-28-2026))"
+      ]
+    },
+    "CVE-2026-42208": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:42:38Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [],
+      "schema_version": 2,
+      "source_fingerprint": "e26c423f1aba2caf8e44dc54abd616bab5390c54af9a361fa354f96cf8191e92",
+      "source_urls": [],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The supplied record identifies CISA KEV status, but this enrichment does not independently validate the catalog entry because the CISA catalog page was unavailable during retrieval.",
+        "The advisory establishes the vulnerable package range, attack path, workaround, and patched version, but does not establish whether a particular deployment is externally reachable or whether exploitation occurred.",
+        "No source reviewed here establishes a safe production exploit-detection test; verification is therefore limited to version, configuration, deployment, and log review.",
+        "The model did not return a fully sourced exposure, remediation, and verification set; consult the linked NVD and vendor sources before acting."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-45247": {
+      "business_risk": "Critical risk: an unauthenticated remote attacker may achieve remote code execution and compromise confidentiality, integrity, and availability on Magento deployments using the affected Mirasvit extension. CISA has listed the vulnerability in its Known Exploited Vulnerabilities Catalog with active exploitation assessed by CISA-ADP.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is Mirasvit Full Page Cache Warmer for Magento 2.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-45247"
+        },
+        {
+          "claim": "Versions earlier than 1.11.12 are affected; the NVD change history records the affected range as versions less than 1.11.12.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-45247"
+        },
+        {
+          "claim": "The NVD description states that unauthenticated attackers can achieve remote code execution by supplying a crafted serialized PHP object in the CacheWarmer cookie.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-45247"
+        },
+        {
+          "claim": "Mirasvit's changelog states that version 1.11.12 fixed the PHP object-injection vulnerability in session-cookie deserialization.",
+          "kind": "fixed_version",
+          "source_url": "https://mirasvit.com/manual/magento-2-full-page-cache-warmer/changelog/"
+        },
+        {
+          "claim": "CISA's KEV entry requires applying vendor mitigations, following applicable BOD 22-01 guidance, or discontinuing use if mitigations are unavailable.",
+          "kind": "remediation",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-45247"
+        },
+        {
+          "claim": "The vendor changelog provides a version-specific fix record that can support inert inventory-based verification, but it does not provide a runtime verification procedure.",
+          "kind": "verification",
+          "source_url": "https://mirasvit.com/manual/magento-2-full-page-cache-warmer/changelog/"
+        }
+      ],
+      "exposure_conditions": [
+        "The Mirasvit Full Page Cache Warmer for Magento 2 extension is installed at a version earlier than 1.11.12.",
+        "The Magento deployment is network reachable and processes attacker-controlled requests that can reach the vulnerable session-cookie deserialization path.",
+        "The exposure details do not establish that every deployment is reachable from the public internet; network access controls and deployment architecture must be assessed separately."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:42:50Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Mirasvit Full Page Cache Warmer for Magento 2 to version 1.11.12 or later; Mirasvit identifies version 1.11.12 as fixing the PHP object-injection issue in session-cookie deserialization.",
+        "Prioritize remediation according to applicable CISA KEV requirements and organizational policy.",
+        "If upgrade is temporarily unavailable, apply only vendor- or CISA-documented mitigations. The authoritative sources reviewed do not specify a concrete compensating configuration workaround, so do not assume disabling an arbitrary feature is sufficient.",
+        "Review the affected Magento host for signs of unauthorized changes or compromise because the vulnerability is listed as actively exploited."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-45247",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-45447",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://mirasvit.com/manual/magento-2-full-page-cache-warmer/changelog/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-24247",
+        "https://nvd.nist.gov/vuln/detail/CVE-2024-3178",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-42527",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-2447",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-45700",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-46047",
+        "https://mirasvit.com/docs/module-cataloglabel/current/changelog",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://mirasvit.com/docs/module-cache-warmer/1.1.5/pdf",
+        "https://mirasvit.com/docs/module-cataloglabel/current/pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "eb4477cc09c1f4f45bd212cd9fd59b04e0592aa6de0841eac84c106ac57ef77d",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-45247",
+        "https://mirasvit.com/manual/magento-2-full-page-cache-warmer/changelog/"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The NVD record attributes the vulnerability description and affected-version data to VulnCheck rather than to a vendor CNA.",
+        "The reviewed authoritative sources do not document the exact vulnerable endpoint, all deployment prerequisites, or a vendor-defined safe runtime test.",
+        "The sources establish a fixed version but do not establish whether a separate vendor mitigation exists before upgrade."
+      ],
+      "verification_steps": [
+        "Confirm through the approved software or package inventory that the installed Mirasvit Full Page Cache Warmer version is 1.11.12 or later.",
+        "Confirm that all Magento instances, replicas, containers, and failover environments using the extension have been updated.",
+        "Record the deployed version and update status without sending crafted requests or attempting exploitation.",
+        "Because the authoritative sources do not provide a non-invasive endpoint-level verification procedure, do not perform exploit-based testing in production."
+      ]
+    },
+    "CVE-2026-48027": {
+      "business_risk": "Critical supply-chain compromise risk. The affected Nx Console extension version contained malicious code capable of harvesting credentials and establishing persistence, potentially exposing source-control, package-registry, cloud, SSH, Vault, Kubernetes, and other secrets available to the host.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is the Nx Console VS Code extension.",
+          "kind": "affected_product",
+          "source_url": "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w"
+        },
+        {
+          "claim": "Nx Console version 18.95.0 is the compromised affected version.",
+          "kind": "affected_version",
+          "source_url": "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w"
+        },
+        {
+          "claim": "The malicious extension was available through Visual Studio Marketplace from approximately 12:30 to 12:48 UTC and Open VSX from approximately 12:33 to 13:09 UTC on 2026-05-18.",
+          "kind": "exposure",
+          "source_url": "https://nx.dev/blog/nx-console-v18-95-0-postmortem"
+        },
+        {
+          "claim": "The vendor reported credential harvesting and persistence-related indicators associated with the compromised extension.",
+          "kind": "exposure",
+          "source_url": "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w"
+        },
+        {
+          "claim": "Nx Console 18.100.0 is the patched version; later versions are also unaffected according to the vendor advisory.",
+          "kind": "fixed_version",
+          "source_url": "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w"
+        },
+        {
+          "claim": "The vendor recommends updating to 18.100.0 or later and rotating credentials reachable from an affected machine.",
+          "kind": "remediation",
+          "source_url": "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w"
+        },
+        {
+          "claim": "The vendor provides indicators of compromise for affected hosts, including the affected version, specified artifacts, and suspicious processes; these should be checked using approved endpoint or forensic tooling.",
+          "kind": "verification",
+          "source_url": "https://nx.dev/blog/nx-console-v18-95-0-postmortem"
+        },
+        {
+          "claim": "The vendor identifies version 18.95.0 and the marketplace exposure windows as the key conditions for determining potentially affected installations.",
+          "kind": "verification",
+          "source_url": "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w"
+        }
+      ],
+      "exposure_conditions": [
+        "Nx Console for VS Code version 18.95.0 was installed or activated.",
+        "The extension was obtained from Visual Studio Marketplace during the 2026-05-18 12:30–12:48 UTC window or from Open VSX during the 2026-05-18 12:33–13:09 UTC window.",
+        "A potentially affected installation had access to credentials, tokens, secrets, private keys, or sensitive files on the workstation."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:43:00Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "specific",
+      "remediation_steps": [
+        "Upgrade Nx Console to version 18.100.0 or later; version 18.95.0 is the affected version.",
+        "If version 18.95.0 was installed or activated during the exposure window, treat the workstation as potentially compromised rather than relying on upgrade alone.",
+        "Rotate credentials and secrets that were reachable from the affected workstation, including source-control, package-registry, cloud, SSH, Vault, Kubernetes, and other developer credentials.",
+        "Review access and authentication logs for the rotated accounts and investigate unauthorized activity.",
+        "For suspected compromise, remove persistence artifacts and malicious processes identified in the vendor advisory, or rebuild the workstation where adequate containment cannot be assured."
+      ],
+      "retrieved_source_urls": [
+        "https://nx.dev/blog/nx-console-v18-95-0-postmortem",
+        "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48027",
+        "https://nx.dev/blog",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://nvd.nist.gov/search",
+        "https://github.com/advisories",
+        "https://github.com/nrwl/nx/security/advisories/GHSA-cxm3-wv7p-598c",
+        "https://github.com/nrwl/nx-console/issues/3139",
+        "https://github.com/nrwl/nx/releases",
+        "https://nvd.nist.gov/vuln/search?execution=e1s1",
+        "https://nx.dev/blog/s1ngularity-postmortem",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA20-258A-Chinese_Ministry_of_State_Security-Affiliated_Cyber_Threat_Actor_Activity_S508C.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "ae4246f88fbc26e6a14da20116ff6277ac9b208862b59d8fdaa0be4df44a8bd9",
+      "source_urls": [
+        "https://github.com/nrwl/nx-console/security/advisories/GHSA-c9j4-9m59-847w",
+        "https://nx.dev/blog/nx-console-v18-95-0-postmortem",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48027"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The vendor reported that marketplace download counts may understate the number of affected users.",
+        "Presence of version 18.95.0 alone does not establish successful code execution, but installation or activation during the exposure window warrants compromise-oriented response.",
+        "The supplied source record states a 2026-05-19 exposure date, while the vendor advisory and postmortem identify 2026-05-18; use the vendor-documented 2026-05-18 timeline.",
+        "The evidence reviewed does not independently establish the supplied CVSS, CWE, or KEV metadata."
+      ],
+      "verification_steps": [
+        "Confirm the installed Nx Console extension version is not 18.95.0 and is 18.100.0 or later.",
+        "Check extension-management or endpoint inventory records for any installation or activation of version 18.95.0 during the stated marketplace exposure windows.",
+        "Review endpoint telemetry for the vendor-documented indicators of compromise without executing or interacting with suspicious files or processes.",
+        "Confirm that reachable credentials were rotated and that relevant account, repository, package, cloud, and endpoint logs show no unexplained access."
+      ]
+    },
+    "CVE-2026-48172": {
+      "business_risk": "Critical privilege-escalation risk: an attacker with cPanel-user access, including access obtained through a compromised account, may abuse the affected user-end plugin to execute arbitrary scripts with root privileges. The vulnerability was reported as actively exploited in May 2026 and is listed in CISA’s Known Exploited Vulnerabilities catalog.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects LiteSpeed’s user-end cPanel Plugin; NVD also records the associated WHM Plugin package configuration as affected below version 5.3.1.0.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48172"
+        },
+        {
+          "claim": "The vendor identifies user-end cPanel plugin versions 2.3 through 2.4.4 as affected by the actively exploited privilege-escalation issue.",
+          "kind": "affected_version",
+          "source_url": "https://blog.litespeedtech.com/2026/05/21/security-update-for-litespeed-cpanel-plugin/"
+        },
+        {
+          "claim": "An attacker or compromised cPanel account may exploit the lsws.redisAble function to execute arbitrary scripts as root.",
+          "kind": "exposure",
+          "source_url": "https://blog.litespeedtech.com/2026/05/21/security-update-for-litespeed-cpanel-plugin/"
+        },
+        {
+          "claim": "The vendor recommends LiteSpeed WHM Plugin 5.3.1.0 or later, bundled with cPanel plugin 2.4.7 or later; NVD identifies 2.4.7 as the recommended minimum cPanel version.",
+          "kind": "fixed_version",
+          "source_url": "https://blog.litespeedtech.com/2026/05/21/security-update-for-litespeed-cpanel-plugin/"
+        },
+        {
+          "claim": "Upgrade the LiteSpeed cPanel and WHM plugins to the vendor-recommended versions; the vendor also documents removal of the user-end plugin as a temporary mitigation if upgrade is unavailable.",
+          "kind": "remediation",
+          "source_url": "https://blog.litespeedtech.com/2026/05/21/security-update-for-litespeed-cpanel-plugin/"
+        },
+        {
+          "claim": "The vendor recommends reviewing cPanel logs for the redisAble request marker and then examining associated IP addresses and system logs for potential activity.",
+          "kind": "verification",
+          "source_url": "https://blog.litespeedtech.com/2026/05/21/security-update-for-litespeed-cpanel-plugin/"
+        },
+        {
+          "claim": "The LiteSpeed release log lists cPanel User-End Plugin 2.4.7 bundled with WHM Plugin 5.3.1.0 as released on May 21, 2026.",
+          "kind": "fixed_version",
+          "source_url": "https://download.litespeedtech.com/products/litespeed-web-server/control-panel-support/release-log"
+        },
+        {
+          "claim": "CISA/NVD records the CVE as actively exploited and included in the Known Exploited Vulnerabilities catalog.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48172"
+        }
+      ],
+      "exposure_conditions": [
+        "LiteSpeed user-end cPanel Plugin versions 2.3 through 2.4.4 are affected.",
+        "The vulnerable functionality is associated with mishandling of the Redis enable/disable feature, specifically the lsws.redisAble function.",
+        "Exposure requires the affected LiteSpeed cPanel plugin to be installed and reachable through a cPanel-user context; a compromised cPanel account is also identified as a possible attack path.",
+        "NVD records LiteSpeed WHM Plugin versions below 5.3.1.0 as affected in the associated plugin package configuration; the vendor’s advisory specifically identifies the original privilege-escalation issue in the user-end cPanel plugin."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:43:10Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade the LiteSpeed cPanel user-end plugin to version 2.4.7 or later.",
+        "Upgrade the bundled LiteSpeed WHM Plugin to version 5.3.1.0 or later.",
+        "If immediate upgrade is not possible, follow the vendor’s documented mitigation to remove the user-end plugin; assess the operational impact before applying it.",
+        "Because exploitation is reported and the CVE is in CISA KEV, prioritize remediation and investigate potentially affected systems for compromise."
+      ],
+      "retrieved_source_urls": [
+        "https://blog.litespeedtech.com/2026/05/21/security-update-for-litespeed-cpanel-plugin/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48172",
+        "https://blog.litespeedtech.com/articles/category/security/",
+        "https://www.litespeedtech.com/support/forum/threads/litespeed-plugins-v2-4-7-for-cpanel-and-v5-3-1-0-for-whm-now-available.24091/",
+        "https://download.litespeedtech.com/products/litespeed-web-server/control-panel-support/release-log",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://blog.litespeedtech.com/2026/05/27/security-update-for-lscwp-cve-2026-3375/",
+        "https://blog.litespeedtech.com/2025/08/18/litespeed-security-update/",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=19",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=23",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/summit-2022-cyber-risks-cyber-hygiene-508.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "3b512e0981d4f07bd764ec553c488fb1b52050af2866cfacfe9418ede4d50fb1",
+      "source_urls": [
+        "https://blog.litespeedtech.com/2026/05/21/security-update-for-litespeed-cpanel-plugin/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48172",
+        "https://download.litespeedtech.com/products/litespeed-web-server/control-panel-support/release-log"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The vendor advisory describes the original CVE as affecting user-end cPanel plugin versions 2.3 through 2.4.4 and states it was patched in cPanel plugin 2.4.5, while recommending cPanel plugin 2.4.7 and WHM Plugin 5.3.1.0 or later after a broader security review.",
+        "The available sources do not establish a complete forensic method for determining whether exploitation succeeded or what attacker actions occurred after privilege escalation.",
+        "The vendor’s log-indicator guidance does not establish that absence of the marker conclusively proves a system was not compromised."
+      ],
+      "verification_steps": [
+        "Confirm the installed cPanel user-end plugin version is 2.4.7 or later.",
+        "Confirm the installed WHM Plugin version is 5.3.1.0 or later when the bundled plugin package is used.",
+        "Review cPanel logs under the vendor-identified log locations for occurrences of the redisAble request marker and investigate associated source IP addresses and subsequent system-log activity.",
+        "Treat matching log activity as an investigation indicator rather than proof of successful exploitation; determine impact from correlated authentication, cPanel, and system logs."
+      ]
     },
     "CVE-2026-48282": {
       "business_risk": "Critical unauthenticated path-traversal vulnerability in Adobe ColdFusion that can enable arbitrary code execution. Adobe reports limited exploitation in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities Catalog.",
@@ -224,6 +1242,81 @@
         "Verify that any anomalous Technician accounts or activity have been investigated before declaring remediation complete."
       ]
     },
+    "CVE-2026-48907": {
+      "business_risk": "Critical remote compromise risk for Joomla sites running the JCE extension. The vulnerability can allow unauthenticated users to create editor profiles and ultimately upload and execute PHP code. NVD records a CVSS 4.0 score of 10.0 and identifies active exploitation in CISA KEV metadata.",
+      "claim_evidence": [
+        {
+          "claim": "The affected product is the JCE editor extension for Joomla, identified by NVD as the Joomla Content Editor extension.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48907"
+        },
+        {
+          "claim": "NVD records affected JCE versions up to, but excluding, 2.9.99.5; the CVE change history describes versions 1.0.0 through 2.9.99.4 as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48907"
+        },
+        {
+          "claim": "The vulnerability permits unauthenticated creation of editor profiles that can lead to PHP code upload and execution; the vendor states that automated exploitation means a site without public registration is not necessarily safe.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48907"
+        }
+      ],
+      "exposure_conditions": [
+        "JCE is installed and running a vulnerable version earlier than 2.9.99.5.",
+        "The unauthenticated profile-import path is reachable by an attacker; the vendor states that lack of public registration does not make an exposed site safe.",
+        "A JCE editor profile permits upload of PHP or other executable/script files."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:43:23Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade JCE to version 2.9.99.5 or later; the vendor identifies 2.9.99.5 as the vulnerability patch and recommends JCE Pro 2.9.99.9 or later.",
+        "For sites that cannot yet meet the current platform requirements, apply the vendor's patch package for JCE 2.7.x, 2.8.x, or 2.9.x as a temporary measure only.",
+        "If neither updating nor applying the vendor patch is possible, uninstall JCE.",
+        "Treat potentially compromised sites as an incident: preserve relevant evidence, remove unauthorized JCE profiles and uploaded files after containment, rotate affected credentials, and perform a server-side malware scan."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48907",
+        "https://www.joomlacontenteditor.net/news?layout=default",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-48733",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-42909",
+        "https://nvd.nist.gov/vuln/search?execution=e1s1",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.joomlacontenteditor.net/support/forum/editor?start=40",
+        "https://www.joomlacontenteditor.net/support/forum/editor/117572-iframe-sandbox-automatically-added---breaks-jgive-embed-you-need-to-enable-javascript-to-run-this-ap",
+        "https://presidentscup.cisa.gov/",
+        "https://www.cisa.gov/guidance-addressing-citrix-netscaler-adc-and-gateway-vulnerability-cve-2023-4966-citrix-bleed",
+        "https://www.cisa.gov/news-events/ics-advisories/icsa-25-007-01",
+        "https://www.joomlacontenteditor.net/support/forum/editor?start=100",
+        "https://www.cisa.gov/sites/default/files/2025-02/aa25-022a-threat-actors-chained-vulnerabilities-in-ivanti-cloud-service-applications_2.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-03/aa23-074a-threat-actors-exploit-telerik-vulnerability-in-us-government-iis-server.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "82b86a8217ebc639f40aaafd881fc25b4a69b1710e2d26cf001675b5ec35a58d",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48907"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The vendor's advisory provides detection indicators and remediation guidance but does not establish that a clean version alone removes an existing compromise.",
+        "The vendor states that JCE 2.6.x does not appear affected in its default configuration, but this has not been independently verified and the branch is unsupported.",
+        "The supplied record describes the product as 'Widget Factory Joomla Content Editor'; authoritative sources identify the affected software as the JCE editor extension for Joomla from Widget Factory/JCE.",
+        "No source reviewed establishes a complete compromise-assessment procedure for every Joomla hosting layout or deployment model."
+      ],
+      "verification_steps": [
+        "Confirm the installed JCE version is at least 2.9.99.5; the vendor recommends 2.9.99.9 or later.",
+        "Review Joomla's JCE Editor Profiles for profiles that were not created by an administrator, especially profiles with permissive executable-file upload settings.",
+        "Review web-server access logs for unauthenticated requests to the JCE profile-import task identified by the vendor.",
+        "Inspect image, media, and temporary directories for unexpected PHP files or filenames containing PHP-related extensions; absence of indicators does not prove that compromise did not occur.",
+        "After remediation, verify that unauthorized profile creation and executable-file upload are no longer possible through normal administrative review and staged testing."
+      ]
+    },
     "CVE-2026-48939": {
       "business_risk": "Critical risk: CVE-2026-48939 permits unauthenticated arbitrary-file upload through iCagendaâ€™s file-attachment functionality, potentially enabling PHP code upload and remote code execution with impacts to confidentiality, integrity, and availability. CISA lists the vulnerability in its Known Exploited Vulnerabilities Catalog, so affected deployments should receive urgent treatment.",
       "claim_evidence": [
@@ -400,6 +1493,107 @@
         "Confirm that the deployed version is not reported as affected by the organizationâ€™s software inventory or vulnerability scanner.",
         "Review web-server, Joomla, and relevant application logs for suspicious unauthenticated upload activity or unexpected executable files; do not perform upload or exploitation testing in production.",
         "For assets that were internet-reachable while running an affected version, perform the organizationâ€™s standard compromise-assessment and forensic-triage process."
+      ]
+    },
+    "CVE-2026-9082": {
+      "business_risk": "Critical remote SQL-injection risk in Drupal core. The issue is exploitable by anonymous users and can affect confidentiality, integrity, and availability. Drupal reports exploitation attempts detected in the wild. Impact may include information disclosure, privilege escalation, remote code execution, or other attacks, particularly on PostgreSQL-backed sites.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects Drupal core.",
+          "kind": "affected_product",
+          "source_url": "https://www.drupal.org/sa-core-2026-004"
+        },
+        {
+          "claim": "Affected ranges are 8.9.0 to before 10.4.10; 10.5.0 to before 10.5.10; 10.6.0 to before 10.6.9; 11.0.0 to before 11.1.10; 11.2.0 to before 11.2.12; and 11.3.0 to before 11.3.10.",
+          "kind": "affected_version",
+          "source_url": "https://www.drupal.org/sa-core-2026-004"
+        },
+        {
+          "claim": "The SQL-injection vulnerability affects sites using PostgreSQL and can be exploited by anonymous users.",
+          "kind": "exposure",
+          "source_url": "https://www.drupal.org/sa-core-2026-004"
+        },
+        {
+          "claim": "Drupal updated the advisory on May 22, 2026 to state that exploit attempts were being detected in the wild.",
+          "kind": "exposure",
+          "source_url": "https://www.drupal.org/sa-core-2026-004"
+        },
+        {
+          "claim": "Drupal identifies fixed releases 10.4.10, 10.5.10, 10.6.9, 11.1.10, 11.2.12, and 11.3.10 for the supported release branches.",
+          "kind": "fixed_version",
+          "source_url": "https://www.drupal.org/sa-core-2026-004"
+        },
+        {
+          "claim": "Drupal's solution is to install the latest version; Drupal 8 and 9 are end-of-life and their patches are provided on a best-effort basis.",
+          "kind": "remediation",
+          "source_url": "https://www.drupal.org/sa-core-2026-004"
+        },
+        {
+          "claim": "CISA requires applying vendor mitigations for this KEV-listed vulnerability, following applicable BOD 22-01 guidance, or discontinuing use if mitigations are unavailable.",
+          "kind": "remediation",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-9082"
+        }
+      ],
+      "exposure_conditions": [
+        "Drupal core is within any affected range: 8.9.0 through before 10.4.10; 10.5.0 through before 10.5.10; 10.6.0 through before 10.6.9; 11.0.0 through before 11.1.10; 11.2.0 through before 11.2.12; or 11.3.0 through before 11.3.10.",
+        "The SQL-injection vulnerability specifically affects sites using PostgreSQL databases.",
+        "The vulnerability can be exploited by anonymous users.",
+        "Third-party dependency updates included in the fixed releases apply to all sites, even where the PostgreSQL-specific SQL-injection condition does not apply."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:43:32Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Drupal 11.3.x to 11.3.10 or later.",
+        "Upgrade Drupal 11.2.x to 11.2.12 or later.",
+        "Upgrade Drupal 11.1.x or 11.0.x to 11.1.10 or later.",
+        "Upgrade Drupal 10.6.x to 10.6.9 or later.",
+        "Upgrade Drupal 10.5.x to 10.5.10 or later.",
+        "Upgrade Drupal 10.4.x or earlier to 10.4.10 or later; note that these branches are end-of-life.",
+        "For Drupal 9 or Drupal 8.9, apply the corresponding Drupal-provided security patch only if emergency continued operation is unavoidable, then migrate to a supported Drupal release.",
+        "Prioritize remediation immediately because CISA lists the CVE in its Known Exploited Vulnerabilities catalog and Drupal reports exploitation attempts in the wild."
+      ],
+      "retrieved_source_urls": [
+        "https://www.drupal.org/sa-core-2026-004",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-9082",
+        "https://www.drupal.org/security/documentation",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-10882",
+        "https://www.drupal.org/security/core/advisory",
+        "https://nvd.nist.gov/vuln/detail/cve-2026-8922",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.drupal.org/security/2026?page=1",
+        "https://www.drupal.org/planet?div_location=9.15.6.10.6.0.0.15.15.11.13.5.15.5.11.0.0.10.15.9.11.10.10.13.9.1.15.10.10.13.1.5.9.11.10.10.9.9.6.10.0.10.5.5.5.5.6.0.9.11.11.13.10.13.10.6.10.6.0.15.15.15.10.13.10.5.0.0&page=7",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-0882",
+        "https://www.drupal.org/project/drupal/releases",
+        "https://nvd.nist.gov/vuln/detail/CVE-2019-9082",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-10/24_0424_NECP_Webinar_MFA_Slide_Presentation_24_1015_508C.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-08/CSA_COUNTERING_CHINA_STATE_ACTORS_COMPROMISE_OF_NETWORKS.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA22-117A_Joint_CSA_2021_Top_Routinely_Exploited_Vulnerabilities_Final.pdf",
+        "https://www.cisa.gov/sites/default/files/publications/AA21-209A_Joint_CSA%20Top%20Routinely%20Exploited%20Vulnerabilities.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "b02a0845933f2d79f22b79c760d3abdd9b5a61a2a565e7a699315f7fac61983e",
+      "source_urls": [
+        "https://www.drupal.org/sa-core-2026-004",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-9082"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The reviewed sources do not provide a source-backed, product-specific command or exact administrative procedure for checking the installed version or database backend.",
+        "The advisory states that Drupal 8 and Drupal 9 are end-of-life and that patches for unsupported versions are best effort; other previously disclosed vulnerabilities may remain.",
+        "The sources do not establish whether a particular deployment is exploitable without confirming its Drupal version, database backend, enabled functionality, and exposure to network requests."
+      ],
+      "verification_steps": [
+        "Confirm the deployed Drupal core version is at or above the applicable fixed version for its release branch.",
+        "Confirm the deployed dependency set corresponds to the updated Drupal release.",
+        "For PostgreSQL-backed deployments, treat any version below the applicable fixed version as exposed until upgraded or otherwise mitigated according to Drupal's advisory.",
+        "Review security monitoring and application logs for suspicious requests or database-related anomalies after remediation; no specific detection pattern is established by the supplied authoritative sources."
       ]
     }
   },
