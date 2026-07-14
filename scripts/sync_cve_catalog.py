@@ -46,6 +46,7 @@ try:
         EnrichmentCache,
         OpenAIEnricher,
     )
+    from scripts.cve_ai_recipe import GeneratedRecipeManager
 except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` execution.
     from cve_ai_enrichment import (  # type: ignore[no-redef]
         DEFAULT_MODEL as DEFAULT_OPENAI_MODEL,
@@ -54,12 +55,14 @@ except ModuleNotFoundError:  # Direct ``python scripts/sync_cve_catalog.py`` exe
         EnrichmentCache,
         OpenAIEnricher,
     )
+    from cve_ai_recipe import GeneratedRecipeManager  # type: ignore[no-redef]
 
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTENT_DIR = ROOT / "content" / "recipes" / "cve"
 DEFAULT_ARCHETYPES = ROOT / "data" / "cve" / "remediation-archetypes.json"
 DEFAULT_ENRICHMENT_CACHE = ROOT / "data" / "cve" / "ai-enrichments.json"
+DEFAULT_GENERATED_RECIPE_MANIFEST = ROOT / "data" / "cve" / "ai-generated-recipes.json"
 DEFAULT_OUTPUT_DIR = ROOT / "static" / "api" / "cve-catalog"
 DEFAULT_CACHE_DIR = ROOT / "tmp" / "nvd-cve-feeds"
 
@@ -1198,6 +1201,19 @@ def serialize_markdown_recipe(recipe: ExistingRecipe) -> dict[str, str]:
     return result
 
 
+def apply_markdown_inventory(
+    record: dict[str, Any], recipes: list[ExistingRecipe]
+) -> dict[str, Any]:
+    """Attach current Markdown metadata without changing normalized source facts."""
+    stable_recipes = [recipe for recipe in recipes if recipe.maturity == "stable"]
+    record["recipe_kind"] = (
+        "markdown-override" if stable_recipes else "markdown-draft" if recipes else "composed"
+    )
+    record["markdown"] = [serialize_markdown_recipe(recipe) for recipe in recipes]
+    record["quality"] = "curated" if stable_recipes else "metadata-backed"
+    return record
+
+
 def normalize_cve(
     cve: dict[str, Any],
     *,
@@ -1232,7 +1248,6 @@ def normalize_cve(
     references = extract_references(cve)
     kev_item = kev_map.get(cve_id)
     recipe_files = existing.get(cve_id, [])
-    stable_recipe_files = [recipe for recipe in recipe_files if recipe.maturity == "stable"]
     selected_archetypes = choose_archetypes(cwes, summary, cwe_mapping, default_archetype)
     archetype = selected_archetypes[0]
     record = {
@@ -1261,14 +1276,9 @@ def normalize_cve(
         "ecosystem": infer_ecosystem(products, summary),
         "archetype": archetype,
         "archetypes": selected_archetypes,
-        "recipe_kind": (
-            "markdown-override" if stable_recipe_files else "markdown-draft" if recipe_files else "composed"
-        ),
-        "markdown": [serialize_markdown_recipe(recipe) for recipe in recipe_files],
-        "quality": "curated" if stable_recipe_files else "metadata-backed",
         "nvd_url": f"{NVD_DETAIL_ROOT}/{cve_id}",
     }
-    return record
+    return apply_markdown_inventory(record, recipe_files)
 
 
 def cve_shard(record: dict[str, Any]) -> str:
@@ -1832,6 +1842,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--content-dir", type=Path, default=DEFAULT_CONTENT_DIR)
     parser.add_argument("--archetypes", type=Path, default=DEFAULT_ARCHETYPES)
     parser.add_argument("--enrichment-cache", type=Path, default=DEFAULT_ENRICHMENT_CACHE)
+    parser.add_argument(
+        "--generated-recipe-manifest",
+        type=Path,
+        default=DEFAULT_GENERATED_RECIPE_MANIFEST,
+        help="Ownership ledger for hash-protected AI-generated development recipes.",
+    )
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
     parser.add_argument(
@@ -1893,12 +1909,28 @@ def main(argv: list[str] | None = None) -> int:
     content_dir = resolve_path(args.content_dir)
     archetype_path = resolve_path(args.archetypes)
     enrichment_cache_path = resolve_path(args.enrichment_cache)
+    generated_recipe_manifest_path = resolve_path(args.generated_recipe_manifest)
     output_dir = resolve_path(args.output_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     archetypes, cwe_mapping = load_archetypes(archetype_path)
     default_archetype = str(archetypes["default_archetype"])
-    existing = markdown_inventory(content_dir)
+    generated_recipes = GeneratedRecipeManager(
+        content_dir,
+        generated_recipe_manifest_path,
+        dry_run=args.dry_run,
+        partial=args.limit is not None,
+    )
+    managed_paths = {
+        (content_dir / filename).relative_to(ROOT).as_posix()
+        for filename in generated_recipes.managed_existing_paths()
+    }
+    full_inventory = markdown_inventory(content_dir)
+    existing = {
+        cve: [recipe for recipe in recipes if recipe.path not in managed_paths]
+        for cve, recipes in full_inventory.items()
+        if any(recipe.path not in managed_paths for recipe in recipes)
+    }
     kev_data, kev_payload = cache_kev(cache_dir, offline=args.offline)
     kev_map = kev_by_cve(kev_data)
     enrichment_cache = EnrichmentCache.load(enrichment_cache_path)
@@ -1983,18 +2015,37 @@ def main(argv: list[str] | None = None) -> int:
             output_records(),
             limit=args.ai_enrichment_limit if openai_client is not None else 0,
         )
-        records = enrichment_cache.apply(output_records(), client=openai_client)
+        effective_existing = {cve: list(recipes) for cve, recipes in existing.items()}
+
+        def recipe_records() -> Iterator[dict[str, Any]]:
+            enriched_records = enrichment_cache.apply(output_records(), client=openai_client)
+            for record in enriched_records:
+                draft = generated_recipes.consider(record, archetypes=archetypes)
+                if draft is not None:
+                    metadata = draft.metadata
+                    recipe = ExistingRecipe(
+                        cve=str(metadata["cve"]),
+                        path=(content_dir / str(metadata["path"])).relative_to(ROOT).as_posix(),
+                        maturity=str(metadata["maturity"]),
+                        title=str(metadata["title"]),
+                        content_markdown="",
+                    )
+                    effective_existing[recipe.cve] = [recipe]
+                    apply_markdown_inventory(record, [recipe])
+                yield record
+
         outputs, manifest = build_outputs(
-            records,
+            recipe_records(),
             start_date=start_date,
             end_date=end_date,
             feed_sources=feed_sources,
             kev_data=kev_data,
             kev_payload=kev_payload,
             archetypes=archetypes,
-            existing=existing,
+            existing=effective_existing,
             presorted=True,
         )
+        generated_recipe_summary = generated_recipes.reconcile()
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
     enrichment_cache_changed = enrichment_cache.write(dry_run=args.dry_run)
     print(
@@ -2009,6 +2060,10 @@ def main(argv: list[str] | None = None) -> int:
                     "cache": str(enrichment_cache_path),
                     "cache_changed": enrichment_cache_changed,
                     "api_enabled": openai_client is not None,
+                },
+                "generated_recipes": {
+                    **generated_recipe_summary,
+                    "manifest": str(generated_recipe_manifest_path),
                 },
                 "dry_run": args.dry_run,
             },

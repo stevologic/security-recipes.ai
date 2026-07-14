@@ -334,6 +334,8 @@ class SyncCveCatalogTests(unittest.TestCase):
                 "remediation_steps": ["Apply the vendor-supported fixed release."],
                 "verification_steps": ["Confirm the fixed release is deployed."],
                 "uncertainty": [],
+                "recipe_specificity": "not_specific",
+                "claim_evidence": [],
                 "source_urls": [source_url],
             },
             model="test-model",

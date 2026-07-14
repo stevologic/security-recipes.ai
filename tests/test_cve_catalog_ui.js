@@ -157,6 +157,14 @@ function browserIndex(rows) {
   });
 }
 
+test('AI enrichment renderer accepts legacy and recipe-capable schema versions', () => {
+  assert.equal(controller.isSupportedAiEnrichment({ schema_version: 1 }), true);
+  assert.equal(controller.isSupportedAiEnrichment({ schema_version: 2 }), true);
+  assert.equal(controller.isSupportedAiEnrichment({ schema_version: 3 }), false);
+  assert.equal(controller.isSupportedAiEnrichment({ schema_version: '2' }), true);
+  assert.equal(controller.isSupportedAiEnrichment(null), false);
+});
+
 test('canonical CVE recognition is exact and shard paths use identifier buckets', () => {
   assert.deepEqual(controller.canonicalCve(' cve-2024-3400 '), {
     id: 'CVE-2024-3400',

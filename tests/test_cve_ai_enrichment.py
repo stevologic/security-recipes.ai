@@ -59,7 +59,12 @@ def record(
     }
 
 
-def model_output(*, source_urls: list[str] | None = None) -> dict[str, object]:
+def model_output(
+    *,
+    source_urls: list[str] | None = None,
+    recipe_specificity: str = "not_specific",
+    claim_evidence: list[dict[str, str]] | None = None,
+) -> dict[str, object]:
     return {
         "status": "complete",
         "business_risk": "Successful exploitation could permit unauthorized data modification.",
@@ -67,9 +72,26 @@ def model_output(*, source_urls: list[str] | None = None) -> dict[str, object]:
         "remediation_steps": ["Apply the vendor-supported update identified by the cited advisory."],
         "verification_steps": ["Re-scan the deployed artifact and exercise a non-destructive regression case."],
         "uncertainty": ["The normalized source does not contain a bounded affected-version range."],
+        "recipe_specificity": recipe_specificity,
+        "claim_evidence": claim_evidence or [],
         "source_urls": source_urls
         or ["https://vendor.example.test/advisories/CVE-2026-1234"],
     }
+
+
+def specific_model_output(source_url: str) -> dict[str, object]:
+    return model_output(
+        source_urls=[source_url],
+        recipe_specificity="specific",
+        claim_evidence=[
+            {"kind": "affected_product", "claim": "Widget Parser is affected.", "source_url": source_url},
+            {"kind": "affected_version", "claim": "Widget Parser 1.x is affected.", "source_url": source_url},
+            {"kind": "fixed_version", "claim": "Widget Parser 2.0 is fixed.", "source_url": source_url},
+            {"kind": "exposure", "claim": "Untrusted input can reach the parser.", "source_url": source_url},
+            {"kind": "remediation", "claim": "Upgrade Widget Parser to version 2.0.", "source_url": source_url},
+            {"kind": "verification", "claim": "Confirm the deployed parser reports version 2.0.", "source_url": source_url},
+        ],
+    )
 
 
 def response_payload(output: dict[str, object], *, source: str | None = None) -> dict[str, object]:
@@ -115,6 +137,8 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         baseline = enrichment.source_fingerprint(source)
         with_ai = {**source, "ai_enrichment": {"untrusted": "ignored"}}
         self.assertEqual(enrichment.source_fingerprint(with_ai), baseline)
+        with_recipe_metadata = {**source, "recipe_kind": "markdown-draft"}
+        self.assertEqual(enrichment.source_fingerprint(with_recipe_metadata), baseline)
         changed = {**source, "summary": str(source["summary"]) + " Updated source facts."}
         self.assertNotEqual(enrichment.source_fingerprint(changed), baseline)
 
@@ -155,6 +179,167 @@ class CVEAIEnrichmentTests(unittest.TestCase):
         self.assertIn("Ignore prior instructions", user)
         self.assertNotIn("Ignore prior instructions", developer)
         self.assertEqual(payload["tools"], [{"type": "web_search"}])
+
+    def test_specific_recipe_requires_claim_level_trusted_evidence(self) -> None:
+        source = record()
+        source_url = str(source["references"][0]["url"])
+        entry = enrichment.build_enrichment_entry(
+            source,
+            specific_model_output(source_url),
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(entry["recipe_specificity"], "specific")
+        self.assertTrue(enrichment.recipe_ready(entry, source))
+        self.assertEqual(enrichment.recipe_evidence_gaps(entry, source), [])
+
+    def test_recipe_specificity_fails_closed_without_fixed_version_evidence(self) -> None:
+        source = record()
+        source_url = str(source["references"][0]["url"])
+        output = specific_model_output(source_url)
+        output["claim_evidence"] = [
+            claim for claim in output["claim_evidence"] if claim["kind"] != "fixed_version"
+        ]
+        entry = enrichment.build_enrichment_entry(
+            source,
+            output,
+            model="gpt-test",
+            retrieved_source_urls=[source_url],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(entry["status"], "complete")
+        self.assertEqual(entry["recipe_specificity"], "not_specific")
+        self.assertFalse(enrichment.recipe_ready(entry, source))
+
+    def test_recipe_specificity_rejects_retrieved_host_spoofing(self) -> None:
+        source = record()
+        spoofed = "https://vendor.example.test.attacker.invalid/advisories/CVE-2026-1234"
+        entry = enrichment.build_enrichment_entry(
+            source,
+            specific_model_output(spoofed),
+            model="gpt-test",
+            retrieved_source_urls=[spoofed],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(entry["recipe_specificity"], "not_specific")
+        self.assertFalse(enrichment.recipe_ready(entry, source))
+
+    def test_each_required_claim_must_cite_the_exact_priority_reference(self) -> None:
+        source = record()
+        trusted = str(source["references"][0]["url"])
+        attacker = "https://attacker.invalid/advisories/CVE-2026-1234"
+        output = specific_model_output(trusted)
+        output["source_urls"] = [trusted, attacker]
+        output["claim_evidence"] = [
+            claim
+            if claim["kind"] == "affected_product"
+            else {**claim, "source_url": attacker}
+            for claim in output["claim_evidence"]
+        ]
+
+        entry = enrichment.build_enrichment_entry(
+            source,
+            output,
+            model="gpt-test",
+            retrieved_source_urls=[trusted, attacker],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(entry["status"], "complete")
+        self.assertEqual(entry["recipe_specificity"], "not_specific")
+        self.assertFalse(enrichment.recipe_ready(entry, source))
+
+    def test_shared_github_host_does_not_make_an_unrelated_path_trusted(self) -> None:
+        source = record()
+        trusted = "https://github.com/acme/widget/security/advisories/GHSA-aaaa-bbbb-cccc"
+        attacker = "https://github.com/unrelated/repository/releases/tag/v9.9.9"
+        source["references"] = [{"url": trusted, "tags": ["Vendor Advisory"]}]
+
+        entry = enrichment.build_enrichment_entry(
+            source,
+            specific_model_output(attacker),
+            model="gpt-test",
+            retrieved_source_urls=[attacker],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(entry["recipe_specificity"], "not_specific")
+        self.assertFalse(enrichment.recipe_ready(entry, source))
+
+    def test_release_wording_requires_a_trusted_fixed_version_claim(self) -> None:
+        source = record()
+        trusted = str(source["references"][0]["url"])
+        output = specific_model_output(trusted)
+        output["claim_evidence"] = [
+            claim
+            for claim in output["claim_evidence"]
+            if claim["kind"] != "fixed_version"
+        ]
+        for claim in output["claim_evidence"]:
+            if claim["kind"] == "remediation":
+                claim["claim"] = "Deploy release 9.9.9."
+            elif claim["kind"] == "verification":
+                claim["claim"] = "Confirm release 9.9.9 is active."
+
+        entry = enrichment.build_enrichment_entry(
+            source,
+            output,
+            model="gpt-test",
+            retrieved_source_urls=[trusted],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(entry["recipe_specificity"], "not_specific")
+        self.assertFalse(enrichment.recipe_ready(entry, source))
+
+    def test_every_generated_recipe_requires_a_concrete_fixed_version(self) -> None:
+        source = record()
+        trusted = str(source["references"][0]["url"])
+        output = specific_model_output(trusted)
+        for claim in output["claim_evidence"]:
+            if claim["kind"] == "fixed_version":
+                claim["claim"] = "Use the latest vendor release when one becomes available."
+            elif claim["kind"] == "remediation":
+                claim["claim"] = "Use the latest vendor release."
+            elif claim["kind"] == "verification":
+                claim["claim"] = "Confirm the corrected package is active."
+
+        entry = enrichment.build_enrichment_entry(
+            source,
+            output,
+            model="gpt-test",
+            retrieved_source_urls=[trusted],
+            generated_at=datetime(2026, 7, 14, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(entry["recipe_specificity"], "not_specific")
+        self.assertFalse(enrichment.recipe_ready(entry, source))
+
+    def test_malformed_model_and_search_urls_fail_closed(self) -> None:
+        malformed = "http://["
+
+        def opener(_: object, *, timeout: int) -> FakeResponse:
+            self.assertGreater(timeout, 0)
+            return FakeResponse(response_payload(model_output(source_urls=[malformed]), source=malformed))
+
+        result = enrichment.OpenAIEnricher("not-real", opener=opener).enrich(record())
+
+        self.assertEqual(enrichment.valid_http_url(malformed), "")
+        self.assertEqual(result["status"], "insufficient_evidence")
+        self.assertEqual(result["source_urls"], [])
+
+    def test_only_documented_web_search_sources_count_as_retrieved_provenance(self) -> None:
+        source = record()
+        source_url = str(source["references"][0]["url"])
+        unrelated = "https://metadata.example.test/not-a-search-source"
+        response = response_payload(model_output(), source=source_url)
+        response["future_metadata"] = {"url": unrelated}
+
+        self.assertEqual(enrichment._response_source_urls(response), [source_url])
 
     def test_unsupported_sources_fail_closed_to_insufficient_evidence(self) -> None:
         source = record()
