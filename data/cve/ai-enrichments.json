@@ -1,4 +1,407 @@
 {
-  "entries": {},
+  "entries": {
+    "CVE-2026-35273": {
+      "business_risk": "No additional source-verified CVE-specific business impact was established.",
+      "claim_evidence": [],
+      "exposure_conditions": [],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:26:55Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [],
+      "retrieved_source_urls": [
+        "https://www.oracle.com/security-alerts/alert-cve-2026-35273.html",
+        "https://www.oracle.com/security-alerts/",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-35273",
+        "https://blogs.oracle.com/security/security-alert-cve-2026-35273-released",
+        "https://www.oracle.com/security-alerts/cve-2026-35273verbose.html",
+        "https://www.oracle.com/security-alerts/cspujun2026.html",
+        "https://www.oracle.com/security-alerts/public-vuln-to-advisory-mapping.html",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://www.oracle.com/security-alerts/cpufaq.html",
+        "https://www.oracle.com/security-alerts/cspujun2026verbose.html",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=51",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://docs.oracle.com/en/database/oracle/oracle-database/26/dbptc/database-patch-maintenance-guidelines.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AR25-261A_MAR_Malicious_Listener_for_Ivanti_EPMM_Systems_2.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "bf0a93974a856724c5ca2ad5a5f017e01d982812cfe6c0955422ab4ee0e6af6b",
+      "source_urls": [
+        "https://www.oracle.com/security-alerts/alert-cve-2026-35273.html",
+        "https://www.oracle.com/security-alerts/cve-2026-35273verbose.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-35273"
+      ],
+      "status": "insufficient_evidence",
+      "uncertainty": [
+        "The public Oracle alert identifies affected versions 8.61 and 8.62 and links to patch-availability documentation, but does not state a concrete fixed PeopleTools version in the publicly accessible content.",
+        "No authoritative, publicly accessible Oracle procedure was found that defines a specific safe technical verification test or confirms a fixed version.",
+        "The supplied record states known ransomware campaign use, but the authoritative sources returned here establish CISA KEV inclusion and active exploitation rather than independently confirming ransomware use."
+      ],
+      "verification_steps": []
+    },
+    "CVE-2026-48282": {
+      "business_risk": "Critical unauthenticated path-traversal vulnerability in Adobe ColdFusion that can enable arbitrary code execution. Adobe reports limited exploitation in the wild, and CISA lists the CVE in its Known Exploited Vulnerabilities Catalog.",
+      "claim_evidence": [
+        {
+          "claim": "Adobe ColdFusion is affected by CVE-2026-48282, classified as CWE-22 path traversal with arbitrary code execution impact.",
+          "kind": "affected_product",
+          "source_url": "https://helpx.adobe.com/security/products/coldfusion/apsb26-68.html"
+        },
+        {
+          "claim": "ColdFusion 2025 Update 9 and earlier, and ColdFusion 2023 Update 20 and earlier, are affected on all platforms.",
+          "kind": "affected_version",
+          "source_url": "https://helpx.adobe.com/security/products/coldfusion/apsb26-68.html"
+        },
+        {
+          "claim": "The vulnerability has CVSS vector AV:N/AC:L/PR:N/UI:N, indicating network reachability with no privileges or user interaction required; NVD also records the CVE as present in CISAâ€™s KEV Catalog.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48282"
+        },
+        {
+          "claim": "Adobe reports that CVE-2026-48282 has been exploited in the wild in limited attacks targeting Adobe ColdFusion.",
+          "kind": "exposure",
+          "source_url": "https://helpx.adobe.com/security/products/coldfusion/apsb26-68.html"
+        },
+        {
+          "claim": "Adobe identifies ColdFusion 2025 Update 10 and ColdFusion 2023 Update 21 as the updated versions resolving the affected release range.",
+          "kind": "fixed_version",
+          "source_url": "https://helpx.adobe.com/security/products/coldfusion/apsb26-68.html"
+        }
+      ],
+      "exposure_conditions": [
+        "ColdFusion 2025 Update 9 or earlier, or ColdFusion 2023 Update 20 or earlier, on any platform.",
+        "The vulnerability is remotely reachable over the network and requires no privileges or user interaction according to the CVSS vector.",
+        "Internet-exposed ColdFusion assets require urgent prioritization and exposure review because the CVE is listed as actively exploited by CISA."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:27:10Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade ColdFusion 2025 to Update 10 or later.",
+        "Upgrade ColdFusion 2023 to Update 21 or later.",
+        "Use Adobeâ€™s cumulative update procedure appropriate to the deployment type, then restart ColdFusion as required.",
+        "Apply Adobeâ€™s ColdFusion security configuration guidance and review the applicable Lockdown Guide.",
+        "For JEE deployments, ensure the applicable Adobe-recommended JVM serial-filter configuration is present; do not apply JEE-specific settings to standalone installations.",
+        "Review potentially exposed or compromised ColdFusion systems in accordance with applicable incident-response and forensic requirements before or during remediation."
+      ],
+      "retrieved_source_urls": [
+        "https://helpx.adobe.com/security/products/coldfusion/apsb26-68.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48282",
+        "https://helpx.adobe.com/se/security/products/coldfusion.html",
+        "https://helpx.adobe.com/tr/security/products/coldfusion/apsb26-68.html",
+        "https://helpx.adobe.com/at/security/products/coldfusion.html",
+        "https://helpx.adobe.com/de/security/products/coldfusion/apsb26-68.html",
+        "https://helpx.adobe.com/security.html",
+        "https://helpx.adobe.com/uk/security/products/coldfusion/apsb26-68.html",
+        "https://helpx.adobe.com/jp/security/products/coldfusion/apsb26-68.html",
+        "https://helpx.adobe.com/cn/security/products/coldfusion/apsb26-68.html",
+        "https://helpx.adobe.com/kr/security/products/coldfusion/apsb26-68.html",
+        "https://helpx.adobe.com/es/security/products/coldfusion.html",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://helpx.adobe.com/pdf/coldfusion_configuring.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "26036cc2813ea4f7f3f3db74561420cd63167c0560532dd57162387cca1ad46f",
+      "source_urls": [
+        "https://helpx.adobe.com/security/products/coldfusion/apsb26-68.html",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48282"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied product list is truncated; the authoritative Adobe bulletin identifies ColdFusion 2025 Update 9 and earlier and ColdFusion 2023 Update 20 and earlier as affected.",
+        "The Adobe bulletin identifies limited exploitation in the wild, while localized Adobe pages returned by search contain differing wording; the current English Adobe bulletin and NVD/CISA records support treating exploitation as active.",
+        "No safe exploitability test or endpoint-specific exposure assessment was performed."
+      ],
+      "verification_steps": [
+        "Confirm the installed ColdFusion release and update level in the ColdFusion Administrator or approved software inventory.",
+        "For ColdFusion 2025, verify that the post-update build is 2025,0,10,331899 or later.",
+        "For ColdFusion 2023, verify that the post-update build is 2023,0,21,330920 or later.",
+        "Confirm that the relevant ColdFusion service or application instance was restarted after the update and that the application returned to its expected operational state.",
+        "Reassess external reachability and review security logs for suspicious activity; do not perform exploit-based validation against production systems."
+      ]
+    },
+    "CVE-2026-48558": {
+      "business_risk": "Critical authentication bypass can permit a remote unauthenticated attacker to obtain a Technician session and potentially create a Technician account. Impact depends on assigned Technician Group permissions and may include access to connected machines, data, scripts, or administrative functions. NVD records the CVE in CISA's Known Exploited Vulnerabilities Catalog with active exploitation indicated.",
+      "claim_evidence": [
+        {
+          "claim": "CVE-2026-48558 affects SimpleHelp versions 5.5.15 and earlier and affected 6.0 pre-release versions through an OIDC authentication-flow authentication bypass.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48558"
+        },
+        {
+          "claim": "The vendor identifies SimpleHelp 5.5.15 and earlier and some 6.0 pre-release versions as potentially vulnerable.",
+          "kind": "affected_version",
+          "source_url": "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026"
+        },
+        {
+          "claim": "Exploitation requires enabled OIDC authentication, a Technician Group with OIDC authentication and Allow group authenticated logins enabled, network reachability, permitted Technician login IPs, and satisfaction of configured authentication filters.",
+          "kind": "exposure",
+          "source_url": "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026"
+        },
+        {
+          "claim": "SimpleHelp 5.5.16 and the public 6.0 release or later are not subject to this vulnerability; affected 6.0 pre-release builds should be updated to the latest 6.0 release candidate.",
+          "kind": "fixed_version",
+          "source_url": "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026"
+        },
+        {
+          "claim": "The vendor recommends reviewing server logs, Technician accounts and group memberships, and Administration history for unexpected account creation, logins, sessions, and tool activity.",
+          "kind": "verification",
+          "source_url": "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026"
+        },
+        {
+          "claim": "NVD records the CVE as present in CISA's Known Exploited Vulnerabilities Catalog and states that the vulnerability can allow a remote unauthenticated attacker to obtain a fully authenticated Technician session.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48558"
+        }
+      ],
+      "exposure_conditions": [
+        "SimpleHelp 5.5.15 or earlier, or an affected 6.0 beta/release-candidate build, is deployed.",
+        "An OIDC-based Authentication Service is configured and enabled.",
+        "At least one Technician Group has both OIDC authentication enabled and Allow group authenticated logins enabled.",
+        "The attacker can connect from an IP address permitted by Technician login IP restrictions and satisfy the configured authentication filters.",
+        "Servers without OIDC authentication, or without an OIDC-enabled group allowing group-authenticated logins, are not exploitable through the vendor-described path."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:27:22Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade SimpleHelp 5.5.x installations to version 5.5.16 or later.",
+        "For affected 6.0 pre-release installations, update to the latest available 6.0 release candidate; the vendor states that the public 6.0 release and later are not affected.",
+        "Prioritize remediation because the CVE is listed in CISA's Known Exploited Vulnerabilities Catalog.",
+        "If immediate updating is not possible, reduce exposure by restricting Technician login IP ranges and disabling OIDC group-authenticated logins where operationally feasible; these measures reduce or prevent exploitation only under the conditions described by the vendor and do not replace upgrading.",
+        "If compromise is suspected, isolate the SimpleHelp server and obtain qualified incident-response assistance before restoring normal connectivity."
+      ],
+      "retrieved_source_urls": [
+        "https://simple-help.com/release-news",
+        "https://simple-help.com/release-news/5-5-16",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48558",
+        "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026",
+        "https://simple-help.com/release-news/5-5-5",
+        "https://simple-help.com/license-terms-and-conditions",
+        "https://simple-help.com/blogs/security-vulnerabilities-in-simplehelp-5-5-7-and-earlier-what-you-need-to-know",
+        "https://guides.simple-help.com/administrator-guide",
+        "https://simple-help.com/blog",
+        "https://simple-help.com/whats-new-in-simplehelp-55",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-31558",
+        "https://community.simple-help.com/c/simplehelp-news/5",
+        "https://simple-help.com/media/static/datasheets/SimpleHelp%20Technical%20Datasheet.pdf",
+        "https://simple-help.com/media/static/datasheets/SimpleHelp%20Enterprise%20Datasheet.pdf",
+        "https://simple-help.com/media/static/datasheets/SimpleHelp%20Overview%20Datasheet.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "a8b8ac7e8f72515da0d060c066b04c55134d81155292c30fd3d92c7416ad5c2f",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48558",
+        "https://guides.simple-help.com/kb---security-vulnerabilities-05-2026",
+        "https://simple-help.com/release-news"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The supplied record identifies the CVSS 3.1 score as 10.0, but NVD states that its own assessment is not yet provided; the score is attributed to VulnCheck.",
+        "The vendor describes exploitability as dependent on authentication configuration, IP restrictions, filters, and network reachability; asset-specific exposure cannot be determined from the CVE record alone.",
+        "The vendor's disclosure distinguishes some affected 6.0 beta/release-candidate builds from the public 6.0 release; exact build-level applicability should be confirmed against the installed release."
+      ],
+      "verification_steps": [
+        "Confirm the running SimpleHelp server version is 5.5.16 or later, or an unaffected public 6.0 release or later.",
+        "Review Authentication Services and Technician Group settings to identify enabled OIDC authentication and Allow group authenticated logins.",
+        "Review Technician login records, server logs, Technician accounts, group memberships, and Administration history for unexpected account creation, logins, sessions, or tool activity, especially from unrecognized IP addresses.",
+        "Verify that any anomalous Technician accounts or activity have been investigated before declaring remediation complete."
+      ]
+    },
+    "CVE-2026-48939": {
+      "business_risk": "Critical risk: CVE-2026-48939 permits unauthenticated arbitrary-file upload through iCagendaâ€™s file-attachment functionality, potentially enabling PHP code upload and remote code execution with impacts to confidentiality, integrity, and availability. CISA lists the vulnerability in its Known Exploited Vulnerabilities Catalog, so affected deployments should receive urgent treatment.",
+      "claim_evidence": [
+        {
+          "claim": "CVE-2026-48939 affects the iCagenda extension for Joomla and involves arbitrary file upload through the file-attachment feature, with potential PHP code upload and execution.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
+        },
+        {
+          "claim": "NVD identifies iCagenda versions 3.2.1 through versions before 3.9.15, and versions 4.0.0 through versions before 4.0.8, as affected.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
+        },
+        {
+          "claim": "The vulnerability is remotely exploitable without authentication according to the NVD description and the vendorâ€™s security-release notes describing a full unauthenticated remote-code-execution issue.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
+        },
+        {
+          "claim": "The iCagenda 4.0.8 release is a critical security release that fixes a full unauthenticated remote-code-execution issue.",
+          "kind": "fixed_version",
+          "source_url": "https://www.icagenda.com/docs/changelog/icagenda-4-0-8"
+        },
+        {
+          "claim": "A safe primary verification is to confirm that deployed versions are outside the NVD-listed affected ranges and match the vendorâ€™s security-release versions 3.9.15 or 4.0.8, as applicable.",
+          "kind": "verification",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-48939"
+        }
+      ],
+      "exposure_conditions": [
+        "The iCagenda extension for Joomla is installed in an affected version.",
+        "The file-attachment functionality is reachable by an unauthenticated remote user.",
+        "The affected Joomla application is remotely reachable, particularly from the internet or other untrusted networks."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:27:33Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade iCagenda 3.x installations to version 3.9.15 or later.",
+        "Upgrade iCagenda 4.x installations to version 4.0.8 or later.",
+        "If an affected installation cannot be upgraded promptly, restrict unauthenticated access to the Joomla application and iCagenda file-attachment functionality as an interim risk-reduction measure, consistent with vendor and CISA guidance.",
+        "Because CISA identifies this CVE as exploited, assess potentially exposed systems for compromise using established incident-response and forensic procedures before and after remediation."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48939",
+        "https://www.icagenda.com/docs/changelog/icagenda-4-0-8",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=0",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-20039",
+        "https://nvd.nist.gov/vuln/detail/CVE-2025-27439",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=68",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=22",
+        "https://nvd.nist.gov/vuln/detail/cve-2023-48239",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=52",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=21",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=19",
+        "https://www.cisa.gov/known-exploited-vulnerabilities-catalog?page=50",
+        "https://www.cisa.gov/sites/default/files/publications/Reducing_the_Significant_Risk_of_Known_Exploited_Vulnerabilities_20211103.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-08/SECURING_THE_SOFTWARE_SUPPLY_CHAIN_RECOMMENDED_PRACTICES_FOR_SOFTWARE_BILL_OF_MATERIALS_CONSUMPTION-508.pdf",
+        "https://www.cisa.gov/sites/default/files/2023-12/SECURING%20THE%20SOFTWARE%20SUPPLY%20CHAIN%20RECOMMENDED%20PRACTICES%20FOR%20SOFTWARE%20BILL%20OF%20MATERIALS%20CONSUMPTION%20%282%29.pdf",
+        "https://www.cisa.gov/sites/default/files/2025-09/AA25-266A_advisory_cisa_shares_lessons_learned_from_ir_engagement.pdf",
+        "https://www.cisa.gov/sites/default/files/2024-05/Secure_by_Design_Alert_Eliminating_Directory_Traversal_Vulnerabilities_in_Software_508c%20%283%29.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "a92f6081a1725ccc126c776bc083c26cf7a011fb0a28d9434edcfa17e45244ce",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-48939",
+        "https://www.icagenda.com/docs/changelog/icagenda-4-0-8"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The vendor release notes confirm that the listed releases fix a critical unauthenticated remote-code-execution issue but do not provide detailed implementation or detection guidance.",
+        "The available authoritative sources do not establish a specific malicious file name, upload path, forensic indicator, or vendor-provided temporary configuration workaround.",
+        "The exact exposure of an individual deployment depends on its Joomla routing, access controls, network reachability, and enabled iCagenda functionality."
+      ],
+      "verification_steps": [
+        "Confirm the installed iCagenda version is at least 3.9.15 for the 3.x branch or at least 4.0.8 for the 4.x branch.",
+        "Confirm that no affected versions remain deployed across Joomla instances, backups, staging systems, or externally exposed sites.",
+        "Review application and web-server security logs for unexpected file uploads or PHP execution associated with iCagendaâ€™s file-attachment functionality; do not perform exploit testing against production systems.",
+        "Confirm that the vendor release is recorded as applied and that unauthenticated access to the relevant functionality is subject to the intended access controls."
+      ]
+    },
+    "CVE-2026-56290": {
+      "business_risk": "Critical risk: an unauthenticated attacker may upload executable files to a network-reachable Joomla installation using Page Builder CK, potentially resulting in full remote code execution and compromise of confidentiality, integrity, and availability. CISA/NVD records indicate active exploitation and automatable exploitation. These claims are based on the CVE record and should be treated as applicable only where the affected extension is deployed and reachable.",
+      "claim_evidence": [
+        {
+          "claim": "The vulnerability affects the Joomla extension Page Builder CK from Joomlack.",
+          "kind": "affected_product",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56290"
+        },
+        {
+          "claim": "NVD identifies Page Builder CK versions before 3.6.0 as affected; its change history records an earlier CNA range through 3.6.0.",
+          "kind": "affected_version",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56290"
+        },
+        {
+          "claim": "The vulnerability is described as an unauthenticated arbitrary file upload over a network-accessible attack vector, allowing executable files to be uploaded and leading to full RCE.",
+          "kind": "exposure",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56290"
+        },
+        {
+          "claim": "The vendorâ€™s Page Builder CK release information states that version 3.6.0 fixes a security issue and recommends immediate updating.",
+          "kind": "fixed_version",
+          "source_url": "https://www.joomlack.fr/en/joomla-extensions/page-builder-ck"
+        },
+        {
+          "claim": "Updating Page Builder CK to version 3.6.0 or later is the vendor-supported remediation identified by the release information.",
+          "kind": "remediation",
+          "source_url": "https://www.joomlack.fr/en/joomla-extensions/page-builder-ck"
+        },
+        {
+          "claim": "CISAâ€™s catalog entry requires mitigation in accordance with vendor instructions and prioritization of affected assets; it also advises evaluating internet exposure and discontinuing use if mitigations are unavailable.",
+          "kind": "remediation",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-56290"
+        },
+        {
+          "claim": "The sources support version-based verification against the vendorâ€™s 3.6.0 security-fix release, but do not establish a product-specific safe functional verification procedure.",
+          "kind": "verification",
+          "source_url": "https://www.joomlack.fr/en/joomla-extensions/page-builder-ck"
+        }
+      ],
+      "exposure_conditions": [
+        "Page Builder CK is installed in an affected version, identified by NVD as versions before 3.6.0; the original CNA record described affected versions through 3.6.0, while the later NVD configuration specifies versions excluding 3.6.0.",
+        "The Joomla site is reachable over a network path exposed to the attacker.",
+        "The vulnerable unauthenticated file-upload functionality is available; no specific endpoint or configuration prerequisite was established by the authoritative sources reviewed."
+      ],
+      "gaps": [
+        "generic_ecosystem"
+      ],
+      "generated_at": "2026-07-14T22:27:49Z",
+      "model": "gpt-5.6-luna",
+      "prompt_version": "2026-07-14.2",
+      "recipe_specificity": "not_specific",
+      "remediation_steps": [
+        "Upgrade Page Builder CK to version 3.6.0 or later. The vendor product page states that version 3.6.0 fixes a security issue and recommends immediate updating.",
+        "Prioritize remediation for internet-reachable installations because the CVE is listed in CISAâ€™s Known Exploited Vulnerabilities Catalog.",
+        "If an affected installation cannot be upgraded promptly, restrict exposure of the Joomla site or discontinue use of the extension until vendor-supported mitigation is available. No specific vendor mitigation other than updating was established.",
+        "Preserve relevant logs and conduct incident review for affected internet-exposed installations because the CVE is recorded as actively exploited."
+      ],
+      "retrieved_source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-56290",
+        "https://nvd.nist.gov/",
+        "https://nvd.nist.gov/search",
+        "https://forum.joomlack.fr/index.php/page-builder-ck?start=0",
+        "https://www.joomlack.fr/en/joomla-extensions/page-builder-ck",
+        "https://nvd.nist.gov/vuln/detail/CVE-2023-48733",
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-28990",
+        "https://www.cisa.gov/news-events/alerts/2022/02/10/cisa-adds-15-known-exploited-vulnerabilities-catalog",
+        "https://nvd.nist.gov/developers/vulnerabilities",
+        "https://forum.joomlack.fr/index.php/page-builder-ck/16402-how-to-update-page-builder-ck-to-2-5-0",
+        "https://forum.joomlack.fr/index.php/page-builder-ck/17767-joomla-update-3-10-1-to-4-0-2",
+        "https://forum.joomlack.fr/",
+        "https://niccs.cisa.gov/sites/default/files/documents/Cybersecurity_Workforce_Training_Guide_7.28.21_508c.pdf",
+        "https://niccs.cisa.gov/sites/default/files/documents/pdf/intro%20to%20assured%20sw%20eng_classpresentations.pdf?trackDocs=intro+to+assured+sw+eng_classpresentations.pdf",
+        "https://niccs.cisa.gov/sites/default/files/documents/pdf/cybersecurity%20careers%20of%20the%20future.pdf?trackDocs=cybersecurity+careers+of+the+future.pdf"
+      ],
+      "schema_version": 2,
+      "source_fingerprint": "040d2a08412da8083b3457e185f2ccc53d75b9a1bdee7918f9fa09502bf210b0",
+      "source_urls": [
+        "https://nvd.nist.gov/vuln/detail/CVE-2026-56290",
+        "https://www.joomlack.fr/en/joomla-extensions/page-builder-ck"
+      ],
+      "status": "complete",
+      "uncertainty": [
+        "The authoritative sources establish the product, vulnerability class, affected-version boundary, and vendor fix, but do not provide a product-specific safe test procedure or identify the vulnerable request path.",
+        "NVD records both an initial affected range through 3.6.0 and a later configuration excluding 3.6.0. The vendor release page states that version 3.6.0 fixes the security issue; treat 3.6.0 or later as the remediation target.",
+        "No reliable source reviewed established additional Joomla configuration prerequisites, deployment-specific exposure details, or a supported temporary configuration mitigation."
+      ],
+      "verification_steps": [
+        "Confirm through the normal Joomla extension-management or inventory process that Page Builder CK is installed at version 3.6.0 or later.",
+        "Confirm that the deployed version is not reported as affected by the organizationâ€™s software inventory or vulnerability scanner.",
+        "Review web-server, Joomla, and relevant application logs for suspicious unauthenticated upload activity or unexpected executable files; do not perform upload or exploitation testing in production.",
+        "For assets that were internet-reachable while running an affected version, perform the organizationâ€™s standard compromise-assessment and forensic-triage process."
+      ]
+    }
+  },
   "schema_version": 2
 }
