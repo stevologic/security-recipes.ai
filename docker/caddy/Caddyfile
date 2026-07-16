@@ -13,6 +13,17 @@
 {$SECURITY_RECIPES_DOMAIN:security-recipes.ai} {
 	encode zstd gzip
 
+	# Structured access logs feed the public, aggregate-only GoAccess report.
+	# IP addresses are anonymized by the report generator before publication.
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 50MiB
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format json
+	}
+
 	# The site container's nginx serves the static site and proxies /mcp to
 	# the private MCP container. lb_try_duration makes Caddy hold and retry
 	# requests while deploy.sh swaps the site container, so a redeploy causes

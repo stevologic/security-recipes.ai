@@ -8,6 +8,8 @@ services:
         REPO_URL: "${SECURITY_RECIPES_REPO_URL:-https://github.com/stevologic/security-recipes.ai}"
     ports:
       - "${SECURITY_RECIPES_HTTP_PORT:-127.0.0.1:8080}:80"
+    volumes:
+      - traffic_report:/usr/share/nginx/html/traffic
     restart: unless-stopped
 
   # Automatic HTTPS termination. Opt-in via COMPOSE_PROFILES=caddy in .env
@@ -28,8 +30,31 @@ services:
       - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+      - caddy_logs:/var/log/caddy
     depends_on:
       - security-recipes
+    restart: unless-stopped
+
+  # Regenerates a public aggregate traffic dashboard every minute from Caddy's
+  # structured access log. GoAccess anonymizes IP addresses and ignores known
+  # crawlers; the published report contains aggregates, not raw request logs.
+  traffic-report:
+    image: allinurl/goaccess:1.9.3
+    profiles: ["caddy"]
+    entrypoint: ["/bin/sh", "-c"]
+    command: >-
+      while true; do
+        if [ -s /logs/access.log ]; then
+          goaccess /logs/access.log --log-format=CADDY --anonymize-ip --ignore-crawlers
+          --html-report-title='security-recipes.ai traffic' --output=/report/index.html;
+        fi;
+        sleep 60;
+      done
+    volumes:
+      - caddy_logs:/logs:ro
+      - traffic_report:/report
+    depends_on:
+      - caddy
     restart: unless-stopped
 
   mcp-server:
@@ -56,3 +81,5 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  caddy_logs:
+  traffic_report:
