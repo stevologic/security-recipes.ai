@@ -1,0 +1,20 @@
+/* Match the Recipes page content width to the rest of the documentation on phones.
+ * The recipe route can inherit a narrower centered content constraint from its
+ * product-style layout. Reset that constraint at the docs mobile breakpoint so
+ * the title, introduction, and recipe library use the full main column.
+ */
+@media (max-width: 860px) {
+  html[data-recipe-browser-page="true"] .sr-main,
+  html[data-recipe-browser-page="true"] .sr-main .content {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+
+  html[data-recipe-browser-page="true"] .recipe-library {
+    width: 100%;
+    max-width: none;
+    margin-inline: 0;
+  }
+}
