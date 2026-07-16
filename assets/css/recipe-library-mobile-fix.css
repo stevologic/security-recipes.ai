@@ -1,0 +1,20 @@
+/* Keep the mobile recipe filter drawer above its dimming layer.
+ *
+ * The original overlay is rendered from html::after. On iOS Safari the
+ * recipe library can form a descendant stacking context, causing that
+ * root-level pseudo-element to paint over (and blur) the fixed drawer even
+ * though the drawer has a larger z-index. Render the dimming effect as a
+ * spread shadow owned by the open drawer instead, so the panel always paints
+ * above its own backdrop.
+ */
+@media (max-width: 900px) {
+  html.recipe-filter-open::after {
+    display: none;
+  }
+
+  .recipe-library__facets.is-open {
+    box-shadow:
+      0 0 0 100vmax rgba(0, 0, 0, 0.58),
+      18px 0 48px rgba(0, 0, 0, 0.42);
+  }
+}
