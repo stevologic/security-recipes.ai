@@ -1142,7 +1142,7 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
         self.workflow_response()
 
         result = self.run_deploy(
-            FAKE_DOCKER_FAIL_MATCH="docker pull ghcr.io/stevologic/security-recipes.ai-site:"
+            FAKE_DOCKER_FAIL_MATCH="pull ghcr.io/stevologic/security-recipes.ai-site:"
         )
 
         self.assertNotEqual(result.returncode, 0)
