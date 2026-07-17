@@ -21,6 +21,7 @@ DEPLOY_INTERVAL_MINUTES="15"
 AUTOMATION_ONLY="false"
 CADDYFILE="/etc/caddy/Caddyfile"
 CADDY_BACKUP="/etc/caddy/Caddyfile.security-recipes-preinstall.bak"
+CADDY_LOG_DIR="/var/log/caddy"
 CADDY_SYSTEMD_OVERRIDE="/etc/systemd/system/caddy.service.d/20-security-recipes-resume.conf"
 SSH_CONFIG="/etc/ssh/sshd_config.d/99-security-recipes.conf"
 FAIL2BAN_JAIL="/etc/fail2ban/jail.d/sshd-security-recipes.local"
@@ -458,6 +459,7 @@ SECURITY_RECIPES_HTTP_PORT=${APP_BIND}
 SECURITY_RECIPES_GREEN_HTTP_PORT=${APP_GREEN_BIND}
 SECURITY_RECIPES_LOG_MAX_SIZE=10m
 SECURITY_RECIPES_LOG_MAX_FILES=5
+SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=${CADDY_LOG_DIR}
 
 RECIPES_MCP_SOURCE_INDEX_URL=https://${DOMAIN}/api/recipes-index.json
 RECIPES_MCP_ALLOWED_SOURCE_HOSTS=security-recipes,security-recipes-green,${DOMAIN}
@@ -484,6 +486,7 @@ configure_caddy() {
 
   log "Configuring Caddy blue/green proxy for ${DOMAIN} -> ${upstream}, fallback ${green_upstream}."
   mkdir -p /etc/caddy
+  install -d -o caddy -g caddy -m 0750 "${CADDY_LOG_DIR}"
 
   if [[ -f "${CADDYFILE}" ]] && ! grep -q "Managed by security-recipes.ai setup script" "${CADDYFILE}"; then
     if [[ ! -f "${CADDY_BACKUP}" ]]; then
@@ -509,6 +512,16 @@ EOF
 # Managed by security-recipes.ai setup script.
 ${DOMAIN} {
 	encode zstd gzip
+
+	# Structured access logs feed the privacy-preserving aggregate report.
+	log {
+		output file ${CADDY_LOG_DIR}/access.log {
+			roll_size 50MiB
+			roll_keep 10
+			roll_keep_for 720h
+		}
+		format json
+	}
 
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
@@ -555,6 +568,9 @@ EOF
   systemctl daemon-reload
   systemctl restart caddy
   systemctl is-active --quiet caddy
+
+  log "Starting the aggregate traffic report service against host Caddy logs."
+  compose_cmd up -d --no-deps --wait traffic-report
 }
 
 compose_cmd() {

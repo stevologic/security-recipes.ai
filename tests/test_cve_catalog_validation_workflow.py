@@ -72,7 +72,8 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
             "python3 scripts/validate_cve_catalog.py",
             "npm run build",
             "npm run check:performance",
-            "docker compose config",
+            "docker compose --profile caddy config",
+            "/opt/security-recipes/generate-traffic-report.sh --once",
             "docker compose build",
         )
         for command in expected_commands:

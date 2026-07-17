@@ -41,10 +41,9 @@ services:
     ports:
       - "${SECURITY_RECIPES_GREEN_HTTP_PORT:-127.0.0.1:8081}:80"
 
-  # Automatic HTTPS termination. Opt-in via COMPOSE_PROFILES=caddy in .env
-  # (the droplet default) so local checkouts and hosts that already run their
-  # own proxy on 80/443 are unaffected. Certificates live in caddy_data and
-  # survive rebuilds and redeploys.
+  # Automatic HTTPS termination. Opt in via COMPOSE_PROFILES=caddy in .env;
+  # hosts that already run their own proxy on 80/443 leave this profile off.
+  # Certificates live in caddy_data and survive rebuilds and redeploys.
   caddy:
     image: caddy:2-alpine
     profiles: ["caddy"]
@@ -80,27 +79,28 @@ services:
       retries: 3
     restart: unless-stopped
 
-  # Regenerates a public aggregate traffic dashboard every minute from Caddy's
-  # structured access log. GoAccess anonymizes IP addresses and ignores known
-  # crawlers; the published report contains aggregates, not raw request logs.
+  # Regenerates a public aggregate traffic dashboard every minute from either
+  # bundled or host Caddy logs. The source defaults to the bundled named volume;
+  # the droplet installer selects /var/log/caddy for host Caddy.
   traffic-report:
     image: allinurl/goaccess:1.10.2
     profiles: ["caddy"]
-    entrypoint: ["/bin/sh", "-c"]
-    command: >-
-      while true; do
-        if [ -s /logs/access.log ]; then
-          goaccess /logs/access.log --log-format=CADDY --anonymize-ip --ignore-crawlers
-          --html-report-title='security-recipes.ai traffic' --output=/report/index.html;
-        fi;
-        sleep 60;
-      done
+    entrypoint: ["/bin/sh", "/opt/security-recipes/generate-traffic-report.sh"]
+    environment:
+      TRAFFIC_REPORT_INTERVAL_SECONDS: "${TRAFFIC_REPORT_INTERVAL_SECONDS:-60}"
     volumes:
-      - caddy_logs:/logs:ro
+      - "${SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE:-caddy_logs}:/logs:ro"
       - traffic_report:/report
+      - ./docker/goaccess:/opt/security-recipes:ro
     depends_on:
       - caddy
     logging: *security-recipes-logging
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /report/index.html && test -s /report/.generator-healthy"]
+      interval: 15s
+      timeout: 3s
+      start_period: 10s
+      retries: 8
     restart: unless-stopped
 
   mcp-server:

@@ -19,6 +19,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
 <link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/css/footer-donations.css">
 <style>
   :root {
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
@@ -189,8 +190,9 @@
   .cve-ticker {
     position: relative;
     z-index: 9;
+    width: 100%;
     border-bottom: 1px solid rgba(255, 255, 255, 0.075);
-    background: rgba(2, 10, 10, 0.52);
+    background: #000;
     box-shadow: inset 0 -1px 0 rgba(45, 212, 191, 0.025);
   }
 
@@ -1981,10 +1983,16 @@
   }
 
   .footer-inner {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
     justify-content: space-between;
     gap: 20px;
     font-size: 0.94rem;
+  }
+
+  .footer-inner > .crypto-donations {
+    grid-column: 1 / -1;
   }
 
   .footer a {
@@ -2001,6 +2009,7 @@
   .footer-nav {
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px 22px;
     font-weight: 560;
   }
@@ -2298,7 +2307,11 @@
     }
 
     .footer-inner {
-      flex-direction: column;
+      grid-template-columns: 1fr;
+    }
+
+    .footer-nav {
+      justify-content: flex-start;
     }
   }
 
@@ -2414,7 +2427,6 @@
     </div>
   </header>
 
-  {% if latestCves and latestCves.length %}
   <aside class="cve-ticker" aria-label="Latest published CVEs" data-cve-ticker>
     <div class="site-shell cve-ticker__inner">
       <a class="cve-ticker__label" href="/recipes/?view=cve">
@@ -2424,6 +2436,7 @@
       <div class="cve-ticker__viewport">
         <div class="cve-ticker__track">
           <ul class="cve-ticker__list">
+            {% if latestCves and latestCves.length %}
             {% for item in latestCves %}
             <li>
               <a class="cve-ticker__item" data-cve-ticker-link href="{{ item.href | escape }}" aria-label="{{ item.cve | escape }}: {{ item.title | escape }}. {{ item.severity | escape }}, published {{ item.published | escape }}.">
@@ -2435,8 +2448,17 @@
               </a>
             </li>
             {% endfor %}
+            {% else %}
+            <li>
+              <span class="cve-ticker__item">
+                <span class="cve-ticker__id">CVE feed</span>
+                <span class="cve-ticker__title">Latest CVEs are being refreshed</span>
+              </span>
+            </li>
+            {% endif %}
           </ul>
           <ul class="cve-ticker__list" aria-hidden="true" inert>
+            {% if latestCves and latestCves.length %}
             {% for item in latestCves %}
             <li>
               <span class="cve-ticker__item">
@@ -2448,15 +2470,24 @@
               </span>
             </li>
             {% endfor %}
+            {% else %}
+            <li>
+              <span class="cve-ticker__item">
+                <span class="cve-ticker__id">CVE feed</span>
+                <span class="cve-ticker__title">Latest CVEs are being refreshed</span>
+              </span>
+            </li>
+            {% endif %}
           </ul>
         </div>
       </div>
+      {% if latestCves and latestCves.length %}
       <button class="cve-ticker__toggle" type="button" data-cve-ticker-toggle aria-label="Pause latest CVE ticker" aria-pressed="false" title="Pause ticker" hidden>
         <span aria-hidden="true">Ⅱ</span>
       </button>
+      {% endif %}
     </div>
   </aside>
-  {% endif %}
 
   <div class="site-shell">
     <section class="hero">
@@ -2781,6 +2812,7 @@ Rules:
         <a href="/docs/">Docs</a>
         <a href="https://github.com/stevologic/security-recipes.ai">GitHub</a>
       </nav>
+      {% include "partials/footer-donations.njk" %}
     </div>
   </footer>
 
