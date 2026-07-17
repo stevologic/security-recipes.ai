@@ -1,0 +1,120 @@
+name: Production watchdog
+
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: production-watchdog
+  cancel-in-progress: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout current default branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Probe production site and catalog
+        id: production
+        continue-on-error: true
+        shell: bash
+        env:
+          PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL || 'https://security-recipes.ai' }}
+        run: |
+          python scripts/check_production_health.py \
+            --base-url "$PRODUCTION_BASE_URL" \
+            --expected-revision "$(git rev-parse HEAD)" \
+            --expected-commit-time "$(git show -s --format=%cI HEAD)" \
+            --report "$RUNNER_TEMP/production-health.json" \
+            --markdown "$RUNNER_TEMP/production-health.md" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Publish watchdog summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -s "$RUNNER_TEMP/production-health.md" ]; then
+            cat "$RUNNER_TEMP/production-health.md" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## Production watchdog"
+              echo
+              echo "**UNHEALTHY:** The production probe did not produce a report."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload watchdog diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: production-watchdog-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/production-health.json
+            ${{ runner.temp }}/production-health.md
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upsert or recover production health issue
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROBE_HEALTHY: ${{ steps.production.outputs.healthy }}
+        run: |
+          LABEL="automation:production-health"
+          TITLE="[watchdog] Production site, deployment, or CVE catalog is unhealthy"
+          BODY_FILE="$RUNNER_TEMP/production-health-issue.md"
+          gh label create "$LABEL" \
+            --color "B60205" \
+            --description "Production availability or freshness watchdog failure" \
+            --force
+          ISSUE_NUMBER="$(gh issue list \
+            --label "$LABEL" \
+            --state open \
+            --limit 10 \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ "$PROBE_HEALTHY" = "true" ]; then
+            if [ -n "$ISSUE_NUMBER" ]; then
+              gh issue comment "$ISSUE_NUMBER" \
+                --body "Production recovered in watchdog run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+              gh issue close "$ISSUE_NUMBER" --reason completed
+            fi
+            exit 0
+          fi
+
+          {
+            if [ -s "$RUNNER_TEMP/production-health.md" ]; then
+              cat "$RUNNER_TEMP/production-health.md"
+            else
+              echo "The production watchdog failed before it could produce structured diagnostics."
+            fi
+            echo
+            echo "Workflow run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          } > "$BODY_FILE"
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue edit "$ISSUE_NUMBER" --title "$TITLE" --body-file "$BODY_FILE"
+          else
+            gh issue create --title "$TITLE" --label "$LABEL" --body-file "$BODY_FILE"
+          fi
+
+      - name: Fail unhealthy watchdog run
+        if: steps.production.outcome != 'success'
+        shell: bash
+        run: |
+          echo "::error::Production availability, freshness, revision, or TLS checks failed."
+          exit 1

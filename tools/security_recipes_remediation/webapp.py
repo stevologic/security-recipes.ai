@@ -18,10 +18,40 @@ from .suite import (
     load_finding_text,
 )
 
+MAX_DASHBOARD_REQUEST_BYTES = 1024 * 1024
+
+
+class RequestBodyTooLarge(ValueError):
+    """Raised before reading an oversized dashboard request body."""
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 UI_ROOT = REPO_ROOT / "tools" / "security_recipes_remediation" / "ui"
 DEFAULT_STATE_DIR = REPO_ROOT / "tmp" / "remediation-suite-dashboard"
+
+
+def build_dashboard_plan(
+    payload: dict[str, Any],
+    *,
+    registry: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the API response for a dashboard plan request."""
+
+    selected_registry = registry or load_domain_registry()
+    config = sanitize_dashboard_config(payload)
+    findings = load_finding_text(str(config.get("finding_input", "")))
+    packet = build_remediation_packet(
+        domain_key=str(config["domain"]),
+        findings=findings,
+        registry=selected_registry,
+        recipe_source=config.get("recipes_source") or None,
+        tooling=config.get("tooling", []),
+        ecosystem=config.get("ecosystem") or None,
+        llm_config=config.get("llm_config") or {},
+        llm_mode=str(config.get("llm_mode") or "off"),
+        max_recipes=int(config.get("max_recipes") or 6),
+    )
+    return {"packet": packet}
 
 
 def run_dashboard(
@@ -71,23 +101,10 @@ def run_dashboard(
                 payload = self._read_json()
                 config = sanitize_dashboard_config(payload)
                 save_dashboard_config(dashboard_state_dir, config)
-                return self._send_json({"saved": True, "config": config})
+                return self._send_json({"saved": True, "config": {**config, "finding_input": ""}})
             if self.path == "/api/plan":
                 payload = self._read_json()
-                config = sanitize_dashboard_config(payload)
-                findings = load_finding_text(str(config.get("finding_input", "")))
-                packet = build_remediation_packet(
-                    domain_key=str(config["domain"]),
-                    findings=findings,
-                    registry=registry,
-                    recipe_source=config.get("recipes_source") or None,
-                    tooling=config.get("tooling", []),
-                    ecosystem=config.get("ecosystem") or None,
-                    llm_config=config.get("llm_config") or {},
-                    llm_mode=str(config.get("llm_mode") or "off"),
-                    max_recipes=int(config.get("max_recipes") or 6),
-                )
-                return self._send_json({"packet": packet})
+                return self._send_json(build_dashboard_plan(payload, registry=registry))
             self.send_error(HTTPStatus.NOT_FOUND, "Not found")
 
         def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
@@ -96,6 +113,12 @@ def run_dashboard(
         def _read_json(self) -> dict[str, Any]:
             raw_length = self.headers.get("Content-Length", "0").strip() or "0"
             length = int(raw_length)
+            if length < 0:
+                raise ValueError("Content-Length cannot be negative")
+            if length > MAX_DASHBOARD_REQUEST_BYTES:
+                raise RequestBodyTooLarge(
+                    f"request body exceeds {MAX_DASHBOARD_REQUEST_BYTES} bytes"
+                )
             body = self.rfile.read(length) if length else b"{}"
             if not body:
                 return {}
@@ -129,6 +152,11 @@ def run_dashboard(
         def handle_one_request(self) -> None:
             try:
                 super().handle_one_request()
+            except RequestBodyTooLarge as exc:
+                self._send_json(
+                    {"error": str(exc)},
+                    status=HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+                )
             except ValueError as exc:
                 self._send_json({"error": str(exc)}, status=HTTPStatus.BAD_REQUEST)
             except Exception as exc:  # pragma: no cover - HTTP edge-case safety
@@ -147,20 +175,32 @@ def run_dashboard(
 
 def load_dashboard_config(state_dir: Path) -> dict[str, Any]:
     path = state_dir / "dashboard-config.json"
-    if path.exists():
+    if not path.exists():
+        return default_dashboard_config()
+
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            stored = json.load(handle)
+        if not isinstance(stored, dict):
+            raise ValueError("stored dashboard configuration is not an object")
+        contained_finding = bool(stored.get("finding_input"))
+        config = sanitize_dashboard_config({**stored, "finding_input": ""})
+        if contained_finding:
+            save_dashboard_config(state_dir, config)
+        return config
+    except Exception:
+        config = default_dashboard_config()
         try:
-            with path.open("r", encoding="utf-8") as handle:
-                stored = json.load(handle)
-            if isinstance(stored, dict):
-                return sanitize_dashboard_config(stored)
-        except Exception:
+            save_dashboard_config(state_dir, config)
+        except OSError:
             pass
-    return default_dashboard_config()
+        return config
 
 
 def save_dashboard_config(state_dir: Path, config: dict[str, Any]) -> None:
     path = state_dir / "dashboard-config.json"
-    path.write_text(json.dumps(config, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    persisted_config = {**config, "finding_input": ""}
+    path.write_text(json.dumps(persisted_config, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def default_dashboard_config() -> dict[str, Any]:
@@ -246,6 +286,8 @@ def sanitize_dashboard_config(payload: dict[str, Any]) -> dict[str, Any]:
 
 __all__ = [
     "DEFAULT_STATE_DIR",
+    "MAX_DASHBOARD_REQUEST_BYTES",
+    "build_dashboard_plan",
     "load_dashboard_config",
     "run_dashboard",
     "sanitize_dashboard_config",

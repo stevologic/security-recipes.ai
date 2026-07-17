@@ -88,14 +88,16 @@ function configFromForm() {
   };
 }
 
-function applyConfig(config) {
+function applyConfig(config, options = {}) {
   byId("domainSelect").value = config.domain || "recommend";
   byId("recipesSource").value = config.recipes_source || "";
   byId("tooling").value = (config.tooling || []).join(", ");
   byId("ecosystem").value = config.ecosystem || "";
   byId("llmMode").value = config.llm_mode || "prompt";
   byId("maxRecipes").value = config.max_recipes || 6;
-  byId("findingInput").value = config.finding_input || "";
+  if (!options.preserveFindingInput) {
+    byId("findingInput").value = config.finding_input || "";
+  }
   byId("llmEndpoint").value = config.llm_config?.endpoint || "";
   byId("llmModel").value = config.llm_config?.model || "";
   byId("llmApiKeyEnv").value = config.llm_config?.api_key_env || "";
@@ -154,7 +156,7 @@ byId("saveConfig").addEventListener("click", async () => {
       method: "POST",
       body: JSON.stringify(configFromForm()),
     });
-    applyConfig(result.config);
+    applyConfig(result.config, { preserveFindingInput: true });
     setText("health", "Configuration saved");
   } catch (error) {
     setText("health", `Save failed: ${error.message}`);

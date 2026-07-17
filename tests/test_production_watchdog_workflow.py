@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+import re
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+WORKFLOW = ROOT / ".github" / "workflows" / "production-watchdog.yml"
+PROBE = ROOT / "scripts" / "check_production_health.py"
+
+
+class ProductionWatchdogWorkflowTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.workflow = WORKFLOW.read_text(encoding="utf-8")
+        cls.probe = PROBE.read_text(encoding="utf-8")
+
+    def test_runs_twice_hourly_and_can_be_dispatched(self) -> None:
+        self.assertIn('- cron: "17,47 * * * *"', self.workflow)
+        self.assertRegex(self.workflow, r"(?m)^\s*workflow_dispatch:\s*$")
+
+    def test_probe_covers_site_catalog_revision_and_tls_script(self) -> None:
+        self.assertIn("scripts/check_production_health.py", self.workflow)
+        self.assertIn("--base-url", self.workflow)
+        self.assertIn("--expected-revision", self.workflow)
+        self.assertIn("--expected-commit-time", self.workflow)
+        self.assertIn("PRODUCTION_BASE_URL", self.workflow)
+        self.assertIn(
+            "context.minimum_version = ssl.TLSVersion.TLSv1_2",
+            self.probe,
+        )
+
+    def test_health_issue_is_updated_and_closed_on_recovery(self) -> None:
+        self.assertIn("automation:production-health", self.workflow)
+        self.assertIn("gh issue create", self.workflow)
+        self.assertIn("gh issue edit", self.workflow)
+        self.assertIn("gh issue close", self.workflow)
+        self.assertIn("steps.production.outputs.healthy", self.workflow)
+
+    def test_unhealthy_probe_fails_only_after_issue_reconciliation(self) -> None:
+        reconcile = self.workflow.index(
+            "Upsert or recover production health issue"
+        )
+        failure = self.workflow.index("Fail unhealthy watchdog run")
+
+        self.assertLess(reconcile, failure)
+        self.assertIn("continue-on-error: true", self.workflow)
+
+    def test_actions_are_pinned_to_full_commit_shas(self) -> None:
+        references = re.findall(r"(?m)^\s*uses:\s*([^#\s]+)", self.workflow)
+
+        self.assertEqual(len(references), 2)
+        for reference in references:
+            with self.subTest(reference=reference):
+                self.assertRegex(reference, r"^[^@\s]+@[0-9a-f]{40}$")
+
+
+if __name__ == "__main__":
+    unittest.main()

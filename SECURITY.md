@@ -8,7 +8,9 @@ SecurityRecipes currently supports the latest `main` branch and the most recent 
 
 Please **do not** open public GitHub issues for potential vulnerabilities.
 
-Instead, report privately by emailing: **security@security-recipes.ai**
+Submit a report through [GitHub's private vulnerability reporting
+form](https://github.com/stevologic/security-recipes.ai/security/advisories/new).
+If you cannot use GitHub's private form, email **security@security-recipes.ai**.
 
 Include:
 - Affected page(s), component(s), or script(s).

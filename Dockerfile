@@ -35,6 +35,7 @@ FROM node:22-bookworm-slim AS builder
 # every root-relative URL in the generated HTML.
 ARG BASE_URL="http://localhost/"
 ARG REPO_URL=""
+ARG REVISION="bootstrap"
 
 # .dockerignore excludes .git/ to keep the build context small, so git-based
 # last-modified dates are unavailable inside the container; the build falls
@@ -80,15 +81,19 @@ RUN if [ -n "${REPO_URL}" ]; then \
 RUN SECURITY_RECIPES_BASE_URL="${BASE_URL}" \
     SECURITY_RECIPES_REPO_URL="${REPO_URL:-https://github.com/stevologic/security-recipes.ai}" \
     npm run build \
+    && mkdir -p public/.well-known \
+    && printf '%s\n' "${REVISION}" > public/.well-known/deploy-revision \
     && touch public/.nojekyll
 
 
 # ----- Stage 2 : runtime ----------------------------------------------------
 FROM nginx:1.27-alpine AS runtime
+ARG REVISION="bootstrap"
 
 LABEL org.opencontainers.image.title="security-recipes.ai" \
       org.opencontainers.image.description="Community-driven recipes for agentic remediation across AI coding tools." \
-      org.opencontainers.image.source="https://github.com/stevologic/security-recipes.ai"
+      org.opencontainers.image.source="https://github.com/stevologic/security-recipes.ai" \
+      org.opencontainers.image.revision="${REVISION}"
 
 # Minimal nginx config — static site, gzip on, SPA-friendly fallbacks off
 # (the build outputs real files for every route).
