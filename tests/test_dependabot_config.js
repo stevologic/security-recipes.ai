@@ -28,6 +28,8 @@ test('Dependabot sends grouped version updates for every repository ecosystem to
   for (const update of config.updates) {
     const ecosystem = update['package-ecosystem'];
     const groups = Object.values(update.groups || {});
+    const routineGroup = groups.find((group) =>
+      group['update-types']?.join(',') === 'minor,patch');
 
     assert.equal(update.directory, '/', `${ecosystem} should scan the repository root`);
     assert.equal(update['target-branch'], 'main', `${ecosystem} should target main`);
@@ -41,8 +43,20 @@ test('Dependabot sends grouped version updates for every repository ecosystem to
       },
       `${ecosystem} should use the shared weekly schedule`,
     );
-    assert.equal(groups.length, 1, `${ecosystem} should define one low-noise update group`);
-    assert.deepEqual(groups[0].patterns, ['*']);
-    assert.deepEqual(groups[0]['update-types'], ['minor', 'patch']);
+    assert.ok(routineGroup, `${ecosystem} should define a routine update group`);
+    assert.deepEqual(routineGroup.patterns, ['*']);
+
+    if (ecosystem === 'github-actions') {
+      const cacheMajorGroup = groups.find((group) =>
+        group['update-types']?.join(',') === 'major');
+      assert.equal(groups.length, 2);
+      assert.deepEqual(
+        cacheMajorGroup?.patterns,
+        ['actions/cache/restore', 'actions/cache/save'],
+        'cache restore/save major updates must stay paired',
+      );
+    } else {
+      assert.equal(groups.length, 1, `${ecosystem} should define one low-noise update group`);
+    }
   }
 });
