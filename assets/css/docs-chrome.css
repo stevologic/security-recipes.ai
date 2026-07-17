@@ -347,12 +347,29 @@ body.sr-docs-body {
 /* ---------- Footer ---------- */
 
 .sr-footer-inner {
+  display: grid;
+  gap: 16px;
   max-width: 1400px;
   margin: 0 auto;
   padding: 26px 24px;
   color: var(--arr-ink-3);
   font-size: 0.78rem;
   border-top: 1px solid var(--arr-card-border);
+}
+
+.sr-footer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+@media (max-width: 720px) {
+  .sr-footer-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
 }
 
 /* ---------- Callouts (hextra-compatible markup) ---------- */

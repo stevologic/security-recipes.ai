@@ -1,0 +1,13 @@
+<div class="crypto-donations" role="group" aria-label="Cryptocurrency donation wallets">
+  <span class="crypto-donations__label">Support the project</span>
+  {% for wallet in site.donations %}
+  <a
+    class="crypto-donation crypto-donation--{{ wallet.slug | escape }}"
+    href="{{ wallet.scheme | escape }}:{{ wallet.address | escape }}"
+    aria-label="Donate {{ wallet.name | escape }} ({{ wallet.currency | escape }}) to wallet address {{ wallet.address | escape }}"
+  >
+    <span class="crypto-donation__coin">Donate {{ wallet.currency | escape }}</span>
+    <span class="crypto-donation__address">{{ wallet.address | escape }}</span>
+  </a>
+  {% endfor %}
+</div>
