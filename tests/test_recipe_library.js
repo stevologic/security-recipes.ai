@@ -29,6 +29,11 @@ function curatedFeed() {
   return JSON.parse(recipesBrowser());
 }
 
+function workflowFeed() {
+  const { cveWorkflows } = require('../lib/feeds.js');
+  return JSON.parse(cveWorkflows());
+}
+
 function renderedLibrary() {
   // Load after the generated inputs so this test exercises the same data path
   // used by the shortcode rather than duplicating its catalog counters.
@@ -137,8 +142,8 @@ test('the CVE collection clearly exposes exact-ID and complete-catalog search pa
   const html = renderedLibrary();
   const cveSource = fs.readFileSync(path.join(ROOT, 'assets/js/cve-catalog.js'), 'utf8');
 
-  assert.match(html, /Paste any complete CVE ID to open its record immediately/);
-  assert.match(html, /narrow every in-scope record by severity, year, or CISA KEV status/);
+  assert.match(html, /Paste a complete CVE ID to open the exact record, source facts, and matched curated workflows/);
+  assert.match(html, /narrow the full catalog by severity, year, or CISA KEV status/);
   assert.match(cveSource, /CVE ID or vulnerability title/);
   assert.match(cveSource, /Words search every in-scope catalog record/);
   assert.match(cveSource, /search\.maxLength\s*=\s*160/);
@@ -147,4 +152,72 @@ test('the CVE collection clearly exposes exact-ID and complete-catalog search pa
     /renderResults\(\[preview\], 1, true\)/,
     'an exact CVE ID must remain retrievable even when broad-search filters are active'
   );
+});
+
+test('one primary search connects exact CVEs to curated workflows and shareable routes', () => {
+  const html = renderedLibrary();
+  const recipeSource = fs.readFileSync(path.join(ROOT, 'assets/js/recipe-browser.js'), 'utf8');
+  const cveSource = fs.readFileSync(path.join(ROOT, 'assets/js/cve-catalog.js'), 'utf8');
+
+  assert.match(html, /data-library-search-form/);
+  assert.match(html, /data-library-search[^>]*placeholder="CVE-2024-3400/);
+  assert.match(html, /data-cve-workflow-index="\/api\/cve-workflows\.json"/);
+  assert.match(html, /Find the vulnerability\. Run the right workflow\./);
+  assert.match(recipeSource, /canonicalCve\(restoredQuery\)/);
+  assert.match(recipeSource, /setCollection\('cve', \{ push: true, query: exact \}\)/);
+  assert.match(cveSource, /exactDetails\.open = true/);
+  assert.match(cveSource, /basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/);
+});
+
+test('CVE workflow relationships are explicit, valid, searchable, and visible on cards', () => {
+  const feed = workflowFeed();
+  const curated = curatedFeed();
+  const archetypes = new Set(
+    Object.keys(readJson(path.join(ROOT, 'static', 'api', 'cve-catalog', 'archetypes.json')).archetypes)
+  );
+  const roles = new Set(['remediate', 'contain', 'audit', 'intake']);
+  const bySlug = new Map(curated.recipes.map((recipe) => [recipe.slug, recipe]));
+
+  assert.equal(feed.schema_version, 1);
+  assert.equal(feed.count, feed.workflows.length);
+  assert.ok(feed.count >= 10, 'the relationship index covers multiple reviewed workflow families');
+  assert.equal(new Set(feed.workflows.map((workflow) => workflow.id)).size, feed.count);
+
+  for (const workflow of feed.workflows) {
+    assert.ok(roles.has(workflow.role), `${workflow.id} has a supported workflow role`);
+    assert.match(workflow.url, /^\/recipes\/[^.]*\/$/);
+    assert.ok(workflow.archetypes.length > 0, `${workflow.id} declares CVE archetypes`);
+    for (const archetype of workflow.archetypes) {
+      assert.ok(archetype === '*' || archetypes.has(archetype), `${workflow.id} maps to ${archetype}`);
+    }
+    const card = bySlug.get(workflow.id);
+    assert.ok(card, `${workflow.id} remains discoverable in the curated feed`);
+    assert.deepEqual(card.cveArchetypes, workflow.archetypes);
+    assert.equal(card.cveWorkflowRole, workflow.role);
+    assert.ok(
+      workflow.archetypes.every((archetype) => card.search.includes(archetype)),
+      `${workflow.id} relationship fields participate in curated search`
+    );
+  }
+
+  const universal = feed.workflows.filter((workflow) => workflow.archetypes.includes('*'));
+  assert.equal(universal.length, 1);
+  assert.equal(universal[0].role, 'intake');
+  const { browserCardObjects, renderCardHtml } = require('../lib/recipe-cards.js');
+  const mappedCard = browserCardObjects().find((card) => card.cveArchetypes.length > 0);
+  assert.ok(mappedCard);
+  assert.match(renderCardHtml(mappedCard), /recipe-browser-card__cve-linkage/);
+});
+
+test('mobile CSS prevents iOS form zoom and keeps core controls touch friendly', () => {
+  const libraryCss = fs.readFileSync(path.join(ROOT, 'assets/css/recipe-library.css'), 'utf8');
+  const cveCss = fs.readFileSync(path.join(ROOT, 'assets/css/cve-catalog.css'), 'utf8');
+  const docsLayout = fs.readFileSync(path.join(ROOT, '_includes/layouts/docs.njk'), 'utf8');
+
+  assert.match(docsLayout, /viewport-fit=cover/);
+  assert.match(libraryCss, /\.recipe-library__mission-field input\s*\{[\s\S]*?font-size:\s*16px/);
+  assert.match(libraryCss, /\.recipe-library__sort select\s*\{[\s\S]*?min-height:\s*44px;[\s\S]*?font-size:\s*16px/);
+  assert.match(cveCss, /@media \(max-width: 760px\)[\s\S]*?\.cve-catalog__input,[\s\S]*?font-size:\s*16px/);
+  assert.match(cveCss, /\.cve-catalog__permalink,[\s\S]*?min-height:\s*44px/);
+  assert.match(libraryCss, /env\(safe-area-inset-bottom\)/);
 });

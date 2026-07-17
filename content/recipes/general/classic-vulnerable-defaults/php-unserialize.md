@@ -8,6 +8,8 @@ team: "Security"
 maturity: "development"
 model: "Opus 4.7"
 tags: ["php", "deserialization", "uplift", "mitigate"]
+cve_archetypes: ["unsafe_deserialization"]
+cve_workflow_role: "remediate"
 weight: 28
 date: 2026-04-26
 ---

@@ -25,6 +25,7 @@ CADDY_LOG_DIR="/var/log/caddy"
 CADDY_SYSTEMD_OVERRIDE="/etc/systemd/system/caddy.service.d/20-security-recipes-resume.conf"
 SSH_CONFIG="/etc/ssh/sshd_config.d/99-security-recipes.conf"
 FAIL2BAN_JAIL="/etc/fail2ban/jail.d/sshd-security-recipes.local"
+CADDY_404_BAN_SCRIPT="scripts/configure_caddy_404_ban.sh"
 RUNTIME_CONFIG_DIR="/etc/security-recipes"
 DEPLOY_ENV_FILE="${RUNTIME_CONFIG_DIR}/deploy.env"
 BACKUP_ENV_FILE="${RUNTIME_CONFIG_DIR}/backup.env"
@@ -317,6 +318,7 @@ install_packages() {
     jq \
     logrotate \
     lsb-release \
+    nftables \
     ufw \
     fail2ban \
     unattended-upgrades
@@ -357,6 +359,20 @@ bantime = 1h
 EOF
   systemctl enable --now fail2ban
   systemctl restart fail2ban
+}
+
+configure_caddy_404_ban() {
+  local installer="${APP_DIR}/${CADDY_404_BAN_SCRIPT}"
+  if [[ "${ENABLE_CADDY}" != "true" ]]; then
+    log "Skipping the Caddy 404 abuse jail because host Caddy is disabled."
+    return 0
+  fi
+  [[ -f "${installer}" ]] ||
+    die "Caddy 404 ban installer is missing: ${installer}"
+
+  log "Configuring the Caddy 404 abuse jail."
+  SECURITY_RECIPES_CADDY_ACCESS_LOG="${CADDY_LOG_DIR}/access.log" \
+    bash "${installer}"
 }
 
 has_authorized_key() {
@@ -814,6 +830,7 @@ Useful commands:
   journalctl -u security-recipes-deploy.service -n 100
   systemctl start security-recipes-backup.service
   systemctl status caddy
+  fail2ban-client status security-recipes-caddy-404
   ufw status verbose
 
 Before expecting HTTPS to work, make sure the ${DOMAIN} A record points
@@ -867,5 +884,6 @@ prepare_repo
 write_env_file
 start_stack
 configure_caddy
+configure_caddy_404_ban
 configure_automation
 print_summary

@@ -7,6 +7,8 @@ team: "Security"
 maturity: "development"
 model: "Opus 4.7"
 tags: ["containers", "docker", "base-image", "cve", "remediate"]
+cve_archetypes: ["supply_chain_update_integrity"]
+cve_workflow_role: "remediate"
 weight: 13
 date: 2026-04-25
 ---

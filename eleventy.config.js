@@ -8,6 +8,9 @@ const markdownIt = require("markdown-it");
 const markdownItAnchor = require("markdown-it-anchor");
 const markdownItContainer = require("markdown-it-container");
 const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
+const fs = require("node:fs");
+const path = require("node:path");
+const zlib = require("node:zlib");
 
 const site = require("./lib/site-config");
 const contentIndex = require("./lib/content-index");
@@ -17,6 +20,154 @@ const { escapeHtml, stripTags, isoDate } = require("./lib/util");
 const { lastmodFor } = require("./lib/git-lastmod");
 const { seoHead } = require("./lib/seo");
 const { isDiscoveryPage } = contentIndex;
+
+// Search engines accept at most 50,000 locations in one sitemap. Keep a
+// little headroom and derive output chunks from the small catalog manifest;
+// an individual gzip partition is only opened while its sitemap is rendered.
+const CVE_SITEMAP_URL_LIMIT = 49_000;
+const CANONICAL_CVE_ID = /^CVE-\d{4}-\d{4,}$/;
+const CVE_PARTITION_PATH = /^indexes\/(\d{4})\.json\.gz$/;
+const CVE_CATALOG_ROOT = path.join(__dirname, "static", "api", "cve-catalog");
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function sitemapLastmod(value) {
+  const match = String(value || "").match(/^(\d{4}-\d{2}-\d{2})(?:T.*)?$/);
+  return match ? match[1] : "";
+}
+
+function isPagesSitemapEntry(page) {
+  const frontMatter = page && page.fm ? page.fm : {};
+  const catalogOwnsCanonical =
+    frontMatter.canonical_cve_route !== false &&
+    CANONICAL_CVE_ID.test(String(frontMatter.cve || ""));
+  return (
+    isDiscoveryPage(page) &&
+    !catalogOwnsCanonical
+  );
+}
+
+function loadCveSitemapManifest(catalogRoot = CVE_CATALOG_ROOT) {
+  const manifestPath = path.join(catalogRoot, "index.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  if (!Array.isArray(manifest.partitions)) {
+    throw new Error("CVE catalog sitemap manifest is missing partitions");
+  }
+  return manifest;
+}
+
+function planCveSitemaps(manifest, urlLimit = CVE_SITEMAP_URL_LIMIT) {
+  if (!Number.isSafeInteger(urlLimit) || urlLimit < 1 || urlLimit >= 50_000) {
+    throw new Error("CVE sitemap URL limit must be between 1 and 49,999");
+  }
+
+  const lastmod = sitemapLastmod(manifest.catalog_updated_at);
+  const seenYears = new Set();
+  const entries = [];
+  let plannedRecords = 0;
+  for (const partition of manifest.partitions) {
+    const year = String(partition.year || "");
+    const pathMatch = String(partition.path || "").match(CVE_PARTITION_PATH);
+    if (!/^\d{4}$/.test(year) || !pathMatch || pathMatch[1] !== year) {
+      throw new Error(`Unsafe CVE catalog partition path: ${partition.path || "(missing)"}`);
+    }
+    if (seenYears.has(year)) {
+      throw new Error(`Duplicate CVE catalog sitemap year: ${year}`);
+    }
+    if (!Number.isSafeInteger(partition.records) || partition.records < 1) {
+      throw new Error(`Invalid CVE catalog record count for ${year}`);
+    }
+    seenYears.add(year);
+    plannedRecords += partition.records;
+
+    const chunkCount = Math.max(1, Math.ceil(partition.records / urlLimit));
+    for (let chunk = 0; chunk < chunkCount; chunk += 1) {
+      const offset = chunk * urlLimit;
+      const count = Math.min(urlLimit, Math.max(0, partition.records - offset));
+      const suffix = chunkCount === 1 ? "" : `-${chunk + 1}`;
+      entries.push({
+        year,
+        sourcePath: partition.path,
+        outputPath: `/sitemaps/cves-${year}${suffix}.xml`,
+        offset,
+        count,
+        partitionRecords: partition.records,
+        lastmod,
+      });
+    }
+  }
+  if (Number.isSafeInteger(manifest.total) && manifest.total !== plannedRecords) {
+    throw new Error(
+      `CVE catalog manifest total mismatch: expected ${manifest.total}, planned ${plannedRecords}`
+    );
+  }
+  return entries;
+}
+
+function renderCveSitemap(entry, catalogRoot = CVE_CATALOG_ROOT) {
+  if (!entry || !String(entry.sourcePath || "").match(CVE_PARTITION_PATH)) {
+    throw new Error("Unsafe CVE sitemap partition");
+  }
+  const partitionPath = path.resolve(catalogRoot, entry.sourcePath);
+  const expectedRoot = `${path.resolve(catalogRoot)}${path.sep}`;
+  if (!partitionPath.startsWith(expectedRoot)) {
+    throw new Error("CVE sitemap partition escaped the catalog root");
+  }
+
+  // Each call owns only one inflated yearly partition. Nothing is retained
+  // between renders, keeping the build bounded on small production hosts.
+  const payload = JSON.parse(zlib.gunzipSync(fs.readFileSync(partitionPath)).toString("utf8"));
+  if (!Array.isArray(payload.records) || payload.records.length !== entry.partitionRecords) {
+    throw new Error(`CVE sitemap partition count mismatch for ${entry.year}`);
+  }
+  const records = payload.records.slice(entry.offset, entry.offset + entry.count);
+  if (records.length !== entry.count) {
+    throw new Error(`CVE sitemap chunk bounds mismatch for ${entry.year}`);
+  }
+
+  const lastmod = entry.lastmod ? `<lastmod>${escapeXml(entry.lastmod)}</lastmod>` : "";
+  const urls = records.map((record) => {
+    const cve = String(record && record.cve ? record.cve : "");
+    if (!CANONICAL_CVE_ID.test(cve)) {
+      throw new Error(`Invalid canonical CVE ID in ${entry.sourcePath}: ${cve || "(missing)"}`);
+    }
+    return (
+      `<url><loc>${escapeXml(feeds.absURL(`/cve/${cve}/`))}</loc>` +
+      `${lastmod}<changefreq>weekly</changefreq><priority>0.8</priority></url>`
+    );
+  });
+  return (
+    `<?xml version="1.0" encoding="utf-8"?>` +
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
+    urls.join("") +
+    `</urlset>`
+  );
+}
+
+function renderSitemapIndex(cveEntries) {
+  const rows = [
+    { outputPath: "/sitemaps/pages.xml", lastmod: "" },
+    ...cveEntries,
+  ].map(
+    (entry) =>
+      `<sitemap><loc>${escapeXml(feeds.absURL(entry.outputPath))}</loc>` +
+      (entry.lastmod ? `<lastmod>${escapeXml(entry.lastmod)}</lastmod>` : "") +
+      `</sitemap>`
+  );
+  return (
+    `<?xml version="1.0" encoding="utf-8"?>` +
+    `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
+    rows.join("") +
+    `</sitemapindex>`
+  );
+}
 
 // Hugo-goldmark-compatible heading ids: lowercase, spaces to hyphens,
 // punctuation dropped, underscores kept.
@@ -272,6 +423,10 @@ module.exports = function (eleventyConfig) {
     "recipes-browser.11ty.js": { permalink: "/recipes-browser.json", build: feeds.recipesBrowser },
     "api-recipes.11ty.js": { permalink: "/api/recipes.json", build: feeds.agentRecipes },
     "api-recipes-index.11ty.js": { permalink: "/api/recipes-index.json", build: feeds.recipesMcpIndex },
+    "api-cve-workflows.11ty.js": {
+      permalink: "/api/cve-workflows.json",
+      build: feeds.cveWorkflows,
+    },
     "marketplace-catalog.11ty.js": {
       permalink: "/marketplace-catalog.json",
       build: () => JSON.stringify(require("./lib/site-data").marketplace().catalog),
@@ -340,6 +495,7 @@ module.exports = function (eleventyConfig) {
         `Disallow: /search/`,
         `Disallow: /tags/null/`,
         `Disallow: /tags/Null/`,
+        `Disallow: /traffic/`,
         ``,
         `# AI / LLM crawlers — explicitly allowed.`,
         ...["GPTBot", "ClaudeBot", "Claude-Web", "Google-Extended", "PerplexityBot", "anthropic-ai", "cohere-ai", "CCBot"].flatMap(
@@ -352,17 +508,29 @@ module.exports = function (eleventyConfig) {
       ].join("\n"),
   });
 
-  // sitemap.xml — every content page plus tag pages.
-  eleventyConfig.addTemplate("sitemap.11ty.js", {
+  // The root sitemap is an index: normal content/tag coverage lives in one
+  // child, and each bounded catalog partition gets its own CVE child sitemap.
+  const cveSitemapManifest = loadCveSitemapManifest();
+  const cveSitemapEntries = planCveSitemaps(cveSitemapManifest);
+
+  eleventyConfig.addTemplate("sitemap-index.11ty.js", {
     data: () => ({ permalink: "/sitemap.xml", eleventyExcludeFromCollections: true }),
+    render: () => renderSitemapIndex(cveSitemapEntries),
+  });
+
+  eleventyConfig.addTemplate("pages-sitemap.11ty.js", {
+    data: () => ({ permalink: "/sitemaps/pages.xml", eleventyExcludeFromCollections: true }),
     render: () => {
       const { pages } = contentIndex.getIndex();
       const urls = [];
       const row = (loc, lastmod) =>
-        `<url><loc>${feeds.absURL(loc)}</loc>` +
-        (lastmod ? `<lastmod>${lastmod}</lastmod>` : "") +
+        `<url><loc>${escapeXml(feeds.absURL(loc))}</loc>` +
+        (lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : "") +
         `<changefreq>weekly</changefreq><priority>0.7</priority></url>`;
-      for (const p of pages.filter(isDiscoveryPage)) {
+      // Reviewed Markdown CVE overrides canonicalize to /cve/CVE-ID/ and are
+      // already present in the partition sitemap. Do not advertise their old
+      // content slug as a second crawl target.
+      for (const p of pages.filter(isPagesSitemapEntry)) {
         urls.push(row(p.url, lastmodFor(p.sourcePath, p.date)));
       }
       const tags = buildTagList();
@@ -375,6 +543,16 @@ module.exports = function (eleventyConfig) {
         `</urlset>`
       );
     },
+  });
+
+  eleventyConfig.addTemplate("cve-sitemaps.11ty.js", {
+    data: () => ({
+      pagination: { data: "cveSitemapEntries", size: 1, alias: "cveSitemapEntry" },
+      cveSitemapEntries,
+      eleventyExcludeFromCollections: true,
+      permalink: (data) => data.cveSitemapEntry.outputPath,
+    }),
+    render: (data) => renderCveSitemap(data.cveSitemapEntry),
   });
 
   // Alias redirect stubs (Hugo `aliases:` parity) for URL-safe alias
@@ -508,4 +686,15 @@ module.exports = function (eleventyConfig) {
     htmlTemplateEngine: "njk",
     pathPrefix: site.pathPrefix,
   };
+};
+
+module.exports.cveSitemaps = {
+  CANONICAL_CVE_ID,
+  CVE_SITEMAP_URL_LIMIT,
+  escapeXml,
+  isPagesSitemapEntry,
+  loadCveSitemapManifest,
+  planCveSitemaps,
+  renderCveSitemap,
+  renderSitemapIndex,
 };

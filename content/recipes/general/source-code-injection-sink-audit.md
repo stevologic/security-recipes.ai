@@ -7,6 +7,15 @@ team: "Security"
 maturity: "development"
 model: "gpt-5-codex"
 tags: ["source-code", "audit", "injection", "ssrf", "unsafe-sinks", "dataflow"]
+cve_archetypes:
+  - "command_code_injection"
+  - "cross_site_scripting"
+  - "path_traversal_file_handling"
+  - "sql_query_injection"
+  - "ssrf"
+  - "unsafe_deserialization"
+  - "xxe"
+cve_workflow_role: "audit"
 weight: 15
 date: 2026-06-06
 ---

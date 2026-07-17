@@ -73,6 +73,10 @@ copy_path "/etc/caddy/Caddyfile.security-recipes-preinstall.bak" \
   "etc/caddy/Caddyfile.security-recipes-preinstall.bak"
 copy_path "/etc/systemd/system/caddy.service.d/20-security-recipes-resume.conf" \
   "etc/systemd/system/caddy.service.d/20-security-recipes-resume.conf"
+copy_path "/etc/fail2ban/filter.d/security-recipes-caddy-404.conf" \
+  "etc/fail2ban/filter.d/security-recipes-caddy-404.conf"
+copy_path "/etc/fail2ban/jail.d/security-recipes-caddy-404.local" \
+  "etc/fail2ban/jail.d/security-recipes-caddy-404.local"
 
 for unit in \
   security-recipes-deploy.service \

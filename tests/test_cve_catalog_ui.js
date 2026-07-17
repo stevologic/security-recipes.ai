@@ -260,6 +260,64 @@ test('all archetype compositions are deduplicated and primary is first', () => {
   assert.equal(compositions[1].id, 'generic');
 });
 
+test('explicit curated workflow relationships validate and rank exact archetype matches first', () => {
+  const workflowIndex = controller.validateWorkflowIndex({
+    schema_version: 1,
+    workflows: [
+      {
+        id: 'universal-intake',
+        title: 'Universal intake',
+        url: '/recipes/general/universal-intake/',
+        summary: 'Confirm scope and ownership.',
+        role: 'intake',
+        archetypes: ['*']
+      },
+      {
+        id: 'injection-audit',
+        title: 'Injection audit',
+        url: '/recipes/general/injection-audit/',
+        summary: 'Trace input to unsafe sinks.',
+        role: 'audit',
+        archetypes: ['command_code_injection']
+      },
+      {
+        id: 'injection-fix',
+        title: 'Injection fix',
+        url: '/recipes/general/injection-fix/',
+        summary: 'Replace unsafe execution paths.',
+        role: 'remediate',
+        archetypes: ['command_code_injection']
+      }
+    ]
+  });
+  const matches = controller.resolveWorkflowMatches(
+    { archetype: 'command_code_injection', archetypes: ['generic'] },
+    workflowIndex,
+    4
+  );
+
+  assert.deepEqual(matches.map((match) => match.workflow.id), [
+    'injection-fix',
+    'injection-audit',
+    'universal-intake'
+  ]);
+  assert.deepEqual(matches[0].matchedArchetypes, ['command_code_injection']);
+  assert.equal(matches.at(-1).universal, true);
+  assert.throws(
+    () => controller.validateWorkflowIndex({
+      schema_version: 1,
+      workflows: [{
+        id: 'unsafe-url',
+        title: 'Unsafe',
+        url: 'https://attacker.example/workflow',
+        role: 'remediate',
+        archetypes: ['generic']
+      }]
+    }),
+    /failed validation/
+  );
+});
+
 test('agentic plans expand every phase into deterministic evidence-backed file actions', () => {
   const catalog = controller.validateArchetypes(agenticCatalog());
   const record = {
@@ -757,7 +815,7 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(controllerSource, /state\.runtimeSummary\.shard_set_sha256/);
   assert.match(controllerSource, /metadata && metadata\.sha256/);
   assert.match(controllerSource, /AI-assisted CVE enrichment \(supplemental\)/);
-  assert.match(controllerSource, /appendAiEnrichment\(body, fullRecord\.ai_enrichment\)/);
+  assert.match(controllerSource, /appendAiEnrichment\(technicalBody, fullRecord\.ai_enrichment\)/);
   assert.match(workerSource, /browser-index\.json\.gz/);
   assert.match(
     controllerSource,

@@ -73,6 +73,7 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
             "npm run build",
             "npm run check:performance",
             "docker compose --profile caddy config",
+            "sudo bash tests/smoke_caddy_404_ban.sh",
             "/opt/security-recipes/generate-traffic-report.sh --once",
             "docker compose build",
         )

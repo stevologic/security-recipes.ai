@@ -530,6 +530,78 @@ class SyncCveCatalogTests(unittest.TestCase):
             },
         )
 
+    def test_candidate_titles_never_use_the_affected_product_placeholder(self) -> None:
+        product_first_cases = (
+            (
+                "CVE-2026-15982",
+                "The Aimogen Pro - All-in-One AI Content Writer, Editor, ChatBot & Automation "
+                "Toolkit plugin for WordPress is vulnerable to Privilege Escalation in all "
+                "versions up to, and including, 2.8.4.",
+                "Aimogen Pro security vulnerability",
+            ),
+            (
+                "CVE-2026-13352",
+                "The Paid Membership Plugin, Ecommerce, User Registration Form, Login Form, "
+                "User Profile & Restrict Content – ProfilePress plugin for WordPress is "
+                "vulnerable to Arbitrary File Upload in all versions up to 4.16.18.",
+                "ProfilePress security vulnerability",
+            ),
+            (
+                "CVE-2026-62202",
+                "OpenClaw versions 2026.6.1 before 2026.6.9 contain a privilege escalation "
+                "vulnerability in isolated cron jobs that allows lower-trust callers to regain "
+                "denied execution tools.",
+                "OpenClaw security vulnerability",
+            ),
+        )
+        for cve_id, summary, expected in product_first_cases:
+            with self.subTest(cve=cve_id):
+                self.assertEqual(
+                    catalog.candidate_title(cve_id, summary, [], None),
+                    expected,
+                )
+
+        products = [
+            {"part": "o", "vendor": "linux", "product": "linux_kernel"},
+            {"part": "a", "vendor": "apache", "product": "log4j"},
+        ]
+        self.assertEqual(
+            catalog.candidate_title(
+                "CVE-2024-9999",
+                "X" * 220,
+                products,
+                None,
+            ),
+            "Apache Log4J security vulnerability",
+        )
+
+        source_excerpt = catalog.candidate_title(
+            "CVE-2024-8888",
+            "A path traversal vulnerability exists in httpdasm version 0.92, a lightweight "
+            "Windows HTTP server, that allows unauthenticated attackers to read arbitrary "
+            "files outside the web root.",
+            [{"part": "a", "vendor": "-", "product": "-"}],
+            None,
+        )
+        self.assertTrue(source_excerpt.startswith("A path traversal vulnerability exists in httpdasm"))
+        self.assertLessEqual(len(source_excerpt), 140)
+        self.assertNotEqual(
+            source_excerpt.casefold(),
+            validator.FORBIDDEN_GENERIC_TITLE,
+        )
+
+        for summary in (
+            "No description is present in the NVD record; consult the linked NVD entry and "
+            "vendor references.",
+            "The affected product is vulnerable because authentication checks are missing, "
+            "but the source record does not identify that product.",
+        ):
+            with self.subTest(summary=summary):
+                self.assertEqual(
+                    catalog.candidate_title("CVE-2024-7777", summary, [], None),
+                    "CVE-2024-7777 vulnerability",
+                )
+
     def test_normalized_records_make_product_truncation_explicit(self) -> None:
         record = nvd_record()
         record["configurations"] = [
@@ -953,6 +1025,22 @@ class SyncCveCatalogTests(unittest.TestCase):
             self.assertIn("accepted_records sum 2 does not match catalog_records 1", failures)
             self.assertIn("metadata is missing required fields", failures)
 
+    def test_validator_rejects_the_generic_affected_product_title(self) -> None:
+        record = normalize(nvd_record())
+        self.assertIsNotNone(record)
+        assert record is not None
+        record["title"] = "Affected product security vulnerability"
+
+        with tempfile.TemporaryDirectory(prefix="test-cve-title-", dir=catalog.ROOT) as tmpdir:
+            output_dir, content_dir, _ = write_catalog_fixture(Path(tmpdir), [record])
+            validation = validator.validate(output_dir, content_dir)
+
+        self.assertFalse(validation["ok"])
+        self.assertIn(
+            "uses the forbidden generic affected-product title",
+            "\n".join(validation["failures"]),
+        )
+
     def test_write_outputs_reconciles_the_entire_owned_tree(self) -> None:
         record = normalize(nvd_record())
         self.assertIsNotNone(record)
@@ -1227,6 +1315,10 @@ class SyncCveCatalogTests(unittest.TestCase):
         self.assertIn(Path("runtime-summary.json"), outputs_a)
         self.assertIn(Path("indexes/2021.json.gz"), outputs_a)
         self.assertIn(Path("indexes/2025.json.gz"), outputs_a)
+        for entry in manifest_a["shard_manifest"]:
+            payload = outputs_a[Path(entry["path"])]
+            self.assertEqual(int.from_bytes(payload[4:8], "little"), 0)
+            self.assertEqual(payload[9], 3)
 
         serialized_manifest = json.loads(outputs_a[Path("manifest.json")])
         self.assertEqual(serialized_manifest["totals"]["coverage_percent"], 100.0)
@@ -1246,6 +1338,7 @@ class SyncCveCatalogTests(unittest.TestCase):
         for entry in complete_index["partitions"]:
             payload = outputs_a[Path(entry["path"])]
             self.assertEqual(int.from_bytes(payload[4:8], "little"), 0)
+            self.assertEqual(payload[9], 3)
             self.assertEqual(entry["bytes"], len(payload))
             self.assertEqual(entry["sha256"], hashlib.sha256(payload).hexdigest())
             self.assertEqual(entry["uncompressed_bytes"], len(gzip.decompress(payload)))
@@ -1254,6 +1347,7 @@ class SyncCveCatalogTests(unittest.TestCase):
         browser_raw = gzip.decompress(browser_gzip)
         browser = json.loads(browser_raw)
         self.assertEqual(int.from_bytes(browser_gzip[4:8], "little"), 0)
+        self.assertEqual(browser_gzip[9], 3)
         self.assertEqual(browser["schema_version"], 2)
         self.assertEqual(browser["severity_codes"], {"0": "medium", "1": "high", "2": "critical"})
         self.assertEqual(browser["fields"], catalog.BROWSER_INDEX_FIELDS)

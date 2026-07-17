@@ -7,6 +7,22 @@ team: "Security"
 maturity: "development"
 model: "Opus 4.7"
 tags: ["sast", "triage", "false-positive", "remediate", "pr"]
+cve_archetypes:
+  - "authentication_bypass"
+  - "authorization_idor"
+  - "command_code_injection"
+  - "cross_site_scripting"
+  - "information_disclosure"
+  - "path_traversal_file_handling"
+  - "privilege_escalation"
+  - "race_lifetime"
+  - "resource_exhaustion_dos"
+  - "sql_query_injection"
+  - "ssrf"
+  - "unsafe_deserialization"
+  - "use_after_free"
+  - "xxe"
+cve_workflow_role: "remediate"
 weight: 12
 date: 2026-04-25
 ---

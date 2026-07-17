@@ -348,6 +348,18 @@ def json_bytes(value: object, *, pretty: bool = False) -> bytes:
     return (rendered + "\n").encode("utf-8")
 
 
+def deterministic_gzip(payload: bytes) -> bytes:
+    """Compress with a stable header on every build platform.
+
+    Python 3.12 exposes zlib's platform-specific gzip OS byte when ``mtime=0``.
+    Pinning it to Unix preserves the repository's Linux-generated artifacts and
+    prevents otherwise identical catalog files from changing on Windows.
+    """
+    compressed = bytearray(gzip.compress(payload, compresslevel=9, mtime=0))
+    compressed[9] = 3
+    return bytes(compressed)
+
+
 def index_json_bytes(index: dict[str, Any]) -> bytes:
     """Serialize the large index with one compact record per diffable line."""
     lines = ["{"]
@@ -1109,12 +1121,130 @@ def infer_ecosystem(products: list[dict[str, str]], summary: str) -> str:
 
 
 def display_product(products: list[dict[str, str]]) -> str:
-    if not products:
-        return "Affected product"
-    first = products[0]
-    values = [first.get("vendor", ""), first.get("product", "")]
-    text = " ".join(value.replace("_", " ") for value in values if value and value not in {"*", "-"})
-    return normalize_space(text.title(), limit=72) or "Affected product"
+    usable = [
+        product
+        for product in products
+        if normalize_space(product.get("product")).lower() not in {"", "*", "-", "n/a", "na", "unknown"}
+    ]
+    if not usable:
+        return ""
+
+    # NVD configurations can list a platform CPE before the vulnerable
+    # application. Prefer the application identity for a human-facing title,
+    # matching the catalog's ecosystem-selection behavior.
+    first = next(
+        (product for product in usable if normalize_space(product.get("part")).lower() == "a"),
+        usable[0],
+    )
+    vendor = normalize_space(first.get("vendor")).lower()
+    product = normalize_space(first.get("product")).lower()
+    values = []
+    if vendor not in {"", "*", "-", "n/a", "na", "unknown"} and vendor != product:
+        values.append(vendor)
+    values.append(product)
+    text = " ".join(value.replace("_", " ") for value in values)
+    return normalize_space(text.title(), limit=72)
+
+
+def summary_product(summary: str) -> str:
+    """Return a conservative product label from a product-first source description."""
+
+    text = normalize_space(summary)
+    if not text:
+        return ""
+
+    wordpress = re.match(
+        r"^(?:the\s+)?(.+?)\s+(?:plugin\s+for\s+wordpress|wordpress\s+plugin)\b",
+        text,
+        flags=re.I,
+    )
+    if wordpress:
+        candidate = normalize_space(wordpress.group(1))
+        # WordPress names often pair a concise brand with a long marketing
+        # subtitle. Keep the short side without guessing from later prose.
+        parts = [
+            normalize_space(part)
+            for part in re.split(r"\s+(?:[-–—\ufffd]|\|)\s+", candidate)
+            if normalize_space(part)
+        ]
+        if len(parts) > 1:
+            if len(parts[0]) <= 72:
+                candidate = parts[0]
+            elif len(parts[-1]) <= 72:
+                candidate = parts[-1]
+        return normalize_space(candidate, limit=72)
+
+    boundary = re.search(
+        r"\s+(?:"
+        r"versions?\b|v(?=\d+\.)|(?=\d+\.\d)|before\b|prior\s+to\b|through\b|up\s+to\b|"
+        r"[<>]=?\s*\d|contains?\b|is\s+vulnerable\b|are\s+vulnerable\b|allows?\b|"
+        r"includes?\b|fails?\b|has\b|have\b|suffers?\b|exposes?\b|does\s+not\b|"
+        r"provides?\b|describes?\b"
+        r")",
+        text,
+        flags=re.I,
+    )
+    if not boundary:
+        return ""
+    candidate = re.sub(r"^the\s+", "", text[: boundary.start()], flags=re.I)
+    candidate = normalize_space(candidate.strip(" ,;:[]{}"))
+    lowered = candidate.lower()
+    generic_leads = (
+        "a ",
+        "an ",
+        "affected ",
+        "certain ",
+        "cross-site ",
+        "directory traversal ",
+        "improper ",
+        "in ",
+        "incorrect ",
+        "insecure ",
+        "insufficient ",
+        "missing ",
+        "multiple ",
+        "os command ",
+        "path traversal ",
+        "sql injection ",
+        "stack-based ",
+        "unauthenticated ",
+        "unrestricted ",
+        "versions of ",
+    )
+    if (
+        not candidate
+        or len(candidate) > 120
+        or "vulnerability" in lowered
+        or "vulnerabilities" in lowered
+        or lowered.startswith(generic_leads)
+        or lowered
+        in {
+            "a",
+            "an",
+            "application",
+            "affected product",
+            "certain products",
+            "product",
+            "software",
+            "the application",
+            "the product",
+        }
+    ):
+        return ""
+    return normalize_space(candidate, limit=72)
+
+
+def title_excerpt(value: object, *, limit: int = 140) -> str:
+    """Clip source text at a word boundary without manufacturing a product name."""
+
+    text = normalize_space(value)
+    if len(text) <= limit:
+        return text.rstrip(" .")
+    prefix = text[: max(1, limit - 3)].rstrip()
+    boundary = prefix.rfind(" ")
+    if boundary >= max(20, limit // 2):
+        prefix = prefix[:boundary].rstrip(" ,;:-")
+    return prefix + "..."
 
 
 def candidate_title(cve_id: str, summary: str, products: list[dict[str, str]], kev: dict[str, Any] | None) -> str:
@@ -1122,9 +1252,18 @@ def candidate_title(cve_id: str, summary: str, products: list[dict[str, str]], k
         return normalize_space(kev["vulnerabilityName"], limit=140)
     sentence = re.split(r"(?<=[.!?])\s+", summary, maxsplit=1)[0]
     sentence = re.sub(rf"^{re.escape(cve_id)}\s*[:—-]?\s*", "", sentence, flags=re.I)
+    if sentence.startswith("No description is present in the NVD record") or sentence.lower().startswith(
+        ("affected product", "the affected product")
+    ):
+        return f"{cve_id} vulnerability"
     if 20 <= len(sentence) <= 140:
         return sentence.rstrip(" .")
-    return normalize_space(f"{display_product(products)} security vulnerability", limit=140)
+    product = display_product(products) or summary_product(sentence)
+    if product:
+        return normalize_space(f"{product} security vulnerability", limit=140)
+    if sentence:
+        return title_excerpt(sentence, limit=140)
+    return f"{cve_id} vulnerability"
 
 
 def normalize_kev(item: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -1336,7 +1475,7 @@ def browser_index_payload(index_records: list[dict[str, Any]]) -> tuple[bytes, b
             "records": records,
         }
     )
-    return uncompressed, gzip.compress(uncompressed, compresslevel=9, mtime=0)
+    return uncompressed, deterministic_gzip(uncompressed)
 
 
 def hash_bytes(payload: bytes) -> str:
@@ -1494,7 +1633,7 @@ def build_outputs(
 
         for shard, spool in sorted(shard_spools.items()):
             uncompressed = spool.read_bytes()
-            payload = gzip.compress(uncompressed, compresslevel=9, mtime=0)
+            payload = deterministic_gzip(uncompressed)
             outputs[Path(shard)] = payload
             shard_manifest.append(
                 {
@@ -1650,7 +1789,7 @@ def build_outputs(
                 "records": year_records,
             }
         )
-        compressed = gzip.compress(uncompressed, compresslevel=9, mtime=0)
+        compressed = deterministic_gzip(uncompressed)
         outputs[relative] = compressed
         index_partitions.append(
             {
