@@ -104,9 +104,12 @@ services:
     restart: unless-stopped
 
   mcp-server:
+    image: "${RECIPES_MCP_IMAGE:-security-recipes-ai-mcp:bootstrap}"
     build:
       context: .
       dockerfile: Dockerfile.mcp-server
+      args:
+        REVISION: "${SECURITY_RECIPES_IMAGE_REVISION:-bootstrap}"
     environment:
       RECIPES_MCP_CONFIG: "/app/mcp-server.toml"
       RECIPES_MCP_TRANSPORT: "streamable-http"
@@ -119,7 +122,9 @@ services:
       RECIPES_MCP_PLAYBOOK_REGISTRY_PATH: "${RECIPES_MCP_PLAYBOOK_REGISTRY_PATH:-/app/data/remediation_suite/playbooks.json}"
       RECIPES_MCP_LOG_LEVEL: "${RECIPES_MCP_LOG_LEVEL:-info}"
       RECIPES_MCP_EAGER_REFRESH: "${RECIPES_MCP_EAGER_REFRESH:-false}"
-      RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-true}"
+      # Keep the compact text index lazy on memory-constrained hosts. Exact CVE
+      # lookups remain shard-only; operators can opt into eager warming.
+      RECIPES_MCP_EAGER_CVE_SEARCH: "${RECIPES_MCP_EAGER_CVE_SEARCH:-false}"
     expose:
       - "80"
     logging: *security-recipes-logging

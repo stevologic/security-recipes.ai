@@ -1,6 +1,12 @@
 # syntax=docker/dockerfile:1.7
 FROM python:3.14-slim
 
+ARG REVISION="bootstrap"
+
+LABEL org.opencontainers.image.title="security-recipes.ai MCP server" \
+      org.opencontainers.image.source="https://github.com/stevologic/security-recipes.ai" \
+      org.opencontainers.image.revision="${REVISION}"
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     RECIPES_MCP_CONFIG=/app/mcp-server.toml \

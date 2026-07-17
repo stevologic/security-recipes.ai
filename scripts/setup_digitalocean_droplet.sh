@@ -32,6 +32,8 @@ DEPLOY_SERVICE="/etc/systemd/system/security-recipes-deploy.service"
 DEPLOY_TIMER="/etc/systemd/system/security-recipes-deploy.timer"
 BACKUP_SERVICE="/etc/systemd/system/security-recipes-backup.service"
 BACKUP_TIMER="/etc/systemd/system/security-recipes-backup.timer"
+SITE_IMAGE_REPOSITORY="${DEPLOY_SITE_IMAGE_REPOSITORY:-ghcr.io/stevologic/security-recipes.ai-site}"
+MCP_IMAGE_REPOSITORY="${DEPLOY_MCP_IMAGE_REPOSITORY:-ghcr.io/stevologic/security-recipes.ai-mcp}"
 
 usage() {
   cat <<'EOF'
@@ -582,10 +584,23 @@ compose_cmd() {
 }
 
 start_stack() {
+  local revision site_image mcp_image
+
   log "Enabling Docker and starting the compose stack."
   systemctl enable --now docker
   cd "${APP_DIR}"
-  compose_cmd up -d --build
+  revision="$(git rev-parse HEAD)"
+  site_image="${SITE_IMAGE_REPOSITORY}:${revision}"
+  mcp_image="${MCP_IMAGE_REPOSITORY}:${revision}"
+  docker pull "${site_image}"
+  docker pull "${mcp_image}"
+  (
+    export SECURITY_RECIPES_BLUE_IMAGE="${site_image}"
+    export SECURITY_RECIPES_GREEN_IMAGE="${site_image}"
+    export SECURITY_RECIPES_IMAGE_REVISION="${revision}"
+    export RECIPES_MCP_IMAGE="${mcp_image}"
+    compose_cmd up -d --no-build
+  )
   compose_cmd ps
 }
 
@@ -600,13 +615,23 @@ write_automation_environment() {
 DEPLOY_SUCCESS_HEARTBEAT_URL=
 DEPLOY_CATALOG_MAX_AGE_HOURS=36
 DEPLOY_MIN_FREE_MB=2048
-DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536
+DEPLOY_MIN_AVAILABLE_MEMORY_MB=256
+DEPLOY_SITE_IMAGE_REPOSITORY=ghcr.io/stevologic/security-recipes.ai-site
+DEPLOY_MCP_IMAGE_REPOSITORY=ghcr.io/stevologic/security-recipes.ai-mcp
 # Optional when Docker storage is on a non-default filesystem.
 DEPLOY_DISK_PATH=
 DEPLOY_BUILD_CACHE_MAX_AGE=168h
 DEPLOY_BUILD_CACHE_KEEP_STORAGE=5GB
 EOF
   fi
+  if grep -qx 'DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536' "${DEPLOY_ENV_FILE}"; then
+    sed -i 's/^DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536$/DEPLOY_MIN_AVAILABLE_MEMORY_MB=256/' \
+      "${DEPLOY_ENV_FILE}"
+  fi
+  grep -q '^DEPLOY_SITE_IMAGE_REPOSITORY=' "${DEPLOY_ENV_FILE}" ||
+    printf '%s\n' "DEPLOY_SITE_IMAGE_REPOSITORY=${SITE_IMAGE_REPOSITORY}" >>"${DEPLOY_ENV_FILE}"
+  grep -q '^DEPLOY_MCP_IMAGE_REPOSITORY=' "${DEPLOY_ENV_FILE}" ||
+    printf '%s\n' "DEPLOY_MCP_IMAGE_REPOSITORY=${MCP_IMAGE_REPOSITORY}" >>"${DEPLOY_ENV_FILE}"
   chown root:root "${DEPLOY_ENV_FILE}"
   chmod 0600 "${DEPLOY_ENV_FILE}"
 
