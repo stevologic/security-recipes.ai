@@ -51,6 +51,7 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   DEPLOY_HEALTH_URL       Legacy alias for DEPLOY_PROXY_HEALTH_URL.
 #   DEPLOY_PROXY_MODE       auto, bundled, or host.    Default: auto
 #   DEPLOY_HOST_CADDYFILE   Host Caddy config path.    Default: /etc/caddy/Caddyfile
+#   DEPLOY_HOST_CADDY_LOG_DIR Host Caddy access-log directory. Default: /var/log/caddy
 #   DEPLOY_SITE_IMAGE_REPOSITORY Commit-tagged image repository.
 #                                                   Default: security-recipes-ai-site
 #   DEPLOY_GITHUB_REPOSITORY  owner/repo override; normally derived from the remote.
@@ -85,6 +86,7 @@ LOCK_FILE="${DEPLOY_LOCK_FILE:-/var/lock/security-recipes-deploy.lock}"
 PROXY_HEALTH_URL="${DEPLOY_PROXY_HEALTH_URL:-${DEPLOY_HEALTH_URL:-}}"
 PROXY_MODE="${DEPLOY_PROXY_MODE:-auto}"
 HOST_CADDYFILE="${DEPLOY_HOST_CADDYFILE:-/etc/caddy/Caddyfile}"
+HOST_CADDY_LOG_DIR="${DEPLOY_HOST_CADDY_LOG_DIR:-/var/log/caddy}"
 SITE_IMAGE_REPOSITORY="${DEPLOY_SITE_IMAGE_REPOSITORY:-security-recipes-ai-site}"
 BLUE_SERVICE="security-recipes"
 GREEN_SERVICE="security-recipes-green"
@@ -143,6 +145,13 @@ if [[ "${SUCCESS_HEARTBEAT_URL}" == *$'\n'* ||
 fi
 [[ -n "${REQUIRED_WORKFLOWS//[[:space:],]/}" ]] || die "DEPLOY_REQUIRED_WORKFLOWS must name at least one workflow."
 [[ "${PROXY_MODE}" =~ ^(auto|bundled|host)$ ]] || die "DEPLOY_PROXY_MODE must be auto, bundled, or host."
+[[ "${HOST_CADDY_LOG_DIR}" =~ ^/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+/[A-Za-z0-9._/-]+$ &&
+   "${HOST_CADDY_LOG_DIR}" != *"/../"* &&
+   "${HOST_CADDY_LOG_DIR}" != */.. &&
+   "${HOST_CADDY_LOG_DIR}" != *"/./"* &&
+   "${HOST_CADDY_LOG_DIR}" != */. &&
+   "${HOST_CADDY_LOG_DIR}" != *"//"* ]] ||
+  die "DEPLOY_HOST_CADDY_LOG_DIR must be a safe absolute child path."
 [[ "${SITE_IMAGE_REPOSITORY}" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ ]] ||
   die "DEPLOY_SITE_IMAGE_REPOSITORY contains unsupported characters."
 
@@ -518,6 +527,121 @@ env_file_value() {
   fi
   [[ -n "${value}" ]] || return 1
   printf '%s' "${value}"
+}
+
+prepare_traffic_report_source() {
+  [[ "${PROXY_KIND}" == "host" ]] || return 0
+
+  local configured_source="" log_path temp_file
+  log_path="${HOST_CADDY_LOG_DIR}/access.log"
+
+  if configured_source="$(env_file_value SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE 2>/dev/null)"; then
+    if [[ "${configured_source}" != "${HOST_CADDY_LOG_DIR}" ]]; then
+      log "ERROR: SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE must match ${HOST_CADDY_LOG_DIR} for managed host Caddy."
+      return 1
+    fi
+  else
+    [[ -f .env ]] || {
+      log "ERROR: Host Caddy traffic reporting requires the deployment .env file."
+      return 1
+    }
+    printf '\nSECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=%s\n' "${HOST_CADDY_LOG_DIR}" >> .env || return 1
+    chmod 600 .env || return 1
+    log "Configured the traffic report to read host Caddy logs from ${HOST_CADDY_LOG_DIR}."
+  fi
+
+  command -v caddy >/dev/null 2>&1 || {
+    log "ERROR: The host Caddy binary is required to validate traffic logging."
+    return 1
+  }
+  getent passwd caddy >/dev/null 2>&1 || {
+    log "ERROR: The host Caddy account is missing."
+    return 1
+  }
+  install -d -o caddy -g caddy -m 0750 "${HOST_CADDY_LOG_DIR}" || return 1
+
+  if grep -Fq "output file ${log_path}" "${HOST_CADDYFILE}"; then
+    return 0
+  fi
+  grep -q "Managed by security-recipes.ai setup script" "${HOST_CADDYFILE}" || {
+    log "ERROR: Refusing to edit an unmanaged host Caddyfile; re-run the droplet setup script to enable traffic reporting."
+    return 1
+  }
+
+  temp_file="$(mktemp "${HOST_CADDYFILE}.traffic.XXXXXX")" || return 1
+  if ! awk -v log_path="${log_path}" '
+      BEGIN { inserted = 0 }
+      {
+        print
+        if (!inserted && $0 ~ /^[[:space:]]*encode[[:space:]]+zstd[[:space:]]+gzip[[:space:]]*$/) {
+          print ""
+          print "\t# Structured access logs feed the privacy-preserving aggregate report."
+          print "\tlog {"
+          print "\t\toutput file " log_path " {"
+          print "\t\t\troll_size 50MiB"
+          print "\t\t\troll_keep 10"
+          print "\t\t\troll_keep_for 720h"
+          print "\t\t}"
+          print "\t\tformat json"
+          print "\t}"
+          inserted = 1
+        }
+      }
+      END { if (!inserted) exit 42 }
+    ' "${HOST_CADDYFILE}" > "${temp_file}"; then
+    rm -f "${temp_file}"
+    log "ERROR: Could not place managed traffic logging in ${HOST_CADDYFILE}."
+    return 1
+  fi
+
+  if ! caddy validate --config "${temp_file}" --adapter caddyfile; then
+    rm -f "${temp_file}"
+    log "ERROR: Caddy rejected the managed traffic logging configuration."
+    return 1
+  fi
+  install -o root -g root -m 0644 "${temp_file}" "${HOST_CADDYFILE}" || {
+    rm -f "${temp_file}"
+    return 1
+  }
+  rm -f "${temp_file}"
+  log "Prepared host Caddy traffic logging; the next graceful route reload will activate it."
+  TRAFFIC_CADDY_CONFIG_CHANGED="true"
+}
+
+traffic_report_is_healthy() {
+  local container_id health
+  container_id="$(docker compose ps --status running -q traffic-report 2>/dev/null || true)"
+  [[ -n "${container_id}" ]] || return 1
+  health="$(
+    docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' \
+      "${container_id}" 2>/dev/null || true
+  )"
+  [[ "${health}" == "healthy" ]]
+}
+
+ensure_traffic_report_runtime() {
+  prepare_traffic_report_source || return 1
+
+  if [[ "${TRAFFIC_CADDY_CONFIG_CHANGED}" == "true" ]]; then
+    log "Activating host Caddy traffic logging without changing the active route."
+    switch_proxy "${ACTIVE_SERVICE}" "${FALLBACK_SERVICE}" || return 1
+    if [[ "${DEPLOYED_SHA}" =~ ^[0-9a-f]{40}$ ]]; then
+      wait_for_proxy_revision "${DEPLOYED_SHA}" || return 1
+    else
+      wait_for_proxy_root || return 1
+    fi
+    TRAFFIC_CADDY_CONFIG_CHANGED="false"
+  fi
+
+  if traffic_report_is_healthy; then
+    return 0
+  fi
+
+  log "Repairing the missing or unhealthy aggregate traffic report service."
+  docker compose config --quiet || return 1
+  docker compose pull --policy always traffic-report || return 1
+  docker compose up -d --no-deps --force-recreate --pull never \
+    --wait --wait-timeout "${HEALTH_TIMEOUT}" traffic-report
 }
 
 configured_slot_bind() {
@@ -905,6 +1029,10 @@ refresh_non_site_images() {
   log "Pulling ancillary image updates without recreating the public Caddy edge."
   docker compose pull --policy always caddy traffic-report || return 1
 
+  log "Refreshing the aggregate traffic report service."
+  docker compose up -d --no-deps --force-recreate --pull never \
+    --wait --wait-timeout "${HEALTH_TIMEOUT}" traffic-report || return 1
+
   log "Rebuilding and refreshing the MCP service before site cutover."
   docker compose build --pull mcp-server || return 1
   docker compose up -d --no-deps --force-recreate --pull never \
@@ -1221,6 +1349,7 @@ main() {
   PROXY_SWITCH_ATTEMPTED="false"
   SWAP_ATTEMPTED="false"
   ROUTING_WITHDRAWN="false"
+  TRAFFIC_CADDY_CONFIG_CHANGED="false"
 
   load_deploy_state
   detect_proxy || die "No zero-downtime Caddy proxy is available."
@@ -1231,6 +1360,8 @@ main() {
       "${FALLBACK_SERVICE}" "${FALLBACK_SHA}" ||
       die "Could not initialize deployment state."
   fi
+  ensure_traffic_report_runtime ||
+    die "The aggregate traffic report service could not be prepared safely."
 
   while true; do
     fetch_branch || die "git fetch failed or exceeded ${GIT_TIMEOUT}s."
@@ -1309,6 +1440,12 @@ main() {
   git checkout -q "${BRANCH}" 2>/dev/null || git checkout -qb "${BRANCH}" "${REMOTE}/${BRANCH}"
   git reset --hard "${TARGET}"
   git clean -fd -e .env -e mcp-server.toml
+
+  prepare_traffic_report_source ||
+    fail_deployment "Traffic report source preparation failed; the active site was not changed." \
+      "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
+      "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
+      "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
 
   docker compose config --quiet ||
     fail_deployment "Docker Compose configuration is invalid." \
