@@ -311,23 +311,49 @@ container. Defaults are 10 MB times five files per container and can be
 changed with `SECURITY_RECIPES_LOG_MAX_SIZE` and
 `SECURITY_RECIPES_LOG_MAX_FILES` in `.env`.
 
-### Disk, freshness, and dead-man monitoring
+### Resource headroom, freshness, and dead-man monitoring
 
 Before any image build, `deploy.sh` requires at least 2048 MB free on the
 checkout filesystem. If space is low it removes only unused site image tags,
 dangling images, and build cache older than seven days. It reads both running
 slot image references first and never asks Docker to remove them. After a
-successful release it performs the same bounded cleanup. Configure these
-limits in `/etc/security-recipes/deploy.env`:
+successful release it performs the same bounded cleanup.
+
+The deploy also requires at least 1536 MB of `MemAvailable + SwapFree` before
+starting any image build. This is a fail-before-build guard: a small Droplet
+without enough RAM or swap keeps serving the current release instead of
+letting an Eleventy/Docker build starve the host. Configure these limits in
+`/etc/security-recipes/deploy.env`:
 
 ```ini
 DEPLOY_MIN_FREE_MB=2048
 # Optional override; the default is Docker's reported root directory.
 DEPLOY_DISK_PATH=
+DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536
 DEPLOY_BUILD_CACHE_MAX_AGE=168h
 DEPLOY_BUILD_CACHE_KEEP_STORAGE=5GB
 DEPLOY_CATALOG_MAX_AGE_HOURS=36
 ```
+
+For a small existing Droplet, add persistent swap once before enabling the
+timer (or resize the Droplet). These commands leave an existing `/swapfile`
+untouched and make a newly created one survive reboot:
+
+```bash
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+fi
+swapon --show=NAME --noheadings | grep -qx /swapfile || swapon /swapfile
+grep -qF '/swapfile none swap sw 0 0' /etc/fstab ||
+  printf '/swapfile none swap sw 0 0\n' >> /etc/fstab
+free -h
+```
+
+Do not lower the memory threshold merely to make a failed deploy proceed.
+Measure peak memory during a manual build, leave capacity for Caddy and both
+site slots, and prefer a larger Droplet when builds cause sustained swapping.
 
 Every successful unchanged or updated run checks the public
 `/api/cve-catalog/manifest.json` and rejects a missing, malformed,

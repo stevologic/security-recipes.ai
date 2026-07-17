@@ -62,6 +62,9 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   DEPLOY_CI_SETTLE_SECONDS  Stable-green window.     Default: 30
 #   DEPLOY_MIN_FREE_MB        Required free disk before a build. Default: 2048
 #   DEPLOY_DISK_PATH          Filesystem to check. Default: Docker root directory
+#   DEPLOY_MIN_AVAILABLE_MEMORY_MB
+#                           Required MemAvailable + SwapFree before a build.
+#                           Default: 1536
 #   DEPLOY_BUILD_CACHE_MAX_AGE  Age eligible for cache pruning. Default: 168h
 #   DEPLOY_BUILD_CACHE_KEEP_STORAGE  Minimum cache to retain. Default: 5GB
 #   DEPLOY_CATALOG_MAX_AGE_HOURS  Maximum live catalog age. Default: 36
@@ -95,6 +98,7 @@ CI_POLL_SECONDS="${DEPLOY_CI_POLL_SECONDS:-60}"
 CI_SETTLE_SECONDS="${DEPLOY_CI_SETTLE_SECONDS:-30}"
 MIN_FREE_MB="${DEPLOY_MIN_FREE_MB:-2048}"
 DISK_PATH="${DEPLOY_DISK_PATH:-}"
+MIN_AVAILABLE_MEMORY_MB="${DEPLOY_MIN_AVAILABLE_MEMORY_MB:-1536}"
 BUILD_CACHE_MAX_AGE="${DEPLOY_BUILD_CACHE_MAX_AGE:-168h}"
 BUILD_CACHE_KEEP_STORAGE="${DEPLOY_BUILD_CACHE_KEEP_STORAGE:-5GB}"
 CATALOG_MAX_AGE_HOURS="${DEPLOY_CATALOG_MAX_AGE_HOURS:-36}"
@@ -120,6 +124,8 @@ die() {
 [[ "${CI_POLL_SECONDS}" =~ ^[1-9][0-9]*$ ]] || die "DEPLOY_CI_POLL_SECONDS must be a positive integer."
 [[ "${CI_SETTLE_SECONDS}" =~ ^[0-9]+$ ]] || die "DEPLOY_CI_SETTLE_SECONDS must be a non-negative integer."
 [[ "${MIN_FREE_MB}" =~ ^[1-9][0-9]*$ ]] || die "DEPLOY_MIN_FREE_MB must be a positive integer."
+[[ "${MIN_AVAILABLE_MEMORY_MB}" =~ ^[1-9][0-9]*$ ]] ||
+  die "DEPLOY_MIN_AVAILABLE_MEMORY_MB must be a positive integer."
 if [[ -n "${DISK_PATH}" && "${DISK_PATH}" != /* ]]; then
   die "DEPLOY_DISK_PATH must be an absolute path."
 fi
@@ -986,6 +992,38 @@ ensure_disk_headroom() {
   log "Disk headroom passed: ${available_mb}MB free (minimum ${MIN_FREE_MB}MB)."
 }
 
+available_memory_mb() {
+  awk '
+    /^MemAvailable:/ { memory_kb = $2 }
+    /^SwapFree:/ { swap_kb = $2 }
+    END {
+      if (memory_kb == "" || swap_kb == "") {
+        exit 1
+      }
+      print int((memory_kb + swap_kb) / 1024)
+    }
+  ' /proc/meminfo
+}
+
+ensure_memory_headroom() {
+  local available_mb
+  available_mb="$(available_memory_mb)" || {
+    log "ERROR: Could not determine available memory and swap from /proc/meminfo."
+    return 1
+  }
+  [[ "${available_mb}" =~ ^[0-9]+$ ]] || {
+    log "ERROR: Unexpected available-memory value: ${available_mb}."
+    return 1
+  }
+
+  if (( available_mb < MIN_AVAILABLE_MEMORY_MB )); then
+    log "ERROR: Only ${available_mb}MB of memory plus free swap is available; ${MIN_AVAILABLE_MEMORY_MB}MB is required before building."
+    log "The active site was not changed. Add swap, resize the Droplet, or lower DEPLOY_MIN_AVAILABLE_MEMORY_MB only after measuring a safe build."
+    return 1
+  fi
+  log "Memory headroom passed: ${available_mb}MB available including free swap (minimum ${MIN_AVAILABLE_MEMORY_MB}MB)."
+}
+
 revision_is_marked_failed() {
   local revision="$1"
   [[ -f .git/deploy-failed-sha ]] &&
@@ -1251,6 +1289,8 @@ main() {
 
   ensure_disk_headroom ||
     die "Insufficient safe disk headroom; the active site was not changed."
+  ensure_memory_headroom ||
+    die "Insufficient safe memory/swap headroom; the active site was not changed."
 
   PREVIOUS_ACTIVE="${ACTIVE_SERVICE}"
   PREVIOUS_DEPLOYED_SHA="${DEPLOYED_SHA}"
