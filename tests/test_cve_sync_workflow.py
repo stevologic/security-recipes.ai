@@ -92,15 +92,18 @@ class CveSyncWorkflowTests(unittest.TestCase):
         restore_step = self.step("Restore verified NVD feed cache")
         save_step = self.step("Save verified and partial NVD feed cache")
 
-        self.assertIn(
-            "uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0",
+        restore_action = re.search(
+            r"uses: actions/cache/restore@([0-9a-f]{40}) # (v\d+\.\d+\.\d+)",
             restore_step,
         )
-        self.assertIn("path: tmp/nvd-cve-feeds", restore_step)
-        self.assertIn(
-            "uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0",
+        save_action = re.search(
+            r"uses: actions/cache/save@([0-9a-f]{40}) # (v\d+\.\d+\.\d+)",
             save_step,
         )
+        self.assertIsNotNone(restore_action)
+        self.assertIsNotNone(save_action)
+        self.assertEqual(restore_action.groups(), save_action.groups())
+        self.assertIn("path: tmp/nvd-cve-feeds", restore_step)
         self.assertRegex(save_step, r"(?m)^\s*if:\s*always\(\)\s*$")
         self.assertIn("path: tmp/nvd-cve-feeds", save_step)
         self.assertIn("${{ github.run_attempt }}", restore_step)
@@ -142,9 +145,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
     def test_manual_runs_upload_enrichment_results(self) -> None:
         artifact_step = self.step("Upload manual enrichment results")
 
-        self.assertIn(
-            "uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2",
+        self.assertRegex(
             artifact_step,
+            r"uses: actions/upload-artifact@[0-9a-f]{40} # v\d+\.\d+\.\d+",
         )
         self.assertIn("data/cve/ai-generated-recipes.json", artifact_step)
         self.assertIn("content/recipes/cve/ai-enrichment-cve-*.md", artifact_step)
@@ -178,28 +181,49 @@ class CveSyncWorkflowTests(unittest.TestCase):
             self.workflow.index("Quarantine suspicious catalog deltas"),
         )
 
-    def test_exact_sha_dispatch_and_quarantine_gate_control_auto_merge(self) -> None:
+    def test_exact_sha_delivery_catches_up_revalidates_and_merges_safely(self) -> None:
         auth_step = self.step("Detect GitHub App automation credentials")
-        validation_step = self.step(
-            "Dispatch and verify exact-SHA catalog validation"
+        delivery_step = self.step(
+            "Reconcile, validate, and merge exact catalog revision"
         )
-        merge_step = self.step("Enable catalog PR auto-merge")
         fail_step = self.step("Fail quarantined catalog refresh")
 
         self.assertIn("CVE_AUTOMATION_APP_ID", auth_step)
         self.assertIn("CVE_AUTOMATION_APP_PRIVATE_KEY", auth_step)
         self.assertIn("workflow_dispatch validation will be used", auth_step)
-        self.assertIn("gh workflow run cve-catalog-validate.yml", validation_step)
-        self.assertIn('--ref "$BRANCH"', validation_step)
-        self.assertIn("expected_sha=$EXPECTED_SHA", validation_step)
-        self.assertIn("headSha", validation_step)
-        self.assertIn('RUN_CONCLUSION" != "success', validation_step)
-        self.assertIn("steps.safety.outputs.safe_to_merge == 'true'", merge_step)
-        self.assertIn("steps.dispatched-validation.outcome == 'success'", merge_step)
-        self.assertIn("vars.CVE_AUTO_MERGE_ENABLED == 'true'", merge_step)
-        self.assertIn('gh pr merge "$PR_NUMBER"', merge_step)
-        self.assertIn('--match-head-commit "$EXPECTED_SHA"', merge_step)
-        self.assertNotIn("steps.automation-auth.outputs.app_configured", merge_step)
+        self.assertIn("MAX_DELIVERY_ATTEMPTS=5", delivery_step)
+        self.assertIn("gh workflow run cve-catalog-validate.yml", delivery_step)
+        self.assertIn('--ref "$GITHUB_DEFAULT_BRANCH"', delivery_step)
+        self.assertNotIn('--ref "$BRANCH"', delivery_step)
+        self.assertIn("expected_sha=$EXPECTED_SHA", delivery_step)
+        self.assertIn("pr_number=$PR_NUMBER", delivery_step)
+        self.assertIn("pulls/${PR_NUMBER}/update-branch", delivery_step)
+        self.assertIn("expected_head_sha=$EXPECTED_SHA", delivery_step)
+        self.assertIn("compare/${base_sha}...${expected_sha}", delivery_step)
+        self.assertIn("length == 2 and index($old) != null", delivery_step)
+        self.assertIn(
+            "compare/${requested_base_sha}...${new_sha}", delivery_step
+        )
+        self.assertIn("Main advanced during exact-SHA validation", delivery_step)
+        self.assertIn("dispatch_and_wait_for_validation", delivery_step)
+        self.assertIn("pulls/${PR_NUMBER}/merge", delivery_step)
+        self.assertIn('sha=$EXPECTED_SHA', delivery_step)
+        self.assertIn("AUTO_MERGE_ENABLED", delivery_step)
+        self.assertNotIn("--auto", delivery_step)
+        self.assertNotIn("--admin", delivery_step)
+        self.assertNotIn("git checkout", delivery_step)
+        self.assertLess(
+            delivery_step.index("pulls/${PR_NUMBER}/update-branch"),
+            delivery_step.rindex(
+                'dispatch_and_wait_for_validation "$DELIVERY_ATTEMPT"'
+            ),
+        )
+        self.assertLess(
+            delivery_step.rindex(
+                'dispatch_and_wait_for_validation "$DELIVERY_ATTEMPT"'
+            ),
+            delivery_step.index("pulls/${PR_NUMBER}/merge"),
+        )
         self.assertIn("steps.safety.outputs.safe_to_merge != 'true'", fail_step)
 
     def test_enrichment_health_issue_is_upserted_and_closed_on_recovery(self) -> None:
