@@ -67,7 +67,10 @@
   </nav>
 </div>
 <footer class="hextra-footer">
-  <div class="sr-footer-inner"><span>{{ site.footer.copyright }}</span><a href="/traffic/">Traffic</a></div>
+  <div class="sr-footer-inner">
+    <div class="sr-footer-meta"><span>{{ site.footer.copyright }}</span><a href="/traffic/">Traffic</a></div>
+    {% include "partials/footer-donations.njk" %}
+  </div>
 </footer>
 <script>
 (function () {
