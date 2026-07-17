@@ -31,6 +31,17 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         )
         self.assertIn("matches the required context emitted by build.yml", self.workflow)
 
+    def test_publishes_required_status_only_after_exact_sha_validation(self) -> None:
+        self.assertRegex(self.workflow, r"(?m)^\s{2}statuses: write\s*$")
+        self.assertIn('"repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}"', self.workflow)
+        self.assertIn("--raw-field state=success", self.workflow)
+        self.assertIn("--raw-field context=build", self.workflow)
+        self.assertIn("GH_TOKEN: ${{ github.token }}", self.workflow)
+        self.assertLess(
+            self.workflow.index("run: docker compose build"),
+            self.workflow.index("Publish exact-SHA required status"),
+        )
+
     def test_checkout_and_event_must_match_requested_sha(self) -> None:
         self.assertIn("ref: ${{ inputs.expected_sha }}", self.workflow)
         self.assertIn('ACTUAL_SHA="$(git rev-parse HEAD)"', self.workflow)
