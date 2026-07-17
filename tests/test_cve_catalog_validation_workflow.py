@@ -23,6 +23,11 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         )
         self.assertIn("expected_sha:", self.workflow)
         self.assertIn("request_id:", self.workflow)
+        self.assertIn("pr_number:", self.workflow)
+        self.assertIn(
+            "run-name: CVE catalog validation ${{ inputs.request_id }} @ ${{ inputs.expected_sha }}",
+            self.workflow,
+        )
 
     def test_emits_the_existing_required_build_context(self) -> None:
         self.assertRegex(
@@ -32,20 +37,34 @@ class CveCatalogValidationWorkflowTests(unittest.TestCase):
         self.assertIn("matches the required context emitted by build.yml", self.workflow)
 
     def test_publishes_required_status_only_after_exact_sha_validation(self) -> None:
-        self.assertRegex(self.workflow, r"(?m)^\s{2}statuses: write\s*$")
+        validate_job, publish_job = self.workflow.split("\n  publish:\n", 1)
+
+        self.assertNotIn("statuses: write", validate_job)
+        self.assertIn("needs: validate", publish_job)
+        self.assertRegex(publish_job, r"(?m)^\s{6}statuses: write\s*$")
+        self.assertIn("pull-requests: read", publish_job)
+        self.assertNotIn("actions/checkout", publish_job)
+        self.assertNotIn("npm ", publish_job)
+        self.assertNotIn("python", publish_job)
+        self.assertNotIn("docker ", publish_job)
+        self.assertIn("HEAD_REPOSITORY", publish_job)
+        self.assertIn("HEAD_BRANCH", publish_job)
+        self.assertIn("HEAD_SHA", publish_job)
+        self.assertIn("BASE_BRANCH", publish_job)
         self.assertIn('"repos/${GITHUB_REPOSITORY}/statuses/${EXPECTED_SHA}"', self.workflow)
         self.assertIn("--raw-field state=success", self.workflow)
         self.assertIn("--raw-field context=build", self.workflow)
         self.assertIn("GH_TOKEN: ${{ github.token }}", self.workflow)
         self.assertLess(
             self.workflow.index("run: docker compose build"),
-            self.workflow.index("Publish exact-SHA required status"),
+            self.workflow.index("publish-required-status"),
         )
 
-    def test_checkout_and_event_must_match_requested_sha(self) -> None:
+    def test_checkout_must_match_requested_sha(self) -> None:
         self.assertIn("ref: ${{ inputs.expected_sha }}", self.workflow)
         self.assertIn('ACTUAL_SHA="$(git rev-parse HEAD)"', self.workflow)
-        self.assertIn('"$GITHUB_SHA" != "$EXPECTED_SHA"', self.workflow)
+        self.assertIn('"$ACTUAL_SHA" != "$EXPECTED_SHA"', self.workflow)
+        self.assertNotIn('"$GITHUB_SHA" != "$EXPECTED_SHA"', self.workflow)
 
     def test_validation_is_build_equivalent(self) -> None:
         expected_commands = (
