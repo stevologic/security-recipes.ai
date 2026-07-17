@@ -50,7 +50,7 @@ services:
     # API-loaded blue/green order is autosaved in caddy_config and resumed
     # after a container or host restart. --config remains the first-start
     # fallback when no autosave exists yet.
-    command: ["run", "--resume", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+    command: ["caddy", "run", "--resume", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
     ports:
       - "80:80"
       - "443:443"

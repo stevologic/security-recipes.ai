@@ -86,7 +86,11 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("SECURITY_RECIPES_GREEN_HTTP_PORT:-127.0.0.1:8081", compose)
         self.assertIn('"80:80"', compose)
         self.assertIn('"443:443"', compose)
-        self.assertIn('"--resume"', compose)
+        self.assertIn(
+            'command: ["caddy", "run", "--resume", "--config", '
+            '"/etc/caddy/Caddyfile", "--adapter", "caddyfile"]',
+            compose,
+        )
         self.assertNotIn("condition: service_healthy", compose)
 
     def test_compose_bounds_logs_and_health_checks_the_edge(self) -> None:
