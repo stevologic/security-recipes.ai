@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DEPLOY_SCRIPT = ROOT / "deploy.sh"
 COMPOSE_FILE = ROOT / "docker-compose.yml"
 CADDYFILE = ROOT / "docker" / "caddy" / "Caddyfile"
+NGINX_CONFIG = ROOT / "docker" / "nginx" / "default.conf"
+TRAFFIC_REPORT_SCRIPT = ROOT / "docker" / "goaccess" / "generate-traffic-report.sh"
+TRAFFIC_REPORT_PLACEHOLDER = ROOT / "docker" / "goaccess" / "traffic-initializing.html"
 DOCKERFILE = ROOT / "Dockerfile"
 SETUP_SCRIPT = ROOT / "scripts" / "setup_digitalocean_droplet.sh"
 BACKUP_SCRIPT = ROOT / "scripts" / "backup_droplet_config.sh"
@@ -45,6 +48,7 @@ class DeployScriptStaticTests(unittest.TestCase):
                 str(DEPLOY_SCRIPT),
                 str(SETUP_SCRIPT),
                 str(BACKUP_SCRIPT),
+                str(TRAFFIC_REPORT_SCRIPT),
             ],
             check=True,
         )
@@ -94,6 +98,97 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertGreaterEqual(compose.count("logging: *security-recipes-logging"), 4)
         self.assertIn("http://127.0.0.1:2019/config/", compose)
 
+    def test_traffic_report_has_a_stable_entrypoint_and_atomic_publication(self) -> None:
+        compose = COMPOSE_FILE.read_text(encoding="utf-8")
+        generator = TRAFFIC_REPORT_SCRIPT.read_text(encoding="utf-8")
+        nginx = NGINX_CONFIG.read_text(encoding="utf-8")
+        deploy = DEPLOY_SCRIPT.read_text(encoding="utf-8")
+        refresh = deploy[
+            deploy.index("refresh_non_site_images() {") : deploy.index(
+                "cleanup_site_images() {"
+            )
+        ]
+
+        self.assertIn(
+            'entrypoint: ["/bin/sh", "/opt/security-recipes/generate-traffic-report.sh"]',
+            compose,
+        )
+        self.assertNotIn('entrypoint: ["/bin/sh", "-c"]', compose)
+        self.assertIn("test -s /report/index.html && test -s /report/.generator-healthy", compose)
+        self.assertIn("./docker/goaccess:/opt/security-recipes:ro", compose)
+        self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE:-caddy_logs", compose)
+        self.assertIn("publish_placeholder", generator)
+        self.assertIn('.index.next.$$.html\"', generator)
+        self.assertIn('mv -f "${next_report}" "${REPORT_FILE}"', generator)
+        self.assertIn("--no-query-string", generator)
+        self.assertIn("--anonymize-level=3", generator)
+        self.assertIn("--ignore-panel=HOSTS", generator)
+        self.assertIn("--ignore-panel=REFERRERS", generator)
+        self.assertIn("location = /traffic/", nginx)
+        self.assertIn("try_files /traffic/index.html =404", nginx)
+        self.assertNotIn('[[ "${PROXY_KIND}" == "bundled" ]]', refresh)
+        self.assertIn("--wait --wait-timeout", refresh)
+        self.assertIn("traffic-report || return 1", refresh)
+        self.assertIn("prepare_traffic_report_source", deploy)
+        self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE", deploy)
+        self.assertIn("output file ${log_path}", deploy)
+
+    def test_compose_preserves_the_traffic_report_entrypoint(self) -> None:
+        docker = shutil.which("docker")
+        if not docker:
+            self.skipTest("Docker Compose is not installed")
+
+        result = subprocess.run(
+            [docker, "compose", "--profile", "caddy", "config", "--format", "json"],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+        service = json.loads(result.stdout)["services"]["traffic-report"]
+        self.assertEqual(
+            service["entrypoint"],
+            ["/bin/sh", "/opt/security-recipes/generate-traffic-report.sh"],
+        )
+        self.assertIsNone(service.get("command"))
+        self.assertEqual(
+            service["healthcheck"]["test"],
+            [
+                "CMD-SHELL",
+                "test -s /report/index.html && test -s /report/.generator-healthy",
+            ],
+        )
+
+    @unittest.skipIf(os.name == "nt", "POSIX path behavior is covered on Linux CI")
+    def test_traffic_report_publishes_an_immediate_placeholder(self) -> None:
+        if not BASH:
+            self.skipTest("bash is not installed")
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            report = root / "report"
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "TRAFFIC_LOG_FILE": str(root / "missing-access.log"),
+                    "TRAFFIC_REPORT_DIR": str(report),
+                    "TRAFFIC_REPORT_PLACEHOLDER": str(TRAFFIC_REPORT_PLACEHOLDER),
+                }
+            )
+            subprocess.run(
+                [BASH, str(TRAFFIC_REPORT_SCRIPT), "--once"],
+                text=True,
+                capture_output=True,
+                check=True,
+                env=environment,
+            )
+
+            published = report / "index.html"
+            self.assertTrue(published.is_file())
+            self.assertGreater(published.stat().st_size, 0)
+            self.assertIn("Traffic report is warming up", published.read_text())
+            self.assertTrue((report / ".generator-healthy").is_file())
+
     def test_setup_installs_single_systemd_scheduler_and_backup_timer(self) -> None:
         setup = SETUP_SCRIPT.read_text(encoding="utf-8")
 
@@ -107,6 +202,9 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("remove_legacy_deploy_cron", setup)
         self.assertIn("index($0, deploy) == 0", setup)
         self.assertIn("DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536", setup)
+        self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=${CADDY_LOG_DIR}", setup)
+        self.assertIn("output file ${CADDY_LOG_DIR}/access.log", setup)
+        self.assertIn("compose_cmd up -d --no-deps --wait traffic-report", setup)
 
     def test_deploy_has_resource_freshness_and_success_heartbeat_guards(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
@@ -232,6 +330,17 @@ class DeployScriptIntegrationTests(unittest.TestCase):
         )
         shutil.copy2(DEPLOY_SCRIPT, self.repo / "deploy.sh")
         shutil.copy2(CADDYFILE, self.repo / "docker" / "caddy" / "Caddyfile")
+        self.host_caddyfile = self.repo / "host-Caddyfile"
+        self.host_caddyfile.write_text(
+            "# Managed by security-recipes.ai setup script.\n"
+            "security-recipes.test {\n"
+            "\tencode zstd gzip\n"
+            "\treverse_proxy "
+            "{$SECURITY_RECIPES_PRIMARY_UPSTREAM:http://127.0.0.1:18080} "
+            "{$SECURITY_RECIPES_FALLBACK_UPSTREAM:http://127.0.0.1:18081}\n"
+            "}\n",
+            encoding="utf-8",
+        )
         (self.repo / ".env").write_text(
             "SECURITY_RECIPES_BASE_URL=http://proxy.test/\n"
             "SECURITY_RECIPES_HTTP_PORT=127.0.0.1:18080\n"
@@ -317,6 +426,10 @@ if [[ "${1:-}" == "inspect" ]]; then
     printf '%s\n' "${FAKE_CADDY_CMD:-[\"run\",\"--resume\",\"--config\",\"/etc/caddy/Caddyfile\",\"--adapter\",\"caddyfile\"]}"
     exit 0
   fi
+  if [[ "$*" == *".State.Health"* && "${@: -1}" == "traffic-report-id" ]]; then
+    printf '%s\n' "${FAKE_TRAFFIC_HEALTH:-healthy}"
+    exit 0
+  fi
   case "${@: -1}" in
     blue-id) printf '%s\n' "${FAKE_BLUE_IMAGE:-legacy-blue}" ;;
     green-id) printf '%s\n' "${FAKE_GREEN_IMAGE:-legacy-green}" ;;
@@ -336,7 +449,9 @@ case "${1:-}" in
     exit 0
     ;;
   ps)
-    if [[ "$*" == *"caddy"* ]]; then
+    if [[ "$*" == *"traffic-report"* && "${FAKE_TRAFFIC_RUNNING:-true}" != "false" ]]; then
+      printf '%s\n' 'traffic-report-id'
+    elif [[ "$*" == *"caddy"* && "${FAKE_BUNDLED_CADDY:-true}" != "false" ]]; then
       printf '%s\n' 'caddy-id'
     elif [[ "$*" == *"security-recipes-green"* ]]; then
       printf '%s\n' 'green-id'
@@ -405,7 +520,7 @@ case "${1:-}" in
           printf '%s' "${FAKE_CANDIDATE_HEALTH:-1}" > "$FAKE_GREEN_HEALTH"
         fi
         ;;
-      mcp-server)
+      traffic-report|mcp-server)
         ;;
       *)
         printf 'unscoped compose up: %s\n' "$*" >> "$FAKE_OUTAGE"
@@ -417,6 +532,67 @@ case "${1:-}" in
 esac
 
 exit 0
+""",
+        )
+        self.write_executable(
+            "systemctl",
+            r"""#!/usr/bin/env bash
+set -eu
+case "${1:-}" in
+  is-active)
+    exit 0
+    ;;
+  show)
+    if [[ "$*" == *"ExecStart"* ]]; then
+      printf '%s\n' '/usr/bin/caddy run --environ --resume --config /etc/caddy/Caddyfile'
+    fi
+    exit 0
+    ;;
+esac
+exit 0
+""",
+        )
+        self.write_executable(
+            "caddy",
+            r"""#!/usr/bin/env bash
+set -eu
+printf 'caddy %s\n' "$*" >> "$FAKE_COMMAND_LOG"
+if [[ "${1:-}" == "reload" ]]; then
+  case "${SECURITY_RECIPES_PRIMARY_UPSTREAM:-}" in
+    *18080) printf '%s' 'security-recipes' > "$FAKE_PROXY_ACTIVE" ;;
+    *18081) printf '%s' 'security-recipes-green' > "$FAKE_PROXY_ACTIVE" ;;
+  esac
+  case "${SECURITY_RECIPES_FALLBACK_UPSTREAM:-}" in
+    *18080) printf '%s' 'security-recipes' > "$FAKE_PROXY_FALLBACK" ;;
+    *18081) printf '%s' 'security-recipes-green' > "$FAKE_PROXY_FALLBACK" ;;
+    '') printf '%s' '' > "$FAKE_PROXY_FALLBACK" ;;
+  esac
+fi
+exit 0
+""",
+        )
+        self.write_executable(
+            "getent",
+            r"""#!/usr/bin/env bash
+set -eu
+if [[ "${1:-}" == "passwd" && "${2:-}" == "caddy" ]]; then
+  printf '%s\n' 'caddy:x:999:999:Caddy:/var/lib/caddy:/usr/sbin/nologin'
+  exit 0
+fi
+exit 2
+""",
+        )
+        self.write_executable(
+            "install",
+            r"""#!/usr/bin/env bash
+set -eu
+if [[ " $* " == *" -d "* ]]; then
+  mkdir -p "${@: -1}"
+  exit 0
+fi
+source_path="${@: -2:1}"
+destination="${@: -1}"
+cp "$source_path" "$destination"
 """,
         )
         self.write_executable(
@@ -606,6 +782,12 @@ exit 0
         self.assertEqual(self.deploy_state()["deployed_sha"], "b" * 40)
         self.assert_no_outage()
         commands = self.commands()
+        traffic_report_up = (
+            "docker compose up -d --no-deps --force-recreate --pull never "
+            "--wait --wait-timeout 2 traffic-report"
+        )
+        self.assertEqual(commands.count(traffic_report_up), 1)
+        traffic_report_index = commands.index(traffic_report_up)
         build_index = next(
             index
             for index, command in enumerate(commands)
@@ -621,9 +803,61 @@ exit 0
             for index, command in enumerate(commands)
             if "PRIMARY_UPSTREAM=security-recipes-green:80" in command
         )
+        self.assertLess(traffic_report_index, build_index)
         self.assertLess(build_index, up_index)
         self.assertLess(up_index, switch_index)
         self.assertFalse(any(command.endswith(" caddy") and "compose up" in command for command in commands))
+
+    def test_traffic_report_failure_stops_before_site_mutation(self) -> None:
+        self.workflow_response()
+
+        result = self.run_deploy(
+            FAKE_DOCKER_FAIL_MATCH=(
+                "compose up -d --no-deps --force-recreate --pull never "
+                "--wait --wait-timeout 2 traffic-report"
+            )
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.blue_revision.read_text(), "a" * 40)
+        self.assertEqual(self.green_revision.read_text(), "a" * 40)
+        self.assertEqual(self.current_sha.read_text(), "a" * 40)
+        self.assertFalse(
+            any(
+                "compose build --pull security-recipes" in command
+                for command in self.commands()
+            )
+        )
+        self.assert_no_outage()
+
+    def test_host_caddy_is_migrated_and_runs_the_traffic_report(self) -> None:
+        self.workflow_response()
+        host_log_dir = self.repo / "host-caddy-logs"
+
+        result = self.run_deploy(
+            DEPLOY_PROXY_MODE="host",
+            DEPLOY_HOST_CADDYFILE=str(self.host_caddyfile),
+            DEPLOY_HOST_CADDY_LOG_DIR=str(host_log_dir),
+            FAKE_BUNDLED_CADDY="false",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn(
+            f"output file {host_log_dir}/access.log",
+            self.host_caddyfile.read_text(),
+        )
+        self.assertIn(
+            f"SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE={host_log_dir}",
+            (self.repo / ".env").read_text(),
+        )
+        self.assertTrue(
+            any(
+                "compose up -d --no-deps --force-recreate --pull never" in command
+                and command.endswith("traffic-report")
+                for command in self.commands()
+            )
+        )
+        self.assert_no_outage()
 
     def test_next_release_alternates_into_blue_without_touching_active_green(self) -> None:
         self.workflow_response()
@@ -707,6 +941,29 @@ exit 0
         self.assertFalse(any("compose build" in command for command in commands))
         self.assertFalse(any("compose up" in command for command in commands))
         self.assertFalse(any("compose exec" in command for command in commands))
+        self.assert_no_outage()
+
+    def test_unchanged_release_repairs_a_missing_traffic_report(self) -> None:
+        self.target_sha.write_text("a" * 40)
+
+        result = self.run_deploy(FAKE_TRAFFIC_RUNNING="false")
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        commands = self.commands()
+        self.assertEqual(
+            sum(
+                "compose up -d --no-deps --force-recreate --pull never" in command
+                and command.endswith("traffic-report")
+                for command in commands
+            ),
+            1,
+        )
+        self.assertFalse(
+            any(
+                "compose build --pull security-recipes" in command
+                for command in commands
+            )
+        )
         self.assert_no_outage()
 
     def test_unchanged_healthy_release_sends_success_heartbeat(self) -> None:
