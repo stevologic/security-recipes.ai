@@ -188,7 +188,7 @@ class CveSyncWorkflowTests(unittest.TestCase):
         )
         fail_step = self.step("Fail quarantined catalog refresh")
 
-        self.assertIn("CVE_AUTOMATION_APP_ID", auth_step)
+        self.assertIn("CVE_AUTOMATION_APP_CLIENT_ID", auth_step)
         self.assertIn("CVE_AUTOMATION_APP_PRIVATE_KEY", auth_step)
         self.assertIn("workflow_dispatch validation will be used", auth_step)
         self.assertIn("MAX_DELIVERY_ATTEMPTS=5", delivery_step)

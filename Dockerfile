@@ -25,7 +25,7 @@
 
 
 # ----- Stage 1 : builder ----------------------------------------------------
-FROM node:22-bookworm-slim AS builder
+FROM node:24-bookworm-slim AS builder
 
 # BASE_URL defaults to a plain-root host (http://localhost/) so the image
 # works out of the box when served from `/` — e.g. `docker run -p 3000:80`
