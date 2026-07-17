@@ -19,6 +19,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
 <link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/css/footer-donations.css">
 <style>
   :root {
     --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
@@ -1982,10 +1983,16 @@
   }
 
   .footer-inner {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
     justify-content: space-between;
     gap: 20px;
     font-size: 0.94rem;
+  }
+
+  .footer-inner > .crypto-donations {
+    grid-column: 1 / -1;
   }
 
   .footer a {
@@ -2002,6 +2009,7 @@
   .footer-nav {
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px 22px;
     font-weight: 560;
   }
@@ -2299,7 +2307,11 @@
     }
 
     .footer-inner {
-      flex-direction: column;
+      grid-template-columns: 1fr;
+    }
+
+    .footer-nav {
+      justify-content: flex-start;
     }
   }
 
@@ -2800,6 +2812,7 @@ Rules:
         <a href="/docs/">Docs</a>
         <a href="https://github.com/stevologic/security-recipes.ai">GitHub</a>
       </nav>
+      {% include "partials/footer-donations.njk" %}
     </div>
   </footer>
 
