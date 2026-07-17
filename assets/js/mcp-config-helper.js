@@ -36,13 +36,25 @@
   }
 
   function shellQuote(value) {
-    return String(value).replace(/"/g, '\\"');
+    return "'" + String(value).replace(/'/g, "'\"'\"'") + "'";
+  }
+
+  function tomlString(value) {
+    return '"' + String(value)
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\u0008/g, '\\b')
+      .replace(/\t/g, '\\t')
+      .replace(/\n/g, '\\n')
+      .replace(/\f/g, '\\f')
+      .replace(/\r/g, '\\r')
+      .replace(/[\u0000-\u0007\u000b\u000e-\u001f\u007f]/g, function (character) {
+        return '\\u' + character.charCodeAt(0).toString(16).padStart(4, '0');
+      }) + '"';
   }
 
   function tomlArray(values) {
-    return '[' + values.map(function (value) {
-      return '"' + String(value).replace(/"/g, '\\"') + '"';
-    }).join(', ') + ']';
+    return '[' + values.map(tomlString).join(', ') + ']';
   }
 
   function composeEnv(config) {
@@ -61,9 +73,9 @@
   function standaloneToml(config) {
     return [
       '# Use this when the MCP server runs outside docker compose.',
-      'source_index_url = "' + config.feedUrl + '"',
+      'source_index_url = ' + tomlString(config.feedUrl),
       'allowed_source_hosts = ' + tomlArray(config.publicAllowedHosts),
-      'server_public_base_url = "' + config.mcpUrl + '"',
+      'server_public_base_url = ' + tomlString(config.mcpUrl),
       'cache_ttl_seconds = 3600',
       'request_timeout_seconds = 15',
       'max_results_default = 8',
@@ -77,7 +89,7 @@
       'docker compose ps',
       '',
       '# Confirm the site recipe feed is reachable from this browser host',
-      'curl -fsS "' + shellQuote(config.feedUrl) + '" | head',
+      'curl -fsS ' + shellQuote(config.feedUrl) + ' | head',
       '',
       '# In an MCP client, try these tools next',
       'recipes_server_info',
@@ -204,9 +216,23 @@
     document.querySelectorAll('[data-mcp-config-helper]').forEach(init);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAll);
-  } else {
-    initAll();
+  var api = {
+    healthChecks: healthChecks,
+    shellQuote: shellQuote,
+    standaloneToml: standaloneToml,
+    tomlArray: tomlArray,
+    tomlString: tomlString
+  };
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = api;
+  }
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAll);
+    } else {
+      initAll();
+    }
   }
 })();

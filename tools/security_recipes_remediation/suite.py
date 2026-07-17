@@ -22,6 +22,203 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DOMAIN_REGISTRY = REPO_ROOT / "data" / "remediation_suite" / "domains.json"
 DEFAULT_LOCAL_RECIPES = REPO_ROOT / "public" / "api" / "recipes.json"
 DEFAULT_REMOTE_RECIPES = "https://security-recipes.ai/api/recipes.json"
+REDACTION_MARKER = "[REDACTED]"
+
+_SENSITIVE_KEY_NAMES = frozenset(
+    {
+        "api_key",
+        "api_token",
+        "apikey",
+        "access_key",
+        "access_key_id",
+        "account_key",
+        "authorization",
+        "aws_access_key_id",
+        "aws_secret_access_key",
+        "bearer_token",
+        "client_secret",
+        "connection_string",
+        "cookie",
+        "credential",
+        "credential_json",
+        "credentials",
+        "credentials_json",
+        "database_url",
+        "database_dsn",
+        "db_pass",
+        "dsn",
+        "encryption_key",
+        "id_token",
+        "master_key",
+        "password",
+        "passwd",
+        "passphrase",
+        "private_key",
+        "private_key_data",
+        "proxy_authorization",
+        "pwd",
+        "refresh_token",
+        "secret",
+        "secret_access_key",
+        "secret_key",
+        "secret_value",
+        "service_account_key",
+        "service_account_json",
+        "session",
+        "session_cookie",
+        "session_id",
+        "set_cookie",
+        "signing_key",
+        "signing_secret",
+        "ssh_key",
+        "token",
+        "webhook_secret",
+    }
+)
+_SENSITIVE_KEY_SUFFIXES = (
+    "_access_token",
+    "_account_key",
+    "_api_key",
+    "_api_token",
+    "_auth_token",
+    "_client_secret",
+    "_credential",
+    "_credential_json",
+    "_credentials",
+    "_credentials_json",
+    "_password",
+    "_passphrase",
+    "_passwd",
+    "_pwd",
+    "_private_key",
+    "_refresh_token",
+    "_secret",
+    "_secret_access_key",
+    "_access_key",
+    "_access_key_id",
+    "_encryption_key",
+    "_dsn",
+    "_master_key",
+    "_private_key_data",
+    "_secret_value",
+    "_service_account_key",
+    "_service_account_json",
+    "_session_token",
+    "_signing_key",
+    "_ssh_key",
+    "_token",
+)
+_SENSITIVE_COMPACT_KEY_NAMES = frozenset(
+    {
+        "dbpass",
+        "pgpass",
+    }
+)
+_SENSITIVE_COMPACT_KEY_SUFFIXES = (
+    "accesskey",
+    "accesskeyid",
+    "accesstoken",
+    "accountkey",
+    "apikey",
+    "apitoken",
+    "authorization",
+    "authtoken",
+    "bearertoken",
+    "clientsecret",
+    "connectionstring",
+    "credentialjson",
+    "credentials",
+    "credentialsjson",
+    "databasedsn",
+    "databaseurl",
+    "encryptionkey",
+    "masterkey",
+    "passphrase",
+    "passwd",
+    "password",
+    "privatekey",
+    "privatekeydata",
+    "proxyauthorization",
+    "pwd",
+    "refreshtoken",
+    "secret",
+    "secretaccesskey",
+    "secretvalue",
+    "serviceaccountjson",
+    "serviceaccountkey",
+    "sessioncookie",
+    "sessiontoken",
+    "signingkey",
+    "signingsecret",
+    "sshkey",
+    "token",
+    "webhooksecret",
+)
+_SENSITIVE_STRONG_KEY_TOKENS = frozenset(
+    {
+        "bearer",
+        "credential",
+        "credentials",
+        "passphrase",
+        "passwd",
+        "password",
+        "pwd",
+        "secret",
+    }
+)
+_SENSITIVE_KEY_TOKEN_PAIRS = (
+    frozenset({"access", "key"}),
+    frozenset({"account", "key"}),
+    frozenset({"api", "key"}),
+    frozenset({"basic", "auth"}),
+    frozenset({"encryption", "key"}),
+    frozenset({"master", "key"}),
+    frozenset({"private", "key"}),
+)
+_BENIGN_METADATA_KEY_SUFFIXES = (
+    "_algorithm",
+    "_count",
+    "_detected",
+    "_enabled",
+    "_method",
+    "_type",
+)
+_PEM_PRIVATE_KEY_RE = re.compile(
+    r"-----BEGIN(?: [A-Z0-9]+)* PRIVATE KEY-----.*?"
+    r"-----END(?: [A-Z0-9]+)* PRIVATE KEY-----",
+    re.IGNORECASE | re.DOTALL,
+)
+_SENSITIVE_HEADER_RE = re.compile(
+    r"(\b(?:authorization|proxy-authorization|cookie|set-cookie)\s*:\s*)[^\r\n]+",
+    re.IGNORECASE,
+)
+_CREDENTIAL_URL_RE = re.compile(
+    r"\b([a-z][a-z0-9+.-]*://[^/\s:@]+:)([^@\s/]+)(@)",
+    re.IGNORECASE,
+)
+_BEARER_RE = re.compile(r"(\bbearer\s+)([A-Za-z0-9._~+/=-]{6,})", re.IGNORECASE)
+_LINE_BREAK_RE = re.compile(r"[\r\n]")
+_ASSIGNMENT_PREFIX_RE = re.compile(
+    r"""(?<![A-Za-z0-9_.-])(?P<key>
+        \\+"[^"\r\n]{1,128}\\+" |
+        \\+'[^'\r\n]{1,128}\\+' |
+        "(?:\\.|[^"\\]){1,128}" |
+        '(?:\\.|[^'\\]){1,128}' |
+        [A-Za-z][A-Za-z0-9_.-]{0,127}
+    )(?P<separator>\s*[:=]\s*)""",
+    re.VERBOSE,
+)
+_KNOWN_SECRET_RE = re.compile(
+    r"\b(?:"
+    r"github_pat_[A-Za-z0-9_]{20,}|"
+    r"gh[pousr]_[A-Za-z0-9]{20,}|"
+    r"sk-[A-Za-z0-9_-]{16,}|"
+    r"AKIA[0-9A-Z]{16}|"
+    r"AIza[0-9A-Za-z_-]{35}|"
+    r"xox[baprs]-[A-Za-z0-9-]{10,}|"
+    r"eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}"
+    r")\b"
+)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -49,6 +246,164 @@ class Finding:
             json.dumps(self.raw, sort_keys=True, default=str)[:6000],
         ]
         return " ".join(part for part in parts if part).lower()
+
+
+def redact_sensitive_data(value: Any) -> Any:
+    """Return a JSON-compatible copy with credential material removed.
+
+    Findings often originate in scanner exports that contain request headers,
+    environment variables, or full connection strings. Remediation packets are
+    designed for cross-system handoff, so they must never carry those values.
+    """
+
+    if isinstance(value, dict):
+        redacted: dict[Any, Any] = {}
+        for key, item in value.items():
+            if _is_sensitive_key(key) and item is not None and not isinstance(item, bool):
+                redacted[key] = REDACTION_MARKER
+            else:
+                redacted[key] = redact_sensitive_data(item)
+        return redacted
+    if isinstance(value, (list, tuple, set)):
+        return [redact_sensitive_data(item) for item in value]
+    if isinstance(value, bytes):
+        return REDACTION_MARKER
+    if isinstance(value, str):
+        return _redact_sensitive_text(value)
+    return value
+
+
+def _is_sensitive_key(key: Any) -> bool:
+    raw_key = str(key).strip()
+    snake_key = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", raw_key)
+    snake_key = re.sub(r"(?<=[A-Z])(?=[A-Z][a-z])", "_", snake_key)
+    normalized = re.sub(r"[^a-z0-9]+", "_", snake_key.lower()).strip("_")
+    if not normalized:
+        return False
+    compact = normalized.replace("_", "")
+    if (
+        normalized in _SENSITIVE_KEY_NAMES
+        or normalized.endswith(_SENSITIVE_KEY_SUFFIXES)
+        or compact in _SENSITIVE_COMPACT_KEY_NAMES
+        or compact.endswith(_SENSITIVE_COMPACT_KEY_SUFFIXES)
+    ):
+        return True
+    if normalized.endswith(_BENIGN_METADATA_KEY_SUFFIXES):
+        return False
+    tokens = frozenset(normalized.split("_"))
+    return bool(tokens & _SENSITIVE_STRONG_KEY_TOKENS) or any(
+        pair.issubset(tokens) for pair in _SENSITIVE_KEY_TOKEN_PAIRS
+    )
+
+
+def _redact_sensitive_text(value: str) -> str:
+    redacted = _PEM_PRIVATE_KEY_RE.sub(REDACTION_MARKER, value)
+    redacted = _SENSITIVE_HEADER_RE.sub(rf"\1{REDACTION_MARKER}", redacted)
+    redacted = _CREDENTIAL_URL_RE.sub(rf"\1{REDACTION_MARKER}\3", redacted)
+    redacted = _BEARER_RE.sub(rf"\1{REDACTION_MARKER}", redacted)
+    redacted = _KNOWN_SECRET_RE.sub(REDACTION_MARKER, redacted)
+    return _redact_secret_assignments(redacted)
+
+
+def _redact_secret_assignments(value: str) -> str:
+    """Redact sensitive key/value assignments in JSON, env, and free text."""
+
+    chunks: list[str] = []
+    cursor = 0
+    search_from = 0
+    while True:
+        match = _ASSIGNMENT_PREFIX_RE.search(value, search_from)
+        if match is None:
+            chunks.append(value[cursor:])
+            break
+
+        raw_key = match.group("key")
+        key = _decode_assignment_key(raw_key)
+        if not _is_sensitive_key(key):
+            search_from = match.end()
+            continue
+
+        value_start = match.end()
+        if value_start >= len(value):
+            chunks.append(value[cursor:])
+            break
+
+        chunks.append(value[cursor:value_start])
+        chunks.append(REDACTION_MARKER)
+
+        line_break = _LINE_BREAK_RE.search(value, value_start)
+        line_end = line_break.start() if line_break is not None else len(value)
+
+        # YAML block scalars place the credential on following indented lines.
+        # Consume the bounded block as well as the indicator line.
+        scalar_indicator = value[value_start:line_end].strip()
+        cursor = line_end
+        if scalar_indicator.startswith(("|", ">")):
+            cursor = _yaml_block_end(value, line_end, match.start())
+        search_from = cursor
+    return "".join(chunks)
+
+
+def _decode_assignment_key(raw_key: str) -> str:
+    """Decode bounded JSON escapes in a quoted assignment key."""
+
+    quote_positions = [index for index, character in enumerate(raw_key) if character in {'"', "'"}]
+    key = raw_key
+    if len(quote_positions) >= 2:
+        key = raw_key[quote_positions[0] + 1 : quote_positions[-1]]
+    for _ in range(3):
+        decoded = re.sub(
+            r"\\u([0-9a-fA-F]{4})",
+            lambda match: chr(int(match.group(1), 16)),
+            key,
+        )
+        decoded = decoded.replace(r"\"", '"').replace(r"\'", "'").replace(r"\\", "\\")
+        if decoded == key:
+            break
+        key = decoded
+    return key
+
+
+def _yaml_block_end(value: str, indicator_line_end: int, assignment_start: int) -> int:
+    """Return the end of an indented YAML block following a secret key."""
+
+    line_start = max(value.rfind("\n", 0, assignment_start), value.rfind("\r", 0, assignment_start)) + 1
+    base_indent = len(value[line_start:assignment_start]) - len(
+        value[line_start:assignment_start].lstrip(" \t")
+    )
+    cursor = indicator_line_end
+    block_end = indicator_line_end
+    while cursor < len(value):
+        if value.startswith("\r\n", cursor):
+            newline_width = 2
+        elif value[cursor] in "\r\n":
+            newline_width = 1
+        else:
+            break
+        next_start = cursor + newline_width
+        next_break = _LINE_BREAK_RE.search(value, next_start)
+        next_end = next_break.start() if next_break is not None else len(value)
+        line = value[next_start:next_end]
+        if line.strip():
+            indent = len(line) - len(line.lstrip(" \t"))
+            if indent <= base_indent:
+                break
+        block_end = next_end
+        cursor = next_end
+    return block_end
+
+
+def _redacted_finding(finding: Finding) -> Finding:
+    return Finding(
+        finding_id=str(redact_sensitive_data(finding.finding_id)),
+        title=str(redact_sensitive_data(finding.title)),
+        source=str(redact_sensitive_data(finding.source)),
+        severity=str(redact_sensitive_data(finding.severity)),
+        asset=str(redact_sensitive_data(finding.asset)),
+        location=str(redact_sensitive_data(finding.location)),
+        description=str(redact_sensitive_data(finding.description)),
+        raw=redact_sensitive_data(finding.raw),
+    )
 
 
 def load_domain_registry(path: str | Path | None = None) -> dict[str, Any]:
@@ -264,9 +619,10 @@ def build_remediation_packet(
     recipes = import_recipes(recipe_source)
     selected_findings = findings or []
     primary = selected_findings[0] if selected_findings else _empty_finding()
-    domain_scores = score_domains(registry, primary)
-    recipe_matches = match_recipes(recipes, domain, primary, limit=max_recipes)
-    prompt = build_agent_prompt(domain, primary, recipe_matches, ecosystem)
+    safe_primary = _redacted_finding(primary)
+    domain_scores = score_domains(registry, safe_primary)
+    recipe_matches = match_recipes(recipes, domain, safe_primary, limit=max_recipes)
+    prompt = build_agent_prompt(domain, safe_primary, recipe_matches, ecosystem)
     compatible_tooling = select_enterprise_tooling(domain, tooling or [])
     now = dt.datetime.now(dt.timezone.utc).isoformat()
     packet: dict[str, Any] = {
@@ -304,9 +660,9 @@ def build_remediation_packet(
             "prompt": prompt,
             "guardrail_summary": summarize_guardrails(domain),
         },
-        "llm_assist": build_llm_assist(domain, primary, prompt, llm_config or {}, llm_mode),
+        "llm_assist": build_llm_assist(domain, safe_primary, prompt, llm_config or {}, llm_mode),
     }
-    return packet
+    return redact_sensitive_data(packet)
 
 
 def score_domains(registry: dict[str, Any], finding: Finding) -> list[dict[str, Any]]:
@@ -534,7 +890,7 @@ def load_llm_config(path: str | Path | None) -> dict[str, Any]:
 
 
 def write_packet(packet: dict[str, Any], output_path: str | Path | None) -> None:
-    text = json.dumps(packet, indent=2, sort_keys=True)
+    text = json.dumps(redact_sensitive_data(packet), indent=2, sort_keys=True)
     if not output_path or str(output_path) == "-":
         print(text)
         return
@@ -544,7 +900,7 @@ def write_packet(packet: dict[str, Any], output_path: str | Path | None) -> None
 
 
 def _finding_summary(finding: Finding) -> dict[str, Any]:
-    return dataclasses.asdict(finding) | {"raw": finding.raw}
+    return dataclasses.asdict(_redacted_finding(finding))
 
 
 def _domain_summary(domain: dict[str, Any]) -> dict[str, Any]:

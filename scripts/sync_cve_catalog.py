@@ -1872,6 +1872,14 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--offline", action="store_true", help="Use only cached NVD and KEV inputs.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and validate sources without writing catalog files.")
     parser.add_argument("--limit", type=int, help="Development-only cap after normalization.")
+    parser.add_argument(
+        "--run-report",
+        type=Path,
+        help=(
+            "Write the non-secret synchronization summary as JSON for automation "
+            "health checks."
+        ),
+    )
     return parser.parse_args(argv)
 
 
@@ -2048,28 +2056,31 @@ def main(argv: list[str] | None = None) -> int:
         generated_recipe_summary = generated_recipes.reconcile()
     write_summary = write_outputs(output_dir, outputs, dry_run=args.dry_run)
     enrichment_cache_changed = enrichment_cache.write(dry_run=args.dry_run)
-    print(
-        json.dumps(
-            {
-                "scope": manifest["scope"],
-                "totals": manifest["totals"],
-                "output": str(output_dir),
-                "writes": write_summary,
-                "ai_enrichment": {
-                    **enrichment_cache.stats,
-                    "cache": str(enrichment_cache_path),
-                    "cache_changed": enrichment_cache_changed,
-                    "api_enabled": openai_client is not None,
-                },
-                "generated_recipes": {
-                    **generated_recipe_summary,
-                    "manifest": str(generated_recipe_manifest_path),
-                },
-                "dry_run": args.dry_run,
-            },
-            indent=2,
-        )
-    )
+    run_report = {
+        "scope": manifest["scope"],
+        "totals": manifest["totals"],
+        "output": str(output_dir),
+        "writes": write_summary,
+        "ai_enrichment": {
+            **enrichment_cache.stats,
+            "cache": str(enrichment_cache_path),
+            "cache_changed": enrichment_cache_changed,
+            "api_enabled": openai_client is not None,
+        },
+        "generated_recipes": {
+            **generated_recipe_summary,
+            "manifest": str(generated_recipe_manifest_path),
+        },
+        "dry_run": args.dry_run,
+    }
+    if args.run_report is not None:
+        report_path = resolve_path(args.run_report)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_payload = json.dumps(run_report, indent=2, sort_keys=True) + "\n"
+        temporary_report = report_path.with_suffix(report_path.suffix + ".tmp")
+        temporary_report.write_text(report_payload, encoding="utf-8")
+        os.replace(temporary_report, report_path)
+    print(json.dumps(run_report, indent=2))
     return 0
 
 

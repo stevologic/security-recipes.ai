@@ -1,0 +1,58 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+concurrency:
+  group: dependabot-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  enable-auto-merge:
+    if: >-
+      github.actor == 'dependabot[bot]' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.base.ref == 'main' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # This workflow never checks out or executes pull-request code. That is
+      # required because pull_request_target has a write-capable token.
+      - name: Read verified Dependabot metadata
+        id: dependabot
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ github.token }}
+
+      - name: Enable auto-merge for verified patch and minor updates
+        # fetch-metadata reports Dependabot's internal package-manager names.
+        if: >-
+          steps.dependabot.outputs.target-branch == 'main' &&
+          steps.dependabot.outputs.maintainer-changes == 'false' &&
+          (
+            steps.dependabot.outputs.package-ecosystem == 'npm_and_yarn' ||
+            steps.dependabot.outputs.package-ecosystem == 'pip' ||
+            steps.dependabot.outputs.package-ecosystem == 'docker' ||
+            steps.dependabot.outputs.package-ecosystem == 'docker_compose' ||
+            steps.dependabot.outputs.package-ecosystem == 'github_actions'
+          ) &&
+          (
+            steps.dependabot.outputs.update-type == 'version-update:semver-patch' ||
+            steps.dependabot.outputs.update-type == 'version-update:semver-minor'
+          )
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"
