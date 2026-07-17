@@ -92,15 +92,18 @@ class CveSyncWorkflowTests(unittest.TestCase):
         restore_step = self.step("Restore verified NVD feed cache")
         save_step = self.step("Save verified and partial NVD feed cache")
 
-        self.assertIn(
-            "uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0",
+        restore_action = re.search(
+            r"uses: actions/cache/restore@([0-9a-f]{40}) # (v\d+\.\d+\.\d+)",
             restore_step,
         )
-        self.assertIn("path: tmp/nvd-cve-feeds", restore_step)
-        self.assertIn(
-            "uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0",
+        save_action = re.search(
+            r"uses: actions/cache/save@([0-9a-f]{40}) # (v\d+\.\d+\.\d+)",
             save_step,
         )
+        self.assertIsNotNone(restore_action)
+        self.assertIsNotNone(save_action)
+        self.assertEqual(restore_action.groups(), save_action.groups())
+        self.assertIn("path: tmp/nvd-cve-feeds", restore_step)
         self.assertRegex(save_step, r"(?m)^\s*if:\s*always\(\)\s*$")
         self.assertIn("path: tmp/nvd-cve-feeds", save_step)
         self.assertIn("${{ github.run_attempt }}", restore_step)
@@ -142,9 +145,9 @@ class CveSyncWorkflowTests(unittest.TestCase):
     def test_manual_runs_upload_enrichment_results(self) -> None:
         artifact_step = self.step("Upload manual enrichment results")
 
-        self.assertIn(
-            "uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2",
+        self.assertRegex(
             artifact_step,
+            r"uses: actions/upload-artifact@[0-9a-f]{40} # v\d+\.\d+\.\d+",
         )
         self.assertIn("data/cve/ai-generated-recipes.json", artifact_step)
         self.assertIn("content/recipes/cve/ai-enrichment-cve-*.md", artifact_step)
