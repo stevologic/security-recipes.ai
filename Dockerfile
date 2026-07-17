@@ -87,7 +87,7 @@ RUN SECURITY_RECIPES_BASE_URL="${BASE_URL}" \
 
 
 # ----- Stage 2 : runtime ----------------------------------------------------
-FROM nginx:1.27-alpine AS runtime
+FROM nginx:1.31-alpine AS runtime
 ARG REVISION="bootstrap"
 
 LABEL org.opencontainers.image.title="security-recipes.ai" \
