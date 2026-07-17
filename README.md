@@ -300,12 +300,12 @@ The runtime paths are deliberately bounded for catalog-scale traffic:
   and shard-set hashes rather than an upstream timestamp.
 
 The bundled production Compose service defaults
-`RECIPES_MCP_EAGER_CVE_SEARCH=true`, building the shared text index before it
-accepts traffic so the first title/ecosystem query does not pay the cold-start
-cost. Exact-only deployments can set it to `false` for minimal startup time and
-memory. For sustained novel-search traffic, run multiple MCP instances behind
-a session-aware load balancer; exact lookups remain isolated from the bounded
-text-search worker and queue.
+`RECIPES_MCP_EAGER_CVE_SEARCH=false`, leaving the shared text index lazy so a
+1 CPU / 2 GB host keeps predictable startup and memory headroom. Set it to
+`true` when the host has measured capacity and the first title/ecosystem query
+must avoid the cold-start cost. For sustained novel-search traffic, run
+multiple MCP instances behind a session-aware load balancer; exact lookups
+remain isolated from the bounded text-search worker and queue.
 
 Run `npm run icons` after changing the site mark. It regenerates the opaque
 Apple touch icon and the 192/512/maskable installed-app assets checked by the
@@ -480,14 +480,18 @@ command -v docker-compose
 docker-compose version
 ```
 
-If the site build is killed with exit code `137` during the `npx eleventy`
-step, the droplet is out of memory. Add temporary swap before rebuilding:
+Production deploys pull commit-addressed site and MCP images published by the
+required GitHub Actions `Build` workflow. The Droplet does not run Node,
+Eleventy, pip, or Docker image builds during a deploy, which keeps deployment
+within a 1 CPU / 2 GB memory envelope.
+
+The first successful `main` workflow creates two GHCR packages. Make them
+public, or authenticate the root account used by the deployment service with a
+fine-grained token that can read packages:
 
 ```bash
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
+printf '%s' "$GHCR_READ_TOKEN" |
+  sudo docker login ghcr.io --username stevologic --password-stdin
 ```
 
 ## MCP integration philosophy

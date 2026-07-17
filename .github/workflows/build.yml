@@ -98,8 +98,71 @@ jobs:
           ! grep -q "203.0.113.42" "${report_dir}/index.html"
           ! grep -q "203.0.113.0" "${report_dir}/index.html"
 
-      - name: Build Docker images
+      - name: Validate deployment image builds
         env:
           SECURITY_RECIPES_BASE_URL: ${{ steps.site.outputs.base_url }}
           SECURITY_RECIPES_REPO_URL: "https://github.com/${{ github.repository }}"
-        run: docker compose build
+        run: |
+          IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SITE_IMAGE="${IMAGE_PREFIX}-site:${GITHUB_SHA}"
+          MCP_IMAGE="${IMAGE_PREFIX}-mcp:${GITHUB_SHA}"
+          docker build \
+            --build-arg "BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
+            --build-arg "REPO_URL=${SECURITY_RECIPES_REPO_URL}" \
+            --build-arg "REVISION=${GITHUB_SHA}" \
+            --tag "${SITE_IMAGE}" .
+          docker build \
+            --file Dockerfile.mcp-server \
+            --build-arg "REVISION=${GITHUB_SHA}" \
+            --tag "${MCP_IMAGE}" .
+
+  publish:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Compute production baseURL
+        id: site
+        run: |
+          if [ -s "static/CNAME" ]; then
+            HOST="$(grep -v '^[[:space:]]*$' static/CNAME | head -n1 | tr -d '[:space:]')"
+            BASE_URL="https://${HOST}/"
+          else
+            BASE_URL="https://security-recipes.ai/"
+          fi
+          echo "base_url=${BASE_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Build immutable deployment images
+        env:
+          SECURITY_RECIPES_BASE_URL: ${{ steps.site.outputs.base_url }}
+          SECURITY_RECIPES_REPO_URL: "https://github.com/${{ github.repository }}"
+        run: |
+          IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
+          docker build \
+            --build-arg "BASE_URL=${SECURITY_RECIPES_BASE_URL}" \
+            --build-arg "REPO_URL=${SECURITY_RECIPES_REPO_URL}" \
+            --build-arg "REVISION=${GITHUB_SHA}" \
+            --tag "${IMAGE_PREFIX}-site:${GITHUB_SHA}" .
+          docker build \
+            --file Dockerfile.mcp-server \
+            --build-arg "REVISION=${GITHUB_SHA}" \
+            --tag "${IMAGE_PREFIX}-mcp:${GITHUB_SHA}" .
+
+      - name: Publish immutable deployment images
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: |
+          IMAGE_PREFIX="ghcr.io/${GITHUB_REPOSITORY,,}"
+          printf '%s' "${GHCR_TOKEN}" |
+            docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
+          docker push "${IMAGE_PREFIX}-site:${GITHUB_SHA}"
+          docker push "${IMAGE_PREFIX}-mcp:${GITHUB_SHA}"

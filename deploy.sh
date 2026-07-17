@@ -24,23 +24,23 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #      without a failure, including the required Build workflow.
 #   3. Hard-resets the checkout to origin/main (local edits are discarded;
 #      .env and mcp-server.toml are preserved).
-#   4. Builds a commit-tagged image for the inactive blue/green site slot while
-#      the active slot keeps serving every request.
+#   4. Pulls CI-built, commit-tagged site and MCP images and verifies their
+#      revision labels while the active site keeps serving every request.
 #   5. Withdraws that slot from Caddy, replaces it, and admits it again only
 #      after its exact commit marker is verified directly.
 #   6. Gracefully switches Caddy and retains only a revision-verified previous
 #      release as the warm fallback.
 #   7. Verifies the exact commit marker through the local HTTPS proxy before
 #      recording success; routing rolls back immediately on failure.
-#   8. Prunes unused images and old build cache without touching either
-#      running slot, so the disk does not fill up over time.
+#   8. Prunes unused images without touching either running slot, so the disk
+#      does not fill up over time.
 #   9. Verifies catalog freshness and sends an optional success heartbeat.
 #
 # Root crontab example (`sudo crontab -e`; no username column):
 #   */15 * * * * /opt/security-recipes.ai/deploy.sh >> /var/log/security-recipes-deploy.log 2>&1
 #
 # Options / environment overrides:
-#   --force            Rebuild and redeploy even when HEAD did not change.
+#   --force            Pull and redeploy even when HEAD did not change.
 #   DEPLOY_PATH        Complete executable search path. Default: current PATH + Ubuntu paths
 #   DEPLOY_BRANCH      Branch to track.               Default: main
 #   DEPLOY_REMOTE      Git remote to fetch.           Default: origin
@@ -52,8 +52,10 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   DEPLOY_PROXY_MODE       auto, bundled, or host.    Default: auto
 #   DEPLOY_HOST_CADDYFILE   Host Caddy config path.    Default: /etc/caddy/Caddyfile
 #   DEPLOY_HOST_CADDY_LOG_DIR Host Caddy access-log directory. Default: /var/log/caddy
-#   DEPLOY_SITE_IMAGE_REPOSITORY Commit-tagged image repository.
-#                                                   Default: security-recipes-ai-site
+#   DEPLOY_SITE_IMAGE_REPOSITORY CI-published, commit-tagged site repository.
+#                           Default: ghcr.io/stevologic/security-recipes.ai-site
+#   DEPLOY_MCP_IMAGE_REPOSITORY CI-published, commit-tagged MCP repository.
+#                           Default: ghcr.io/stevologic/security-recipes.ai-mcp
 #   DEPLOY_GITHUB_REPOSITORY  owner/repo override; normally derived from the remote.
 #   DEPLOY_GITHUB_API_URL     GitHub REST API base.    Default: https://api.github.com
 #   DEPLOY_GITHUB_REQUEST_TIMEOUT  Seconds per GitHub API request. Default: 30
@@ -61,11 +63,11 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #   DEPLOY_CI_TIMEOUT         Seconds to wait for CI.  Default: 1800
 #   DEPLOY_CI_POLL_SECONDS    Seconds between polls.   Default: 60
 #   DEPLOY_CI_SETTLE_SECONDS  Stable-green window.     Default: 30
-#   DEPLOY_MIN_FREE_MB        Required free disk before a build. Default: 2048
+#   DEPLOY_MIN_FREE_MB        Required free disk before deployment. Default: 2048
 #   DEPLOY_DISK_PATH          Filesystem to check. Default: Docker root directory
 #   DEPLOY_MIN_AVAILABLE_MEMORY_MB
-#                           Required MemAvailable + SwapFree before a build.
-#                           Default: 1536
+#                           Required MemAvailable + SwapFree before pulling and
+#                           replacing an inactive container. Default: 256
 #   DEPLOY_BUILD_CACHE_MAX_AGE  Age eligible for cache pruning. Default: 168h
 #   DEPLOY_BUILD_CACHE_KEEP_STORAGE  Minimum cache to retain. Default: 5GB
 #   DEPLOY_CATALOG_MAX_AGE_HOURS  Maximum live catalog age. Default: 36
@@ -87,7 +89,8 @@ PROXY_HEALTH_URL="${DEPLOY_PROXY_HEALTH_URL:-${DEPLOY_HEALTH_URL:-}}"
 PROXY_MODE="${DEPLOY_PROXY_MODE:-auto}"
 HOST_CADDYFILE="${DEPLOY_HOST_CADDYFILE:-/etc/caddy/Caddyfile}"
 HOST_CADDY_LOG_DIR="${DEPLOY_HOST_CADDY_LOG_DIR:-/var/log/caddy}"
-SITE_IMAGE_REPOSITORY="${DEPLOY_SITE_IMAGE_REPOSITORY:-security-recipes-ai-site}"
+SITE_IMAGE_REPOSITORY="${DEPLOY_SITE_IMAGE_REPOSITORY:-ghcr.io/stevologic/security-recipes.ai-site}"
+MCP_IMAGE_REPOSITORY="${DEPLOY_MCP_IMAGE_REPOSITORY:-ghcr.io/stevologic/security-recipes.ai-mcp}"
 BLUE_SERVICE="security-recipes"
 GREEN_SERVICE="security-recipes-green"
 STATE_FILE="${DEPLOY_STATE_FILE:-${REPO_DIR}/.git/deploy-state}"
@@ -100,7 +103,7 @@ CI_POLL_SECONDS="${DEPLOY_CI_POLL_SECONDS:-60}"
 CI_SETTLE_SECONDS="${DEPLOY_CI_SETTLE_SECONDS:-30}"
 MIN_FREE_MB="${DEPLOY_MIN_FREE_MB:-2048}"
 DISK_PATH="${DEPLOY_DISK_PATH:-}"
-MIN_AVAILABLE_MEMORY_MB="${DEPLOY_MIN_AVAILABLE_MEMORY_MB:-1536}"
+MIN_AVAILABLE_MEMORY_MB="${DEPLOY_MIN_AVAILABLE_MEMORY_MB:-256}"
 BUILD_CACHE_MAX_AGE="${DEPLOY_BUILD_CACHE_MAX_AGE:-168h}"
 BUILD_CACHE_KEEP_STORAGE="${DEPLOY_BUILD_CACHE_KEEP_STORAGE:-5GB}"
 CATALOG_MAX_AGE_HOURS="${DEPLOY_CATALOG_MAX_AGE_HOURS:-36}"
@@ -154,6 +157,8 @@ fi
   die "DEPLOY_HOST_CADDY_LOG_DIR must be a safe absolute child path."
 [[ "${SITE_IMAGE_REPOSITORY}" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ ]] ||
   die "DEPLOY_SITE_IMAGE_REPOSITORY contains unsupported characters."
+[[ "${MCP_IMAGE_REPOSITORY}" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ ]] ||
+  die "DEPLOY_MCP_IMAGE_REPOSITORY contains unsupported characters."
 
 # --- single-instance guard (flock on Linux, mkdir fallback elsewhere) -------
 if command -v flock >/dev/null 2>&1; then
@@ -1001,14 +1006,30 @@ run_slot_compose() {
   esac
 }
 
-build_candidate() {
+verify_image_revision() {
+  local image="$1"
+  local expected_revision="$2"
+  local actual_revision
+
+  actual_revision="$(
+    docker inspect \
+      --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' \
+      "${image}" 2>/dev/null || true
+  )"
+  if [[ "${actual_revision}" != "${expected_revision}" ]]; then
+    log "ERROR: ${image} declares revision ${actual_revision:-missing}; expected ${expected_revision}."
+    return 1
+  fi
+}
+
+pull_candidate() {
   local service="$1"
   local image="$2"
   local revision="$3"
 
-  log "Building ${image} for inactive slot ${service}; the active site remains untouched."
-  run_slot_compose "${service}" "${image}" "${revision}" \
-    build --pull "${service}"
+  log "Pulling CI-built ${image} for inactive slot ${service}; the active site remains untouched."
+  docker pull "${image}" || return 1
+  verify_image_revision "${image}" "${revision}"
 }
 
 start_candidate() {
@@ -1026,6 +1047,9 @@ start_candidate() {
 }
 
 refresh_non_site_images() {
+  local revision="$1"
+  local mcp_image="${MCP_IMAGE_REPOSITORY}:${revision}"
+
   log "Pulling ancillary image updates without recreating the public Caddy edge."
   docker compose pull --policy always caddy traffic-report || return 1
 
@@ -1033,10 +1057,12 @@ refresh_non_site_images() {
   docker compose up -d --no-deps --force-recreate --pull never \
     --wait --wait-timeout "${HEALTH_TIMEOUT}" traffic-report || return 1
 
-  log "Rebuilding and refreshing the MCP service before site cutover."
-  docker compose build --pull mcp-server || return 1
-  docker compose up -d --no-deps --force-recreate --pull never \
-    --wait --wait-timeout "${HEALTH_TIMEOUT}" mcp-server || return 1
+  log "Pulling and refreshing the CI-built MCP service before site cutover."
+  docker pull "${mcp_image}" || return 1
+  verify_image_revision "${mcp_image}" "${revision}" || return 1
+  RECIPES_MCP_IMAGE="${mcp_image}" \
+    docker compose up -d --no-deps --force-recreate --pull never \
+      --wait --wait-timeout "${HEALTH_TIMEOUT}" mcp-server || return 1
 }
 
 cleanup_site_images() {
@@ -1114,7 +1140,7 @@ ensure_disk_headroom() {
 
   if [[ ! "${available_mb}" =~ ^[0-9]+$ ]] ||
      (( available_mb < MIN_FREE_MB )); then
-    log "ERROR: Only ${available_mb:-unknown}MB is free; ${MIN_FREE_MB}MB is required before building."
+    log "ERROR: Only ${available_mb:-unknown}MB is free; ${MIN_FREE_MB}MB is required before deploying."
     return 1
   fi
   log "Disk headroom passed: ${available_mb}MB free (minimum ${MIN_FREE_MB}MB)."
@@ -1145,8 +1171,8 @@ ensure_memory_headroom() {
   }
 
   if (( available_mb < MIN_AVAILABLE_MEMORY_MB )); then
-    log "ERROR: Only ${available_mb}MB of memory plus free swap is available; ${MIN_AVAILABLE_MEMORY_MB}MB is required before building."
-    log "The active site was not changed. Add swap, resize the Droplet, or lower DEPLOY_MIN_AVAILABLE_MEMORY_MB only after measuring a safe build."
+    log "ERROR: Only ${available_mb}MB of memory plus free swap is available; ${MIN_AVAILABLE_MEMORY_MB}MB is required for a safe pull-only deployment."
+    log "The active site was not changed. Stop nonessential workloads or resize the Droplet before deploying."
     return 1
   fi
   log "Memory headroom passed: ${available_mb}MB available including free swap (minimum ${MIN_AVAILABLE_MEMORY_MB}MB)."
@@ -1453,17 +1479,17 @@ main() {
       "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
       "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
 
-  # Pulling/building does not touch either site slot or the public edge.
-  refresh_non_site_images ||
+  # Pulling does not touch either site slot or the public edge.
+  refresh_non_site_images "${TARGET}" ||
     fail_deployment "Ancillary image preparation failed; the active site was not changed." \
       "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
       "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
       "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
 
-  # Image construction cannot affect the running fallback, so keep both known-
-  # good slots eligible until the candidate image is ready.
-  build_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}" ||
-    fail_deployment "The inactive candidate image could not be built; the active site was not changed." \
+  # Pulling the candidate cannot affect the running fallback, so keep both
+  # known-good slots eligible until the revision-labelled image is ready.
+  pull_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}" ||
+    fail_deployment "The CI-built inactive candidate image could not be pulled and verified; the active site was not changed." \
       "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
       "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
       "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"

@@ -53,7 +53,7 @@ class DeployScriptStaticTests(unittest.TestCase):
             check=True,
         )
 
-    def test_ci_gate_precedes_checkout_and_candidate_build(self) -> None:
+    def test_ci_gate_precedes_checkout_and_candidate_pull(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
         main = source[source.index("main() {") :]
 
@@ -72,7 +72,7 @@ class DeployScriptStaticTests(unittest.TestCase):
         )
         self.assertLess(
             main.index('git reset --hard "${TARGET}"'),
-            main.index('build_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'),
+            main.index('pull_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'),
         )
 
     def test_compose_defines_two_isolated_site_slots(self) -> None:
@@ -205,7 +205,12 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("Persistent=true", setup)
         self.assertIn("remove_legacy_deploy_cron", setup)
         self.assertIn("index($0, deploy) == 0", setup)
-        self.assertIn("DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536", setup)
+        self.assertIn("DEPLOY_MIN_AVAILABLE_MEMORY_MB=256", setup)
+        self.assertIn("DEPLOY_SITE_IMAGE_REPOSITORY=ghcr.io/", setup)
+        self.assertIn("DEPLOY_MCP_IMAGE_REPOSITORY=ghcr.io/", setup)
+        self.assertIn("compose_cmd up -d --no-build", setup)
+        self.assertNotIn("compose_cmd up -d --build", setup)
+        self.assertIn("DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536' \"${DEPLOY_ENV_FILE}\"", setup)
         self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=${CADDY_LOG_DIR}", setup)
         self.assertIn("output file ${CADDY_LOG_DIR}/access.log", setup)
         self.assertIn("compose_cmd up -d --no-deps --wait traffic-report", setup)
@@ -216,7 +221,7 @@ class DeployScriptStaticTests(unittest.TestCase):
 
         self.assertIn('MIN_FREE_MB="${DEPLOY_MIN_FREE_MB:-2048}"', source)
         self.assertIn(
-            'MIN_AVAILABLE_MEMORY_MB="${DEPLOY_MIN_AVAILABLE_MEMORY_MB:-1536}"',
+            'MIN_AVAILABLE_MEMORY_MB="${DEPLOY_MIN_AVAILABLE_MEMORY_MB:-256}"',
             source,
         )
         self.assertIn("ensure_disk_headroom", source)
@@ -227,7 +232,7 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertLess(
             main.index("ensure_memory_headroom"),
             main.index(
-                'build_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'
+                'pull_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'
             ),
         )
         self.assertIn("docker builder prune --help", source)
@@ -238,6 +243,9 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("validate_catalog_freshness", source)
         self.assertIn("catalog_updated_at", source)
         self.assertIn("send_success_heartbeat", source)
+        self.assertNotIn("docker compose build", source)
+        self.assertIn('docker pull "${image}"', source)
+        self.assertIn("org.opencontainers.image.revision", source)
 
     def test_backup_requires_encryption_before_off_host_upload(self) -> None:
         source = BACKUP_SCRIPT.read_text(encoding="utf-8")
@@ -282,8 +290,8 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("public/.well-known/deploy-revision", dockerfile)
         self.assertIn('org.opencontainers.image.revision="${REVISION}"', dockerfile)
         self.assertIn('CANDIDATE_IMAGE="${SITE_IMAGE_REPOSITORY}:${TARGET}"', main)
-        build = main.index(
-            'build_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'
+        pull = main.index(
+            'pull_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'
         )
         withdraw = main.index('switch_proxy "${PREVIOUS_ACTIVE}" ""')
         start = main.index(
@@ -297,7 +305,7 @@ class DeployScriptStaticTests(unittest.TestCase):
             'write_deploy_state \\\n'
             '    "${CANDIDATE_SERVICE}" "${TARGET}"'
         )
-        self.assertLess(build, withdraw)
+        self.assertLess(pull, withdraw)
         self.assertLess(withdraw, start)
         self.assertLess(start, cutover)
         self.assertLess(cutover, verify)
@@ -426,6 +434,10 @@ if [[ -n "${FAKE_DOCKER_FAIL_MATCH:-}" && "$*" == *"${FAKE_DOCKER_FAIL_MATCH}"* 
 fi
 
 if [[ "${1:-}" == "inspect" ]]; then
+  if [[ "$*" == *"org.opencontainers.image.revision"* ]]; then
+    cat "$FAKE_TARGET_SHA"
+    exit 0
+  fi
   if [[ "$*" == *".Config.Cmd"* && "${@: -1}" == "caddy-id" ]]; then
     printf '%s\n' "${FAKE_CADDY_CMD:-[\"run\",\"--resume\",\"--config\",\"/etc/caddy/Caddyfile\",\"--adapter\",\"caddyfile\"]}"
     exit 0
@@ -792,10 +804,12 @@ exit 0
         )
         self.assertEqual(commands.count(traffic_report_up), 1)
         traffic_report_index = commands.index(traffic_report_up)
-        build_index = next(
+        pull_index = next(
             index
             for index, command in enumerate(commands)
-            if "compose build --pull security-recipes-green" in command
+            if command.startswith(
+                "docker pull ghcr.io/stevologic/security-recipes.ai-site:"
+            )
         )
         up_index = next(
             index
@@ -807,8 +821,8 @@ exit 0
             for index, command in enumerate(commands)
             if "PRIMARY_UPSTREAM=security-recipes-green:80" in command
         )
-        self.assertLess(traffic_report_index, build_index)
-        self.assertLess(build_index, up_index)
+        self.assertLess(traffic_report_index, pull_index)
+        self.assertLess(pull_index, up_index)
         self.assertLess(up_index, switch_index)
         self.assertFalse(any(command.endswith(" caddy") and "compose up" in command for command in commands))
 
@@ -1124,11 +1138,11 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
         self.assertIn("returned workflow runs outside", result.stdout)
         self.assertFalse(any("compose up" in command for command in self.commands()))
 
-    def test_candidate_build_failure_keeps_blue_active(self) -> None:
+    def test_candidate_pull_failure_keeps_blue_active(self) -> None:
         self.workflow_response()
 
         result = self.run_deploy(
-            FAKE_DOCKER_FAIL_MATCH="compose build --pull security-recipes-green"
+            FAKE_DOCKER_FAIL_MATCH="pull ghcr.io/stevologic/security-recipes.ai-site:"
         )
 
         self.assertNotEqual(result.returncode, 0)
