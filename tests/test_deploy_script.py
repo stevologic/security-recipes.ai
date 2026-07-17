@@ -106,12 +106,28 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("Persistent=true", setup)
         self.assertIn("remove_legacy_deploy_cron", setup)
         self.assertIn("index($0, deploy) == 0", setup)
+        self.assertIn("DEPLOY_MIN_AVAILABLE_MEMORY_MB=1536", setup)
 
-    def test_deploy_has_disk_freshness_and_success_heartbeat_guards(self) -> None:
+    def test_deploy_has_resource_freshness_and_success_heartbeat_guards(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
+        main = source[source.index("main() {") :]
 
         self.assertIn('MIN_FREE_MB="${DEPLOY_MIN_FREE_MB:-2048}"', source)
+        self.assertIn(
+            'MIN_AVAILABLE_MEMORY_MB="${DEPLOY_MIN_AVAILABLE_MEMORY_MB:-1536}"',
+            source,
+        )
         self.assertIn("ensure_disk_headroom", source)
+        self.assertIn("ensure_memory_headroom", source)
+        self.assertIn("/proc/meminfo", source)
+        self.assertIn("MemAvailable:", source)
+        self.assertIn("SwapFree:", source)
+        self.assertLess(
+            main.index("ensure_memory_headroom"),
+            main.index(
+                'build_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'
+            ),
+        )
         self.assertIn("docker builder prune --help", source)
         self.assertIn("--reserved-space", source)
         self.assertIn("--keep-storage", source)
@@ -538,6 +554,7 @@ exit 0
                 "DEPLOY_CI_POLL_SECONDS": "1",
                 "DEPLOY_CI_SETTLE_SECONDS": "0",
                 "DEPLOY_HEALTH_TIMEOUT": "2",
+                "DEPLOY_MIN_AVAILABLE_MEMORY_MB": "1",
                 "FAKE_COMMAND_LOG": str(self.command_log),
                 "FAKE_CURRENT_SHA": str(self.current_sha),
                 "FAKE_TARGET_SHA": str(self.target_sha),
@@ -762,6 +779,20 @@ printf 'fake 10000000 9999000 %s 99%% /\n' "${FAKE_FREE_KB:-1024}"
         )
         self.assertFalse(any("compose build" in command for command in self.commands()))
         self.assertFalse(any("compose up" in command for command in self.commands()))
+        self.assert_no_outage()
+
+    def test_low_memory_stops_before_any_build_or_cutover(self) -> None:
+        self.workflow_response()
+
+        result = self.run_deploy(
+            DEPLOY_MIN_AVAILABLE_MEMORY_MB="999999999"
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Insufficient safe memory/swap headroom", result.stdout)
+        self.assertFalse(any("compose build" in command for command in self.commands()))
+        self.assertFalse(any("compose up" in command for command in self.commands()))
+        self.assertFalse(any("compose exec" in command for command in self.commands()))
         self.assert_no_outage()
 
     def test_unverified_recorded_fallback_is_withdrawn_before_unchanged_exit(self) -> None:
