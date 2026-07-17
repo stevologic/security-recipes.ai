@@ -1,0 +1,90 @@
+.crypto-donations {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.crypto-donations__label {
+  margin-right: 2px;
+  color: #9aa6b6;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.crypto-donations .crypto-donation {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #d8e0ea;
+  text-decoration: none;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.crypto-donations .crypto-donation:hover {
+  border-color: rgba(45, 212, 191, 0.55);
+  background: rgba(45, 212, 191, 0.08);
+  color: #f5fffd;
+}
+
+.crypto-donations .crypto-donation:focus-visible {
+  border-color: rgba(45, 212, 191, 0.72);
+  background: rgba(45, 212, 191, 0.08);
+  color: #f5fffd;
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}
+
+.crypto-donation__coin {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.crypto-donation--btc .crypto-donation__coin {
+  color: #ffad55;
+}
+
+.crypto-donation--doge .crypto-donation__coin {
+  color: #e0c45b;
+}
+
+.crypto-donation__address {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9ba7b7;
+  font: 500 0.64rem/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .crypto-donations {
+    align-items: stretch;
+  }
+
+  .crypto-donations__label {
+    flex-basis: 100%;
+  }
+
+  .crypto-donations .crypto-donation {
+    width: 100%;
+    border-radius: 10px;
+  }
+}
