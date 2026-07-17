@@ -84,7 +84,7 @@ services:
   # structured access log. GoAccess anonymizes IP addresses and ignores known
   # crawlers; the published report contains aggregates, not raw request logs.
   traffic-report:
-    image: allinurl/goaccess:1.9.3
+    image: allinurl/goaccess:1.10.2
     profiles: ["caddy"]
     entrypoint: ["/bin/sh", "-c"]
     command: >-
