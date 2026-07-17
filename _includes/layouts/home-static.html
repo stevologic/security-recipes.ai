@@ -186,6 +186,193 @@
     gap: 24px;
   }
 
+  .cve-ticker {
+    position: relative;
+    z-index: 9;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.075);
+    background: rgba(2, 10, 10, 0.52);
+    box-shadow: inset 0 -1px 0 rgba(45, 212, 191, 0.025);
+  }
+
+  .cve-ticker__inner {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 42px;
+    align-items: stretch;
+  }
+
+  .cve-ticker__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px 0 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    color: #86efe1;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .cve-ticker__label:hover,
+  .cve-ticker__label:focus-visible {
+    color: #c2fff7;
+    outline: none;
+  }
+
+  .cve-ticker__signal {
+    width: 5px;
+    height: 5px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 9px rgba(45, 212, 191, 0.62);
+  }
+
+  .cve-ticker__viewport {
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    mask-image: linear-gradient(90deg, transparent, black 18px, black calc(100% - 18px), transparent);
+  }
+
+  .cve-ticker__viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cve-ticker[data-cve-ticker-ready="true"] .cve-ticker__viewport {
+    overflow-x: hidden;
+  }
+
+  .cve-ticker__track {
+    display: flex;
+    width: max-content;
+    min-width: 100%;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+
+  .cve-ticker[data-cve-ticker-ready="true"] .cve-ticker__track {
+    animation: latest-cves-scroll 54s linear infinite;
+  }
+
+  .cve-ticker[data-cve-ticker-paused="true"] .cve-ticker__track,
+  .cve-ticker__viewport:hover .cve-ticker__track,
+  .cve-ticker__viewport:focus-within .cve-ticker__track {
+    animation-play-state: paused;
+  }
+
+  .cve-ticker__list {
+    display: flex;
+    min-width: max-content;
+    flex: 0 0 auto;
+    align-items: stretch;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cve-ticker:not([data-cve-ticker-ready="true"]) .cve-ticker__list[aria-hidden="true"] {
+    display: none;
+  }
+
+  .cve-ticker__item {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 8px;
+    padding: 0 18px;
+    border-right: 1px solid rgba(255, 255, 255, 0.055);
+    color: #b9c4cf;
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  a.cve-ticker__item:hover,
+  a.cve-ticker__item:focus-visible {
+    color: var(--text);
+    background: rgba(45, 212, 191, 0.045);
+    outline: none;
+  }
+
+  .cve-ticker__id {
+    color: #d7fff9;
+    font-family: var(--font-mono);
+    font-size: 0.69rem;
+    font-weight: 760;
+  }
+
+  .cve-ticker__title {
+    max-width: 30ch;
+    overflow: hidden;
+    color: #919ca9;
+    text-overflow: ellipsis;
+  }
+
+  a.cve-ticker__item:hover .cve-ticker__title,
+  a.cve-ticker__item:focus-visible .cve-ticker__title {
+    color: #cbd5df;
+  }
+
+  .cve-ticker__severity {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #9ca6b3;
+    font-family: var(--font-mono);
+    font-size: 0.59rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .cve-ticker__severity::before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--amber);
+  }
+
+  .cve-ticker__severity--critical::before { background: var(--rose); }
+  .cve-ticker__severity--medium::before { background: var(--teal); }
+
+  .cve-ticker__kev {
+    color: #8eeadd;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+
+  .cve-ticker__date {
+    color: #687484;
+    font-family: var(--font-mono);
+    font-size: 0.59rem;
+  }
+
+  .cve-ticker__toggle {
+    width: 38px;
+    border: 0;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
+    color: #74808e;
+    font: 700 0.7rem/1 var(--font-mono);
+    cursor: pointer;
+  }
+
+  .cve-ticker__toggle[hidden] { display: none; }
+
+  .cve-ticker__toggle:hover,
+  .cve-ticker__toggle:focus-visible {
+    color: #c7d2dc;
+    background: rgba(255, 255, 255, 0.035);
+    outline: none;
+  }
+
   .brand {
     display: inline-flex;
     align-items: center;
@@ -1823,6 +2010,10 @@
     to { background-position: 54px 54px, 54px 54px; }
   }
 
+  @keyframes latest-cves-scroll {
+    to { transform: translate3d(-50%, 0, 0); }
+  }
+
   @keyframes packet-path {
     0% { opacity: 0; clip-path: inset(0 100% 0 0); }
     18% { opacity: 0.24; }
@@ -1920,6 +2111,29 @@
       flex-direction: column;
       padding: 14px 0;
       gap: 10px;
+    }
+
+    .cve-ticker__label {
+      gap: 6px;
+      padding-right: 10px;
+      font-size: 0.61rem;
+    }
+
+    .cve-ticker__item {
+      gap: 7px;
+      padding: 0 12px;
+    }
+
+    .cve-ticker__title {
+      max-width: 22ch;
+    }
+
+    .cve-ticker__date {
+      display: none;
+    }
+
+    .cve-ticker__toggle {
+      width: 34px;
     }
 
     .nav-links {
@@ -2102,6 +2316,21 @@
       animation-iteration-count: 1 !important;
       scroll-behavior: auto !important;
     }
+
+    .cve-ticker__track {
+      animation: none !important;
+      transform: none !important;
+      will-change: auto;
+    }
+
+    .cve-ticker__viewport {
+      overflow-x: auto !important;
+    }
+
+    .cve-ticker__list[aria-hidden="true"],
+    .cve-ticker__toggle {
+      display: none !important;
+    }
   }
 
   /* Global search launcher — same affordance and behaviour as inner pages,
@@ -2184,6 +2413,50 @@
       </div>
     </div>
   </header>
+
+  {% if latestCves and latestCves.length %}
+  <aside class="cve-ticker" aria-label="Latest published CVEs" data-cve-ticker>
+    <div class="site-shell cve-ticker__inner">
+      <a class="cve-ticker__label" href="/recipes/?view=cve">
+        <span class="cve-ticker__signal" aria-hidden="true"></span>
+        <span>Latest CVEs</span>
+      </a>
+      <div class="cve-ticker__viewport">
+        <div class="cve-ticker__track">
+          <ul class="cve-ticker__list">
+            {% for item in latestCves %}
+            <li>
+              <a class="cve-ticker__item" data-cve-ticker-link href="{{ item.href | escape }}" aria-label="{{ item.cve | escape }}: {{ item.title | escape }}. {{ item.severity | escape }}, published {{ item.published | escape }}.">
+                <span class="cve-ticker__id">{{ item.cve | escape }}</span>
+                <span class="cve-ticker__title">{{ item.title | escape }}</span>
+                <span class="cve-ticker__severity cve-ticker__severity--{{ item.severity | escape }}">{{ item.severity | escape }}</span>
+                {% if item.kev %}<span class="cve-ticker__kev">KEV</span>{% endif %}
+                <time class="cve-ticker__date" datetime="{{ item.published | escape }}">{{ item.publishedLabel | escape }}</time>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+          <ul class="cve-ticker__list" aria-hidden="true" inert>
+            {% for item in latestCves %}
+            <li>
+              <span class="cve-ticker__item">
+                <span class="cve-ticker__id">{{ item.cve | escape }}</span>
+                <span class="cve-ticker__title">{{ item.title | escape }}</span>
+                <span class="cve-ticker__severity cve-ticker__severity--{{ item.severity | escape }}">{{ item.severity | escape }}</span>
+                {% if item.kev %}<span class="cve-ticker__kev">KEV</span>{% endif %}
+                <time class="cve-ticker__date" datetime="{{ item.published | escape }}">{{ item.publishedLabel | escape }}</time>
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <button class="cve-ticker__toggle" type="button" data-cve-ticker-toggle aria-label="Pause latest CVE ticker" aria-pressed="false" title="Pause ticker" hidden>
+        <span aria-hidden="true">Ⅱ</span>
+      </button>
+    </div>
+  </aside>
+  {% endif %}
 
   <div class="site-shell">
     <section class="hero">
@@ -2704,6 +2977,7 @@ Rules:
   </script>
 
   <script>window.__SITE_BASE_PREFIX = "/";</script>
+  <script src="/js/cve-ticker.js" defer></script>
   <script src="/js/docs-search.js" defer></script>
 </body>
 </html>
