@@ -17,6 +17,8 @@ CADDYFILE="/etc/caddy/Caddyfile"
 CADDY_BACKUP="/etc/caddy/Caddyfile.security-recipes-preinstall.bak"
 SSH_CONFIG="/etc/ssh/sshd_config.d/99-security-recipes.conf"
 FAIL2BAN_JAIL="/etc/fail2ban/jail.d/sshd-security-recipes.local"
+CADDY_404_FAIL2BAN_FILTER="/etc/fail2ban/filter.d/security-recipes-caddy-404.conf"
+CADDY_404_FAIL2BAN_JAIL="/etc/fail2ban/jail.d/security-recipes-caddy-404.local"
 
 usage() {
   cat <<'EOF'
@@ -184,6 +186,8 @@ restore_caddy() {
 }
 
 remove_managed_security_config() {
+  local fail2ban_changed="false"
+
   if [[ -f "${SSH_CONFIG}" ]]; then
     log "Removing managed SSH hardening snippet."
     rm -f "${SSH_CONFIG}"
@@ -191,8 +195,20 @@ remove_managed_security_config() {
   fi
 
   if [[ -f "${FAIL2BAN_JAIL}" ]]; then
-    log "Removing managed fail2ban jail."
+    log "Removing managed SSH fail2ban jail."
     rm -f "${FAIL2BAN_JAIL}"
+    fail2ban_changed="true"
+  fi
+
+  if [[ -f "${CADDY_404_FAIL2BAN_FILTER}" ||
+        -f "${CADDY_404_FAIL2BAN_JAIL}" ]]; then
+    log "Removing managed Caddy 404 fail2ban filter and jail."
+    rm -f "${CADDY_404_FAIL2BAN_FILTER}" "${CADDY_404_FAIL2BAN_JAIL}"
+    fail2ban_changed="true"
+  fi
+
+  if [[ "${fail2ban_changed}" == "true" ]] &&
+     systemctl list-unit-files fail2ban.service >/dev/null 2>&1; then
     systemctl restart fail2ban || true
   fi
 }

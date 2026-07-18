@@ -31,6 +31,7 @@ SHARD_PATH_RE = re.compile(r"shards/\d{4}/\d{4,}\.jsonl\.gz")
 INDEX_PARTITION_PATH_RE = re.compile(r"indexes/(\d{4})\.json\.gz")
 NVD_FEED_ROOT = "https://nvd.nist.gov/feeds/json/cve/2.0"
 CISA_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+FORBIDDEN_GENERIC_TITLE = "affected product security vulnerability"
 NVD_METADATA_FIELDS = ("lastModifiedDate", "size", "zipSize", "gzSize", "sha256")
 BROWSER_INDEX_FIELDS = [
     "cve",
@@ -718,8 +719,12 @@ def validate_complete_index(
             fail(failures, f"complete-index compressed size mismatch: {relative}")
         if hashlib.sha256(payload).hexdigest() != entry.get("sha256"):
             fail(failures, f"complete-index hash mismatch: {relative}")
-        if len(payload) < 10 or int.from_bytes(payload[4:8], "little") != 0:
-            fail(failures, f"complete-index gzip mtime is not deterministic zero: {relative}")
+        if (
+            len(payload) < 10
+            or int.from_bytes(payload[4:8], "little") != 0
+            or payload[9] != 3
+        ):
+            fail(failures, f"complete-index gzip header is not deterministic: {relative}")
         try:
             uncompressed = gzip.decompress(payload)
         except (OSError, EOFError) as exc:
@@ -823,8 +828,12 @@ def validate_browser_index(
         fail(failures, "browser index compressed size mismatch")
     if hashlib.sha256(payload).hexdigest() != entry.get("sha256"):
         fail(failures, "browser index hash mismatch")
-    if len(payload) < 10 or int.from_bytes(payload[4:8], "little") != 0:
-        fail(failures, "browser index gzip mtime is not deterministic zero")
+    if (
+        len(payload) < 10
+        or int.from_bytes(payload[4:8], "little") != 0
+        or payload[9] != 3
+    ):
+        fail(failures, "browser index gzip header is not deterministic")
     try:
         uncompressed = gzip.decompress(payload)
     except (OSError, EOFError) as exc:
@@ -1209,6 +1218,11 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         if cve in index_by_cve:
             fail(failures, f"duplicate catalog identity: {cve}")
         index_by_cve[cve] = record
+        title = str(record.get("title") or "").strip()
+        if not title:
+            fail(failures, f"{cve} has an empty title")
+        elif title.casefold() == FORBIDDEN_GENERIC_TITLE:
+            fail(failures, f"{cve} uses the forbidden generic affected-product title")
         if record.get("severity") not in {"medium", "high", "critical"}:
             fail(failures, f"{cve} has out-of-scope severity {record.get('severity')!r}")
         try:
@@ -1329,6 +1343,12 @@ def validate(catalog_dir: Path, content_dir: Path = DEFAULT_CONTENT) -> dict[str
         digest = hashlib.sha256(payload).hexdigest()
         if digest != entry.get("sha256"):
             fail(failures, f"shard hash mismatch: {relative}")
+        if (
+            len(payload) < 10
+            or int.from_bytes(payload[4:8], "little") != 0
+            or payload[9] != 3
+        ):
+            fail(failures, f"shard gzip header is not deterministic: {relative}")
         try:
             uncompressed = gzip.decompress(payload)
         except (OSError, EOFError) as exc:

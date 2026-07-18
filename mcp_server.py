@@ -10,6 +10,7 @@ import asyncio
 import gzip
 import hashlib
 import heapq
+import html
 import io
 import json
 import math
@@ -31,6 +32,8 @@ from urllib.parse import unquote, urlparse
 import httpx
 import tomli
 from fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, RedirectResponse, Response
 
 DEFAULT_CONFIG_PATH = os.environ.get("RECIPES_MCP_CONFIG", "./mcp-server.toml")
 DEFAULT_TRANSPORT = os.environ.get("RECIPES_MCP_TRANSPORT", "streamable-http")
@@ -11814,6 +11817,602 @@ evidence_contract = SecureContextEvidenceContract(config.evidence_contract_path)
 hosted_mcp_readiness_pack = HostedMcpReadinessPack(config.hosted_mcp_readiness_pack_path)
 upstream_mcp = UpstreamMCPRegistry(config.upstream_mcp_servers)
 mcp = FastMCP(name="security-recipes-mcp")
+
+_CVE_LANDING_DEFAULT_SITE_BASE_URL = "https://security-recipes.ai"
+_CVE_LANDING_CACHE_CONTROL = "public, max-age=300, stale-while-revalidate=3600"
+_CVE_LANDING_LOOKUP_TIMEOUT_SECONDS = 10
+_CVE_LANDING_LOOKUP_CONCURRENCY = 8
+_cve_landing_admission = threading.BoundedSemaphore(_CVE_LANDING_LOOKUP_CONCURRENCY)
+
+
+class _CVELandingBusyError(RuntimeError):
+    """Raised when the bounded exact-CVE landing queue is full."""
+
+
+def _cve_landing_public_base_url(explicit: str | None = None) -> str:
+    raw = (
+        explicit
+        if explicit is not None
+        else os.environ.get("RECIPES_PUBLIC_SITE_BASE_URL", _CVE_LANDING_DEFAULT_SITE_BASE_URL)
+    )
+    parsed = urlparse(str(raw or "").strip())
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.netloc
+        or parsed.username
+        or parsed.password
+    ):
+        parsed = urlparse(_CVE_LANDING_DEFAULT_SITE_BASE_URL)
+    path = re.sub(r"/{2,}", "/", parsed.path or "").rstrip("/")
+    return f"{parsed.scheme}://{parsed.netloc}{path}"
+
+
+def _cve_landing_url(cve_id: str, public_base_url: str | None = None) -> str:
+    return f"{_cve_landing_public_base_url(public_base_url)}/cve/{cve_id}/"
+
+
+def _cve_landing_text(value: object, limit: int = 600) -> str:
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    if len(text) <= limit:
+        return text
+    return f"{text[: max(0, limit - 1)].rstrip()}…"
+
+
+def _cve_landing_json(payload: object) -> str:
+    return (
+        json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        .replace("<", "\\u003c")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+
+
+def _cve_landing_safe_https_url(value: object) -> str:
+    candidate = str(value or "").strip()
+    if not candidate:
+        return ""
+    try:
+        parsed = urlparse(candidate)
+        hostname = parsed.hostname
+        username = parsed.username
+        password = parsed.password
+    except ValueError:
+        return ""
+    if (
+        parsed.scheme != "https"
+        or not hostname
+        or username
+        or password
+    ):
+        return ""
+    return parsed.geturl()
+
+
+def _cve_landing_override_href(value: object) -> str:
+    source_path = str(value or "").strip().replace("\\", "/")
+    if not source_path or source_path.startswith("/") or "?" in source_path or "#" in source_path:
+        return ""
+    parts = PurePosixPath(source_path).parts
+    if (
+        len(parts) < 3
+        or parts[0] != "content"
+        or parts[-1] in {"", ".", ".."}
+        or not parts[-1].lower().endswith(".md")
+        or any(part in {"", ".", ".."} or not re.fullmatch(r"[A-Za-z0-9._-]+", part) for part in parts)
+    ):
+        return ""
+    public_parts = list(parts[1:])
+    public_parts[-1] = public_parts[-1][:-3]
+    if public_parts[-1] == "_index":
+        public_parts.pop()
+    return f"/{'/'.join(public_parts)}/"
+
+
+def _cve_landing_product_labels(source_record: dict[str, Any], limit: int = 6) -> list[str]:
+    products = source_record.get("products")
+    if not isinstance(products, list):
+        return []
+    labels: list[str] = []
+    seen: set[str] = set()
+    for product in products:
+        if not isinstance(product, dict):
+            continue
+        identity = [
+            _cve_landing_text(product.get("vendor"), 80),
+            _cve_landing_text(product.get("product"), 100),
+        ]
+        version = _cve_landing_text(product.get("version"), 60)
+        if version and version not in {"*", "-"}:
+            identity.append(version)
+        label = " / ".join(part for part in identity if part)
+        if not label or label.casefold() in seen:
+            continue
+        seen.add(label.casefold())
+        labels.append(label)
+        if len(labels) >= limit:
+            break
+    return labels
+
+
+def _cve_landing_references(
+    source_record: dict[str, Any],
+    limit: int = 6,
+) -> list[tuple[str, str]]:
+    references: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    def add(raw_url: object, raw_label: object) -> None:
+        url = _cve_landing_safe_https_url(raw_url)
+        if not url or url in seen or len(references) >= limit:
+            return
+        seen.add(url)
+        label = _cve_landing_text(raw_label, 120)
+        if not label:
+            label = urlparse(url).hostname or "Source"
+        references.append((label, url))
+
+    add(source_record.get("nvd_url"), "NVD vulnerability record")
+    raw_references = source_record.get("references")
+    if isinstance(raw_references, list):
+        for reference in raw_references:
+            if not isinstance(reference, dict):
+                continue
+            tags = reference.get("tags")
+            label = " / ".join(
+                _cve_landing_text(tag, 60)
+                for tag in tags
+                if _cve_landing_text(tag, 60)
+            ) if isinstance(tags, list) else ""
+            add(reference.get("url"), label)
+    return references
+
+
+def _cve_landing_list(items: object, limit: int = 3) -> str:
+    if not isinstance(items, list):
+        return ""
+    rendered = [
+        f"<li>{html.escape(_cve_landing_text(item, 500))}</li>"
+        for item in items[:limit]
+        if _cve_landing_text(item, 500)
+    ]
+    return f"<ul>{''.join(rendered)}</ul>" if rendered else ""
+
+
+def _cve_landing_response_headers(indexable: bool) -> dict[str, str]:
+    return {
+        "Cache-Control": _CVE_LANDING_CACHE_CONTROL if indexable else "no-store",
+        "Content-Language": "en",
+        "Content-Security-Policy": (
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self'; img-src 'self' data: https:; font-src 'self' data:; "
+            "connect-src 'self'; worker-src 'self'; frame-src 'none'; object-src 'none'; "
+            "base-uri 'self'; form-action 'self'"
+        ),
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-Robots-Tag": (
+            "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+            if indexable
+            else "noindex, nofollow, noarchive"
+        ),
+    }
+
+
+def _render_cve_landing_page(
+    recipe: dict[str, Any],
+    public_base_url: str | None = None,
+) -> str:
+    if not isinstance(recipe, dict) or recipe.get("found") is not True:
+        raise ValueError("an in-scope CVE recipe is required")
+    source_record = recipe.get("source_record")
+    if not isinstance(source_record, dict):
+        raise ValueError("the CVE recipe has no source record")
+
+    cve_id = _cve_landing_text(source_record.get("cve") or recipe.get("cve"), 40).upper()
+    if not CVERecipeCatalog.CVE_RE.fullmatch(cve_id):
+        raise ValueError("the CVE recipe identity is invalid")
+    requested_id = _cve_landing_text(recipe.get("cve"), 40).upper()
+    if requested_id and requested_id != cve_id:
+        raise ValueError("the CVE recipe and source record identities do not match")
+
+    title = _cve_landing_text(source_record.get("title"), 240) or "Vulnerability record"
+    headline = title if cve_id in title.upper() else f"{cve_id} — {title}"
+    summary = _cve_landing_text(source_record.get("summary"), 1800)
+    severity = _cve_landing_text(source_record.get("severity"), 24).lower() or "unscored"
+    score_value = source_record.get("score")
+    score = (
+        f"{float(score_value):g}"
+        if isinstance(score_value, (int, float)) and math.isfinite(float(score_value))
+        else ""
+    )
+    published = _cve_landing_text(source_record.get("published"), 32)
+    modified = _cve_landing_text(source_record.get("last_modified"), 40)
+    ecosystem = _cve_landing_text(source_record.get("ecosystem"), 100)
+    cwes = source_record.get("cwes")
+    cwe_text = ", ".join(
+        _cve_landing_text(item, 40)
+        for item in cwes[:12]
+        if _cve_landing_text(item, 40)
+    ) if isinstance(cwes, list) else ""
+    kev = source_record.get("kev") is True
+
+    canonical = _cve_landing_url(cve_id, public_base_url)
+    site_base = _cve_landing_public_base_url(public_base_url)
+    description_seed = (
+        f"{cve_id} {severity.title()} vulnerability. {summary}"
+        if summary
+        else f"{cve_id} {severity.title()} vulnerability details and bounded remediation workflow."
+    )
+    description = _cve_landing_text(description_seed, 280)
+    image_url = f"{site_base}/images/og-card.svg"
+    nvd_url = _cve_landing_safe_https_url(source_record.get("nvd_url"))
+
+    json_ld: dict[str, Any] = {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": headline,
+        "description": description,
+        "url": canonical,
+        "identifier": cve_id,
+        "image": image_url,
+        "mainEntityOfPage": {"@type": "WebPage", "@id": canonical},
+        "about": {
+            "@type": "Thing",
+            "name": cve_id,
+            "identifier": cve_id,
+            "description": summary or description,
+        },
+        "author": {"@type": "Organization", "name": "Security Recipes"},
+        "publisher": {
+            "@type": "Organization",
+            "name": "Security Recipes",
+            "url": site_base,
+            "logo": {"@type": "ImageObject", "url": f"{site_base}/images/logo.svg"},
+        },
+    }
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", published):
+        json_ld["datePublished"] = published
+    if modified:
+        json_ld["dateModified"] = modified
+    if nvd_url:
+        json_ld["isBasedOn"] = nvd_url
+
+    fact_rows = [
+        ("Severity", severity.title()),
+        ("CVSS", f"{score} ({_cve_landing_text(source_record.get('cvss_version'), 20)})" if score else ""),
+        ("Published", published),
+        ("CISA KEV", "Known exploited" if kev else "Not currently listed"),
+        ("Ecosystem", ecosystem),
+        ("Weaknesses", cwe_text),
+    ]
+    facts_html = "".join(
+        f'<div class="cve-catalog__fact"><dt>{html.escape(label)}</dt>'
+        f"<dd>{html.escape(value)}</dd></div>"
+        for label, value in fact_rows
+        if value
+    )
+
+    products = _cve_landing_product_labels(source_record)
+    products_html = _cve_landing_list(products, limit=6)
+    product_count = source_record.get("product_match_count")
+    products_note = ""
+    if isinstance(product_count, int) and product_count > len(products):
+        products_note = (
+            f'<p class="cve-catalog__detail-message">Showing {len(products)} representative '
+            f"product identities from {product_count} source matches. Confirm exact affected "
+            "versions with the linked vendor and NVD evidence.</p>"
+        )
+
+    composed = recipe.get("composed_recipe")
+    composed = composed if isinstance(composed, dict) else {}
+    workflow_title = _cve_landing_text(composed.get("title"), 180)
+    workflow_html = ""
+    if workflow_title:
+        workflow_html = (
+            '<section class="cve-catalog__detail-section cve-catalog__composition" '
+            'aria-labelledby="matched-archetype-heading">'
+            '<h2 id="matched-archetype-heading">Matched remediation archetype</h2>'
+            f'<p class="cve-catalog__composition-title">{html.escape(workflow_title)}</p>'
+            "<p>This catalog composition supplies bounded fallback guidance. "
+            "Explicitly reviewed curated workflows load with the complete record below.</p>"
+            "<h3>Check exposure</h3>"
+            f"{_cve_landing_list(composed.get('exposure_checks'))}"
+            "<h3>Remediate safely</h3>"
+            f"{_cve_landing_list(composed.get('remediation_steps'))}"
+            "</section>"
+        )
+
+    override_html = ""
+    raw_overrides = composed.get("product_specific_override")
+    if isinstance(raw_overrides, list):
+        stable_overrides = [
+            item
+            for item in raw_overrides
+            if isinstance(item, dict)
+            and str(item.get("maturity") or "").strip().lower() == "stable"
+            and str(item.get("cve") or "").strip().upper() == cve_id
+        ]
+        if len(stable_overrides) == 1:
+            override_href = _cve_landing_override_href(stable_overrides[0].get("path"))
+            if override_href:
+                override_title = _cve_landing_text(stable_overrides[0].get("title"), 200)
+                override_html = (
+                    '<aside class="cve-catalog__override">'
+                    "<h2>Reviewed product-specific recipe</h2>"
+                    "<p>This CVE has an authoritative reviewed workflow with product-specific "
+                    "exposure, mitigation, remediation, and verification guidance.</p>"
+                    f'<a class="cve-catalog__override-link" href="{html.escape(override_href, quote=True)}">'
+                    f"{html.escape(override_title or f'Open the reviewed {cve_id} recipe')}</a>"
+                    "</aside>"
+                )
+
+    references_html = ""
+    references = _cve_landing_references(source_record)
+    if references:
+        references_html = (
+            '<section class="cve-catalog__detail-section" aria-labelledby="sources-heading">'
+            '<h2 id="sources-heading">Authoritative sources</h2><ul class="cve-catalog__references">'
+            + "".join(
+                f'<li><a href="{html.escape(url, quote=True)}" target="_blank" '
+                f'rel="noopener noreferrer">{html.escape(label)}</a></li>'
+                for label, url in references
+            )
+            + "</ul></section>"
+        )
+
+    severity_class = re.sub(r"[^a-z0-9-]", "", severity)
+    summary_html = (
+        f'<p class="cve-catalog__intro">{html.escape(summary)}</p>'
+        if summary
+        else '<p class="cve-catalog__intro">The source record does not provide a plain-language summary.</p>'
+    )
+    products_section = (
+        '<section class="cve-catalog__detail-section" aria-labelledby="products-heading">'
+        '<h2 id="products-heading">Affected products</h2>'
+        f"{products_html or '<p>No browser-safe affected-product rows are available.</p>'}"
+        f"{products_note}</section>"
+    )
+
+    return f"""<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{html.escape(headline)} – security-recipes.ai</title>
+<meta name="description" content="{html.escape(description, quote=True)}">
+<meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<link rel="canonical" href="{html.escape(canonical, quote=True)}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Security Recipes">
+<meta property="og:title" content="{html.escape(headline, quote=True)}">
+<meta property="og:description" content="{html.escape(description, quote=True)}">
+<meta property="og:url" content="{html.escape(canonical, quote=True)}">
+<meta property="og:image" content="{html.escape(image_url, quote=True)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{html.escape(headline, quote=True)}">
+<meta name="twitter:description" content="{html.escape(description, quote=True)}">
+<meta name="twitter:image" content="{html.escape(image_url, quote=True)}">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="stylesheet" href="/css/docs-chrome.css">
+<link rel="stylesheet" href="/css/custom.css">
+<link rel="stylesheet" href="/css/cve-catalog.css">
+<script type="application/ld+json">{_cve_landing_json(json_ld)}</script>
+<script>window.__SITE_BASE_PREFIX="/";</script>
+<script src="/js/cve-catalog.js" defer></script>
+</head>
+<body class="sr-docs-body">
+<div class="nextra-nav-container">
+  <div class="nextra-nav-container-blur"></div>
+  <nav class="sr-nav" aria-label="Main navigation">
+    <a class="sr-nav__brand" href="/"><img src="/images/logo.svg" alt="" width="24" height="24"><span>security-recipes.ai</span></a>
+    <div class="sr-nav__links">
+      <a href="/recipes/" aria-current="page">Recipes</a>
+      <a href="/security-remediation/">Playbooks</a>
+      <a href="/mcp-servers/">MCP Integration</a>
+      <a href="/docs/">Docs</a>
+    </div>
+  </nav>
+</div>
+<div class="hextra-max-page-width sr-shell">
+  <aside class="hextra-sidebar-container sr-sidebar" aria-label="CVE navigation">
+    <nav class="hextra-sidebar">
+      <ul class="sr-sidebar__list">
+        <li class="sr-sidebar__section"><a href="/recipes/">Recipe library</a></li>
+        <li class="sr-sidebar__section"><a href="/recipes/?view=cve">CVE catalog</a></li>
+        <li class="sr-sidebar__section"><a href="/recipes/cve/">Catalog methodology</a></li>
+      </ul>
+    </nav>
+  </aside>
+  <main id="content" class="hextra-content sr-main">
+    <nav class="sr-breadcrumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span aria-hidden="true">/</span>
+      <a href="/recipes/">Recipes</a><span aria-hidden="true">/</span>
+      <a href="/recipes/?view=cve">CVE catalog</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{html.escape(cve_id)}</span>
+    </nav>
+    <article class="content cve-catalog cve-landing">
+      <p class="cve-catalog__eyebrow">CVE intelligence and bounded remediation</p>
+      <h1 class="sr-page-title">{html.escape(headline)}</h1>
+      <div class="cve-catalog__badges" aria-label="CVE priority">
+        <span class="cve-catalog__badge cve-catalog__badge--severity-{severity_class}">{html.escape(severity.title())}</span>
+        {f'<span class="cve-catalog__badge cve-catalog__badge--score">CVSS {html.escape(score)}</span>' if score else ''}
+        {'<span class="cve-catalog__badge cve-catalog__badge--kev">CISA KEV</span>' if kev else ''}
+      </div>
+      {summary_html}
+      <dl class="cve-catalog__facts" aria-label="{html.escape(cve_id)} facts">{facts_html}</dl>
+      {override_html}
+      {products_section}
+      {workflow_html}
+      {references_html}
+      <section id="complete-record" aria-labelledby="complete-record-heading">
+        <h2 id="complete-record-heading">Complete CVE record and remediation plan</h2>
+        <p>The detailed catalog view below loads this exact record, its source evidence, and the full seven-phase agentic change plan.</p>
+        <div data-cve-catalog data-cve-catalog-base="/api/cve-catalog/" data-cve-initial-id="{html.escape(cve_id, quote=True)}"></div>
+        <noscript><p>The essential CVE facts and matched workflow remain available above. JavaScript is required only for the expanded source record and agentic plan.</p></noscript>
+      </section>
+    </article>
+  </main>
+  <nav class="hextra-toc sr-toc" aria-label="On this page">
+    <p class="sr-toc__title">On this page</p>
+    <ul>
+      <li><a href="#products-heading">Affected products</a></li>
+      {f'<li><a href="#matched-archetype-heading">Remediation archetype</a></li>' if workflow_title else ''}
+      {f'<li><a href="#sources-heading">Sources</a></li>' if references else ''}
+      <li><a href="#complete-record">Complete record</a></li>
+    </ul>
+  </nav>
+</div>
+<footer class="hextra-footer"><div class="sr-footer-inner"><span>Bounded recipes for agent-assisted security remediation.</span></div></footer>
+<script>
+(function () {{
+  function hydrateExactCve() {{
+    var mount = document.querySelector("[data-cve-catalog][data-cve-initial-id]");
+    if (!mount || !window.SecurityRecipesCveCatalog) return;
+    window.SecurityRecipesCveCatalog.mount(mount);
+    var observer = new MutationObserver(function () {{
+      var details = mount.querySelector(".cve-catalog__record");
+      if (!details) return;
+      observer.disconnect();
+      details.open = true;
+      details.dispatchEvent(new Event("toggle"));
+    }});
+    observer.observe(mount, {{ childList: true, subtree: true }});
+    window.requestAnimationFrame(function () {{
+      var input = mount.querySelector("[data-cve-search]");
+      if (!input) return;
+      input.value = mount.getAttribute("data-cve-initial-id") || "";
+      var form = input.closest("form");
+      if (form) form.dispatchEvent(new Event("submit", {{ bubbles: true, cancelable: true }}));
+    }});
+  }}
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", hydrateExactCve);
+  else hydrateExactCve();
+}})();
+</script>
+</body>
+</html>
+"""
+
+
+def _render_cve_landing_error(cve_id: str, message: str) -> str:
+    safe_id = _cve_landing_text(cve_id, 40).upper()
+    safe_message = _cve_landing_text(message, 300)
+    return f"""<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CVE record unavailable – security-recipes.ai</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="stylesheet" href="/css/docs-chrome.css">
+<link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="sr-docs-body">
+<main id="content" class="hextra-content sr-main">
+<article class="content">
+<h1>{html.escape(safe_id or "CVE record unavailable")}</h1>
+<p>{html.escape(safe_message)}</p>
+<p><a href="/recipes/?view=cve">Search the complete CVE catalog</a></p>
+</article>
+</main>
+</body>
+</html>
+"""
+
+
+def _bounded_cve_landing_lookup(cve_id: str) -> dict[str, Any]:
+    if not _cve_landing_admission.acquire(blocking=False):
+        raise _CVELandingBusyError("the CVE landing lookup queue is full")
+    try:
+        return cve_catalog.get_recipe(cve_id)
+    finally:
+        _cve_landing_admission.release()
+
+
+@mcp.custom_route(
+    "/cve/{cve_id}/",
+    methods=["GET"],
+    name="cve-landing",
+    include_in_schema=False,
+)
+async def cve_landing_page(request: Request) -> Response:
+    requested_id = str(request.path_params.get("cve_id") or "").strip()
+    canonical_id = requested_id.upper()
+    if not CVERecipeCatalog.CVE_RE.fullmatch(canonical_id):
+        return HTMLResponse(
+            _render_cve_landing_error(
+                canonical_id,
+                "Use a complete identifier in CVE-YYYY-NNNN form.",
+            ),
+            status_code=404,
+            headers=_cve_landing_response_headers(indexable=False),
+        )
+    if requested_id != canonical_id:
+        return RedirectResponse(
+            _cve_landing_url(canonical_id),
+            status_code=308,
+            headers={
+                "Cache-Control": "public, max-age=86400",
+                "X-Content-Type-Options": "nosniff",
+            },
+        )
+
+    try:
+        recipe = await asyncio.wait_for(
+            asyncio.to_thread(_bounded_cve_landing_lookup, canonical_id),
+            timeout=_CVE_LANDING_LOOKUP_TIMEOUT_SECONDS,
+        )
+    except (_CVELandingBusyError, TimeoutError):
+        return HTMLResponse(
+            _render_cve_landing_error(
+                canonical_id,
+                "The CVE catalog is temporarily busy. Please retry shortly.",
+            ),
+            status_code=503,
+            headers={
+                **_cve_landing_response_headers(indexable=False),
+                "Retry-After": "5",
+            },
+        )
+    except (OSError, ValueError, json.JSONDecodeError):
+        return HTMLResponse(
+            _render_cve_landing_error(
+                canonical_id,
+                "The CVE record could not be loaded safely.",
+            ),
+            status_code=503,
+            headers=_cve_landing_response_headers(indexable=False),
+        )
+
+    if not isinstance(recipe, dict) or recipe.get("found") is not True:
+        return HTMLResponse(
+            _render_cve_landing_error(
+                canonical_id,
+                "This identifier is not currently in the rolling medium, high, and critical catalog.",
+            ),
+            status_code=404,
+            headers=_cve_landing_response_headers(indexable=False),
+        )
+    try:
+        body = _render_cve_landing_page(recipe)
+    except ValueError:
+        return HTMLResponse(
+            _render_cve_landing_error(
+                canonical_id,
+                "The CVE record failed its landing-page identity checks.",
+            ),
+            status_code=503,
+            headers=_cve_landing_response_headers(indexable=False),
+        )
+    return HTMLResponse(
+        body,
+        status_code=200,
+        headers=_cve_landing_response_headers(indexable=True),
+    )
 
 
 @mcp.tool()

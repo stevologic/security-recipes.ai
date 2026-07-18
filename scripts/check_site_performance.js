@@ -279,14 +279,24 @@ const cveSources = fs.readdirSync(CONTENT)
   .filter((name) => name.endsWith(".md") && name !== "_index.md")
   .map((name) => path.join(CONTENT, name));
 const stableRoutes = new Set();
+const stableOverrides = [];
 const developmentRoutes = new Set();
 for (const file of cveSources) {
   const source = fs.readFileSync(file, "utf8");
   const frontmatter = source.startsWith("---") ? source.slice(3, source.indexOf("---", 3)) : "";
   const match = frontmatter.match(/^maturity:\s*["']?([^"'\r\n]+)["']?\s*$/im);
   const route = routeForSource(file);
-  if (String(match?.[1] || "").trim().toLowerCase() === "stable") stableRoutes.add(route);
-  else developmentRoutes.add(route);
+  if (String(match?.[1] || "").trim().toLowerCase() === "stable") {
+    const cve = String(
+      frontmatter.match(/^cve:\s*["']?(CVE-\d{4}-\d{4,7})["']?\s*$/im)?.[1] || ""
+    ).toUpperCase();
+    const canonicalCveRoute =
+      !/^canonical_cve_route:\s*false\s*$/im.test(frontmatter);
+    stableRoutes.add(route);
+    stableOverrides.push({ route, cve, canonicalCveRoute });
+  } else {
+    developmentRoutes.add(route);
+  }
 }
 if (!stableRoutes.size) fail("no stable CVE Markdown overrides were found");
 if (!developmentRoutes.size) fail("no development CVE Markdown compatibility pages were found");
@@ -334,11 +344,58 @@ for (const [label, routes] of surfaces) {
 }
 
 const sitemap = fs.readFileSync(path.join(ROOT, "sitemap.xml"), "utf8");
-for (const route of stableRoutes) {
-  if (!sitemap.includes(route)) fail(`sitemap is missing stable override ${route}`);
+const pagesSitemapPath = path.join(ROOT, "sitemaps", "pages.xml");
+const pagesSitemap = fs.existsSync(pagesSitemapPath)
+  ? fs.readFileSync(pagesSitemapPath, "utf8")
+  : "";
+if (!pagesSitemap) fail("missing required output: sitemaps/pages.xml");
+if (!sitemap.includes("/sitemaps/pages.xml")) {
+  fail("root sitemap index does not reference /sitemaps/pages.xml");
+}
+
+const indexedSitemapRoutes = Array.from(
+  sitemap.matchAll(/<loc>https?:\/\/[^/]+(\/[^<]+)<\/loc>/g),
+  (match) => match[1]
+);
+const sitemapCache = new Map();
+function readIndexedSitemap(route) {
+  if (sitemapCache.has(route)) return sitemapCache.get(route);
+  const output = path.join(ROOT, route.replace(/^\//, ""));
+  const content = fs.existsSync(output) ? fs.readFileSync(output, "utf8") : "";
+  if (!content) fail(`root sitemap references missing output ${route}`);
+  sitemapCache.set(route, content);
+  return content;
+}
+
+for (const override of stableOverrides) {
+  if (!override.canonicalCveRoute) {
+    if (!pagesSitemap.includes(override.route)) {
+      fail(`pages sitemap is missing historical stable override ${override.route}`);
+    }
+    continue;
+  }
+  if (!/^CVE-\d{4}-\d{4,7}$/.test(override.cve)) {
+    fail(`stable override ${override.route} is missing a canonical CVE ID`);
+    continue;
+  }
+  if (pagesSitemap.includes(override.route)) {
+    fail(`pages sitemap exposes superseded CVE alias ${override.route}`);
+  }
+  const year = override.cve.slice(4, 8);
+  const yearSitemaps = indexedSitemapRoutes.filter((route) =>
+    new RegExp(`^/sitemaps/cves-${year}(?:-\\d+)?\\.xml$`).test(route)
+  );
+  if (!yearSitemaps.length) {
+    fail(`root sitemap index has no CVE partition for ${override.cve}`);
+    continue;
+  }
+  const canonicalRoute = `/cve/${override.cve}/`;
+  if (!yearSitemaps.some((route) => readIndexedSitemap(route).includes(canonicalRoute))) {
+    fail(`CVE sitemaps are missing canonical route ${canonicalRoute}`);
+  }
 }
 for (const route of developmentRoutes) {
-  if (sitemap.includes(route)) fail(`sitemap exposes development CVE draft ${route}`);
+  if (pagesSitemap.includes(route)) fail(`pages sitemap exposes development CVE draft ${route}`);
 }
 
 for (const route of developmentRoutes) {

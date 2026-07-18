@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>{% if title %}{{ title }} – {% endif %}{{ site.title }}</title>
 {{ {
   url: page.url,
@@ -13,6 +13,8 @@
   image: image,
   noindex: noindex,
   keywords: keywords,
+  cve: cve,
+  canonicalCveRoute: canonical_cve_route,
   date: page.date,
   sourcePath: sourcePath,
   isHome: false,
@@ -68,7 +70,7 @@
 </div>
 <footer class="hextra-footer">
   <div class="sr-footer-inner">
-    <div class="sr-footer-meta"><span>{{ site.footer.copyright }}</span><a href="/traffic/">Traffic</a></div>
+    <div class="sr-footer-meta"><span>{{ site.footer.copyright }}</span></div>
     {% include "partials/footer-donations.njk" %}
   </div>
 </footer>

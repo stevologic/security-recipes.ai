@@ -17,9 +17,14 @@ CADDYFILE = ROOT / "docker" / "caddy" / "Caddyfile"
 NGINX_CONFIG = ROOT / "docker" / "nginx" / "default.conf"
 TRAFFIC_REPORT_SCRIPT = ROOT / "docker" / "goaccess" / "generate-traffic-report.sh"
 TRAFFIC_REPORT_PLACEHOLDER = ROOT / "docker" / "goaccess" / "traffic-initializing.html"
+TRAFFIC_REPORT_THEME = ROOT / "docker" / "goaccess" / "traffic-theme.css"
+DOCS_LAYOUT = ROOT / "_includes" / "layouts" / "docs.njk"
+ELEVENTY_CONFIG = ROOT / "eleventy.config.js"
 DOCKERFILE = ROOT / "Dockerfile"
 SETUP_SCRIPT = ROOT / "scripts" / "setup_digitalocean_droplet.sh"
 BACKUP_SCRIPT = ROOT / "scripts" / "backup_droplet_config.sh"
+UNINSTALL_SCRIPT = ROOT / "scripts" / "uninstall_digitalocean_droplet.sh"
+CADDY_404_BAN_INSTALLER = ROOT / "scripts" / "configure_caddy_404_ban.sh"
 
 
 def bash_binary() -> str | None:
@@ -48,7 +53,10 @@ class DeployScriptStaticTests(unittest.TestCase):
                 str(DEPLOY_SCRIPT),
                 str(SETUP_SCRIPT),
                 str(BACKUP_SCRIPT),
+                str(UNINSTALL_SCRIPT),
+                str(CADDY_404_BAN_INSTALLER),
                 str(TRAFFIC_REPORT_SCRIPT),
+                str(ROOT / "tests" / "smoke_caddy_404_ban.sh"),
             ],
             check=True,
         )
@@ -101,10 +109,18 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("SECURITY_RECIPES_LOG_MAX_FILES:-5", compose)
         self.assertGreaterEqual(compose.count("logging: *security-recipes-logging"), 4)
         self.assertIn("http://127.0.0.1:2019/config/", compose)
+        self.assertIn(
+            '"${SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE:-caddy_logs}:/var/log/caddy"',
+            compose,
+        )
 
     def test_traffic_report_has_a_stable_entrypoint_and_atomic_publication(self) -> None:
         compose = COMPOSE_FILE.read_text(encoding="utf-8")
         generator = TRAFFIC_REPORT_SCRIPT.read_text(encoding="utf-8")
+        theme = TRAFFIC_REPORT_THEME.read_text(encoding="utf-8")
+        placeholder = TRAFFIC_REPORT_PLACEHOLDER.read_text(encoding="utf-8")
+        docs_layout = DOCS_LAYOUT.read_text(encoding="utf-8")
+        robots = ELEVENTY_CONFIG.read_text(encoding="utf-8")
         nginx = NGINX_CONFIG.read_text(encoding="utf-8")
         deploy = DEPLOY_SCRIPT.read_text(encoding="utf-8")
         refresh = deploy[
@@ -118,7 +134,11 @@ class DeployScriptStaticTests(unittest.TestCase):
             compose,
         )
         self.assertNotIn('entrypoint: ["/bin/sh", "-c"]', compose)
-        self.assertIn("test -s /report/index.html && test -s /report/.generator-healthy", compose)
+        self.assertIn(
+            "test -s /report/index.html && test -s /report/traffic-theme.css "
+            "&& test -s /report/.generator-healthy",
+            compose,
+        )
         self.assertIn("./docker/goaccess:/opt/security-recipes:ro", compose)
         self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE:-caddy_logs", compose)
         self.assertIn("publish_placeholder", generator)
@@ -128,14 +148,29 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("--anonymize-level=3", generator)
         self.assertIn("--ignore-panel=HOSTS", generator)
         self.assertIn("--ignore-panel=REFERRERS", generator)
+        self.assertIn("publish_theme", generator)
+        self.assertIn('--html-custom-css="${THEME_NAME}"', generator)
+        self.assertIn('"theme":"darkGray"', generator)
+        self.assertIn("security-recipes.ai traffic dashboard theme", theme)
+        self.assertIn("--sr-teal: #2dd4bf", theme)
+        self.assertIn("Privacy-preserving analytics", placeholder)
+        self.assertIn("prefers-reduced-motion", placeholder)
+        self.assertIn('name="robots" content="noindex, nofollow, noarchive"', placeholder)
+        self.assertIn('name="robots" content="noindex, nofollow, noarchive"', generator)
+        self.assertNotIn('href="/traffic/', docs_layout)
+        self.assertIn("Disallow: /traffic/", robots)
+        self.assertIn('Sitemap: ${feeds.absURL("/sitemap.xml")}', robots)
         self.assertIn("location = /traffic/", nginx)
         self.assertIn("try_files /traffic/index.html =404", nginx)
+        self.assertIn('X-Robots-Tag "noindex, nofollow, noarchive" always', nginx)
         self.assertNotIn('[[ "${PROXY_KIND}" == "bundled" ]]', refresh)
         self.assertIn("--wait --wait-timeout", refresh)
         self.assertIn("traffic-report || return 1", refresh)
         self.assertIn("prepare_traffic_report_source", deploy)
         self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE", deploy)
         self.assertIn("output file ${log_path}", deploy)
+        self.assertIn("ensure_caddy_404_ban", deploy)
+        self.assertIn("scripts/configure_caddy_404_ban.sh", deploy)
 
     def test_compose_preserves_the_traffic_report_entrypoint(self) -> None:
         docker = shutil.which("docker")
@@ -159,7 +194,8 @@ class DeployScriptStaticTests(unittest.TestCase):
             service["healthcheck"]["test"],
             [
                 "CMD-SHELL",
-                "test -s /report/index.html && test -s /report/.generator-healthy",
+                "test -s /report/index.html && test -s /report/traffic-theme.css "
+                "&& test -s /report/.generator-healthy",
             ],
         )
 
@@ -177,6 +213,7 @@ class DeployScriptStaticTests(unittest.TestCase):
                     "TRAFFIC_LOG_FILE": str(root / "missing-access.log"),
                     "TRAFFIC_REPORT_DIR": str(report),
                     "TRAFFIC_REPORT_PLACEHOLDER": str(TRAFFIC_REPORT_PLACEHOLDER),
+                    "TRAFFIC_REPORT_THEME": str(TRAFFIC_REPORT_THEME),
                 }
             )
             subprocess.run(
@@ -190,7 +227,8 @@ class DeployScriptStaticTests(unittest.TestCase):
             published = report / "index.html"
             self.assertTrue(published.is_file())
             self.assertGreater(published.stat().st_size, 0)
-            self.assertIn("Traffic report is warming up", published.read_text())
+            self.assertIn("Report is warming up", published.read_text())
+            self.assertTrue((report / "traffic-theme.css").is_file())
             self.assertTrue((report / ".generator-healthy").is_file())
 
     def test_setup_installs_single_systemd_scheduler_and_backup_timer(self) -> None:
@@ -214,6 +252,13 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=${CADDY_LOG_DIR}", setup)
         self.assertIn("output file ${CADDY_LOG_DIR}/access.log", setup)
         self.assertIn("compose_cmd up -d --no-deps --wait traffic-report", setup)
+        self.assertIn("nftables", setup)
+        self.assertIn("configure_caddy_404_ban", setup)
+        self.assertIn("scripts/configure_caddy_404_ban.sh", setup)
+        self.assertLess(
+            setup.rfind("\nconfigure_caddy\n"),
+            setup.rfind("\nconfigure_caddy_404_ban\n"),
+        )
 
     def test_deploy_has_resource_freshness_and_success_heartbeat_guards(self) -> None:
         source = DEPLOY_SCRIPT.read_text(encoding="utf-8")
@@ -254,6 +299,22 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("Set SECURITY_RECIPES_BACKUP_AGE_RECIPIENT", source)
         self.assertLess(source.index("age --recipient"), source.index("rclone copyto"))
         self.assertIn("SECURITY_RECIPES_BACKUP_RETENTION_DAYS", source)
+        self.assertIn("security-recipes-caddy-404.conf", source)
+        self.assertIn("security-recipes-caddy-404.local", source)
+
+    def test_uninstall_removes_only_the_managed_caddy_404_jail(self) -> None:
+        source = UNINSTALL_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "/etc/fail2ban/filter.d/security-recipes-caddy-404.conf",
+            source,
+        )
+        self.assertIn(
+            "/etc/fail2ban/jail.d/security-recipes-caddy-404.local",
+            source,
+        )
+        self.assertIn("Removing managed Caddy 404 fail2ban filter and jail", source)
+        self.assertNotIn("rm -rf /etc/fail2ban", source)
 
     def test_proxy_uses_primary_and_warm_fallback_health_checks(self) -> None:
         caddy = CADDYFILE.read_text(encoding="utf-8")
@@ -290,6 +351,10 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("public/.well-known/deploy-revision", dockerfile)
         self.assertIn('org.opencontainers.image.revision="${REVISION}"', dockerfile)
         self.assertIn('CANDIDATE_IMAGE="${SITE_IMAGE_REPOSITORY}:${TARGET}"', main)
+        self.assertLess(
+            main.index('git reset --hard "${TARGET}"'),
+            main.index("ensure_caddy_404_ban"),
+        )
         pull = main.index(
             'pull_candidate "${CANDIDATE_SERVICE}" "${CANDIDATE_IMAGE}" "${TARGET}"'
         )

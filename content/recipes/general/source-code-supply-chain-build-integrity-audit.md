@@ -7,6 +7,8 @@ team: "Security"
 maturity: "development"
 model: "gpt-5-codex"
 tags: ["source-code", "audit", "supply-chain", "dependencies", "ci", "build-integrity"]
+cve_archetypes: ["supply_chain_update_integrity"]
+cve_workflow_role: "audit"
 weight: 17
 date: 2026-06-06
 ---
