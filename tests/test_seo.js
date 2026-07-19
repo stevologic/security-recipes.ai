@@ -22,3 +22,22 @@ test('JSON-LD serialization cannot break out of its script element', () => {
   assert.equal(parsed.description, description.replace(/\s+/g, ' '));
   assert.equal(parsed.name, 'Security\u2028test\u2029');
 });
+
+test('homepage structured search targets the working recipe catalog', () => {
+  const output = seoHead({
+    url: '/',
+    title: 'Security Recipes',
+    description: 'Open security intelligence.',
+    isHome: true,
+  });
+  const match = output.match(/<script type="application\/ld\+json">(.*?)<\/script>/s);
+
+  assert.ok(match, 'expected homepage JSON-LD');
+  const parsed = JSON.parse(match[1]);
+  const website = parsed['@graph'].find((entry) => entry['@type'] === 'WebSite');
+
+  assert.equal(
+    website.potentialAction.target,
+    'https://security-recipes.ai/recipes/?q={search_term_string}',
+  );
+});

@@ -1,10 +1,18 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>security-recipes.ai — Bounded security recipes for AI-assisted remediation</title>
-<meta name="description" content="Security recipes for AI-assisted remediation: reviewed playbooks, prompt patterns, agent setup guides, and MCP context notes for scoped, evidence-driven security fixes.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>security-recipes.ai &mdash; Open security intelligence for verified action</title>
+{{ {
+  url: page.url,
+  title: "security-recipes.ai — Security intelligence for verified action",
+  description: "Research a rolling catalog of CVE intelligence and reviewed security workflows, then deliver the same bounded context to humans and AI agents through JSON and read-first MCP.",
+  keywords: keywords,
+  image: "/images/og-card.svg",
+  isHome: true,
+  isSection: false
+} | seoHead | safe }}
 <meta name="google" content="notranslate">
 <meta http-equiv="Content-Language" content="en">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,172 +28,9 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="/css/footer-donations.css">
+<link rel="stylesheet" href="/css/home-observatory.css?v=20260718">
 <style>
-  :root {
-    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
-      "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    --bg: #020506;
-    --bg-2: #06100f;
-    --surface: rgba(255, 255, 255, 0.045);
-    --surface-2: rgba(255, 255, 255, 0.07);
-    --border: rgba(255, 255, 255, 0.12);
-    --border-strong: rgba(255, 255, 255, 0.2);
-    --text: #f5f7fb;
-    --muted: #aeb7c6;
-    --soft: #7f8a9f;
-    --teal: #2dd4bf;
-    --amber: #fbbf24;
-    --rose: #fb7185;
-    --blue: #67e8f9;
-    --green: #86efac;
-    --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
-    --shadow-tight: 0 18px 55px rgba(0, 0, 0, 0.34);
-    --shell: min(1450px, calc(100% - 88px));
-  }
-
-  * { box-sizing: border-box; }
-  html {
-    min-height: 100%;
-    overflow-y: auto;
-    scroll-behavior: smooth;
-    background-color: #000;
-  }
-
-  body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: var(--font-sans);
-    color: var(--text);
-    overflow-x: hidden;
-    overflow-y: auto;
-    background:
-      radial-gradient(circle at 52% 18%, rgba(45, 212, 191, 0.055), transparent 34%),
-      radial-gradient(circle at 82% 52%, rgba(251, 191, 36, 0.045), transparent 30%),
-      linear-gradient(180deg, #020405 0%, #04100f 70%, #030707 100%);
-    background-color: #000;
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.55;
-  }
-
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.026) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.023) 1px, transparent 1px);
-    background-size: 54px 54px;
-    mask-image: radial-gradient(ellipse at center, black 16%, transparent 78%);
-    opacity: 0.42;
-    animation: home-grid-drift 28s linear infinite;
-  }
-
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background:
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.08), transparent 46%, rgba(2, 18, 15, 0.36) 100%),
-      linear-gradient(110deg, transparent 0 36%, rgba(45, 212, 191, 0.035) 48%, transparent 61% 100%),
-      linear-gradient(90deg, rgba(0, 0, 0, 0.5), transparent 46%, rgba(0, 0, 0, 0.42));
-    mix-blend-mode: screen;
-    opacity: 0.7;
-  }
-
-  a { color: inherit; text-decoration: none; }
-
-  .home-signal-canvas {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 1400ms ease;
-    will-change: opacity;
-  }
-
-  html[data-signal-background-ready="true"] .home-signal-canvas {
-    opacity: 0.92;
-  }
-
-  .site-shell {
-    width: var(--shell);
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-  }
-
-  .site-ambient {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 0;
-    opacity: 0;
-    transition: opacity 1600ms ease 120ms;
-    will-change: opacity;
-  }
-
-  html[data-signal-background-ready="true"] .site-ambient {
-    opacity: 1;
-  }
-
-  .site-ambient span {
-    position: absolute;
-    display: block;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.34), rgba(251, 191, 36, 0.18), transparent);
-    opacity: 0.18;
-    transform-origin: left center;
-    animation: packet-path 13s linear infinite;
-  }
-
-  .site-ambient span:nth-child(1) {
-    top: 18%;
-    left: 7%;
-    width: 28vw;
-    animation-delay: -2s;
-  }
-
-  .site-ambient span:nth-child(2) {
-    top: 44%;
-    right: -6%;
-    width: 34vw;
-    transform: rotate(-7deg);
-    animation-delay: -7s;
-  }
-
-  .site-ambient span:nth-child(3) {
-    bottom: 18%;
-    left: 30%;
-    width: 24vw;
-    transform: rotate(4deg);
-    animation-delay: -10s;
-  }
-
-  .topbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    backdrop-filter: blur(18px);
-    background: rgba(1, 4, 5, 0.88);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  }
-
-  .topbar-inner {
-    width: var(--shell);
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 80px;
-    gap: 24px;
-  }
+  html { background-color: #000; }
 
   .cve-ticker {
     position: relative;
@@ -199,7 +44,7 @@
   .cve-ticker__inner {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    min-height: 42px;
+    min-height: 48px;
     align-items: stretch;
   }
 
@@ -210,8 +55,8 @@
     padding: 0 16px 0 0;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     color: #86efe1;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-family: var(--home-font-mono);
+    font-size: 0.65rem;
     font-weight: 800;
     letter-spacing: 0.075em;
     text-transform: uppercase;
@@ -221,7 +66,6 @@
   .cve-ticker__label:hover,
   .cve-ticker__label:focus-visible {
     color: #c2fff7;
-    outline: none;
   }
 
   .cve-ticker__signal {
@@ -229,7 +73,7 @@
     height: 5px;
     flex: 0 0 auto;
     border-radius: 50%;
-    background: var(--teal);
+    background: var(--home-teal);
     box-shadow: 0 0 9px rgba(45, 212, 191, 0.62);
   }
 
@@ -238,12 +82,11 @@
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
-    mask-image: linear-gradient(90deg, transparent, black 18px, black calc(100% - 18px), transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
   }
 
-  .cve-ticker__viewport::-webkit-scrollbar {
-    display: none;
-  }
+  .cve-ticker__viewport::-webkit-scrollbar { display: none; }
 
   .cve-ticker[data-cve-ticker-ready="true"] .cve-ticker__viewport {
     overflow-x: hidden;
@@ -283,27 +126,26 @@
 
   .cve-ticker__item {
     display: inline-flex;
-    min-height: 42px;
+    min-height: 48px;
     align-items: center;
     gap: 8px;
     padding: 0 18px;
     border-right: 1px solid rgba(255, 255, 255, 0.055);
     color: #b9c4cf;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     white-space: nowrap;
   }
 
   a.cve-ticker__item:hover,
   a.cve-ticker__item:focus-visible {
-    color: var(--text);
+    color: var(--home-text);
     background: rgba(45, 212, 191, 0.045);
-    outline: none;
   }
 
   .cve-ticker__id {
     color: #d7fff9;
-    font-family: var(--font-mono);
-    font-size: 0.69rem;
+    font-family: var(--home-font-mono);
+    font-size: 0.67rem;
     font-weight: 760;
   }
 
@@ -324,45 +166,45 @@
     align-items: center;
     gap: 5px;
     color: #9ca6b3;
-    font-family: var(--font-mono);
-    font-size: 0.59rem;
+    font-family: var(--home-font-mono);
+    font-size: 0.57rem;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
   .cve-ticker__severity::before {
-    content: "";
     width: 4px;
     height: 4px;
+    content: "";
     border-radius: 50%;
-    background: var(--amber);
+    background: var(--home-amber);
   }
 
-  .cve-ticker__severity--critical::before { background: var(--rose); }
-  .cve-ticker__severity--medium::before { background: var(--teal); }
+  .cve-ticker__severity--critical::before { background: var(--home-coral); }
+  .cve-ticker__severity--medium::before { background: var(--home-teal); }
 
   .cve-ticker__kev {
     color: #8eeadd;
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
+    font-family: var(--home-font-mono);
+    font-size: 0.54rem;
     font-weight: 800;
     letter-spacing: 0.05em;
   }
 
   .cve-ticker__date {
     color: #687484;
-    font-family: var(--font-mono);
-    font-size: 0.59rem;
+    font-family: var(--home-font-mono);
+    font-size: 0.57rem;
   }
 
   .cve-ticker__toggle {
     width: 38px;
     border: 0;
     border-left: 1px solid rgba(255, 255, 255, 0.08);
-    background: transparent;
     color: #74808e;
-    font: 700 0.7rem/1 var(--font-mono);
+    background: transparent;
+    font: 700 0.7rem/1 var(--home-font-mono);
     cursor: pointer;
   }
 
@@ -372,2043 +214,58 @@
   .cve-ticker__toggle:focus-visible {
     color: #c7d2dc;
     background: rgba(255, 255, 255, 0.035);
-    outline: none;
-  }
-
-  .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 14px;
-    font-size: 1.42rem;
-    font-weight: 780;
-    letter-spacing: 0;
-  }
-
-  .brand img {
-    width: 36px;
-    height: 36px;
-  }
-
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 34px;
-    color: #eef3f8;
-    font-size: 0.94rem;
-    font-weight: 520;
-  }
-
-  .nav-links a {
-    padding: 8px 0;
-    border-bottom: 2px solid transparent;
-    transition: color 160ms ease, border-color 160ms ease;
-  }
-
-  .nav-links a:hover,
-  .nav-links a:focus-visible {
-    color: var(--text);
-    border-color: var(--teal);
-    outline: none;
-  }
-
-  .top-actions {
-    display: inline-flex;
-    align-items: center;
-    gap: 24px;
-    flex: 0 0 auto;
-  }
-
-  .github-link,
-  .header-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .github-link {
-    width: 36px;
-    height: 36px;
-    color: #ffffff;
-  }
-
-  .github-link svg,
-  .header-cta svg {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
-  }
-
-  .header-cta {
-    min-height: 45px;
-    padding: 0 22px;
-    border: 1px solid rgba(45, 212, 191, 0.9);
-    border-radius: 7px;
-    color: #33ecd1;
-    font-size: 0.95rem;
-    font-weight: 760;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
-  }
-
-  .header-cta:hover,
-  .header-cta:focus-visible {
-    background: rgba(45, 212, 191, 0.1);
-    color: #9ffff1;
-    outline: none;
-    transform: translateY(-1px);
-  }
-
-  .hero {
-    position: relative;
-    min-height: 642px;
-    padding: 68px 0 26px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.11);
-  }
-
-  .hero-grid > div:first-child {
-    position: relative;
-  }
-
-  .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(590px, 0.82fr) minmax(832px, 1fr);
-    gap: 28px;
-    align-items: center;
-  }
-
-  .hero h1 {
-    margin: 0;
-    max-width: 620px;
-    font-size: clamp(3.25rem, 3.9vw, 3.9rem);
-    line-height: 1.16;
-    letter-spacing: 0;
-    text-wrap: balance;
-  }
-
-  .hero h1 > span {
-    display: block;
-    white-space: nowrap;
-  }
-
-  .accent-dot {
-    display: inline;
-    color: var(--teal);
-  }
-
-  .hero-copy {
-    margin: 22px 0 0;
-    max-width: 500px;
-    color: #cbd3db;
-    font-size: clamp(1.1rem, 1.52vw, 1.22rem);
-    line-height: 1.52;
-  }
-
-  .hero-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 42px;
-  }
-
-  .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 50px;
-    padding: 0 16px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.34);
-    color: var(--text);
-    font-weight: 700;
-    font-size: 0.93rem;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
-    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
-  }
-
-  .button.primary {
-    color: #021d1b;
-    background: linear-gradient(135deg, #2bd3bd, #33dfca);
-    border-color: rgba(45, 212, 191, 0.88);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.32),
-      0 12px 34px rgba(45, 212, 191, 0.22);
-  }
-
-  .button.primary:hover,
-  .button.primary:focus-visible {
-    color: #010f0e;
-    border-color: rgba(153, 246, 228, 0.92);
-  }
-
-  .button:hover,
-  .button:focus-visible {
-    transform: translateY(-1px);
-    border-color: var(--border-strong);
-    outline: none;
-  }
-
-  .hero-media {
-    position: relative;
-    min-height: 0;
-    margin: 0;
-  }
-
-  .hero-media::before {
-    content: "";
-    position: absolute;
-    inset: 8% -3% -5% 5%;
-    background:
-      linear-gradient(135deg, rgba(45, 212, 191, 0.12), rgba(103, 232, 249, 0.08) 42%, rgba(251, 191, 36, 0.07)),
-      repeating-linear-gradient(90deg, transparent 0 17px, rgba(255, 255, 255, 0.045) 17px 18px);
-    filter: blur(26px);
-    border-radius: 8px;
-    z-index: -1;
-  }
-
-  .security-console {
-    position: relative;
-    min-height: 0;
-    overflow: hidden;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
-      linear-gradient(135deg, rgba(45, 212, 191, 0.06), transparent 34%, rgba(103, 232, 249, 0.065) 68%, rgba(251, 191, 36, 0.035)),
-      #050b10;
-    box-shadow: var(--shadow-tight);
-  }
-
-  .hero h1 em {
-    color: #67e8f9;
-    font-style: normal;
-  }
-
-  .hero-proof {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 24px;
-    margin-top: 64px;
-    max-width: 620px;
-  }
-
-  .hero-proof-item {
-    display: grid;
-    grid-template-columns: 26px minmax(0, 1fr);
-    gap: 10px;
-    align-items: start;
-    min-width: 0;
-  }
-
-  .hero-proof-icon {
-    width: 26px;
-    height: 26px;
-    display: grid;
-    place-items: center;
-    border-radius: 0;
-    border: 0;
-    color: var(--teal);
-    background: transparent;
-  }
-
-  .hero-proof-icon svg,
-  .button svg,
-  .recipe-tab svg,
-  .context-source svg {
-    width: 1rem;
-    height: 1rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .hero-proof strong {
-    display: block;
-    color: var(--text);
-    font-size: 0.77rem;
-    line-height: 1.22;
-  }
-
-  .hero-proof span:not(.hero-proof-icon) {
-    display: block;
-    margin-top: 2px;
-    color: #9ca6ad;
-    font-size: 0.65rem;
-    line-height: 1.32;
-  }
-
-  .button {
-    gap: 9px;
-  }
-
-  .security-console::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(45, 212, 191, 0.08) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(103, 232, 249, 0.06) 1px, transparent 1px);
-    background-size: 38px 38px;
-    opacity: 0.3;
-    animation: console-grid 18s linear infinite;
-  }
-
-  .security-console::after {
-    content: "";
-    position: absolute;
-    inset: -30% 46% -30% auto;
-    width: 110px;
-    background: linear-gradient(90deg, transparent, rgba(103, 232, 249, 0.18), transparent);
-    transform: rotate(11deg) translateX(-320%);
-    animation: console-sweep 8s ease-in-out infinite;
-  }
-
-  .console-top,
-  .console-pipeline,
-  .console-status,
-  .console-footer {
-    position: relative;
-    z-index: 1;
-  }
-
-  .console-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 14px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-    background: rgba(2, 6, 23, 0.36);
-  }
-
-  .console-title {
-    display: grid;
-    gap: 2px;
-  }
-
-  .console-title strong {
-    font-size: 0.94rem;
-    line-height: 1.2;
-  }
-
-  .console-title span {
-    color: var(--soft);
-    font-size: 0.78rem;
-  }
-
-  .recipe-console-body {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: minmax(140px, 0.58fr) minmax(0, 1.42fr);
-    gap: 10px;
-    padding: 12px;
-  }
-
-  .recipe-list,
-  .active-recipe,
-  .context-proof {
-    min-width: 0;
-  }
-
-  .recipe-list {
-    display: grid;
-    gap: 8px;
-  }
-
-  .console-label {
-    color: var(--soft);
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .recipe-tab {
-    display: grid;
-    grid-template-columns: 24px minmax(0, 1fr);
-    gap: 8px;
-    min-height: 56px;
-    padding: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 8px;
-    background: rgba(8, 13, 20, 0.66);
-    color: var(--muted);
-  }
-
-  .recipe-tab strong {
-    display: block;
-    color: var(--text);
-    font-size: 0.76rem;
-    line-height: 1.25;
-  }
-
-  .recipe-tab span {
-    display: inline-flex;
-    margin-top: 5px;
-    color: var(--soft);
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-  }
-
-  .recipe-tab.is-active {
-    border-color: rgba(45, 212, 191, 0.66);
-    background:
-      linear-gradient(135deg, rgba(45, 212, 191, 0.13), rgba(103, 232, 249, 0.07)),
-      rgba(6, 17, 20, 0.78);
-    color: #67e8f9;
-    box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.12);
-  }
-
-  .view-all-recipes {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 34px;
-    margin-top: 2px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    color: #d8e2ef;
-    font-size: 0.78rem;
-    font-weight: 760;
-  }
-
-  .active-recipe {
-    display: grid;
-    gap: 10px;
-  }
-
-  .active-recipe-card,
-  .context-source,
-  .proof-panel,
-  .review-gate {
-    border: 1px solid rgba(255, 255, 255, 0.105);
-    border-radius: 8px;
-    background: rgba(2, 6, 23, 0.46);
-  }
-
-  .active-recipe-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 8px;
-    padding: 10px;
-  }
-
-  .active-recipe-card > .console-label,
-  .active-recipe-card > div:first-of-type,
-  .active-recipe-card > .status-chips {
-    grid-column: 1 / -1;
-  }
-
-  .active-recipe-card h2,
-  .proof-panel h3,
-  .review-gate h3 {
-    margin: 0;
-    color: var(--text);
-    font-size: 0.9rem;
-    line-height: 1.22;
-  }
-
-  .active-recipe-card p {
-    margin: 3px 0 0;
-    color: var(--muted);
-    font-size: 0.75rem;
-    line-height: 1.42;
-  }
-
-  .scope-block,
-  .plan-block {
-    padding: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    background: rgba(7, 12, 18, 0.68);
-  }
-
-  .scope-block code {
-    display: block;
-    margin-top: 6px;
-    color: #cdeee8;
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    line-height: 1.42;
-    overflow-wrap: anywhere;
-  }
-
-  .plan-block ol {
-    display: grid;
-    gap: 3px;
-    margin: 6px 0 0 16px;
-    padding: 0;
-    color: #cbd7e5;
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    line-height: 1.34;
-  }
-
-  .status-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-  }
-
-  .status-chips span {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
-    padding: 4px 7px;
-    border: 1px solid rgba(134, 239, 172, 0.22);
-    border-radius: 7px;
-    background: rgba(134, 239, 172, 0.07);
-    color: #bbf7d0;
-    font-family: var(--font-mono);
-    font-size: 0.64rem;
-    font-weight: 800;
-  }
-
-  .context-proof {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .context-sources,
-  .proof-panel {
-    display: grid;
-    gap: 7px;
-  }
-
-  .context-source {
-    display: grid;
-    grid-template-columns: 21px minmax(0, 1fr) auto;
-    gap: 7px;
-    align-items: center;
-    min-height: 31px;
-    padding: 6px;
-    color: #67e8f9;
-  }
-
-  .context-source strong {
-    color: #d8fff9;
-    font-size: 0.66rem;
-  }
-
-  .context-source span {
-    color: #86efac;
-    font-size: 0.58rem;
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-
-  .proof-panel,
-  .review-gate {
-    padding: 9px;
-  }
-
-  .proof-panel {
-    border-color: rgba(251, 191, 36, 0.26);
-    background:
-      linear-gradient(135deg, rgba(251, 191, 36, 0.08), transparent 54%),
-      rgba(2, 6, 23, 0.52);
-  }
-
-  .proof-checks {
-    display: grid;
-    gap: 5px;
-    margin: 7px 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .proof-checks li {
-    display: grid;
-    grid-template-columns: 14px minmax(0, 1fr);
-    gap: 7px;
-    align-items: start;
-    color: #d5deea;
-    font-size: 0.66rem;
-    line-height: 1.35;
-  }
-
-  .proof-checks li::before {
-    content: "";
-    width: 9px;
-    height: 9px;
-    margin-top: 3px;
-    border: 1px solid #fbbf24;
-    border-radius: 2px;
-    box-shadow: 0 0 12px rgba(251, 191, 36, 0.28);
-  }
-
-  .review-gate {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 10px;
-    border-color: rgba(251, 191, 36, 0.24);
-  }
-
-  .review-gate p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.68rem;
-    line-height: 1.38;
-  }
-
-  .review-gate a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 32px;
-    padding: 0 10px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.055);
-    color: var(--text);
-    font-size: 0.72rem;
-    font-weight: 800;
-  }
-
-  .console-health {
-    display: inline-flex;
-    align-items: center;
-    flex: 0 0 auto;
-    gap: 8px;
-    min-height: 32px;
-    padding: 7px 10px;
-    border: 1px solid rgba(64, 224, 208, 0.28);
-    border-radius: 999px;
-    background: rgba(8, 22, 26, 0.72);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    color: #d8fff9;
-    font-family: var(--font-sans);
-    font-size: 0.78rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .console-health::before {
-    content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--green);
-    box-shadow: 0 0 18px rgba(134, 239, 172, 0.72);
-    animation: status-pulse 2.6s ease-in-out infinite;
-  }
-
-  .console-pipeline {
-    position: relative;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 9px;
-    padding: 16px 18px 14px;
-  }
-
-  .console-pipeline::before {
-    content: "";
-    position: absolute;
-    top: 36px;
-    bottom: 36px;
-    left: 32px;
-    width: 2px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, #67e8f9, #86efac 36%, #fbbf24 68%, #fb7185);
-    opacity: 0.58;
-  }
-
-  .lane {
-    position: relative;
-    display: grid;
-    grid-template-columns: 36px minmax(0, 1fr);
-    gap: 10px;
-    min-height: 86px;
-    padding: 10px;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    background: rgba(8, 13, 20, 0.72);
-  }
-
-  .lane::after {
-    content: "";
-    position: absolute;
-    inset: 0 0 0 auto;
-    width: 3px;
-    background: linear-gradient(180deg, currentColor, transparent);
-    opacity: 0.62;
-    animation: lane-trace 4.5s ease-in-out infinite;
-  }
-
-  .lane:nth-child(1) { color: #67e8f9; }
-  .lane:nth-child(2) { color: #86efac; }
-  .lane:nth-child(3) { color: #fbbf24; }
-  .lane:nth-child(4) { color: #fbbf24; }
-
-  .lane-index {
-    position: relative;
-    z-index: 1;
-    width: 30px;
-    height: 30px;
-    display: grid;
-    place-items: center;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    background: color-mix(in srgb, currentColor 14%, transparent);
-    color: currentColor;
-    font-family: var(--font-mono);
-    font-size: 0.76rem;
-    font-weight: 800;
-  }
-
-  .lane-body {
-    min-width: 0;
-  }
-
-  .lane h3 {
-    margin: 0 0 7px;
-    color: var(--text);
-    font-size: 0.92rem;
-    line-height: 1.2;
-  }
-
-  .lane ul {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .lane li {
-    padding: 6px 7px;
-    border: 1px solid rgba(255, 255, 255, 0.085);
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.035);
-    color: #c9d6e6;
-    font-size: 0.7rem;
-    line-height: 1.28;
-  }
-
-  .lane li strong {
-    display: block;
-    margin-bottom: 2px;
-    color: var(--text);
-    font-size: 0.72rem;
-  }
-
-  .lane li span {
-    display: block;
-  }
-
-  .console-flow {
-    display: none;
-    position: absolute;
-    top: 315px;
-    left: 6%;
-    right: 6%;
-    height: 2px;
-    z-index: 2;
-    background: linear-gradient(90deg, rgba(103, 232, 249, 0.08), rgba(134, 239, 172, 0.62), rgba(167, 139, 250, 0.58), rgba(251, 191, 36, 0.36));
-  }
-
-  .console-flow::before,
-  .console-flow::after {
-    content: "";
-    position: absolute;
-    top: -4px;
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
-    background: #67e8f9;
-    box-shadow: 0 0 20px rgba(103, 232, 249, 0.8);
-    animation: packet-dot 5.2s linear infinite;
-  }
-
-  .console-flow::after {
-    animation-delay: -2.6s;
-    background: #fbbf24;
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.68);
-  }
-
-  .console-status {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
-    padding: 0 18px 12px;
-  }
-
-  .status-card {
-    min-height: 76px;
-    padding: 12px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    background: rgba(2, 6, 23, 0.48);
-  }
-
-  .status-card h3 {
-    margin: 0 0 6px;
-    font-size: 0.86rem;
-  }
-
-  .status-card p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.78rem;
-    line-height: 1.45;
-  }
-
-  .mcp-context-card {
-    display: grid;
-    gap: 10px;
-    border-color: rgba(45, 212, 191, 0.24);
-    background:
-      linear-gradient(135deg, rgba(45, 212, 191, 0.09), rgba(103, 232, 249, 0.05)),
-      rgba(2, 6, 23, 0.58);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
-  }
-
-  .mcp-card-head,
-  .mcp-endpoint-row,
-  .mcp-tool-list {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .mcp-card-head {
-    justify-content: space-between;
-  }
-
-  .mcp-card-head span {
-    color: #67e8f9;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .mcp-card-head code,
-  .mcp-endpoint-row code,
-  .mcp-tool-list code {
-    min-height: 24px;
-    display: inline-flex;
-    align-items: center;
-    max-width: 100%;
-    padding: 4px 7px;
-    border: 1px solid rgba(103, 232, 249, 0.18);
-    border-radius: 7px;
-    background: rgba(15, 23, 42, 0.68);
-    color: #d8fff9;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    overflow-wrap: anywhere;
-  }
-
-  .mcp-endpoint-row span {
-    color: var(--soft);
-    font-size: 0.7rem;
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-
-  .signal-bars {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    align-items: end;
-    gap: 4px;
-    height: 40px;
-    margin-top: 12px;
-  }
-
-  .signal-bars span {
-    display: block;
-    min-height: 9px;
-    border-radius: 3px 3px 0 0;
-    background: linear-gradient(180deg, #67e8f9, rgba(45, 212, 191, 0.36));
-    animation: signal-rise 2.8s ease-in-out infinite;
-  }
-
-  .signal-bars span:nth-child(2n) { animation-delay: -0.6s; }
-  .signal-bars span:nth-child(3n) { animation-delay: -1.2s; }
-  .signal-bars span:nth-child(4n) { animation-delay: -1.8s; }
-
-  .console-footer {
-    display: none;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 0 18px 14px;
-  }
-
-  .console-footer span {
-    padding: 5px 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.04);
-    color: #c8d4e4;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-  }
-
-  .process-diagram {
-    position: relative;
-    width: min(100%, 832px);
-    min-height: 490px;
-    margin-left: auto;
-    display: grid;
-    grid-template-columns: 150px 260px 158px 198px;
-    gap: 22px;
-    align-items: center;
-    color: #f5f7fb;
-    transform: translateY(-24px);
-  }
-
-  .process-col {
-    position: relative;
-    display: grid;
-    gap: 16px;
-    min-width: 0;
-  }
-
-  .process-label {
-    height: 32px;
-    display: grid;
-    place-items: center;
-    margin-bottom: 2px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.24);
-    color: #eef3f8;
-    font-size: 0.76rem;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  .process-label.teal {
-    border-bottom-color: rgba(45, 212, 191, 0.38);
-    color: #24ecd3;
-    font-size: 0.86rem;
-    letter-spacing: 0.05em;
-    line-height: 1.15;
-  }
-
-  .process-label.amber {
-    border-bottom-color: rgba(251, 191, 36, 0.34);
-    color: #f8c84c;
-  }
-
-  .finding-stack,
-  .agent-stack,
-  .review-stack {
-    display: grid;
-    gap: 34px;
-  }
-
-  .finding-card,
-  .agent-card,
-  .proof-stack-card,
-  .context-layer {
-    position: relative;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 7px;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
-      rgba(7, 13, 16, 0.64);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.045),
-      0 14px 36px rgba(0, 0, 0, 0.28);
-  }
-
-  .finding-card {
-    min-height: 103px;
-    display: grid;
-    grid-template-columns: 30px minmax(0, 1fr);
-    gap: 12px;
-    align-items: center;
-    padding: 18px 13px;
-  }
-
-  .finding-card::after,
-  .layer-section::after,
-  .agent-card::after {
-    content: "";
-    position: absolute;
-    right: -25px;
-    top: 50%;
-    width: 24px;
-    border-top: 2px dashed rgba(45, 212, 191, 0.78);
-    transform: translateY(-50%);
-  }
-
-  .finding-card::before,
-  .layer-section::before,
-  .agent-card::before {
-    content: "";
-    position: absolute;
-    right: -26px;
-    top: 50%;
-    width: 7px;
-    height: 7px;
-    border-top: 2px solid rgba(45, 212, 191, 0.9);
-    border-right: 2px solid rgba(45, 212, 191, 0.9);
-    transform: translateY(-50%) rotate(45deg);
-  }
-
-  .finding-icon,
-  .agent-icon,
-  .review-icon,
-  .recipe-icon,
-  .trust-card-icon {
-    display: grid;
-    place-items: center;
-    color: currentColor;
-  }
-
-  .finding-icon {
-    color: #eef3f8;
-  }
-
-  .finding-icon svg,
-  .agent-icon svg,
-  .review-icon svg,
-  .recipe-icon svg,
-  .trust-card-icon svg,
-  .source-row svg,
-  .content-row svg {
-    width: 100%;
-    height: 100%;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .finding-icon svg,
-  .agent-icon svg,
-  .review-icon svg {
-    stroke-width: 1.9;
-  }
-
-  .finding-copy strong {
-    display: block;
-    color: #f6f8fb;
-    font-size: 0.84rem;
-    font-weight: 650;
-    line-height: 1.2;
-  }
-
-  .finding-copy code {
-    display: block;
-    margin-top: 4px;
-    color: #a8b1ba;
-    font-family: var(--font-sans);
-    font-size: 0.76rem;
-  }
-
-  .severity {
-    display: inline-flex;
-    margin-top: 7px;
-    color: #f3b826;
-    font-size: 0.74rem;
-    font-weight: 740;
-  }
-
-  .context-layer {
-    min-height: 462px;
-    padding: 16px 13px;
-    border-color: rgba(45, 212, 191, 0.86);
-    background:
-      linear-gradient(180deg, rgba(45, 212, 191, 0.085), rgba(45, 212, 191, 0.025)),
-      rgba(3, 16, 16, 0.78);
-    box-shadow:
-      0 0 0 1px rgba(45, 212, 191, 0.22) inset,
-      0 0 36px rgba(45, 212, 191, 0.14),
-      0 24px 70px rgba(0, 0, 0, 0.36);
-  }
-
-  .layer-section {
-    position: relative;
-    display: grid;
-    gap: 10px;
-    padding: 14px;
-    border: 1px solid rgba(45, 212, 191, 0.48);
-    border-radius: 7px;
-    background: rgba(5, 24, 22, 0.76);
-  }
-
-  .layer-section + .layer-section {
-    margin-top: 10px;
-  }
-
-  .layer-section.recipe-head {
-    grid-template-columns: 42px minmax(0, 1fr);
-    align-items: center;
-  }
-
-  .recipe-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 6px;
-    color: #ffffff;
-    background: linear-gradient(135deg, rgba(45, 212, 191, 0.64), rgba(45, 212, 191, 0.22));
-  }
-
-  .recipe-icon svg {
-    width: 24px;
-    height: 24px;
-    stroke-width: 2;
-  }
-
-  .layer-kicker,
-  .proof-kicker {
-    color: #5ffce6;
-    font-size: 0.72rem;
-    font-weight: 850;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .recipe-title {
-    display: block;
-    margin-top: 3px;
-    color: #f6f9fb;
-    font-size: 0.83rem;
-    font-weight: 650;
-  }
-
-  .recipe-meta {
-    display: block;
-    margin-top: 4px;
-    color: #9daab2;
-    font-size: 0.66rem;
-    line-height: 1.34;
-  }
-
-  .source-list,
-  .content-list {
-    display: grid;
-    gap: 9px;
-  }
-
-  .source-row,
-  .content-row {
-    display: grid;
-    grid-template-columns: 16px minmax(0, 1fr) auto 14px;
-    gap: 9px;
-    align-items: center;
-    min-width: 0;
-  }
-
-  .content-row {
-    grid-template-columns: 16px minmax(0, 1fr);
-  }
-
-  .source-row svg,
-  .content-row svg {
-    color: #f3f8f9;
-    stroke-width: 1.8;
-  }
-
-  .source-row span,
-  .content-row span {
-    color: #eef5f7;
-    font-size: 0.74rem;
-  }
-
-  .source-row em {
-    color: #98a4a8;
-    font-size: 0.58rem;
-    font-style: normal;
-    white-space: nowrap;
-  }
-
-  .source-row b {
-    position: relative;
-    width: 12px;
-    height: 10px;
-    display: inline-block;
-    border: 1px solid currentColor;
-    border-radius: 2px;
-    color: #64d9c7;
-  }
-
-  .source-row b::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: -7px;
-    width: 6px;
-    height: 7px;
-    border: 1px solid currentColor;
-    border-bottom: 0;
-    border-radius: 6px 6px 0 0;
-  }
-
-  .agent-card {
-    min-height: 78px;
-    display: grid;
-    grid-template-columns: 40px minmax(0, 1fr) 24px;
-    gap: 11px;
-    align-items: center;
-    padding: 15px 11px;
-  }
-
-  .agent-card::after {
-    right: -25px;
-    border-color: rgba(45, 212, 191, 0.72);
-  }
-
-  .agent-card::before {
-    right: -26px;
-    border-color: rgba(45, 212, 191, 0.86);
-  }
-
-  .agent-icon {
-    width: 34px;
-    height: 34px;
-    color: #3be4d0;
-  }
-
-  .agent-card strong {
-    display: block;
-    color: #f6f8fb;
-    font-size: 0.82rem;
-    font-weight: 650;
-    line-height: 1.2;
-  }
-
-  .check-dot {
-    width: 21px;
-    height: 21px;
-    display: grid;
-    place-items: center;
-    border: 1px solid #22c55e;
-    border-radius: 999px;
-    color: #22c55e;
-  }
-
-  .check-dot svg {
-    width: 13px;
-    height: 13px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  .proof-stack {
-    min-height: 438px;
-    padding: 16px 12px;
-    border: 1px solid rgba(251, 191, 36, 0.78);
-    border-radius: 7px;
-    background:
-      linear-gradient(180deg, rgba(251, 191, 36, 0.08), rgba(251, 191, 36, 0.02)),
-      rgba(16, 12, 3, 0.52);
-    box-shadow:
-      0 0 0 1px rgba(251, 191, 36, 0.12) inset,
-      0 0 32px rgba(251, 191, 36, 0.09);
-  }
-
-  .proof-stack-card {
-    display: grid;
-    gap: 11px;
-    padding: 13px 14px;
-    border-color: rgba(251, 191, 36, 0.42);
-    background: rgba(22, 17, 6, 0.78);
-  }
-
-  .proof-head {
-    display: grid;
-    grid-template-columns: 36px minmax(0, 1fr);
-    gap: 12px;
-    align-items: center;
-    padding-bottom: 9px;
-    border-bottom: 1px solid rgba(251, 191, 36, 0.24);
-  }
-
-  .review-icon {
-    width: 34px;
-    height: 34px;
-    color: #f3b826;
-  }
-
-  .proof-kicker {
-    color: #f3c84d;
-  }
-
-  .proof-list {
-    display: grid;
-    gap: 9px;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .proof-list li {
-    display: grid;
-    grid-template-columns: 15px minmax(0, 1fr);
-    gap: 9px;
-    align-items: center;
-    color: #ecf0f4;
-    font-size: 0.75rem;
-  }
-
-  .proof-list li::before {
-    content: "";
-    width: 12px;
-    height: 12px;
-    border: 1px solid #f3b826;
-    border-radius: 999px;
-    background:
-      linear-gradient(135deg, transparent 45%, #f3b826 46% 55%, transparent 56%);
-  }
-
-  .review-step {
-    position: relative;
-    display: grid;
-    grid-template-columns: 34px minmax(0, 1fr);
-    gap: 12px;
-    align-items: center;
-    min-height: 61px;
-    padding: 12px 13px;
-    border: 1px solid rgba(251, 191, 36, 0.42);
-    border-radius: 7px;
-    color: #f3b826;
-    background: rgba(22, 17, 6, 0.64);
-  }
-
-  .review-step::before {
-    content: "";
-    position: absolute;
-    top: -27px;
-    left: 50%;
-    height: 25px;
-    border-left: 2px dashed rgba(251, 191, 36, 0.72);
-    transform: translateX(-50%);
-  }
-
-  .review-step::after {
-    content: "";
-    position: absolute;
-    top: -5px;
-    left: 50%;
-    width: 7px;
-    height: 7px;
-    border-right: 2px solid rgba(251, 191, 36, 0.86);
-    border-bottom: 2px solid rgba(251, 191, 36, 0.86);
-    transform: translateX(-50%) rotate(45deg);
-  }
-
-  .review-step strong {
-    display: block;
-    color: #f3c84d;
-    font-size: 0.72rem;
-    font-weight: 850;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .review-step span {
-    display: block;
-    margin-top: 3px;
-    color: #f7f2e0;
-    font-size: 0.74rem;
-  }
-
-  .context-layer-section {
-    margin-inline: calc(50% - 50vw);
-    padding: 52px calc(50vw - min(50vw, 725px)) 58px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    background:
-      radial-gradient(circle at 12% 0%, rgba(45, 212, 191, 0.1), transparent 34%),
-      linear-gradient(180deg, rgba(2, 19, 16, 0.72), rgba(2, 10, 10, 0.54));
-  }
-
-  .context-layer-section .section-head {
-    display: block;
-    margin-bottom: 30px;
-  }
-
-  .context-layer-section .section-head h2 {
-    max-width: none;
-    font-size: clamp(1.25rem, 2vw, 1.6rem);
-    line-height: 1.25;
-    font-weight: 540;
-  }
-
-  .trust-cards {
-    gap: 24px;
-  }
-
-  .trust-card {
-    min-height: 170px;
-    display: grid;
-    grid-template-columns: 54px minmax(0, 1fr);
-    gap: 20px;
-    align-content: start;
-    padding: 27px 29px;
-  }
-
-  .card.trust-card .mark {
-    display: none;
-  }
-
-  .trust-card-icon {
-    width: 44px;
-    height: 44px;
-    color: var(--teal);
-  }
-
-  .trust-card-icon svg {
-    stroke-width: 1.8;
-  }
-
-  .trust-card h3 {
-    margin-top: 5px;
-    font-size: 1.1rem;
-    font-weight: 580;
-  }
-
-  .trust-card p {
-    max-width: 230px;
-    color: #b9c1c8;
-    font-size: 0.92rem;
-    line-height: 1.5;
-  }
-
-  main {
-    padding-bottom: 68px;
-  }
-
-  section {
-    padding: 56px 0;
-  }
-
-  .section-head {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: 32px;
-    margin-bottom: 26px;
-  }
-
-  .section-head h2 {
-    margin: 0;
-    max-width: 760px;
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    line-height: 1;
-    letter-spacing: 0;
-  }
-
-  .section-head p {
-    margin: 0;
-    max-width: 410px;
-    color: var(--muted);
-    font-size: 1rem;
-  }
-
-  .cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-
-  .card {
-    display: block;
-    min-height: 214px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.11);
-    border-radius: 8px;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)),
-      rgba(4, 8, 12, 0.44);
-    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
-  }
-
-  .card:hover,
-  .card:focus-visible {
-    transform: translateY(-2px);
-    border-color: var(--border-strong);
-    background:
-      linear-gradient(180deg, rgba(45, 212, 191, 0.08), rgba(255, 255, 255, 0.025)),
-      rgba(4, 8, 12, 0.56);
-    outline: none;
-  }
-
-  .card .mark {
-    width: 36px;
-    height: 36px;
-    display: grid;
-    place-items: center;
-    margin-bottom: 18px;
-    border-radius: 8px;
-    background: rgba(45, 212, 191, 0.14);
-    color: var(--teal);
-    font-family: var(--font-mono);
-    font-weight: 800;
-  }
-
-  .card h3 {
-    margin: 0 0 10px;
-    font-size: 1.1rem;
-    line-height: 1.2;
-  }
-
-  .card p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.96rem;
-  }
-
-  .steps {
-    display: grid;
-    grid-template-columns: 0.82fr 1.18fr;
-    gap: 18px;
-  }
-
-  .step-list {
-    border: 1px solid rgba(255, 255, 255, 0.11);
-    border-radius: 8px;
-    background: rgba(4, 8, 12, 0.48);
-    overflow: hidden;
-  }
-
-  .step-row {
-    display: grid;
-    grid-template-columns: 46px 1fr;
-    gap: 12px;
-    padding: 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .step-row:last-child {
-    border-bottom: 0;
-  }
-
-  .step-row b {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-    background: rgba(251, 191, 36, 0.14);
-    color: var(--amber);
-    font-family: var(--font-mono);
-  }
-
-  .step-row h3 {
-    margin: 0 0 4px;
-    font-size: 1rem;
-  }
-
-  .step-row p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.94rem;
-  }
-
-  .code-panel {
-    min-height: 100%;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background:
-      linear-gradient(180deg, rgba(45, 212, 191, 0.08), transparent 28%),
-      rgba(4, 8, 12, 0.84);
-    padding: 20px;
-    box-shadow: var(--shadow);
-  }
-
-  .code-panel pre {
-    margin: 0;
-    white-space: pre-wrap;
-    color: #d8fdf7;
-    font-family: var(--font-mono);
-    font-size: 0.92rem;
-  }
-
-  .matrix {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-  }
-
-  .matrix-item {
-    border: 1px solid rgba(255, 255, 255, 0.11);
-    border-radius: 8px;
-    background: rgba(4, 8, 12, 0.48);
-    padding: 20px;
-  }
-
-  .matrix-item h3 {
-    margin: 0 0 10px;
-    font-size: 1.08rem;
-  }
-
-  .matrix-item p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-
-  .muted-band {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 26px;
-    background:
-      linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(251, 191, 36, 0.08)),
-      rgba(255, 255, 255, 0.045);
-  }
-
-  .muted-band h2 {
-    margin: 0 0 10px;
-    font-size: clamp(1.8rem, 3vw, 2.6rem);
-    line-height: 1.05;
-  }
-
-  .muted-band p {
-    max-width: 840px;
-    margin: 0;
-    color: #d6deeb;
-  }
-
-  .footer {
-    padding: 34px 0 48px;
-    color: var(--soft);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .footer-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    justify-content: space-between;
-    gap: 20px;
-    font-size: 0.94rem;
-  }
-
-  .footer-inner > .crypto-donations {
-    grid-column: 1 / -1;
-  }
-
-  .footer a {
-    color: var(--muted);
-    transition: color 160ms ease;
-  }
-
-  .footer a:hover,
-  .footer a:focus-visible {
-    color: var(--teal);
-    outline: none;
-  }
-
-  .footer-nav {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px 22px;
-    font-weight: 560;
-  }
-
-  @keyframes home-grid-drift {
-    from { background-position: 0 0, 0 0; }
-    to { background-position: 54px 54px, 54px 54px; }
   }
 
   @keyframes latest-cves-scroll {
     to { transform: translate3d(-50%, 0, 0); }
   }
 
-  @keyframes packet-path {
-    0% { opacity: 0; clip-path: inset(0 100% 0 0); }
-    18% { opacity: 0.24; }
-    56% { clip-path: inset(0 0 0 0); }
-    100% { opacity: 0; clip-path: inset(0 0 0 100%); }
-  }
-
-  @keyframes console-grid {
-    from { background-position: 0 0, 0 0; }
-    to { background-position: 38px 38px, 38px 38px; }
-  }
-
-  @keyframes console-sweep {
-    0%, 28% { transform: rotate(11deg) translateX(-330%); opacity: 0; }
-    46% { opacity: 1; }
-    76%, 100% { transform: rotate(11deg) translateX(420%); opacity: 0; }
-  }
-
-  @keyframes status-pulse {
-    0%, 100% { opacity: 0.72; transform: scale(0.96); }
-    50% { opacity: 1; transform: scale(1.08); }
-  }
-
-  @keyframes lane-trace {
-    0%, 100% { transform: translateX(-8%); opacity: 0.22; }
-    50% { transform: translateX(8%); opacity: 0.72; }
-  }
-
-  @keyframes packet-dot {
-    from { left: 0; opacity: 0; }
-    10%, 86% { opacity: 1; }
-    to { left: calc(100% - 10px); opacity: 0; }
-  }
-
-  @keyframes signal-rise {
-    0%, 100% { height: 18%; opacity: 0.58; }
-    50% { height: 96%; opacity: 0.96; }
-  }
-
-  @media (max-width: 1360px) {
-    .hero {
-      min-height: auto;
-    }
-
-    .hero-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .process-diagram {
-      margin: 28px auto 0;
-    }
-  }
-
-  @media (max-width: 980px) {
-    .hero-grid,
-    .steps {
-      grid-template-columns: 1fr;
-    }
-
-    .hero {
-      padding-top: 44px;
-    }
-
-    .hero-media,
-    .security-console {
-      min-height: 0;
-    }
-
-    .hero-proof {
-      max-width: none;
-    }
-
-    .cards,
-    .matrix {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .section-head {
-      display: block;
-    }
-
-    .section-head p {
-      margin-top: 12px;
-    }
-  }
-
   @media (max-width: 720px) {
-    .site-shell,
-    .topbar-inner {
-      width: min(100% - 44px, 1180px);
-    }
-
-    .topbar-inner {
-      align-items: flex-start;
-      flex-direction: column;
-      padding: 14px 0;
-      gap: 10px;
-    }
-
+    .cve-ticker__inner { min-height: 44px; }
     .cve-ticker__label {
       gap: 6px;
       padding-right: 10px;
-      font-size: 0.61rem;
+      font-size: 0.58rem;
     }
-
     .cve-ticker__item {
-      gap: 7px;
+      min-height: 44px;
       padding: 0 12px;
+      gap: 7px;
     }
-
-    .cve-ticker__title {
-      max-width: 22ch;
-    }
-
-    .cve-ticker__date {
-      display: none;
-    }
-
-    .cve-ticker__toggle {
-      width: 34px;
-    }
-
-    .nav-links {
-      width: 100%;
-      flex-wrap: wrap;
-      overflow-x: visible;
-      padding-bottom: 4px;
-      gap: 8px 16px;
-      font-size: 0.9rem;
-    }
-
-    .nav-links::-webkit-scrollbar {
-      display: none;
-    }
-
-    .hero {
-      padding: 34px 0 42px;
-    }
-
-    .hero h1 {
-      font-size: clamp(2.72rem, 12vw, 3.25rem);
-      line-height: 1.02;
-      max-width: 100%;
-    }
-
-    .hero h1 > span {
-      white-space: normal;
-    }
-
-    .hero-copy {
-      font-size: 1rem;
-      line-height: 1.48;
-      max-width: 32ch;
-    }
-
-    .hero-actions {
-      display: grid;
-      grid-template-columns: 1fr;
-    }
-
-    .button {
-      width: 100%;
-    }
-
-    .hero-proof,
-    .hero-media {
-      display: none;
-    }
-
-    .hero-media,
-    .security-console {
-      min-height: auto;
-    }
-
-    .console-top {
-      align-items: flex-start;
-      flex-direction: column;
-      padding: 14px;
-      gap: 8px;
-    }
-
-    .recipe-console-body,
-    .context-proof {
-      grid-template-columns: 1fr;
-    }
-
-    .active-recipe-card,
-    .review-gate {
-      grid-template-columns: 1fr;
-    }
-
-    .recipe-console-body {
-      padding: 14px;
-    }
-
-    .recipe-tab {
-      min-height: 58px;
-    }
-
-    .console-pipeline {
-      gap: 8px;
-      padding: 14px;
-    }
-
-    .console-pipeline::before {
-      left: 28px;
-      top: 32px;
-      bottom: 32px;
-    }
-
-    .console-status {
-      grid-template-columns: 1fr;
-      padding: 0 14px 12px;
-    }
-
-    .mcp-card-head {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .lane {
-      grid-template-columns: 32px minmax(0, 1fr);
-      min-height: 0;
-      padding: 10px;
-      gap: 9px;
-    }
-
-    .lane-index {
-      width: 26px;
-      height: 26px;
-      font-size: 0.72rem;
-    }
-
-    .lane h3 {
-      margin-bottom: 7px;
-      font-size: 0.92rem;
-    }
-
-    .lane ul {
-      grid-template-columns: 1fr;
-      gap: 6px;
-    }
-
-    .lane li {
-      padding: 7px;
-      font-size: 0.72rem;
-    }
-
-    .status-card {
-      padding: 12px;
-    }
-
-    .console-footer {
-      padding: 0 14px 14px;
-    }
-
-    .console-footer span {
-      font-size: 0.66rem;
-    }
-
-    .console-flow {
-      display: none;
-    }
-
-    .cards,
-    .matrix {
-      grid-template-columns: 1fr;
-    }
-
-    .console-status {
-      display: grid;
-    }
-
-    .context-layer-section {
-      margin-inline: 0;
-      padding-left: 0;
-      padding-right: 0;
-    }
-
-    section {
-      padding: 44px 0;
-    }
-
-    .footer-inner {
-      grid-template-columns: 1fr;
-    }
-
-    .footer-nav {
-      justify-content: flex-start;
-    }
+    .cve-ticker__title { max-width: 18ch; }
+    .cve-ticker__date { display: none; }
+    .cve-ticker__toggle { width: 34px; }
   }
 
-  @media (max-width: 460px) {
-    .hero-proof {
-      grid-template-columns: 1fr;
-    }
+  @media (max-width: 440px) {
+    .cve-ticker__title { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      scroll-behavior: auto !important;
-    }
-
     .cve-ticker__track {
       animation: none !important;
       transform: none !important;
       will-change: auto;
     }
-
-    .cve-ticker__viewport {
-      overflow-x: auto !important;
-    }
-
+    .cve-ticker__viewport { overflow-x: auto !important; }
     .cve-ticker__list[aria-hidden="true"],
-    .cve-ticker__toggle {
-      display: none !important;
-    }
+    .cve-ticker__toggle { display: none !important; }
   }
-
-  /* Global search launcher — same affordance and behaviour as inner pages,
-     styled with the landing-page palette so the two never feel disjoint. */
-  .docs-search-shell { position: fixed; right: 22px; bottom: 22px; z-index: 80; }
-  .docs-search-launch {
-    display: inline-flex; align-items: center; gap: 10px;
-    border-radius: 999px; border: 1px solid var(--border);
-    background:
-      linear-gradient(135deg, rgba(45, 212, 191, 0.2), rgba(103, 232, 249, 0.12)),
-      rgba(8, 13, 20, 0.86);
-    color: var(--text); padding: 10px 15px; cursor: pointer;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    font-family: var(--font-sans); font-size: 0.9rem; font-weight: 600;
-    transition: transform .16s ease, border-color .22s ease, box-shadow .22s ease;
-  }
-  .docs-search-launch:hover,
-  .docs-search-launch:focus-visible {
-    border-color: rgba(45, 212, 191, 0.45); transform: translateY(-1px); outline: none;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(45, 212, 191, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  }
-  .docs-search-launch-icon { font-size: 1.05rem; line-height: 1; }
-  .docs-search-launch-kbd {
-    font-family: var(--font-mono); font-size: 12px; color: var(--soft);
-    border: 1px solid var(--border); border-radius: 6px; padding: 1px 6px;
-  }
-  .docs-search-modal[hidden] { display: none; }
-  .docs-search-modal { position: fixed; inset: 0; z-index: 90; }
-  .docs-search-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); }
-  .docs-search-panel {
-    position: relative; width: min(720px, calc(100vw - 24px)); margin: 8vh auto 0;
-    background: #0b0f19; border: 1px solid var(--border); border-radius: 14px;
-    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.5); overflow: hidden;
-  }
-  .docs-search-label {
-    display: block; color: var(--soft); font-size: 12px; letter-spacing: .08em;
-    text-transform: uppercase; padding: 12px 16px 6px;
-  }
-  .docs-search-input-wrap {
-    display: flex; gap: 10px; align-items: center; padding: 0 16px 12px;
-    border-bottom: 1px solid var(--border);
-  }
-  .docs-search-input { width: 100%; background: transparent; border: 0; color: var(--text); font-size: 16px; outline: none; }
-  .docs-search-close { border: 0; background: transparent; color: var(--soft); cursor: pointer; font-size: 1rem; }
-  .docs-search-results { max-height: 56vh; overflow: auto; }
-  .docs-search-empty { color: var(--soft); padding: 14px 16px; }
-  .docs-search-item { display: block; padding: 10px 16px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
-  .docs-search-item:hover,
-  .docs-search-item[data-active="1"] { background: rgba(45, 212, 191, 0.14); }
-  .docs-search-item-title { color: var(--text); font-weight: 600; }
-  .docs-search-item-meta { color: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
 </style>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <canvas class="home-signal-canvas" id="homeSignalCanvas" aria-hidden="true"></canvas>
   <div class="site-ambient" aria-hidden="true">
     <span></span>
     <span></span>
     <span></span>
   </div>
+
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="/" aria-label="security-recipes.ai home">
-        <img src="/images/logo.svg" alt="" width="30" height="30">
+        <img src="/images/logo.svg" alt="" width="28" height="28">
         <span>security-recipes.ai</span>
       </a>
       <nav class="nav-links" aria-label="Primary navigation">
@@ -2483,327 +340,424 @@
       </div>
       {% if latestCves and latestCves.length %}
       <button class="cve-ticker__toggle" type="button" data-cve-ticker-toggle aria-label="Pause latest CVE ticker" aria-pressed="false" title="Pause ticker" hidden>
-        <span aria-hidden="true">Ⅱ</span>
+        <span aria-hidden="true">&#8545;</span>
       </button>
       {% endif %}
     </div>
   </aside>
 
-  <div class="site-shell">
-    <section class="hero">
-      <div class="hero-grid">
-        <div>
-          <h1><span>Security recipes for</span> <span>AI-assisted fixes<span class="accent-dot">.</span></span></h1>
-          <p class="hero-copy">
-            Turn security findings into bounded agent work: one recipe, scoped context, required proof, and a human-reviewed result.
+  <main id="main-content">
+    <section class="observatory-hero" aria-labelledby="home-title">
+      <div class="site-shell observatory-hero__grid">
+        <div class="hero-copy-block">
+          <p class="hero-eyebrow">OPEN SECURITY INTELLIGENCE &bull; HUMAN + AGENT READY</p>
+          <h1 class="hero-title" id="home-title">From vulnerability intelligence to verified action<span class="hero-title__period">.</span></h1>
+          <p class="hero-summary">
+            Research <strong>{{ homepageMetrics.cves.compact }}</strong> CVEs and
+            <strong>{{ homepageMetrics.reviewedWorkflows.formatted }}</strong> reviewed workflows in a fast human interface&mdash;or give AI agents the same bounded context through MCP.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="/recipes/">
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5Z"/><path d="M4 19a3 3 0 0 1 3-3h13"/><path d="M8 7h8M8 11h6"/></svg>
-              Browse Recipes
-            </a>
-            <a class="button" href="/docs/agent-integration/">
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 7 5 5-5 5"/><path d="M11 17h9"/></svg>
-              Set Up Agents
-            </a>
-            <a class="button" href="/mcp-servers/">
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2A5 5 0 0 0 12 20.1l1.1-1.1"/></svg>
-              Connect MCP Context
-            </a>
+            <a class="button button--primary" href="/recipes/">Search CVEs &amp; Workflows</a>
+            <a class="button" href="/mcp-servers/">Connect via MCP</a>
+            <a class="button button--text" href="https://github.com/stevologic/security-recipes.ai">View on GitHub <span class="button-arrow" aria-hidden="true">&rarr;</span></a>
           </div>
-          <div class="hero-proof" aria-label="Security Recipes operating principles">
-            <div class="hero-proof-item">
-              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 6.5v5.8c0 4.7-3 8-8 9.7-5-1.7-8-5-8-9.7V6.5L12 3Z"/><path d="m8.8 12.1 2.2 2.2 4.4-5"/></svg></span>
-              <span><strong>Bounded by design</strong><span>One finding, one recipe</span></span>
-            </div>
-            <div class="hero-proof-item">
-              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/></svg></span>
-              <span><strong>Scoped context</strong><span>Read-only MCP sources</span></span>
-            </div>
-            <div class="hero-proof-item">
-              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m8 7 2 2 4-5"/><path d="m8 14 2 2 4-5"/><path d="M17 8h3M17 15h3"/></svg></span>
-              <span><strong>Required proof</strong><span>Evidence before merge</span></span>
-            </div>
-            <div class="hero-proof-item">
-              <span class="hero-proof-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/><path d="M19 8v6M16 11h6"/></svg></span>
-              <span><strong>Human review</strong><span>You own the result</span></span>
-            </div>
-          </div>
+          <ul class="hero-trust" aria-label="Trust principles">
+            <li>
+              <span class="hero-trust__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span>
+              Source-backed
+            </li>
+            <li>
+              <span class="hero-trust__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 6.5v5.8c0 4.7-3 8-8 9.7-5-1.7-8-5-8-9.7V6.5L12 3Z"/><path d="m8.8 12.1 2.2 2.2 4.4-5"/></svg></span>
+              Bounded by design
+            </li>
+            <li>
+              <span class="hero-trust__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5"/><path d="M10 13h6M10 17h5"/></svg></span>
+              Evidence required
+            </li>
+            <li>
+              <span class="hero-trust__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/><path d="M19 8v6M16 11h6"/></svg></span>
+              Human reviewed
+            </li>
+          </ul>
         </div>
-        <figure class="hero-media" aria-label="Security recipes context-layer workflow">
-          <div class="process-diagram">
-            <div class="process-col findings-col">
-              <div class="process-label">Findings</div>
-              <div class="finding-stack">
-                <article class="finding-card">
-                  <span class="finding-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.8-3.1 8.1-8 9-4.9-.9-8-4.2-8-9V7l8-4Z"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg></span>
-                  <span class="finding-copy"><strong>SQL Injection</strong><code>/api/search</code><span class="severity">High</span></span>
-                </article>
-                <article class="finding-card">
-                  <span class="finding-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.8-3.1 8.1-8 9-4.9-.9-8-4.2-8-9V7l8-4Z"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg></span>
-                  <span class="finding-copy"><strong>Auth Bypass</strong><code>/api/admin</code><span class="severity">High</span></span>
-                </article>
-                <article class="finding-card">
-                  <span class="finding-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.8-3.1 8.1-8 9-4.9-.9-8-4.2-8-9V7l8-4Z"/><path d="M12 8v5"/><path d="M12 17h.01"/></svg></span>
-                  <span class="finding-copy"><strong>Secrets Leak</strong><code>config/.env</code><span class="severity">Medium</span></span>
-                </article>
-              </div>
+
+        <figure class="observatory" aria-labelledby="observatory-summary">
+          <figcaption class="sr-only" id="observatory-summary">
+            Security Research Console example showing CVE-2021-44228 matched to a bounded dependency-remediation workflow. The same source-backed context is available to humans and agents, while evidence, rollback, stop conditions, and reviewer ownership remain required.
+          </figcaption>
+          <div class="observatory__visual" aria-hidden="true">
+            <div class="intelligence-lattice"></div>
+
+            <div class="observatory-node observatory-node--cve">
+              <span class="observatory-node__icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span>
+              <span>CVE Intelligence</span>
+            </div>
+            <div class="observatory-node observatory-node--playbooks">
+              <span class="observatory-node__icon"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5Z"/><path d="M4 19a3 3 0 0 1 3-3h13"/><path d="M8 7h8M8 11h6"/></svg></span>
+              <span>Playbooks</span>
+            </div>
+            <div class="observatory-node observatory-node--hygiene">
+              <span class="observatory-node__icon"><svg viewBox="0 0 24 24"><path d="m10 8-4 4 4 4"/><path d="m14 8 4 4-4 4"/><path d="m13 5-2 14"/></svg></span>
+              <span>Code Hygiene</span>
+            </div>
+            <div class="observatory-node observatory-node--compliance">
+              <span class="observatory-node__icon"><svg viewBox="0 0 24 24"><path d="M12 3 20 6.5v5.8c0 4.7-3 8-8 9.7-5-1.7-8-5-8-9.7V6.5L12 3Z"/><path d="m8.8 12.1 2.2 2.2 4.4-5"/></svg></span>
+              <span>Compliance</span>
+            </div>
+            <div class="observatory-node observatory-node--guides">
+              <span class="observatory-node__icon"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5Z"/><path d="M4 19a3 3 0 0 1 3-3h13"/></svg></span>
+              <span>Agent Guides</span>
+            </div>
+            <div class="observatory-node observatory-node--delivery">
+              <span class="observatory-node__icon"><svg viewBox="0 0 24 24"><path d="m4 7 5 5-5 5"/><path d="M11 17h9"/></svg></span>
+              <span>MCP + JSON</span>
             </div>
 
-            <div class="process-col layer-col">
-              <div class="process-label teal">security-recipes.ai<br>context layer</div>
-              <div class="context-layer">
-                <section class="layer-section recipe-head">
-                  <span class="recipe-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m10 8-4 4 4 4"/><path d="m14 8 4 4-4 4"/><path d="m13 5-2 14"/></svg></span>
-                  <span>
-                    <span class="layer-kicker">Recipe</span>
-                    <strong class="recipe-title">Parameterized SQL</strong>
-                    <span class="recipe-meta">id: sql-injection.parameterize<br>version: 1.4.0</span>
-                  </span>
+            <section class="research-console">
+              <div class="console-topbar">
+                <span class="console-kicker">Security Research Console</span>
+                <span class="console-lights"><i></i><i></i><i></i></span>
+              </div>
+              <div class="console-body">
+                <div class="console-search">
+                  <span class="console-search__icon"></span>
+                  <span>CVE-2021-44228</span>
+                </div>
+                <div class="finding-summary">
+                  <div class="finding-summary__title-row">
+                    <h3>Apache Log4j Remote Code Execution</h3>
+                    <span class="status-badge status-badge--critical">Critical</span>
+                  </div>
+                  <div class="finding-summary__badges">
+                    <span class="status-badge status-badge--kev">CISA KEV</span>
+                  </div>
+                  <div class="source-indicators">
+                    <span>NVD</span>
+                    <span>CISA KEV</span>
+                    <span>Vendor advisory</span>
+                  </div>
+                </div>
+
+                <section class="workflow-panel">
+                  <div class="workflow-panel__header">
+                    <span>
+                      <span class="panel-kicker">Matched workflow</span>
+                      <strong>Vulnerable Dependency Remediation</strong>
+                    </span>
+                    <span class="workflow-match">Reviewed candidate</span>
+                  </div>
+                  <p class="contract-label">CVE agentic contract</p>
+                  <ol class="contract-phases">
+                    <li><b>1</b>Discover</li>
+                    <li><b>2</b>Assess</li>
+                    <li><b>3</b>Mitigate</li>
+                    <li><b>4</b>Remediate</li>
+                    <li><b>5</b>Verify</li>
+                    <li><b>6</b>Rollback</li>
+                    <li><b>7</b>Triage</li>
+                  </ol>
                 </section>
 
-                <section class="layer-section">
-                  <span class="layer-kicker">MCP Context (read-only)</span>
-                  <div class="source-list">
-                    <div class="source-row">
-                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M4 8h16"/><path d="M4 16h16"/><path d="M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/></svg>
-                      <span>Code Repository</span>
-                      <em>read-only</em>
-                      <b aria-hidden="true"></b>
-                    </div>
-                    <div class="source-row">
-                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v5c0 4.5-3 7.6-8 9-5-1.4-8-4.5-8-9V7l8-4Z"/><path d="M9 12h6"/></svg>
-                      <span>OWASP ASVS</span>
-                      <em>read-only</em>
-                      <b aria-hidden="true"></b>
-                    </div>
-                    <div class="source-row">
-                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 7h4M10 11h4M10 15h3"/></svg>
-                      <span>Internal Standards</span>
-                      <em>read-only</em>
-                      <b aria-hidden="true"></b>
-                    </div>
-                    <div class="source-row">
-                      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 7v10l-8 4-8-4V7l8-4Z"/><path d="M8 9l4 2 4-2"/><path d="M8 15l4 2 4-2"/></svg>
-                      <span>Dependency Docs</span>
-                      <em>read-only</em>
-                      <b aria-hidden="true"></b>
-                    </div>
+                <section class="proof-panel">
+                  <div class="proof-panel__head">
+                    <span class="proof-panel__title">Proof required</span>
+                    <span class="proof-panel__state">Awaiting evidence</span>
                   </div>
-                </section>
-
-                <section class="layer-section">
-                  <span class="layer-kicker">Recipe Content</span>
-                  <div class="content-list">
-                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Intent &amp; Scope</span></div>
-                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Change Plan</span></div>
-                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Validation Steps</span></div>
-                    <div class="content-row"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg><span>Proof Requirements</span></div>
+                  <div class="proof-grid">
+                    <div><span>Affected package</span><span>Confirm</span></div>
+                    <div><span>Tests</span><span>Not run</span></div>
+                    <div><span>Residual risk</span><span>Not assessed</span></div>
+                    <div><span>Reviewer</span><span>Unassigned</span></div>
                   </div>
                 </section>
               </div>
-            </div>
+            </section>
 
-            <div class="process-col agents-col">
-              <div class="process-label">Coding Agents</div>
-              <div class="agent-stack">
-                <article class="agent-card">
-                  <span class="agent-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="2"/><path d="M9 8V5h6v3"/><path d="M4 13h2M18 13h2"/><path d="M10 13h.01M14 13h.01"/></svg></span>
-                  <strong>Agent<br>(Code)</strong>
-                  <span class="check-dot"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>
-                </article>
-                <article class="agent-card">
-                  <span class="agent-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="2"/><path d="M9 8V5h6v3"/><path d="M4 13h2M18 13h2"/><path d="M10 13h.01M14 13h.01"/></svg></span>
-                  <strong>Agent<br>(Test)</strong>
-                  <span class="check-dot"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>
-                </article>
-                <article class="agent-card">
-                  <span class="agent-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="2"/><path d="M9 8V5h6v3"/><path d="M4 13h2M18 13h2"/><path d="M10 13h.01M14 13h.01"/></svg></span>
-                  <strong>Agent<br>(Docs)</strong>
-                  <span class="check-dot"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></svg></span>
-                </article>
-              </div>
-            </div>
+            <div class="context-connector"></div>
 
-            <div class="process-col review-col">
-              <div class="process-label amber">Review &amp; Merge</div>
-              <div class="review-stack proof-stack">
-                <article class="proof-stack-card">
-                  <div class="proof-head">
-                    <span class="review-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v5h5"/><path d="M9 15l2 2 4-5"/></svg></span>
-                    <span class="proof-kicker">Proof Packet</span>
-                  </div>
-                  <ul class="proof-list">
-                    <li>Changes</li>
-                    <li>Tests</li>
-                    <li>Screenshots</li>
-                    <li>Logs</li>
-                    <li>Docs</li>
-                  </ul>
-                </article>
-                <article class="review-step">
-                  <span class="review-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/></svg></span>
-                  <span><strong>Human Review</strong><span>Approve &amp; Merge</span></span>
-                </article>
-                <article class="review-step">
-                  <span class="review-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="10" cy="18" r="2"/><path d="M8 7.4 10 16"/><path d="M16.4 7.2 11.5 16.4"/></svg></span>
-                  <span><strong>Result</strong><span>Reviewed PR</span></span>
-                </article>
+            <aside class="agent-sidecar">
+              <div class="agent-sidecar__head">
+                <svg viewBox="0 0 24 24"><rect x="6" y="8" width="12" height="10" rx="2"/><path d="M9 8V5h6v3"/><path d="M4 13h2M18 13h2"/></svg>
+                <span>Agent Context</span>
               </div>
-            </div>
+              <div class="sidecar-call">recipes_match_finding</div>
+              <div class="sidecar-rows">
+                <div class="sidecar-row">
+                  <svg viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h3"/></svg>
+                  <span>3 reviewed workflows</span>
+                </div>
+                <div class="sidecar-row">
+                  <svg viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                  <span>Read-only</span>
+                </div>
+                <div class="sidecar-row sidecar-row--amber">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 20 6.5v5.8c0 4.7-3 8-8 9.7-5-1.7-8-5-8-9.7V6.5L12 3Z"/><path d="m8.8 12.1 2.2 2.2 4.4-5"/></svg>
+                  <span>Evidence required</span>
+                </div>
+              </div>
+              <div class="agent-sidecar__foot">MCP + JSON</div>
+            </aside>
           </div>
         </figure>
       </div>
     </section>
 
-    <main>
-      <section class="context-layer-section">
-        <div class="section-head">
-          <h2>A context layer purpose-built for secure AI-assisted remediation.</h2>
+    <section class="metric-rail" aria-label="Current product scale">
+      <div class="site-shell metric-rail__inner">
+        <div class="metric-item">
+          <span class="metric-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></span>
+          <span class="metric-copy"><data value="{{ homepageMetrics.cves.value }}">{{ homepageMetrics.cves.formatted }}</data><span class="metric-label">CVEs</span></span>
         </div>
-        <div class="cards trust-cards">
-          <a class="card trust-card" href="/security-remediation/#exact-scope">
-            <span class="mark">01</span>
-            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v3"/><path d="M12 18v3"/><path d="M3 12h3"/><path d="M18 12h3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="m5 5 2.2 2.2"/><path d="m16.8 16.8 2.2 2.2"/></svg></span>
-            <span>
-              <h3>Exact scope</h3>
-              <p>Recipes map to one finding and define the exact change boundary.</p>
-            </span>
-          </a>
-          <a class="card trust-card" href="/mcp-servers/#read-only-context">
-            <span class="mark">02</span>
-            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
-            <span>
-              <h3>Read-only context</h3>
-              <p>Agents get the right context without write access.</p>
-            </span>
-          </a>
-          <a class="card trust-card" href="/security-remediation/reviewer-playbook/#proof-by-default">
-            <span class="mark">03</span>
-            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="m8.5 12 2.4 2.4 4.8-5"/></svg></span>
-            <span>
-              <h3>Proof by default</h3>
-              <p>Required evidence and validation steps prevent guesswork.</p>
-            </span>
-          </a>
-          <a class="card trust-card" href="/security-remediation/reviewer-playbook/#human-in-the-loop">
-            <span class="mark">04</span>
-            <span class="trust-card-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/><path d="M19 8v6M16 11h6"/></svg></span>
-            <span>
-              <h3>Human in the loop</h3>
-              <p>Nothing merges without human review and approval.</p>
-            </span>
-          </a>
+        <div class="metric-item">
+          <span class="metric-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h10v18H7z"/><path d="M10 7h4M10 11h4M10 15h3"/><path d="m9 18 1.5 1.5L15 15"/></svg></span>
+          <span class="metric-copy"><data value="{{ homepageMetrics.reviewedWorkflows.value }}">{{ homepageMetrics.reviewedWorkflows.formatted }}</data><span class="metric-label">Reviewed workflows</span></span>
         </div>
-      </section>
+        <div class="metric-item">
+          <span class="metric-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H7a3 3 0 0 0-3 3V5.5Z"/><path d="M4 19a3 3 0 0 1 3-3h13"/><path d="M8 7h8M8 11h6"/></svg></span>
+          <span class="metric-copy"><data value="{{ homepageMetrics.playbooks.value }}">{{ homepageMetrics.playbooks.formatted }}</data><span class="metric-label">Executable playbooks</span></span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 7 5 5-5 5"/><path d="M11 17h9"/></svg></span>
+          <span class="metric-copy"><data value="{{ homepageMetrics.mcpTools.value }}">{{ homepageMetrics.mcpTools.formatted }}</data><span class="metric-label">MCP tools</span></span>
+        </div>
+        <div class="metric-update">
+          <span class="metric-update__clock" aria-hidden="true"></span>
+          <span class="metric-update__copy">
+            {% if homepageMetrics.sourceStatus == "authoritative" %}
+            <strong>Updated daily</strong>
+            <span class="metric-update__meta">NVD + CISA KEV{% if homepageMetrics.updatedDate %} &bull; {{ homepageMetrics.updatedDate }}{% endif %}</span>
+            {% else %}
+            <strong>Last verified snapshot</strong>
+            <span class="metric-update__meta">Local metric source unavailable</span>
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </section>
 
-      <section>
-        <div class="section-head">
-          <h2>Adopt secure AI at the pace your organization can govern</h2>
-          <p>The AI Adoption Blueprint gives small teams a short path to one reviewed fix and enterprises a staged path with scoped MCP context, evidence, and promotion gates.</p>
+    <section class="home-section knowledge-layer" aria-labelledby="knowledge-heading">
+      <div class="site-shell">
+        <div class="section-heading section-heading--compact">
+          <p class="section-kicker">Shared intelligence, deliberate action</p>
+          <h2 id="knowledge-heading">One open knowledge layer. Every security workflow.</h2>
         </div>
-        <div class="matrix">
-          <a class="matrix-item" href="/docs/ai-adoption-blueprint/">
-            <h3>Open the adoption blueprint</h3>
-            <p>Choose a rollout lane, define the review model, and expand only when the workflow produces repeatable evidence.</p>
+        <div class="knowledge-cards">
+          <a class="knowledge-card" href="/recipes/">
+            <span class="knowledge-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 5 5"/></svg></span>
+            <div><h3>Human Research</h3><p>Fast CVE and workflow discovery.</p></div>
+            <span class="knowledge-card__arrow" aria-hidden="true">&rarr;</span>
           </a>
-          <div class="matrix-item">
-            <h3>Small teams</h3>
-            <p>Start with one repository, one finding class, the agent you already use, and mandatory review for every change.</p>
-          </div>
-          <div class="matrix-item">
-            <h3>Enterprise teams</h3>
-            <p>Scale through scoped identities, an MCP gateway, named reviewers, audit evidence, and measurable stage gates.</p>
-          </div>
+          <a class="knowledge-card" href="/mcp-servers/">
+            <span class="knowledge-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m4 7 5 5-5 5"/><path d="M11 17h9"/></svg></span>
+            <div><h3>Agent Context</h3><p>Structured delivery through MCP and JSON.</p></div>
+            <span class="knowledge-card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
+          <a class="knowledge-card" href="/security-remediation/">
+            <span class="knowledge-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 20 6.5v5.8c0 4.7-3 8-8 9.7-5-1.7-8-5-8-9.7V6.5L12 3Z"/><path d="m8.8 12.1 2.2 2.2 4.4-5"/></svg></span>
+            <div><h3>Governed Action</h3><p>Scope, verification, rollback, and proof.</p></div>
+            <span class="knowledge-card__arrow" aria-hidden="true">&rarr;</span>
+          </a>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section>
-        <div class="section-head">
-          <h2>One finding, one recipe, one reviewed output</h2>
-          <p>The useful loop is small on purpose: attach a recipe, constrain the agent, require proof, and review the result.</p>
-        </div>
-        <div class="steps">
-          <div class="step-list">
-            <div class="step-row">
-              <b>1</b>
-              <div>
-                <h3>Pick the matching recipe</h3>
-                <p>Start with a dependency, SAST, sensitive-data, container, or CVE recipe that matches the finding.</p>
-              </div>
-            </div>
-            <div class="step-row">
-              <b>2</b>
-              <div>
-                <h3>Load rules into the agent</h3>
-                <p>Use `AGENTS.md`, `CLAUDE.md`, `.cursor/rules`, Copilot instructions, Codex guidance, or Devin Knowledge.</p>
-              </div>
-            </div>
-            <div class="step-row">
-              <b>3</b>
-              <div>
-                <h3>Add scoped context</h3>
-                <p>Expose only the MCP servers and files needed for the finding. Keep context read-only by default.</p>
-              </div>
-            </div>
-            <div class="step-row">
-              <b>4</b>
-              <div>
-                <h3>Review the output</h3>
-                <p>The agent should produce a PR, test result, or triage note. Humans approve the change.</p>
-              </div>
-            </div>
-          </div>
-          <div class="code-panel" aria-label="Example agent instruction">
-            <pre># Agent task
-Remediate one security finding using the matching security-recipes.ai recipe.
-
-Rules:
-- Fix only the finding named in the task.
-- Read the recipe and repo instructions before editing.
-- Use MCP context as read-only evidence unless explicitly approved.
-- Run the existing tests that cover the touched area.
-- Open a PR with the finding ID, files changed, tests run, and residual risk.
-- If the fix requires broad refactoring or unclear ownership, stop with a triage note.</pre>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div class="section-head">
-          <h2>MCP is context, not authority</h2>
-          <p>Security agents get better when they can read the right data. They get risky when every connector becomes an action surface.</p>
-        </div>
-        <div class="matrix">
-          <div class="matrix-item">
-            <h3>Advisory intelligence</h3>
-            <p>Connect public vulnerability and package data such as OSV, GitHub Advisories, deps.dev, NVD-backed mirrors, and package registries.</p>
-          </div>
-          <div class="matrix-item">
-            <h3>Repository evidence</h3>
-            <p>Use GitHub, GitLab, Azure DevOps, SARIF, SBOM, Semgrep, CodeQL, and dependency metadata as scoped read-only context.</p>
-          </div>
-          <div class="matrix-item">
-            <h3>Security system context</h3>
-            <p>Bring in approved SCA, SAST, SIEM, SOAR, ticketing, documentation, and cloud-security MCP servers with narrow tokens and audit logs.</p>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <div class="muted-band">
-          <h2>Bring recipes to the tools teams already trust.</h2>
+    <section class="home-section" aria-labelledby="trust-heading">
+      <div class="site-shell trust-layout">
+        <div class="trust-copy">
+          <p class="section-kicker">Provenance and trust</p>
+          <h2 id="trust-heading">Intelligence you can inspect. Guardrails you can keep.</h2>
           <p>
-            security-recipes.ai should not ask teams to adopt a custom scanner, ticketing system, SOAR platform, or deployment tool before they can use a recipe. Existing systems should produce the findings; recipes help agents use the right context, return the right proof, and stop at the right time.
+            security-recipes.ai is an open, self-hostable layer between security findings and governed action. It connects source-backed research to bounded workflows without becoming a scanner, ticketing system, deployment platform, or unrestricted mutation surface.
           </p>
+          <div class="provenance-panel">
+            <div class="provenance-panel__head">
+              <span>LOCAL KNOWLEDGE SNAPSHOT</span>
+              <span>{% if homepageMetrics.sourceStatus != "authoritative" %}PARTIAL BUILD SNAPSHOT{% elif homepageMetrics.updatedDate %}REFRESHED {{ homepageMetrics.updatedDate | upper }}{% else %}BUILD VERIFIED{% endif %}</span>
+            </div>
+            <div class="provenance-sources">
+              <span class="source-chip">NVD</span>
+              <span class="source-chip">CISA KEV</span>
+              <span class="source-chip">Vendor advisories</span>
+              <span class="source-chip">Reviewed repository data</span>
+            </div>
+            <div class="breadth-stats">
+              <div><data value="{{ homepageMetrics.complianceFrameworks.value }}">{{ homepageMetrics.complianceFrameworks.formatted }}</data><span>Compliance frameworks</span></div>
+              <div><data value="{{ homepageMetrics.codeHygieneWorkflows.value }}">{{ homepageMetrics.codeHygieneWorkflows.formatted }}</data><span>Code-hygiene workflows</span></div>
+              <div><data value="{{ homepageMetrics.kevRecords.value }}">{{ homepageMetrics.kevRecords.formatted }}</data><span>In-scope CISA KEV records</span></div>
+            </div>
+          </div>
         </div>
-      </section>
-    </main>
-  </div>
+
+        <div class="trust-cards">
+          <a class="trust-card" href="/security-remediation/#exact-scope">
+            <span class="trust-card__top"><span class="trust-card__index">01</span><span class="trust-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span></span>
+            <h3>Exact scope</h3>
+            <p>Recipes map one finding to a defined change boundary, permitted outputs, and explicit stop conditions.</p>
+          </a>
+          <a class="trust-card" href="/mcp-servers/#read-only-context">
+            <span class="trust-card__top"><span class="trust-card__index">02</span><span class="trust-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span></span>
+            <h3>Read-only context</h3>
+            <p>Agents can gather narrowly scoped evidence without inheriting broad human authority.</p>
+          </a>
+          <a class="trust-card" href="/security-remediation/reviewer-playbook/#proof-by-default">
+            <span class="trust-card__top"><span class="trust-card__index">03</span><span class="trust-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="m8.5 12 2.4 2.4 4.8-5"/></svg></span></span>
+            <h3>Proof by default</h3>
+            <p>Tests, evidence, rollback notes, and residual risk make every recommendation reviewable.</p>
+          </a>
+          <a class="trust-card" href="/security-remediation/reviewer-playbook/#human-in-the-loop">
+            <span class="trust-card__top"><span class="trust-card__index">04</span><span class="trust-card__icon"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="4"/><path d="M19 8v6M16 11h6"/></svg></span></span>
+            <h3>Human ownership</h3>
+            <p>The operator reviews the evidence, approves the change, or redirects the work to the right owner.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section process-section" aria-labelledby="process-heading">
+      <div class="site-shell">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Bounded operating model</p>
+            <h2 id="process-heading">One finding, one recipe, one reviewed output.</h2>
+          </div>
+          <p>The useful loop is intentionally small: select the narrowest match, constrain the agent, require proof, and stop safely when ownership is unclear.</p>
+        </div>
+        <div class="bounded-process">
+          <div class="process-steps">
+            <article class="process-step">
+              <b>01</b>
+              <h3>Match the finding</h3>
+              <p>Choose the reviewed recipe or CVE contract that fits the affected technology and finding class.</p>
+            </article>
+            <article class="process-step">
+              <b>02</b>
+              <h3>Load bounded context</h3>
+              <p>Give the agent only the repository files, instructions, and read-first MCP sources needed for the task.</p>
+            </article>
+            <article class="process-step">
+              <b>03</b>
+              <h3>Verify the work</h3>
+              <p>Run the existing tests, record evidence, document rollback, and state any residual risk.</p>
+            </article>
+            <article class="process-step">
+              <b>04</b>
+              <h3>Review or triage</h3>
+              <p>Return a reviewer-ready change or stop with a triage note naming the blocker and responsible owner.</p>
+            </article>
+          </div>
+          <aside class="process-contract" aria-label="Required output contract">
+            <div class="process-contract__head">Required output contract</div>
+            <ul>
+              <li><strong>Scope</strong><span>One named finding</span></li>
+              <li><strong>Evidence</strong><span>Tests and source trail</span></li>
+              <li><strong>Rollback</strong><span>Recovery path recorded</span></li>
+              <li><strong>Stop</strong><span>Escalate unclear ownership</span></li>
+            </ul>
+            <p class="process-contract__note">Context can guide action. It does not grant permission to edit, deploy, rotate secrets, or change production state.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section" aria-labelledby="adoption-heading">
+      <div class="site-shell">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Adoption paths</p>
+            <h2 id="adoption-heading">Adopt secure AI at the pace your organization can govern.</h2>
+          </div>
+          <p>Begin with a small, reviewable loop. Expand access only when the workflow produces consistent evidence and named owners can support it.</p>
+        </div>
+        <div class="adoption-grid">
+          <article class="adoption-card">
+            <span class="adoption-card__label">Small teams</span>
+            <h3>Start with one repository.</h3>
+            <p>Use one finding class, the agent you already trust, existing tests, and mandatory review for every change.</p>
+          </article>
+          <article class="adoption-card">
+            <span class="adoption-card__label">Enterprise teams</span>
+            <h3>Scale through governed lanes.</h3>
+            <p>Add scoped identities, an MCP gateway, named reviewers, audit evidence, and measurable promotion gates.</p>
+          </article>
+          <a class="adoption-card" href="/docs/ai-adoption-blueprint/">
+            <span class="adoption-card__label">Adoption blueprint</span>
+            <h3>Choose a rollout lane.</h3>
+            <p>Define the review model and expand only when bounded workflows behave predictably.</p>
+            <span class="adoption-card__link">Open the blueprint &rarr;</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section integration-section" aria-labelledby="integration-heading">
+      <div class="site-shell integration-layout">
+        <div class="integration-copy">
+          <p class="section-kicker">Read-first delivery</p>
+          <h2 id="integration-heading">MCP is context, not authority.</h2>
+          <p>
+            Existing security systems produce findings. security-recipes.ai helps humans and agents understand them, select bounded workflows, gather the right context, and return evidence without replacing the systems teams already trust.
+          </p>
+          <div class="integration-principles">
+            <div class="integration-principle">Human research and agent retrieval use the same source-backed knowledge layer.</div>
+            <div class="integration-principle">JSON feeds work without the optional MCP service being online.</div>
+            <div class="integration-principle">Mutation belongs in a separately approved agent host or operator workflow.</div>
+          </div>
+        </div>
+
+        <div class="context-stack">
+          <div class="context-stack__head">
+            <span>CONTEXT DELIVERY MODEL</span>
+            <span>MCP + JSON</span>
+          </div>
+          <div class="context-flow">
+            <article class="context-flow__item">
+              <span>01 &bull; Inputs</span>
+              <h3>Existing findings</h3>
+              <p>Scanner, advisory, repository, ticket, SIEM, or cloud-security evidence.</p>
+            </article>
+            <article class="context-flow__item">
+              <span>02 &bull; Knowledge</span>
+              <h3>Bounded context</h3>
+              <p>Reviewed recipes, CVE contracts, playbooks, proof, rollback, and stop conditions.</p>
+            </article>
+            <article class="context-flow__item">
+              <span>03 &bull; Ownership</span>
+              <h3>Approved action</h3>
+              <p>A reviewer-ready patch, evidence report, or triage note in the team&rsquo;s own workflow.</p>
+            </article>
+          </div>
+          <div class="integration-chips" aria-label="Compatible security context categories">
+            <span class="integration-chip">SCA</span>
+            <span class="integration-chip">SAST</span>
+            <span class="integration-chip">Repositories</span>
+            <span class="integration-chip">CI</span>
+            <span class="integration-chip">SIEM</span>
+            <span class="integration-chip">SOAR</span>
+            <span class="integration-chip">Ticketing</span>
+            <span class="integration-chip">Cloud security</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section final-cta-section" aria-labelledby="final-heading">
+      <div class="site-shell final-cta">
+        <div class="final-cta__copy">
+          <p class="section-kicker">Open, inspectable, self-hostable</p>
+          <h2 id="final-heading">Start with one finding. Keep humans in control.</h2>
+          <p>Use the quick start for a bounded first workflow, or inspect the source, catalogs, and MCP implementation on GitHub.</p>
+        </div>
+        <div class="hero-actions">
+          <a class="button button--primary" href="/quickstart/">Get Started</a>
+          <a class="button" href="https://github.com/stevologic/security-recipes.ai">View on GitHub <span class="button-arrow" aria-hidden="true">&rarr;</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <footer class="footer">
     <div class="site-shell footer-inner">
-      <span>Bounded recipes for agent-assisted security remediation.</span>
+      <span>Open security intelligence and governed action for humans and AI agents.</span>
       <nav class="footer-nav" aria-label="Footer navigation">
         <a href="/recipes/">Recipes</a>
         <a href="/security-remediation/">Playbooks</a>
@@ -2816,199 +770,8 @@ Rules:
     </div>
   </footer>
 
-  <script>
-  (function () {
-    var canvas = document.getElementById("homeSignalCanvas");
-    if (!canvas || !canvas.getContext) return;
-
-    var ctx = canvas.getContext("2d", { alpha: true });
-    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    var width = 0;
-    var height = 0;
-    var dpr = 1;
-    var points = [];
-    var gridColumns = 0;
-    var pointer = {
-      x: window.innerWidth * 0.72,
-      y: window.innerHeight * 0.34,
-      tx: window.innerWidth * 0.72,
-      ty: window.innerHeight * 0.34
-    };
-    var raf = null;
-    var didReveal = false;
-
-    function noise(value) {
-      var raw = Math.sin(value * 12.9898) * 43758.5453;
-      return raw - Math.floor(raw);
-    }
-
-    function lerp(a, b, amount) {
-      return a + (b - a) * amount;
-    }
-
-    function resize() {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      canvas.style.width = width + "px";
-      canvas.style.height = height + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      buildPoints();
-      draw(0);
-    }
-
-    function buildPoints() {
-      var columns = Math.ceil(width / 105);
-      var rows = Math.ceil(height / 100);
-      // Points are stored in row-major order, so a point's spatial neighbours
-      // (the only ones close enough to connect) sit within a small index window.
-      // draw() uses this to avoid an O(n^2) all-pairs scan every frame.
-      gridColumns = columns + 2;
-      points = [];
-
-      for (var y = -1; y <= rows; y += 1) {
-        for (var x = -1; x <= columns; x += 1) {
-          points.push({
-            x: x * 105 + (y % 2) * 36 + noise(x * 3.1 + y) * 24,
-            y: y * 100 + noise(y * 4.8 - x) * 24,
-            phase: noise(x * 12.3 + y * 9.7) * Math.PI * 2,
-            cx: 0,
-            cy: 0
-          });
-        }
-      }
-    }
-
-    function movePointer(event) {
-      pointer.tx = event.clientX;
-      pointer.ty = event.clientY;
-      if (reduceMotion.matches) {
-        pointer.x = pointer.tx;
-        pointer.y = pointer.ty;
-        draw(0);
-      }
-    }
-
-    function draw(time) {
-      var t = reduceMotion.matches ? 0 : time;
-      ctx.clearRect(0, 0, width, height);
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-
-      for (var i = 0; i < points.length; i += 1) {
-        var point = points[i];
-        var wobble = Math.sin(t * 0.001 + point.phase) * 9;
-        var px = point.x + wobble + Math.sin(t * 0.0007 + point.phase) * 8;
-        var py = point.y + Math.cos(t * 0.0009 + point.phase) * 8;
-        var dx = pointer.x - px;
-        var dy = pointer.y - py;
-        var distance = Math.hypot(dx, dy);
-        var pull = Math.max(0, 1 - distance / 260) * 22;
-        point.cx = px - (dx / Math.max(distance, 1)) * pull;
-        point.cy = py - (dy / Math.max(distance, 1)) * pull;
-      }
-
-      var maxGap = 145;
-      var maxGap2 = maxGap * maxGap;
-      // Only compare each point to the window of following points that can be
-      // spatially adjacent (same row + the row below), then reject with a cheap
-      // squared distance before paying for a sqrt on the survivors.
-      var span = gridColumns + 2;
-      for (var a = 0; a < points.length; a += 1) {
-        var start = points[a];
-        var bEnd = a + span;
-        if (bEnd > points.length) bEnd = points.length;
-        for (var b = a + 1; b < bEnd; b += 1) {
-          var end = points[b];
-          var ddx = start.cx - end.cx;
-          var ddy = start.cy - end.cy;
-          var gap2 = ddx * ddx + ddy * ddy;
-          if (gap2 < maxGap2) {
-            var gap = Math.sqrt(gap2);
-            ctx.strokeStyle = "rgba(103, 232, 249, " + (0.14 * (1 - gap / maxGap)) + ")";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(start.cx, start.cy);
-            ctx.lineTo(end.cx, end.cy);
-            ctx.stroke();
-          }
-        }
-      }
-
-      for (var p = 0; p < points.length; p += 1) {
-        var dot = points[p];
-        var near = Math.max(0, 1 - Math.hypot(pointer.x - dot.cx, pointer.y - dot.cy) / 280);
-        ctx.fillStyle = p % 7 === 0 ? "#fbbf24" : p % 3 === 0 ? "#67e8f9" : "#2dd4bf";
-        ctx.globalAlpha = 0.18 + near * 0.62;
-        ctx.beginPath();
-        ctx.arc(dot.cx, dot.cy, 1.7 + near * 2.7, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.restore();
-    }
-
-    function frame(time) {
-      pointer.x = lerp(pointer.x, pointer.tx, 0.09);
-      pointer.y = lerp(pointer.y, pointer.ty, 0.09);
-      draw(time);
-      if (!reduceMotion.matches) {
-        raf = window.requestAnimationFrame(frame);
-      }
-    }
-
-    function start() {
-      if (raf !== null) {
-        window.cancelAnimationFrame(raf);
-        raf = null;
-      }
-      if (reduceMotion.matches) {
-        draw(0);
-      } else {
-        raf = window.requestAnimationFrame(frame);
-      }
-    }
-
-    function revealBackground() {
-      if (didReveal) return;
-      didReveal = true;
-      window.requestAnimationFrame(function () {
-        window.requestAnimationFrame(function () {
-          document.documentElement.dataset.signalBackgroundReady = "true";
-        });
-      });
-    }
-
-    function stop() {
-      if (raf !== null) {
-        window.cancelAnimationFrame(raf);
-        raf = null;
-      }
-    }
-
-    window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", movePointer, { passive: true });
-    if (reduceMotion.addEventListener) {
-      reduceMotion.addEventListener("change", start);
-    }
-    // Don't spend any CPU animating a background the user can't see.
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) {
-        stop();
-      } else if (!reduceMotion.matches) {
-        start();
-      }
-    });
-
-    resize();
-    start();
-    revealBackground();
-  })();
-  </script>
-
   <script>window.__SITE_BASE_PREFIX = "/";</script>
+  <script src="/js/home-signal-background.js?v=20260718" defer></script>
   <script src="/js/cve-ticker.js" defer></script>
   <script src="/js/docs-search.js" defer></script>
 </body>
