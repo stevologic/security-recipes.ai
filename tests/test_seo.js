@@ -23,6 +23,32 @@ test('JSON-LD serialization cannot break out of its script element', () => {
   assert.equal(parsed.name, 'Security\u2028test\u2029');
 });
 
+test('deep CVE records identify the standalone database as their structured-data parent', () => {
+  const url = '/recipes/cve/cve-2014-0160-heartbleed/';
+  const output = seoHead({
+    url,
+    title: 'CVE-2014-0160 — Heartbleed',
+    description: 'Heartbleed remediation record.',
+    isSection: false,
+  });
+  const structuredData = [...output.matchAll(
+    /<script type="application\/ld\+json">(.*?)<\/script>/gs
+  )].map((match) => JSON.parse(match[1]));
+  const breadcrumbs = structuredData.find((entry) => entry['@type'] === 'BreadcrumbList');
+
+  assert.ok(breadcrumbs, 'expected a BreadcrumbList for the CVE record');
+  assert.deepEqual(
+    breadcrumbs.itemListElement.map((entry) => new URL(entry.item).pathname),
+    ['/', '/cve-database/', url]
+  );
+  assert.equal(breadcrumbs.itemListElement[1].name, 'CVE Database');
+  assert.ok(
+    breadcrumbs.itemListElement.every(
+      (entry) => !['/recipes/', '/recipes/cve/'].includes(new URL(entry.item).pathname)
+    )
+  );
+});
+
 test('homepage structured search targets the working recipe catalog', () => {
   const output = seoHead({
     url: '/',

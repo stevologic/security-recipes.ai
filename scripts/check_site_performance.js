@@ -129,13 +129,15 @@ budget("CVE complete index manifest", size("api/cve-catalog/index.json"), 1 * Mi
 budget("CVE runtime summary", size("api/cve-catalog/runtime-summary.json"), 8 * KiB);
 budget("CVE manifest", size("api/cve-catalog/manifest.json"), 256 * KiB);
 budget("CVE remediation archetypes", size("api/cve-catalog/archetypes.json"), 1 * MiB);
-budget("CVE hub HTML", size("recipes/cve/index.html"), 512 * KiB);
+budget("CVE Database HTML", size("cve-database/index.html"), 512 * KiB);
 budget("recipe library HTML", size("recipes/index.html"), 768 * KiB);
 budget("recipe library JavaScript", size("js/recipe-browser.js"), 160 * KiB);
 budget("recipe library styles", size("css/recipe-library.css"), 160 * KiB);
+budget("CVE detail styles", size("css/cve-detail.css"), 32 * KiB);
 budget("playbook workflow styles", size("css/playbook-workflows.css"), 32 * KiB);
 budget("generic docs search index", size("recipes-index.json"), 2 * MiB);
-budget("generic recipe browser feed", size("recipes-browser.json"), 2 * MiB);
+budget("curated recipe browser feed", size("recipes-browser.json"), 2 * MiB);
+budget("curated rich agent feed", size("api/curated-recipes.json"), 8 * MiB);
 budget("generic rich agent feed", size("api/recipes.json"), 8 * MiB);
 budget("generic MCP recipe feed", size("api/recipes-index.json"), 6 * MiB);
 
@@ -171,7 +173,7 @@ for (const [file, expectedSize] of [
   checkOpaquePng(file, expectedSize);
 }
 
-for (const file of ["index.html", "recipes/index.html", "recipes/cve/index.html"]) {
+for (const file of ["index.html", "recipes/index.html", "cve-database/index.html"]) {
   const htmlPath = path.join(ROOT, file);
   if (!fs.existsSync(htmlPath)) {
     fail(`missing installable page output: ${file}`);
@@ -263,6 +265,7 @@ budget("largest CVE complete index partition", largestCveIndexPartition, 4 * MiB
 for (const feed of [
   "recipes-index.json",
   "recipes-browser.json",
+  "api/curated-recipes.json",
   "api/recipes.json",
   "api/recipes-index.json",
   "api/cve-catalog/index.json",
@@ -301,13 +304,60 @@ for (const file of cveSources) {
 if (!stableRoutes.size) fail("no stable CVE Markdown overrides were found");
 if (!developmentRoutes.size) fail("no development CVE Markdown compatibility pages were found");
 
+for (const [label, route, expectNoindex] of [
+  ["stable", stableRoutes.values().next().value, false],
+  ["development", developmentRoutes.values().next().value, true],
+]) {
+  const output = path.join(ROOT, route.replace(/^\//, "").replace(/\/$/, ""), "index.html");
+  if (!fs.existsSync(output)) {
+    fail(`missing representative ${label} CVE detail page: ${route}`);
+    continue;
+  }
+  const html = fs.readFileSync(output, "utf8");
+  const h1Count = (html.match(/<h1\b/g) || []).length;
+  if (h1Count !== 1) fail(`${label} CVE detail ${route} renders ${h1Count} H1 elements; expected one`);
+  if (!html.includes('data-cve-detail-page="true"') || !html.includes("/css/cve-detail.css")) {
+    fail(`${label} CVE detail ${route} is missing its server-rendered detail theme`);
+  }
+  if (html.includes("/css/cve-catalog.css") || html.includes("/js/cve-catalog.js")) {
+    fail(`${label} CVE detail ${route} loads standalone database catalog assets`);
+  }
+  if (!html.includes('<a href="/cve-database/">CVE Database</a>')) {
+    fail(`${label} CVE detail ${route} is missing its CVE Database breadcrumb`);
+  }
+  if (!html.includes('href="/cve-database/" aria-current="page">CVE Database</a>')) {
+    fail(`${label} CVE detail ${route} is missing its current CVE Database navigation item`);
+  }
+  if (!html.includes(`<link rel="canonical" href="`) || !html.includes(route)) {
+    fail(`${label} CVE detail ${route} is missing its canonical deep URL`);
+  }
+  if (!/"item":"https?:[^"]*\/cve-database\/"/.test(html)) {
+    fail(`${label} CVE detail ${route} does not identify CVE Database in structured breadcrumbs`);
+  }
+  if (/"item":"https?:[^"]*\/recipes\/"/.test(html)) {
+    fail(`${label} CVE detail ${route} retains Recipes in structured breadcrumbs`);
+  }
+  const hasNoindex = html.includes('name="robots" content="noindex,nofollow"');
+  if (hasNoindex !== expectNoindex) {
+    fail(`${label} CVE detail ${route} has an unexpected indexing policy`);
+  }
+}
+
 const docs = readJson("recipes-index.json") || [];
 const browser = readJson("recipes-browser.json")?.recipes || [];
+const curated = readJson("api/curated-recipes.json")?.recipes || [];
 const rich = readJson("api/recipes.json")?.recipes || [];
 const mcp = readJson("api/recipes-index.json")?.recipes || [];
-const runtimeSummary = readJson("api/cve-catalog/runtime-summary.json") || {};
 if (browser.length > 5000) {
   fail(`recipe browser feed has ${browser.length.toLocaleString()} records; keep the CVE catalog on its worker index`);
+}
+const browserRoutes = new Set(browser.map((item) => item.url));
+const curatedRoutes = new Set(curated.map((item) => item.path));
+if (
+  browserRoutes.size !== curatedRoutes.size ||
+  [...browserRoutes].some((route) => !curatedRoutes.has(route))
+) {
+  fail("curated browser and rich agent feeds do not describe the same recipe collection");
 }
 
 const recipeLibraryPath = path.join(ROOT, "recipes", "index.html");
@@ -315,28 +365,55 @@ if (fs.existsSync(recipeLibraryPath)) {
   const recipeLibrary = fs.readFileSync(recipeLibraryPath, "utf8");
   const ssrCards = (recipeLibrary.match(/\bdata-recipe-card(?:\s|>)/g) || []).length;
   if (ssrCards > 18) fail(`recipe library server-renders ${ssrCards} cards; budget is 18`);
-  if (!recipeLibrary.includes('data-library-tab="curated"') || !recipeLibrary.includes('data-library-tab="cve"')) {
-    fail("recipe library is missing its curated and CVE collection tabs");
+  if (recipeLibrary.includes("data-library-tab") || recipeLibrary.includes("data-library-panel")) {
+    fail("recipe library still renders the retired federated collection tabs");
   }
-  if (!recipeLibrary.includes("data-cve-catalog-deferred")) {
-    fail("recipe library eagerly mounts the CVE catalog");
+  if (recipeLibrary.includes("data-cve-catalog")) {
+    fail("recipe library still embeds the CVE catalog");
   }
-  const catalogRecords = Number(runtimeSummary?.totals?.catalog_records || 0);
-  const overlap = Number(runtimeSummary?.totals?.stable_markdown_overrides || 0);
-  const uniqueTotal = browser.length + catalogRecords - overlap;
-  if (!recipeLibrary.includes(uniqueTotal.toLocaleString("en-US"))) {
-    fail(`recipe library does not display its ${uniqueTotal.toLocaleString("en-US")} unique-entry total`);
+  if (!recipeLibrary.includes('data-recipe-api="/api/curated-recipes.json"')) {
+    fail("recipe library does not use the curated rich agent feed");
+  }
+  if (!recipeLibrary.includes(browser.length.toLocaleString("en-US"))) {
+    fail(`recipe library does not display its ${browser.length.toLocaleString("en-US")} curated-recipe total`);
   }
 }
-const surfaces = [
+
+const cveDatabasePath = path.join(ROOT, "cve-database", "index.html");
+if (fs.existsSync(cveDatabasePath)) {
+  const cveDatabase = fs.readFileSync(cveDatabasePath, "utf8");
+  if (!cveDatabase.includes("data-cve-catalog")) {
+    fail("CVE Database does not mount the catalog");
+  }
+  if (cveDatabase.includes("data-cve-catalog-deferred")) {
+    fail("CVE Database defers its standalone catalog mount");
+  }
+  if (!cveDatabase.includes('href="/cve-database/" aria-current="page">CVE Database</a>')) {
+    fail("CVE Database is missing its current primary-navigation item");
+  }
+}
+
+const compatibleSurfaces = [
   ["docs search", new Set(docs.map((item) => item.path))],
-  ["recipe browser", new Set(browser.map((item) => item.url))],
   ["rich agent feed", new Set(rich.map((item) => item.path))],
   ["MCP recipe feed", new Set(mcp.map((item) => item.path))],
 ];
-for (const [label, routes] of surfaces) {
+for (const [label, routes] of compatibleSurfaces) {
   for (const route of stableRoutes) {
     if (!routes.has(route)) fail(`${label} is missing stable override ${route}`);
+  }
+  for (const route of developmentRoutes) {
+    if (routes.has(route)) fail(`${label} exposes development CVE draft ${route}`);
+  }
+}
+
+const curatedSurfaces = [
+  ["recipe browser", browserRoutes],
+  ["curated rich agent feed", curatedRoutes],
+];
+for (const [label, routes] of curatedSurfaces) {
+  for (const route of stableRoutes) {
+    if (routes.has(route)) fail(`${label} exposes stable CVE override ${route}`);
   }
   for (const route of developmentRoutes) {
     if (routes.has(route)) fail(`${label} exposes development CVE draft ${route}`);

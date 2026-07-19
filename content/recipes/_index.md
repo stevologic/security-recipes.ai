@@ -4,8 +4,8 @@ linkTitle: Recipes
 url: /recipes/
 weight: 4
 description: >
-  Search CVE intelligence and move directly into a matched, human-reviewed
-  security workflow with evidence, verification, rollback, and stop conditions.
+  Browse remediation recipes that humans can inspect, agents can fetch as
+  JSON, and MCP clients can select as bounded context packs.
 sidebar:
   open: false
 cascade:
@@ -19,9 +19,9 @@ cascade:
       open: false
 ---
 
-Move from a vulnerability signal to a reviewable action path. Exact CVE links
-open the matching source record and recommended workflows; broader searches
-help people and agents find the right audit, containment, or remediation recipe.
+Browse reviewed workflows for common security tasks. Search by intent, filter
+by outcome and review quality, share a filtered URL, or retrieve the same
+bounded context through JSON and MCP.
 
 {{< recipe-browser >}}
 
@@ -39,9 +39,10 @@ required CI. Never treat generated remediation as proof that a system is safe.
 
 ## For agents and integrations
 
-Use the curated JSON feed for workflow discovery and the dedicated CVE catalog
-tools for exact or filtered vulnerability lookup. MCP access should remain
-read-only unless the task explicitly authorizes a specific write.
+Use the curated JSON feed for workflow discovery. For exact or filtered
+vulnerability intelligence, use the separate [CVE Database](/cve-database/)
+and its dedicated MCP tools. MCP access should remain read-only unless the task
+explicitly authorizes a specific write.
 
 ```text
 Use approved MCP servers as read-only evidence.

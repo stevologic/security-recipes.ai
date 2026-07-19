@@ -132,7 +132,7 @@ at least 2. Otherwise write a triage note.
 | Browser automation, browser-agent prompt injection, page-boundary risk | [Browser Agent Boundary]({{< relref "/security-remediation/browser-agent-boundary" >}}) |
 
 When a named CVE prompt exists in the
-[CVE Recipes]({{< relref "/recipes/cve" >}}), prefer that prompt after
+[CVE Database](/cve-database/), prefer that intelligence after
 the intake gate confirms the advisory is ready for remediation.
 
 ## The recommender prompt

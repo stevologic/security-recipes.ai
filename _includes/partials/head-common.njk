@@ -19,7 +19,9 @@
 <link rel="stylesheet" href="/css/footer-donations.css">
 <link rel="stylesheet" href="/css/custom.css">
 {% if page.url and page.url.startsWith("/security-remediation/") %}<link rel="stylesheet" href="/css/playbook-workflows.css">{% endif %}
-{% if page.url == "/recipes/cve/" or page.url == "/recipes/" %}<link rel="stylesheet" href="/css/cve-catalog.css">{% endif %}
+{% if page.url == "/cve-database/" %}<link rel="stylesheet" href="/css/cve-catalog.css">{% endif %}
+{% if page.url == "/cve-database/" %}<link rel="stylesheet" href="/css/cve-database.css">{% endif %}
+{% if page.url and page.url.startsWith("/recipes/cve/") and page.url != "/recipes/cve/" %}<link rel="stylesheet" href="/css/cve-detail.css">{% endif %}
 {% if page.url == "/recipes/" %}<link rel="stylesheet" href="/css/recipe-library.css">{% endif %}
 {% if page.url == "/recipes/" %}<link rel="stylesheet" href="/css/recipe-library-mobile-fix.css">{% endif %}
 {% if page.url == "/recipes/" %}<link rel="stylesheet" href="/css/recipe-mobile-hardening.css">{% endif %}
@@ -27,6 +29,7 @@
 <script>
 document.documentElement.dataset.siteSignalBackground = "true";
 {% if page.url == "/recipes/" %}document.documentElement.dataset.recipeBrowserPage = "true";{% endif %}
+{% if page.url == "/cve-database/" %}document.documentElement.dataset.cveDatabasePage = "true";{% endif %}
 window.__SITE_BASE_PREFIX = "/";
 window.__SECURITY_RECIPES_MARKETPLACE_FEEDS = {
   manifest: "/marketplace-control-plane.json",
@@ -59,9 +62,9 @@ window.__SECURITY_RECIPES_MARKETPLACE_SCHEMAS = {
 <script src="/js/mermaid-viewer.js" defer></script>
 <script src="/js/nav-enhance.js" defer></script>
 <script src="/js/docs-search.js" defer></script>
-<script src="/js/cve-hub-collapse.js" defer></script>
-{% if page.url == "/recipes/cve/" or page.url == "/recipes/" %}<script src="/js/cve-catalog.js" defer></script>{% endif %}
-<script src="/js/recipe-browser.js" defer></script>
+{% if page.url == "/cve-database/" %}<script src="/js/cve-catalog.js" defer></script>{% endif %}
+{% if page.url == "/cve-database/" %}<script src="/js/cve-database.js" defer></script>{% endif %}
+{% if page.url == "/recipes/" %}<script src="/js/recipe-browser.js" defer></script>{% endif %}
 {% if page.url == "/recipes/" %}<script src="/js/recipe-mobile-hardening.js" defer></script>{% endif %}
 <script src="/js/mcp-config-helper.js" defer></script>
 <script src="/js/sr-tabs.js" defer></script>

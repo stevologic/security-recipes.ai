@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,follow">
+<meta http-equiv="refresh" content="0;url={{ redirectTo }}">
+<link rel="canonical" href="{{ redirectTo }}">
+<title>{{ title }} – {{ site.title }}</title>
+</head>
+<body>
+<main>
+  <h1>{{ title }}</h1>
+  <p>This collection now lives in the standalone <a href="{{ redirectTo }}">CVE Database</a>.</p>
+</main>
+<script>location.replace("{{ redirectTo }}" + location.search + location.hash);</script>
+</body>
+</html>

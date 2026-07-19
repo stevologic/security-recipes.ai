@@ -174,6 +174,15 @@ test('canonical CVE recognition is exact and shard paths use identifier buckets'
   assert.equal(controller.canonicalCve('CVE-2024-3400-extra'), null);
   assert.equal(controller.canonicalCve('prefix CVE-2024-3400'), null);
   assert.equal(controller.canonicalCve('CVE-2024-999'), null);
+  assert.equal(
+    controller.canonicalCvePageUrl(' cve-2024-3400 '),
+    'https://www.cve.org/CVERecord?id=CVE-2024-3400'
+  );
+  assert.equal(
+    controller.canonicalCvePageUrl({ id: 'cve-2024-3400' }),
+    'https://www.cve.org/CVERecord?id=CVE-2024-3400'
+  );
+  assert.equal(controller.canonicalCvePageUrl('CVE-2024-3400-extra'), '');
   assert.equal(controller.shardPathForCve('CVE-2024-0999'), 'shards/2024/0000.jsonl.gz');
   assert.equal(controller.shardPathForCve('CVE-2024-1000'), 'shards/2024/0001.jsonl.gz');
   assert.equal(controller.shardPathForCve('CVE-2026-123456'), 'shards/2026/0123.jsonl.gz');
@@ -805,6 +814,7 @@ test('controller never parses the full index and feed Markdown is never injected
   const root = path.resolve(__dirname, '..');
   const controllerSource = fs.readFileSync(path.join(root, 'assets/js/cve-catalog.js'), 'utf8');
   const workerSource = fs.readFileSync(path.join(root, 'assets/js/cve-catalog-worker.js'), 'utf8');
+  const catalogCss = fs.readFileSync(path.join(root, 'assets/css/cve-catalog.css'), 'utf8');
 
   assert.doesNotMatch(controllerSource, /fetchJson\(\s*['"]index\.json['"]\s*\)/);
   assert.doesNotMatch(controllerSource, /\.innerHTML\s*=/);
@@ -814,8 +824,30 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.doesNotMatch(controllerSource, /fetchJson\('manifest\.json'\)/);
   assert.match(controllerSource, /state\.runtimeSummary\.shard_set_sha256/);
   assert.match(controllerSource, /metadata && metadata\.sha256/);
-  assert.match(controllerSource, /AI-assisted CVE enrichment \(supplemental\)/);
+  assert.match(controllerSource, /Supplemental analysis/);
+  assert.match(controllerSource, /badgeLabel = enrichmentWithheld \? 'AI evaluated' : 'AI-enriched'/);
+  assert.match(controllerSource, /badgeTitle = badgeLabel \+ ' with '/);
+  assert.match(controllerSource, /'span', 'sr-ai-provenance'/);
+  assert.match(controllerSource, /Prompt version/);
+  assert.match(controllerSource, /Source fingerprint/);
   assert.match(controllerSource, /appendAiEnrichment\(technicalBody, fullRecord\.ai_enrichment\)/);
+  assert.match(controllerSource, /Open canonical CVE page/);
+  assert.match(controllerSource, /basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/);
+  assert.match(controllerSource, /View on CVE\.org/);
+  assert.match(controllerSource, /https:\/\/www\.cve\.org\/CVERecord\?id=/);
+  assert.match(controllerSource, /canonicalLink\.target = '_blank'/);
+  assert.match(controllerSource, /canonicalLink\.rel = 'noopener noreferrer'/);
+  assert.match(controllerSource, /opens in a new tab/);
+  assert.match(controllerSource, /canonical-link-icon'[\s\S]*?setAttribute\('aria-hidden', 'true'\)/);
+  assert.match(
+    controllerSource,
+    /item\.appendChild\(details\);[\s\S]*?item\.appendChild\(recordActions\)/,
+    'the standalone and official links must be siblings of the disclosure'
+  );
+  assert.doesNotMatch(controllerSource, /canonicalLink\.addEventListener/);
+  assert.match(catalogCss, /\.cve-catalog__record-actions\s*\{/);
+  assert.match(catalogCss, /\.cve-catalog__canonical-link:focus-visible/);
+  assert.match(catalogCss, /@media \(max-width:\s*480px\)[\s\S]*?\.cve-catalog__canonical-link\s*\{[\s\S]*?min-height:\s*44px/);
   assert.match(workerSource, /browser-index\.json\.gz/);
   assert.match(
     controllerSource,

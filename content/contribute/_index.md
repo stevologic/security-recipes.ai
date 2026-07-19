@@ -260,8 +260,8 @@ Drop your file in the subdirectory that matches the agent it
 targets. If it's tool-agnostic (e.g. a triage framework you use
 across every agent), put it in `content/recipes/general/`.
 If it is anchored to a specific CVE, put it in
-`content/recipes/cve/` so it appears in the CVE Recipes
-catalogue.
+`content/recipes/cve/` so it can appear as a reviewed detail page in the
+CVE Database.
 
 ### Template
 

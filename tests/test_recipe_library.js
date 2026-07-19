@@ -5,14 +5,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
+const { renderAiProvenance } = require('../lib/ai-provenance.js');
+const { cveDisplayTitle, stripFirstH1 } = require('../lib/html-content.js');
+const { renderCardHtml } = require('../lib/recipe-cards.js');
+
 const ROOT = path.resolve(__dirname, '..');
-const RUNTIME_SUMMARY = path.join(
-  ROOT,
-  'static',
-  'api',
-  'cve-catalog',
-  'runtime-summary.json'
-);
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -35,45 +32,41 @@ function workflowFeed() {
 }
 
 function renderedLibrary() {
-  // Load after the generated inputs so this test exercises the same data path
-  // used by the shortcode rather than duplicating its catalog counters.
   return require('../lib/shortcodes/recipe-browser.js')();
 }
 
-test('recipe library federates curated and CVE counts without double-counting overrides', (context) => {
+function cveHubSource() {
+  const topLevel = path.join(ROOT, 'content', 'cve-database', '_index.md');
+  const nested = path.join(ROOT, 'content', 'recipes', 'cve', '_index.md');
+  const file = fs.existsSync(topLevel) ? topLevel : nested;
+  return {
+    file,
+    source: fs.readFileSync(file, 'utf8'),
+    isTopLevel: file === topLevel,
+  };
+}
+
+test('recipe library is curated-only and reports the curated feed count', () => {
   const curated = curatedFeed();
-  const runtime = readJson(RUNTIME_SUMMARY);
-  if (runtime.schema_version !== 2) {
-    context.skip('generated schema-v2 catalog fixture is not present');
-    return;
-  }
-  const catalogCount = Number(runtime.totals.catalog_records);
-  const overrideCount = Number(runtime.totals.stable_markdown_overrides);
-  const curatedCount = Number(curated.count);
-  const uniqueCount = curatedCount + catalogCount - overrideCount;
   const html = renderedLibrary();
+  const curatedCount = Number(curated.count);
 
   assert.equal(curated.recipes.length, curatedCount, 'feed metadata matches its recipe payload');
-  assert.equal(runtime.schema_version, 2, 'library reads the current catalog schema');
-  assert.ok(Number(runtime.by_severity.medium) > 0, 'catalog exposes medium-severity coverage');
-  assert.equal(
-    catalogCount,
-    ['medium', 'high', 'critical'].reduce(
-      (total, severity) => total + Number(runtime.by_severity[severity] || 0),
-      0
+  assert.ok(curated.recipes.length > 0, 'fixture repository exposes curated recipes');
+  assert.ok(
+    curated.recipes.every(
+      (recipe) => recipe.category !== 'cve' && !String(recipe.url || '').startsWith('/recipes/cve/')
     ),
-    'catalog total equals its severity partitions'
-  );
-  assert.equal(
-    uniqueCount,
-    curatedCount + catalogCount - overrideCount,
-    'unique library total follows the generated overlap formula'
+    'the browser feed must not leak CVE overrides into Recipes'
   );
   assert.match(html, new RegExp(`data-recipe-total="${curatedCount}"`));
-  assert.match(html, new RegExp(`data-cve-total="${catalogCount}"`));
-  assert.match(html, new RegExp(`<dd>${formatCount(uniqueCount)}</dd>`));
-  assert.match(html, new RegExp(`<strong>${formatCount(curatedCount)}</strong>`));
-  assert.match(html, new RegExp(`<strong>${formatCount(catalogCount)}</strong>`));
+  assert.match(html, new RegExp(`<dd>${formatCount(curatedCount)}</dd>`));
+  assert.match(html, /data-recipe-api="\/api\/curated-recipes\.json"/);
+  assert.match(html, /href="\/cve-database\/">Open CVE Database<\/a>/);
+  assert.doesNotMatch(html, /data-cve-total=/);
+  assert.doesNotMatch(html, /data-library-tab=/);
+  assert.doesNotMatch(html, /data-library-panel=/);
+  assert.doesNotMatch(html, /data-cve-catalog/);
 });
 
 test('recipe library server render is bounded and remains useful without JavaScript', () => {
@@ -85,29 +78,7 @@ test('recipe library server render is bounded and remains useful without JavaScr
   assert.equal(cards.length, expectedCards);
   assert.ok(cards.length <= 18, 'the initial document never renders more than one bounded page');
   assert.match(html, new RegExp(`data-recipe-ssr-count="${expectedCards}"`));
-  assert.match(html, /href="\/recipes\/cve\/">Catalog methodology<\/a>/);
-});
-
-test('collection navigation exposes accessible tabs, status, and mobile filters', () => {
-  const html = renderedLibrary();
-
-  assert.match(html, /role="tablist" aria-label="Recipe collections"/);
-  assert.match(
-    html,
-    /id="recipe-library-curated-tab"[^>]*role="tab"[^>]*aria-selected="true"[^>]*aria-controls="recipe-library-curated"/
-  );
-  assert.match(
-    html,
-    /id="recipe-library-cve-tab"[^>]*role="tab"[^>]*aria-selected="false"[^>]*aria-controls="recipe-library-cve"/
-  );
-  assert.match(
-    html,
-    /id="recipe-library-curated"[^>]*role="tabpanel"[^>]*aria-labelledby="recipe-library-curated-tab"/
-  );
-  assert.match(
-    html,
-    /id="recipe-library-cve"[^>]*role="tabpanel"[^>]*aria-labelledby="recipe-library-cve-tab"[^>]*hidden/
-  );
+  assert.match(html, /full feed is available at <code>\/api\/curated-recipes\.json<\/code>/);
   assert.match(html, /data-recipe-summary[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
   assert.match(
     html,
@@ -117,19 +88,59 @@ test('collection navigation exposes accessible tabs, status, and mobile filters'
   assert.match(html, /data-recipe-filter-close>Close filters<\/button>/);
 });
 
-test('the CVE collection stays deferred and curated input avoids duplicate typeahead work', () => {
-  const html = renderedLibrary();
-  const recipeSource = fs.readFileSync(path.join(ROOT, 'assets/js/recipe-browser.js'), 'utf8');
-  const cveSource = fs.readFileSync(path.join(ROOT, 'assets/js/cve-catalog.js'), 'utf8');
+test('CVE Database is a standalone catalog route in the primary navigation', () => {
+  const site = require('../lib/site-config.js');
+  const hub = cveHubSource();
+  const hubHtml = require('../lib/shortcodes/cve-database.js')();
+  const head = fs.readFileSync(path.join(ROOT, '_includes', 'partials', 'head-common.njk'), 'utf8');
+  const cveSource = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'cve-catalog.js'), 'utf8');
+  const databaseCss = fs.readFileSync(path.join(ROOT, 'assets', 'css', 'cve-database.css'), 'utf8');
 
-  assert.match(
-    html,
-    /data-cve-catalog\s+data-cve-catalog-deferred\s+data-cve-catalog-base="\/api\/cve-catalog\/"/
+  assert.deepEqual(
+    site.menu.filter((item) => item.url === '/cve-database/'),
+    [{ name: 'CVE Database', url: '/cve-database/' }]
   );
-  assert.match(cveSource, /SecurityRecipesCveCatalog/);
-  assert.match(cveSource, /data-cve-catalog-deferred/);
+  if (!hub.isTopLevel) {
+    assert.match(
+      hub.source,
+      /^url:\s*\/cve-database\/?\s*$/m,
+      'the historical nested source must publish its hub at the top-level route'
+    );
+  }
+  assert.match(hub.source, /\{\{<\s*cve-database\s*>\}\}/);
+  assert.match(hubHtml, /data-cve-catalog\s+data-cve-catalog-base="\/api\/cve-catalog\/"/);
+  assert.doesNotMatch(hubHtml, /data-cve-catalog-deferred/);
+  assert.ok(
+    head.includes('/cve-database/'),
+    'the standalone route must opt into route-specific CVE assets'
+  );
+  assert.match(head, /\/css\/cve-catalog\.css/);
+  assert.match(head, /\/js\/cve-catalog\.js/);
   assert.match(cveSource, /RESULT_PAGE_SIZE\s*=\s*25/);
-  assert.match(cveSource, /:not\(\[data-cve-catalog-deferred\]\)/);
+  assert.match(cveSource, /CVE ID or vulnerability title/);
+  assert.match(cveSource, /Words search every in-scope catalog record/);
+  assert.match(cveSource, /search\.maxLength\s*=\s*160/);
+  assert.match(databaseCss, /width:\s*min\(1400px,\s*calc\(100vw - 64px\)\)/);
+  assert.match(databaseCss, /@media \(max-width:\s*860px\)/);
+  assert.match(databaseCss, /width:\s*min\(100% - 32px,\s*1400px\)/);
+  assert.match(databaseCss, /--cve-db-border:\s*var\(--arr-card-border/);
+  assert.match(
+    cveSource,
+    /renderResults\(\[preview\], 1, true\)/,
+    'an exact CVE ID must remain retrievable even when broad-search filters are active'
+  );
+});
+
+test('legacy Recipes CVE URLs hand off to the standalone database', () => {
+  const recipeSource = fs.readFileSync(path.join(ROOT, 'assets', 'js', 'recipe-browser.js'), 'utf8');
+
+  assert.doesNotMatch(recipeSource, /prefix \+ ['"]api\/recipes\.json['"]/);
+  assert.doesNotMatch(recipeSource, /prefix \+ ['"]recipes-index\.json['"]/);
+  assert.match(recipeSource, /sourceFile\.indexOf\(['"]recipes\/cve\/['"]\)\s*===\s*0/);
+  assert.match(recipeSource, /params\.get\(['"]view['"]\)\s*===\s*['"]cve['"]/);
+  assert.match(recipeSource, /new URL\(['"]\/cve-database\/['"]/);
+  assert.match(recipeSource, /win\.location\.replace\(legacyTarget\.pathname \+ legacyTarget\.search\)/);
+  assert.match(recipeSource, /['"]\/cve-database\/\?q=['"]\s*\+\s*encodeURIComponent/);
   assert.match(recipeSource, /addEventListener\(['"]popstate['"],\s*restoreFromUrl\)/);
   assert.doesNotMatch(
     recipeSource,
@@ -138,35 +149,73 @@ test('the CVE collection stays deferred and curated input avoids duplicate typea
   );
 });
 
-test('the CVE collection clearly exposes exact-ID and complete-catalog search paths', () => {
-  const html = renderedLibrary();
-  const cveSource = fs.readFileSync(path.join(ROOT, 'assets/js/cve-catalog.js'), 'utf8');
+test('standalone CVE records use a scoped theme and one canonical page heading', () => {
+  const layout = fs.readFileSync(path.join(ROOT, '_includes', 'layouts', 'docs.njk'), 'utf8');
+  const head = fs.readFileSync(path.join(ROOT, '_includes', 'partials', 'head-common.njk'), 'utf8');
+  const css = fs.readFileSync(path.join(ROOT, 'assets', 'css', 'cve-detail.css'), 'utf8');
+  const rendered = [
+    '<blockquote><p>Development warning</p></blockquote>',
+    '<h1 id="duplicate">CVE-2025-20337 duplicate title</h1>',
+    '<h2 id="review-scope">Review scope</h2>',
+  ].join('\n');
 
-  assert.match(html, /Paste a complete CVE ID to open the exact record, source facts, and matched curated workflows/);
-  assert.match(html, /narrow the full catalog by severity, year, or CISA KEV status/);
-  assert.match(cveSource, /CVE ID or vulnerability title/);
-  assert.match(cveSource, /Words search every in-scope catalog record/);
-  assert.match(cveSource, /search\.maxLength\s*=\s*160/);
-  assert.match(
-    cveSource,
-    /renderResults\(\[preview\], 1, true\)/,
-    'an exact CVE ID must remain retrievable even when broad-search filters are active'
+  assert.equal((stripFirstH1(rendered).match(/<h1\b/g) || []).length, 0);
+  assert.match(stripFirstH1(rendered), /Development warning/);
+  assert.match(stripFirstH1(rendered), /Review scope/);
+  assert.equal(
+    cveDisplayTitle('CVE-2014-0160 — Heartbleed', 'CVE-2014-0160'),
+    'Heartbleed'
   );
+  assert.match(layout, /data-cve-detail-page="true"/);
+  assert.match(layout, /content \| stripFirstH1/);
+  assert.match(layout, /class="sr-cve-detail-header"/);
+  assert.match(layout, /Back to CVE Database/);
+  assert.match(head, /\/css\/cve-detail\.css/);
+  assert.match(css, /\.sr-cve-detail-page \.sr-main \.sr-cve-detail-content\s*\{[^}]*max-width:\s*78ch/s);
+  assert.match(css, /\.sr-cve-detail-header \.sr-cve-detail-header__title\s*\{[^}]*overflow-wrap:\s*anywhere/s);
+  assert.match(css, /\.sr-cve-detail-content h2\s*\{[^}]*margin:\s*2\.75rem 0 1rem/s);
+  assert.match(css, /@media \(max-width:\s*860px\)/);
+  assert.match(css, /@media \(max-width:\s*560px\)[\s\S]*padding-right:\s*16px/);
 });
 
-test('one primary search connects exact CVEs to curated workflows and shareable routes', () => {
-  const html = renderedLibrary();
-  const recipeSource = fs.readFileSync(path.join(ROOT, 'assets/js/recipe-browser.js'), 'utf8');
-  const cveSource = fs.readFileSync(path.join(ROOT, 'assets/js/cve-catalog.js'), 'utf8');
+test('AI provenance badges are escaped and only render when a model is present', () => {
+  const unsafeModel = 'gpt<5>&"';
+  const provenance = renderAiProvenance(unsafeModel, { label: 'AI-enriched' });
+  const baseCard = {
+    slug: 'fixture',
+    title: 'Fixture',
+    url: '/recipes/general/fixture/',
+    category: 'general',
+    categoryLabel: 'General',
+    severity: 'unspecified',
+    maturity: 'stable',
+    quality: 100,
+    tier: 'world-class',
+    facets: ['remediation'],
+    identity: '',
+    published: '',
+    ecosystem: '',
+    summary: '',
+    zeroDay: false,
+  };
 
-  assert.match(html, /data-library-search-form/);
-  assert.match(html, /data-library-search[^>]*placeholder="CVE-2024-3400/);
-  assert.match(html, /data-cve-workflow-index="\/api\/cve-workflows\.json"/);
-  assert.match(html, /Find the vulnerability\. Run the right workflow\./);
-  assert.match(recipeSource, /canonicalCve\(restoredQuery\)/);
-  assert.match(recipeSource, /setCollection\('cve', \{ push: true, query: exact \}\)/);
-  assert.match(cveSource, /exactDetails\.open = true/);
-  assert.match(cveSource, /basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/);
+  assert.equal(renderAiProvenance(''), '');
+  assert.match(provenance, /class="sr-ai-provenance"/);
+  assert.match(provenance, /aria-label="AI-enriched with gpt&lt;5&gt;&amp;&quot;"/);
+  assert.match(provenance, /<code>gpt&lt;5&gt;&amp;&quot;<\/code>/);
+  assert.doesNotMatch(provenance, /(?:<script|gpt<5>)/i);
+  assert.doesNotMatch(
+    renderCardHtml({ ...baseCard, model: '', aiAssisted: false }),
+    /sr-ai-provenance/
+  );
+  assert.match(
+    renderCardHtml({ ...baseCard, model: unsafeModel, aiAssisted: true }),
+    /AI-enriched with gpt&lt;5&gt;&amp;&quot;/
+  );
+  assert.match(
+    renderCardHtml({ ...baseCard, cve: 'CVE-2024-3400' }),
+    /class="recipe-browser-card__evidence" href="\/cve\/CVE-2024-3400\/" aria-describedby="recipe-card-fixture"/
+  );
 });
 
 test('CVE workflow relationships are explicit, valid, searchable, and visible on cards', () => {
@@ -215,7 +264,7 @@ test('mobile CSS prevents iOS form zoom and keeps core controls touch friendly',
   const docsLayout = fs.readFileSync(path.join(ROOT, '_includes/layouts/docs.njk'), 'utf8');
 
   assert.match(docsLayout, /viewport-fit=cover/);
-  assert.match(libraryCss, /\.recipe-library__mission-field input\s*\{[\s\S]*?font-size:\s*16px/);
+  assert.match(libraryCss, /\.recipe-library \.recipe-browser__search-field input\s*\{[\s\S]*?font-size:\s*16px/);
   assert.match(libraryCss, /\.recipe-library__sort select\s*\{[\s\S]*?min-height:\s*44px;[\s\S]*?font-size:\s*16px/);
   assert.match(cveCss, /@media \(max-width: 760px\)[\s\S]*?\.cve-catalog__input,[\s\S]*?font-size:\s*16px/);
   assert.match(cveCss, /\.cve-catalog__permalink,[\s\S]*?min-height:\s*44px/);
