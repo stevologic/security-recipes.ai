@@ -194,7 +194,7 @@ test('AI provenance badges are escaped and only render when a model is present',
   assert.match(provenance, /class="sr-ai-provenance"/);
   assert.match(provenance, /aria-label="AI-enriched with gpt&lt;5&gt;&amp;&quot;"/);
   assert.match(provenance, /<code>gpt&lt;5&gt;&amp;&quot;<\/code>/);
-  assert.doesNotMatch(provenance, /<script|gpt<5>/);
+  assert.doesNotMatch(provenance, /(?:<script|gpt<5>)/i);
   assert.doesNotMatch(
     renderCardHtml({ ...baseCard, model: '', aiAssisted: false }),
     /sr-ai-provenance/
