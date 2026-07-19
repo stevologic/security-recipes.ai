@@ -11,6 +11,10 @@ const { renderCardHtml } = require('../lib/recipe-cards.js');
 
 const ROOT = path.resolve(__dirname, '..');
 
+function readJson(file) {
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
 function formatCount(value) {
   return Number(value).toLocaleString('en-US');
 }
@@ -20,6 +24,11 @@ function curatedFeed() {
   // build having populated public/recipes-browser.json.
   const { recipesBrowser } = require('../lib/feeds.js');
   return JSON.parse(recipesBrowser());
+}
+
+function workflowFeed() {
+  const { cveWorkflows } = require('../lib/feeds.js');
+  return JSON.parse(cveWorkflows());
 }
 
 function renderedLibrary() {
@@ -203,4 +212,61 @@ test('AI provenance badges are escaped and only render when a model is present',
     renderCardHtml({ ...baseCard, model: unsafeModel, aiAssisted: true }),
     /AI-enriched with gpt&lt;5&gt;&amp;&quot;/
   );
+  assert.match(
+    renderCardHtml({ ...baseCard, cve: 'CVE-2024-3400' }),
+    /class="recipe-browser-card__evidence" href="\/cve\/CVE-2024-3400\/" aria-describedby="recipe-card-fixture"/
+  );
+});
+
+test('CVE workflow relationships are explicit, valid, searchable, and visible on cards', () => {
+  const feed = workflowFeed();
+  const curated = curatedFeed();
+  const archetypes = new Set(
+    Object.keys(readJson(path.join(ROOT, 'static', 'api', 'cve-catalog', 'archetypes.json')).archetypes)
+  );
+  const roles = new Set(['remediate', 'contain', 'audit', 'intake']);
+  const bySlug = new Map(curated.recipes.map((recipe) => [recipe.slug, recipe]));
+
+  assert.equal(feed.schema_version, 1);
+  assert.equal(feed.count, feed.workflows.length);
+  assert.ok(feed.count >= 10, 'the relationship index covers multiple reviewed workflow families');
+  assert.equal(new Set(feed.workflows.map((workflow) => workflow.id)).size, feed.count);
+
+  for (const workflow of feed.workflows) {
+    assert.ok(roles.has(workflow.role), `${workflow.id} has a supported workflow role`);
+    assert.match(workflow.url, /^\/recipes\/[^.]*\/$/);
+    assert.ok(workflow.archetypes.length > 0, `${workflow.id} declares CVE archetypes`);
+    for (const archetype of workflow.archetypes) {
+      assert.ok(archetype === '*' || archetypes.has(archetype), `${workflow.id} maps to ${archetype}`);
+    }
+    const card = bySlug.get(workflow.id);
+    assert.ok(card, `${workflow.id} remains discoverable in the curated feed`);
+    assert.deepEqual(card.cveArchetypes, workflow.archetypes);
+    assert.equal(card.cveWorkflowRole, workflow.role);
+    assert.ok(
+      workflow.archetypes.every((archetype) => card.search.includes(archetype)),
+      `${workflow.id} relationship fields participate in curated search`
+    );
+  }
+
+  const universal = feed.workflows.filter((workflow) => workflow.archetypes.includes('*'));
+  assert.equal(universal.length, 1);
+  assert.equal(universal[0].role, 'intake');
+  const { browserCardObjects, renderCardHtml } = require('../lib/recipe-cards.js');
+  const mappedCard = browserCardObjects().find((card) => card.cveArchetypes.length > 0);
+  assert.ok(mappedCard);
+  assert.match(renderCardHtml(mappedCard), /recipe-browser-card__cve-linkage/);
+});
+
+test('mobile CSS prevents iOS form zoom and keeps core controls touch friendly', () => {
+  const libraryCss = fs.readFileSync(path.join(ROOT, 'assets/css/recipe-library.css'), 'utf8');
+  const cveCss = fs.readFileSync(path.join(ROOT, 'assets/css/cve-catalog.css'), 'utf8');
+  const docsLayout = fs.readFileSync(path.join(ROOT, '_includes/layouts/docs.njk'), 'utf8');
+
+  assert.match(docsLayout, /viewport-fit=cover/);
+  assert.match(libraryCss, /\.recipe-library \.recipe-browser__search-field input\s*\{[\s\S]*?font-size:\s*16px/);
+  assert.match(libraryCss, /\.recipe-library__sort select\s*\{[\s\S]*?min-height:\s*44px;[\s\S]*?font-size:\s*16px/);
+  assert.match(cveCss, /@media \(max-width: 760px\)[\s\S]*?\.cve-catalog__input,[\s\S]*?font-size:\s*16px/);
+  assert.match(cveCss, /\.cve-catalog__permalink,[\s\S]*?min-height:\s*44px/);
+  assert.match(libraryCss, /env\(safe-area-inset-bottom\)/);
 });

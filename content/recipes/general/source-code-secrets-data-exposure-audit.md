@@ -7,6 +7,10 @@ team: "Security"
 maturity: "development"
 model: "gpt-5-codex"
 tags: ["source-code", "audit", "secrets", "sensitive-data", "logging", "privacy"]
+cve_archetypes:
+  - "crypto_certificate_validation"
+  - "information_disclosure"
+cve_workflow_role: "audit"
 weight: 16
 date: 2026-06-06
 ---

@@ -3,20 +3,178 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#020506">
+  <meta name="robots" content="noindex, nofollow, noarchive">
   <meta http-equiv="refresh" content="30">
   <title>Traffic report - security-recipes.ai</title>
   <style>
-    :root { color-scheme: dark; font-family: system-ui, sans-serif; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #101418; color: #d8dee9; }
-    main { width: min(32rem, calc(100% - 3rem)); }
-    h1 { margin: 0 0 .6rem; color: #f5f7fa; font-size: 1.25rem; font-weight: 600; }
-    p { margin: 0; color: #9aa6b2; line-height: 1.6; }
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable",
+        "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --text: #f5f7fb;
+      --muted: #aeb7c6;
+      --soft: #7f8a9f;
+      --teal: #2dd4bf;
+      --border: rgba(255, 255, 255, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      min-height: 100%;
+      background: #000;
+    }
+
+    body {
+      position: relative;
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 52% 18%, rgba(45, 212, 191, 0.08), transparent 34%),
+        radial-gradient(circle at 82% 52%, rgba(251, 191, 36, 0.045), transparent 30%),
+        linear-gradient(180deg, #020405 0%, #04100f 70%, #030707 100%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.024) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+      background-size: 54px 54px;
+      content: "";
+      mask-image: radial-gradient(ellipse at center, black 16%, transparent 78%);
+      opacity: 0.42;
+      pointer-events: none;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(100% - 48px, 1180px);
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      min-height: 72px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand {
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 760;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+
+    .context {
+      color: var(--soft);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    main {
+      display: grid;
+      min-height: calc(100vh - 72px);
+      place-items: center;
+      padding: 48px 0 96px;
+    }
+
+    .status-card {
+      width: min(34rem, 100%);
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.022));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(16px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      color: #8cebdd;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .signal {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 12px rgba(45, 212, 191, 0.72);
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      color: var(--text);
+      font-size: clamp(1.5rem, 4vw, 2.1rem);
+      font-weight: 760;
+      letter-spacing: -0.035em;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .meta {
+      margin-top: 22px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--soft);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.72rem;
+    }
+
+    @keyframes pulse {
+      50% { opacity: 0.42; transform: scale(0.78); }
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 24px, 1180px); }
+      .context { display: none; }
+      .status-card { padding: 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .signal { animation: none; }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Traffic report is warming up</h1>
-    <p>The aggregate, privacy-preserving report will appear here as soon as access data is available. This page refreshes automatically.</p>
-  </main>
+  <div class="shell">
+    <header>
+      <a class="brand" href="/">security-recipes.ai</a>
+      <span class="context">Privacy-preserving analytics</span>
+    </header>
+    <main>
+      <section class="status-card" aria-labelledby="traffic-status-title">
+        <div class="eyebrow"><span class="signal" aria-hidden="true"></span>Traffic dashboard</div>
+        <h1 id="traffic-status-title">Report is warming up</h1>
+        <p>The aggregate, privacy-preserving dashboard will appear as soon as access data is available.</p>
+        <div class="meta">This page checks for a refreshed report every 30 seconds.</div>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

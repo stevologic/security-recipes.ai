@@ -450,7 +450,34 @@ sudo bash scripts/setup_digitalocean_droplet.sh \
 
 The script installs Docker/Compose, configures a locked app user, enables basic
 host hardening, starts the Compose stack, and can place Caddy in front for
-HTTPS.
+HTTPS. It also enables a Caddy-aware Fail2Ban jail: five final HTTP 404
+responses from one client within five seconds block that address from the
+site's TCP and HTTP/3 ports for one hour, after which access is restored
+automatically.
+
+Existing Droplets need this one-time, idempotent activation after deploying
+the commit that contains the jail:
+
+```bash
+sudo bash scripts/configure_caddy_404_ban.sh
+sudo fail2ban-client status security-recipes-caddy-404
+```
+
+If the Droplet still runs bundled Caddy with the old named log volume, first
+set `SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=/var/log/caddy` in `.env`, then
+recreate only Caddy once during a maintenance window:
+
+```bash
+docker compose --profile caddy up -d \
+  --no-deps --force-recreate --pull never caddy
+sudo bash scripts/configure_caddy_404_ban.sh
+```
+
+The filter uses Caddy's structured `client_ip`, not spoofable forwarding
+headers or User-Agent values. If the origin is later placed behind a CDN or
+load balancer, move the ban action to that provider's WAF/API; an origin
+firewall cannot directly block an end client whose packets arrive from a
+trusted proxy.
 
 If you prefer nginx instead of Caddy on the droplet, bootstrap the host without
 the proxy and then run the nginx helper:

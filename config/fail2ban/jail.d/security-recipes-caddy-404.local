@@ -1,0 +1,28 @@
+# Managed by security-recipes.ai.
+#
+# Five final 404 responses for one client inside five seconds trigger a
+# one-hour web ban. Fail2Ban automatically removes the nftables entries when
+# the ban expires and restores unexpired bans from its persistent database.
+
+[security-recipes-caddy-404]
+enabled = true
+filter = security-recipes-caddy-404
+logpath = /var/log/caddy/access.log
+backend = polling
+usedns = no
+
+# Health checks and private east-west traffic must never consume the public
+# abuse budget.
+ignoreip = 127.0.0.0/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80::/10
+
+maxretry = 5
+findtime = 5s
+bantime = 1h
+bantime.increment = false
+
+# Cover host Caddy (input) and bundled Docker Caddy (forward), including
+# HTTP/3 on UDP 443. Distinct tables keep action lifecycle operations isolated.
+action = nftables[type=multiport, name=sr404-input-tcp, table=f2b-sr404-input-tcp, chain=f2b-sr404-input-tcp, chain_hook=input, port="80,443", protocol=tcp, blocktype=drop]
+         nftables[type=multiport, name=sr404-input-udp, table=f2b-sr404-input-udp, chain=f2b-sr404-input-udp, chain_hook=input, port="443", protocol=udp, blocktype=drop]
+         nftables[type=multiport, name=sr404-forward-tcp, table=f2b-sr404-forward-tcp, chain=f2b-sr404-forward-tcp, chain_hook=forward, port="80,443", protocol=tcp, blocktype=drop]
+         nftables[type=multiport, name=sr404-forward-udp, table=f2b-sr404-forward-udp, chain=f2b-sr404-forward-udp, chain_hook=forward, port="443", protocol=udp, blocktype=drop]

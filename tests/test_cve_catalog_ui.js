@@ -269,6 +269,64 @@ test('all archetype compositions are deduplicated and primary is first', () => {
   assert.equal(compositions[1].id, 'generic');
 });
 
+test('explicit curated workflow relationships validate and rank exact archetype matches first', () => {
+  const workflowIndex = controller.validateWorkflowIndex({
+    schema_version: 1,
+    workflows: [
+      {
+        id: 'universal-intake',
+        title: 'Universal intake',
+        url: '/recipes/general/universal-intake/',
+        summary: 'Confirm scope and ownership.',
+        role: 'intake',
+        archetypes: ['*']
+      },
+      {
+        id: 'injection-audit',
+        title: 'Injection audit',
+        url: '/recipes/general/injection-audit/',
+        summary: 'Trace input to unsafe sinks.',
+        role: 'audit',
+        archetypes: ['command_code_injection']
+      },
+      {
+        id: 'injection-fix',
+        title: 'Injection fix',
+        url: '/recipes/general/injection-fix/',
+        summary: 'Replace unsafe execution paths.',
+        role: 'remediate',
+        archetypes: ['command_code_injection']
+      }
+    ]
+  });
+  const matches = controller.resolveWorkflowMatches(
+    { archetype: 'command_code_injection', archetypes: ['generic'] },
+    workflowIndex,
+    4
+  );
+
+  assert.deepEqual(matches.map((match) => match.workflow.id), [
+    'injection-fix',
+    'injection-audit',
+    'universal-intake'
+  ]);
+  assert.deepEqual(matches[0].matchedArchetypes, ['command_code_injection']);
+  assert.equal(matches.at(-1).universal, true);
+  assert.throws(
+    () => controller.validateWorkflowIndex({
+      schema_version: 1,
+      workflows: [{
+        id: 'unsafe-url',
+        title: 'Unsafe',
+        url: 'https://attacker.example/workflow',
+        role: 'remediate',
+        archetypes: ['generic']
+      }]
+    }),
+    /failed validation/
+  );
+});
+
 test('agentic plans expand every phase into deterministic evidence-backed file actions', () => {
   const catalog = controller.validateArchetypes(agenticCatalog());
   const record = {
@@ -772,8 +830,10 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(controllerSource, /'span', 'sr-ai-provenance'/);
   assert.match(controllerSource, /Prompt version/);
   assert.match(controllerSource, /Source fingerprint/);
-  assert.match(controllerSource, /appendAiEnrichment\(body, fullRecord\.ai_enrichment\)/);
+  assert.match(controllerSource, /appendAiEnrichment\(technicalBody, fullRecord\.ai_enrichment\)/);
   assert.match(controllerSource, /Open canonical CVE page/);
+  assert.match(controllerSource, /basePrefix\(\) \+ 'cve\/' \+ encodeURIComponent\(preview\.cve\) \+ '\/'/);
+  assert.match(controllerSource, /View on CVE\.org/);
   assert.match(controllerSource, /https:\/\/www\.cve\.org\/CVERecord\?id=/);
   assert.match(controllerSource, /canonicalLink\.target = '_blank'/);
   assert.match(controllerSource, /canonicalLink\.rel = 'noopener noreferrer'/);
@@ -781,8 +841,8 @@ test('controller never parses the full index and feed Markdown is never injected
   assert.match(controllerSource, /canonical-link-icon'[\s\S]*?setAttribute\('aria-hidden', 'true'\)/);
   assert.match(
     controllerSource,
-    /item\.appendChild\(details\);[\s\S]*?Open canonical CVE page/,
-    'the canonical link must be a sibling of the disclosure, not a child of summary'
+    /item\.appendChild\(details\);[\s\S]*?item\.appendChild\(recordActions\)/,
+    'the standalone and official links must be siblings of the disclosure'
   );
   assert.doesNotMatch(controllerSource, /canonicalLink\.addEventListener/);
   assert.match(catalogCss, /\.cve-catalog__record-actions\s*\{/);

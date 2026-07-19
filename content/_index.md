@@ -1,10 +1,18 @@
 ---
 title: security-recipes.ai
 description: >
-  Security recipes for AI-assisted remediation. Browse playbooks,
-  prompts, agent setup guides, and MCP context patterns that keep
-  fixes scoped, evidenced, and human-reviewed.
+  Open, self-hostable security intelligence and governed workflows for
+  humans and AI agents. Research CVEs, use reviewed remediation playbooks,
+  and deliver bounded context through JSON and read-first MCP.
 keywords:
+  - "open security intelligence"
+  - "security intelligence platform"
+  - "CVE intelligence"
+  - "CVE research"
+  - "security remediation playbooks"
+  - "machine-readable security data"
+  - "MCP security context"
+  - "self-hosted security knowledge"
   - "agentic security remediation"
   - "AI security agents"
   - "AI coding agents"

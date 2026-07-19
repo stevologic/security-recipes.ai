@@ -153,6 +153,29 @@
     return rank[normalize(value)] || 0;
   }
 
+  function workflowArchetypeLabel(value) {
+    if (value === '*') return 'All CVEs';
+    return String(value || '')
+      .split('_')
+      .filter(Boolean)
+      .map(function (part) {
+        return ['ssrf', 'xxe', 'idor', 'dos', 'sql', 'http'].indexOf(part) !== -1
+          ? part.toUpperCase()
+          : part.charAt(0).toUpperCase() + part.slice(1);
+      })
+      .join(' ');
+  }
+
+  function workflowRelationshipText(card) {
+    var archetypes = Array.isArray(card.cveArchetypes) ? card.cveArchetypes : [];
+    if (!archetypes.length) return '';
+    var shown = archetypes.slice(0, 2).map(workflowArchetypeLabel).join(', ');
+    var remaining = archetypes.length - 2;
+    var roleText = String(card.cveWorkflowRole || 'remediate').replace(/-/g, ' ');
+    var role = roleText.charAt(0).toUpperCase() + roleText.slice(1);
+    return 'CVE ' + role + ' · ' + shown + (remaining > 0 ? ' +' + remaining : '');
+  }
+
   // Card object built from a /recipes-browser.json entry. Field names mirror the
   // feed; `indexText` is the precomputed lowercase search haystack.
   function toCard(entry, index) {
@@ -173,6 +196,9 @@
       published: entry.published || '',
       ecosystem: entry.ecosystem || '',
       identity: entry.identity || '',
+      cve: entry.cve || '',
+      cveArchetypes: Array.isArray(entry.cveArchetypes) ? entry.cveArchetypes : [],
+      cveWorkflowRole: entry.cveWorkflowRole || '',
       summary: entry.summary || '',
       model: entry.model || '',
       aiAssisted: entry.aiAssisted === true || entry.ai_assisted === true,
@@ -222,7 +248,9 @@
     var searchParts = [
       recipe.title, recipe.summary, recipe.cve, recipe.ghsa, label,
       recipe.severity, recipe.maturity, tags.join(' '), facets.join(' '),
-      recipe.ecosystem, recipe.model, recipe.date
+      recipe.ecosystem, recipe.model, recipe.date,
+      Array.isArray(recipe.cve_archetypes) ? recipe.cve_archetypes.join(' ') : '',
+      recipe.cve_workflow_role
     ].concat(aliases);
     return {
       slug: recipe.slug || '',
@@ -239,6 +267,9 @@
       published: lane === 'cve' ? recipe.date || '' : '',
       ecosystem: recipe.ecosystem || '',
       identity: recipe.cve || recipe.ghsa || recipe.agent || label,
+      cve: recipe.cve || '',
+      cveArchetypes: Array.isArray(recipe.cve_archetypes) ? recipe.cve_archetypes : [],
+      cveWorkflowRole: recipe.cve_workflow_role || '',
       summary: recipe.summary || '',
       model: recipe.model || '',
       aiAssisted: recipe.ai_assisted === true,
@@ -265,6 +296,10 @@
       (card.published ? '<span>Published ' + escapeHtml(card.published) + '</span>' : '') +
       (card.ecosystem ? '<span>' + escapeHtml(card.ecosystem) + '</span>' : '') +
       aiProvenanceHtml(card.model, card.aiAssisted ? 'AI-enriched' : 'Tested with');
+    var evidenceLink = card.cve
+      ? '<a class="recipe-browser-card__evidence" href="/cve/' + encodeURIComponent(card.cve.toUpperCase()) + '/" aria-describedby="recipe-card-' + escapeHtml(card.slug) + '">CVE evidence</a>'
+      : '';
+    var workflowRelationship = workflowRelationshipText(card);
 
     return (
       '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '" data-recipe-path="' + escapeHtml(card.url) + '" aria-labelledby="recipe-card-' + escapeHtml(card.slug) + '">' +
@@ -274,9 +309,14 @@
       '<h3 id="recipe-card-' + escapeHtml(card.slug) + '">' + escapeHtml(card.displayTitle) + '</h3>' +
       (card.summary ? '<p>' + escapeHtml(card.summary) + '</p>' : '') +
       '<ul class="recipe-browser-card__facets" aria-label="Recipe outcomes">' + card.facets.map(function (f) { return '<li>' + escapeHtml(f.replace(/-/g, ' ')) + '</li>'; }).join('') + '</ul>' +
-      '<div class="recipe-browser-card__meta">' + meta + '</div>' +
+      '<div class="recipe-browser-card__meta">' + meta +
+      (workflowRelationship
+        ? '<span class="recipe-browser-card__cve-linkage">' + escapeHtml(workflowRelationship) + '</span>'
+        : '') +
+      '</div>' +
       '<div class="recipe-browser-card__actions">' +
       '<a class="recipe-browser-card__open" href="' + escapeHtml(card.url) + '" aria-describedby="recipe-card-' + escapeHtml(card.slug) + '">Open</a>' +
+      evidenceLink +
       '<button type="button" class="recipe-browser-card__download" data-recipe-download aria-label="Download ' + escapeHtml(card.displayTitle) + ' recipe JSON">' +
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"/></svg>' +
       '<span>Download</span></button></div>' +
@@ -863,7 +903,9 @@
     }
 
     async function copyEndpoint() {
-      var endpoint = absoluteUrl(root.getAttribute('data-recipe-api') || '/api/recipes.json');
+      var endpoint = absoluteUrl(
+        root.getAttribute('data-recipe-api') || '/api/curated-recipes.json'
+      );
       try {
         await navigator.clipboard.writeText(endpoint);
         setStatus('Copied ' + endpoint + '.', 'ok');

@@ -7,6 +7,8 @@ team: "Security"
 maturity: "development"
 model: "Opus 4.7"
 tags: ["supply-chain", "registry", "cache", "quarantine", "incident"]
+cve_archetypes: ["supply_chain_update_integrity"]
+cve_workflow_role: "contain"
 weight: 14
 date: 2026-04-25
 ---

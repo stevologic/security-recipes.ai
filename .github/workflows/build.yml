@@ -49,10 +49,18 @@ jobs:
       - name: Install site dependencies
         run: npm ci
 
+      - name: Install Fail2Ban validation tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fail2ban nftables
+
       - name: Run lint and tests
         run: |
           python3 scripts/run_checks.py
           python3 scripts/validate_cve_catalog.py
+
+      - name: Smoke test Caddy 404 ban state machine
+        run: sudo bash tests/smoke_caddy_404_ban.sh
 
       - name: Compute production baseURL
         id: site
@@ -91,7 +99,11 @@ jobs:
             "${traffic_image}" \
             /opt/security-recipes/generate-traffic-report.sh --once
           test -s "${report_dir}/index.html"
+          test -s "${report_dir}/traffic-theme.css"
           grep -q "security-recipes.ai traffic" "${report_dir}/index.html"
+          grep -q "traffic-theme.css" "${report_dir}/index.html"
+          grep -q 'name="robots" content="noindex, nofollow, noarchive"' "${report_dir}/index.html"
+          grep -q "security-recipes.ai traffic dashboard theme" "${report_dir}/traffic-theme.css"
           ! grep -q "Traffic report is warming up" "${report_dir}/index.html"
           ! grep -q "fixture-supersecret" "${report_dir}/index.html"
           ! grep -q "fixture-refsecret" "${report_dir}/index.html"

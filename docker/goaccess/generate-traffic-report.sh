@@ -6,6 +6,8 @@ REPORT_DIR="${TRAFFIC_REPORT_DIR:-/report}"
 REPORT_FILE="${REPORT_DIR}/index.html"
 HEALTH_FILE="${REPORT_DIR}/.generator-healthy"
 PLACEHOLDER_FILE="${TRAFFIC_REPORT_PLACEHOLDER:-/opt/security-recipes/traffic-initializing.html}"
+THEME_FILE="${TRAFFIC_REPORT_THEME:-/opt/security-recipes/traffic-theme.css}"
+THEME_NAME="${TRAFFIC_REPORT_THEME_NAME:-traffic-theme.css}"
 INTERVAL="${TRAFFIC_REPORT_INTERVAL_SECONDS:-60}"
 
 case "${INTERVAL}" in
@@ -16,6 +18,26 @@ case "${INTERVAL}" in
 esac
 
 mkdir -p "${REPORT_DIR}"
+
+if [ ! -s "${THEME_FILE}" ]; then
+  printf 'Traffic report theme is missing or empty: %s\n' "${THEME_FILE}" >&2
+  exit 1
+fi
+
+case "${THEME_NAME}" in
+  ''|*/*|.*)
+    printf 'TRAFFIC_REPORT_THEME_NAME must be a plain visible filename, got: %s\n' "${THEME_NAME}" >&2
+    exit 1
+    ;;
+esac
+
+publish_theme() {
+  theme_target="${REPORT_DIR}/${THEME_NAME}"
+  theme_next="${REPORT_DIR}/.${THEME_NAME}.$$"
+  cp "${THEME_FILE}" "${theme_next}"
+  chmod 0644 "${theme_next}"
+  mv -f "${theme_next}" "${theme_target}"
+}
 
 publish_placeholder() {
   [ -s "${REPORT_FILE}" ] && return 0
@@ -59,7 +81,17 @@ generate_report() {
     --ignore-panel=KEYPHRASES \
     --ignore-panel=REMOTE_USER \
     --html-report-title='security-recipes.ai traffic' \
+    --html-custom-css="${THEME_NAME}" \
+    --html-prefs='{"theme":"darkGray","perPage":10,"layout":"wide","showTables":true}' \
     --output="${next_report}"; then
+    sed -i \
+      's#</head>#<meta name="robots" content="noindex, nofollow, noarchive"></head>#' \
+      "${next_report}"
+    if ! grep -q 'name="robots" content="noindex, nofollow, noarchive"' "${next_report}"; then
+      rm -f "${next_report}"
+      printf 'GoAccess report is missing the required noindex metadata.\n' >&2
+      return 1
+    fi
     chmod 0644 "${next_report}"
     mv -f "${next_report}" "${REPORT_FILE}"
     mark_healthy
@@ -72,6 +104,7 @@ generate_report() {
   return 1
 }
 
+publish_theme
 publish_placeholder
 
 if [ "${1:-}" = "--once" ]; then

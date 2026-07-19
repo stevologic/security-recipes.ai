@@ -60,7 +60,7 @@ test('latest CVEs use the newest publication partition and catalog browse orderi
     result.map((entry) => entry.cve),
     ['CVE-2026-1000', 'CVE-2026-4000', 'CVE-2026-2000', 'CVE-2026-3000', 'CVE-2026-9000']
   );
-  assert.equal(result[0].href, '/cve-database/?q=CVE-2026-1000');
+  assert.equal(result[0].href, '/cve/CVE-2026-1000/');
   assert.equal(result[0].publishedLabel, 'Jul 14');
   assert.equal(result[1].kev, true);
   for (let index = 1; index < result.length; index += 1) {

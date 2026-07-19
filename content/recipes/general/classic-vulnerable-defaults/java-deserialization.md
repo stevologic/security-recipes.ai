@@ -8,6 +8,8 @@ team: "Security"
 maturity: "development"
 model: "Opus 4.7"
 tags: ["java", "deserialization", "uplift", "mitigate", "jep-290"]
+cve_archetypes: ["unsafe_deserialization"]
+cve_workflow_role: "remediate"
 weight: 23
 date: 2026-04-25
 ---
