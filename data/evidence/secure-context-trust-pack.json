@@ -466,12 +466,12 @@
         "*.md"
       ],
       "authority": "Reusable prompt and remediation guidance; never overrides gateway policy or human review.",
-      "byte_count": 19983314,
+      "byte_count": 19989323,
       "citation_required": true,
       "decision": "allow_public_context",
       "exclude_file_globs": [],
       "exposure": "public",
-      "file_count": 3355,
+      "file_count": 3356,
       "freshness_sla_days": 90,
       "freshness_state": "declared_current",
       "hash_algorithm": "sha256",
@@ -500,6 +500,7 @@
         "content/recipes/cursor/sensitive-data-remediation.md",
         "content/recipes/cursor/vulnerable-dep-remediation.md",
         "content/recipes/cve/_index.md",
+        "content/recipes/cve/ai-enrichment-cve-2024-37079.md",
         "content/recipes/cve/ai-enrichment-cve-2024-40711.md",
         "content/recipes/cve/ai-enrichment-cve-2024-47575.md",
         "content/recipes/cve/ai-enrichment-cve-2024-9465.md",
@@ -512,8 +513,7 @@
         "content/recipes/cve/ai-enrichment-cve-2026-20045.md",
         "content/recipes/cve/ai-enrichment-cve-2026-20182.md",
         "content/recipes/cve/ai-enrichment-cve-2026-39808.md",
-        "content/recipes/cve/cve-2006-10003-xml-parser-versions-through-2-47-for-perl-has-an-off-by-one-heap-buffer-overflow-in-st-serial-stack.md",
-        "content/recipes/cve/cve-2014-0160-heartbleed.md"
+        "content/recipes/cve/cve-2006-10003-xml-parser-versions-through-2-47-for-perl-has-an-off-by-one-heap-buffer-overflow-in-st-serial-stack.md"
       ],
       "registered_files_truncated": true,
       "required_controls": [
@@ -538,7 +538,7 @@
       ],
       "root": "content/recipes",
       "root_type": "directory",
-      "source_hash": "fc94b92d29e2783c15215ba69428b829ea15d6aa08c57f056adfae99521b38e3",
+      "source_hash": "12e9ed50c944024811b3f343cad3c815603e37dc4e4ab1ff215cb633060e6a13",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": {
@@ -704,8 +704,8 @@
     "default_decision": "deny_unregistered_context",
     "failure_count": 0,
     "prohibited_data_class_count": 7,
-    "registered_byte_count": 22470155,
-    "registered_file_count": 3490,
+    "registered_byte_count": 22476164,
+    "registered_file_count": 3491,
     "risk_family_counts": {
       "context_poisoning": 8,
       "memory_poisoning": 3,
@@ -1013,7 +1013,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "aa704e876062af44775b3ab0bc38df461ff36802eb25feb2185ce9339ad11ced",
+      "context_package_hash": "c2342f7771f6d3f970fa928e79d9fb2c0dba3ef197eec83b9c0e972b39aafe37",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1046,7 +1046,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "4d927aba16986478e55463de1cd60f13133ab123038c3762a6467a957f5b7897",
+      "context_package_hash": "f370398e1fba07fa3b9b73bb1b0199ab5f51429f409e728897aafad5f2985662",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1078,7 +1078,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "e4e8163ba6375558cac61833ed11ecb009f11c2bcc55852be445cec2bea97525",
+      "context_package_hash": "438f34b1fb7f8008d41aa871255cb1bb7b83d0fbdae0b0ca3a068eb41674aabb",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1111,7 +1111,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "a0ec1d90cb75b9f466df85832207c6207010abfd3af82dc0cfce02d6a780d423",
+      "context_package_hash": "49c927c59d657c44bc9f056627106a1c90a1575f85c358e3231d68449e7b62a4",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1142,7 +1142,7 @@
         "claude",
         "devin"
       ],
-      "context_package_hash": "f06405dd3cb2ea62864371a1ab47ff7c8d8565a1aac7056e6e990b858e2724a7",
+      "context_package_hash": "9e152ff4daf811855eb73370d9d73dd1fd7128f4d9adf7247567f6abfcabdecf",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1174,7 +1174,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "d4aef3acaa557629ecae716430b7f8ee4ada617eb4897e77ce10547fd5d2ad04",
+      "context_package_hash": "db2f564ba9e83a186d598c18d3d8e18360ac23789baf8f9302b0694f870aeaee",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1205,7 +1205,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "44bd463a0b8b80bec326252063fcac0ab3be93bc780e7d37461d9a6c20a2dac6",
+      "context_package_hash": "6da1ad36b0a7f3f05e66d3b8b5329999a5089e822b601d25e3aadf292f84ae03",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1236,7 +1236,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "d8dadfb4cbfd2e719044a1ca616a1f8c952b69f86d5f9ebc1edb4751f579ec91",
+      "context_package_hash": "0f80d057c68689fa20d8ff61b29ed896737ed98eac96d957fa2847e9b4e4785f",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
