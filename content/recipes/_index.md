@@ -19,9 +19,9 @@ cascade:
       open: false
 ---
 
-Browse two purpose-built collections: reviewed workflows for common security
-tasks and the complete medium/high/critical CVE catalog. Search, filter, share a
-filtered URL, or retrieve the same material through JSON and MCP.
+Browse reviewed workflows for common security tasks. Search by intent, filter
+by outcome and review quality, share a filtered URL, or retrieve the same
+bounded context through JSON and MCP.
 
 {{< recipe-browser >}}
 
@@ -39,9 +39,10 @@ required CI. Never treat generated remediation as proof that a system is safe.
 
 ## For agents and integrations
 
-Use the curated JSON feed for workflow discovery and the dedicated CVE catalog
-tools for exact or filtered vulnerability lookup. MCP access should remain
-read-only unless the task explicitly authorizes a specific write.
+Use the curated JSON feed for workflow discovery. For exact or filtered
+vulnerability intelligence, use the separate [CVE Database](/cve-database/)
+and its dedicated MCP tools. MCP access should remain read-only unless the task
+explicitly authorizes a specific write.
 
 ```text
 Use approved MCP servers as read-only evidence.

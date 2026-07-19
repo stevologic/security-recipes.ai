@@ -470,6 +470,10 @@ body.sr-docs-body {
 }
 
 @media (max-width: 860px) {
+  :root {
+    --sr-nav-height: 108px;
+  }
+
   .hextra-max-page-width.sr-shell {
     grid-template-columns: minmax(0, 1fr);
     padding-top: 18px;
@@ -484,5 +488,16 @@ body.sr-docs-body {
   }
   .sr-main { order: 1; }
   .sr-nav { flex-wrap: wrap; gap: 12px; padding: 10px 16px; }
-  .sr-nav__links { margin-left: 0; flex-wrap: wrap; gap: 14px; }
+  .sr-nav__links {
+    order: 3;
+    width: 100%;
+    margin-left: 0;
+    padding-bottom: 3px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 18px;
+    scrollbar-width: none;
+  }
+  .sr-nav__links::-webkit-scrollbar { display: none; }
+  .sr-nav__links a { flex: 0 0 auto; }
 }

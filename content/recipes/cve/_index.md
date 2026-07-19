@@ -1,9 +1,13 @@
 ---
-title: CVE Recipes
-linkTitle: CVE Recipes
+title: CVE Database
+linkTitle: CVE Database
 weight: 9
+layout: layouts/redirect.njk
+redirectTo: /cve-database/
+noindex: true
 sidebar:
   open: false
+  exclude: true
 description: >
   Complete ten-year Medium, High, and Critical CVE intelligence, joined to
   conservative remediation recipes for agents and human reviewers.

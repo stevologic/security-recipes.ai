@@ -187,7 +187,7 @@ repo. Output a PR or a TRIAGE.md.
 - **JNDI lookups in deserialized payloads.** Even with a strict
   filter, some allowed classes can re-trigger lookups —
   validate the allowlist against the
-  [log4j-style JNDI lookups]({{< relref "/recipes/cve" >}})
+  [log4j-style JNDI lookups](/cve-database/)
   threat surface.
 - **Globally setting the JVM filter** can break other
   applications on the same JVM if any. Prefer per-stream

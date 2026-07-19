@@ -16,6 +16,7 @@ const feeds = require("./lib/feeds");
 const { escapeHtml, stripTags, isoDate } = require("./lib/util");
 const { lastmodFor } = require("./lib/git-lastmod");
 const { seoHead } = require("./lib/seo");
+const { cveDisplayTitle, stripFirstH1 } = require("./lib/html-content");
 const { isDiscoveryPage } = contentIndex;
 
 // Hugo-goldmark-compatible heading ids: lowercase, spaces to hyphens,
@@ -46,6 +47,7 @@ function buildSidebarTree() {
     const children = [];
     for (const p of pages) {
       if (!p.sourcePath.startsWith(dirPrefix)) continue;
+      if (p.fm?.sidebar?.exclude === true) continue;
       const rest = p.sourcePath.slice(dirPrefix.length);
       const parts = rest.split("/");
       if (parts.length === 1 && !p.isSection) {
@@ -70,7 +72,7 @@ function buildSidebarTree() {
   // remaining sections alphabetically — the raw front-matter weights were
   // tuned for Hextra menus and produce a scrambled order on their own.
   const topOrder = [
-    "recipes", "security-remediation", "agents", "mcp-servers",
+    "recipes", "cve-database", "security-remediation", "agents", "mcp-servers",
     "docs", "quickstart", "how-to-use", "fundamentals", "claude",
     "github_copilot", "cursor", "codex", "devin", "automation", "contribute",
   ];
@@ -80,7 +82,7 @@ function buildSidebarTree() {
     return i === -1 ? topOrder.length : i;
   };
   sidebarTreeCache = pages
-    .filter((p) => /^[^/]+\/_index\.md$/.test(p.sourcePath))
+    .filter((p) => /^[^/]+\/_index\.md$/.test(p.sourcePath) && p.fm?.sidebar?.exclude !== true)
     .sort((a, b) => rank(a) - rank(b) || a.linkTitle.localeCompare(b.linkTitle, "en"))
     .map((sec) => ({
       title: sec.linkTitle,
@@ -188,7 +190,11 @@ module.exports = function (eleventyConfig) {
   const sidebarCache = new Map();
   eleventyConfig.addFilter("sidebarHtml", (pageUrl) => {
     const tree = buildSidebarTree();
-    const active = (nodeUrl) => pageUrl === nodeUrl || pageUrl.startsWith(nodeUrl);
+    const navigationUrl =
+      pageUrl.startsWith("/recipes/cve/") && pageUrl !== "/recipes/cve/"
+        ? "/cve-database/"
+        : pageUrl;
+    const active = (nodeUrl) => navigationUrl === nodeUrl || navigationUrl.startsWith(nodeUrl);
     const expandedTop = tree.find((s) => active(s.url));
     const expandedChild = expandedTop?.children.find((c) => active(c.url));
     const key = `${expandedTop?.url || ""}|${expandedChild?.url || ""}`;
@@ -222,6 +228,8 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addFilter("isoDate", isoDate);
   eleventyConfig.addFilter("absURL", feeds.absURL);
   eleventyConfig.addFilter("tagSlug", slugifyTag);
+  eleventyConfig.addFilter("cveDisplayTitle", cveDisplayTitle);
+  eleventyConfig.addFilter("stripFirstH1", stripFirstH1);
 
   // Right-rail table of contents from the rendered page HTML (h2/h3).
   eleventyConfig.addFilter("tocEntries", (content) => {
@@ -243,9 +251,15 @@ module.exports = function (eleventyConfig) {
     const { byUrl } = contentIndex.getIndex();
     const crumbs = [];
     const segments = url.replace(/^\/|\/$/g, "").split("/");
+    const isCveDetail = url.startsWith("/recipes/cve/") && url !== "/recipes/cve/";
     let acc = "";
     for (let i = 0; i < segments.length - 1; i += 1) {
       acc += `/${segments[i]}`;
+      if (isCveDetail && acc === "/recipes") continue;
+      if (isCveDetail && acc === "/recipes/cve") {
+        crumbs.push({ title: "CVE Database", url: "/cve-database/" });
+        continue;
+      }
       const page = byUrl.get(`${acc}/`);
       if (page) crumbs.push({ title: page.linkTitle, url: page.url });
     }
@@ -271,6 +285,10 @@ module.exports = function (eleventyConfig) {
     "recipes-index.11ty.js": { permalink: "/recipes-index.json", build: feeds.recipesIndex },
     "recipes-browser.11ty.js": { permalink: "/recipes-browser.json", build: feeds.recipesBrowser },
     "api-recipes.11ty.js": { permalink: "/api/recipes.json", build: feeds.agentRecipes },
+    "api-curated-recipes.11ty.js": {
+      permalink: "/api/curated-recipes.json",
+      build: feeds.curatedAgentRecipes,
+    },
     "api-recipes-index.11ty.js": { permalink: "/api/recipes-index.json", build: feeds.recipesMcpIndex },
     "marketplace-catalog.11ty.js": {
       permalink: "/marketplace-catalog.json",

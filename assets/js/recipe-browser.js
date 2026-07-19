@@ -36,6 +36,22 @@
     return count + ' ' + (count === 1 ? singular : plural);
   }
 
+  function aiProvenanceHtml(model, label) {
+    var normalizedModel = String(model || '').trim();
+    if (!normalizedModel) return '';
+    var normalizedLabel = String(label || 'AI-assisted').trim() || 'AI-assisted';
+    var title = /\bwith$/i.test(normalizedLabel)
+      ? normalizedLabel + ' ' + normalizedModel
+      : normalizedLabel + ' with ' + normalizedModel;
+    return (
+      '<span class="sr-ai-provenance" title="' + escapeHtml(title) + '" aria-label="' + escapeHtml(title) + '">' +
+      '<span class="sr-ai-provenance__icon" aria-hidden="true">✦</span>' +
+      '<span class="sr-ai-provenance__label">' + escapeHtml(normalizedLabel) + '</span>' +
+      '<code>' + escapeHtml(normalizedModel) + '</code>' +
+      '</span>'
+    );
+  }
+
   function sanitizeFilePart(value) {
     var clean = normalize(value)
       .replace(/[^a-z0-9._-]+/g, '-')
@@ -61,13 +77,10 @@
   function endpointCandidates(root) {
     var prefix = basePrefix();
     var origin = window.location.origin;
-    var configured = root.getAttribute('data-recipe-api') || '/api/recipes.json';
-    var legacy = root.getAttribute('data-recipe-legacy-api') || '/recipes-index.json';
+    var configured = root.getAttribute('data-recipe-api') || '/api/curated-recipes.json';
     return [
       new URL(configured, origin).toString(),
-      new URL(prefix + 'api/recipes.json', origin).toString(),
-      new URL(legacy, origin).toString(),
-      new URL(prefix + 'recipes-index.json', origin).toString()
+      new URL(prefix + 'api/curated-recipes.json', origin).toString()
     ].filter(function (url, index, list) {
       return list.indexOf(url) === index;
     });
@@ -90,7 +103,7 @@
   }
 
   function agentPrompt(root) {
-    var jsonEndpoint = absoluteUrl(root.getAttribute('data-recipe-api') || '/api/recipes.json');
+    var jsonEndpoint = absoluteUrl(root.getAttribute('data-recipe-api') || '/api/curated-recipes.json');
     var mcp = mcpEndpoint(root);
     return [
       'Use Security Recipes as read-only remediation context.',
@@ -102,12 +115,10 @@
       '- recipes_search: search by finding title, package, CVE/GHSA, ecosystem, rule id, or keywords.',
       '- recipes_get: retrieve the selected recipe by slug, path, URL, or source_file.',
       '- recipes_match_finding: suggest best-fit recipes for one concrete finding.',
-      '- recipes_quality_report: inspect quality tiers and find recipes missing world-class signals.',
-      '- recipes_cve_catalog_info: inspect the generated medium, high, and critical CVE catalog.',
-      '- recipes_cve_search: search CVEs by identifier, title, severity, year, or CISA KEV status.',
-      '- recipes_cve_get: retrieve one complete CVE remediation recipe by identifier.',
+      '- recipes_quality_report: inspect completeness tiers and find recipes missing review signals.',
       '',
       'Select by facet before acting: remediation for patch work, risk for exploitability and impact, audit for evidence mapping, compliance for standards readiness, and code-hygiene for cleanup or hardening work.',
+      'For synchronized vulnerability intelligence, use ' + absoluteUrl('/cve-database/') + ' or the dedicated recipes_cve_* MCP tools; do not mix the CVE corpus into curated workflow selection.',
       '',
       'Use one recipe for one finding, preserve the recipe stop conditions, run the requested tests, and produce a reviewer-ready PR or triage note. Do not use MCP for writes, ticket creation, deployments, secret rotation, or cloud changes unless this task explicitly grants that permission.'
     ].join('\n');
@@ -164,6 +175,8 @@
       identity: entry.identity || '',
       summary: entry.summary || '',
       model: entry.model || '',
+      aiAssisted: entry.aiAssisted === true || entry.ai_assisted === true,
+      generatedBy: entry.generatedBy || entry.generated_by || '',
       zeroDay: !!entry.zeroDay,
       indexText: (entry.search || '').toString()
     };
@@ -187,7 +200,6 @@
   // can flow through toCard(). Browser lanes are narrower than feed
   // categories: tool-specific lanes (claude, codex, ...) fold into General.
   var BROWSER_LANES = {
-    'cve': 'CVE',
     'classic-defaults': 'Defaults',
     'compliance-standards': 'Compliance',
     'code-hygiene': 'Code Hygiene',
@@ -195,7 +207,13 @@
   };
 
   function apiRecipeToFeedEntry(recipe) {
+    var sourceFile = String(recipe.source_file || '').replace(/\\/g, '/');
+    if (sourceFile && (
+      sourceFile.indexOf('recipes/') !== 0 ||
+      sourceFile.indexOf('recipes/cve/') === 0
+    )) return null;
     var feedSlug = recipe.category && recipe.category.slug ? recipe.category.slug : 'general';
+    if (feedSlug === 'cve') return null;
     var lane = BROWSER_LANES[feedSlug] ? feedSlug : 'general';
     var label = BROWSER_LANES[lane] || 'General';
     var tags = Array.isArray(recipe.tags) ? recipe.tags : [];
@@ -223,6 +241,8 @@
       identity: recipe.cve || recipe.ghsa || recipe.agent || label,
       summary: recipe.summary || '',
       model: recipe.model || '',
+      aiAssisted: recipe.ai_assisted === true,
+      generatedBy: recipe.generated_by || '',
       zeroDay: !!recipe.zero_day,
       search: searchParts.filter(Boolean).join(' ').toLowerCase()
     };
@@ -231,19 +251,20 @@
   // Server-side mirror of lib/recipe-cards.js renderCardHtml(). Must match.
   function buildCardHtml(card) {
     var severity = card.severity || 'unspecified';
+    var displayTier = card.tier === 'world-class' ? 'complete' : card.tier;
     var topline =
       '<span>' + escapeHtml(card.categoryLabel) + '</span>' +
       (card.zeroDay ? '<span class="recipe-browser-card__fresh">0-Day</span>' : '') +
       (severity !== 'unspecified'
         ? '<span class="recipe-browser-card__severity recipe-browser-card__severity--' + escapeHtml(severity) + '">' + escapeHtml(severity) + '</span>'
         : '<span>' + escapeHtml(card.maturity) + '</span>') +
-      '<span class="recipe-browser-card__quality recipe-browser-card__quality--' + escapeHtml(card.tier) + '">' + escapeHtml(card.tier) + ' ' + card.quality + '</span>';
+      '<span class="recipe-browser-card__quality recipe-browser-card__quality--' + escapeHtml(card.tier) + '">' + escapeHtml(displayTier) + ' ' + card.quality + '</span>';
 
     var meta =
       (card.identity ? '<span>' + escapeHtml(card.identity) + '</span>' : '') +
       (card.published ? '<span>Published ' + escapeHtml(card.published) + '</span>' : '') +
       (card.ecosystem ? '<span>' + escapeHtml(card.ecosystem) + '</span>' : '') +
-      (card.model ? '<span>' + escapeHtml(card.model) + '</span>' : '');
+      aiProvenanceHtml(card.model, card.aiAssisted ? 'AI-enriched' : 'Tested with');
 
     return (
       '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '" data-recipe-path="' + escapeHtml(card.url) + '" aria-labelledby="recipe-card-' + escapeHtml(card.slug) + '">' +
@@ -281,13 +302,10 @@
     var filterButtons = Array.prototype.slice.call(root.querySelectorAll('[data-recipe-filter]'));
     var resetFiltersButton = root.querySelector('[data-recipe-reset-filters]');
     var activeFilters = root.querySelector('[data-recipe-active-filters]');
-    var collectionTabs = Array.prototype.slice.call(root.querySelectorAll('[data-library-tab]'));
-    var collectionPanels = Array.prototype.slice.call(root.querySelectorAll('[data-library-panel]'));
     var filterDrawer = root.querySelector('.recipe-library__facets');
     var filterToggle = root.querySelector('[data-recipe-filter-toggle]');
     var filterClose = root.querySelector('[data-recipe-filter-close]');
     var filterCount = root.querySelector('[data-recipe-filter-count]');
-    var cveSearchButton = root.querySelector('[data-recipe-search-cve]');
     var filterLabels = {};
     var typeahead = null;
     var typeaheadList = null;
@@ -299,7 +317,6 @@
     var visible = [];
     var renderedCount = 0;
     var activeCategory = 'all';
-    var activeCollection = 'curated';
     var restoringHistory = false;
     var filterReturnFocus = null;
     var loadedIndex = null;
@@ -336,7 +353,6 @@
       ['view', 'q', 'category', 'severity', 'facet', 'quality', 'sort', 'year', 'kev'].forEach(function (key) {
         url.searchParams.delete(key);
       });
-      url.searchParams.set('view', 'curated');
       var query = searchInput ? searchInput.value.trim().slice(0, 160) : '';
       if (query) url.searchParams.set('q', query);
       if (activeCategory !== 'all') url.searchParams.set('category', activeCategory);
@@ -345,100 +361,6 @@
       if (qualityFilter && qualityFilter.value !== '0') url.searchParams.set('quality', qualityFilter.value);
       if (sortSelect && sortSelect.value !== 'newest') url.searchParams.set('sort', sortSelect.value);
       win.history.replaceState({ recipeLibrary: true }, '', url.pathname + url.search + url.hash);
-    }
-
-    function updateCollectionUrl(collection, push, options) {
-      if (restoringHistory || !win.history) return;
-      options = options || {};
-      var url = new URL(win.location.href);
-      ['view', 'q', 'category', 'severity', 'facet', 'quality', 'sort', 'year', 'kev'].forEach(function (key) {
-        url.searchParams.delete(key);
-      });
-      url.searchParams.set('view', collection);
-      if (collection === 'cve') {
-        var cveMount = root.querySelector('[data-cve-catalog]');
-        var cveInput = cveMount && cveMount.querySelector('[data-cve-search]');
-        var cveSeverity = cveMount && cveMount.querySelector('[data-cve-severity]');
-        var cveYear = cveMount && cveMount.querySelector('[data-cve-year]');
-        var cveKev = cveMount && cveMount.querySelector('[data-cve-kev]');
-        var explicitHandoff = Object.prototype.hasOwnProperty.call(options, 'query') || options.shortcut;
-        var query = explicitHandoff
-          ? String(options.query || '').trim().slice(0, 160)
-          : String(cveInput ? cveInput.value : (searchInput ? searchInput.value : '')).trim().slice(0, 160);
-        var cveSeverityValue = explicitHandoff ? 'all' : (cveSeverity ? cveSeverity.value : (severityFilter ? severityFilter.value : 'all'));
-        var cveYearValue = explicitHandoff ? 'all' : (cveYear ? cveYear.value : 'all');
-        var cveKevValue = explicitHandoff ? 'all' : (cveKev ? cveKev.value : 'all');
-        if (options.shortcut === 'critical' || options.shortcut === 'high' || options.shortcut === 'medium') cveSeverityValue = options.shortcut;
-        if (options.shortcut === 'kev') cveKevValue = 'yes';
-        if (query) url.searchParams.set('q', query);
-        if (cveSeverityValue !== 'all') url.searchParams.set('severity', cveSeverityValue);
-        if (cveYearValue !== 'all') url.searchParams.set('year', cveYearValue);
-        if (cveKevValue !== 'all') url.searchParams.set('kev', cveKevValue);
-      } else {
-        var curatedQuery = searchInput ? searchInput.value.trim().slice(0, 160) : '';
-        if (curatedQuery) url.searchParams.set('q', curatedQuery);
-        if (activeCategory !== 'all') url.searchParams.set('category', activeCategory);
-        if (severityFilter && severityFilter.value !== 'all') url.searchParams.set('severity', severityFilter.value);
-        if (facetFilter && facetFilter.value !== 'all') url.searchParams.set('facet', facetFilter.value);
-        if (qualityFilter && qualityFilter.value !== '0') url.searchParams.set('quality', qualityFilter.value);
-        if (sortSelect && sortSelect.value !== 'newest') url.searchParams.set('sort', sortSelect.value);
-      }
-      var method = push && win.history.pushState ? 'pushState' : 'replaceState';
-      win.history[method]({ recipeLibrary: true }, '', url.pathname + url.search + url.hash);
-    }
-
-    function mountCveCatalog(query, shortcut) {
-      var panel = root.querySelector('[data-library-panel="cve"]');
-      var mount = panel && panel.querySelector('[data-cve-catalog]');
-      if (!mount) return;
-      mount.removeAttribute('data-cve-catalog-deferred');
-      if (win.SecurityRecipesCveCatalog && typeof win.SecurityRecipesCveCatalog.mount === 'function') {
-        win.SecurityRecipesCveCatalog.mount(mount);
-      }
-      win.requestAnimationFrame(function () {
-        var params = relevantParams();
-        var input = mount.querySelector('[data-cve-search]');
-        var severity = mount.querySelector('[data-cve-severity]');
-        var year = mount.querySelector('[data-cve-year]');
-        var kev = mount.querySelector('[data-cve-kev]');
-        var requestedQuery = String(params.get('q') || query || '').slice(0, 160);
-        var requestedSeverity = allowed(params.get('severity') || 'all', ['all', 'critical', 'high', 'medium'], 'all');
-        var requestedYear = /^\d{4}$/.test(params.get('year') || '') ? params.get('year') : 'all';
-        var requestedKev = allowed(params.get('kev') || 'all', ['all', 'yes', 'no'], 'all');
-        if (input) input.value = requestedQuery;
-        if (severity) severity.value = requestedSeverity;
-        if (year && (requestedYear === 'all' || Array.prototype.some.call(year.options, function (option) {
-          return option.value === requestedYear;
-        }))) year.value = requestedYear;
-        if (kev) kev.value = requestedKev;
-        if (input) {
-          var form = input.closest('form');
-          if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        }
-      });
-    }
-
-    function setCollection(nextCollection, options) {
-      options = options || {};
-      var next = nextCollection === 'cve' ? 'cve' : 'curated';
-      activeCollection = next;
-      collectionTabs.forEach(function (tab) {
-        var active = tab.getAttribute('data-library-tab') === next;
-        tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        tab.tabIndex = active ? 0 : -1;
-      });
-      collectionPanels.forEach(function (panel) {
-        panel.hidden = panel.getAttribute('data-library-panel') !== next;
-      });
-      root.dataset.libraryCollection = next;
-      if (!options.fromHistory) updateCollectionUrl(next, options.push !== false, options);
-      if (next === 'cve') mountCveCatalog(options.query, options.shortcut);
-      if (options.focus) {
-        var activeTab = collectionTabs.find(function (tab) {
-          return tab.getAttribute('data-library-tab') === next;
-        });
-        if (activeTab) activeTab.focus();
-      }
     }
 
     function renderActiveFilters() {
@@ -510,6 +432,15 @@
 
     function restoreFromUrl() {
       var params = relevantParams();
+      if (params.get('view') === 'cve' && win.location && typeof win.location.replace === 'function') {
+        var legacyTarget = new URL('/cve-database/', win.location.origin);
+        ['q', 'severity', 'year', 'kev'].forEach(function (key) {
+          var value = params.get(key);
+          if (value) legacyTarget.searchParams.set(key, value);
+        });
+        win.location.replace(legacyTarget.pathname + legacyTarget.search);
+        return;
+      }
       var categories = filterButtons.map(function (button) {
         return button.getAttribute('data-recipe-filter');
       });
@@ -529,14 +460,8 @@
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
-      var requestedCollection = params.get('view') === 'cve' ? 'cve' : 'curated';
-      setCollection(requestedCollection, {
-        fromHistory: true,
-        push: false,
-        query: requestedCollection === 'cve' ? params.get('q') || '' : ''
-      });
       restoringHistory = false;
-      if (requestedCollection === 'curated') applyFilters();
+      applyFilters();
     }
 
     // Rich agent feed (/api/recipes.json), used for downloads only.
@@ -680,7 +605,7 @@
       renderActiveFilters();
       root.dataset.filtered = queryTokens.length || activeCategory !== 'all' || severity !== 'all' || facet !== 'all' || minimumQuality > 0 ? 'true' : 'false';
       if (document.activeElement === searchInput) renderTypeahead();
-      if (activeCollection === 'curated') replaceUrlForCurated();
+      replaceUrlForCurated();
     }
 
     function setActiveCategory(nextCategory) {
@@ -983,7 +908,13 @@
         if (event.key === 'Enter' && exactCve && activeTypeaheadIndex < 0) {
           event.preventDefault();
           closeTypeahead();
-          setCollection('cve', { push: true, query: searchInput.value.trim().toUpperCase() });
+          var cveTarget = '/cve-database/?q=' +
+            encodeURIComponent(searchInput.value.trim().toUpperCase());
+          if (win.location && typeof win.location.assign === 'function') {
+            win.location.assign(cveTarget);
+          } else {
+            win.location.href = cveTarget;
+          }
           return;
         }
         if (!typeahead || typeahead.hidden) return;
@@ -1053,23 +984,6 @@
       });
     }
 
-    collectionTabs.forEach(function (tab, index) {
-      tab.addEventListener('click', function () {
-        setCollection(tab.getAttribute('data-library-tab'), { push: true });
-      });
-      tab.addEventListener('keydown', function (event) {
-        var nextIndex = index;
-        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % collectionTabs.length;
-        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + collectionTabs.length) % collectionTabs.length;
-        else if (event.key === 'Home') nextIndex = 0;
-        else if (event.key === 'End') nextIndex = collectionTabs.length - 1;
-        else return;
-        event.preventDefault();
-        var nextTab = collectionTabs[nextIndex];
-        setCollection(nextTab.getAttribute('data-library-tab'), { push: true, focus: true });
-      });
-    });
-
     if (filterToggle) filterToggle.addEventListener('click', function () { setFilterDrawer(true); });
     if (filterClose) filterClose.addEventListener('click', function () { setFilterDrawer(false); });
     win.addEventListener('keydown', function (event) {
@@ -1084,18 +998,6 @@
       else if (mobileFilters.addListener) mobileFilters.addListener(syncFilterDrawer);
       syncFilterDrawer();
     }
-
-    if (cveSearchButton) {
-      cveSearchButton.addEventListener('click', function () {
-        setCollection('cve', { push: true, query: searchInput ? searchInput.value.trim() : '' });
-      });
-    }
-
-    root.querySelectorAll('[data-cve-shortcut]').forEach(function (button) {
-      button.addEventListener('click', function () {
-        setCollection('cve', { push: true, shortcut: button.getAttribute('data-cve-shortcut') });
-      });
-    });
 
     if (loadMoreButton) {
       loadMoreButton.addEventListener('click', function () { appendNextPage(); });
@@ -1150,7 +1052,7 @@
       }
       return loadIndex().then(function (index) {
         if (index.recipes.length) {
-          allCards = index.recipes.map(apiRecipeToFeedEntry).map(toCard);
+          allCards = index.recipes.map(apiRecipeToFeedEntry).filter(Boolean).map(toCard);
           catalogueComplete = true;
           applyFilters();
         } else {

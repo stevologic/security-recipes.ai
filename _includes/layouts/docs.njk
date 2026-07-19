@@ -21,7 +21,8 @@
 {% if isSection %}<link rel="alternate" type="application/rss+xml" href="{{ page.url }}index.xml" title="{{ title }} – {{ site.title }}">{% endif %}
 {% include "partials/head-common.njk" %}
 </head>
-<body class="sr-docs-body">
+{% set isCveDetail = page.url and page.url.startsWith("/recipes/cve/") and page.url != "/recipes/cve/" %}
+<body class="sr-docs-body{% if isCveDetail %} sr-cve-detail-page{% endif %}"{% if isCveDetail %} data-cve-detail-page="true"{% endif %}>
 {% include "partials/navbar.njk" %}
 <div class="hextra-max-page-width sr-shell">
   <aside class="hextra-sidebar-container sr-sidebar" aria-label="Site sections">
@@ -37,9 +38,53 @@
       {% for c in crumbs %}<span aria-hidden="true">/</span><a href="{{ c.url }}">{{ c.title }}</a>{% endfor %}
     </nav>
     {% endif %}
-    {% if title %}<h1 class="sr-page-title">{{ title }}</h1>{% endif %}
-    <div class="content">
-{{ content | safe }}
+    {% set provenanceModel = model or model_used %}
+    {% if isCveDetail %}
+    {% set detailTitle = title | cveDisplayTitle(cve) %}
+    {% if known_as and known_as.length %}{% set detailTitle = known_as[0] %}{% endif %}
+    <header class="sr-cve-detail-header">
+      <div class="sr-cve-detail-header__topline">
+        <p class="sr-cve-detail-header__kicker"><span aria-hidden="true"></span>{{ cve or "CVE intelligence record" }}</p>
+        <a href="/cve-database/#cve-catalog">Back to CVE Database <span aria-hidden="true">→</span></a>
+      </div>
+      {% if title %}<h1 class="sr-page-title sr-cve-detail-header__title">{{ detailTitle }}</h1>{% endif %}
+      {% if description %}<p class="sr-cve-detail-header__summary">{{ description }}</p>{% endif %}
+      <dl class="sr-cve-detail-header__signals" aria-label="Vulnerability record metadata">
+        {% if severity %}<div class="sr-cve-detail-header__signal sr-cve-detail-header__signal--severity-{{ severity | lower }}"><dt>Severity</dt><dd>{{ severity | upper }}</dd></div>{% endif %}
+        {% if kev %}<div class="sr-cve-detail-header__signal sr-cve-detail-header__signal--kev"><dt>Priority</dt><dd>CISA KEV</dd></div>{% endif %}
+        {% if ecosystem %}<div class="sr-cve-detail-header__signal"><dt>Ecosystem</dt><dd>{{ ecosystem }}</dd></div>{% endif %}
+        {% if disclosed %}<div class="sr-cve-detail-header__signal"><dt>Disclosed</dt><dd>{{ disclosed | isoDate }}</dd></div>{% endif %}
+        {% if maturity %}<div class="sr-cve-detail-header__signal"><dt>Status</dt><dd>{{ maturity }}</dd></div>{% endif %}
+        {% if ghsa %}<div class="sr-cve-detail-header__signal"><dt>GHSA</dt><dd>{{ ghsa }}</dd></div>{% endif %}
+      </dl>
+      {% if provenanceModel %}
+      <div class="sr-page-provenance">
+        <span class="sr-ai-provenance" title="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}" aria-label="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}">
+          <span class="sr-ai-provenance__icon" aria-hidden="true">✦</span>
+          <span class="sr-ai-provenance__label">{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %}</span>
+          <code>{{ provenanceModel | escape }}</code>
+        </span>
+        <span>{% if ai_assisted %}Supplemental guidance includes model-generated content.{% else %}Model compatibility is recorded; source facts remain human-verifiable.{% endif %}</span>
+      </div>
+      {% endif %}
+    </header>
+    {% else %}
+    {% if title and page.url != "/cve-database/" %}<h1 class="sr-page-title">{{ title }}</h1>{% endif %}
+    {% if provenanceModel %}
+    <div class="sr-page-provenance">
+      <span class="sr-ai-provenance" title="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}" aria-label="{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %} {{ provenanceModel | escape }}">
+        <span class="sr-ai-provenance__icon" aria-hidden="true">✦</span>
+        <span class="sr-ai-provenance__label">{% if ai_assisted %}AI-enriched{% else %}Tested with{% endif %}</span>
+        <code>{{ provenanceModel | escape }}</code>
+      </span>
+      <span>{% if ai_assisted %}Supplemental guidance includes model-generated content.{% else %}Model compatibility is recorded; source facts remain human-verifiable.{% endif %}</span>
+    </div>
+    {% endif %}
+    {% endif %}
+    {% set renderedContent = content %}
+    {% if isCveDetail %}{% set renderedContent = content | stripFirstH1 %}{% endif %}
+    <div class="content{% if isCveDetail %} sr-cve-detail-content{% endif %}">
+{{ renderedContent | safe }}
     </div>
     {% set pager = page.inputPath | pagerFor %}
     {% if pager.prev or pager.next %}
@@ -50,7 +95,7 @@
     {% endif %}
   </main>
   <nav class="hextra-toc sr-toc" aria-label="On this page">
-    {% set toc = content | tocEntries %}
+    {% set toc = renderedContent | tocEntries %}
     {% if toc.length %}
     <p class="sr-toc__title">On this page</p>
     <ul>
@@ -75,8 +120,12 @@
 <script>
 (function () {
   var links = document.querySelectorAll('.sr-sidebar a, .sr-nav__links a');
+  var navigationPath = location.pathname.indexOf('/recipes/cve/') === 0 &&
+    location.pathname !== '/recipes/cve/'
+      ? '/cve-database/'
+      : location.pathname;
   for (var i = 0; i < links.length; i++) {
-    if (links[i].getAttribute('href') === location.pathname) {
+    if (links[i].getAttribute('href') === navigationPath) {
       links[i].setAttribute('aria-current', 'page');
     }
   }

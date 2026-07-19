@@ -136,8 +136,8 @@ html.dark body::after,
 /* Shared branded signal background for Hugo content pages. Recipes keeps its
    product-surface layout rules below, but the black/teal animated backdrop is
    now site-wide. */
-html[data-site-signal-background="true"].dark,
-html[data-site-signal-background="true"].dark body,
+html[data-site-signal-background="true"]:not([data-cve-database-page="true"]).dark,
+html[data-site-signal-background="true"]:not([data-cve-database-page="true"]).dark body,
 html[data-recipe-browser-page="true"].dark,
 html[data-recipe-browser-page="true"].dark body {
   background:
@@ -146,21 +146,21 @@ html[data-recipe-browser-page="true"].dark body {
     linear-gradient(180deg, #020405 0%, #04100f 70%, #030707 100%) !important;
 }
 
-html[data-site-signal-background="true"] body,
+html[data-site-signal-background="true"]:not([data-cve-database-page="true"]) body,
 html[data-recipe-browser-page="true"] body {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-html[data-site-signal-background="true"].dark body::before,
-html[data-site-signal-background="true"].dark body::after,
+html[data-site-signal-background="true"]:not([data-cve-database-page="true"]).dark body::before,
+html[data-site-signal-background="true"]:not([data-cve-database-page="true"]).dark body::after,
 html[data-recipe-browser-page="true"].dark body::before,
 html[data-recipe-browser-page="true"].dark body::after {
   z-index: 0;
 }
 
-html[data-site-signal-background="true"].dark body::before,
+html[data-site-signal-background="true"]:not([data-cve-database-page="true"]).dark body::before,
 html[data-recipe-browser-page="true"].dark body::before {
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.026) 1px, transparent 1px),
@@ -173,7 +173,7 @@ html[data-recipe-browser-page="true"].dark body::before {
   animation: home-grid-drift 28s linear infinite;
 }
 
-html[data-site-signal-background="true"].dark body::after,
+html[data-site-signal-background="true"]:not([data-cve-database-page="true"]).dark body::after,
 html[data-recipe-browser-page="true"].dark body::after {
   background:
     linear-gradient(to bottom, rgba(0, 0, 0, 0.08), transparent 46%, rgba(2, 18, 15, 0.36) 100%),
@@ -3176,4 +3176,69 @@ header nav a[data-nav-dropdown][data-nav-open="1"]::after {
   .sr-tool-adapters {
     grid-template-columns: 1fr;
   }
+}
+
+/* Model provenance is intentionally compact and scoped to model-assisted
+   content. It must never be mistaken for a source-of-truth badge. */
+.sr-ai-provenance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-height: 1.4rem;
+  max-width: 100%;
+  padding: 0.16rem 0.48rem;
+  border: 1px solid rgba(129, 140, 248, 0.34);
+  border-radius: 999px;
+  background:
+    linear-gradient(100deg, rgba(103, 232, 249, 0.075), rgba(167, 139, 250, 0.11)),
+    rgba(8, 12, 21, 0.82);
+  color: #c4b5fd;
+  font-family: var(--arr-font-mono);
+  font-size: 0.64rem;
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.sr-ai-provenance__icon {
+  display: inline-grid;
+  width: 0.86rem;
+  height: 0.86rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  border-radius: 50%;
+  color: #67e8f9;
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.sr-ai-provenance code {
+  min-width: 0;
+  max-width: 14rem;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 0 !important;
+  background: transparent !important;
+  color: #ede9fe !important;
+  font: inherit;
+  text-overflow: ellipsis;
+}
+
+.sr-page-provenance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.7rem;
+  margin: -0.55rem 0 1.2rem;
+  color: var(--arr-ink-2);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.recipe-browser-card__meta .sr-ai-provenance {
+  overflow: visible;
+  text-overflow: clip;
 }
