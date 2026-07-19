@@ -31,6 +31,16 @@ class ProductionWatchdogWorkflowTests(unittest.TestCase):
             self.probe,
         )
 
+    def test_catalog_freshness_allows_normal_deployment_lag(self) -> None:
+        self.assertIn(
+            "WATCHDOG_MAX_CATALOG_AGE_HOURS: ${{ vars.WATCHDOG_MAX_CATALOG_AGE_HOURS || '72' }}",
+            self.workflow,
+        )
+        self.assertIn(
+            "WATCHDOG_REVISION_GRACE_MINUTES: ${{ vars.WATCHDOG_REVISION_GRACE_MINUTES || '1440' }}",
+            self.workflow,
+        )
+
     def test_health_issue_is_updated_and_closed_on_recovery(self) -> None:
         self.assertIn("automation:production-health", self.workflow)
         self.assertIn("gh issue create", self.workflow)
