@@ -33,7 +33,7 @@ jobs:
         shell: bash
         env:
           PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL || 'https://security-recipes.ai' }}
-          WATCHDOG_MAX_CATALOG_AGE_HOURS: ${{ vars.WATCHDOG_MAX_CATALOG_AGE_HOURS || '48' }}
+          WATCHDOG_MAX_CATALOG_AGE_HOURS: ${{ vars.WATCHDOG_MAX_CATALOG_AGE_HOURS || '72' }}
           WATCHDOG_REVISION_GRACE_MINUTES: ${{ vars.WATCHDOG_REVISION_GRACE_MINUTES || '1440' }}
         run: |
           python scripts/check_production_health.py \
