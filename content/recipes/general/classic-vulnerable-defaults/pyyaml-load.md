@@ -8,6 +8,8 @@ team: "Security"
 maturity: "development"
 model: "Opus 4.7"
 tags: ["python", "yaml", "deserialization", "uplift", "mitigate"]
+cve_archetypes: ["unsafe_deserialization"]
+cve_workflow_role: "remediate"
 weight: 22
 date: 2026-04-25
 ---

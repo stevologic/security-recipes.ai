@@ -44,7 +44,7 @@
   .cve-ticker__inner {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
-    min-height: 48px;
+    min-height: 62px;
     align-items: stretch;
   }
 
@@ -101,7 +101,7 @@
   }
 
   .cve-ticker[data-cve-ticker-ready="true"] .cve-ticker__track {
-    animation: latest-cves-scroll 54s linear infinite;
+    animation: latest-cves-scroll 90s linear infinite;
   }
 
   .cve-ticker[data-cve-ticker-paused="true"] .cve-ticker__track,
@@ -125,11 +125,16 @@
   }
 
   .cve-ticker__item {
-    display: inline-flex;
-    min-height: 48px;
+    display: grid;
+    width: min(76vw, 460px);
+    min-height: 62px;
+    grid-template-columns: auto auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
     align-items: center;
-    gap: 8px;
-    padding: 0 18px;
+    column-gap: 8px;
+    row-gap: 4px;
+    padding: 8px 20px;
     border-right: 1px solid rgba(255, 255, 255, 0.055);
     color: #b9c4cf;
     font-size: 0.7rem;
@@ -143,16 +148,23 @@
   }
 
   .cve-ticker__id {
-    color: #d7fff9;
+    grid-column: 1;
+    grid-row: 1;
+    color: #e4fffb;
     font-family: var(--home-font-mono);
-    font-size: 0.67rem;
-    font-weight: 760;
+    font-size: 0.72rem;
+    font-weight: 820;
+    letter-spacing: -0.015em;
   }
 
   .cve-ticker__title {
-    max-width: 30ch;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    max-width: none;
     overflow: hidden;
-    color: #919ca9;
+    color: #aeb8c4;
+    font-size: 0.7rem;
+    line-height: 1.3;
     text-overflow: ellipsis;
   }
 
@@ -163,11 +175,18 @@
 
   .cve-ticker__severity {
     display: inline-flex;
+    grid-column: 2;
+    grid-row: 1;
     align-items: center;
-    gap: 5px;
-    color: #9ca6b3;
+    gap: 4px;
+    min-height: 18px;
+    padding: 1px 6px;
+    border: 1px solid rgba(245, 158, 11, 0.24);
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.08);
+    color: #f7c66f;
     font-family: var(--home-font-mono);
-    font-size: 0.57rem;
+    font-size: 0.55rem;
     font-weight: 800;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -181,11 +200,31 @@
     background: var(--home-amber);
   }
 
+  .cve-ticker__severity--critical {
+    border-color: rgba(251, 113, 133, 0.28);
+    background: rgba(251, 113, 133, 0.09);
+    color: #fda4b4;
+  }
+
   .cve-ticker__severity--critical::before { background: var(--home-coral); }
+
+  .cve-ticker__severity--medium {
+    border-color: rgba(45, 212, 191, 0.24);
+    background: rgba(45, 212, 191, 0.075);
+    color: #7fe7d9;
+  }
+
   .cve-ticker__severity--medium::before { background: var(--home-teal); }
 
   .cve-ticker__kev {
-    color: #8eeadd;
+    grid-column: 3;
+    grid-row: 1;
+    min-height: 18px;
+    padding: 1px 6px;
+    border: 1px solid rgba(251, 113, 133, 0.26);
+    border-radius: 999px;
+    background: rgba(251, 113, 133, 0.08);
+    color: #fda4b4;
     font-family: var(--home-font-mono);
     font-size: 0.54rem;
     font-weight: 800;
@@ -193,9 +232,17 @@
   }
 
   .cve-ticker__date {
+    grid-column: 4;
+    grid-row: 1;
+    justify-self: end;
     color: #687484;
     font-family: var(--home-font-mono);
-    font-size: 0.57rem;
+    font-size: 0.56rem;
+  }
+
+  .cve-ticker__date::before {
+    content: "Published ";
+    color: #4f5b69;
   }
 
   .cve-ticker__toggle {
@@ -221,24 +268,33 @@
   }
 
   @media (max-width: 720px) {
-    .cve-ticker__inner { min-height: 44px; }
+    .cve-ticker__inner { min-height: 62px; }
     .cve-ticker__label {
       gap: 6px;
       padding-right: 10px;
       font-size: 0.58rem;
     }
     .cve-ticker__item {
-      min-height: 44px;
-      padding: 0 12px;
-      gap: 7px;
+      width: min(82vw, 390px);
+      column-gap: 6px;
+      padding: 8px 12px;
     }
-    .cve-ticker__title { max-width: 18ch; }
-    .cve-ticker__date { display: none; }
-    .cve-ticker__toggle { width: 34px; }
-  }
 
-  @media (max-width: 440px) {
-    .cve-ticker__title { display: none; }
+    .cve-ticker__title {
+      max-width: none;
+    }
+
+    .cve-ticker__date {
+      font-size: 0.53rem;
+    }
+
+    .cve-ticker__date::before {
+      content: "";
+    }
+
+    .cve-ticker__toggle {
+      width: 34px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

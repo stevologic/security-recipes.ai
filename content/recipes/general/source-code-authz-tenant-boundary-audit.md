@@ -7,6 +7,11 @@ team: "Security"
 maturity: "development"
 model: "gpt-5-codex"
 tags: ["source-code", "audit", "authorization", "tenant-boundary", "idor"]
+cve_archetypes:
+  - "authentication_bypass"
+  - "authorization_idor"
+  - "privilege_escalation"
+cve_workflow_role: "audit"
 weight: 14
 date: 2026-06-06
 ---

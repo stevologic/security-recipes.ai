@@ -393,7 +393,7 @@
         "*.py"
       ],
       "authority": "Runtime tool surface that exposes recipes, workflow control plane, policy decisions, authorization decisions, entitlement decisions, handoff decisions, exposure graph queries, posture decisions, measurement probes, evidence packs, context trust, secure context attestations, and secure context evals over MCP.",
-      "byte_count": 534021,
+      "byte_count": 558624,
       "citation_required": true,
       "decision": "allow_policy_context_with_citation",
       "exclude_file_globs": [],
@@ -453,7 +453,7 @@
       ],
       "root": "mcp_server.py",
       "root_type": "file",
-      "source_hash": "1e75823a0de9cfd821d3f24855f61df3bbf1dd9bdae6d5cce4fc7c32cb3ff61c",
+      "source_hash": "87f61f2046938b9b83665469a8ae9b0743e9ceeb9d3164329f2025fd2e4346bf",
       "source_id": "mcp-server-runtime",
       "title": "MCP Server Runtime Contract",
       "trust_tier": {
@@ -466,12 +466,12 @@
         "*.md"
       ],
       "authority": "Reusable prompt and remediation guidance; never overrides gateway policy or human review.",
-      "byte_count": 19965312,
+      "byte_count": 19983272,
       "citation_required": true,
       "decision": "allow_public_context",
       "exclude_file_globs": [],
       "exposure": "public",
-      "file_count": 3352,
+      "file_count": 3355,
       "freshness_sla_days": 90,
       "freshness_state": "declared_current",
       "hash_algorithm": "sha256",
@@ -500,6 +500,9 @@
         "content/recipes/cursor/sensitive-data-remediation.md",
         "content/recipes/cursor/vulnerable-dep-remediation.md",
         "content/recipes/cve/_index.md",
+        "content/recipes/cve/ai-enrichment-cve-2024-40711.md",
+        "content/recipes/cve/ai-enrichment-cve-2024-47575.md",
+        "content/recipes/cve/ai-enrichment-cve-2024-9465.md",
         "content/recipes/cve/ai-enrichment-cve-2025-20281.md",
         "content/recipes/cve/ai-enrichment-cve-2025-20337.md",
         "content/recipes/cve/ai-enrichment-cve-2025-2747.md",
@@ -510,10 +513,7 @@
         "content/recipes/cve/ai-enrichment-cve-2026-20182.md",
         "content/recipes/cve/ai-enrichment-cve-2026-39808.md",
         "content/recipes/cve/cve-2006-10003-xml-parser-versions-through-2-47-for-perl-has-an-off-by-one-heap-buffer-overflow-in-st-serial-stack.md",
-        "content/recipes/cve/cve-2014-0160-heartbleed.md",
-        "content/recipes/cve/cve-2014-6271-shellshock.md",
-        "content/recipes/cve/cve-2015-1778-opendaylight-will-authenticate-any-username-and-password-combination.md",
-        "content/recipes/cve/cve-2016-0750-infinispan-deserialization-of-untrusted-data-in-the-hot-rod-java-client-via-automatic-byte-array-deserializatio.md"
+        "content/recipes/cve/cve-2014-0160-heartbleed.md"
       ],
       "registered_files_truncated": true,
       "required_controls": [
@@ -538,7 +538,7 @@
       ],
       "root": "content/recipes",
       "root_type": "directory",
-      "source_hash": "02a5466074327744dd34e00e5a299f65d119a5f3b0f66a22751eef0ce5936d50",
+      "source_hash": "e9fa2ba3c344d0d25a34a9403fec729e62f39c61929d4d1340acc1678327a413",
       "source_id": "recipes",
       "title": "Recipes",
       "trust_tier": {
@@ -704,8 +704,8 @@
     "default_decision": "deny_unregistered_context",
     "failure_count": 0,
     "prohibited_data_class_count": 7,
-    "registered_byte_count": 22427558,
-    "registered_file_count": 3487,
+    "registered_byte_count": 22470121,
+    "registered_file_count": 3490,
     "risk_family_counts": {
       "context_poisoning": 8,
       "memory_poisoning": 3,
@@ -1013,7 +1013,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "e124a505321530ca09afa118c429e0de052ffc75dd74c29f77c22000291f8d5a",
+      "context_package_hash": "1c198c9573028cc3904a2398c5a62204578d5533f0ceed4577cdd9f839109b4e",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1046,7 +1046,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "bb6b3a50eacce8dbda9fff229b7c9d05e5f9cf549318c297869694c05463fe92",
+      "context_package_hash": "9a92dd2adc2823579477c2b5a9d8863f4615af589d0193f739c991ecf200e9ed",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1078,7 +1078,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "fa0717c8abbece831b4fe431ed37c58c37ef8587c9f775dff2354ffb54ad72aa",
+      "context_package_hash": "f8b0f94d616134f3ee308388d61e01c98087a5f8175057f94f6a62ab6df17f59",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1111,7 +1111,7 @@
         "github_copilot",
         "devin"
       ],
-      "context_package_hash": "479e3cc6a2eb31b187183ac88de16837c1e476065a452027fa33b9445b530f32",
+      "context_package_hash": "c7c85546c0ac938254d7d39788eba79fa705991367abab17229f2653b73606cc",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1142,7 +1142,7 @@
         "claude",
         "devin"
       ],
-      "context_package_hash": "80143a4d5419dcffaf6371cbb625f99d0cd59628cd4762f1a44b67cb02678c26",
+      "context_package_hash": "8e8ac58fd075e2c2a6233d0d2ca284087c1fcb78e97d6f6be7330be098d8b0fe",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1174,7 +1174,7 @@
         "cursor",
         "github_copilot"
       ],
-      "context_package_hash": "6a38dde6bd8c9fe0c78a02c95bd7934c09a274d7c4561853369627a9dcda8fa6",
+      "context_package_hash": "d3639031a6b441a417fde73e36722473e10755ee7e63992c2023aed5cb1cbe59",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1205,7 +1205,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "05a59249898390cea9a8debdc1237993c63c690377997d139b18aae8c7093258",
+      "context_package_hash": "ddb80a91edec3f444b9e4b28c5467d56470a4d9ee55959bf43fe96884ee97c96",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",
@@ -1236,7 +1236,7 @@
         "claude",
         "cursor"
       ],
-      "context_package_hash": "6847dfbcb237490b3d9e6fddae47f47944ebde2f324c37cd72b61f9c10829370",
+      "context_package_hash": "1407f37c57554b5dce689c0e978123246a89b37555f11d53cd05464b9de9608d",
       "context_package_scope": "SecurityRecipes open context only; customer runtime context must be retrieved tenant-side through a governed MCP gateway.",
       "context_source_count": 8,
       "freshness_state": "declared_current",

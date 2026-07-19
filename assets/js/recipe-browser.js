@@ -142,6 +142,29 @@
     return rank[normalize(value)] || 0;
   }
 
+  function workflowArchetypeLabel(value) {
+    if (value === '*') return 'All CVEs';
+    return String(value || '')
+      .split('_')
+      .filter(Boolean)
+      .map(function (part) {
+        return ['ssrf', 'xxe', 'idor', 'dos', 'sql', 'http'].indexOf(part) !== -1
+          ? part.toUpperCase()
+          : part.charAt(0).toUpperCase() + part.slice(1);
+      })
+      .join(' ');
+  }
+
+  function workflowRelationshipText(card) {
+    var archetypes = Array.isArray(card.cveArchetypes) ? card.cveArchetypes : [];
+    if (!archetypes.length) return '';
+    var shown = archetypes.slice(0, 2).map(workflowArchetypeLabel).join(', ');
+    var remaining = archetypes.length - 2;
+    var roleText = String(card.cveWorkflowRole || 'remediate').replace(/-/g, ' ');
+    var role = roleText.charAt(0).toUpperCase() + roleText.slice(1);
+    return 'CVE ' + role + ' · ' + shown + (remaining > 0 ? ' +' + remaining : '');
+  }
+
   // Card object built from a /recipes-browser.json entry. Field names mirror the
   // feed; `indexText` is the precomputed lowercase search haystack.
   function toCard(entry, index) {
@@ -162,6 +185,9 @@
       published: entry.published || '',
       ecosystem: entry.ecosystem || '',
       identity: entry.identity || '',
+      cve: entry.cve || '',
+      cveArchetypes: Array.isArray(entry.cveArchetypes) ? entry.cveArchetypes : [],
+      cveWorkflowRole: entry.cveWorkflowRole || '',
       summary: entry.summary || '',
       model: entry.model || '',
       zeroDay: !!entry.zeroDay,
@@ -204,7 +230,9 @@
     var searchParts = [
       recipe.title, recipe.summary, recipe.cve, recipe.ghsa, label,
       recipe.severity, recipe.maturity, tags.join(' '), facets.join(' '),
-      recipe.ecosystem, recipe.model, recipe.date
+      recipe.ecosystem, recipe.model, recipe.date,
+      Array.isArray(recipe.cve_archetypes) ? recipe.cve_archetypes.join(' ') : '',
+      recipe.cve_workflow_role
     ].concat(aliases);
     return {
       slug: recipe.slug || '',
@@ -221,6 +249,9 @@
       published: lane === 'cve' ? recipe.date || '' : '',
       ecosystem: recipe.ecosystem || '',
       identity: recipe.cve || recipe.ghsa || recipe.agent || label,
+      cve: recipe.cve || '',
+      cveArchetypes: Array.isArray(recipe.cve_archetypes) ? recipe.cve_archetypes : [],
+      cveWorkflowRole: recipe.cve_workflow_role || '',
       summary: recipe.summary || '',
       model: recipe.model || '',
       zeroDay: !!recipe.zero_day,
@@ -244,6 +275,10 @@
       (card.published ? '<span>Published ' + escapeHtml(card.published) + '</span>' : '') +
       (card.ecosystem ? '<span>' + escapeHtml(card.ecosystem) + '</span>' : '') +
       (card.model ? '<span>' + escapeHtml(card.model) + '</span>' : '');
+    var evidenceLink = card.cve
+      ? '<a class="recipe-browser-card__evidence" href="/cve/' + encodeURIComponent(card.cve.toUpperCase()) + '/" aria-describedby="recipe-card-' + escapeHtml(card.slug) + '">CVE evidence</a>'
+      : '';
+    var workflowRelationship = workflowRelationshipText(card);
 
     return (
       '<article class="recipe-browser-card recipe-browser-card--' + escapeHtml(card.category) + (card.zeroDay ? ' recipe-browser-card--zero-day' : '') + '" data-recipe-card data-recipe-slug="' + escapeHtml(card.slug) + '" data-recipe-path="' + escapeHtml(card.url) + '" aria-labelledby="recipe-card-' + escapeHtml(card.slug) + '">' +
@@ -253,9 +288,14 @@
       '<h3 id="recipe-card-' + escapeHtml(card.slug) + '">' + escapeHtml(card.displayTitle) + '</h3>' +
       (card.summary ? '<p>' + escapeHtml(card.summary) + '</p>' : '') +
       '<ul class="recipe-browser-card__facets" aria-label="Recipe outcomes">' + card.facets.map(function (f) { return '<li>' + escapeHtml(f.replace(/-/g, ' ')) + '</li>'; }).join('') + '</ul>' +
-      '<div class="recipe-browser-card__meta">' + meta + '</div>' +
+      '<div class="recipe-browser-card__meta">' + meta +
+      (workflowRelationship
+        ? '<span class="recipe-browser-card__cve-linkage">' + escapeHtml(workflowRelationship) + '</span>'
+        : '') +
+      '</div>' +
       '<div class="recipe-browser-card__actions">' +
       '<a class="recipe-browser-card__open" href="' + escapeHtml(card.url) + '" aria-describedby="recipe-card-' + escapeHtml(card.slug) + '">Open</a>' +
+      evidenceLink +
       '<button type="button" class="recipe-browser-card__download" data-recipe-download aria-label="Download ' + escapeHtml(card.displayTitle) + ' recipe JSON">' +
       '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v10m0 0 4-4m-4 4-4-4M5 19h14"/></svg>' +
       '<span>Download</span></button></div>' +
@@ -288,6 +328,8 @@
     var filterClose = root.querySelector('[data-recipe-filter-close]');
     var filterCount = root.querySelector('[data-recipe-filter-count]');
     var cveSearchButton = root.querySelector('[data-recipe-search-cve]');
+    var missionSearchForm = root.querySelector('[data-library-search-form]');
+    var missionSearchInput = root.querySelector('[data-library-search]');
     var filterLabels = {};
     var typeahead = null;
     var typeaheadList = null;
@@ -328,6 +370,11 @@
       } catch (error) {
         return new URLSearchParams();
       }
+    }
+
+    function canonicalCve(value) {
+      var match = String(value || '').trim().match(/^CVE-\d{4}-\d{4,}$/i);
+      return match ? match[0].toUpperCase() : '';
     }
 
     function replaceUrlForCurated() {
@@ -514,7 +561,9 @@
         return button.getAttribute('data-recipe-filter');
       });
       restoringHistory = true;
-      if (searchInput) searchInput.value = String(params.get('q') || '').slice(0, 160);
+      var restoredQuery = String(params.get('q') || '').slice(0, 160);
+      if (searchInput) searchInput.value = restoredQuery;
+      if (missionSearchInput) missionSearchInput.value = restoredQuery;
       activeCategory = allowed(params.get('category') || 'all', categories, 'all');
       if (severityFilter) {
         severityFilter.value = allowed(params.get('severity') || 'all', ['all', 'critical', 'high', 'medium', 'low', 'unspecified'], 'all');
@@ -529,7 +578,8 @@
         button.classList.toggle('is-active', active);
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
-      var requestedCollection = params.get('view') === 'cve' ? 'cve' : 'curated';
+      var requestedCollection = params.get('view') === 'cve' ||
+        (params.get('view') !== 'curated' && canonicalCve(restoredQuery)) ? 'cve' : 'curated';
       setCollection(requestedCollection, {
         fromHistory: true,
         push: false,
@@ -959,6 +1009,26 @@
 
     /* ---- wiring ------------------------------------------------------- */
 
+    if (missionSearchForm && missionSearchInput) {
+      missionSearchForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var query = missionSearchInput.value.trim().slice(0, 160);
+        var exact = canonicalCve(query);
+        if (exact) {
+          missionSearchInput.value = exact;
+          setCollection('cve', { push: true, query: exact });
+          return;
+        }
+        if (searchInput) searchInput.value = query;
+        setCollection('curated', { push: true });
+        applyFilters();
+        var curatedResults = root.querySelector('[data-library-panel="curated"] .recipe-library__results');
+        if (curatedResults && typeof curatedResults.scrollIntoView === 'function') {
+          curatedResults.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+      });
+    }
+
     if (searchInput) {
       var field = searchInput.closest('.recipe-browser__search-field');
       if (field) {
@@ -975,7 +1045,12 @@
         searchInput.setAttribute('aria-controls', typeaheadList.id);
         searchInput.setAttribute('aria-haspopup', 'listbox');
       }
-      searchInput.addEventListener('input', applyFilters);
+      searchInput.addEventListener('input', function () {
+        if (missionSearchInput && document.activeElement !== missionSearchInput) {
+          missionSearchInput.value = searchInput.value;
+        }
+        applyFilters();
+      });
       searchInput.addEventListener('search', applyFilters);
       searchInput.addEventListener('focus', renderTypeahead);
       searchInput.addEventListener('keydown', function (event) {

@@ -8,6 +8,8 @@ team: "Security"
 maturity: "development"
 model: "Opus 4.7"
 tags: ["xml", "xxe", "uplift", "mitigate", "defusedxml"]
+cve_archetypes: ["xxe"]
+cve_workflow_role: "remediate"
 weight: 24
 date: 2026-04-25
 ---

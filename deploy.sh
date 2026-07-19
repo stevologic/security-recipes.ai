@@ -613,6 +613,35 @@ prepare_traffic_report_source() {
   TRAFFIC_CADDY_CONFIG_CHANGED="true"
 }
 
+ensure_caddy_404_ban() {
+  local installer="${REPO_DIR}/scripts/configure_caddy_404_ban.sh"
+  local log_source=""
+
+  # Older revisions and deployment-test fixtures do not contain the installer.
+  # The first deployment of the feature is activated with the documented
+  # one-time command; every later deployment validates and refreshes it here.
+  [[ -f "${installer}" ]] || return 0
+
+  if ! log_source="$(
+    env_file_value SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE 2>/dev/null
+  )"; then
+    if [[ "${PROXY_KIND}" == "host" ]]; then
+      log_source="${HOST_CADDY_LOG_DIR}"
+    else
+      log "ERROR: Bundled Caddy must use a host log bind before the 404 abuse jail can be enabled. Set SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=/var/log/caddy in .env and recreate only Caddy once during a maintenance window."
+      return 1
+    fi
+  fi
+  [[ "${log_source}" == /* ]] || {
+    log "ERROR: The Caddy 404 abuse jail requires an absolute host log path; found ${log_source}."
+    return 1
+  }
+
+  log "Validating the Caddy 404 abuse jail."
+  SECURITY_RECIPES_CADDY_ACCESS_LOG="${log_source%/}/access.log" \
+    bash "${installer}"
+}
+
 traffic_report_is_healthy() {
   local container_id health
   container_id="$(docker compose ps --status running -q traffic-report 2>/dev/null || true)"
@@ -1469,6 +1498,12 @@ main() {
 
   prepare_traffic_report_source ||
     fail_deployment "Traffic report source preparation failed; the active site was not changed." \
+      "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
+      "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
+      "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
+
+  ensure_caddy_404_ban ||
+    fail_deployment "The Caddy 404 abuse jail could not be activated safely; the active site was not changed." \
       "${TARGET}" "${ROLLBACK_SHA}" "${PREVIOUS_ACTIVE}" "${PREVIOUS_DEPLOYED_SHA}" \
       "${PREVIOUS_FALLBACK_SERVICE}" "${PREVIOUS_FALLBACK_SHA}" \
       "${CANDIDATE_SERVICE}" "${FAILED_MARKER}"
