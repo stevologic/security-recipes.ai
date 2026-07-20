@@ -85,7 +85,7 @@ services:
   # bundled or host Caddy logs. The source defaults to the bundled named volume;
   # the droplet installer selects /var/log/caddy for host Caddy.
   traffic-report:
-    image: allinurl/goaccess:1.10.2
+    image: allinurl/goaccess:1.11
     profiles: ["caddy"]
     entrypoint: ["/bin/sh", "/opt/security-recipes/generate-traffic-report.sh"]
     environment:
