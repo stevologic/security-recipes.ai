@@ -139,6 +139,27 @@ class DeployScriptStaticTests(unittest.TestCase):
             compose,
         )
 
+    def test_deploy_compose_fail2ban_is_opt_in_and_conflict_safe(self) -> None:
+        deploy = DEPLOY_SCRIPT.read_text(encoding="utf-8")
+        env_example = (ROOT / ".env.example").read_text(encoding="utf-8")
+
+        self.assertIn('COMPOSE_FAIL2BAN="${DEPLOY_COMPOSE_FAIL2BAN:-}"', deploy)
+        self.assertIn("env_file_value DEPLOY_COMPOSE_FAIL2BAN", deploy)
+        self.assertIn("DEPLOY_COMPOSE_FAIL2BAN must be true or false", deploy)
+        self.assertIn('[[ "${COMPOSE_FAIL2BAN}" == "true" ]] || return 0', deploy)
+        self.assertIn('[[ "${PROXY_KIND}" == "bundled" ]]', deploy)
+        self.assertIn(
+            "/etc/fail2ban/jail.d/security-recipes-caddy-404.local", deploy
+        )
+        self.assertIn("refresh_compose_fail2ban", deploy)
+        self.assertIn("ensure_compose_fail2ban_runtime", deploy)
+        self.assertIn("docker compose config --services", deploy)
+        self.assertIn("deferring startup until the target revision is checked out", deploy)
+        self.assertIn("docker compose pull --policy always fail2ban", deploy)
+        self.assertIn('--wait --wait-timeout "${HEALTH_TIMEOUT}" fail2ban', deploy)
+        self.assertIn("DEPLOY_COMPOSE_FAIL2BAN=false", env_example)
+        self.assertIn("COMPOSE_PROFILES=caddy", env_example)
+
     def test_traffic_report_has_a_stable_entrypoint_and_atomic_publication(self) -> None:
         compose = COMPOSE_FILE.read_text(encoding="utf-8")
         generator = TRAFFIC_REPORT_SCRIPT.read_text(encoding="utf-8")
@@ -198,7 +219,6 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn("SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE", deploy)
         self.assertIn("output file ${log_path}", deploy)
         self.assertIn("ensure_caddy_404_ban", deploy)
-        self.assertIn("scripts/configure_caddy_404_ban.sh", deploy)
 
     def test_compose_preserves_the_traffic_report_entrypoint(self) -> None:
         docker = shutil.which("docker")

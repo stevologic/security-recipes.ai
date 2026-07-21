@@ -8,6 +8,16 @@ const yaml = require('js-yaml');
 
 const configPath = path.join(__dirname, '..', '.github', 'dependabot.yml');
 const config = yaml.load(fs.readFileSync(configPath, 'utf8'));
+const lockPath = path.join(__dirname, '..', 'package-lock.json');
+const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+
+test('brace-expansion is pinned to the patched 1.x release', () => {
+  assert.equal(
+    lock.packages?.['node_modules/brace-expansion']?.version,
+    '1.1.16',
+    'GHSA-3jxr-9vmj-r5cp affects brace-expansion versions below 1.1.16',
+  );
+});
 
 test('Dependabot sends grouped version updates for every repository ecosystem to main', () => {
   const expectedEcosystems = [
