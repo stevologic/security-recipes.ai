@@ -103,6 +103,12 @@ class CveLandingRenderTests(unittest.TestCase):
         )
         self.assertIn('data-cve-initial-id="CVE-2024-3400"', page)
         self.assertIn('data-cve-catalog-base="/api/cve-catalog/"', page)
+        self.assertIn('data-site-signal-background="true"', page)
+        self.assertIn('class="sr-docs-body sr-cve-detail-page"', page)
+        self.assertIn('class="content cve-catalog cve-landing sr-cve-detail-content"', page)
+        self.assertIn('<link rel="stylesheet" href="/css/cve-detail.css">', page)
+        self.assertIn('<script src="/js/signal-background.js" defer></script>', page)
+        self.assertIn('<meta name="theme-color" content="#020405">', page)
         self.assertIn("Complete CVE record and remediation plan", page)
         self.assertIn("Matched remediation archetype", page)
         self.assertIn("Explicitly reviewed curated workflows load", page)
@@ -138,6 +144,17 @@ class CveLandingRenderTests(unittest.TestCase):
         source["cve"] = "CVE-2024-3401"
         with self.assertRaisesRegex(ValueError, "identities do not match"):
             mcp_server._render_cve_landing_page(recipe)
+
+    def test_error_page_keeps_the_canonical_cve_theme(self) -> None:
+        page = mcp_server._render_cve_landing_error(
+            "CVE-2024-9999",
+            "The record is unavailable.",
+        )
+
+        self.assertIn('data-site-signal-background="true"', page)
+        self.assertIn('class="sr-docs-body sr-cve-detail-page"', page)
+        self.assertIn('<link rel="stylesheet" href="/css/cve-detail.css">', page)
+        self.assertIn('<script src="/js/signal-background.js" defer></script>', page)
 
     def test_public_base_url_rejects_credentials_and_non_http_schemes(self) -> None:
         self.assertEqual(

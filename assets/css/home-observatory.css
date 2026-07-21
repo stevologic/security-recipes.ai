@@ -1615,146 +1615,6 @@ a.trust-card:focus-visible {
   line-height: 1.55;
 }
 
-/* One-finding process */
-.process-section {
-  background:
-    linear-gradient(180deg, rgba(2, 10, 9, 0.66), rgba(1, 6, 6, 0.36));
-}
-
-.bounded-process {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
-  align-items: stretch;
-  gap: 22px;
-}
-
-.process-steps {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  min-width: 0;
-  border: 1px solid var(--home-border);
-  border-radius: 9px;
-  background: rgba(4, 14, 13, 0.62);
-}
-
-.process-steps::before {
-  position: absolute;
-  top: 47px;
-  right: 11%;
-  left: 11%;
-  height: 1px;
-  content: "";
-  background: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.6), transparent);
-}
-
-.process-step {
-  position: relative;
-  z-index: 1;
-  min-width: 0;
-  min-height: 260px;
-  padding: 27px 19px 22px;
-  border-right: 1px solid var(--home-border);
-}
-
-.process-step:last-child {
-  border-right: 0;
-}
-
-.process-step b {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  margin-bottom: 28px;
-  place-items: center;
-  border: 1px solid rgba(45, 212, 191, 0.66);
-  border-radius: 50%;
-  color: var(--home-teal-bright);
-  background: #051411;
-  font-family: var(--home-font-mono);
-  font-size: 0.73rem;
-  box-shadow: 0 0 0 7px rgba(4, 14, 13, 0.95);
-}
-
-.process-step h3 {
-  margin: 0 0 10px;
-  color: #e9f0ee;
-  font-size: 0.93rem;
-  font-weight: 700;
-}
-
-.process-step p {
-  margin: 0;
-  color: #8fa09c;
-  font-size: 0.78rem;
-  line-height: 1.58;
-}
-
-.process-contract {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-  border: 1px solid rgba(251, 191, 36, 0.28);
-  border-radius: 9px;
-  background:
-    linear-gradient(160deg, rgba(26, 20, 4, 0.4), rgba(4, 12, 11, 0.82));
-}
-
-.process-contract__head {
-  display: flex;
-  align-items: center;
-  min-height: 47px;
-  padding: 0 16px;
-  gap: 8px;
-  border-bottom: 1px solid rgba(251, 191, 36, 0.18);
-  color: var(--home-amber);
-  font-family: var(--home-font-mono);
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.process-contract ul {
-  display: grid;
-  padding: 16px;
-  margin: 0;
-  gap: 0;
-  list-style: none;
-}
-
-.process-contract li {
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  min-height: 47px;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid rgba(251, 191, 36, 0.12);
-  color: #9caaa7;
-  font-size: 0.76rem;
-}
-
-.process-contract li:last-child {
-  border-bottom: 0;
-}
-
-.process-contract strong {
-  color: #dedbc7;
-  font-size: 0.72rem;
-  font-weight: 650;
-}
-
-.process-contract__note {
-  padding: 14px 16px;
-  margin-top: auto;
-  border-top: 1px solid rgba(251, 191, 36, 0.16);
-  color: #a39870;
-  font-family: var(--home-font-mono);
-  font-size: 0.63rem;
-  line-height: 1.55;
-}
-
 /* Adoption */
 .adoption-grid {
   display: grid;
@@ -2332,22 +2192,6 @@ a.adoption-card:focus-visible {
     max-width: 760px;
   }
 
-  .bounded-process {
-    grid-template-columns: 1fr;
-  }
-
-  .process-contract {
-    min-height: 0;
-  }
-
-  .process-contract ul {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 18px;
-  }
-
-  .process-contract li:nth-child(3) {
-    border-bottom: 0;
-  }
 }
 
 @media (max-width: 900px) {
@@ -2396,26 +2240,6 @@ a.adoption-card:focus-visible {
     grid-template-columns: 1fr;
     align-items: start;
     gap: 16px;
-  }
-
-  .process-steps {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .process-steps::before {
-    display: none;
-  }
-
-  .process-step {
-    min-height: 220px;
-  }
-
-  .process-step:nth-child(2) {
-    border-right: 0;
-  }
-
-  .process-step:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--home-border);
   }
 
   .context-flow {
@@ -2626,37 +2450,6 @@ a.adoption-card:focus-visible {
     border-bottom: 0;
   }
 
-  .process-steps {
-    grid-template-columns: 1fr;
-  }
-
-  .process-step {
-    min-height: 0;
-    padding: 22px;
-    border-right: 0;
-    border-bottom: 1px solid var(--home-border);
-  }
-
-  .process-step:nth-child(-n + 2) {
-    border-bottom: 1px solid var(--home-border);
-  }
-
-  .process-step:last-child {
-    border-bottom: 0;
-  }
-
-  .process-step b {
-    margin-bottom: 18px;
-  }
-
-  .process-contract ul {
-    grid-template-columns: 1fr;
-  }
-
-  .process-contract li:nth-child(3) {
-    border-bottom: 1px solid rgba(251, 191, 36, 0.12);
-  }
-
   .context-flow {
     grid-template-columns: 1fr;
   }
@@ -2815,8 +2608,6 @@ a.adoption-card:focus-visible {
   .agent-sidecar,
   .knowledge-card,
   .trust-card,
-  .process-steps,
-  .process-contract,
   .adoption-card,
   .context-stack,
   .final-cta {

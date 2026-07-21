@@ -12175,7 +12175,7 @@ def _render_cve_landing_page(
     )
 
     return f"""<!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-site-signal-background="true">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -12194,17 +12194,19 @@ def _render_cve_landing_page(
 <meta name="twitter:title" content="{html.escape(headline, quote=True)}">
 <meta name="twitter:description" content="{html.escape(description, quote=True)}">
 <meta name="twitter:image" content="{html.escape(image_url, quote=True)}">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#020405">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="stylesheet" href="/css/docs-chrome.css">
 <link rel="stylesheet" href="/css/custom.css">
 <link rel="stylesheet" href="/css/cve-catalog.css">
+<link rel="stylesheet" href="/css/cve-detail.css">
 <script type="application/ld+json">{_cve_landing_json(json_ld)}</script>
 <script>window.__SITE_BASE_PREFIX="/";</script>
+<script src="/js/signal-background.js" defer></script>
 <script src="/js/cve-catalog.js" defer></script>
 </head>
-<body class="sr-docs-body">
+<body class="sr-docs-body sr-cve-detail-page" data-cve-detail-page="true">
 <div class="nextra-nav-container">
   <div class="nextra-nav-container-blur"></div>
   <nav class="sr-nav" aria-label="Main navigation">
@@ -12234,7 +12236,7 @@ def _render_cve_landing_page(
       <a href="/recipes/?view=cve">CVE catalog</a><span aria-hidden="true">/</span>
       <span aria-current="page">{html.escape(cve_id)}</span>
     </nav>
-    <article class="content cve-catalog cve-landing">
+    <article class="content cve-catalog cve-landing sr-cve-detail-content">
       <p class="cve-catalog__eyebrow">CVE intelligence and bounded remediation</p>
       <h1 class="sr-page-title">{html.escape(headline)}</h1>
       <div class="cve-catalog__badges" aria-label="CVE priority">
@@ -12302,7 +12304,7 @@ def _render_cve_landing_error(cve_id: str, message: str) -> str:
     safe_id = _cve_landing_text(cve_id, 40).upper()
     safe_message = _cve_landing_text(message, 300)
     return f"""<!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-site-signal-background="true">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -12310,8 +12312,10 @@ def _render_cve_landing_error(cve_id: str, message: str) -> str:
 <meta name="robots" content="noindex,nofollow,noarchive">
 <link rel="stylesheet" href="/css/docs-chrome.css">
 <link rel="stylesheet" href="/css/custom.css">
+<link rel="stylesheet" href="/css/cve-detail.css">
+<script src="/js/signal-background.js" defer></script>
 </head>
-<body class="sr-docs-body">
+<body class="sr-docs-body sr-cve-detail-page" data-cve-detail-page="true">
 <main id="content" class="hextra-content sr-main">
 <article class="content">
 <h1>{html.escape(safe_id or "CVE record unavailable")}</h1>

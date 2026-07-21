@@ -110,6 +110,13 @@ test('CVE Database is a standalone catalog route in the primary navigation', () 
   assert.match(hub.source, /\{\{<\s*cve-database\s*>\}\}/);
   assert.match(hubHtml, /data-cve-catalog\s+data-cve-catalog-base="\/api\/cve-catalog\/"/);
   assert.doesNotMatch(hubHtml, /data-cve-catalog-deferred/);
+  assert.match(hubHtml, /<h1 id="cve-database-heading">CVE Database<\/h1>/);
+  assert.doesNotMatch(hubHtml, /From vulnerability signal to a bounded response plan/);
+  assert.doesNotMatch(hubHtml, /data-cve-hero-search/);
+  assert.ok(
+    hubHtml.indexOf('id="cve-catalog"') < hubHtml.indexOf('id="cve-quick-heading"'),
+    'the searchable records must appear before supporting content'
+  );
   assert.ok(
     head.includes('/cve-database/'),
     'the standalone route must opt into route-specific CVE assets'
