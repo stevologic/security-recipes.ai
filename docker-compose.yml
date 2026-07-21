@@ -81,6 +81,40 @@ services:
       retries: 3
     restart: unless-stopped
 
+  # Watches Caddy's structured access log and blocks repeated 404 scanners at
+  # the host firewall. This must share the host network namespace: changing a
+  # container-local firewall would not protect Docker-published ports.
+  # Enable with COMPOSE_PROFILES=caddy,fail2ban. Do not run this alongside a
+  # host Fail2Ban instance managing the same security-recipes-caddy-404 jail.
+  fail2ban:
+    image: "${FAIL2BAN_IMAGE:-crazymax/fail2ban:latest}"
+    profiles: ["fail2ban"]
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      TZ: "${TZ:-UTC}"
+      F2B_LOG_TARGET: STDOUT
+      F2B_LOG_LEVEL: "${FAIL2BAN_LOG_LEVEL:-INFO}"
+      F2B_DB_PURGE_AGE: "${FAIL2BAN_DB_PURGE_AGE:-1d}"
+    volumes:
+      - fail2ban_data:/data
+      - ./config/fail2ban/filter.d/security-recipes-caddy-404.conf:/data/filter.d/security-recipes-caddy-404.conf:ro
+      - ./config/fail2ban/jail.d/security-recipes-caddy-404.local:/data/jail.d/security-recipes-caddy-404.local:ro
+      - "${SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE:-caddy_logs}:/var/log/caddy:ro"
+    depends_on:
+      caddy:
+        condition: service_started
+    logging: *security-recipes-logging
+    healthcheck:
+      test: ["CMD", "fail2ban-client", "ping"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+
   # Regenerates a public aggregate traffic dashboard every minute from either
   # bundled or host Caddy logs. The source defaults to the bundled named volume;
   # the droplet installer selects /var/log/caddy for host Caddy.
@@ -137,4 +171,5 @@ volumes:
   caddy_data:
   caddy_config:
   caddy_logs:
+  fail2ban_data:
   traffic_report:

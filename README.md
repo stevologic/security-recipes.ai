@@ -479,6 +479,22 @@ load balancer, move the ban action to that provider's WAF/API; an origin
 firewall cannot directly block an end client whose packets arrive from a
 trusted proxy.
 
+For a fully Compose-managed Caddy deployment, Fail2Ban can instead run in the
+stack. Set `COMPOSE_PROFILES=caddy,fail2ban` and keep Caddy's log source on the
+default `caddy_logs` volume (or a host bind), then start and verify it:
+
+```bash
+docker compose up -d caddy fail2ban
+docker compose exec fail2ban fail2ban-client status security-recipes-caddy-404
+```
+
+The container shares the host network namespace and has only the
+`NET_ADMIN`/`NET_RAW` capabilities required to apply the jail's nftables rules
+to host and Docker-forwarded web traffic. Do not enable the Compose jail while
+the host `security-recipes-caddy-404` jail is active; choose one owner for the
+firewall rules. This mitigates repeated application-layer 404 scanning, but it
+does not replace upstream volumetric DDoS protection or request rate limiting.
+
 If you prefer nginx instead of Caddy on the droplet, bootstrap the host without
 the proxy and then run the nginx helper:
 
