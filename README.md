@@ -480,8 +480,10 @@ firewall cannot directly block an end client whose packets arrive from a
 trusted proxy.
 
 For a fully Compose-managed Caddy deployment, Fail2Ban can instead run in the
-stack. Set `COMPOSE_PROFILES=caddy,fail2ban` and keep Caddy's log source on the
-default `caddy_logs` volume (or a host bind), then start and verify it:
+stack. Set `DEPLOY_COMPOSE_FAIL2BAN=true` in `.env` and keep Caddy's log source
+on the default `caddy_logs` volume (or a host bind). On its next run,
+`deploy.sh` pulls, starts, health-checks, and subsequently updates the Fail2Ban
+container. To start it manually without waiting for a deployment, use:
 
 ```bash
 docker compose up -d caddy fail2ban
@@ -494,6 +496,9 @@ to host and Docker-forwarded web traffic. Do not enable the Compose jail while
 the host `security-recipes-caddy-404` jail is active; choose one owner for the
 firewall rules. This mitigates repeated application-layer 404 scanning, but it
 does not replace upstream volumetric DDoS protection or request rate limiting.
+When the option is `false`, `deploy.sh` does not require the host `fail2ban`
+package; host-managed installations remain the responsibility of the droplet
+setup and `scripts/configure_caddy_404_ban.sh` workflows.
 
 If you prefer nginx instead of Caddy on the droplet, bootstrap the host without
 the proxy and then run the nginx helper:

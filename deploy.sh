@@ -50,6 +50,7 @@ export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes}"
 #                           Default: SECURITY_RECIPES_BASE_URL resolved to loopback
 #   DEPLOY_HEALTH_URL       Legacy alias for DEPLOY_PROXY_HEALTH_URL.
 #   DEPLOY_PROXY_MODE       auto, bundled, or host.    Default: auto
+#   DEPLOY_COMPOSE_FAIL2BAN Run the Caddy abuse jail in Compose. Default: false
 #   DEPLOY_HOST_CADDYFILE   Host Caddy config path.    Default: /etc/caddy/Caddyfile
 #   DEPLOY_HOST_CADDY_LOG_DIR Host Caddy access-log directory. Default: /var/log/caddy
 #   DEPLOY_SITE_IMAGE_REPOSITORY CI-published, commit-tagged site repository.
@@ -87,6 +88,7 @@ HEALTH_TIMEOUT="${DEPLOY_HEALTH_TIMEOUT:-90}"
 LOCK_FILE="${DEPLOY_LOCK_FILE:-/var/lock/security-recipes-deploy.lock}"
 PROXY_HEALTH_URL="${DEPLOY_PROXY_HEALTH_URL:-${DEPLOY_HEALTH_URL:-}}"
 PROXY_MODE="${DEPLOY_PROXY_MODE:-auto}"
+COMPOSE_FAIL2BAN="${DEPLOY_COMPOSE_FAIL2BAN:-}"
 HOST_CADDYFILE="${DEPLOY_HOST_CADDYFILE:-/etc/caddy/Caddyfile}"
 HOST_CADDY_LOG_DIR="${DEPLOY_HOST_CADDY_LOG_DIR:-/var/log/caddy}"
 SITE_IMAGE_REPOSITORY="${DEPLOY_SITE_IMAGE_REPOSITORY:-ghcr.io/stevologic/security-recipes.ai-site}"
@@ -534,6 +536,18 @@ env_file_value() {
   printf '%s' "${value}"
 }
 
+load_compose_fail2ban_setting() {
+  if [[ -z "${COMPOSE_FAIL2BAN}" ]]; then
+    COMPOSE_FAIL2BAN="$(
+      env_file_value DEPLOY_COMPOSE_FAIL2BAN 2>/dev/null || printf 'false'
+    )"
+  fi
+  [[ "${COMPOSE_FAIL2BAN}" =~ ^(true|false)$ ]] || {
+    log "ERROR: DEPLOY_COMPOSE_FAIL2BAN must be true or false."
+    return 1
+  }
+}
+
 prepare_traffic_report_source() {
   [[ "${PROXY_KIND}" == "host" ]] || return 0
 
@@ -614,32 +628,56 @@ prepare_traffic_report_source() {
 }
 
 ensure_caddy_404_ban() {
-  local installer="${REPO_DIR}/scripts/configure_caddy_404_ban.sh"
-  local log_source=""
+  # Host Fail2Ban remains owned by the droplet setup/installer. deploy.sh only
+  # manages the explicitly opted-in Compose service, so a host without the
+  # fail2ban package can deploy normally when the option is off.
+  [[ "${COMPOSE_FAIL2BAN}" == "true" ]] || return 0
 
-  # Older revisions and deployment-test fixtures do not contain the installer.
-  # The first deployment of the feature is activated with the documented
-  # one-time command; every later deployment validates and refreshes it here.
-  [[ -f "${installer}" ]] || return 0
-
-  if ! log_source="$(
-    env_file_value SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE 2>/dev/null
-  )"; then
-    if [[ "${PROXY_KIND}" == "host" ]]; then
-      log_source="${HOST_CADDY_LOG_DIR}"
-    else
-      log "ERROR: Bundled Caddy must use a host log bind before the 404 abuse jail can be enabled. Set SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE=/var/log/caddy in .env and recreate only Caddy once during a maintenance window."
-      return 1
-    fi
-  fi
-  [[ "${log_source}" == /* ]] || {
-    log "ERROR: The Caddy 404 abuse jail requires an absolute host log path; found ${log_source}."
+  [[ "${PROXY_KIND}" == "bundled" ]] || {
+    log "ERROR: DEPLOY_COMPOSE_FAIL2BAN=true requires bundled Caddy. Use host Fail2Ban with host Caddy."
     return 1
   }
+  if [[ -e /etc/fail2ban/jail.d/security-recipes-caddy-404.local ]] ||
+     { command -v fail2ban-client >/dev/null 2>&1 &&
+       fail2ban-client status security-recipes-caddy-404 >/dev/null 2>&1; }; then
+    log "ERROR: The host security-recipes-caddy-404 jail is installed or active. Disable and remove that host jail before enabling Compose Fail2Ban."
+    return 1
+  fi
+}
 
-  log "Validating the Caddy 404 abuse jail."
-  SECURITY_RECIPES_CADDY_ACCESS_LOG="${log_source%/}/access.log" \
-    bash "${installer}"
+compose_fail2ban_is_healthy() {
+  local container_id health
+  container_id="$(docker compose ps --status running -q fail2ban 2>/dev/null || true)"
+  [[ -n "${container_id}" ]] || return 1
+  health="$(
+    docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' \
+      "${container_id}" 2>/dev/null || true
+  )"
+  [[ "${health}" == "healthy" ]]
+}
+
+refresh_compose_fail2ban() {
+  [[ "${COMPOSE_FAIL2BAN}" == "true" ]] || return 0
+  ensure_caddy_404_ban || return 1
+
+  log "Pulling and refreshing the opt-in Compose Fail2Ban service."
+  docker compose pull --policy always fail2ban || return 1
+  docker compose up -d --no-deps --force-recreate --pull never \
+    --wait --wait-timeout "${HEALTH_TIMEOUT}" fail2ban
+}
+
+ensure_compose_fail2ban_runtime() {
+  [[ "${COMPOSE_FAIL2BAN}" == "true" ]] || return 0
+  ensure_caddy_404_ban || return 1
+  if ! docker compose config --services 2>/dev/null | grep -Fxq fail2ban; then
+    log "Compose Fail2Ban is enabled but absent from the current checkout; deferring startup until the target revision is checked out."
+    return 0
+  fi
+  compose_fail2ban_is_healthy && return 0
+
+  log "Repairing the missing or unhealthy opt-in Compose Fail2Ban service."
+  docker compose config --quiet || return 1
+  refresh_compose_fail2ban
 }
 
 traffic_report_is_healthy() {
@@ -1086,6 +1124,8 @@ refresh_non_site_images() {
   docker compose up -d --no-deps --force-recreate --pull never \
     --wait --wait-timeout "${HEALTH_TIMEOUT}" traffic-report || return 1
 
+  refresh_compose_fail2ban || return 1
+
   log "Pulling and refreshing the CI-built MCP service before site cutover."
   docker pull "${mcp_image}" || return 1
   verify_image_revision "${mcp_image}" "${revision}" || return 1
@@ -1406,6 +1446,7 @@ main() {
   ROUTING_WITHDRAWN="false"
   TRAFFIC_CADDY_CONFIG_CHANGED="false"
 
+  load_compose_fail2ban_setting || die "Invalid Compose Fail2Ban deployment setting."
   load_deploy_state
   detect_proxy || die "No zero-downtime Caddy proxy is available."
   reconcile_active_slot || die "Could not reconcile the active blue/green slot."
@@ -1417,6 +1458,8 @@ main() {
   fi
   ensure_traffic_report_runtime ||
     die "The aggregate traffic report service could not be prepared safely."
+  ensure_compose_fail2ban_runtime ||
+    die "The opt-in Compose Fail2Ban service could not be prepared safely."
 
   while true; do
     fetch_branch || die "git fetch failed or exceeded ${GIT_TIMEOUT}s."
