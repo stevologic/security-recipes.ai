@@ -656,9 +656,22 @@ compose_fail2ban_is_healthy() {
   [[ "${health}" == "healthy" ]]
 }
 
+ensure_compose_fail2ban_log() {
+  [[ "${COMPOSE_FAIL2BAN}" == "true" ]] || return 0
+
+  # Fail2Ban rejects an enabled file-backed jail when its log does not exist.
+  # Caddy may not create access.log until its first request, so initialize the
+  # shared named volume or host bind through the already-running edge.
+  log "Ensuring the Caddy access log exists before starting Compose Fail2Ban."
+  docker compose exec -T caddy sh -c \
+    'mkdir -p /var/log/caddy && touch /var/log/caddy/access.log' || return 1
+  docker compose exec -T caddy test -f /var/log/caddy/access.log
+}
+
 refresh_compose_fail2ban() {
   [[ "${COMPOSE_FAIL2BAN}" == "true" ]] || return 0
   ensure_caddy_404_ban || return 1
+  ensure_compose_fail2ban_log || return 1
 
   log "Pulling and refreshing the opt-in Compose Fail2Ban service."
   docker compose pull --policy always fail2ban || return 1
