@@ -483,7 +483,9 @@ For a fully Compose-managed Caddy deployment, Fail2Ban can instead run in the
 stack. Set `DEPLOY_COMPOSE_FAIL2BAN=true` in `.env` and keep Caddy's log source
 on the default `caddy_logs` volume (or a host bind). On its next run,
 `deploy.sh` pulls, starts, health-checks, and subsequently updates the Fail2Ban
-container. To start it manually without waiting for a deployment, use:
+container. It also initializes Caddy's access-log file before starting the jail
+because Fail2Ban requires the configured file to exist. To start it manually
+without waiting for a deployment, use:
 
 ```bash
 docker compose up -d caddy fail2ban
