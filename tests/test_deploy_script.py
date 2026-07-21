@@ -114,6 +114,31 @@ class DeployScriptStaticTests(unittest.TestCase):
             compose,
         )
 
+    def test_compose_fail2ban_can_enforce_the_caddy_404_jail(self) -> None:
+        compose = COMPOSE_FILE.read_text(encoding="utf-8")
+
+        self.assertIn("fail2ban:", compose)
+        self.assertIn('profiles: ["fail2ban"]', compose)
+        self.assertIn("network_mode: host", compose)
+        self.assertIn("- NET_ADMIN", compose)
+        self.assertIn("- NET_RAW", compose)
+        self.assertIn("fail2ban_data:/data", compose)
+        self.assertIn(
+            "./config/fail2ban/filter.d/security-recipes-caddy-404.conf:"
+            "/data/filter.d/security-recipes-caddy-404.conf:ro",
+            compose,
+        )
+        self.assertIn(
+            "./config/fail2ban/jail.d/security-recipes-caddy-404.local:"
+            "/data/jail.d/security-recipes-caddy-404.local:ro",
+            compose,
+        )
+        self.assertIn(
+            '"${SECURITY_RECIPES_TRAFFIC_LOGS_SOURCE:-caddy_logs}:'
+            '/var/log/caddy:ro"',
+            compose,
+        )
+
     def test_traffic_report_has_a_stable_entrypoint_and_atomic_publication(self) -> None:
         compose = COMPOSE_FILE.read_text(encoding="utf-8")
         generator = TRAFFIC_REPORT_SCRIPT.read_text(encoding="utf-8")
@@ -153,6 +178,9 @@ class DeployScriptStaticTests(unittest.TestCase):
         self.assertIn('"theme":"darkGray"', generator)
         self.assertIn("security-recipes.ai traffic dashboard theme", theme)
         self.assertIn("--sr-teal: #2dd4bf", theme)
+        self.assertIn("font-size: 16px !important", theme)
+        self.assertIn("font-size: 0.95rem !important", theme)
+        self.assertIn("font-size: 17px !important", theme)
         self.assertIn("Privacy-preserving analytics", placeholder)
         self.assertIn("prefers-reduced-motion", placeholder)
         self.assertIn('name="robots" content="noindex, nofollow, noarchive"', placeholder)

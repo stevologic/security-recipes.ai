@@ -36,6 +36,8 @@ body {
     linear-gradient(180deg, #020405 0%, #04100f 70%, #030707 100%) !important;
   color: var(--sr-text) !important;
   font-family: var(--sr-font-sans) !important;
+  font-size: 16px !important;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -131,7 +133,7 @@ header.page-header {
   box-shadow: none !important;
   color: #8cebdd !important;
   font-family: var(--sr-font-mono) !important;
-  font-size: 0.68rem !important;
+  font-size: 0.85rem !important;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -144,7 +146,7 @@ header.page-header {
   background: rgba(255, 255, 255, 0.035) !important;
   color: var(--sr-soft) !important;
   font-family: var(--sr-font-mono) !important;
-  font-size: 0.68rem;
+  font-size: 0.85rem !important;
   font-weight: 600;
 }
 
@@ -161,7 +163,7 @@ header.page-header {
 #overall hgroup p {
   color: var(--sr-muted) !important;
   font-family: var(--sr-font-mono) !important;
-  font-size: 0.7rem !important;
+  font-size: 0.9rem !important;
   font-weight: 800 !important;
   letter-spacing: 0.075em;
   text-transform: uppercase;
@@ -169,7 +171,7 @@ header.page-header {
 
 #overall hgroup p {
   color: var(--sr-soft) !important;
-  font-size: 0.64rem !important;
+  font-size: 0.82rem !important;
 }
 
 #overall li div {
@@ -207,7 +209,7 @@ header.page-header {
 #overall li span:first-of-type {
   color: var(--sr-muted) !important;
   font-family: var(--sr-font-mono) !important;
-  font-size: 0.68rem !important;
+  font-size: 0.85rem !important;
   font-weight: 700;
   letter-spacing: 0.035em;
   text-transform: uppercase;
@@ -253,6 +255,7 @@ article .panel-heading .gheader {
   background: rgba(255, 255, 255, 0.035) !important;
   box-shadow: none !important;
   color: var(--sr-muted) !important;
+  font-size: 0.9rem !important;
 }
 
 .btn-default:hover,
@@ -274,6 +277,7 @@ article .panel-heading .gheader {
 .dropdown-menu > li > a,
 .dropdown-header {
   color: var(--sr-muted) !important;
+  font-size: 0.9rem !important;
 }
 
 .dropdown-menu > li > a:hover,
@@ -292,6 +296,7 @@ svg text,
 text.legend {
   fill: var(--sr-soft) !important;
   font-family: var(--sr-font-mono) !important;
+  font-size: 0.8rem !important;
 }
 
 .grid .tick line {
@@ -342,7 +347,8 @@ article .table {
   margin-bottom: 0 !important;
   background: transparent !important;
   color: var(--sr-muted) !important;
-  font-size: 0.75rem;
+  font-size: 0.95rem !important;
+  line-height: 1.45;
 }
 
 article table > thead > tr > th,
@@ -357,7 +363,7 @@ article table > tfoot > tr > td {
 article table > thead > tr > th {
   color: var(--sr-soft) !important;
   font-family: var(--sr-font-mono) !important;
-  font-size: 0.63rem;
+  font-size: 0.8rem !important;
   font-weight: 800;
   letter-spacing: 0.045em;
   text-transform: uppercase;
@@ -384,6 +390,7 @@ article table.table-hover > tbody > tr:hover {
   border-color: var(--sr-border) !important;
   background: rgba(255, 255, 255, 0.025) !important;
   color: var(--sr-muted) !important;
+  font-size: 0.9rem !important;
 }
 
 .pagination > li > a:hover,
@@ -410,7 +417,7 @@ nav h3,
 .nav-list h3 {
   color: var(--sr-soft) !important;
   font-family: var(--sr-font-mono) !important;
-  font-size: 0.64rem !important;
+  font-size: 0.82rem !important;
   letter-spacing: 0.075em;
   text-transform: uppercase;
 }
@@ -419,6 +426,8 @@ nav h3,
 .nav-list li a,
 .powered {
   color: var(--sr-muted) !important;
+  font-size: 0.95rem !important;
+  line-height: 1.4;
 }
 
 .nav-list li:hover,
@@ -461,6 +470,10 @@ nav h3,
 }
 
 @media (max-width: 767px) {
+  body {
+    font-size: 17px !important;
+  }
+
   .container {
     width: min(100% - 24px, 1450px) !important;
     padding-top: 14px !important;
@@ -480,6 +493,11 @@ nav h3,
 
   #overall li div {
     min-height: 96px;
+  }
+
+  article table,
+  article .table {
+    font-size: 1rem !important;
   }
 }
 
